@@ -17,21 +17,29 @@
 package org.springframework.integration.xml.router;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
 /**
  * Abstract base class for Message Routers that use
  * {@link XPathExpression} evaluation to determine channel names.
  * 
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
-public abstract class AbstractXPathRouter extends AbstractMessageRouter {
+public class XPathRouter extends AbstractMessageRouter {
+	
+	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
 
 	private final XPathExpression xPathExpression;
 
@@ -45,7 +53,7 @@ public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 	 * @param expression
 	 * @param namespaces
 	 */
-	public AbstractXPathRouter(String expression, Map<String, String> namespaces) {
+	public XPathRouter(String expression, Map<String, String> namespaces) {
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
 	}
 
@@ -57,7 +65,7 @@ public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 	 * @param prefix
 	 * @param namespace
 	 */
-	public AbstractXPathRouter(String expression, String prefix, String namespace) {
+	public XPathRouter(String expression, String prefix, String namespace) {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put(prefix, namespace);
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
@@ -69,7 +77,7 @@ public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 	 * 
 	 * @param expression
 	 */
-	public AbstractXPathRouter(String expression) {
+	public XPathRouter(String expression) {
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression);
 	}
 
@@ -78,7 +86,7 @@ public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 	 * 
 	 * @param expression
 	 */
-	public AbstractXPathRouter(XPathExpression expression) {
+	public XPathRouter(XPathExpression expression) {
 		this.xPathExpression = expression;
 	}
 
@@ -102,5 +110,21 @@ public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 	
 	public String getComponentType(){
 		return "xml:xpath-router";
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Object> getChannelIndicatorList(Message<?> message) {
+		Node node = getConverter().convertToNode(message.getPayload());
+		return getXPathExpression().evaluate(node, this.nodeMapper);
+	}
+
+
+	private static class TextContentNodeMapper implements NodeMapper {
+
+		public Object mapNode(Node node, int nodeNum) throws DOMException {
+			return node.getTextContent();
+		}
+
 	}
 }

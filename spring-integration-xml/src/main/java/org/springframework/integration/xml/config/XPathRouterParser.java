@@ -16,84 +16,48 @@
 
 package org.springframework.integration.xml.config;
 
-import java.util.List;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.config.xml.AbstractChannelNameResolvingRouterParser;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;xpath-router/&gt; element.
  * 
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class XPathRouterParser extends AbstractConsumerEndpointParser {
+public class XPathRouterParser extends AbstractChannelNameResolvingRouterParser {
 
 	private XPathExpressionParser xpathParser = new XPathExpressionParser();
 
-
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected BeanDefinition doParseRouter(Element element,
+			ParserContext parserContext) {
+		BeanDefinitionBuilder xpathRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.xml.router.XPathRouter");
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
 				element.getNamespaceURI(), "xpath-expression");
-		Assert.isTrue(xPathExpressionNodes.getLength() < 2,
-				"Only one xpath-expression child can be specified.");
+		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified.");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
 				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
-		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
-		String classname = "org.springframework.integration.xml.router." +
-				((multiChannel) ? "XPathMultiChannelRouter" : "XPathSingleChannelRouter");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(classname);
-		
-		
-		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
-		if (childElements != null && childElements.size() > 0) {
-			ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
-			for (Element childElement : childElements) {
-				String key = childElement.getAttribute("value");
-				channelMap.put(key, childElement.getAttribute("channel"));
-			}
-			builder.addPropertyValue("channelIdentifierMap", channelMap);
-		}
-		
-		
 		if (xPathExpressionChildPresent) {
 			BeanDefinition beanDefinition = this.xpathParser.parse(
 					(Element) xPathExpressionNodes.item(0), parserContext);
-			builder.addConstructorArgValue(beanDefinition);
+			xpathRouterBuilder.addConstructorArgValue(beanDefinition);
 		}
 		else { 
-			builder.addConstructorArgReference(xPathExpressionRef);
+			xpathRouterBuilder.addConstructorArgReference(xPathExpressionRef);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel-resolver");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
-		return builder;
+		return xpathRouterBuilder.getBeanDefinition();
 	}
 
 }

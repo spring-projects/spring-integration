@@ -387,7 +387,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="multi-channel" type="xsd:string" default="false"/>
 			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:appinfo>

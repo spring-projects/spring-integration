@@ -20,9 +20,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
@@ -38,6 +40,10 @@ public abstract class AbstractChannelNameResolvingRouterParser extends AbstractR
 	protected final BeanDefinition parseRouter(Element element, ParserContext parserContext) {
 		BeanDefinition beanDefinition = this.doParseRouter(element, parserContext);
 		if (beanDefinition != null) {
+			String channelResolver = element.getAttribute("channel-resolver");
+			if (StringUtils.hasText(channelResolver)){
+				beanDefinition.getPropertyValues().add("channelResolver", new RuntimeBeanReference(channelResolver));
+			}
 			// check if mapping is provided otherwise returned values will be treated as channel names
 			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
 			if (childElements != null && childElements.size() > 0) {
@@ -48,12 +54,9 @@ public abstract class AbstractChannelNameResolvingRouterParser extends AbstractR
 					if (beanClassName.endsWith("PayloadTypeRouter")){
 						key = childElement.getAttribute("type"); 
 					} 
-					else if (beanClassName.endsWith("HeaderValueRouter")){
+					else {
 						key = childElement.getAttribute("value");
 					} 
-					else {
-						throw new BeanCreationException("Building '" + beanClassName + "' is not supported by this parser");
-					}
 					channelMap.put(key, childElement.getAttribute("channel"));
 				}
 				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);

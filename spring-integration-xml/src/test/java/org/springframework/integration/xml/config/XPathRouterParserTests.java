@@ -43,6 +43,7 @@ import org.w3c.dom.Document;
 /**
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 public class XPathRouterParserTests {

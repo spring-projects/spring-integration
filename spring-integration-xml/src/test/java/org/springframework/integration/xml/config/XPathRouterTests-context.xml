@@ -17,7 +17,7 @@
 		<int-xml:mapping value="channelA" channel="channelB"/>	
 	</int-xml:xpath-router>
 	
-	<int-xml:xpath-router id="xpathRouterWithMappingMultiChannel" input-channel="multiChannelRouterChannel" multi-channel="true">
+	<int-xml:xpath-router id="xpathRouterWithMappingMultiChannel" input-channel="multiChannelRouterChannel">
 		<int-xml:xpath-expression expression="/root/name"/>
 		<int-xml:mapping value="channelA" channel="channelA"/>	
 		<int-xml:mapping value="channelB" channel="channelA"/>	
