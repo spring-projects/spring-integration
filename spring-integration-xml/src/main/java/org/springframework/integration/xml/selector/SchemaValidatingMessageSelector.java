@@ -58,7 +58,6 @@ public class SchemaValidatingMessageSelector implements MessageSelector{
 		this.schemaType = schemaType;
 	}
 
-	@Override
 	public boolean accept(Message<?> message) {
 		// TODO Need to figure out how the exceptions could be propagated since the return from this method is true/false
 		// and 'throw-exception-on-rejection'is actually set on the filter
