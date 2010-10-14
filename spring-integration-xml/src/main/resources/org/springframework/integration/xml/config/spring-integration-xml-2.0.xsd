@@ -513,7 +513,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a validating filter.
+	Defines an XML validating filter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -529,9 +529,32 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="xml-validator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to plug-in custom 'org.springframework.xml.validation.XmlValidator' strategy
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.xml.validation.XmlValidator" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="output-channel" type="xsd:string" use="required" />
-			<xsd:attribute name="discard-channel" type="xsd:string" use="required" />
-			<xsd:attribute name="schema-location" use="required" />
+			<xsd:attribute name="discard-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to point to a Message Channel where you want discarded messages to be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="schema-location"/>
 			<xsd:attribute name="schema-type" default="xml-schema">
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:string">
@@ -540,6 +563,7 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>	
 		</xsd:complexType>
 	</xsd:element>
 

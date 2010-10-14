@@ -20,9 +20,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
 import org.xml.sax.SAXParseException;
@@ -32,17 +35,26 @@ import org.xml.sax.SAXParseException;
  * @since 2.0
  *
  */
-public class SchemaValidatingMessageSelector implements MessageSelector{
+public class XmlValidatingMessageSelector implements MessageSelector {
 	
 	private final XmlValidator xmlValidator;
-	private volatile String schemaType = XmlValidatorFactory.SCHEMA_W3C_XML;
+	private volatile boolean throwExceptionOnRejection;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 	
 	
-	public SchemaValidatingMessageSelector(Resource schema) throws Exception{
+	public XmlValidatingMessageSelector(XmlValidator xmlValidator) throws Exception{
+		Assert.notNull(xmlValidator, "XmlValidator can not be 'null'");
+		this.xmlValidator = xmlValidator;
+	}
+	
+	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws Exception{
 		Assert.notNull(schema, "You must provide XML schema location to perform validation");
 		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
+	}
+	
+	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
+		this.throwExceptionOnRejection = throwExceptionOnRejection;
 	}
 	
 	/**
@@ -54,19 +66,18 @@ public class SchemaValidatingMessageSelector implements MessageSelector{
 		this.converter = converter;
 	}
 	
-	public void setSchemaType(String schemaType) {
-		this.schemaType = schemaType;
-	}
-
+	@SuppressWarnings("unchecked")
 	public boolean accept(Message<?> message) {
-		// TODO Need to figure out how the exceptions could be propagated since the return from this method is true/false
-		// and 'throw-exception-on-rejection'is actually set on the filter
+		SAXParseException[] validationExceptions = null;
 		try {
-			SAXParseException[] validationExceptions = xmlValidator.validate(converter.convertToSource(message.getPayload()));
-			return validationExceptions.length == 0 ? true : false;
+			validationExceptions = xmlValidator.validate(converter.convertToSource(message.getPayload()));
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new MessageHandlingException(message, e);
 		}
+		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
+		if (!validationSuccess && throwExceptionOnRejection){
+			throw new AggregatedXmlMessageValidationException(CollectionUtils.arrayToList(validationExceptions));
+		}
+		return validationSuccess;
 	}
 }

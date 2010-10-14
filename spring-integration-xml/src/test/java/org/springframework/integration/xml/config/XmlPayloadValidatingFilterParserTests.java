@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
@@ -42,21 +43,53 @@ public class XmlPayloadValidatingFilterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
-		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
+		MessageChannel inputChannel = ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
 		assertNotNull(validChannel.receive(100));
-
 	}
 	@Test
-	public void testInvalidMessage() throws Exception {
+	public void testInvalidMessageWithDiscardChannel() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
 		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
 		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
-		MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
+		MessageChannel inputChannel = ac.getBean("inputChannelA", MessageChannel.class);
 		inputChannel.send(docMessage);
 		assertNotNull(invalidChannel.receive(100));
 		assertNull(validChannel.receive(100));
+	}
+	@Test(expected=MessageRejectedException.class)
+	public void testInvalidMessageWithThrowException() throws Exception {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
+		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
+		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
+		MessageChannel inputChannel = ac.getBean("inputChannelB", MessageChannel.class);
+		inputChannel.send(docMessage);
+		assertNotNull(invalidChannel.receive(100));
+		assertNull(validChannel.receive(100));
+	}
+	@Test
+	public void testValidMessageWithValidator() throws Exception {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
+		Document doc = XmlTestUtil.getDocumentForString("<greeting>hello</greeting>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
+		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
+		inputChannel.send(docMessage);
+		assertNotNull(validChannel.receive(100));
+	}
+	@Test
+	public void testInvalidMessageWithValidatorAndDiscardChannel() throws Exception {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());
+		Document doc = XmlTestUtil.getDocumentForString("<greeting><other/></greeting>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		PollableChannel validChannel = ac.getBean("validOutputChannel", PollableChannel.class);
+		PollableChannel invalidChannel = ac.getBean("invalidOutputChannel", PollableChannel.class);
+		MessageChannel inputChannel = ac.getBean("inputChannelC", MessageChannel.class);
+		inputChannel.send(docMessage);
+		assertNotNull(invalidChannel.receive(100));
 	}
 }
