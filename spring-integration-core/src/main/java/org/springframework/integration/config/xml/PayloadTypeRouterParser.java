@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class PayloadTypeRouterParser extends AbstractChannelNameResolvingRouterParser {
+public class PayloadTypeRouterParser extends AbstractRouterParser {
 	
 	@Override
 	protected BeanDefinition doParseRouter(Element element,

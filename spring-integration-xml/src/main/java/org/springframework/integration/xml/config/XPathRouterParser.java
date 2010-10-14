@@ -19,7 +19,7 @@ package org.springframework.integration.xml.config;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractChannelNameResolvingRouterParser;
+import org.springframework.integration.config.xml.AbstractRouterParser;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -32,7 +32,7 @@ import org.w3c.dom.NodeList;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class XPathRouterParser extends AbstractChannelNameResolvingRouterParser {
+public class XPathRouterParser extends AbstractRouterParser {
 
 	private XPathExpressionParser xpathParser = new XPathExpressionParser();
 
