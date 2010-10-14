@@ -26,17 +26,16 @@
 
 	<context:component-scan base-package="org.springframework.integration.xmpp"/>
 
-	<context:property-placeholder location="file://${user.home}/Desktop/xmpp.properties" ignore-unresolvable="true"/>
+	<context:property-placeholder location="classpath:test.properties" ignore-unresolvable="true"/>
 
 	<beans:bean id="xmppProducer"
                 class="org.springframework.integration.xmpp.messages.XmppMessageProducer"
-                p:recipient="starbuxman@gmail.com"/>
+                p:recipient="${recipient.address}"/>
 
 	<poller default="true">
 		<interval-trigger fixed-rate="true" interval="10" time-unit="SECONDS"/>
 	</poller>
-    <xmpp:xmpp-connection
-            id="testConnection"
+    <xmpp:xmpp-connection id="testConnection"
             user="${user.2.login}"
             password="${user.2.password}"
             host="${user.2.host}"
