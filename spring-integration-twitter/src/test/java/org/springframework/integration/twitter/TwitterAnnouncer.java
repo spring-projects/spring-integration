@@ -1,6 +1,7 @@
 package org.springframework.integration.twitter;
 
 import org.springframework.stereotype.Component;
+
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 

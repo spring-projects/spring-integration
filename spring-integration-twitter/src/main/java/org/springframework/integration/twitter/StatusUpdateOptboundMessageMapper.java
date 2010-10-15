@@ -16,7 +16,10 @@
 package org.springframework.integration.twitter;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.StringUtils;
+
 import twitter4j.GeoLocation;
 import twitter4j.StatusUpdate;
 
@@ -29,16 +32,15 @@ import twitter4j.StatusUpdate;
  * @see org.springframework.integration.twitter.TwitterHeaders
  * @since 2.0
  */
-public class StatusUpdateSupport {
+
+public class StatusUpdateOptboundMessageMapper implements OutboundMessageMapper<StatusUpdate>{
 	/**
 	 * {@link StatusUpdate} instances are used to drive status updates.
 	 *
 	 * @param message the inbound messages
 	 * @return a {@link StatusUpdate}  that's been materialized from the inbound message
-	 * @throws Throwable thrown if something goes wrong
 	 */
-	public StatusUpdate fromMessage(Message<?> message)
-			throws Throwable {
+	public StatusUpdate fromMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		StatusUpdate statusUpdate = null;
 
@@ -77,9 +79,12 @@ public class StatusUpdateSupport {
 				}
 			}
 		}
-
-		if (payload instanceof StatusUpdate) {
+		else if (payload instanceof StatusUpdate) {
 			statusUpdate = (StatusUpdate) payload;
+		} 
+		else {
+			throw new MessageHandlingException(message, "Failde to create StatusUpdate from the payload of type: " + message.getPayload().getClass() +
+					"  Only java.lang.String or twitter4j.StatusUpdate is currently supported");
 		}
 
 		return statusUpdate;

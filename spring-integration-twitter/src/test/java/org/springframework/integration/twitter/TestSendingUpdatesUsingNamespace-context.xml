@@ -37,15 +37,9 @@
 			base-package="org.springframework.integration.twitter"/>
 
 	<context:property-placeholder
-			location="file://${user.home}/Desktop/twitter.properties"
+			location="classpath:twitter.properties"
 			ignore-unresolvable="true"/>
-
-	<channel id="inbound_dm"/>
-
-	<twitter:inbound-dm-channel-adapter
-			channel="inbound_dm" twitter-connection="tc"
-			/>
-
+        
 	<twitter:twitter-connection
 			id="tc"
 			access-token="${twitter.oauth.accessToken}"
@@ -54,9 +48,10 @@
 			consumer-secret="${twitter.oauth.consumerSecret}"
 			/>
 
-	<service-activator input-channel="inbound_dm"
-					   ref="twitterAnnouncer"
-					   method="dm"/>
+
+	<channel id="out"/>
+
+	<twitter:outbound-update-channel-adapter twitter-connection="tc" channel="out"/>
 
 
 </beans:beans>
