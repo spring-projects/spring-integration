@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
@@ -53,21 +54,20 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
         //when
         File folder = directory.newFolder("foo");
         File file = new File(folder, "bar");
-        file.createNewFile();
+		assertTrue(file.createNewFile());
 
         //verify
         assertThat(files.receive(), hasPayload(file));
     }
 
 	@Test(timeout = 2000)
-    @SuppressWarnings("unchecked")
     public void shouldReturnFilesMultipleLevels() throws IOException {
 
         //when
         File folder = directory.newFolder("foo");
         File siblingFile = directory.newFile("bar");
         File childFile = new File(folder, "baz");
-        childFile.createNewFile();
+		assertTrue(childFile.createNewFile());
 
         List<Message<?>> received = Arrays.asList(files.receive(), files.receive());
         //verify
