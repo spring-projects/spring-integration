@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file.entries;
 
+package org.springframework.integration.file.filters;
+
+import java.io.File;
 import java.util.List;
 
-
 /**
- * Strategy interface for filtering entries representing files on a local or remote file system. This is a generic
- * variant of FileListFilter that also works with references to remote files.
- * <p/>
- * Implementations must be thread safe.
+ * Strategy interface for filtering a group of files.
  *
- * @author Josh Long
  * @author Iwein Fuld
  *
- * @since 2.0.0
+ * @since 1.0.0
  *
- * @see org.springframework.integration.file.filters.FileListFilter
+ * @see org.springframework.integration.file.entries.EntryListFilter
+ *
  */
-public interface EntryListFilter<T> {
+public interface FileListFilter {
 
     /**
-     * Filters out entries and returns the entries that are left in a list, or an
+     * Filters out files and returns the files that are left in a list, or an
      * empty list when a null is passed in.
      */
-	List<T> filterEntries(T[] entries);
+    List<File> filterFiles(File[] files);
+
 }

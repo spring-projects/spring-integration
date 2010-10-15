@@ -23,14 +23,14 @@ import java.util.regex.Pattern;
 
 
 /**
- *
- *
  * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNamer})
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
  * @author Iwein Fuld
  * @author Josh Long
  * @param <T>   the type of entry
+ *
+ * @since 2.0.0
  */
 public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
 	private Pattern pattern;

@@ -33,6 +33,9 @@ import java.util.List;
 public abstract class AbstractEntryListFilter<T> implements InitializingBean, EntryListFilter<T> {
 	public abstract boolean accept(T t);
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public List<T> filterEntries(T[] entries) {
 		List<T> accepted = new ArrayList<T>();
 
