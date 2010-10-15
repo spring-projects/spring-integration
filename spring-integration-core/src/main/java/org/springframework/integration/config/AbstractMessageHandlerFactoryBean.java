@@ -29,9 +29,9 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.Orderable;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -108,8 +108,8 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 			if (this.handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.handler).setBeanFactory(beanFactory);
 			}
-			if (this.handler instanceof AbstractMessageHandler && this.order != null) {
-				((AbstractMessageHandler) this.handler).setOrder(this.order.intValue());
+			if (this.handler instanceof Orderable && this.order != null) {
+				((Orderable) this.handler).setOrder(this.order.intValue());
 			}
 		}
 		return this.handler;
