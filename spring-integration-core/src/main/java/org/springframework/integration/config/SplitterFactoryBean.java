@@ -22,6 +22,7 @@ import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,16 +51,27 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
-		AbstractMessageSplitter splitter = null;
-		if (targetObject instanceof AbstractMessageSplitter) {
-			splitter = (AbstractMessageSplitter) targetObject;
+		Assert.notNull(targetObject, "targetObject must not be null");
+		AbstractMessageSplitter splitter = this.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
+		if (splitter == null) {
+			splitter = this.createMethodInvokingSplitter(targetObject, targetMethodName);
+			this.configureSplitter(splitter);
 		}
 		else {
-			splitter = (StringUtils.hasText(targetMethodName))
-					? new MethodInvokingSplitter(targetObject, targetMethodName)
-					: new MethodInvokingSplitter(targetObject);
+			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
+					+ "object is an implementation of AbstractMessageSplitter");
+			this.configureSplitter(splitter);
+			if (targetObject instanceof MessageHandler) {
+				return (MessageHandler) targetObject;
+			}
 		}
-		return this.configureSplitter(splitter);
+		return splitter;
+	}
+
+	private AbstractMessageSplitter createMethodInvokingSplitter(Object targetObject, String targetMethodName) {
+		return (StringUtils.hasText(targetMethodName))
+				? new MethodInvokingSplitter(targetObject, targetMethodName)
+				: new MethodInvokingSplitter(targetObject);
 	}
 
 	@Override

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.aop.TargetSource;
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -28,8 +30,8 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -100,8 +102,8 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 		if (this.handler == null) {
 			this.initializeHandler();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
-			if (this.handler instanceof AbstractReplyProducingMessageHandler && this.outputChannel != null) {
-				((AbstractReplyProducingMessageHandler) this.handler).setOutputChannel(this.outputChannel);
+			if (this.handler instanceof MessageProducer && this.outputChannel != null) {
+				((MessageProducer) this.handler).setOutputChannel(this.outputChannel);
 			}
 			if (this.handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) this.handler).setBeanFactory(beanFactory);
@@ -180,6 +182,29 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 	MessageHandler createDefaultHandler() {
 		throw new IllegalArgumentException(
 			"Exactly one of the 'targetObject' or 'expression' property is required.");
+	}
+
+	@SuppressWarnings("unchecked")
+	<T> T extractTypeIfPossible(Object targetObject, Class<T> expectedType) {
+		if (targetObject == null) {
+			return null;
+		}
+		if (expectedType.isAssignableFrom(targetObject.getClass())) {
+			return (T) targetObject;
+		}
+		if (targetObject instanceof Advised) {
+			TargetSource targetSource = ((Advised) targetObject).getTargetSource();
+			if (targetSource == null) {
+				return null;
+			}
+			try {
+				return extractTypeIfPossible(targetSource.getTarget(), expectedType);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+		return null;
 	}
 
 }

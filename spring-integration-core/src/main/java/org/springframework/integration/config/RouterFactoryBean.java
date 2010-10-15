@@ -15,8 +15,6 @@ package org.springframework.integration.config;
 
 import java.util.Map;
 
-import org.springframework.aop.TargetSource;
-import org.springframework.aop.framework.Advised;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -33,6 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Dave Syer
  */
 public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
@@ -88,43 +87,20 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMessageRouter router = extractRouter(targetObject);
+		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
-			router = this.createRouter(targetObject, targetMethodName);
+			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
-			return router;
 		}
-
-		Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
-				+ "object is an implementation of AbstractMessageRouter");
-		this.configureRouter(router);
-		if (targetObject instanceof MessageHandler) {
-			return (MessageHandler) targetObject;
+		else {
+			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
+					+ "object is an implementation of AbstractMessageRouter");
+			this.configureRouter(router);
+			if (targetObject instanceof MessageHandler) {
+				return (MessageHandler) targetObject;
+			}
 		}
 		return router;
-	}
-
-	private AbstractMessageRouter extractRouter(Object targetObject) {
-		if (targetObject instanceof AbstractMessageRouter) {
-			return (AbstractMessageRouter) targetObject;
-		}
-		if (targetObject instanceof Advised) {
-			return extractAopTarget((Advised) targetObject);
-		}
-		return null;
-	}
-
-	private AbstractMessageRouter extractAopTarget(Advised advised) {
-		TargetSource targetSource = advised.getTargetSource();
-		if (targetSource == null) {
-			return null;
-		}
-		try {
-			return extractRouter(targetSource.getTarget());
-		}
-		catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 	@Override
@@ -132,7 +108,7 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
-	private AbstractMessageRouter createRouter(Object targetObject, String targetMethodName) {
+	private AbstractMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
 		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) 
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
