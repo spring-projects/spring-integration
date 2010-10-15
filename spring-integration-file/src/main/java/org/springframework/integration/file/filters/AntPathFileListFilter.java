@@ -8,12 +8,12 @@ import java.io.File;
 /**
  * @author Iwein Fuld
  */
-public class AntPatternFileListFilter extends AbstractEntryListFilter<File> {
+public class AntPathFileListFilter extends AbstractEntryListFilter<File> {
 
 	private final AntPathMatcher matcher = new AntPathMatcher();
 	private final String path;
 
-	public AntPatternFileListFilter(String path) {
+	public AntPathFileListFilter(String path) {
 		this.path = path;
 	}
 
