@@ -2485,7 +2485,6 @@ Name of the header whose value to use.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<!-- TODO: add support for header sub-elements -->
 		</xsd:complexType>
 	</xsd:element>
 
