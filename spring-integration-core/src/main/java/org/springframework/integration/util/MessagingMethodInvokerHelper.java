@@ -181,7 +181,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		if (method instanceof Method) {
 			context.registerMethodFilter(targetType, new FixedMethodFilter((Method) method));
 			if (expectedType != null) {
-				Assert.state(context.getTypeConverter().canConvert(((Method) method).getReturnType(), expectedType),
+				Assert.state(context.getTypeConverter().canConvert(TypeDescriptor.valueOf(((Method) method).getReturnType()), TypeDescriptor.valueOf(expectedType)),
 						"Cannot convert to expected type (" + expectedType + ") from " + method);
 			}
 		}
@@ -202,7 +202,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		}
 		List<Method> methods = filter.filter(Arrays.asList(ReflectionUtils.getAllDeclaredMethods(targetType)));
 		for (Method method : methods) {
-			if (typeConverter.canConvert(method.getReturnType(), expectedType)) {
+			if (typeConverter.canConvert(TypeDescriptor.valueOf(method.getReturnType()), TypeDescriptor.valueOf(expectedType))) {
 				return true;
 			}
 		}
