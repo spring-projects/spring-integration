@@ -60,17 +60,18 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
         assertThat(files.receive(), hasPayload(file));
     }
 
+	@SuppressWarnings("unchecked")
 	@Test(timeout = 2000)
-    public void shouldReturnFilesMultipleLevels() throws IOException {
+	public void shouldReturnFilesMultipleLevels() throws IOException {
 
-        //when
-        File folder = directory.newFolder("foo");
-        File siblingFile = directory.newFile("bar");
-        File childFile = new File(folder, "baz");
+		//when
+		File folder = directory.newFolder("foo");
+		File siblingFile = directory.newFile("bar");
+		File childFile = new File(folder, "baz");
 		assertTrue(childFile.createNewFile());
 
-        List<Message<?>> received = Arrays.asList(files.receive(), files.receive());
-        //verify
-        assertThat(received, hasItems(hasPayload(siblingFile), hasPayload(childFile)));
-    }
+		List<Message<?>> received = Arrays.asList(files.receive(), files.receive());
+		//verify
+		assertThat(received, hasItems(hasPayload(siblingFile), hasPayload(childFile)));
+	}
 }

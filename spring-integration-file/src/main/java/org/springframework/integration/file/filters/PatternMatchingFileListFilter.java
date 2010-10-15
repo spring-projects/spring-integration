@@ -47,11 +47,9 @@ public class PatternMatchingFileListFilter extends PatternMatchingEntryListFilte
 
 	/**
 	 * Filter out the files of which the name doesn't match the pattern of this filter
-	 *
-	 * @deprecated use {@link #filterEntries} instead
 	 */
 	public List<File> filterFiles(File[] files) {
-		Assert.notNull(files, "'files' must not be null");
+		Assert.notNull(files, "'files' must not be null.");
 		return this.filterEntries(files);
 	}
 }

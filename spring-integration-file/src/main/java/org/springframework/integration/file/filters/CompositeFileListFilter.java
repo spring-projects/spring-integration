@@ -45,12 +45,9 @@ public class CompositeFileListFilter extends CompositeEntryListFilter<File> impl
      * {@inheritDoc}
      * <p/>
      * This implementation delegates to a collection of filters and returns only files that pass all the filters.
-	 * @deprecated use {@link #filterEntries} instead
      */
-	@Deprecated
     public List<File> filterFiles(File[] files) {
-        Assert.notNull(files, "'files' should not be null");
-
+        Assert.notNull(files, "'files' should not be null.");
 		return this.filterEntries(files);
     }
 }

@@ -16,6 +16,7 @@
 package org.springframework.integration.file.filters;
 
 import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.util.List;
@@ -56,6 +57,7 @@ public class AcceptOnceFileListFilter extends AcceptOnceEntryFileListFilter<File
 	 * Filter out all the files that this instance has seen before.
 	 */
 	public List<File> filterFiles(File[] files) {
+		Assert.notNull(files, "'files' must not be null.");
 		return this.filterEntries(files);
 	}
 }

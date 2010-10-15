@@ -54,8 +54,9 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 		return leftOver;
 	}
 
+	@SuppressWarnings("unchecked") //to please the eclipse compiler
 	public CompositeEntryListFilter<T> addFilter(EntryListFilter<T> filter) {
-		return this.addFilters(Arrays.asList(filter));
+		return this.addFilters(filter);
 	}
 
 	/**
@@ -63,8 +64,7 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 	 * @return this CompositeFileFilter instance with the added filters
 	 * @see #addFilters(Collection)
 	 */
-	@SuppressWarnings("unused")
-	public CompositeEntryListFilter<T> addFilters(EntryListFilter<T>[] filters) {
+	public CompositeEntryListFilter<T> addFilters(EntryListFilter<T>... filters) {
 		return addFilters(Arrays.asList(filters));
 	}
 
@@ -76,8 +76,9 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 	 * @param filtersToAdd a list of filters to add
 	 * @return this CompositeEntryListFilter instance with the added filters
 	 */
-	public CompositeEntryListFilter<T> addFilters(Collection<EntryListFilter<T>> filtersToAdd) {
-		for (EntryListFilter<T> elf : filtersToAdd)
+	@SuppressWarnings("unchecked")
+	public CompositeEntryListFilter<T> addFilters(Collection<? extends EntryListFilter<T>> filtersToAdd) {
+		for (EntryListFilter<? extends T> elf : filtersToAdd)
 			if (elf instanceof InitializingBean) {
 				try {
 					((InitializingBean) elf).afterPropertiesSet();
