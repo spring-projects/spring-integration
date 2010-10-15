@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
 
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.integration.file.FileNameGenerator;
 
 
 /**
@@ -27,11 +28,17 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
     protected int clientMode;
     private int fileType;
 	private ResourceLoader resourceLoader;
-    private ApplicationContext applicationContext;
+	private FileNameGenerator fileNameGenerator;
+
+	private ApplicationContext applicationContext;
 
     public void setCharset(String charset) {
         this.charset = charset;
     }
+    
+    public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		this.fileNameGenerator = fileNameGenerator;
+	}
 
     public void setFileType(int fileType) {
         this.fileType = fileType;
@@ -72,6 +79,7 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
                 defaultFtpClientFactory);
 
         FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(queuedFtpClientPool);
+        ftpSendingMessageHandler.setFileNameGenerator(this.fileNameGenerator);
         if (this.charset != null) {
         	ftpSendingMessageHandler.setCharset(this.charset);
         }

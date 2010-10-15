@@ -27,14 +27,13 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTPClient;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -44,11 +43,11 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Josh Long
+ * @author Oleg Zhurakousky
  */
-public class FtpSendingMessageHandler implements MessageHandler, InitializingBean {
+public class FtpSendingMessageHandler extends AbstractMessageHandler{
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
-
 
 	private volatile FtpClientPool ftpClientPool;
 
@@ -85,7 +84,7 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 		this.charset = charset;
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	protected void onInit() throws Exception {
 		Assert.notNull(ftpClientPool, "'ftpClientPool' must not be null");
 		Assert.notNull(temporaryBufferFolder,
 				"'temporaryBufferFolder' must not be null");
@@ -143,13 +142,29 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 		}
 	}
 
-	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
+	private boolean sendFile(File file, FTPClient client) throws FileNotFoundException, IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+		boolean sent = client.storeFile(file.getName(), fileInputStream);
+		fileInputStream.close();
+		return sent;
+	}
 
-	public void handleMessage(Message<?> message) {
+	private FTPClient getFtpClient() throws SocketException, IOException {
+		FTPClient client;
+		client = this.ftpClientPool.getClient();
+		Assert.state(client != null, FtpClientPool.class.getSimpleName() +
+				" returned 'null' client this most likely a bug in the pool implementation.");
+		return client;
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.notNull(message, "'message' must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "Message payload must not be null");
+		
 		File file = this.redeemForStorableFile(message);
+		
 		if ((file != null) && file.exists()) {
 			FTPClient client = null;
 			boolean sentSuccesfully;
@@ -188,21 +203,6 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 						"Failed to store file '" + file + "'");
 			}
 		}
-	}
-
-	private boolean sendFile(File file, FTPClient client) throws FileNotFoundException, IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
-		boolean sent = client.storeFile(file.getName(), fileInputStream);
-		fileInputStream.close();
-		return sent;
-	}
-
-	private FTPClient getFtpClient() throws SocketException, IOException {
-		FTPClient client;
-		client = this.ftpClientPool.getClient();
-		Assert.state(client != null, FtpClientPool.class.getSimpleName() +
-				" returned 'null' client this most likely a bug in the pool implementation.");
-		return client;
 	}
 
 }

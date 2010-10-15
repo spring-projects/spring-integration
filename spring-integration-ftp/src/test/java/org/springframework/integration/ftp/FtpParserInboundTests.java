@@ -23,14 +23,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-public class FtpParserTests {
+public class FtpParserInboundTests {
 	@Before
 	public void prepare(){
 		new File("target/foo").delete();
@@ -39,14 +38,14 @@ public class FtpParserTests {
 	@Test
 	public void testLocalFilesAutoCreationTrue() throws Exception{
 		assertTrue(!new File("target/foo").exists());
-		new ClassPathXmlApplicationContext("FtpParserTests-inbound.xml", this.getClass());
+		new ClassPathXmlApplicationContext("FtpParserInboundTests-context.xml", this.getClass());
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
 	@Test(expected=BeanCreationException.class)
 	public void testLocalFilesAutoCreationFalse() throws Exception{
 		assertTrue(!new File("target/bar").exists());
-		new ClassPathXmlApplicationContext("FtpParserTests-inbound-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("FtpParserInboundTests-fail-context.xml", this.getClass());
 	}
 	
 	@After
