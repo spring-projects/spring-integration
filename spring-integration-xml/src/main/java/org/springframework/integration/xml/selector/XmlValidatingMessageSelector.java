@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xml.selector;
 
+import java.io.IOException;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -27,6 +29,7 @@ import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.xml.validation.XmlValidator;
 import org.springframework.xml.validation.XmlValidatorFactory;
 import org.xml.sax.SAXParseException;
@@ -39,18 +42,30 @@ import org.xml.sax.SAXParseException;
 public class XmlValidatingMessageSelector implements MessageSelector {
 	
 	private final XmlValidator xmlValidator;
+	
 	private volatile boolean throwExceptionOnRejection;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-	
 	
 	public XmlValidatingMessageSelector(XmlValidator xmlValidator) throws Exception{
 		Assert.notNull(xmlValidator, "XmlValidator can not be 'null'");
 		this.xmlValidator = xmlValidator;
 	}
-	
-	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws Exception{
+	/**
+	 * Will create this selector with default {@link XmlValidator} which 
+	 * will be initialized with 'schema' location as {@link Resource} and 'schemaType' as
+	 * either {@link XmlValidatorFactory#SCHEMA_W3C_XML} or {@link XmlValidatorFactory#SCHEMA_RELAX_NG}.
+	 * If no 'schemaType' is provided it will default to {@link XmlValidatorFactory#SCHEMA_W3C_XML};
+	 * 
+	 * @param schema
+	 * @param schemaType
+	 * @throws IOException
+	 */
+	public XmlValidatingMessageSelector(Resource schema, String schemaType) throws IOException {
 		Assert.notNull(schema, "You must provide XML schema location to perform validation");
+		if (!StringUtils.hasText(schemaType)){
+			schemaType = XmlValidatorFactory.SCHEMA_W3C_XML;
+		}
 		this.xmlValidator = XmlValidatorFactory.createValidator(schema, schemaType);
 	}
 	
@@ -64,6 +79,7 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 	 * @param converter
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
+		Assert.notNull(converter, "'converter' must not be null");
 		this.converter = converter;
 	}
 	

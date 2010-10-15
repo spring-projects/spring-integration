@@ -59,6 +59,7 @@ public class XmlPayloadValidatingFilterParser extends AbstractConsumerEndpointPa
 		}
 		if (schemaLocationDefined){
 			selectorBuilder.addConstructorArgValue(schemaLocation);
+			// it is a restriction with the default value of 'xml-schema' which corresponds to 'http://www.w3.org/2001/XMLSchema'
 			String schemaType = "xml-schema".equals(element.getAttribute("schema-type")) ? SCHEMA_W3C_XML : SCHEMA_RELAX_NG;;	
 			selectorBuilder.addConstructorArgValue(schemaType);
 		} 
