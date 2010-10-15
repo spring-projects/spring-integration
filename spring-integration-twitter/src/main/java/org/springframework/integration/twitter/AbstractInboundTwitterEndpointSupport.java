@@ -191,7 +191,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 		void run(C t, Twitter twitter) throws Exception;
 	}
 
-	@Override
 	public void setShouldTrack(boolean shouldTrack) {
 		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
 	}
