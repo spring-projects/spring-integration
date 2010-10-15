@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 
@@ -31,8 +33,11 @@ import java.util.List;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Dave Syer
+ * @author Iwein Fuld
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
+
+	private static final Log logger = LogFactory.getLog(SequenceSizeReleaseStrategy.class);
 
 	private volatile Comparator<Message<?>> comparator = new SequenceNumberComparator();
 
@@ -58,10 +63,17 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	public boolean canRelease(MessageGroup messages) {
 		if (releasePartialSequences) {
+			if(logger.isTraceEnabled()){
+				logger.trace("Considering partial release of group [" + messages + "]");
+			}
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages.getUnmarked());
 			Collections.sort(sorted, comparator);
 			int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-			return tail == messages.getMarked().size();
+			boolean release = tail == messages.getMarked().size();
+			if (logger.isTraceEnabled() && release) {
+				logger.trace("Release imminent because tail [" + tail + "] is next in line.");
+			}
+			return release;
 		}
 		return messages.isComplete();
 	}
