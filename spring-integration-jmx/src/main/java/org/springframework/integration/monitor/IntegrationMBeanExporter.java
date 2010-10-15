@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -42,7 +43,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -180,17 +180,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (bean instanceof MessageHandler) {
-			SimpleMessageHandlerMetrics monitor = null;
-			if (bean instanceof MessageProducer) {
-				// We need to maintain semantics of the handler also being a producer
-				monitor = new SimpleMessageProducingHandlerMetrics((MessageHandler) bean);
-			} else {
-				monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
-			}
+			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
 			return advised;
-		} else if (bean instanceof MessageSource<?>) {
+		}
+		else if (bean instanceof MessageSource<?>) {
 			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
