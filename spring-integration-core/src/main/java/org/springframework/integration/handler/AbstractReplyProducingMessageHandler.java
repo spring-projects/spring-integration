@@ -37,9 +37,6 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler implements MessageProducer {
 
-	public static final long DEFAULT_SEND_TIMEOUT = 1000;
-
-
 	private MessageChannel outputChannel;
 
 	private volatile boolean requiresReply = false;
@@ -49,7 +46,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	public AbstractReplyProducingMessageHandler() {
 		this.messagingTemplate = new MessagingTemplate();
-		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
 
