@@ -18,15 +18,12 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.context.metadata.MetadataPersister;
-import org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -50,8 +47,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 * Logger that is available to subclasses
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
-	
-	private volatile MetadataPersister<?> metadataPersister;
 
 	private volatile String beanName;
 
@@ -117,27 +112,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected final BeanFactory getBeanFactory() {
 		return this.beanFactory;
-	}
-
-	protected MetadataPersister getRequiredMetadataPersister() {
-		if (this.metadataPersister == null && this.beanFactory != null) {
-			this.metadataPersister = IntegrationContextUtils.getMetadataPersister(this.beanFactory);
-		}
-		if (this.metadataPersister == null) {
-			PropertiesBasedMetadataPersister mp = new PropertiesBasedMetadataPersister();
-
-			try {
-				mp.afterPropertiesSet();
-			}
-			catch (Exception e) {
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException) e;
-				}
-				throw new BeanInitializationException("failed to obtain reference to MetadataPersister strategy implementation.", e);
-			}
-			this.metadataPersister = mp;
-		}
-		return this.metadataPersister;
 	}
 
 	protected TaskScheduler getTaskScheduler() {

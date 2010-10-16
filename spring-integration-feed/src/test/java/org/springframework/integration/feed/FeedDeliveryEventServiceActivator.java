@@ -1,18 +1,25 @@
 package org.springframework.integration.feed;
 
-import com.sun.syndication.feed.synd.SyndEntry;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import java.util.Properties;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.stereotype.Component;
+
+import com.sun.syndication.feed.synd.SyndEntry;
 
 @Component
 public class FeedDeliveryEventServiceActivator {
 
     @ServiceActivator
-    public void activate(Message<SyndEntry> evtMsg) throws Exception {
+    public void activate(Message<SyndEntry> message) throws Exception {
 
-        SyndEntry syndEntry = evtMsg.getPayload();
+    	MessageHistory history = MessageHistory.read(message);
+    	for (Properties properties : history) {
+			System.out.println(properties);
+		}
+        SyndEntry syndEntry = message.getPayload();
 
         System.out.println( "Publishing new SyndEntry " + syndEntry.getUri() +":"+
                 syndEntry.getPublishedDate().toString()+ ":"+ syndEntry.getPublishedDate().getTime());

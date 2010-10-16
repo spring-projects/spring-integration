@@ -1,4 +1,31 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.feed;
+
+import java.net.URL;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.fetcher.FetcherEvent;
@@ -6,81 +33,40 @@ import com.sun.syndication.fetcher.FetcherListener;
 import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.Message;
-import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.metadata.MetadataPersister;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.util.Assert;
-
-import java.net.URL;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 /**
- * The idea behind this class is that {@link org.springframework.integration.core.MessageSource#receive()} will only
- * return a {@link SyndFeed} when the event listener tells us that a feed has been updated. If we can ascertain that
- * it's been updated, then we can add the item to the {@link java.util.Queue} implementation.
+ * This implementation of {@link MessageSource} will produce {@link SyndFeed} for a feed identified 
+ * with 'feedUrl' attribute.
  *
  * @author Josh Long
  * @author Mario Gray
+ * @author Oleg Zhurakousky
  */
-public class FeedReaderMessageSource extends IntegrationObjectSupport
+class FeedReaderMessageSource extends IntegrationObjectSupport
         implements InitializingBean, Lifecycle, MessageSource<SyndFeed> {
-    private volatile boolean running;
+   
+	private volatile boolean running;
     private volatile String feedUrl;
     private volatile URL feedURLObject;
     private volatile FeedFetcherCache fetcherCache;
     private volatile HttpURLFeedFetcher fetcher;
     private volatile ConcurrentLinkedQueue<SyndFeed> syndFeeds;
     private volatile MyFetcherListener myFetcherListener;
-
+    private final Object syndFeedMonitor = new Object();
+   
     public FeedReaderMessageSource() {
         syndFeeds = new ConcurrentLinkedQueue<SyndFeed>();
     }
-
-    private volatile MetadataPersister persister;
-
-    @Override
-    protected void onInit() throws Exception {
-
-        this.persister = this.getRequiredMetadataPersister();
-
-        myFetcherListener = new MyFetcherListener();
-        fetcherCache = HashMapFeedInfoCache.getInstance();
-
-        fetcher = new HttpURLFeedFetcher(fetcherCache);
-
-        // fetcher.set
-        fetcher.addFetcherEventListener(myFetcherListener);
-        Assert.notNull(this.feedUrl, "the feedURL can't be null");
-        feedURLObject = new URL(this.feedUrl);
-/*
-        String id = FeedReaderMessageSource.class.getName() + "#" + feedUrl;
-
-        StringBuffer stringBuffer = new StringBuffer();
-
-        for (char c : id.toCharArray())
-            if (Character.isDigit(c) || Character.isLetter(c))
-                stringBuffer.append(c);
-        id = stringBuffer.toString();
-
-        this.feedMetadataIdKey = id;
-
-
-        long lastTimeNo = -1;
-        String lastTime = (String) this.persister.read(this.feedMetadataIdKey);
-        if (lastTime != null && !lastTime.trim().equalsIgnoreCase("")) {
-            lastTimeNo = Long.parseLong(lastTime);
-            this.lastTime = lastTimeNo;
-        }*/
-
+    
+    public void setFeedUrl(final String feedUrl) {
+        this.feedUrl = feedUrl;
     }
-
-    private volatile long lastTime = -1;
-
+    
+    public String getFeedUrl() {
+        return feedUrl;
+    }
+    
     public void start() {
         this.running = true;
     }
@@ -88,32 +74,26 @@ public class FeedReaderMessageSource extends IntegrationObjectSupport
     public void stop() {
         this.running = false;
     }
-
-    private String feedMetadataIdKey;
-    private final Object syndFeedMonitor = new Object();
+    
+    public boolean isRunning() {
+        return this.running;
+    }
 
     public SyndFeed receiveSyndFeed() {
         SyndFeed returnedSyndFeed = null;
 
         try {
             synchronized (syndFeedMonitor) {
-                fetcher.retrieveFeed(this.feedURLObject);
+            	returnedSyndFeed = fetcher.retrieveFeed(this.feedURLObject);
                 logger.debug("attempted to retrieve feed '" + this.feedUrl + "'");
-                returnedSyndFeed = syndFeeds.poll(); // there wont be things whose pub date is < than the lastTime
 
-                if (null == returnedSyndFeed) {
+                if (returnedSyndFeed == null) {
                     logger.debug("no feeds updated, return null!");
                     return null;
                 }
-                // so its OK to update the lastTime
-           //
-
-               /*  this.lastTime = sortId(returnedSyndFeed);if (null != this.persister)
-                    this.persister.write(this.feedMetadataIdKey, this.lastTime + "");
-*/
             }
-        } catch (Throwable e) {
-            logger.debug("Exception thrown when trying to retrive feed at url '" + this.feedURLObject + "'", e);
+        } catch (Exception e) {
+        	throw new MessagingException("Exception thrown when trying to retrive feed at url '" + this.feedURLObject + "'", e);
         }
 
         return returnedSyndFeed;
@@ -129,19 +109,19 @@ public class FeedReaderMessageSource extends IntegrationObjectSupport
         return MessageBuilder.withPayload(syndFeed).setHeader(FeedConstants.FEED_URL, this.feedURLObject).build();
     }
 
-    public boolean isRunning() {
-        return this.running;
+    @Override
+    protected void onInit() throws Exception {
+
+//        myFetcherListener = new MyFetcherListener();
+        fetcherCache = HashMapFeedInfoCache.getInstance();
+
+        fetcher = new HttpURLFeedFetcher(fetcherCache);
+
+        fetcher.addFetcherEventListener(myFetcherListener);
+        Assert.notNull(this.feedUrl, "the feedURL can't be null");
+        feedURLObject = new URL(this.feedUrl);
     }
-
-    public String getFeedUrl() {
-        return feedUrl;
-    }
-
-    public void setFeedUrl(final String feedUrl) {
-        this.feedUrl = feedUrl;
-    }
-
-
+    
     class MyFetcherListener implements FetcherListener {
         /**
          * @see com.sun.syndication.fetcher.FetcherListener#fetcherEvent(com.sun.syndication.fetcher.FetcherEvent)
@@ -153,8 +133,7 @@ public class FeedReaderMessageSource extends IntegrationObjectSupport
                 logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
             } else if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(eventType)) {
                 logger.debug("\tEVENT: Feed Retrieved. URL = " + event.getUrlString());
-              //  if (sortId(event.getFeed()) > lastTime) // its true if the lastTime is -1 || N
-                    syndFeeds.add(event.getFeed());
+                syndFeeds.add(event.getFeed());
             } else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
                 logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
             }

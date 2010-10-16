@@ -5,10 +5,11 @@
 	   xmlns:int="http://www.springframework.org/schema/integration"
 	   xmlns:context="http://www.springframework.org/schema/context"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
+        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
        http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+	<int:message-history/>
 
     <bean id="activator" class="org.springframework.integration.feed.FeedDeliveryEventServiceActivator"/>
 
@@ -18,14 +19,14 @@
         
         to see the feed again, rm /tmp/feedDemo.properties
     -->
-    <bean id="metadataPersister" class="org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister">
-        <property name="uniqueName" value="feedDemo"/>
-    </bean>
+<!--    <bean id="metadataPersister" class="org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister">-->
+<!--        <property name="uniqueName" value="feedDemo"/>-->
+<!--    </bean>-->
 
     <!--http://twitter.com/statuses/public_timeline.atom
      -->
-    <feed:inbound-channel-adapter channel="feedChanges" feed="http://feeds.bbci.co.uk/news/rss.xml" >
-        <int:poller fixed-rate="10000"/>
+    <feed:inbound-channel-adapter id="feedAdapter" channel="feedChanges" feedUrl="http://feeds.bbci.co.uk/news/rss.xml" >
+        <int:poller fixed-rate="10000" max-messages-per-poll="-1"/>
     </feed:inbound-channel-adapter>
 
     <int:channel id="feedChanges"/>

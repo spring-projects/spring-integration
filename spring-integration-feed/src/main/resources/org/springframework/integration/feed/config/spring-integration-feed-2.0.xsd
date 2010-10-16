@@ -36,17 +36,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-
-
-            <xsd:attribute name="backlog-cache-size" type="xsd:int"/>
-
-            <xsd:attribute name="feed" type="xsd:string" use="required"/>
-<!--
-
-            <xsd:attribute name="prefer-updated-feed-to-entries" type="xsd:boolean"/>
--->
-
-
+            <xsd:attribute name="feedUrl" type="xsd:string" use="required"/>
         </xsd:complexType>
     </xsd:element>
 
