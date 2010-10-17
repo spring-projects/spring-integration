@@ -1,52 +1,52 @@
 <rss version="2.0">
 <channel>
-<title>ASP @ BellaOnline</title>
-<link>http://www.bellaonline.com/Site/asp</link>
+<title>Spring Integration</title>
+<link>http://www.springsource.org/spring-integration</link>
 <description>
-Learn to program in ASP, and enhance your ASP skills to add great new functionality to your website!
+Spring Integration is a really cool framework
 </description>
 <language>en-us</language>
-<copyright>Copyright 2001-2005 BellaOnline.com 
+<copyright>Copyright 2004-2010 SpringSource/VMWare
 All Rights Reserved.</copyright>
-<lastBuildDate>Tue, 12 Apr 2005 14:21:32 EST</lastBuildDate>
+<lastBuildDate>Tue, 12 Apr 2010 18:21:32 EST</lastBuildDate>
 <ttl>240</ttl>
 <image>
-<url>http://www.bellaonline.com/images/bella.gif</url>
-<title>ASP @ BellaOnline</title>
-<link>http://asp.bellaonline.com</link>
+<url>http://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
+<title>Spring Integration</title>
+<link>http://www.springsource.org/spring-integration</link>
 </image>
 
 <item>
 <title>
-Using ASP to Code an RSS Feed
+Spring Integration adapters
 </title>
-<link>http://www.bellaonline.com/articles/art30646.asp</link>
+<link>http://www.springsource.org/extensions/se-sia</link>
 <description>
-RSS feeds let you easily syndicate your content to an end user or another website. ASP can help you easily create your own RSS feed for your website.
+Spring Integration adapters are realy cool
 </description>
-<pubDate>Tue, 12 Apr 2005 13:59:56 EST</pubDate>
+<pubDate>Tue, 23 Apr 2010 12:34:58 EST</pubDate>
 </item>
 
 <item>
 <title>
-RecordCount and Count
+Spring Integration download
 </title>
-<link>http://www.bellaonline.com/articles/art30403.asp</link>
+<link>http://www.springsource.com/products/spring-community-download</link>
 <description>
-If you're trying to figure out how many records are in a given SQL result set, you can use either the RecordCount or Count command. Both work in different ways.
+Download Spring Integration
 </description>
-<pubDate>Sun, 3 Apr 2005 17:12:17 EST</pubDate>
+<pubDate>Sun, 13 Feb 2010 14:12:17 EST</pubDate>
 </item>
 
 <item>
 <title>
-Bubble Sort Code Technique
+Check out Spring Integration forums
 </title>
-<link>http://www.bellaonline.com/articles/art29843.asp</link>
+<link>http://forum.springsource.org/forumdisplay.php?f=42</link>
 <description>
-If you are sorting content into an order, one of the most simple techniques that exists is the bubble sort technique.
+Spring Integration forums are awesome
 </description>
-<pubDate>Wed, 16 Mar 2005 00:38:21 EST</pubDate>
+<pubDate>Wed, 13 Mar 2010 03:38:21 EST</pubDate>
 </item>
 
 </channel>

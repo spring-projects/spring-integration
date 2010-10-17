@@ -87,7 +87,6 @@ public class FeedReaderMessageSource extends IntegrationObjectSupport
                 }
             }
         } catch (Exception e) {
-        	e.printStackTrace();
         	throw new MessagingException("Exception thrown when trying to retrive feed at url '" + this.feedUrl + "'", e);
         }
 

@@ -15,12 +15,15 @@
  */
 package org.springframework.integration.feed;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.integration.Message;
@@ -28,6 +31,8 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.DefaultPropertiesPersister;
+import org.springframework.util.StringUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -41,14 +46,17 @@ import com.sun.syndication.feed.synd.SyndFeed;
  * @author Oleg Zhurakousky
  */
 public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry>{
-
-	private volatile Map<String, String> persisterMap = new ConcurrentHashMap<String, String>();
+	private final DefaultPropertiesPersister persister = new DefaultPropertiesPersister();
+	private volatile Properties lastPersistentEntry = new Properties();
 	private volatile Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
     private volatile FeedReaderMessageSource feedReaderMessageSource;
     private final Object monitor = new Object();
     private volatile String feedMetadataIdKey;
-    private volatile boolean initialized;
+    private volatile String persistentIdentifier;
+
+	private volatile boolean initialized;
     private volatile long lastTime = -1;
+    private volatile File persisterFile;
     
     private Comparator<SyndEntry> syndEntryComparator = new Comparator<SyndEntry>() {
         public int compare(SyndEntry syndEntry, SyndEntry syndEntry1) {
@@ -68,15 +76,9 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
     	Assert.notNull(feedReaderMessageSource, "'feedReaderMessageSource' must not be null");
 		this.feedReaderMessageSource = feedReaderMessageSource;
 	}
-    /**
-     * Allows you to provide your own implementation of 'persisterMap' instead of relying on
-     * your own which is in-memory.
-     * 
-     * @param persisterMap
-     */
-    public void setPersisterMap(Map<String, String> persisterMap) {
-    	Assert.notNull(persisterMap, "'persisterMap' can not be null");
-    	this.persisterMap = persisterMap;
+
+    public void setPersistentIdentifier(String persistentIdentifier) {
+		this.persistentIdentifier = persistentIdentifier;
 	}
     
     public String getComponentType(){
@@ -94,8 +96,9 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
     
     @SuppressWarnings("unchecked")
     private SyndEntry doReceieve() {
+    	SyndEntry nextUp = null;
         synchronized (this.monitor) {
-            SyndEntry nextUp = pollAndCache();
+            nextUp = pollAndCache();
 
             if (nextUp != null) {
                 return nextUp;
@@ -114,17 +117,33 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
                     }
                 }
             }
-            return pollAndCache();
+            nextUp = pollAndCache(); 
         }
+        return nextUp;
     }
     
     @Override
     protected void onInit() throws Exception {
-        // setup persistence of metadata
-    	this.feedMetadataIdKey = FeedEntryReaderMessageSource.class.getName() + "#" + feedReaderMessageSource.getFeedUrl();
-        String lastTime = (String) this.persisterMap.get(this.feedMetadataIdKey);
-        if (lastTime != null && !lastTime.trim().equalsIgnoreCase("")) {
-            this.lastTime = Long.parseLong(lastTime);
+    	if (StringUtils.hasText(this.persistentIdentifier)){
+    		File dir = new File(System.getProperty("user.home") + "/temp/spring-integration");
+        	dir.mkdirs();
+        	persisterFile = new File(dir, this.persistentIdentifier + ".last.entry");
+        	if (!persisterFile.exists()){
+        		persisterFile.createNewFile();
+        	}
+        	FileInputStream inStream = new FileInputStream(persisterFile);
+        	persister.load(lastPersistentEntry, inStream);
+    	}
+    	else {
+    		logger.info("Your '" + this.getComponentType() + "' is anonymous (no ID attribute), therefore no feed entries will be persisted " +
+    				"which may result in a duplicate feed entries once this adapter is restarted");
+    	}
+    	  	
+    	this.feedMetadataIdKey = this.getComponentType() + "@" + this.getComponentName() + 
+    								"#" + feedReaderMessageSource.getFeedUrl();
+        String keyTime = (String) this.lastPersistentEntry.get(this.feedMetadataIdKey);
+        if (StringUtils.hasText(keyTime)){
+        	this.lastTime = Long.parseLong(keyTime);
         }
         this.initialized = true;
     }
@@ -135,9 +154,32 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
         if (next == null) {
         	return null;
         }
-        	
+        
         this.lastTime = next.getPublishedDate().getTime();
-        this.persisterMap.put(this.feedMetadataIdKey, this.lastTime + "");
+        this.lastPersistentEntry.put(this.feedMetadataIdKey, this.lastTime + "");
+        
+        if (persisterFile != null){
+        	FileOutputStream fo = null;
+            try {
+            	fo = new FileOutputStream(persisterFile);
+            	persister.store(this.lastPersistentEntry, fo, "Last feed entry");
+    		} 
+            catch (IOException e) {
+            	// not fatal for the functionality of the component
+    			logger.warn("Failed to persist feed entry. This may result in a duplicate " +
+    					"feed entry after this component is restarted", e);
+    		} 
+            finally {
+    			try {
+    				fo.close();
+    			} 
+    			catch (IOException e) {
+    				// not fatal for the functionality of he component
+    				logger.warn("Failed to close output stream to " + persisterFile.getAbsolutePath(), e);
+    			}
+    		}
+        }
+        
         return next;
     }
 }
