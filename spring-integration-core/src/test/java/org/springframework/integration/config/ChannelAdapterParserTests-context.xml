@@ -11,14 +11,22 @@
 		<queue capacity="1"/>
 	</channel>
 
+	<channel id="queueChannelForHeadersTest">
+		<queue capacity="1"/>
+	</channel>
+
 	<outbound-channel-adapter id="outboundWithImplicitChannel" ref="consumer"/>
 
 	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
 	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" channel="queueChannel" auto-startup="false">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="10000"/>
-		</poller>
+		<poller max-messages-per-poll="1" fixed-delay="10000"/>
+	</inbound-channel-adapter>
+
+	<inbound-channel-adapter id="methodInvokingSourceWithHeaders" ref="testBean" method="getMessage" channel="queueChannelForHeadersTest" auto-startup="false">
+		<poller max-messages-per-poll="1" fixed-delay="10000"/>
+		<header name="foo" value="ABC"/>
+		<header name="bar" expression="new Integer(123)"/>
 	</inbound-channel-adapter>
 
 	<beans:bean id="consumer" class="org.springframework.integration.config.TestConsumer"/>

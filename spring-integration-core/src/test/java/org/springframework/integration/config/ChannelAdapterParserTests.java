@@ -78,6 +78,7 @@ public class ChannelAdapterParserTests {
 		message = channel.receive(100);
 		assertNull(message);
 	}
+
 	@Test
 	public void methodInvokingSourceStoppedByApplicationContextInner() {
 		String beanName = "methodInvokingSource";
@@ -146,6 +147,25 @@ public class ChannelAdapterParserTests {
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
 		((SourcePollingChannelAdapter) adapter).stop();
+	}
+
+	@Test
+	public void methodInvokingSourceWithHeaders() {
+		String beanName = "methodInvokingSourceWithHeaders";
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannelForHeadersTest");
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		Object adapter = this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		((SourcePollingChannelAdapter) adapter).start();
+		Message<?> message = channel.receive(100);
+		((SourcePollingChannelAdapter) adapter).stop();
+		assertNotNull(message);
+		assertEquals("source test", testBean.getMessage());
+		assertEquals("source test", message.getPayload());
+		assertEquals("ABC", message.getHeaders().get("foo"));
+		assertEquals(123, message.getHeaders().get("bar"));
 	}
 
 	@Test
