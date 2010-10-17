@@ -19,8 +19,8 @@
 	<int:channel id="testChannel" />
 	
 	<int:inbound-channel-adapter channel="testChannel" method="get">
-		<bean class="org.springframework.integration.jmx.config.PollingAdapterMBeanTests$Source"/>
 		<int:poller fixed-rate="5000" max-messages-per-poll="1"/>
+		<bean class="org.springframework.integration.jmx.config.PollingAdapterMBeanTests$Source"/>
 	</int:inbound-channel-adapter>
 	
 	<int:logging-channel-adapter channel="testChannel"/>
