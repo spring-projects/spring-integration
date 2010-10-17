@@ -23,7 +23,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -41,20 +40,20 @@ import com.sun.syndication.feed.synd.SyndFeed;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  */
-public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry>, Lifecycle {
+public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry>{
 
 	private volatile Map<String, String> persisterMap = new ConcurrentHashMap<String, String>();
 	private volatile Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
     private volatile FeedReaderMessageSource feedReaderMessageSource;
     private final Object monitor = new Object();
     private volatile String feedMetadataIdKey;
-    private volatile String feedUrl;
-    private volatile boolean running;
+    private volatile boolean initialized;
     private volatile long lastTime = -1;
     
     private Comparator<SyndEntry> syndEntryComparator = new Comparator<SyndEntry>() {
         public int compare(SyndEntry syndEntry, SyndEntry syndEntry1) {
-            long x = sortId(syndEntry) - sortId(syndEntry1);
+            long x = syndEntry.getPublishedDate().getTime() - 
+            		 syndEntry1.getPublishedDate().getTime();
             if (x < -1) {
             	return -1;
             }
@@ -65,13 +64,10 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
         }
     };
     
-    public void setFeedUrl(String feedUrl) {
-        this.feedUrl = feedUrl;
-    }
-    
-    public String getFeedUrl() {
-        return feedUrl;
-    }
+    public FeedEntryReaderMessageSource(FeedReaderMessageSource feedReaderMessageSource) {
+    	Assert.notNull(feedReaderMessageSource, "'feedReaderMessageSource' must not be null");
+		this.feedReaderMessageSource = feedReaderMessageSource;
+	}
     /**
      * Allows you to provide your own implementation of 'persisterMap' instead of relying on
      * your own which is in-memory.
@@ -83,25 +79,21 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
     	this.persisterMap = persisterMap;
 	}
     
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    public void stop() {
-        this.feedReaderMessageSource.stop();
-        this.setRunning(false);
-    }
-    
     public String getComponentType(){
     	return "feed:inbound-channel-adapter";
     }
 
+    public Message<SyndEntry> receive() {
+    	Assert.isTrue(this.initialized, "'FeedEntryReaderMessageSource' must be initialized before it can produce Messages");
+        SyndEntry se = doReceieve();
+        if (se == null) {
+            return null;
+        }
+        return MessageBuilder.withPayload(se).build();
+    }
+    
     @SuppressWarnings("unchecked")
-    public SyndEntry receiveSyndEntry() {
+    private SyndEntry doReceieve() {
         synchronized (this.monitor) {
             SyndEntry nextUp = pollAndCache();
 
@@ -115,58 +107,36 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
                 if (null != feedEntries) {
                     Collections.sort(feedEntries, syndEntryComparator);
                     for (SyndEntry se : feedEntries) {
-                        long sort = this.sortId(se);
-                        if (sort > this.lastTime)
-                            entries.add(se);
+                        long publishedTime = se.getPublishedDate().getTime();
+                        if (publishedTime > this.lastTime){
+                        	entries.add(se);
+                        }         
                     }
                 }
             }
             return pollAndCache();
         }
     }
-
-    public Message<SyndEntry> receive() {
-        SyndEntry se = receiveSyndEntry();
-        if (se == null) {
-            return null;
-        }
-        return MessageBuilder.withPayload(se).build();
-    }
-
-    public void start() {
-        this.feedReaderMessageSource.start();
-        this.setRunning(true);
-
-    }
     
-    private long sortId(SyndEntry entry) {
-        return entry.getPublishedDate().getTime();
-    }
-
     @Override
     protected void onInit() throws Exception {
-        Assert.notNull(this.feedUrl, "the feedUrl can't be null");
-        this.feedReaderMessageSource = new FeedReaderMessageSource();
-        this.feedReaderMessageSource.setFeedUrl(this.feedUrl);
-        this.feedReaderMessageSource.setBeanName(this.getComponentName());
-        this.feedReaderMessageSource.afterPropertiesSet();
-
         // setup persistence of metadata
-        this.feedMetadataIdKey = FeedEntryReaderMessageSource.class.getName() + "#" + feedUrl;
+    	this.feedMetadataIdKey = FeedEntryReaderMessageSource.class.getName() + "#" + feedReaderMessageSource.getFeedUrl();
         String lastTime = (String) this.persisterMap.get(this.feedMetadataIdKey);
         if (lastTime != null && !lastTime.trim().equalsIgnoreCase("")) {
             this.lastTime = Long.parseLong(lastTime);
         }
+        this.initialized = true;
     }
 
-    private SyndEntry pollAndCache() {
+	private SyndEntry pollAndCache() {
         SyndEntry next = this.entries.poll();
         
         if (next == null) {
         	return null;
         }
         	
-        this.lastTime = sortId(next);
+        this.lastTime = next.getPublishedDate().getTime();
         this.persisterMap.put(this.feedMetadataIdKey, this.lastTime + "");
         return next;
     }

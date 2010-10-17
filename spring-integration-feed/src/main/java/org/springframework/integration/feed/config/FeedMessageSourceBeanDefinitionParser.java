@@ -32,9 +32,15 @@ public class FeedMessageSourceBeanDefinitionParser extends AbstractPollingInboun
 	@Override
 	protected String parseSource(final Element element, final ParserContext parserContext) {
 
-		BeanDefinitionBuilder feedBuilder = 
+		BeanDefinitionBuilder feedEntryBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.feed.FeedEntryReaderMessageSource");
-		feedBuilder.addPropertyValue("feedUrl", element.getAttribute("feedUrl"));
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(feedBuilder.getBeanDefinition(), parserContext.getRegistry());
+	
+		BeanDefinitionBuilder feedBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.feed.FeedReaderMessageSource");
+		feedBuilder.addConstructorArgValue(element.getAttribute("feedUrl"));
+		
+		feedEntryBuilder.addConstructorArgValue(feedBuilder.getBeanDefinition());
+		
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(feedEntryBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 }

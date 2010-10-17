@@ -19,7 +19,6 @@ import java.net.URL;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
@@ -30,6 +29,7 @@ import org.springframework.util.Assert;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.fetcher.FetcherEvent;
 import com.sun.syndication.fetcher.FetcherListener;
+import com.sun.syndication.fetcher.impl.AbstractFeedFetcher;
 import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
@@ -43,48 +43,42 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
  * @author Mario Gray
  * @author Oleg Zhurakousky
  */
-class FeedReaderMessageSource extends IntegrationObjectSupport
-        implements InitializingBean, Lifecycle, MessageSource<SyndFeed> {
+public class FeedReaderMessageSource extends IntegrationObjectSupport
+        implements InitializingBean, MessageSource<SyndFeed> {
    
-	private volatile boolean running;
-    private volatile String feedUrl;
-    private volatile URL feedURLObject;
+	private final AbstractFeedFetcher fetcher;
+	private final Object syndFeedMonitor = new Object();
+	
+    private volatile URL feedUrl;
     private volatile FeedFetcherCache fetcherCache;
-    private volatile HttpURLFeedFetcher fetcher;
-    private volatile ConcurrentLinkedQueue<SyndFeed> syndFeeds;
+	private volatile ConcurrentLinkedQueue<SyndFeed> syndFeeds = new ConcurrentLinkedQueue<SyndFeed>();
     private volatile MyFetcherListener myFetcherListener;
-    private final Object syndFeedMonitor = new Object();
    
-    public FeedReaderMessageSource() {
-        syndFeeds = new ConcurrentLinkedQueue<SyndFeed>();
-    }
-    
-    public void setFeedUrl(final String feedUrl) {
+   
+    public FeedReaderMessageSource(URL feedUrl) {
         this.feedUrl = feedUrl;
+        if (feedUrl.getProtocol().equals("file")){
+        	fetcher = new FileUrlFeedFetcher();
+        } 
+        else if (feedUrl.getProtocol().equals("http")){
+        	fetcherCache = HashMapFeedInfoCache.getInstance();
+            fetcher = new HttpURLFeedFetcher(fetcherCache);
+        } 
+        else{
+        	throw new IllegalArgumentException("Unsupported URL protocol: " + feedUrl.getProtocol());
+        }
     }
     
-    public String getFeedUrl() {
+    public URL getFeedUrl() {
         return feedUrl;
     }
-    
-    public void start() {
-        this.running = true;
-    }
-
-    public void stop() {
-        this.running = false;
-    }
-    
-    public boolean isRunning() {
-        return this.running;
-    }
-
+   
     public SyndFeed receiveSyndFeed() {
         SyndFeed returnedSyndFeed = null;
 
         try {
             synchronized (syndFeedMonitor) {
-            	returnedSyndFeed = fetcher.retrieveFeed(this.feedURLObject);
+            	returnedSyndFeed = fetcher.retrieveFeed(this.feedUrl);
                 logger.debug("attempted to retrieve feed '" + this.feedUrl + "'");
 
                 if (returnedSyndFeed == null) {
@@ -93,7 +87,8 @@ class FeedReaderMessageSource extends IntegrationObjectSupport
                 }
             }
         } catch (Exception e) {
-        	throw new MessagingException("Exception thrown when trying to retrive feed at url '" + this.feedURLObject + "'", e);
+        	e.printStackTrace();
+        	throw new MessagingException("Exception thrown when trying to retrive feed at url '" + this.feedUrl + "'", e);
         }
 
         return returnedSyndFeed;
@@ -106,20 +101,16 @@ class FeedReaderMessageSource extends IntegrationObjectSupport
             return null;
         }
 
-        return MessageBuilder.withPayload(syndFeed).setHeader(FeedConstants.FEED_URL, this.feedURLObject).build();
+        return MessageBuilder.withPayload(syndFeed).setHeader(FeedConstants.FEED_URL, this.feedUrl).build();
     }
 
     @Override
     protected void onInit() throws Exception {
 
-//        myFetcherListener = new MyFetcherListener();
-        fetcherCache = HashMapFeedInfoCache.getInstance();
-
-        fetcher = new HttpURLFeedFetcher(fetcherCache);
+        
 
         fetcher.addFetcherEventListener(myFetcherListener);
         Assert.notNull(this.feedUrl, "the feedURL can't be null");
-        feedURLObject = new URL(this.feedUrl);
     }
     
     class MyFetcherListener implements FetcherListener {

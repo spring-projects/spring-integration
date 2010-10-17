@@ -37,6 +37,18 @@
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="feedUrl" type="xsd:string" use="required"/>
+            <xsd:attribute name="persisterMap" type="xsd:string" use="optional">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            		Allows you to inject Map
+            		</xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="java.util.Map"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 
