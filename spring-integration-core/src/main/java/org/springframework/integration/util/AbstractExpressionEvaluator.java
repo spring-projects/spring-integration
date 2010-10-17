@@ -97,6 +97,14 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		return this.evaluateExpression(expression, input, (Class<?>) null);
 	}
 
+	protected <T> T evaluateExpression(Expression expression, Class<T> expectedType) {
+		return expression.getValue(this.evaluationContext, expectedType);
+	}
+
+	protected Object evaluateExpression(Expression expression) {
+		return expression.getValue(this.evaluationContext);
+	}
+
 	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {
 		return expression.getValue(this.evaluationContext, input, expectedType);
 	}

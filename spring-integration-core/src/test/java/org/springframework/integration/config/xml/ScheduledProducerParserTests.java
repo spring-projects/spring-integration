@@ -24,12 +24,12 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.endpoint.ScheduledMessageProducer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -50,71 +50,66 @@ public class ScheduledProducerParserTests {
 
 	@Test
 	public void fixedDelay() {
-		ScheduledMessageProducer producer = context.getBean("fixedDelayProducer", ScheduledMessageProducer.class);
-		assertFalse(producer.isAutoStartup());
-		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
-		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
+		SourcePollingChannelAdapter adapter = context.getBean("fixedDelayProducer", SourcePollingChannelAdapter.class);
+		assertFalse(adapter.isAutoStartup());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(1234L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.FALSE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedDelayChannel"), producerAccessor.getPropertyValue("outputChannel"));
-		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
-		assertEquals("'fixedDelayTest'", payloadExpression.getExpressionString());
+		assertEquals(context.getBean("fixedDelayChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
+		assertEquals("'fixedDelayTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void fixedRate() {
-		ScheduledMessageProducer producer = context.getBean("fixedRateProducer", ScheduledMessageProducer.class);
-		assertFalse(producer.isAutoStartup());
-		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
-		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
+		SourcePollingChannelAdapter adapter = context.getBean("fixedRateProducer", SourcePollingChannelAdapter.class);
+		assertFalse(adapter.isAutoStartup());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(5678L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.TRUE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedRateChannel"), producerAccessor.getPropertyValue("outputChannel"));
-		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
-		assertEquals("'fixedRateTest'", payloadExpression.getExpressionString());
+		assertEquals(context.getBean("fixedRateChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
+		assertEquals("'fixedRateTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void cron() {
-		ScheduledMessageProducer producer = context.getBean("cronProducer", ScheduledMessageProducer.class);
-		assertFalse(producer.isAutoStartup());
-		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
-		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
+		SourcePollingChannelAdapter adapter = context.getBean("cronProducer", SourcePollingChannelAdapter.class);
+		assertFalse(adapter.isAutoStartup());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
 		assertEquals(CronTrigger.class, trigger.getClass());
 		assertEquals("7 6 5 4 3 ?", new DirectFieldAccessor(new DirectFieldAccessor(
 				trigger).getPropertyValue("sequenceGenerator")).getPropertyValue("expression"));
-		assertEquals(context.getBean("cronChannel"), producerAccessor.getPropertyValue("outputChannel"));
-		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
-		assertEquals("'cronTest'", payloadExpression.getExpressionString());
+		assertEquals(context.getBean("cronChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
+		assertEquals("'cronTest'", expression.getExpressionString());
 	}
 
 	@Test
 	public void triggerRef() {
-		ScheduledMessageProducer producer = context.getBean("triggerRefProducer", ScheduledMessageProducer.class);
-		assertTrue(producer.isAutoStartup());
-		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
-		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
+		SourcePollingChannelAdapter adapter = context.getBean("triggerRefProducer", SourcePollingChannelAdapter.class);
+		assertTrue(adapter.isAutoStartup());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
 		assertEquals(context.getBean("customTrigger"), trigger);
-		assertEquals(context.getBean("triggerRefChannel"), producerAccessor.getPropertyValue("outputChannel"));
-		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
-		assertEquals("'triggerRefTest'", payloadExpression.getExpressionString());
+		assertEquals(context.getBean("triggerRefChannel"), adapterAccessor.getPropertyValue("outputChannel"));
+		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);
+		assertEquals("'triggerRefTest'", expression.getExpressionString());
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void headerExpressions() {
-		ScheduledMessageProducer producer = context.getBean("headerExpressionsProducer", ScheduledMessageProducer.class);
-		assertFalse(producer.isAutoStartup());
-		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
-		Map<String, Expression> headerExpressions = (Map<String, Expression>) producerAccessor.getPropertyValue("headerExpressions");
+		SourcePollingChannelAdapter adapter = context.getBean("headerExpressionsProducer", SourcePollingChannelAdapter.class);
+		assertFalse(adapter.isAutoStartup());
+		Map<String, Expression> headerExpressions = TestUtils.getPropertyValue(adapter, "source.headerExpressions", Map.class); 
 		assertEquals(2, headerExpressions.size());
 		assertEquals("6 * 7", headerExpressions.get("foo").getExpressionString());
 		assertEquals("x", headerExpressions.get("bar").getExpressionString());

@@ -25,21 +25,22 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.scheduling.Trigger;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public class ScheduledMessageProducerTests {
+public class ExpressionEvaluatingMessageSourceIntegrationTests {
 
 	private static final AtomicInteger counter = new AtomicInteger();
 
@@ -47,18 +48,31 @@ public class ScheduledMessageProducerTests {
 	@Test
 	public void test() throws Exception {
 		QueueChannel channel = new QueueChannel();
-		Trigger trigger = new PeriodicTrigger(100);
-		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.ScheduledMessageProducerTests).next()";
+		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.ExpressionEvaluatingMessageSourceIntegrationTests).next()";
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 		headerExpressions.put("foo", new LiteralExpression("x"));
 		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("7 * 6"));
-		ScheduledMessageProducer producer = new ScheduledMessageProducer(trigger, payloadExpression);
-		producer.setHeaderExpressions(headerExpressions);
-		producer.setTaskScheduler(scheduler);
-		producer.setOutputChannel(channel);
-		producer.start();
+		ExpressionFactoryBean factoryBean = new ExpressionFactoryBean(payloadExpression);
+		factoryBean.afterPropertiesSet();
+		Expression expression = factoryBean.getObject();
+		ExpressionEvaluatingMessageSource<Object> source = new ExpressionEvaluatingMessageSource<Object>(expression, Object.class);
+		source.setHeaderExpressions(headerExpressions);
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
+		adapter.setSource(source);
+		adapter.setTaskScheduler(scheduler);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(3);
+		pollerMetadata.setTrigger(new PeriodicTrigger(60000));
+		adapter.setPollerMetadata(pollerMetadata);
+		adapter.setOutputChannel(channel);
+		adapter.setErrorHandler(new ErrorHandler() {
+			public void handleError(Throwable t) {
+				throw new IllegalStateException("unexpected exception in test", t);
+			}
+		});
+		adapter.start();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 3; i++) {
 			messages.add(channel.receive(1000));
