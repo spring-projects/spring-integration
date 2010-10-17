@@ -54,6 +54,9 @@ public class FileWritingMessageHandlerTests {
 			super.create();
 			outputDirectory = temp.newFolder("outputDirectory");
 			handler = new FileWritingMessageHandler(outputDirectory);
+			sourceFile = temp.newFile("sourceFile");
+			FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
+				new FileOutputStream(sourceFile, false));
 		}
 	};
 
@@ -63,12 +66,7 @@ public class FileWritingMessageHandlerTests {
 
 	@Before
 	public void setup() throws Exception {
-		sourceFile = File.createTempFile("tempSourceFileForTests", ".txt");
-		sourceFile.deleteOnExit();
-		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
-				new FileOutputStream(sourceFile, false));
-		outputDirectory = temp.newFolder("outputDirectory");
-		handler = new FileWritingMessageHandler(outputDirectory);
+		//don't tamper with temp files here, Rule is applied later
 	}
 
 	@Test(expected = MessageHandlingException.class)
