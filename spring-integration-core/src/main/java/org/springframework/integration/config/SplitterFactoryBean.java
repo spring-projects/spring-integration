@@ -29,12 +29,15 @@ import org.springframework.util.StringUtils;
  * Factory bean for creating a Message Splitter.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 
 	private volatile boolean requiresReply;
+
+	private volatile boolean applySequence = true;
 
 
 	public void setSendTimeout(Long sendTimeout) {
@@ -47,6 +50,10 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
+	}
+
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
 	}
 
 	@Override
@@ -89,6 +96,7 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 			splitter.setSendTimeout(sendTimeout);
 		}
 		splitter.setRequiresReply(requiresReply);
+		splitter.setApplySequence(applySequence);
 		return splitter;
 	}
 

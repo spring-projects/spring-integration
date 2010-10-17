@@ -16,25 +16,24 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.util.Collections;
-
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
+import java.util.Collections;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SplitterParserTests {
 
@@ -103,5 +102,19 @@ public class SplitterParserTests {
 		DirectChannel inputChannel = context.getBean("requiresReplyInput", DirectChannel.class);
 		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
 	}
+
+	@Test
+	public void splitterParserTestApplySequenceFalse() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"splitterParserTests.xml", this.getClass());
+		context.start();
+		DirectChannel inputChannel = context.getBean("noSequenceInput", DirectChannel.class);
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
+		Message<?> message = output.receive(1000);
+		assertThat(message.getHeaders().getSequenceNumber(), is(0));
+		assertThat(message.getHeaders().getSequenceSize(), is(0));
+	}
+
 
 }

@@ -2118,6 +2118,15 @@ Name of the header whose value to use.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="apply-sequence" type="xsd:boolean" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+	Set this flag to false to prevent adding sequence related headers in this splitter. This
+	can be convenient in cases where the set sequence numbers conflict with downstream custom
+	aggregations.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

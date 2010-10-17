@@ -35,6 +35,15 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
+	private boolean applySequence = true;
+
+	/**
+	 * Set the applySequence flag to the specified value. Defaults to true.
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
+	}
+
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
@@ -80,7 +89,9 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			builder = MessageBuilder.withPayload(item);
 			builder.copyHeaders(headers);
 		}
-		builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
+		if (this.applySequence) {
+			builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
+		}
 		return builder;
 	}
 
