@@ -73,7 +73,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test
-	// @Repeat(50)
+	// @Repeat(100)
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.reset(1);
 		Service.fail = true;
@@ -81,8 +81,22 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		Service.await(1000);
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
-		assertEquals(1, input.getQueueSize());
-		assertNotNull(input.receive(100L));
+		// but unless we use a transactin here there is a chance that the queue will
+		// appear empty....
+		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+
+			public Void doInTransaction(TransactionStatus status) {
+
+				synchronized (storeLock) {
+
+					assertEquals(1, input.getQueueSize());
+					assertNotNull(input.receive(100L));
+
+				}
+				return null;
+
+			}
+		});
 	}
 
 	@Test

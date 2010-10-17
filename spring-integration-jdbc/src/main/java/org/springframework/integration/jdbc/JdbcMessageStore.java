@@ -18,9 +18,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
@@ -40,6 +43,7 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
@@ -71,11 +75,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_UNMARKED_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MARKED=0 order by CREATED_DATE";
-
-	private static final String LIST_MARKED_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MARKED=1";
-
-	private static final String GET_MIN_CREATED_DATE_BY_GROUP_KEY = "SELECT MIN(CREATED_DATE) from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
+	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
 
 	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and GROUP_KEY=? and REGION=?";
 
@@ -108,7 +108,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
 	private JdbcOperations jdbcTemplate;
-	
+
 	private DeserializingConverter deserializer;
 
 	private SerializingConverter serializer;
@@ -194,24 +194,24 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public void setLobHandler(LobHandler lobHandler) {
 		this.lobHandler = lobHandler;
 	}
-	
+
 	/**
 	 * A converter for serializing messages to byte arrays for storage.
 	 * 
 	 * @param serializer the serializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setSerializer(Serializer/*<? super Message<?>>*/ serializer) {
+	public void setSerializer(Serializer/* <? super Message<?>> */serializer) {
 		this.serializer = new SerializingConverter(serializer);
 	}
-	
+
 	/**
 	 * A converter for deserializing byte arrays to messages.
 	 * 
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setDeserializer(Deserializer/*<? super Message<?>>*/ deserializer) {
+	public void setDeserializer(Deserializer/* <? super Message<?>> */deserializer) {
 		this.deserializer = new DeserializingConverter(deserializer);
 	}
 
@@ -257,8 +257,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 
 		final long createdDate = System.currentTimeMillis();
-		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE).setHeader(
-				CREATED_DATE_KEY, new Long(createdDate)).build();
+		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
+				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
 		final String messageId = getKey(result.getHeaders().getId());
 		final byte[] messageBytes = serializer.convert(result);
 
@@ -291,25 +291,35 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});
-		
+
 		return getMessageGroup(groupId);
 
 	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
-		String key = getKey(groupId);		
-		// TODO: collapse 3 queries into 1
-		List<Message<?>> marked = jdbcTemplate.query(getQuery(LIST_MARKED_MESSAGES_BY_GROUP_KEY), new Object[] {
-				key, region }, mapper);
-		List<Message<?>> unmarked = jdbcTemplate.query(getQuery(LIST_UNMARKED_MESSAGES_BY_GROUP_KEY),
-				new Object[] { key, region }, mapper);
+		String key = getKey(groupId);
+		final List<Message<?>> marked = new ArrayList<Message<?>>();
+		final List<Message<?>> unmarked = new ArrayList<Message<?>>();
+		final AtomicReference<Date> date = new AtomicReference<Date>();
+		jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region },
+				new RowCallbackHandler() {
+					int count = 0;
+					public void processRow(ResultSet rs) throws SQLException {
+						int markedFlag = rs.getInt("MARKED");
+						Message<?> message = mapper.mapRow(rs, count++);
+						if (markedFlag > 0) {
+							marked.add(message);
+						} else {
+							unmarked.add(message);
+						}
+						date.set(rs.getTimestamp("CREATED_DATE"));
+					}
+				});
 		if (marked.isEmpty() && unmarked.isEmpty()) {
 			return new SimpleMessageGroup(groupId);
 		}
-		Timestamp date = jdbcTemplate.queryForObject(getQuery(GET_MIN_CREATED_DATE_BY_GROUP_KEY),
-				Timestamp.class, key, region);
-		Assert.state(date != null, "Could not locate created date for groupId=" + groupId);
-		long timestamp = date.getTime();
+		Assert.state(date.get() != null, "Could not locate created date for groupId=" + groupId);
+		long timestamp = date.get().getTime();
 		return new SimpleMessageGroup(unmarked, marked, groupId, timestamp);
 	}
 
@@ -357,7 +367,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 		jdbcTemplate.update(getQuery(MARK_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Marking message "+messageId+" in group with group key=" + groupKey);
+				logger.debug("Marking message " + messageId + " in group with group key=" + groupKey);
 				ps.setTimestamp(1, new Timestamp(updatedDate));
 				ps.setString(2, messageId);
 				ps.setString(3, groupKey);
@@ -419,8 +429,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private class MessageMapper implements RowMapper<Message<?>> {
 
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs,
-					"MESSAGE_BYTES"));
+			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 			return message;
 		}
 	}

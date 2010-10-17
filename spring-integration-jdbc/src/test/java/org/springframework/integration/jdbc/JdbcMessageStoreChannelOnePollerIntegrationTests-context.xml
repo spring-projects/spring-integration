@@ -37,14 +37,18 @@
 			class="org.springframework.integration.jdbc.JdbcMessageStoreChannelOnePollerIntegrationTests$Service" />
 		<poller fixed-rate="200">
 			<advice-chain>
-				<ref bean="lock" />
 				<ref bean="txAdvice" />
+				<ref bean="lock" />
 			</advice-chain>
 		</poller>
 	</service-activator>
 
 	<bean id="lock" class="org.springframework.integration.jdbc.LockInterceptor" />
-	<tx:advice id="txAdvice"/>
+	<tx:advice id="txAdvice">
+		<tx:attributes>
+			<tx:method name="*" />
+		</tx:attributes>
+	</tx:advice>
 
 	<bean id="placeholderProperties"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
