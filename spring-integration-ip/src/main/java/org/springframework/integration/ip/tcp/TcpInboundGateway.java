@@ -46,10 +46,16 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 
 	public boolean onMessage(Message<?> message) {
 		Message<?> reply = this.sendAndReceiveMessage(message);
+		if (reply == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("null reply received for " + message + " nothing to send");
+			}
+			return false;
+		}
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
 		TcpConnection connection = connections.get(connectionId);
 		if (connection == null) {
-			logger.error("Connection " + connectionId + " not found");
+			logger.error("Connection " + connectionId + " not found when processing reply for " + message);
 			return false;
 		}
 		try {
