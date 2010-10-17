@@ -16,7 +16,8 @@
 
 package org.springframework.integration.json;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -26,34 +27,60 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
+import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Jeremy Grelle
  * @since 2.0
  */
-public class OutboundJsonMessageMapperTests {
-	
-	private JsonFactory jsonFactory = new JsonFactory();
-	private ObjectMapper objectMapper = new ObjectMapper();
-	
+public class JsonOutboundMessageMapperTests {
+
+	private final JsonFactory jsonFactory = new JsonFactory();
+
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+
 	@Test
 	public void testFromMessageWithHeadersAndStringPayload() throws Exception {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
-		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
+		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
 		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
 		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 	}
-	
+
+	@Test
+	public void testFromMessageWithMessageHistory() throws Exception {
+		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
+		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(1));
+		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(2));
+		testMessage = MessageHistory.write(testMessage, new TestNamedComponent(3));
+		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
+		String result = mapper.fromMessage(testMessage);
+		assertTrue(result.contains("\"headers\":{"));
+		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
+		assertTrue(result.contains("\"$history\":"));
+		assertTrue(result.contains("testName-1"));
+		assertTrue(result.contains("testType-1"));
+		assertTrue(result.contains("testName-2"));
+		assertTrue(result.contains("testType-2"));
+		assertTrue(result.contains("testName-3"));
+		assertTrue(result.contains("testType-3"));
+	}
+
 	@Test
 	public void testFromMessageExtractStringPayload() throws Exception {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
 		String expected = "\"myPayloadStuff\"";
-		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
+		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		mapper.setShouldExtractPayload(true);
 		String result = mapper.fromMessage(testMessage);
 		assertEquals(expected, result);
@@ -63,7 +90,7 @@ public class OutboundJsonMessageMapperTests {
 	public void testFromMessageWithHeadersAndBeanPayload() throws Exception {
 		TestBean payload = new TestBean();
 		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).build();
-		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
+		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
 		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
@@ -76,7 +103,7 @@ public class OutboundJsonMessageMapperTests {
 	public void testFromMessageExtractBeanPayload() throws Exception {
 		TestBean payload = new TestBean();
 		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).build();
-		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
+		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		mapper.setShouldExtractPayload(true);
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(!result.contains("headers"));
@@ -92,4 +119,24 @@ public class OutboundJsonMessageMapperTests {
 		parser.nextToken();
 		return objectMapper.readValue(parser, TestBean.class);
 	}
+
+
+	private static class TestNamedComponent implements NamedComponent {
+
+		private final int id;
+
+		private TestNamedComponent(int id) {
+			this.id = id;
+		}
+
+		public String getComponentName() {
+			return "testName-" + this.id;
+		}
+
+		public String getComponentType() {
+			return "testType-" + this.id;
+		}
+
+	}
+
 }
