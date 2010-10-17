@@ -19,27 +19,27 @@
 		<queue/>
 	</channel>
 
-	<scheduled-producer id="fixedDelayProducer" payload-expression="'fixedDelayTest'" channel="fixedDelayChannel" auto-startup="false">
+	<inbound-channel-adapter id="fixedDelayProducer" expression="'fixedDelayTest'" channel="fixedDelayChannel" auto-startup="false">
 		<poller fixed-delay="1234"/>
-	</scheduled-producer>
+	</inbound-channel-adapter>
 
-	<scheduled-producer id="fixedRateProducer" payload-expression="'fixedRateTest'" channel="fixedRateChannel" auto-startup="false">
+	<inbound-channel-adapter id="fixedRateProducer" expression="'fixedRateTest'" channel="fixedRateChannel" auto-startup="false">
 		<poller fixed-rate="5678"/>
-	</scheduled-producer>
+	</inbound-channel-adapter>
 
-	<scheduled-producer id="cronProducer" payload-expression="'cronTest'" channel="cronChannel" auto-startup="false">
+	<inbound-channel-adapter id="cronProducer" expression="'cronTest'" channel="cronChannel" auto-startup="false">
 		<poller cron="7 6 5 4 3 ?"/>
-	</scheduled-producer>
+	</inbound-channel-adapter>
 
-	<scheduled-producer id="headerExpressionsProducer" payload-expression="'headerExpressionsTest'" channel="headerExpressionsChannel" auto-startup="false">
+	<inbound-channel-adapter id="headerExpressionsProducer" expression="'headerExpressionsTest'" channel="headerExpressionsChannel" auto-startup="false">
 		<poller fixed-delay="99"/>
 		<header name="foo" expression="6 * 7"/>
 		<header name="bar" value="x"/>
-	</scheduled-producer>
+	</inbound-channel-adapter>
 
-	<scheduled-producer id="triggerRefProducer" payload-expression="'triggerRefTest'" channel="triggerRefChannel">
+	<inbound-channel-adapter id="triggerRefProducer" expression="'triggerRefTest'" channel="triggerRefChannel">
 		<poller trigger="customTrigger"/>
-	</scheduled-producer>
+	</inbound-channel-adapter>
 
 	<beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
 		<beans:constructor-arg value="9999"/>

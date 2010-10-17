@@ -656,13 +656,30 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Channel Adapter that receives from a MessageSource and sends to a
 				MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:choice>
+					<xsd:sequence>
+						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+					<xsd:sequence>
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+				</xsd:choice>
+				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes"/>
+			<xsd:attributeGroup ref="channelAdapterAttributes"/>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="outbound-channel-adapter">
@@ -737,36 +754,37 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="methodInvokingChannelAdapterType">
-		<xsd:complexContent>
-			<xsd:extension base="channelAdapterType">
-				<xsd:attribute name="ref" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="method" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation>
-								<tool:expected-method type-ref="@ref" />
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+	<xsd:attributeGroup name="methodInvokingOrExpressionEvaluatingAttributes">
+		<xsd:attribute name="ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.lang.Object" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="method" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation>
+						<tool:expected-method type-ref="@ref" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					SpEL expression to be evaluated for each triggered execution.
+					The result of the evaluation will be passed as the payload of
+					the Message that is sent to the MessageChannel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
-	<xsd:complexType name="channelAdapterType">
-		<xsd:all>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
-			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-		</xsd:all>
+	<xsd:attributeGroup name="channelAdapterAttributes">
 		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
@@ -778,6 +796,22 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
+	</xsd:attributeGroup>
+
+	<xsd:complexType name="methodInvokingChannelAdapterType">
+		<xsd:complexContent>
+			<xsd:extension base="channelAdapterType">
+				<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="channelAdapterType">
+		<xsd:all>
+			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+		</xsd:all>
+		<xsd:attributeGroup ref="channelAdapterAttributes"/>
 	</xsd:complexType>
 
 	<xsd:element name="service-activator">
@@ -2408,86 +2442,6 @@ Name of the header whose value to use.
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-
-	<xsd:element name="scheduled-producer">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defines a component that evaluates an expression to generate a Message payload
-				(as well as optional
-				expression evaluation for headers). The resulting Message
-				is then sent to a MessageChannel. Each execution is driven
-				by a Trigger.
-				Exactly one of the trigger type attributes must be provided. The options are:
-				fixed-delay, fixed-rate,
-				cron, or trigger (reference).
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" />
-			<xsd:attribute name="fixed-delay" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="fixed-rate" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>Fixed rate trigger (in milliseconds).</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="cron" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>Cron trigger.</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="trigger" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Reference to a Trigger instance.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.scheduling.Trigger" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="payload-expression" type="xsd:string" use="required">
-				<xsd:annotation>
-					<xsd:documentation>
-						SpEL expression to be evaluated for each triggered execution.
-						The result of the evaluation will
-						be passed as the payload of
-						the Message that is sent to the MessageChannel.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string" use="required">
-				<xsd:annotation>
-					<xsd:documentation>
-						MessageChannel to which this producer's output should be sent.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation>
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specify whether this producer should start automatically.
-						By default it will. Set this to 'false'
-						to require a manual start.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
 
 	<xsd:element name="publishing-interceptor">
 		<xsd:annotation>
