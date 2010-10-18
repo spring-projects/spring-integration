@@ -201,5 +201,206 @@ public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</prog
   <note>
     For routing of XML-based Messages, including XPath support, see <xref linkend="xml"/>.
   </note>
+  
+  <section id="dynamic-routers">
+  	<title>Dynamic Routers</title>
+  	<para>
+  	So as you can see, Spring Integration provides quite a few different router configurations for most common 
+  	<emphasis>content-based routing</emphasis> use cases as well as the option of implementing custom routers as POJOs. 
+  	For example; <emphasis>Payload Type Router</emphasis> provides a simple way to configure a router which computes <code>channels</code> 
+  	based on the <code>payload type</code> of the incoming Message while <emphasis>Header Value Router</emphasis> provides the 
+  	same convenience in configuring a router which computes <code>channels</code> based on evaluating the value 
+  	of a particular Message Header. There is also an <emphasis>expression-based</emphasis> (SpEL) routers where the <code>channel</code>
+  	is determined based on evaluating an expression which gives these type of routers some dynamic characteristics. 
+  	</para>
+  	<para>
+  	However these routers share one common attribute -  <emphasis>static configuration</emphasis>. Even in the case of 
+  	expression-based routers, the expression itself is defined as part of the router configuration which means that 
+  	<quote>the same expression operating on the same value will always result in the computation of the same channel</quote>. 
+  	This is good in most cases since such routes are well defined and therefore predictable. But there are times when we 
+  	need to change router configurations dynamically so message flows could be routed to a different channel. 
+  	</para>
+  	<para> <emphasis>For example:</emphasis> </para>
+  	<para>
+  	You might want to bring down some part of your system for maintenance. So, temporarily you want to re-reroute 
+  	messages to a different message flow. Or you may want to introduce more granularity to your message flow by adding another 
+  	route to handle a more concrete type of java.lang.Number (in cases of Payload Type Router). 
+  	</para>
+  	<para>
+  	Unfortunately with static router configuration to accomplish this you'd have to bring down your entire application, 
+  	change the configuration of the router (change routes) and bring it back up. This is obviously not the solution.
+  	</para>
+  	<para>
+  	   <ulink url="http://www.eaipatterns.com/DynamicRouter.html">
+        Dynamic Router 
+      </ulink>
+  	  pattern describes the mechanisms by which one can change/configure routers dynamically without 
+  	  bringing down your system or individual routers. 	
+  	</para>
+  	<para>
+  	Before we get into the specifics of how it is accomplished in Spring Integration lets quickly summarize the 
+  	typical flow of the router, which consists of 3 simple steps:
+  	<itemizedlist>
+        <listitem>
+          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is a value calculated by the 
+          router once it receives the Message. Typically it is a <classname>String</classname> or and instance of the actual 
+          <classname>MessageChannel</classname>.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code>. We'll describe 
+          specifics of this process in a moment.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual <classname>MessageChannel</classname> </para>
+        </listitem>	       
+      </itemizedlist>
+  	</para>
+  	
+  	<para>
+  	There is not much that could be done with regard to router dynamics if Step 1 results in the actual instance of the 
+  	<classname>MessageChannel</classname> simply because <classname>MessageChannel</classname> is the <emphasis>final product</emphasis> of any 
+  	router's job. However, if Step 1 results in <code>channel identifier</code> that is not and instance of <classname>MessageChannel</classname>, 
+  	then there are quite a few possibilities to influence the process of calculating what will be the final instance of the <classname>Message Channel</classname>.
+  	Lets look at couple of the examples in the context of the 3 steps mentioned above: 
+  	</para>
+  	<para>
+  	<emphasis>Payload Type Router</emphasis>
+  	</para>
+  	<para>
+  	<programlisting language="xml"><![CDATA[<payload-type-router input-channel="routingChannel">
+	<mapping type="java.lang.String" channel="channel1" />
+	<mapping type="java.lang.Integer" channel="channel2" />
+</payload-type-router>]]></programlisting>
+  	</para>
+  	<para>
+  	Within the context of the Payload Type Router the 3 steps mentioned above would be realized as:
+  	<itemizedlist>
+        <listitem>
+          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the fully qualified name of the payload type 
+          (e.g., java.lang.String).</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where 
+           the result of the previous step is used to select the appropriate value from the <emphasis>payload type mapping</emphasis> 
+           defined via <code>mapping</code> element.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the 
+          <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname> router will obtain a
+          reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the 
+          previous step.</para>
+        </listitem>	       
+      </itemizedlist>
+      In other words each step feeds the next step until thr process completes.
+  	</para>
+  	<para>
+  	<emphasis>Header Value Router</emphasis>
+  	</para>
+  	<para>
+  	<programlisting language="xml"><![CDATA[<header-value-router input-channel="inputChannel" header-name="testHeader">
+	<mapping value="foo" channel="fooChannel" />
+	<mapping value="bar" channel="barChannel" />
+</header-value-router>]]></programlisting>
+  	</para>
+  	<para>
+  	Similar to the PayloadTypeRouter:
+  	<itemizedlist>
+        <listitem>
+          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the value of the header identified by the 
+          <code>header-name</code> attribute.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where 
+           the result of the previous step is used to select the appropriate value from the <emphasis>general mapping</emphasis> 
+           defined via <code>mapping</code> element.</para>
+        </listitem>
+        <listitem>
+          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the 
+          <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname> router will obtain a
+          reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the 
+          previous step.</para>
+        </listitem>	       
+      </itemizedlist>
+  	</para>
+  	<para>
+  	The above two configurations of two different router types look almost identical.
+  	However if we look at the different configuration of the <classname>HeaderValueRouter</classname> we clearly see that 
+  	there is no <code>mapping</code> sub element:
+  	<programlisting language="xml"><![CDATA[<header-value-router input-channel="inputChannel" header-name="testHeader">]]></programlisting>
+  	But configuration is still perfectly valid. So the natural question is what about the maping in the Step 2?
+  	</para>
+  	<para>
+  	What this means is that Step 2 is now an optional step. If mapping is not defined then the <code>channel identifier</code> 
+  	value computed in Step 1 will automatically be treated as the <code>channel name</code> which will now be resolved to the 
+  	actual <classname>MessageChannel</classname> in the Step 3. What it also means is that Step 2 is one of the key steps to 
+  	provide dynamic characteristics to the routers, since it introduces a process which 
+  	<emphasis>allows you to change the way 'channel identifier' resolves to 'channel name'</emphasis>, 
+  	thus influencing the process of determining the final instance of the <classname>MessageChannel</classname> from the initial 
+  	<code>channel identifier</code>. 
+  	</para>
+  	<para><emphasis>For Example:</emphasis> </para>
+  	<para>
+  	In the above configuration lets assume that the <code>testHeader</code> value is 'kermit' which is now a <code>channel identifier</code>
+  	 (Step 1). Since there is no mapping in this router, resolving this <code>channel identifier</code> to a <code>channel name</code> 
+  	 (Step 2) is impossible and this <code>channel identifier</code> is now treated as <code>channel name</code>. However what if 
+  	 there was mapping but for a different value, the end result would still be the same and that is:
+  	 <emphasis>if new value can not be determined through the process of resolving 'channel identifier' to a 'channel name', 
+  	 such 'channel identifier' becomes 'channel name'</emphasis> 
+  	</para>
+  	<para>
+  	So all that is left is for Step 3 to resolve <code>channel name</code> ('kermit') to an actual instance of the 
+  	<classname>MessageChannel</classname> identified by this name. That will be done via default 
+  	<interface>ChannelResolver</interface> implementation which is <classname>BeanFactoryChannelResolver</classname> which 
+  	basically does a bean lookup by the name provided. So now all messages which contain the header/value pair as <code>testHeader=kermit</code> 
+  	are going to be routed to a 'kermit' <classname>MessageChannel</classname>. 
+  	</para>
+  	<para>
+  	But what if you want to route these messages to 'simpson' channel? Obviously changing static configuration would work,
+  	but would also require bringing your system down. However if you had access to <code>channel identifier</code> map, then you 
+  	could just introduce a new mapping where header/value pair is now <code>kermit=simpson</code>, thus allowing Step 2 to treat 
+  	'kermit' as <code>channel identifier</code> while resolving it to 'simpson' as <code>channel name</code> .
+  	</para>
+  	<para>
+  	The same obviously applies for <classname>PayloadTypeRouter</classname>  where you can now remap or remove a particular <emphasis>payload type 
+  	mapping</emphasis>, and every other router including <emphasis>expression-based</emphasis> routers since their computed value 
+  	will now have a chance to go through Step 2 to be aditionally resolved to the actual <code>channel name</code>.
+  	</para>
+  	<para>
+  	In Spring Integration 2.0 routers hierarchy underwent major refactoring and now any router that is a subclass of the
+  	<classname>AbstractMessageRouter</classname> (all framework defined routers) is a Dynamic Router simply because 
+  	<code>channelIdentiferMap</code> is defined at the <classname>AbstractMessageRouter</classname> with convenient accessors 
+  	and modifiers exposed as public methods allowing you to change/add/remove router mapping at runtime via JMX (see section section 29) or 
+  	ControlBus (see section section 29.7) functionality. 
+  	</para>
+  	
+  	<para>
+  	<emphasis>Control Bus</emphasis>
+  	</para>
+  	<para>
+  	One of the way to manage the router mappings is through the <ulink url="http://www.eaipatterns.com/ControlBus.html">Control Bus</ulink> 
+  	which exposes a Control Channel where you can send 
+  	control messages to manage and monitor Spring Integration components which includes routers.
+    For more information about the Control Bus see section 29.7. Typically you would send a control message asking to invoke a 
+    particular JMX operation on a particular managed component (e.g., router). The two managed operations (methods) that are
+     specific to changing router resolution process  are:
+    <itemizedlist>
+        <listitem>
+          <para><emphasis>public void setChannelMapping(String channelIdentifier, String channelName)</emphasis> - 
+          will allow you to add new or modify existing mapping of <code>channel identifier</code> to <code>channel name</code></para>
+        </listitem>
+        <listitem>
+          <para><emphasis>public void removeChannelMapping(String channelIdentifier)</emphasis> - 
+          will allow you to remove a particular channel mapping, thus disconnecting the relationship between 
+          <code>channel identifier</code> and <code>channel name</code> </para>
+        </listitem>       
+      </itemizedlist>
+      There are obviously other managed operations, so please refer to an <classname>AbstractMessageRouter</classname> for more detail
+  	</para>
+  	<para>
+  	You can also use your favorite JMX client (e.g., JConsole) and use those operations (methods) to change 
+  	router configuration. For more information on Spring Integration management and monitoring please visit 
+  	section 29 of this manual.
+  	</para>
+  </section>
 
 </chapter>
