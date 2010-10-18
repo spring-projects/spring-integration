@@ -210,9 +210,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * 
 	 * @param deserializer the deserializer to set
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
-		this.deserializer = new DeserializingConverter((Deserializer<Object>) deserializer);
+		this.deserializer = new DeserializingConverter((Deserializer) deserializer);
 	}
 
 	/**
