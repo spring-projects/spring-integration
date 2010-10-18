@@ -37,7 +37,7 @@ public class FileBasedPropertiesStore implements MetadataStore {
 	
 	public FileBasedPropertiesStore(String key){
 		this.key = key;
-		String dirPath = System.getProperty("java.io.tmpdir") + "spring-integration/";
+		String dirPath = System.getProperty("java.io.tmpdir") + "/spring-integration/";
 		String fileName = this.key + ".last.entry";
 		File baseDir = new File(dirPath);
 		baseDir.mkdirs();
