@@ -9,8 +9,8 @@
 	<int:message-history />
 
 	<int-feed:inbound-channel-adapter id="feedAdapterUsage"
-		channel="feedChannelUsage"
-		feedUrl="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
+						channel="feedChannelUsage"
+						feed-url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" fixed-delay="10000"/>
 	</int-feed:inbound-channel-adapter>
 

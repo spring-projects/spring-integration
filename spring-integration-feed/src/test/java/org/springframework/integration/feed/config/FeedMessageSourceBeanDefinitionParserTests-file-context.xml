@@ -11,7 +11,7 @@
 						channel="feedChannel" 
 						auto-startup="false" 
 						metadata-store="metaStore"
-						feedUrl="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
+						feed-url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</int-feed:inbound-channel-adapter>
 	

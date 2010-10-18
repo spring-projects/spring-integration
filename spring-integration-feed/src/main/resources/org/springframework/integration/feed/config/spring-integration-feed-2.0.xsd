@@ -39,6 +39,10 @@
             </xsd:attribute>
             <xsd:attribute name="metadata-store" use="optional" type="xsd:string">
                 <xsd:annotation>
+                	<xsd:documentation>
+                		Allows you to provide cusom implementation of 'org.springframework.integration.context.metadata.MetadataStore'
+                		to persist the state of the retrieved feeds to aviod duplicates between restarts.
+                	</xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.context.metadata.MetadataStore"/>
@@ -46,18 +50,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="feedUrl" type="xsd:string" use="required"/>
-            <xsd:attribute name="persisterMap" type="xsd:string" use="optional">
+            <xsd:attribute name="feed-url" type="xsd:string" use="required">	
             	<xsd:annotation>
             		<xsd:documentation>
-            		Allows you to inject Map
+            			Allows you to specify URL for RSS/ATOM feed
             		</xsd:documentation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="java.util.Map"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
+            	</xsd:annotation>
             </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
