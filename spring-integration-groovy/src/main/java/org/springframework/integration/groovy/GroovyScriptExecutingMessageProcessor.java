@@ -16,15 +16,11 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.Binding;
 import groovy.lang.GString;
-import groovy.lang.GroovyObject;
-import groovy.lang.Script;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
-import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
 
@@ -39,9 +35,15 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private final MessageContextBindingCustomizer customizer = new MessageContextBindingCustomizer();
 
+	private final ScriptSource scriptSource;
 
+
+	/**
+	 * Create a processor for the given {@link ScriptSource}.
+	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		super(scriptSource);
+		Assert.notNull(scriptSource, "scriptSource must not be null");
+		this.scriptSource = scriptSource;
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
 	}
 
@@ -55,23 +57,9 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		}
 	}
 
-
-	private static class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
-
-		private volatile Message<?> message;
-
-		public void setMessage(Message<?> message) {
-			this.message = message;
-		}
-
-		public void customize(GroovyObject goo) {
-			Assert.state(goo instanceof Script, "Expected a Script");
-			if (this.message != null) {
-				Binding binding = ((Script) goo).getBinding();
-				binding.setVariable("payload", this.message.getPayload());
-				binding.setVariable("headers", this.message.getHeaders());
-			}
-		}
+	@Override
+	protected ScriptSource getScriptSource(Message<?> message) {
+		return scriptSource;
 	}
 
 }
