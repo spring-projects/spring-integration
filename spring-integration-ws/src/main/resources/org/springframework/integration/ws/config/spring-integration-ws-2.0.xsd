@@ -248,6 +248,21 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="extract-payload" type="xsd:boolean"/>
+			<xsd:attribute name="header-mapper">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
+						that this gateway will use to map between Spring Integration
+						MessageHeaders and the SoapHeader. This strategy can only be
+						applied when a 'marshaller' is not being configured.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
