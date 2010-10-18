@@ -201,8 +201,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param serializer the serializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setSerializer(Serializer/* <? super Message<?>> */serializer) {
-		this.serializer = new SerializingConverter(serializer);
+	public void setSerializer(Serializer<? super Message<?>> serializer) {
+		this.serializer = new SerializingConverter((Serializer<Object>) serializer);
 	}
 
 	/**
@@ -211,8 +211,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setDeserializer(Deserializer/* <? super Message<?>> */deserializer) {
-		this.deserializer = new DeserializingConverter(deserializer);
+	public void setDeserializer(Deserializer<? extends Message<?>> deserializer) {
+		this.deserializer = new DeserializingConverter((Deserializer<Object>) deserializer);
 	}
 
 	/**
@@ -394,9 +394,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	@Override
 	public Iterator<MessageGroup> iterator() {
 
-		@SuppressWarnings("unchecked")
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
-				new SingleColumnRowMapper(String.class)).iterator();
+				new SingleColumnRowMapper<String>()).iterator();
 
 		return new Iterator<MessageGroup>() {
 

@@ -88,14 +88,14 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
-		messageStore.setSerializer(new Serializer/*<Message<?>><Message<?>>*/() {
-			public void serialize(/*Message<?>*/ Object object, OutputStream outputStream) throws IOException {
+		messageStore.setSerializer(new Serializer<Message<?>>() {
+			public void serialize(Message<?> object, OutputStream outputStream) throws IOException {
 				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
 				outputStream.flush();
 			}
 		});
-		messageStore.setDeserializer(new Deserializer/*<Message<?>>*/() {
-			public Message<?> deserialize(InputStream inputStream) throws IOException {
+		messageStore.setDeserializer(new Deserializer<GenericMessage<String>>() {
+			public GenericMessage<String> deserialize(InputStream inputStream) throws IOException {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				return new GenericMessage<String>(reader.readLine());
 			}
