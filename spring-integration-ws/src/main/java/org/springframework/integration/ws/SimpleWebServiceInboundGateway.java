@@ -16,9 +16,8 @@
 
 package org.springframework.integration.ws;
 
-import java.util.Iterator;
+import java.util.Map;
 
-import javax.xml.namespace.QName;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -30,13 +29,14 @@ import org.springframework.expression.ExpressionException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.endpoint.MessageEndpoint;
 import org.springframework.ws.soap.SoapHeader;
-import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
@@ -51,9 +51,20 @@ public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport impl
 
 	private volatile boolean extractPayload = true;
 
+	private volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper();
+
 
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+	}
+
+	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {
+		Assert.notNull(headerMapper, "headerMapper must not be null");
+		this.headerMapper = headerMapper;
+	}
+
+	public String getComponentType() {
+		return "ws:outbound-gateway";
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
@@ -83,21 +94,9 @@ public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport impl
 		}
 		if (request instanceof SoapMessage) {
 			SoapMessage soapMessage = (SoapMessage) request;
-			SoapHeader soapHeader = soapMessage.getSoapHeader();
-			if (soapHeader != null) {
-				Iterator<?> attributeIter = soapHeader.getAllAttributes();
-				while (attributeIter.hasNext()) {
-					QName name = (QName) attributeIter.next();
-					builder.setHeader(name.toString(), soapHeader.getAttributeValue(name));
-				}
-				Iterator<?> elementIter = soapHeader.examineAllHeaderElements();
-				while (elementIter.hasNext()) {
-					Object element = elementIter.next();
-					if (element instanceof SoapHeaderElement) {
-						QName name = ((SoapHeaderElement) element).getName();
-						builder.setHeader(name.toString(), element);
-					}
-				}
+			Map<String, ?> headers = this.headerMapper.toHeaders(soapMessage.getSoapHeader());
+			if (!CollectionUtils.isEmpty(headers)) {
+				builder.copyHeaders(headers);
 			}
 		}
 		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
@@ -120,17 +119,19 @@ public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport impl
 						+ replyPayload.getClass().getName() + "]");
 			}
 			WebServiceMessage response = messageContext.getResponse();
+			if (response instanceof SoapMessage) {
+				this.headerMapper.fromHeaders(
+						replyMessage.getHeaders(), ((SoapMessage) response).getSoapHeader());
+			}
 			this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
 		}
 	}
 
-	private class TransformerSupportDelegate extends TransformerObjectSupport {
+
+	private static class TransformerSupportDelegate extends TransformerObjectSupport {
 		void transformSourceToResult(Source source, Result result) throws TransformerException {
 			this.transform(source, result);
 		}
 	}
 
-	public String getComponentType() {
-		return "ws:outbound-gateway";
-	}
 }

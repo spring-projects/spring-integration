@@ -43,7 +43,10 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
-	
+
+	private volatile int phase = 0;
+
+
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code>.
 	 * The {@link Marshaller} and {@link Unmarshaller} must be injected using properties. 
@@ -95,8 +98,32 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		this.gatewayDelegate.setTaskScheduler(taskScheduler);
 	}
 
+	public void setShouldTrack(boolean shouldTrack) {
+		this.gatewayDelegate.setShouldTrack(shouldTrack);
+	}
+
+	public String getComponentName() {
+		return this.gatewayDelegate.getComponentName();
+	}
+
+	public String getComponentType() {
+		return this.gatewayDelegate.getComponentType();
+	}
+
 	public void setAutoStartup(boolean autoStartup) {
 		this.gatewayDelegate.setAutoStartup(autoStartup);
+	}
+
+	public boolean isAutoStartup() {
+		return this.gatewayDelegate.isAutoStartup();
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	public int getPhase() {
+		return this.phase;
 	}
 
 	public void setBeanName(String beanName) {
@@ -143,7 +170,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	public void start() {
 		this.lifecycleLock.lock();
 		try {
-			if (!gatewayDelegate.isRunning()) {
+			if (!this.gatewayDelegate.isRunning()) {
 				this.gatewayDelegate.start();
 				if (logger.isInfoEnabled()) {
 					logger.info("started " + this);
@@ -170,10 +197,6 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		}
 	}
 
-	public boolean isAutoStartup() {
-		return true;
-	}
-
 	public void stop(Runnable callback) {
 		this.lifecycleLock.lock();
 		try {
@@ -185,29 +208,16 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		}
 	}
 
-	public int getPhase() {
-		return 0;
-	}
 
 	private static class GatewayDelegate extends MessagingGatewaySupport {
 
 		public Object sendAndReceive(Object request) {
 			return super.sendAndReceive(request);
 		}
+
 		public String getComponentType() {
 			return "ws:outbound-gateway";
 		}
 	}
 
-	public String getComponentName() {
-		return this.gatewayDelegate.getComponentName();
-	}
-
-	public String getComponentType() {
-		return this.gatewayDelegate.getComponentType();
-	}
-
-	public void setShouldTrack(boolean shouldTrack) {
-		this.gatewayDelegate.setShouldTrack(shouldTrack);
-	}
 }
