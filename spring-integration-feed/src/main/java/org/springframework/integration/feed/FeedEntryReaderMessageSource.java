@@ -15,10 +15,6 @@
  */
 package org.springframework.integration.feed;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -28,10 +24,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.metadata.FileBasedPropertiesStore;
+import org.springframework.integration.context.metadata.MetadataStore;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.StringUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -46,18 +43,17 @@ import com.sun.syndication.feed.synd.SyndFeed;
  * @author Oleg Zhurakousky
  */
 public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry>{
-	private final DefaultPropertiesPersister persister = new DefaultPropertiesPersister();
+	private volatile MetadataStore metadataStore;
+
 	private volatile Properties lastPersistentEntry = new Properties();
 	private volatile Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
     private volatile FeedReaderMessageSource feedReaderMessageSource;
     private final Object monitor = new Object();
     private volatile String feedMetadataIdKey;
     private volatile String persistentIdentifier;
-
 	private volatile boolean initialized;
     private volatile long lastTime = -1;
-    private volatile File persisterFile;
-    
+
     private Comparator<SyndEntry> syndEntryComparator = new Comparator<SyndEntry>() {
         public int compare(SyndEntry syndEntry, SyndEntry syndEntry1) {
             long x = syndEntry.getPublishedDate().getTime() - 
@@ -79,6 +75,10 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 
     public void setPersistentIdentifier(String persistentIdentifier) {
 		this.persistentIdentifier = persistentIdentifier;
+	}
+    
+    public void setMetadataStore(MetadataStore metadataStore) {
+		this.metadataStore = metadataStore;
 	}
     
     public String getComponentType(){
@@ -125,14 +125,11 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
     @Override
     protected void onInit() throws Exception {
     	if (StringUtils.hasText(this.persistentIdentifier)){
-    		File dir = new File(System.getProperty("user.home") + "/temp/spring-integration");
-        	dir.mkdirs();
-        	persisterFile = new File(dir, this.persistentIdentifier + ".last.entry");
-        	if (!persisterFile.exists()){
-        		persisterFile.createNewFile();
-        	}
-        	FileInputStream inStream = new FileInputStream(persisterFile);
-        	persister.load(lastPersistentEntry, inStream);
+    		if (this.metadataStore == null){
+    			logger.info("Creating FileBasedPropertiesStore");
+        		metadataStore = new FileBasedPropertiesStore(this.persistentIdentifier);
+    		} 
+    		lastPersistentEntry =  metadataStore.load();
     	}
     	else {
     		logger.info("Your '" + this.getComponentType() + "' is anonymous (no ID attribute), therefore no feed entries will be persisted " +
@@ -158,26 +155,8 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
         this.lastTime = next.getPublishedDate().getTime();
         this.lastPersistentEntry.put(this.feedMetadataIdKey, this.lastTime + "");
         
-        if (persisterFile != null){
-        	FileOutputStream fo = null;
-            try {
-            	fo = new FileOutputStream(persisterFile);
-            	persister.store(this.lastPersistentEntry, fo, "Last feed entry");
-    		} 
-            catch (IOException e) {
-            	// not fatal for the functionality of the component
-    			logger.warn("Failed to persist feed entry. This may result in a duplicate " +
-    					"feed entry after this component is restarted", e);
-    		} 
-            finally {
-    			try {
-    				fo.close();
-    			} 
-    			catch (IOException e) {
-    				// not fatal for the functionality of he component
-    				logger.warn("Failed to close output stream to " + persisterFile.getAbsolutePath(), e);
-    			}
-    		}
+        if (metadataStore != null){
+        	metadataStore.write(this.lastPersistentEntry);
         }
         
         return next;

@@ -41,7 +41,7 @@ import com.sun.syndication.feed.synd.SyndFeed;
 public class FeedEntryReaderMessageSourceTests {
 	@Before
 	public void prepare(){
-		File persisterFile = new File(System.getProperty("user.home") + "/temp/spring-integration", "feedReader.last.entry");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "spring-integration/", "feedReader.last.entry");
 		if (persisterFile.exists()){
 			persisterFile.delete();
 		}

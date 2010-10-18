@@ -56,7 +56,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	private static CountDownLatch latch;
 	@Before
 	public void prepare(){
-		File persisterFile = new File(System.getProperty("user.home") + "/temp/spring-integration", "feedAdapter.last.entry");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "spring-integration/", "feedAdapter.last.entry");
 		if (persisterFile.exists()){
 			persisterFile.delete();
 		}
@@ -84,7 +84,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	
 	@Test
 	public void validateSuccessfullNewsRetrievalWithFileUrlAndMessageHistory() throws Exception{
-		File persisterFile = new File(System.getProperty("user.home") + "/temp/spring-integration", "feedAdapterUsage.last.entry");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "spring-integration/", "feedAdapterUsage.last.entry");
 		if (persisterFile.exists()){
 			persisterFile.delete();
 		}
