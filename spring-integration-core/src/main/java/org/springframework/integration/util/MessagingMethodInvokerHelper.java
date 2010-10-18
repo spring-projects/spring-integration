@@ -570,9 +570,12 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			}
 			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is "
 					+ "disabled or header name is not explicitly provided via @Header annotation.");
-			String headerExpression = "headers." + headerName + relativeExpression;
-			return (headerAnnotation.required()) ? headerExpression : "headers['" + headerName + "'] != null ? "
-					+ headerExpression + " : null";
+			String headerRetrievalExpression = "headers['" + headerName + "']";
+			String fullHeaderExpression = headerRetrievalExpression + relativeExpression;
+			String fallbackExpression = (headerAnnotation.required())
+					? "T(org.springframework.util.Assert).isTrue(false, 'required header not available:  " + headerName + "')"
+					: "null";
+			return headerRetrievalExpression + " != null ? " + fullHeaderExpression + " : " + fallbackExpression;
 		}
 
 		private synchronized void setExclusiveTargetParameterType(TypeDescriptor targetParameterType) {
