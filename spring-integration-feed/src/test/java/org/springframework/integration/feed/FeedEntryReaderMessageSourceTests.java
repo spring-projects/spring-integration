@@ -26,12 +26,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.context.metadata.MetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
@@ -43,7 +41,7 @@ import com.sun.syndication.feed.synd.SyndFeed;
 public class FeedEntryReaderMessageSourceTests {
 	@Before
 	public void prepare(){
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "spring-integration/", "feedReader.last.entry");
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "feedReader.last.entry");
 		if (persisterFile.exists()){
 			persisterFile.delete();
 		}
