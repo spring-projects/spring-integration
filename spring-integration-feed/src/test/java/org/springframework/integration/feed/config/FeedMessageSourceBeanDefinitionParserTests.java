@@ -36,6 +36,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.metadata.MetadataStore;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.feed.FeedEntryReaderMessageSource;
@@ -63,11 +64,13 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	}
 
 	@Test
-	public void validateSuccessfullConfiguration(){
+	public void validateSuccessfullConfigurationWithCustomMetastore(){
 		ClassPathXmlApplicationContext context = 
 			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryReaderMessageSource source = (FeedEntryReaderMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		MetadataStore metaStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
+		assertTrue(metaStore instanceof SampleMetadataStore);
 		FeedReaderMessageSource feedReaderMessageSource = (FeedReaderMessageSource) TestUtils.getPropertyValue(source, "feedReaderMessageSource");
 		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(feedReaderMessageSource, "fetcher");
 		assertTrue(fetcher instanceof FileUrlFeedFetcher);
@@ -164,6 +167,16 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	public static class SampleServiceNoHistory{
 		public void receiveFeedEntry(SyndEntry entry){
 			latch.countDown();
+		}
+	}
+	
+	public static class SampleMetadataStore implements MetadataStore{
+
+		public void write(Properties metadata) {
+		}
+
+		public Properties load() {
+			return new Properties();
 		}
 	}
 }
