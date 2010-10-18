@@ -23,33 +23,37 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
 import org.springframework.util.DefaultPropertiesPersister;
 
 /**
+ * Properties file-based implementation of {@link MetadataStore}. To avoid conflicts
+ * each instance should be constructed with the unique key from which unique file name 
+ * will be generated. The file name will be 'persistentKey' + ".last.entry".
+ * Files will be written to the 'java.io.tmpdir' +  "/spring-integration/".
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class FileBasedPropertiesStore implements MetadataStore {
-	protected final Log logger = LogFactory.getLog(getClass());
+public class FileBasedPropertiesStore implements MetadataStore, InitializingBean{
+	private final Log logger = LogFactory.getLog(getClass());
 	private final DefaultPropertiesPersister persister = new DefaultPropertiesPersister();
-	private final String key;
-	private File persistentFile;
+	private final String persistentKey;
+	private volatile File persistentFile;
+	private volatile String baseDirectory = System.getProperty("java.io.tmpdir") + "/spring-integration/";
+
+	public FileBasedPropertiesStore(String persistentKey){
+		Assert.notNull(persistentKey, "'persistentKey' must not be null");
+		this.persistentKey = persistentKey;
+	}
 	
-	public FileBasedPropertiesStore(String key){
-		this.key = key;
-		String dirPath = System.getProperty("java.io.tmpdir") + "/spring-integration/";
-		String fileName = this.key + ".last.entry";
-		File baseDir = new File(dirPath);
-		baseDir.mkdirs();
-		persistentFile = new File(baseDir, fileName);
-		try {
-			if (!persistentFile.exists()){
-				persistentFile.createNewFile();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+	public void setBaseDirectory(String baseDirectory) {
+		this.baseDirectory = baseDirectory;
+	}
+	
+	public String getBaseDirectory() {
+		return baseDirectory;
 	}
 
 	public void write(Properties metadata) {
@@ -97,5 +101,20 @@ public class FileBasedPropertiesStore implements MetadataStore {
 			}
 		}
 		return properties;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		String fileName = this.persistentKey + ".last.entry";
+		File baseDir = new File(baseDirectory);
+		baseDir.mkdirs();
+		persistentFile = new File(baseDir, fileName);
+		try {
+			if (!persistentFile.exists()){
+				persistentFile.createNewFile();
+			}
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to create metadata-store file '" 
+					+ persistentFile.getAbsolutePath() + "'", e);
+		}
 	}
 }

@@ -128,6 +128,7 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
     		if (this.metadataStore == null){
     			logger.info("Creating FileBasedPropertiesStore");
         		metadataStore = new FileBasedPropertiesStore(this.persistentIdentifier);
+        		((FileBasedPropertiesStore)metadataStore).afterPropertiesSet();
     		} 
     		lastPersistentEntry =  metadataStore.load();
     	}
