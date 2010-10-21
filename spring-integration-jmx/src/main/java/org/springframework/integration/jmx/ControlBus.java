@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.control;
-
-import javax.management.MBeanServer;
+package org.springframework.integration.jmx;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,11 +24,11 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.jmx.JmxHeaders;
-import org.springframework.integration.jmx.OperationInvokingMessageHandler;
 import org.springframework.integration.monitor.ObjectNameLocator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+
+import javax.management.MBeanServer;
 
 /**
  * JMX-based Control Bus implementation. Routes control messages on an operation channel to the other control points

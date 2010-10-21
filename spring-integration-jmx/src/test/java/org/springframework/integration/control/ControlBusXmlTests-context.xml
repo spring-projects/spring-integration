@@ -21,7 +21,7 @@
 		<int:poller max-messages-per-poll="1" fixed-rate="10000" />
 	</int:bridge>
 
-	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
+	<bean id="controlBus" class="org.springframework.integration.jmx.ControlBus">
 		<constructor-arg ref="mbeanExporter" />
 		<constructor-arg ref="mbeanServer" />
 		<constructor-arg ref="controlChannel" />

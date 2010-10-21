@@ -17,7 +17,7 @@ package org.springframework.integration.jmx.config;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.control.ControlBus;
+import org.springframework.integration.jmx.ControlBus;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 
