@@ -28,13 +28,12 @@ import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
@@ -120,16 +119,14 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 
         Set<EntryListFilter> filters = (Set<EntryListFilter>) new DirectFieldAccessor(
                 scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
-        Pattern pattern = null;
+        String pattern = null;
         for (EntryListFilter filter : filters) {
-            if (filter instanceof PatternMatchingEntryListFilter) {
-                pattern = (Pattern) new DirectFieldAccessor(filter).getPropertyValue("pattern");
+            if (filter instanceof SimplePatternFileListFilter) {
+                pattern = (String) new DirectFieldAccessor(filter).getPropertyValue("path");
             }
         }
-        assertNotNull("expected PatternMatchingFileListFilter", pattern);
-        assertEquals(".*\\.txt", pattern.toString());
-        assertFalse(pattern.matcher("foo").matches());
-        assertTrue(pattern.matcher("foo.txt").matches());
+        assertNotNull("expected SimplePatternFileListFilterTest", pattern);
+        assertEquals("*.txt", pattern.toString());
     }
 
 }

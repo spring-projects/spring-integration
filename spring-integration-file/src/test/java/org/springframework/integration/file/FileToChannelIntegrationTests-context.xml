@@ -33,7 +33,7 @@
 
                 <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
                 <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="^test.*$"/>
+                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
 
             </util:list>
 

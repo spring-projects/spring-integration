@@ -12,21 +12,21 @@ import static org.junit.Assert.assertThat;
  *
  * Minimal test set to ensure AntPathMatcher is used correctly.
  */
-public class AntPathFileListFilterTest {
+public class SimplePatternFileListFilterTest {
 
 	@Test
 	public void shouldMatchExactly() {
-		assertThat(new AntPathFileListFilter("foo/bar").accept(new File("foo/bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("bar").accept(new File("bar")), is(true));
 	}
 
 	@Test
 	public void shouldMatchQuestionMark() {
-		assertThat(new AntPathFileListFilter("*/bar").accept(new File("foo/bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("*bar").accept(new File("bar")), is(true));
 	}
 	
 	@Test
 	public void shouldMatchWildcard() {
-		assertThat(new AntPathFileListFilter("foo/ba?").accept(new File("foo/bar")), is(true));
+		assertThat(new SimplePatternFileListFilter("ba?").accept(new File("bar")), is(true));
 	}
 
 }

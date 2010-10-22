@@ -91,10 +91,10 @@
 
  <file:inbound-channel-adapter id="filesIn"
         directory="file:${input.directory}" 
-        filename-pattern="^test.*$" /> 							]]></programlisting>
+        filename-pattern="test*" /> 							]]></programlisting>
 			The first channel adapter is relying on the default filter that just prevents
 			duplication, the second is using a custom filter, and the third is using the
-			<emphasis>filename-pattern</emphasis> attribute to add a <classname>Pattern</classname>
+			<emphasis>filename-pattern</emphasis> attribute to add a <classname>AntPathMatcher</classname>
 			based filter to the <classname>FileReadingMessageSource</classname>.
       The <emphasis>file-name-pattern</emphasis> and <emphasis>filter</emphasis> attributes are mutually exclusive, but
       you can use a <classname>CompositeFileListFilter</classname> to use any combination of filters, including a
