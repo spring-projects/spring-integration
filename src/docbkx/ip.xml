@@ -206,48 +206,45 @@
     <para>
       TCP is a streaming protocol; this means that some structure has to be provided to data 
       transported over TCP, so the receiver can demarcate the data into discrete messages.
-      Connection factories are configured to use converters to convert between the message 
-      payload and the bits that are sent over TCP. This is accomplished by providing an 
-      input converter and output converter for inbound and outbound messages respectively.
-      Four standard converters are provided; the first is <classname>ByteArrayCrlfConverter</classname>,
-      which can convert a String or byte array to a stream of bytes followed by carriage 
-      return and linefeed characters (\r\n). This is the default converter and can be used with 
-      telnet as a client, for example. The second is is <classname>ByteArrayStxEtxConverter</classname>,
-      which can convert a String or byte array to a stream of bytes preceded by an STX (0x02) and
-      followed by an ETX (0x03). The third is <classname>ByteArrayLengthHeaderConverter</classname>,
-      which can convert a String or byte array to a stream of bytes preceded by a 4 byte binary
-      length in network byte order. Each of these converts an input stream containing the 
-      corresponding format to a byte array payload. The fourth converter is 
-      <classname>JavaSerializationConverter</classname> which can be used to convert any
-      Serializable objects. We expect to provide other serialization technologies but you may also
-      supply your own by implementing the <classname>InputStreamingConverter</classname> and
-      <classname>OutputStreamingConverter</classname> interfaces. If you do not wish to use
-      the default converters, you must supply <classname>input-converter</classname> and 
-      <classname>output-converter</classname> attributes on the connection factory (example below).
-      <tip>This converter mechanism replaces the previous mechanism of subclassing the 
-      NxxSocketReader and NxxSocketWriter</tip>
+      Connection factories are configured to use (de)serializers to convert between the message 
+      payload and the bits that are sent over TCP. This is accomplished by providing a 
+      deserializer and serializer for inbound and outbound messages respectively.
+      Four standard (de)serializers are provided; the first is <classname>ByteArrayCrlfSerializer</classname>,
+      which can convert a byte array to a stream of bytes followed by carriage 
+      return and linefeed characters (\r\n). This is the default (de)serializer and can be used with 
+      telnet as a client, for example. The second is is <classname>ByteArrayStxEtxSerializer</classname>,
+      which can convert a byte array to a stream of bytes preceded by an STX (0x02) and
+      followed by an ETX (0x03). The third is <classname>ByteArrayLengthHeaderSerializer</classname>,
+      which can convert a byte array to a stream of bytes preceded by a 4 byte binary
+      length in network byte order. For backwards compatibility, connections using any of these
+      three serializers will also accept a String which will be converted to a byte array first.
+      Each of these (de)serializers converts an input stream containing the 
+      corresponding format to a byte array payload. The fourth standard serializer is 
+      <classname>org.springframework.common.serializer.DefaultSerializer</classname> which can be used to convert any
+      Serializable objects using java serialization. 
+      <classname>org.springframework.common.serializer.DefaultDeserializer</classname> is provided for
+      inbound deserialization.
+      We expect to provide other serialization technologies but you may also
+      supply your own by implementing the <classname>Deserializer</classname> and
+      <classname>Serializer</classname> interfaces. If you do not wish to use
+      the default (de)serializers, you must supply <classname>serializer</classname> and 
+      <classname>deserializer</classname> attributes on the connection factory (example below).
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-        <bean id="serial" 
-              class="org.springframework.commons.serializer.JavaSerializationConverter" />
+        <bean id="serializer" 
+              class="org.springframework.commons.serializer.DefaultSerializer" />
+        <bean id="deserializer" 
+              class="org.springframework.commons.serializer.DefaultDeserializer" />
 
 	<ip:tcp-connection-factory id="server"
 		type="server"
 		port="1234"
-                input-converter="serial"
-                output-converter="serial"
+                deserializer="deserializer"
+                serializer="serializer"
 	/>]]></programlisting>
       A server connection factory that uses <classname>java.net.Socket</classname>
       connections and uses Java serialization on the wire.
-    </para>
-    <para>
-      <tip>
-        Normally, with shared connections, one would expect the the same wire protocol
-        to be used for both inbound and outbound messages; however, the configuration
-        allows them to be different. Note, however that if you only specify one converter
-        the other direction will use the default converter.
-      </tip>
     </para>
     <para>
         Connection factories can be configured with a reference to a 
@@ -277,13 +274,14 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-	<bean id="serializer" class="org.springframework.commons.serializer.JavaSerializationConverter" />
+	<bean id="serializer" class="org.springframework.commons.serializer.DefaultSerializer" />
+	<bean id="deserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
 		port="1234"
-		input-converter="serializer"
-		output-converter="serializer"
+		deserializer="deserializer"
+		serializer="serializer"
 		using-nio="true"
 		single-use="true"
 	/>
@@ -294,8 +292,8 @@
 		port="#{server.port}"
 		single-use="true"
 		so-timeout="10000"
-		input-converter="serializer"
-		output-converter="serializer"
+		deserializer="deserializer"
+		serializer="serializer"
 	/>
 	
 	<int:channel id="input" />
@@ -418,6 +416,22 @@
               <entry>Y</entry>
               <entry></entry>
               <entry>The port.</entry>
+            </row>
+            <row>
+              <entry>serializer</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>An implementation of <classname>Serializer</classname> used to serialize
+                     the payload. Defaults to <classname>ByteArrayCrLfSerializer</classname></entry>
+            </row>
+            <row>
+              <entry>deserializer</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>An implementation of <classname>Deserializer</classname> used to deserialize
+                     the payload. Defaults to <classname>ByteArrayCrLfSerializer</classname></entry>
             </row>
             <row>
               <entry>using-nio</entry>
@@ -639,8 +653,6 @@
             </row>
             <row>
               <entry>local-address</entry>
-              <entry>N</entry>
-              <entry>Y</entry>
               <entry></entry>
               <entry>On a multi-homed system, for the UDP adapter, specifies an IP address 
                      for the interface to which the socket will be bound for reply messages.
@@ -735,8 +747,6 @@
             </row>
             <row>
               <entry>so-receive-buffer- size</entry>
-              <entry>Y</entry>
-              <entry>Y</entry>
               <entry></entry>
               <entry>See <classname>java.net.DatagramSocket</classname>
                      setReceiveBufferSize() for more information.</entry>
