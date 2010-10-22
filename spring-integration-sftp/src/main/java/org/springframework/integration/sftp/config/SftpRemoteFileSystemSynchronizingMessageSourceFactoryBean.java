@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp.impl;
+package org.springframework.integration.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.lang.SystemUtils;
@@ -28,21 +28,20 @@ import org.springframework.integration.file.entries.PatternMatchingEntryListFilt
 import org.springframework.integration.sftp.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.SftpEntryNamer;
 import org.springframework.integration.sftp.SftpSessionFactory;
-import org.springframework.integration.sftp.config.SftpSessionUtils;
+import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizer;
+import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
 
 
 /**
- * a factory bean to hide the fairly complex configuration possibilities for an SFTP endpoint
+ * Factory bean to hide the fairly complex configuration possibilities for an SFTP endpoint
  *
  * @author Josh Long
  */
 public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
-	/**
-	 * injected by the container
-	 */
+
 	private volatile ResourceLoader resourceLoader;
 	private volatile Resource localDirectoryResource;
 	private volatile String localDirectoryPath;
@@ -54,9 +53,9 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 	private String host;
 	private String keyFile;
 	private String keyFilePassword;
-	private String password;
 	private String remoteDirectory;
 	private String username;
+	private String password;
 
 	@SuppressWarnings("unused")
 	public void setLocalDirectoryResource(Resource localDirectoryResource) {
@@ -108,30 +107,50 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 		this.keyFilePassword = keyFilePassword;
 	}
 
-	@SuppressWarnings("unused")
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
+	/**
+	 * Set the remote directory to synchronize with
+	 */
 	@SuppressWarnings("unused")
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
 
+	/**
+	 * Set the user name to be used for authentication with the remote server
+	 */
 	@SuppressWarnings("unused")
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
+	/**
+	 * Set the password to be used for authentication with the remote server
+	 * @param password
+	 */
+	@SuppressWarnings("unused")
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Class<?> getObjectType() {
 		return SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * @return Fully configured SftpInboundRemoteFileSystemSynchronizingMessageSource
+	 */
 	@Override
 	protected SftpInboundRemoteFileSystemSynchronizingMessageSource createInstance()
 			throws Exception {
@@ -148,7 +167,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 			this.localDirectoryPath = "file://" + sftpTmp.getAbsolutePath();
 		}
 
-		this.localDirectoryResource = this.fromText(localDirectoryPath);
+		this.localDirectoryResource = this.resourceFromString(localDirectoryPath);
 
 		// remote predicates
 		SftpEntryNamer sftpEntryNamer = new SftpEntryNamer();
@@ -194,7 +213,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 		return sftpMsgSrc;
 	}
 
-	private Resource fromText(String path) {
+	private Resource resourceFromString(String path) {
 		ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
 		resourceEditor.setAsText(path);
 
