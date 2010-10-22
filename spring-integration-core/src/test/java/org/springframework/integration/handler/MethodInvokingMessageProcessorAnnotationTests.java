@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -63,7 +62,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		processor.processMessage(new GenericMessage<String>("foo"));
 	}
 
-	@Ignore //see INT-988
 	@Test(expected = MessageHandlingException.class)
 	public void requiredHeaderNotProvidedOnSecondMessage() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
