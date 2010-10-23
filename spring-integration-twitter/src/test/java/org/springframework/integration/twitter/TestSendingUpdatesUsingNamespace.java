@@ -33,8 +33,6 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 @ContextConfiguration
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
 
-
-
 	private MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	@Value("#{out}") private MessageChannel channel;
@@ -42,10 +40,9 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("test message 1")
+		MessageBuilder<String> mb = MessageBuilder.withPayload("simple test demonstrating the ability to encode location information")
 				.setHeader(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID, 21927437001L)
-				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION,
-						new Twitter4jGeoLocationImpl(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new Twitter4jGeoLocationImpl(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);

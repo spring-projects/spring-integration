@@ -34,8 +34,7 @@ public class OutboundDirectMessageStatusMessageHandler extends AbstractOutboundT
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		try {
 			String txt = (String) message.getPayload();
-			Object toUser =
-					message.getHeaders().containsKey(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) ?
+			Object toUser = message.getHeaders().containsKey(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) ?
 							message.getHeaders().get(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) :
 							null;
 

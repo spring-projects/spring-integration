@@ -61,9 +61,11 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessagePr
     protected Twitter twitter;
     private final Object markerGuard = new Object();
     private final Object apiPermitGuard = new Object();
+
     private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
-    protected Executor taskExecutor;
-    protected int poolSize = 1;
+
+	protected Executor taskExecutor;
+	protected int poolSize = 1;
 
     public void setPoolSize(int poolSize) {
         this.poolSize = poolSize;

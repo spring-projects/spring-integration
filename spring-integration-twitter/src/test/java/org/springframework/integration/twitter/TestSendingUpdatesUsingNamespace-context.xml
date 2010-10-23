@@ -36,9 +36,9 @@
 	<context:component-scan
 			base-package="org.springframework.integration.twitter"/>
 
-	<context:property-placeholder
-			location="classpath:twitter.properties"
-			ignore-unresolvable="true"/>
+    <context:property-placeholder
+            location="file://${user.home}/Desktop/twitter.properties"
+            ignore-unresolvable="true"/>
         
 	<twitter:twitter-connection
 			id="tc"
