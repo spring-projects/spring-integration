@@ -15,24 +15,31 @@
  */
 package org.springframework.integration.twitter.model;
 
-import java.util.Date;
-
 /**
- * Describes a direct-message in twitter. (Also known as a "DM").
- * <p/>
- * these are messages sent privately to a user.
+ * Implements a notion of GeoLocation that forwards calls to {@link twitter4j.GeoLocation} instance
  *
  * @author Josh Long
  */
-public interface DirectMessage {
-	int getId();
+public class Twitter4jGeoLocation implements GeoLocation {
 
-	String getText();
+	private twitter4j.GeoLocation geoLocation;
 
-	Date getCreatedAt();
+	public twitter4j.GeoLocation getGeoLocation() {
+		return this.geoLocation;
+	}
+	public Twitter4jGeoLocation(double lat, double lon){
+		this.geoLocation = new twitter4j.GeoLocation(lat,lon);
+	}
+	public Twitter4jGeoLocation(twitter4j.GeoLocation gl) {
+		this.geoLocation = gl;
+	}
 
-	User getSender() ;
+	public double getLongitude() {
+		return this.geoLocation.getLongitude();
+	}
 
-	User getRecipient();
+	public double getLatitude() {
+		return this.geoLocation.getLatitude();
+	}
 
- }
+}

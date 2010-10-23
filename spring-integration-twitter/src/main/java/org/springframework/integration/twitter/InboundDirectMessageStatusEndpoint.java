@@ -15,21 +15,15 @@
  */
 package org.springframework.integration.twitter;
 
-//import twitter4j.DirectMessage;
 import org.springframework.integration.twitter.model.DirectMessage;
-import org.springframework.integration.twitter.model.Twitter4jDirectMessageImpl;
+import org.springframework.integration.twitter.model.Twitter4jDirectMessage;
 import twitter4j.Paging;
-
-
 import twitter4j.Twitter;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -79,7 +73,7 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 				List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
 
 				for( twitter4j.DirectMessage dm : dms)
-					dmsToFwd.add( new Twitter4jDirectMessageImpl( dm));
+					dmsToFwd.add( new Twitter4jDirectMessage( dm));
 
 				forwardAll( dmsToFwd );
 			}

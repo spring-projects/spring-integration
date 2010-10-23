@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010 the original author or authors
+ *
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
 package org.springframework.integration.twitter.model;
 
 import java.util.Date;
@@ -9,10 +24,10 @@ import java.util.Date;
  *
  * @author Josh Long
  */
-public class Twitter4jStatusImpl implements Status {
+public class Twitter4jStatus implements Status {
 	private twitter4j.Status status;
 
-	public Twitter4jStatusImpl(twitter4j.Status s) {
+	public Twitter4jStatus(twitter4j.Status s) {
 		this.status = s;
 	}
 
@@ -53,7 +68,7 @@ public class Twitter4jStatusImpl implements Status {
 	}
 
 	public User getUser() {
-		return new Twitter4jUserImpl(this.status.getUser());
+		return new Twitter4jUser(this.status.getUser());
 	}
 
 	public boolean isRetweet() {
@@ -61,7 +76,7 @@ public class Twitter4jStatusImpl implements Status {
 	}
 
 	public Status getRetweetedStatus() {
-		return new Twitter4jStatusImpl(this.status.getRetweetedStatus());
+		return new Twitter4jStatus(this.status.getRetweetedStatus());
 	}
 
 	public String[] getContributors() {

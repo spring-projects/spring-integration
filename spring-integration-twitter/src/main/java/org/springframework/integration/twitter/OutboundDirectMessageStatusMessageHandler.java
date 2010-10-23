@@ -27,6 +27,7 @@ import twitter4j.TwitterException;
  * @author Josh Long
  * @see org.springframework.integration.twitter.TwitterHeaders
  * @see twitter4j.Twitter
+ * @since 2.0
  */
 public class OutboundDirectMessageStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	

@@ -18,7 +18,7 @@ package org.springframework.integration.twitter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.twitter.model.Twitter4jGeoLocationImpl;
+import org.springframework.integration.twitter.model.Twitter4jGeoLocation;
 import org.springframework.util.StringUtils;
 import twitter4j.StatusUpdate;
 
@@ -33,14 +33,14 @@ import twitter4j.StatusUpdate;
  */
 public class StatusUpdateOptboundMessageMapper implements OutboundMessageMapper<StatusUpdate> {
 	/**
-	 * convenient, interf-ace-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.model.Twitter4jGeoLocationImpl}
+	 * convenient, interf-ace-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.model.Twitter4jGeoLocation}
 	 *
 	 * @param lat the latitude
 	 * @param lon the longitude
 	 * @return a {@link org.springframework.integration.twitter.model.GeoLocation} instance
 	 */
 	public org.springframework.integration.twitter.model.GeoLocation fromLatitudeLongitudePair(double lat, double lon) {
-		return new Twitter4jGeoLocationImpl(lat, lon);
+		return new Twitter4jGeoLocation(lat, lon);
 	}
 
 	/**
@@ -82,8 +82,8 @@ public class StatusUpdateOptboundMessageMapper implements OutboundMessageMapper<
 						.get(TwitterHeaders.TWITTER_GEOLOCATION);
 				twitter4j.GeoLocation gl = null;
 
-				if (geoLocation instanceof Twitter4jGeoLocationImpl) {
-					gl = ((Twitter4jGeoLocationImpl) geoLocation).getGeoLocation();
+				if (geoLocation instanceof Twitter4jGeoLocation) {
+					gl = ((Twitter4jGeoLocation) geoLocation).getGeoLocation();
 					if (null != gl) {
 						statusUpdate.location(gl);
 					}

@@ -14,22 +14,13 @@
  *     limitations under the License.
  */
 package org.springframework.integration.twitter;
-
-//import twitter4j.Status;
-
-//import twitter4j.Status;
-
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.twitter.model.Status;
-import org.springframework.integration.twitter.model.Twitter4jStatusImpl;
+import org.springframework.integration.twitter.model.Twitter4jStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -51,7 +42,7 @@ abstract public class AbstractInboundTwitterStatusEndpointSupport extends Abstra
 	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
 		List<Status> fwd = new ArrayList<Status>();
 		for (twitter4j.Status s : stats)
-			fwd.add(new Twitter4jStatusImpl(s));
+			fwd.add(new Twitter4jStatus(s));
 		return fwd;
 	}
 
