@@ -29,9 +29,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 /**
  * @author Josh Long
  */
-@ContextConfiguration(locations = {
-        "/org/springframework/integration/twitter/sending_updates_using_ns.xml"}
-)
+@ContextConfiguration
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
 
 	private StatusUpdateSupport statusUpdateSupport = new StatusUpdateSupport();
@@ -43,7 +41,7 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
+		MessageBuilder<String> mb = MessageBuilder.withPayload("test message 1")
 				.setHeader(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID, 21927437001L)
 				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION,
 						this.statusUpdateSupport.fromLatitudeLongitudePair(-76.226823, 23.642465)) // antarctica

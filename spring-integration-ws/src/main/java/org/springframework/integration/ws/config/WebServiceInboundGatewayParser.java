@@ -13,16 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.springframework.integration.ws.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser {
 
@@ -47,6 +50,12 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 			if (StringUtils.hasText(unmarshallerRef)) {
 				builder.addConstructorArgReference(unmarshallerRef);
 			}
+		}
+		String headerMapperRef = element.getAttribute("header-mapper");
+		if (StringUtils.hasText(headerMapperRef)) {
+			Assert.isTrue(!StringUtils.hasText(marshallerRef),
+					"The 'header-mapper' attribute cannot be used when a 'marshaller' is provided.");
+			builder.addPropertyReference("headerMapper", headerMapperRef);
 		}
 	}
 

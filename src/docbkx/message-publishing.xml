@@ -299,64 +299,70 @@ static class BankingOperationsImpl implements BankingOperations {
 		</section>
 		
 		<section id="scheduled-producer">
-		    <title>Producing and publishing messages based on schedule</title>
+		    <title>Producing and publishing messages based on a scheduled trigger</title>
 		    <para>
 		    In the above sections we looked at the Message publishing feature of Spring Integration which constructs and publishes messages as by-products of Method invocations.
-		    However you are still responsible to invoke the method. 
-		    With scheduling support added to Spring Framework 3.0 we've added another useful feature to Spring Integration - support for scheduled Message producers/publishers. Scheduling could be based on several triggers.
-		   Currently we support <code>cron</code>, <code>fixed-rate</code>, <code>fixed-delay</code> as well as the custom triggers implemented by you.
+		    However in that case, you are still responsible for invoking the method. 
+		    In Spring Integration 2.0 we've added another related useful feature: support for scheduled Message producers/publishers via the new "expression" attribute
+		    on the 'inbound-channel-adapter' element. Scheduling could be based on several triggers, any one of which may be configured on the 'poller' sub-element.
+		    Currently we support <code>cron</code>, <code>fixed-rate</code>, <code>fixed-delay</code> as well as any custom trigger implemented by you.
 		    </para>
 		    <para>
-		    Support for scheduled producers/publishers is provided via <emphasis>&lt;scheduled-producer&gt;</emphasis> xml element.
-		    Lets look at couple of examples:
+		    As mentioned above, support for scheduled producers/publishers is provided via the <emphasis>&lt;inbound-channel-adapter&gt;</emphasis> xml element.
+		    Let's look at couple of examples:
 		    </para>
 		 	<para>
 		 	
-		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
-		 	fixed-delay="1000" 
-		 	payload-expression="'fixedDelayTest'" 
-		 	channel="fixedDelayChannel"/>]]></programlisting>
+		 	<programlisting language="xml"><![CDATA[<inbound-channel-adapter id="fixedDelayProducer" 
+		 	expression="'fixedDelayTest'" 
+		 	channel="fixedDelayChannel">
+    <poller fixed-delay="1000"/>
+</inbound-channel-adapter>]]></programlisting>
 		 	
-		 	In the above example scheduled producer will be created which will construct the Message with payload being the result of the expression 
-			defined in <code>payload-expression</code> attribute. Such message will be created and sent every time after a delay specified in the <code>fixed-delay</code> attribute.
+		 	In the above example an inbound Channel Adapter will be created which will construct a Message with its payload being the result of the expression 
+			defined in the <code>expression</code> attribute. Such message will be created and sent every time after the delay specified by the <code>fixed-delay</code> attribute.
 		 	
+		 	<programlisting language="xml"><![CDATA[<inbound-channel-adapter id="fixedRateProducer" 
+		 	expression="'fixedRateTest'" 
+		 	channel="fixedRateChannel">
+    <poller fixed-rate="1000"/>
+</inbound-channel-adapter>]]></programlisting>
 		 	
-		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
-		 	fixed-rate="1000" 
-		 	payload-expression="'fixedDelayTest'" 
-		 	channel="fixedDelayChannel"/>]]></programlisting>
-		 	
-		 	This example is very similar to the previous one, except that we are using <code>fixed-rate</code> attribute which will allow us to send messages at the fixed rate.
+		 	This example is very similar to the previous one, except that we are using the <code>fixed-rate</code> attribute which will allow us to send messages at a fixed rate (measuring from the start time of each task).
 
-		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
-		 	cron="7 6 5 4 3 ?" 
-		 	payload-expression="'fixedDelayTest'" 
-		 	channel="fixedDelayChannel"/>]]></programlisting>
+		 	<programlisting language="xml"><![CDATA[<inbound-channel-adapter id="cronProducer" 
+		 	expression="'cronTest'" 
+		 	channel="cronChannel">
+    <poller cron="7 6 5 4 3 ?"/>
+</inbound-channel-adapter>]]></programlisting>
 		 	
-		 	This example demonstrates how you can apply Cron trigger specified by <code>cron</code> attribute.
+		 	This example demonstrates how you can apply a Cron trigger with a value specified in the <code>cron</code> attribute.
 		 	
 		 	
-		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="headerExpressionsProducer" fixed-delay="99" 
-		 	payload-expression="'headerExpressionsTest'" 
+		 	<programlisting language="xml"><![CDATA[<inbound-channel-adapter id="headerExpressionsProducer" 
+		 	expression="'headerExpressionsTest'" 
 		 	channel="headerExpressionsChannel" 
 		 	auto-startup="false">
-	<header name="foo" expression="6 * 7"/>
-	<header name="bar" value="x"/>
-</scheduled-producer>]]></programlisting>
+    <poller fixed-delay="5000"/>
+    <header name="foo" expression="6 * 7"/>
+    <header name="bar" value="x"/>
+</inbound-channel-adapter>]]></programlisting>
 		 	
-		 	Here you can see that in a way very similar to Message publishing feature we are enriching a newly constructed Message with 
-		 	extra Message headers which could take scalar values as well as Spring expressions.
+		 	Here you can see that in a way very similar to the Message publishing feature we are enriching a newly constructed Message with 
+		 	extra Message headers which could take scalar values as well as the results of evaluating Spring expressions.
 		 	</para>
 		 	
 		 	<para>
-		 	If you need to implement your own custom trigger you can use <code>trigger</code> attribute pointing to any spring configured 
-		 	bean which implements <classname>org.springframework.scheduling.Trigger</classname> interface.
+		 	If you need to implement your own custom trigger you can use the <code>trigger</code> attribute to provide a reference to any spring configured 
+		 	bean which implements the <classname>org.springframework.scheduling.Trigger</classname> interface.
 		 	
-		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="triggerRefProducer" trigger="customTrigger" 
-		 	payload-expression="'triggerRefTest'" channel="triggerRefChannel"/>
+		 	<programlisting language="xml"><![CDATA[<inbound-channel-adapter id="triggerRefProducer"  
+		 	expression="'triggerRefTest'" channel="triggerRefChannel">
+    <poller trigger="customTrigger"/>
+</inbound-channel-adapter>
 
 <beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
-	<beans:constructor-arg value="9999"/>
+    <beans:constructor-arg value="9999"/>
 </beans:bean>]]></programlisting>
 		
 		 	</para>

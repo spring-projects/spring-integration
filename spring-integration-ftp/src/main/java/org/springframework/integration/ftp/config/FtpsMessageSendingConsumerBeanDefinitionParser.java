@@ -14,8 +14,7 @@ import org.w3c.dom.Element;
  *
  * @author Josh Long
  */
-public class FtpsMessageSendingConsumerBeanDefinitionParser
-		extends AbstractOutboundChannelAdapterParser {
+public class FtpsMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element,
 												   ParserContext parserContext) {

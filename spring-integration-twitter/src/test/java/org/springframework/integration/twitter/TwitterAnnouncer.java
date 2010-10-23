@@ -4,6 +4,11 @@ import org.springframework.integration.twitter.model.DirectMessage;
 import org.springframework.integration.twitter.model.Status;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
+=======
+import twitter4j.DirectMessage;
+import twitter4j.Status;
+>>>>>>> 64fec64d4095a6e793739607816d63d600e1ed0c
 
 
 @Component

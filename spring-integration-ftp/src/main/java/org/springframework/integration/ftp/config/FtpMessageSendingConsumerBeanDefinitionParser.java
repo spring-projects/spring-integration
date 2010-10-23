@@ -22,6 +22,7 @@ public class FtpMessageSendingConsumerBeanDefinitionParser
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				FtpSendingMessageHandlerFactoryBean.class.getName());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,element,"charset");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,element,"filename-generator", "fileNameGenerator");
 
 		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element,
 				parserContext);

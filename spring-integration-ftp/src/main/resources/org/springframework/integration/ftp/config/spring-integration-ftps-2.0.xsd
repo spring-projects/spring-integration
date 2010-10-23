@@ -57,6 +57,19 @@
 			<xsd:attribute name="password" type="xsd:string"/>
             <xsd:attribute name="charset" type="xsd:string" default="UTF-8"/>
 			<xsd:attribute name="port" type="xsd:int" default="22"/>
+			<xsd:attribute name="filename-generator" type="xsd:string">
+	            <xsd:annotation>
+	            	<xsd:documentation>
+	            	Allows you to specify a reference to  
+	            	[org.springframework.integration.file.FileNameGenerator] implementation.
+	            	</xsd:documentation>
+	                <xsd:appinfo>
+	                    <tool:annotation kind="ref">
+	                        <tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
+	                    </tool:annotation>
+	                </xsd:appinfo>
+	            </xsd:annotation>
+	        </xsd:attribute>
 			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[

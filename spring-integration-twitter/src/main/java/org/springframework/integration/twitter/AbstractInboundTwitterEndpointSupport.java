@@ -20,12 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 import org.springframework.util.Assert;
@@ -35,30 +36,43 @@ import twitter4j.ResponseList;
 import twitter4j.Twitter;
 
 /**
- * There are a lot of operations that are common to receiving the various types of messages when using the Twitter API, and this
- * class abstracts most of them for you. Implementers must take note of {@link org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport#runAsAPIRateLimitsPermit(org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport.ApiCallback)}
- * which will invoke the instance of {@link org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport.ApiCallback} when the rate-limit API
- * deems that its OK to do so. This class handles keeping tabs on that and on spacing out requests as required.
+ * There are a lot of operations that are common to receiving the various types of messages when using the 
+ * Twitter API, and this class abstracts most of them for you. Implementers must take note of
+ * {@link org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport#runAsAPIRateLimitsPermit(org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport.ApiCallback)}
+ * which will invoke the instance of {@link AbstractInboundTwitterEndpointSupport.ApiCallback} when the 
+ * rate-limit API deems that its OK to do so. This class handles keeping tabs on that and on spacing out requests 
+ * as required.
+ * 
  * <p/>
- * Simialarly, this class handles keeping track on the latest inbound message its received and avoiding, where possible, redelivery of
- * common messages. This functionality is enabled using the {@link org.springframework.integration.context.metadata.MetadataPersister} implementation
+ * Simialarly, this class handles keeping track on the latest inbound message its received and avoiding, where 
+ * possible, redelivery of common messages. This functionality is enabled using the 
+ * {@link org.springframework.integration.context.metadata.MetadataStore} implementation
  *
  * @author Josh Long
  * @since 2.0
  */
-public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint implements Lifecycle {
-	protected volatile OAuthConfiguration configuration;
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
-	private volatile MessageChannel requestChannel;
-	protected volatile long markerId = -1;
-	protected Twitter twitter;
-	private final Object markerGuard = new Object();
-	private final Object apiPermitGuard = new Object();
+public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint implements Lifecycle, TrackableComponent {
 
-	@SuppressWarnings("unused")
+	protected volatile OAuthConfiguration configuration;
+
+	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
+	private volatile MessageChannel requestChannel;
+
+	protected volatile long markerId = -1;
+
+	protected Twitter twitter;
+
+	private final Object markerGuard = new Object();
+
+	private final Object apiPermitGuard = new Object();
+	
+	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
+
 	public void setConfiguration(OAuthConfiguration configuration) {
 		this.configuration = configuration;
 	}
+
 
 	abstract protected void markLastStatusId(T statusId);
 
@@ -77,10 +91,20 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 	public long getMarkerId() {
 		return markerId;
 	}
+	
+	public String getComponentType() {
+		return "twitter:inbound-dm-channel-adapter";
+	}
+	
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.messagingTemplate.setDefaultChannel(requestChannel);
+		this.requestChannel = requestChannel;
+	}
 
 	@Override
 	protected void doStart() {
 		try {
+			this.historyWritingPostProcessor.setTrackableComponent(this);
 			refresh();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -90,9 +114,25 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 	protected void forward(T status) {
 		synchronized (this.markerGuard) {
 			Message<T> twtMsg = MessageBuilder.withPayload(status).build();
-			messagingTemplate.send(requestChannel, twtMsg);
+			messagingTemplate.convertAndSend(requestChannel, twtMsg, this.historyWritingPostProcessor);
 			markLastStatusId(status);
 		}
+	}
+	
+	//abstract protected List<T> sort(List<T> rl);
+	
+	//abstract protected void markLastStatusId(T statusId);
+	
+	abstract protected void refresh() throws Exception;
+
+	protected void forwardAll(ResponseList<T> tResponses) {
+		List<T> stats = new ArrayList<T>();
+
+		for (T t : tResponses)
+			stats.add(t);
+
+		for (T twitterResponse : sort(stats))
+			forward(twitterResponse);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -129,8 +169,9 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 			int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
 			long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
 
-			logger.debug("need to Thread.sleep() " + secondsUntilWeCanPullAgain + " seconds until the next timeline pull. Have " + remainingHits +
-					" remaining pull this rate period. The period ends in " + secondsUntilReset);
+			logger.debug("need to Thread.sleep() " + secondsUntilWeCanPullAgain + 
+                          " seconds until the next timeline pull. Have " + remainingHits +
+  			  " remaining pull this rate period. The period ends in " + secondsUntilReset);
 
 			Thread.sleep(msUntilWeCanPullAgain);
 		} catch (Throwable throwable) {
@@ -148,8 +189,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 		return markerId > -1;
 	}
 
-	abstract protected void refresh() throws Exception;
-
 	@Override
 	protected void onInit() throws Exception {
 		messagingTemplate.afterPropertiesSet();
@@ -162,12 +201,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 	protected void doStop() {
 	}
 
-	@SuppressWarnings("unused")
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
-		this.requestChannel = requestChannel;
-	}
-
 	/**
 	 * Hook for clients to run logic when the API rate limiting lets us
 	 * <p/>
@@ -177,5 +210,9 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 	 */
 	public static interface ApiCallback<C> {
 		void run(C t, Twitter twitter) throws Exception;
+	}
+
+	public void setShouldTrack(boolean shouldTrack) {
+		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
 	}
 }

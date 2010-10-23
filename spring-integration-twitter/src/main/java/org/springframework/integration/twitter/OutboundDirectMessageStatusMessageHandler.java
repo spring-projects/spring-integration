@@ -16,10 +16,8 @@
 package org.springframework.integration.twitter;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.util.Assert;
+
 import twitter4j.TwitterException;
 
 
@@ -31,7 +29,9 @@ import twitter4j.TwitterException;
  * @see twitter4j.Twitter
  */
 public class OutboundDirectMessageStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
-	public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
+	
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
 		try {
 			String txt = (String) message.getPayload();
 			Object toUser =

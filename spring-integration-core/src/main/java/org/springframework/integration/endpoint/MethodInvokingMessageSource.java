@@ -19,10 +19,8 @@ package org.springframework.integration.endpoint;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -32,7 +30,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingMessageSource implements MessageSource<Object>, InitializingBean {
+public class MethodInvokingMessageSource extends AbstractMessageSource<Object> implements InitializingBean {
 
 	private volatile Object object;
 
@@ -69,6 +67,8 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 			Assert.isTrue(this.method != null || this.methodName != null, "method or methodName is required");
 			if (this.method == null) {
 				this.method = ReflectionUtils.findMethod(this.object.getClass(), this.methodName);
+				Assert.notNull(this.method, "no such method '" + this.methodName
+						+ "' is available on " + this.object.getClass());
 			}
 			Assert.isTrue(!void.class.equals(this.method.getReturnType()),
 					"invalid MessageSource method '"+ this.method.getName() + "', a non-void return is required");
@@ -77,23 +77,16 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 		}
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
-	public Message<Object> receive() {
+	@Override
+	protected Object doReceive() {
 		try {
 			if (!this.initialized) {
 				this.afterPropertiesSet();
 			}
-			Object result = ReflectionUtils.invokeMethod(this.method, this.object);
-			if (result == null) {
-				return null;
-			}
-			if (result instanceof Message) {
-				return (Message) result;
-			}
-			return new GenericMessage<Object>(result);
+			return ReflectionUtils.invokeMethod(this.method, this.object);
 		}
 		catch (Throwable e) {
-			throw new MessagingException("Failed to invoke MessageSource", e);
+			throw new MessagingException("Failed to invoke method", e);
 		}
 	}
 

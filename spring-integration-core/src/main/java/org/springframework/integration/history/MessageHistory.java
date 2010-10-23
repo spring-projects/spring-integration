@@ -16,6 +16,7 @@
 
 package org.springframework.integration.history;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistory implements List<Properties> {
+public class MessageHistory implements List<Properties>, Serializable {
 
 	public static final String HEADER_NAME = MessageHeaders.PREFIX + "history";
 

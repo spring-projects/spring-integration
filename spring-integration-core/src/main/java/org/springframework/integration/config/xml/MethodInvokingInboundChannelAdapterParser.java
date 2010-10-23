@@ -16,13 +16,19 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;inbound-channel-adapter/&gt; element.
@@ -33,26 +39,79 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanComponentDefinition bcDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		String sourceRef = null;
-		if (bcDef != null){
-			sourceRef = bcDef.getBeanName();
-		} else {
-			sourceRef = element.getAttribute("ref");
+		BeanComponentDefinition innnerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String sourceRef = element.getAttribute("ref");
+		String expressionString = element.getAttribute("expression");
+		if (innnerBeanDef != null) {
+			if (StringUtils.hasText(sourceRef)) {
+				parserContext.getReaderContext().error(
+						"inner bean and a 'ref' attribute are mutually exclusive options", element);
+			}
+			sourceRef = innnerBeanDef.getBeanName();
+		}
+		else if (StringUtils.hasText(expressionString)) {
+			if (StringUtils.hasText(sourceRef)) {
+				parserContext.getReaderContext().error(
+						"the 'expression' and 'ref' attributes are mutually exclusive options", element);
+			}
+			sourceRef = this.parseExpression(expressionString, element, parserContext);
 		}
 		if (!StringUtils.hasText(sourceRef)) {
-			parserContext.getReaderContext().error("Either 'ref' attribute or inner-bean consumer definition is required.", element);
+			parserContext.getReaderContext().error("One of the following is required: " +
+					"'ref' attribute, 'expression' attribute, or an inner-bean definition.", element);
 		}
 		String methodName = element.getAttribute("method");
 		if (StringUtils.hasText(methodName)) {
-			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.MethodInvokingMessageSource");
-			invokerBuilder.addPropertyReference("object", sourceRef);
-			invokerBuilder.addPropertyValue("methodName", methodName);
+			sourceBuilder.addPropertyReference("object", sourceRef);
+			sourceBuilder.addPropertyValue("methodName", methodName);
+			this.parseHeaderExpressions(sourceBuilder, element, parserContext);
 			sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
+					sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
 		return sourceRef;
+	}
+
+	private String parseExpression(String expressionString, Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource");
+		RootBeanDefinition expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+		expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionString);
+		sourceBuilder.addConstructorArgValue(expressionDef);
+		sourceBuilder.addConstructorArgValue(null); // TODO: add support for expectedType?
+		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private void parseHeaderExpressions(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
+		if (!CollectionUtils.isEmpty(headerElements)) {
+			ManagedMap<String, Object> headerExpressions = new ManagedMap<String, Object>();
+			for (Element headerElement : headerElements) {
+				String headerName = headerElement.getAttribute("name");
+				String headerValue = headerElement.getAttribute("value");
+				String headerExpression = headerElement.getAttribute("expression");
+				boolean hasValue = StringUtils.hasText(headerValue);
+				boolean hasExpression = StringUtils.hasText(headerExpression);
+				if (!(hasValue ^ hasExpression)) {
+					parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on a header sub-element",
+							parserContext.extractSource(headerElement));
+					continue;
+				}
+				RootBeanDefinition expressionDef = null;
+				if (hasValue) {
+					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
+				}
+				else {
+					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
+				}
+				headerExpressions.put(headerName, expressionDef);
+			}
+			builder.addPropertyValue("headerExpressions", headerExpressions);
+		}
 	}
 
 }

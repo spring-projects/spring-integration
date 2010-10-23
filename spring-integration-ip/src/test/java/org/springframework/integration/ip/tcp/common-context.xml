@@ -15,8 +15,8 @@
 	<bean id="crLfSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer" />
 	<bean id="stxEtxSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer" />
 	<bean id="lengthHeaderSerializer" class="org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer" />
-	<bean id="javaSerializer" class="org.springframework.commons.serializer.DefaultSerializer" />
-	<bean id="javaDeserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
+	<bean id="javaSerializer" class="org.springframework.core.serializer.DefaultSerializer" />
+	<bean id="javaDeserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
 
 	<ip:tcp-connection-factory id="crLfServer"
 		type="server"

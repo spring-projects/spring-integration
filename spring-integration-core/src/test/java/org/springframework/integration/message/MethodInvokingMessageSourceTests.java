@@ -19,8 +19,14 @@ package org.springframework.integration.message;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.MethodInvokingMessageSource;
@@ -39,6 +45,23 @@ public class MethodInvokingMessageSourceTests {
 		assertNotNull(result);
 		assertNotNull(result.getPayload());
 		assertEquals("valid", result.getPayload());
+	}
+
+	@Test
+	public void testHeaderExpressions() {
+		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+		headerExpressions.put("foo", new LiteralExpression("abc"));
+		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("new Integer(123)"));
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
+		source.setObject(new TestBean());
+		source.setMethodName("validMethod");
+		source.setHeaderExpressions(headerExpressions);
+		Message<?> result = source.receive();
+		assertNotNull(result);
+		assertNotNull(result.getPayload());
+		assertEquals("valid", result.getPayload());
+		assertEquals("abc", result.getHeaders().get("foo"));
+		assertEquals(123, result.getHeaders().get("bar"));
 	}
 
 	@Test(expected=MessagingException.class)

@@ -17,9 +17,7 @@ package org.springframework.integration.file.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.FactoryBean;
-
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
@@ -27,9 +25,6 @@ import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.locking.AbstractFileLockerFilter;
 
 import java.io.File;
-
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 
 
@@ -143,8 +138,8 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
                 } else {
                     CompositeEntryListFilter<File> fileCompositeEntryListFilter = new CompositeEntryListFilter<File>();
 
-                    for (EntryListFilter<File> filter : Arrays.asList(this.filter, this.locker))
-                        fileCompositeEntryListFilter.addFilter(filter);
+					fileCompositeEntryListFilter.addFilter(this.filter);
+					fileCompositeEntryListFilter.addFilter(this.locker);
 
                     this.source.setFilter(fileCompositeEntryListFilter);
                     this.source.setLocker(locker);

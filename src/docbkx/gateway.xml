@@ -236,11 +236,18 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
   	It is also important to understand that by default <emphasis>reply-timout</emphasis> is unbounded which means that 
   	if not explicitly set there are several scenarios (described above) where your Gateway method invocation might 
   	hang indefinitely, so make sure you analyze your flow and if there is even a remote possibility of one of these 
-  	scenarios to occur in your flow, set the <emphasis>reply-timout</emphasis> to a 'safe' value at least for the sake 
-  	of bringing method invocation to a close. But also, realize that there are some scenarios (see the very first one) 
+  	scenarios to occur, set the <emphasis>reply-timout</emphasis> attribute to a 'safe' value or better off 
+  	set  the <emphasis>requires-reply</emphasis>  attribute of the downstream component to 'true' to ensure a timely response.
+  	But also, realize that there are some scenarios (see the very first one) 
   	where <emphasis>reply-timout</emphasis> will not help which means it is also important to analyze your message 
   	flow and decide when to use Sync Gateway vs Async Gateway where Gateway method invocation is always guaranteed 
   	to return while giving you a more granular control over the results of the invocation via Java Futures.
+  	<para>
+  	Also, when dealing with Router you should remember that seeting <emphasis>resolution-required</emphasis> attribute to 'true'
+  	will result in the exception thrown by the router if it can not resolve a particular chanel. And when dealing with the filter 
+  	you can also set <emphasis>throw-exception-on-rejection</emphasis> attribute. Both of these will help to ensure a timely response
+  	from the Gateway method invocation.
+  	</para>
   		</important>
   	</para>
   </section>

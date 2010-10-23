@@ -21,7 +21,7 @@ package org.springframework.integration.ip.tcp.connection;
  * @since 2.0
  *
  */
-public class HelloWorldInterceptorFactory extends
+public class HelloWorldInterceptorFactory implements
 		TcpConnectionInterceptorFactory {
 
 	private String hello = "Hello";
@@ -41,7 +41,6 @@ public class HelloWorldInterceptorFactory extends
 	}
 
 
-	@Override
 	public TcpConnectionInterceptor getInterceptor() {
 		return new HelloWorldInterceptor(hello, world);
 	}

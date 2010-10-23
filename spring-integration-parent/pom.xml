@@ -23,7 +23,7 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.hamcrest.version>1.1</org.hamcrest.version>
 		<org.slf4j.version>1.5.10</org.slf4j.version>
-		<org.springframework.version>3.0.3.RELEASE</org.springframework.version>
+		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
 		<org.springframework.security.version>3.0.3.RELEASE</org.springframework.security.version>
 		<org.springframework.ws.version>1.5.9</org.springframework.ws.version>
 	</properties>
@@ -136,16 +136,6 @@
 				<artifactId>spring-aspects</artifactId>
 				<version>${org.springframework.version}</version>
 			</dependency>
-               <!--   <dependency>
-            <groupId>rome</groupId>
-            <artifactId>rome</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>rome</groupId>
-            <artifactId>rome-fetcher</artifactId>
-            <version></version>
-        </dependency>
--->
             <dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
@@ -215,11 +205,6 @@
 				<groupId>org.springframework.integration</groupId>
 				<artifactId>spring-integration-stream</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework.commons</groupId>
-				<artifactId>spring-commons-serializer</artifactId>
-				<version>1.0.0.BUILD-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.springframework.security</groupId>

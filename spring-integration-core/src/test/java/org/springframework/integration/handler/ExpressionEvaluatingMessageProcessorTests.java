@@ -31,12 +31,14 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Dave Syer
@@ -71,7 +73,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+		evaluationContext.setVariable("target", new TestTarget());
 		assertEquals("2", processor.processMessage(new GenericMessage<String>("2")));
 	}
 
@@ -84,7 +87,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		Expression expression = expressionParser.parseExpression("#target.ping(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+		evaluationContext.setVariable("target", new TestTarget());
 		assertEquals(null, processor.processMessage(new GenericMessage<String>("2")));
 	}
 
@@ -100,7 +104,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		Expression expression = expressionParser.parseExpression("#target.find(payload)");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
-		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
+		evaluationContext.setVariable("target", new TestTarget());
 		String result = (String) processor.processMessage(new GenericMessage<String>("classpath:*.properties"));
 		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
 	}

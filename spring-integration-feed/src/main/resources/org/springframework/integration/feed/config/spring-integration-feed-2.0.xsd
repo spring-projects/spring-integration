@@ -27,6 +27,7 @@
                 <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
             </xsd:sequence>
             <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="auto-startup" type="xsd:string" default="true" />
             <xsd:attribute name="channel" use="required" type="xsd:string">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -36,17 +37,26 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-
-
-            <xsd:attribute name="backlog-cache-size" type="xsd:int"/>
-
-            <xsd:attribute name="feed" type="xsd:string" use="required"/>
-<!--
-
-            <xsd:attribute name="prefer-updated-feed-to-entries" type="xsd:boolean"/>
--->
-
-
+            <xsd:attribute name="metadata-store" use="optional" type="xsd:string">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Allows you to provide cusom implementation of 'org.springframework.integration.context.metadata.MetadataStore'
+                		to persist the state of the retrieved feeds to aviod duplicates between restarts.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.context.metadata.MetadataStore"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="feed-url" type="xsd:string" use="required">	
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Allows you to specify URL for RSS/ATOM feed
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 

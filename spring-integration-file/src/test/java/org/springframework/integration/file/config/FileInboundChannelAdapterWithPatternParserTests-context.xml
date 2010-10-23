@@ -14,7 +14,7 @@
 
 	<inbound-channel-adapter id="adapterWithPattern"
 			directory="file:${java.io.tmpdir}"
-			filename-pattern=".*\.txt" auto-startup="false">
+			filename-pattern="*.txt" auto-startup="false">
 		<integration:poller fixed-rate="1000"/>
 	</inbound-channel-adapter>
 

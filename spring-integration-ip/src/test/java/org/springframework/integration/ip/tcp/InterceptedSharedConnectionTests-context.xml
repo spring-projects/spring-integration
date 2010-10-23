@@ -9,9 +9,9 @@
 
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 	
-	<bean id="serializer" class="org.springframework.commons.serializer.DefaultSerializer" />
+	<bean id="serializer" class="org.springframework.core.serializer.DefaultSerializer" />
 
-	<bean id="deserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
+	<bean id="deserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
 	
 	<bean id="helloWorldInterceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
 		<property name="interceptors">

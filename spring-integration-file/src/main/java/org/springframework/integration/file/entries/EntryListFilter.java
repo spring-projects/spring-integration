@@ -19,18 +19,23 @@ import java.util.List;
 
 
 /**
- * Strategy interface for filtering a group of entries / files.
+ * Strategy interface for filtering entries representing files on a local or remote file system. This is a generic
+ * variant of FileListFilter that also works with references to remote files.
  * <p/>
- * {@link EntryListFilter} that passes file entries only one time. This can
- * conveniently be used to prevent duplication of files, as is done in
- * {@link org.springframework.integration.file.FileReadingMessageSource}.
- * <p/>
- * This implementation is thread safe.
+ * Implementations must be thread safe.
  *
- * @author Iwein Fuld
  * @author Josh Long
- * @since 1.0.0
+ * @author Iwein Fuld
+ *
+ * @since 2.0.0
+ *
+ * @see org.springframework.integration.file.filters.FileListFilter
  */
 public interface EntryListFilter<T> {
+
+    /**
+     * Filters out entries and returns the entries that are left in a list, or an
+     * empty list when a null is passed in.
+     */
 	List<T> filterEntries(T[] entries);
 }

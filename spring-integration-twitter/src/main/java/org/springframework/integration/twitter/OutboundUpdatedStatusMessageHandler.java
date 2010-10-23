@@ -16,10 +16,8 @@
 package org.springframework.integration.twitter;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.util.Assert;
+
 import twitter4j.StatusUpdate;
 
 
@@ -30,15 +28,11 @@ import twitter4j.StatusUpdate;
  * @since 2.0
  */
 public class OutboundUpdatedStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
-	public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
-		try {
-			StatusUpdate statusUpdate = this.statusUpdateSupport.fromMessage(message);
-			Assert.notNull(statusUpdate, "couldn't send message, unable to build a StatusUpdate instance correctly");
-			this.twitter.updateStatus(statusUpdate);
-		} catch (Throwable e) {
-			this.logger.debug(e);
-			throw new RuntimeException(e);
-		}
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		StatusUpdate statusUpdate = this.statusUpdateSupport.fromMessage(message);
+		Assert.notNull(statusUpdate, "couldn't send message, unable to build a StatusUpdate instance correctly");
+		this.twitter.updateStatus(statusUpdate);
 	}
 
 }

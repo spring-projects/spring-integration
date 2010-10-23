@@ -31,7 +31,17 @@
 		<si:queue/>
 	</si:channel>
 
+	<si:channel id="headerMappingRequests">
+		<si:queue/>
+	</si:channel>
+
+	<ws:inbound-gateway id="headerMappingGateway" request-channel="headerMappingRequests"
+			header-mapper="testHeaderMapper"/>
+
 	<bean id="marshaller" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.oxm.AbstractMarshaller" />
 	</bean>
+
+	<bean id="testHeaderMapper" class="org.springframework.integration.ws.config.WebServiceInboundGatewayParserTests$TestHeaderMapper"/>
+
 </beans>

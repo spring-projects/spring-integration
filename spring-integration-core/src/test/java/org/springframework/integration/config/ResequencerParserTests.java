@@ -77,7 +77,7 @@ public class ResequencerParserTests {
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				false, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
+				true, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
 	}
 
 	@Test
@@ -88,6 +88,15 @@ public class ResequencerParserTests {
 				CorrelatingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy", context
 				.getBean("testCorrelationStrategy"), getPropertyValue(resequencer, "correlationStrategy"));
+	}
+
+	@Test
+	public void shouldSetReleasePartialSequencesFlag(){
+				EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
+		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+				CorrelatingMessageHandler.class);
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
+				true, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
 	}
 
 	@Test

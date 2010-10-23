@@ -221,4 +221,14 @@ public class SimpleMessageGroup implements MessageGroup {
 		return false;
 	}
 
+	@Override
+	public String toString() {
+		return "SimpleMessageGroup{" +
+				"groupId=" + groupId +
+				", lock=" + lock +
+				", marked=" + marked +
+				", unmarked=" + unmarked +
+				", timestamp=" + timestamp +
+				'}';
+	}
 }

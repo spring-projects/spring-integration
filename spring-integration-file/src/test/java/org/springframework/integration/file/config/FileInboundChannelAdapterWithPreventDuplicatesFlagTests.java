@@ -15,32 +15,27 @@
  */
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
-
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-
 import org.springframework.context.ApplicationContext;
-
 import org.springframework.integration.file.TestFileListFilter;
 import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
-
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -88,7 +83,7 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
         Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         Iterator<EntryListFilter<File>> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+		assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
 
     @Test
@@ -100,14 +95,14 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
         Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         Iterator<EntryListFilter> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+		assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
 
     @Test
     public void patternAndFalse() throws Exception {
         EntryListFilter<File> filter = this.extractFilter("patternAndFalse");
         assertFalse(filter instanceof CompositeEntryListFilter);
-        assertTrue(filter instanceof PatternMatchingEntryListFilter);
+		assertThat(filter, is(SimplePatternFileListFilter.class));
     }
 
     @Test
@@ -152,7 +147,12 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
     @SuppressWarnings("unchecked")
     private EntryListFilter<File> extractFilter(String beanName) {
-        return (EntryListFilter<File>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(context.getBean(beanName)).getPropertyValue("source")).getPropertyValue("scanner")).getPropertyValue(
-            "filter");
+        return (EntryListFilter<File>)
+				new DirectFieldAccessor(
+						new DirectFieldAccessor(
+								new DirectFieldAccessor(context.getBean(beanName))
+										.getPropertyValue("source"))
+								.getPropertyValue("scanner"))
+						.getPropertyValue("filter");
     }
 }

@@ -30,10 +30,7 @@ import javax.net.SocketFactory;
 
 import org.junit.Test;
 
-import org.springframework.commons.serializer.DefaultSerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
+import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**

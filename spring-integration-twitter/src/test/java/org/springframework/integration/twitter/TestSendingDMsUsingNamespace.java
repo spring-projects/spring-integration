@@ -33,9 +33,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Josh Long
  */
-@ContextConfiguration(locations = {
-        "/org/springframework/integration/twitter/sending_dms_using_ns.xml"}
-)
+@ContextConfiguration
 public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
 
 	private volatile MessagingTemplate messagingTemplate = new MessagingTemplate();

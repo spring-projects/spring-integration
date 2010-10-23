@@ -15,15 +15,8 @@
  */
 package org.springframework.integration.file.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.util.Properties;
-
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -31,23 +24,39 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.Properties;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
 /**
  * @author Oleg Zhurakousky
+ * @author Iwein Fuld
  *
  */
 public class FileMessageHistoryTest {
+
+
 	@Test
 	public void testMessageHistory() throws Exception{
 		ApplicationContext context = new ClassPathXmlApplicationContext("file-message-history-context.xml", this.getClass());
-		File file = new File("input/FileMessageHistoryTest.txt");
+		TemporaryFolder input = context.getBean(TemporaryFolder.class);
+		File file = input.newFile("FileMessageHistoryTest.txt");
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 	    out.write("hello");
 	    out.close();
 	    
 	    PollableChannel outChannel =  context.getBean("outChannel", PollableChannel.class);
 	    Message<?> message = outChannel.receive(1000);
+		assertThat(message, is(notNullValue()));
 	    MessageHistory history = MessageHistory.read(message);
-	    assertNotNull(history);
+	    assertThat(history, is(notNullValue()));
 	    Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "fileAdapter", 0);
 	    assertNotNull(componentHistoryRecord);
 	    assertEquals("file:inbound-channel-adapter", componentHistoryRecord.get("type"));

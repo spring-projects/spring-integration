@@ -16,13 +16,11 @@
 package org.springframework.integration.file.config;
 
 import org.springframework.beans.factory.FactoryBean;
-
 import org.springframework.integration.file.entries.*;
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 
 import java.io.File;
-
 import java.util.Collection;
-import java.util.regex.Pattern;
 
 
 /**
@@ -32,7 +30,7 @@ import java.util.regex.Pattern;
 public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<File>> {
     private volatile EntryListFilter<File> fileListFilter;
     private volatile EntryListFilter<File> filterReference;
-    private volatile Pattern filenamePattern;
+    private volatile String filenamePattern;
     private volatile Boolean preventDuplicates;
     private final Object monitor = new Object();
     private volatile Collection<EntryListFilter<File>> filterReferences;
@@ -46,7 +44,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
         this.filterReference = filterReference;
     }
 
-    public void setFilenamePattern(Pattern filenamePattern) {
+    public void setFilenamePattern(String filenamePattern) {
         this.filenamePattern = filenamePattern;
     }
 
@@ -90,7 +88,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
                 flf = this.filterReference;
             }
         } else if (this.filenamePattern != null) {
-            PatternMatchingEntryListFilter<File> patternFilter = new PatternMatchingEntryListFilter<File>(fileNamer, this.filenamePattern);
+            SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
 
             if (Boolean.FALSE.equals(this.preventDuplicates)) {
                 flf = patternFilter;

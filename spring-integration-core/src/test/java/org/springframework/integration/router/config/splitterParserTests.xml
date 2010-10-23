@@ -32,6 +32,13 @@
 	          output-channel="output" 
 	          requires-reply="true"/>
 
+	<splitter id="splitterBeanNoSequence"
+			  ref="splitterBean"
+	          input-channel="noSequenceInput"
+	          output-channel="output"
+			  apply-sequence="false"
+	  />
+
 	<beans:bean id="splitterBean" class="org.springframework.integration.router.config.TestSplitterBean"/>
 
 	<beans:bean id="splitterImpl" class="org.springframework.integration.router.config.TestSplitterImpl"/>

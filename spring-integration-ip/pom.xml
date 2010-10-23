@@ -25,10 +25,6 @@
 			<artifactId>spring-integration-stream</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.commons</groupId>
-			<artifactId>spring-commons-serializer</artifactId>
-		</dependency>
 		<!-- test-scoped dependencies -->
 		<dependency>
 			<groupId>cglib</groupId>

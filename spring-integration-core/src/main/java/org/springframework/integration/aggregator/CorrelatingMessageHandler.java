@@ -142,6 +142,13 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
 	}
 
+	public void setReleasePartialSequences(boolean releasePartialSequences){
+		Assert.isInstanceOf(SequenceSizeReleaseStrategy.class, this.releaseStrategy,
+				"Release strategy of type [" + this.releaseStrategy.getClass().getSimpleName()
+						+ "] cannot release partial sequences. Use the default SequenceSizeReleaseStrategy instead.");
+		((SequenceSizeReleaseStrategy)this.releaseStrategy).setReleasePartialSequences(releasePartialSequences);
+	}
+
 	@Override
 	public String getComponentType() {
 		return "aggregator";
@@ -162,6 +169,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		synchronized (lock) {
 			MessageGroup group = messageStore.getMessageGroup(correlationKey);
 			if (group.canAdd(message)) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("Adding message to group [ " + group + "]");
+				}
 				group = store(correlationKey, message);
 				if (releaseStrategy.canRelease(group)) {
 					Collection<Message> completedMessages = null;

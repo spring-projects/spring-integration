@@ -21,7 +21,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.metadata.MetadataPersister;
+import org.springframework.integration.context.metadata.MetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
 
 import org.springframework.scheduling.TaskScheduler;
@@ -48,8 +48,8 @@ public abstract class IntegrationContextUtils {
 
     public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
 
-    public static MetadataPersister getMetadataPersister(BeanFactory beanFactory) {
-        return getBeanOfType(beanFactory, METADATA_PERSISTER_BEAN_NAME, MetadataPersister.class);
+    public static MetadataStore getMetadataPersister(BeanFactory beanFactory) {
+        return getBeanOfType(beanFactory, METADATA_PERSISTER_BEAN_NAME, MetadataStore.class);
     }
 
     public static MessageChannel getErrorChannel(BeanFactory beanFactory) {

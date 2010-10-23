@@ -58,6 +58,14 @@ public class JdbcPollingChannelAdapterParserTests {
 	private PlatformTransactionManager transactionManager;
 
 	@Test
+	public void testNoAutoStartupInboundChannelAdapter() {
+		setUp("pollingNoAutoStartupJdbcInboundChannelAdapterTest.xml", getClass());
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
+		Message<?> message = messagingTemplate.receive();
+		assertNull("Message found ", message);
+	}
+
+	@Test
 	public void testSimpleInboundChannelAdapter() {
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");

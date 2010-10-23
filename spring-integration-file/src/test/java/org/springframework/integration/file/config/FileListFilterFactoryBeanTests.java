@@ -19,16 +19,18 @@ package org.springframework.integration.file.config;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.file.entries.*;
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.regex.Pattern;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class FileListFilterFactoryBeanTests {
 
@@ -36,7 +38,7 @@ public class FileListFilterFactoryBeanTests {
     public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
         factory.setFilterReference(new TestFilter());
-        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setFilenamePattern("foo");
         factory.getObject();
     }
 
@@ -79,37 +81,37 @@ public class FileListFilterFactoryBeanTests {
     @SuppressWarnings("unchecked")
     public void filenamePatternAndPreventDuplicatesNull() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setFilenamePattern("foo");
         EntryListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeEntryListFilter);
         Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
         Iterator<EntryListFilter> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+        assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void filenamePatternAndPreventDuplicatesTrue() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setFilenamePattern(("foo"));
         factory.setPreventDuplicates(Boolean.TRUE);
         EntryListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeEntryListFilter);
         Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
         Iterator<EntryListFilter> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+        assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
 
     @Test
     public void filenamePatternAndPreventDuplicatesFalse() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setFilenamePattern(("foo"));
         factory.setPreventDuplicates(Boolean.FALSE);
         EntryListFilter<File> result = factory.getObject();
         assertFalse(result instanceof CompositeEntryListFilter);
-        assertTrue(result instanceof PatternMatchingEntryListFilter);
+        assertThat(result, is(SimplePatternFileListFilter.class));
     }
 
 

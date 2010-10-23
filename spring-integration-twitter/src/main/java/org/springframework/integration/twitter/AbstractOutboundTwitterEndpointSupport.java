@@ -15,10 +15,10 @@
  */
 package org.springframework.integration.twitter;
 
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 import org.springframework.util.Assert;
+
 import twitter4j.Twitter;
 
 
@@ -27,12 +27,11 @@ import twitter4j.Twitter;
  *
  * @author Josh Long
  */
-public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractEndpoint implements MessageHandler {
+public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractMessageHandler {
 	protected volatile OAuthConfiguration configuration;
 	protected volatile Twitter twitter;
-	protected volatile StatusUpdateSupport statusUpdateSupport = new StatusUpdateSupport();
+	protected final StatusUpdateOptboundMessageMapper statusUpdateSupport = new StatusUpdateOptboundMessageMapper();
 
-	@SuppressWarnings("unused")
 	public void setConfiguration(OAuthConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -42,15 +41,6 @@ public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractEnd
 		Assert.notNull(this.configuration, "'configuration' can't be null");
 		this.twitter = this.configuration.getTwitter();
 		Assert.notNull(this.twitter, "'twitter' can't be null");
-	}
-
-
-	@Override
-	protected void doStart() {
-	}
-
-	@Override
-	protected void doStop() {
 	}
 
 }

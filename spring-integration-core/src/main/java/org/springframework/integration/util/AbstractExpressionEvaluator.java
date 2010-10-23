@@ -65,8 +65,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 	}
 
-	// TODO: should we make this protected (would require changes to tests only)
-	public StandardEvaluationContext getEvaluationContext() {
+	protected StandardEvaluationContext getEvaluationContext() {
 		return this.evaluationContext;
 	}
 
@@ -95,6 +94,14 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	protected Object evaluateExpression(Expression expression, Object input) {
 		return this.evaluateExpression(expression, input, (Class<?>) null);
+	}
+
+	protected <T> T evaluateExpression(Expression expression, Class<T> expectedType) {
+		return expression.getValue(this.evaluationContext, expectedType);
+	}
+
+	protected Object evaluateExpression(Expression expression) {
+		return expression.getValue(this.evaluationContext);
 	}
 
 	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {

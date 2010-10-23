@@ -33,7 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class OutboundXmppEndpointTests {
 
 	@Test
-	//@Ignore
+	@Ignore
 	public void run() throws Exception {
 		Thread.sleep(10 * 1000);
 	}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="fixedDelayChannel"/>
+
+	<channel id="fixedRateChannel"/>
+
+	<channel id="cronChannel"/>
+
+	<channel id="headerExpressionsChannel"/>
+
+	<channel id="triggerRefChannel">
+		<queue/>
+	</channel>
+
+	<inbound-channel-adapter id="fixedDelayProducer" expression="'fixedDelayTest'" channel="fixedDelayChannel" auto-startup="false">
+		<poller fixed-delay="1234"/>
+	</inbound-channel-adapter>
+
+	<inbound-channel-adapter id="fixedRateProducer" expression="'fixedRateTest'" channel="fixedRateChannel" auto-startup="false">
+		<poller fixed-rate="5678"/>
+	</inbound-channel-adapter>
+
+	<inbound-channel-adapter id="cronProducer" expression="'cronTest'" channel="cronChannel" auto-startup="false">
+		<poller cron="7 6 5 4 3 ?"/>
+	</inbound-channel-adapter>
+
+	<inbound-channel-adapter id="headerExpressionsProducer" expression="'headerExpressionsTest'" channel="headerExpressionsChannel" auto-startup="false">
+		<poller fixed-delay="99"/>
+		<header name="foo" expression="6 * 7"/>
+		<header name="bar" value="x"/>
+	</inbound-channel-adapter>
+
+	<inbound-channel-adapter id="triggerRefProducer" expression="'triggerRefTest'" channel="triggerRefChannel">
+		<poller trigger="customTrigger"/>
+	</inbound-channel-adapter>
+
+	<beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+		<beans:constructor-arg value="9999"/>
+	</beans:bean>
+
+</beans:beans>

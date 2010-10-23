@@ -20,7 +20,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.Assert;
@@ -29,6 +31,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Josh Long
  * @author Mario Gray
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class XmppMessageSendingMessageHandler extends AbstractMessageHandler implements Lifecycle {
@@ -43,25 +46,22 @@ public class XmppMessageSendingMessageHandler extends AbstractMessageHandler imp
 	}
 
 	protected void handleMessageInternal(final org.springframework.integration.Message<?> message) {
+		// pre-reqs: user to send, string to send as msg body
+		String messageBody = null;
+		String destinationUser = null;
+		Object payload = message.getPayload();
+		Assert.isInstanceOf(String.class, payload, "Only payload of type String is suported. You " +
+				"can apply transformer prior to sending message to this handler");
+		messageBody = (String) payload;
+		destinationUser = (String) message.getHeaders().get(XmppHeaders.CHAT_TO_USER);
+		Assert.state(StringUtils.hasText(destinationUser), "'" + XmppHeaders.CHAT_TO_USER + "' header must not be null");
+		String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
+		Chat chat = getOrCreateChatWithParticipant(destinationUser, threadId);
+		// TODO - figure out what to do with chat.threadId?
 		try {
-			// pre-reqs: user to send, string to send as msg body
-			String messageBody = null;
-			String destinationUser = null;
-			Object payload = message.getPayload();
-			if (payload instanceof String) {
-				messageBody = (String) payload;
-			}
-			destinationUser = (String) message.getHeaders().get(XmppHeaders.CHAT_TO_USER);
-			Assert.state(StringUtils.hasText(destinationUser), "the destination user must not be null");
-			Assert.state(StringUtils.hasText(messageBody), "the message body must not be null");
-			String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
-			Chat chat = getOrCreateChatWithParticipant(destinationUser, threadId);
-			if (chat != null) {
-				chat.sendMessage(messageBody);
-			}
-		}
-		catch (Exception e) {
-			logger.debug("failed to send XMPP message", e);
+			chat.sendMessage(messageBody);
+		} catch (XMPPException e) {
+			throw new MessageHandlingException(message, e);
 		}
 	}
 
@@ -93,6 +93,7 @@ public class XmppMessageSendingMessageHandler extends AbstractMessageHandler imp
 				chat = xmppConnection.getChatManager().createChat(userId, thread, null);
 			}
 		}
+		Assert.notNull(chat, "Failed to obtain Chat instance");
 		return chat;
 	}
 

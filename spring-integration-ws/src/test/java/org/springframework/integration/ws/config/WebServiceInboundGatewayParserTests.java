@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2009 the original author or authors.
+ *  Copyright 2002-2010 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package org.springframework.integration.ws.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -23,6 +24,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.xml.transform.Source;
@@ -30,13 +33,16 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
@@ -46,12 +52,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.soap.SoapHeader;
 
 /**
- * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -116,6 +122,7 @@ public class WebServiceInboundGatewayParserTests {
 				is(marshaller));
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
 	}
+
 	@Test
 	public void testMessageHistoryWithMarshallingGateway() throws Exception {
 		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
@@ -130,6 +137,7 @@ public class WebServiceInboundGatewayParserTests {
 		assertNotNull(componentHistoryRecord);
 		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
 	}
+
 	@Test
 	public void testMessageHistoryWithSimpleGateway() throws Exception {
 		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
@@ -142,4 +150,30 @@ public class WebServiceInboundGatewayParserTests {
 		assertNotNull(componentHistoryRecord);
 		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
 	}
+
+	@Autowired
+	private SimpleWebServiceInboundGateway headerMappingGateway;
+
+	@Autowired
+	private HeaderMapper<SoapHeader> testHeaderMapper;
+
+	@Test
+	public void testHeaderMapperReference() throws Exception {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
+		Object headerMapper = accessor.getPropertyValue("headerMapper");
+		assertEquals(testHeaderMapper, headerMapper);
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestHeaderMapper implements HeaderMapper<SoapHeader> {
+
+		public void fromHeaders(MessageHeaders headers, SoapHeader target) {
+		}
+
+		public Map<String, ?> toHeaders(SoapHeader source) {
+			return Collections.emptyMap();
+		}
+	}
+
 }

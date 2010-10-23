@@ -43,7 +43,7 @@ public class HeaderEnricherParserTests {
 	public void sendTimeoutDefault() {
 		Object endpoint = context.getBean("headerEnricherWithDefaults");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.messagingTemplate.sendTimeout", Long.class).longValue();
-		assertEquals(1000L, sendTimeout);
+		assertEquals(-1L, sendTimeout);
 	}
 
 	@Test // INT-1154

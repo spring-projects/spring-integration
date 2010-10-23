@@ -10,11 +10,11 @@ import java.io.OutputStream;
 import org.junit.After;
 import org.junit.Test;
 
-import org.springframework.commons.serializer.DefaultDeserializer;
-import org.springframework.commons.serializer.DefaultSerializer;
-import org.springframework.commons.serializer.Deserializer;
-import org.springframework.commons.serializer.Serializer;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.DefaultSerializer;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.jdbc.JdbcMessageStore;
 import org.springframework.integration.store.MessageStore;

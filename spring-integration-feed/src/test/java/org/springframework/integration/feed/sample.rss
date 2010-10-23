@@ -1,0 +1,53 @@
+<rss version="2.0">
+<channel>
+<title>Spring Integration</title>
+<link>http://www.springsource.org/spring-integration</link>
+<description>
+Spring Integration is a really cool framework
+</description>
+<language>en-us</language>
+<copyright>Copyright 2004-2010 SpringSource/VMWare
+All Rights Reserved.</copyright>
+<lastBuildDate>Tue, 12 Apr 2010 18:21:32 EST</lastBuildDate>
+<ttl>240</ttl>
+<image>
+<url>http://www.springsource.org/sites/all/themes/dotorg09/images/dotorg09_logo.png</url>
+<title>Spring Integration</title>
+<link>http://www.springsource.org/spring-integration</link>
+</image>
+
+<item>
+<title>
+Spring Integration adapters
+</title>
+<link>http://www.springsource.org/extensions/se-sia</link>
+<description>
+Spring Integration adapters are realy cool
+</description>
+<pubDate>Tue, 23 Apr 2010 12:34:58 EST</pubDate>
+</item>
+
+<item>
+<title>
+Spring Integration download
+</title>
+<link>http://www.springsource.com/products/spring-community-download</link>
+<description>
+Download Spring Integration
+</description>
+<pubDate>Sun, 13 Feb 2010 14:12:17 EST</pubDate>
+</item>
+
+<item>
+<title>
+Check out Spring Integration forums
+</title>
+<link>http://forum.springsource.org/forumdisplay.php?f=42</link>
+<description>
+Spring Integration forums are awesome
+</description>
+<pubDate>Wed, 13 Mar 2010 03:38:21 EST</pubDate>
+</item>
+
+</channel>
+</rss>

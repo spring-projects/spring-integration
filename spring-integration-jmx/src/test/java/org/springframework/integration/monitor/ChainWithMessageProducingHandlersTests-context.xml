@@ -8,7 +8,7 @@
 
 	<int:channel id="controlChannel" />
 
-	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
+	<bean id="controlBus" class="org.springframework.integration.jmx.ControlBus">
 		<constructor-arg ref="mbeanExporter" />
 		<constructor-arg ref="mbeanServer" />
 		<constructor-arg ref="controlChannel" />

@@ -16,10 +16,15 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.w3c.dom.Element;
+
 /**
  * Parser for the &lt;splitter/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 
@@ -33,4 +38,8 @@ public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 		return true;
 	}
 
+	@Override
+	void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
+	}
 }

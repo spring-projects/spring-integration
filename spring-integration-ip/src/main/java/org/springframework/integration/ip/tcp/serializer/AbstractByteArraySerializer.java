@@ -20,9 +20,8 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.commons.serializer.Deserializer;
-import org.springframework.commons.serializer.Serializer;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
 
 /**
  * Base class for (de)serializers that provide a mechanism to 
