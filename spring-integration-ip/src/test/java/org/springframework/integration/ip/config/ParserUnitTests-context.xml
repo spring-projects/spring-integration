@@ -214,9 +214,9 @@
 	
 	<bean id="interceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain" />
 	
-	<bean id="defaultSerializer" class="org.springframework.core.serializer.support.DefaultSerializer" />
+	<bean id="defaultSerializer" class="org.springframework.core.serializer.DefaultSerializer" />
 	
-	<bean id="defaultDeserializer" class="org.springframework.core.serializer.support.DefaultDeserializer" />
+	<bean id="defaultDeserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
 
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
 		channel="tcpChannel"

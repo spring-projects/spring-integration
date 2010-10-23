@@ -11,9 +11,9 @@
 	
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 	
-	<bean id="serializer" class="org.springframework.core.serializer.support.DefaultSerializer" />
+	<bean id="serializer" class="org.springframework.core.serializer.DefaultSerializer" />
 
-	<bean id="deserializer" class="org.springframework.core.serializer.support.DefaultDeserializer" />
+	<bean id="deserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
