@@ -19,8 +19,8 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
-import org.springframework.commons.serializer.Deserializer;
-import org.springframework.commons.serializer.Serializer;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 
 /**

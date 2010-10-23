@@ -16,8 +16,8 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.commons.serializer.Deserializer;
-import org.springframework.commons.serializer.DeserializingConverter;
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.support.DeserializingConverter;
 
 /**
  * Transformer that deserializes the inbound byte array payload to an object by delegating to a

@@ -38,8 +38,8 @@ import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
 
-import org.springframework.commons.serializer.DefaultDeserializer;
-import org.springframework.commons.serializer.DefaultSerializer;
+import org.springframework.core.serializer.DefaultDeserializer;
+import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;

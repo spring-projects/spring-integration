@@ -27,10 +27,7 @@ import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
 
-import org.springframework.commons.serializer.DefaultDeserializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
-import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
+import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**

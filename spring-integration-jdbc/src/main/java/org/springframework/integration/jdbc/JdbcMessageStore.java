@@ -29,10 +29,11 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.commons.serializer.Deserializer;
-import org.springframework.commons.serializer.DeserializingConverter;
-import org.springframework.commons.serializer.Serializer;
-import org.springframework.commons.serializer.SerializingConverter;
+
+import org.springframework.core.serializer.Deserializer;
+import org.springframework.core.serializer.Serializer;
+import org.springframework.core.serializer.support.DeserializingConverter;
+import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;

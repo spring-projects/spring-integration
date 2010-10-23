@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.util;
 
 import java.io.ObjectOutputStream;
@@ -29,6 +30,7 @@ import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 
 /**
