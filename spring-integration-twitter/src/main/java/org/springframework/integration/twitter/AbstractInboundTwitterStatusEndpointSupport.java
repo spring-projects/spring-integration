@@ -36,6 +36,7 @@ import java.util.List;
  */
 abstract public class AbstractInboundTwitterStatusEndpointSupport
 		extends AbstractInboundTwitterEndpointSupport<Status> {
+
 	private Comparator<Status> statusComparator = new Comparator<Status>() {
 		public int compare(Status status, Status status1) {
 			return status.getCreatedAt().compareTo(status1.getCreatedAt());

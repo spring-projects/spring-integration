@@ -13,14 +13,12 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-
 package org.springframework.integration.twitter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
+
 import org.springframework.context.Lifecycle;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -29,190 +27,190 @@ import org.springframework.integration.history.HistoryWritingMessagePostProcesso
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
+
 import org.springframework.util.Assert;
 
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 /**
- * There are a lot of operations that are common to receiving the various types of messages when using the 
+ * There are a lot of operations that are common to receiving the various types of messages when using the
  * Twitter API, and this class abstracts most of them for you. Implementers must take note of
  * {@link org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport#runAsAPIRateLimitsPermit(org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport.ApiCallback)}
- * which will invoke the instance of {@link AbstractInboundTwitterEndpointSupport.ApiCallback} when the 
- * rate-limit API deems that its OK to do so. This class handles keeping tabs on that and on spacing out requests 
+ * which will invoke the instance of {@link AbstractInboundTwitterEndpointSupport.ApiCallback} when the
+ * rate-limit API deems that its OK to do so. This class handles keeping tabs on that and on spacing out requests
  * as required.
- * 
  * <p/>
- * Simialarly, this class handles keeping track on the latest inbound message its received and avoiding, where 
- * possible, redelivery of common messages. This functionality is enabled using the 
+ * Simialarly, this class handles keeping track on the latest inbound message its received and avoiding, where
+ * possible, redelivery of common messages. This functionality is enabled using the
  * {@link org.springframework.integration.context.metadata.MetadataStore} implementation
  *
  * @author Josh Long
  * @since 2.0
  */
 public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint implements Lifecycle, TrackableComponent {
+    protected volatile OAuthConfiguration configuration;
+    protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+    private volatile MessageChannel requestChannel;
+    protected volatile long markerId = -1;
+    protected Twitter twitter;
+    private final Object markerGuard = new Object();
+    private final Object apiPermitGuard = new Object();
+    private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
+        new HistoryWritingMessagePostProcessor();
 
-	protected volatile OAuthConfiguration configuration;
+    public void setConfiguration(OAuthConfiguration configuration) {
+        this.configuration = configuration;
+    }
 
-	protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
+    abstract protected void markLastStatusId(T statusId);
 
-	private volatile MessageChannel requestChannel;
+    abstract protected List<T> sort(List<T> rl);
 
-	protected volatile long markerId = -1;
+    protected void forwardAll(List<T> tResponses) {
+        List<T> stats = new ArrayList<T>();
 
-	protected Twitter twitter;
+        for (T t : tResponses)
+            stats.add(t);
 
-	private final Object markerGuard = new Object();
+        for (T twitterResponse : sort(stats))
+            forward(twitterResponse);
+    }
 
-	private final Object apiPermitGuard = new Object();
-	
-	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
+    public long getMarkerId() {
+        return markerId;
+    }
 
-	public void setConfiguration(OAuthConfiguration configuration) {
-		this.configuration = configuration;
-	}
+    public String getComponentType() {
+        return "twitter:inbound-dm-channel-adapter";
+    }
 
+    public void setRequestChannel(MessageChannel requestChannel) {
+        this.messagingTemplate.setDefaultChannel(requestChannel);
+        this.requestChannel = requestChannel;
+    }
 
-	abstract protected void markLastStatusId(T statusId);
+    @Override
+    protected void doStart() {
+        try {
+            this.historyWritingPostProcessor.setTrackableComponent(this);
+            refresh();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	abstract protected List<T> sort( List<T> rl);
+    protected void forward(T status) {
+        synchronized (this.markerGuard) {
+            Message<T> twtMsg = MessageBuilder.withPayload(status).build();
+            messagingTemplate.convertAndSend(requestChannel, twtMsg,
+                this.historyWritingPostProcessor);
+            markLastStatusId(status);
+        }
+    }
 
-	protected void forwardAll( List<T> tResponses) {
-		List<T> stats = new ArrayList<T>();
+    abstract protected void refresh() throws Exception;
 
-		for (T t : tResponses)
-			stats.add(t);
+    protected void forwardAll(ResponseList<T> tResponses) {
+        List<T> stats = new ArrayList<T>();
 
-		for (T twitterResponse : sort(stats))
-			forward(twitterResponse);
-	}
+        for (T t : tResponses)
+            stats.add(t);
 
-	public long getMarkerId() {
-		return markerId;
-	}
-	
-	public String getComponentType() {
-		return "twitter:inbound-dm-channel-adapter";
-	}
-	
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
-		this.requestChannel = requestChannel;
-	}
+        for (T twitterResponse : sort(stats))
+            forward(twitterResponse);
+    }
 
-	@Override
-	protected void doStart() {
-		try {
-			this.historyWritingPostProcessor.setTrackableComponent(this);
-			refresh();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+    @SuppressWarnings("unchecked")
+    protected void runAsAPIRateLimitsPermit(ApiCallback cb)
+        throws Exception {
+        synchronized (this.apiPermitGuard) {
+            while (waitUntilPullAvailable()) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("have room to make an API request now");
+                }
 
-	protected void forward(T status) {
-		synchronized (this.markerGuard) {
-			Message<T> twtMsg = MessageBuilder.withPayload(status).build();
-			messagingTemplate.convertAndSend(requestChannel, twtMsg, this.historyWritingPostProcessor);
-			markLastStatusId(status);
-		}
-	}
-	
-	//abstract protected List<T> sort(List<T> rl);
-	
-	//abstract protected void markLastStatusId(T statusId);
-	
-	abstract protected void refresh() throws Exception;
+                cb.run(this, twitter);
+            }
+        }
+    }
 
-	protected void forwardAll(ResponseList<T> tResponses) {
-		List<T> stats = new ArrayList<T>();
+    protected boolean handleReceivingRateLimitStatus(
+        RateLimitStatus rateLimitStatus) {
+        try {
+            int secondsUntilReset = rateLimitStatus.getSecondsUntilReset();
+            int remainingHits = rateLimitStatus.getRemainingHits();
 
-		for (T t : tResponses)
-			stats.add(t);
+            if (remainingHits == 0) {
+                logger.debug(
+                    "rate status limit service returned 0 for the remaining hits value");
 
-		for (T twitterResponse : sort(stats))
-			forward(twitterResponse);
-	}
+                return false;
+            }
 
-	@SuppressWarnings("unchecked")
-	protected void runAsAPIRateLimitsPermit(ApiCallback cb)
-			throws Exception {
-		synchronized (this.apiPermitGuard) {
-			while (waitUntilPullAvailable()) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("have room to make an API request now");
-				}
+            if (secondsUntilReset == 0) {
+                logger.debug(
+                    "rate status limit service returned 0 for the seconds until reset period value");
 
-				cb.run(this, twitter);
-			}
-		}
-	}
+                return false;
+            }
 
-	protected boolean handleReceivingRateLimitStatus(RateLimitStatus rateLimitStatus) {
-		try {
-			int secondsUntilReset = rateLimitStatus.getSecondsUntilReset();
-			int remainingHits = rateLimitStatus.getRemainingHits();
+            int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
+            long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
 
-			if (remainingHits == 0) {
-				logger.debug("rate status limit service returned 0 for the remaining hits value");
+            logger.debug("need to Thread.sleep() " +
+                secondsUntilWeCanPullAgain +
+                " seconds until the next timeline pull. Have " + remainingHits +
+                " remaining pull this rate period. The period ends in " +
+                secondsUntilReset);
 
-				return false;
-			}
+            Thread.sleep(msUntilWeCanPullAgain);
+        } catch (Throwable throwable) {
+            logger.debug("encountered an error when" +
+                " trying to refresh the timeline: " +
+                ExceptionUtils.getFullStackTrace(throwable));
+        }
 
-			if (secondsUntilReset == 0) {
-				logger.debug("rate status limit service returned 0 for the seconds until reset period value");
+        return true;
+    }
 
-				return false;
-			}
+    protected boolean waitUntilPullAvailable() throws Exception {
+        return this.handleReceivingRateLimitStatus(this.twitter.getRateLimitStatus());
+    }
 
-			int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
-			long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
+    protected boolean hasMarkedStatus() {
+        return markerId > -1;
+    }
 
-			logger.debug("need to Thread.sleep() " + secondsUntilWeCanPullAgain + 
-                          " seconds until the next timeline pull. Have " + remainingHits +
-  			  " remaining pull this rate period. The period ends in " + secondsUntilReset);
+    @Override
+    protected void onInit() throws Exception {
+        messagingTemplate.afterPropertiesSet();
+        Assert.notNull(this.configuration, "'configuration' can't be null");
+        this.twitter = this.configuration.getTwitter();
+        Assert.notNull(this.twitter, "'twitter' instance can't be null");
+    }
 
-			Thread.sleep(msUntilWeCanPullAgain);
-		} catch (Throwable throwable) {
-			logger.debug("encountered an error when" + " trying to refresh the timeline: " + ExceptionUtils.getFullStackTrace(throwable));
-		}
+    @Override
+    protected void doStop() {
+    }
 
-		return true;
-	}
+    public void setShouldTrack(boolean shouldTrack) {
+        this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
+    }
 
-	protected boolean waitUntilPullAvailable() throws Exception {
-		return this.handleReceivingRateLimitStatus(this.twitter.getRateLimitStatus());
-	}
-
-	protected boolean hasMarkedStatus() {
-		return markerId > -1;
-	}
-
-	@Override
-	protected void onInit() throws Exception {
-		messagingTemplate.afterPropertiesSet();
-		Assert.notNull(this.configuration, "'configuration' can't be null");
-		this.twitter = this.configuration.getTwitter();
-		Assert.notNull(this.twitter, "'twitter' instance can't be null");
-	}
-
-	@Override
-	protected void doStop() {
-	}
-
-	/**
-	 * Hook for clients to run logic when the API rate limiting lets us
-	 * <p/>
-	 * Simply register your callback using #runAsAPIRateLimitsPermit
-	 *
-	 * @param <C>
-	 */
-	public static interface ApiCallback<C> {
-		void run(C t, Twitter twitter) throws Exception;
-	}
-
-	public void setShouldTrack(boolean shouldTrack) {
-		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
-	}
+    /**
+     * Hook for clients to run logic when the API rate limiting lets us
+     * <p/>
+     * Simply register your callback using #runAsAPIRateLimitsPermit
+     *
+     * @param <C>
+     */
+    public static interface ApiCallback<C> {
+        void run(C t, Twitter twitter) throws Exception;
+    }
 }

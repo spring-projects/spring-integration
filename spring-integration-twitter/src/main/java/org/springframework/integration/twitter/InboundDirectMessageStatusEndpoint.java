@@ -35,6 +35,7 @@ import java.util.List;
  * @author Josh Long
  */
 public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
+	
 	private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
 		public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
 			return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());

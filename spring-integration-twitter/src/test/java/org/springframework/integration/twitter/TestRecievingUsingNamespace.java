@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.twitter;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -23,15 +22,17 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 
 /**
+ * provides a simple example of a command-line client to receive DMs, messages, timeline updates.
+ *
  * @author Josh Long
  */
 @ContextConfiguration
 public class TestRecievingUsingNamespace extends AbstractJUnit4SpringContextTests {
-	@Autowired
-	private TwitterAnnouncer twitterAnnouncer;
+
+	@Autowired	private TwitterAnnouncer twitterAnnouncer;
 
 	@Test
-	@Ignore
+	//@Ignore
 	public void testIt() throws Throwable {
 		long ctr = 0;
 		long s = 1000;
