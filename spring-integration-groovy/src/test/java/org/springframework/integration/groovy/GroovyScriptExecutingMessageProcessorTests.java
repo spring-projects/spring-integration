@@ -22,7 +22,9 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.Message;
@@ -31,6 +33,7 @@ import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.test.annotation.Repeat;
 
 /**
  * @author Mark Fisher
@@ -40,15 +43,22 @@ import org.springframework.scripting.support.ResourceScriptSource;
  */
 public class GroovyScriptExecutingMessageProcessorTests {
 
+	@Rule
+	public RepeatProcessor repeater = new RepeatProcessor(4);
+
+	private AtomicInteger countHolder = new AtomicInteger();
+
 	@Test
+	@Repeat(20)
 	public void testSimpleExecution() throws Exception {
+		int count = countHolder.getAndIncrement();
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
-		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar"+count).build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		Object result = processor.processMessage(message);
-		assertEquals("payload is foo, header is bar", result.toString());
+		assertEquals("payload is foo, header is bar"+count, result.toString());
 	}
 
 	@Test
