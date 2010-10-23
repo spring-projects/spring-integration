@@ -33,6 +33,16 @@ import twitter4j.StatusUpdate;
  * @since 2.0
  */
 public class StatusUpdateSupport {
+
+	/**
+	 * convenient, interf-ace-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.model.Twitter4jGeoLocationImpl}
+	 * @param lat the latitude
+	 * @param lon the longitude
+	 * @return a {@link org.springframework.integration.twitter.model.GeoLocation} instance
+	 */
+	public GeoLocation fromLatitudeLongitudePair ( double lat, double lon){
+		return new Twitter4jGeoLocationImpl(lat, lon);
+	}
     /**
      * {@link StatusUpdate} instances are used to drive status updates.
      *
@@ -67,18 +77,18 @@ public class StatusUpdateSupport {
                 }
             }
 
-            if (message.getHeaders()
-                           .containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
-                GeoLocation geoLocation = (GeoLocation) message.getHeaders()
-                                                               .get(TwitterHeaders.TWITTER_GEOLOCATION);
+            if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
+
+				GeoLocation geoLocation = (GeoLocation) message.getHeaders()
+										   .get(TwitterHeaders.TWITTER_GEOLOCATION);
                 twitter4j.GeoLocation gl = null;
 
                 if (geoLocation instanceof Twitter4jGeoLocationImpl) {
                     gl = ((Twitter4jGeoLocationImpl) geoLocation).getGeoLocation();
-                }
 
-                if (null != gl) {
-                    statusUpdate.location(gl);
+                    if (null != gl) {
+                        statusUpdate.location(gl);
+                    }
                 }
             }
 

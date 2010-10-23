@@ -40,7 +40,7 @@ public class InboundMentionStatusEndpoint
 						: twitter.getMentions(new Paging(ctx.getMarkerId()));
 
 
-				forwardAll( fromTwitter4jStatus( stats));
+				forwardAll( fromTwitter4jStatuses( stats));
 			}
 		});
 	}

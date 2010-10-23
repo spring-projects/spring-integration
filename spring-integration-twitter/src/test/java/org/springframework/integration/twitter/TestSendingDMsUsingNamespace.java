@@ -24,11 +24,11 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.twitter.model.Twitter4jGeoLocationImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.util.StringUtils;
 
-import twitter4j.GeoLocation;
 
 /**
  * @author Josh Long
@@ -49,7 +49,7 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 		String dmUsr = System.getProperties().getProperty("twitter.dm.user");
 
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
-				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new Twitter4jGeoLocationImpl(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
 
 		if (StringUtils.hasText(dmUsr)) {

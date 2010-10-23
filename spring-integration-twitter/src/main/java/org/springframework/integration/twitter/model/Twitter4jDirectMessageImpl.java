@@ -6,6 +6,9 @@ import java.util.Date;
 
 
 /**
+ * implementation of the {@link org.springframework.integration.twitter.model.DirectMessage} interface
+ * that wraps, and works with, a {@link twitter4j.DirectMessage} instance.
+ *
  * @author Josh Long
  */
 public class Twitter4jDirectMessageImpl implements org.springframework.integration.twitter.model.DirectMessage {

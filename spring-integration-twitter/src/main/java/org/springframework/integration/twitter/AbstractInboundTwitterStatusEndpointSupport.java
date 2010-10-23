@@ -41,12 +41,13 @@ abstract public class AbstractInboundTwitterStatusEndpointSupport
 			return status.getCreatedAt().compareTo(status1.getCreatedAt());
 		}
 	};
-	protected List<Status> fromTwitter4jStatus(List<twitter4j.Status> stats) { 		
-		   List<Status> fwd = new ArrayList<Status>();
-		   for (twitter4j.Status s : stats)
-			   fwd.add(new Twitter4jStatusImpl(s));
-		   return fwd;
-	   }
+
+	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
+		List<Status> fwd = new ArrayList<Status>();
+		for (twitter4j.Status s : stats)
+			fwd.add(new Twitter4jStatusImpl(s));
+		return fwd;
+	}
 
 	@Override
 	protected void markLastStatusId(Status statusId) {

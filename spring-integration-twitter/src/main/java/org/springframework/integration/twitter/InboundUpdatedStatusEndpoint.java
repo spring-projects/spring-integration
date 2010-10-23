@@ -32,7 +32,7 @@ public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEn
 		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundUpdatedStatusEndpoint>() {
 			public void run(InboundUpdatedStatusEndpoint t, Twitter twitter)
 					throws Exception {
-				forwardAll( fromTwitter4jStatus(!t.hasMarkedStatus()
+				forwardAll( fromTwitter4jStatuses(!t.hasMarkedStatus()
 						? twitter.getFriendsTimeline() :
 						twitter.getFriendsTimeline(new Paging(t.getMarkerId()))));
 			}

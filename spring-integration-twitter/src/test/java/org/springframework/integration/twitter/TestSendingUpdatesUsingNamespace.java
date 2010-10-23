@@ -18,7 +18,6 @@ package org.springframework.integration.twitter;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -27,8 +26,6 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-import twitter4j.GeoLocation;
-
 /**
  * @author Josh Long
  */
@@ -36,6 +33,8 @@ import twitter4j.GeoLocation;
         "/org/springframework/integration/twitter/sending_updates_using_ns.xml"}
 )
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
+
+	private StatusUpdateSupport statusUpdateSupport = new StatusUpdateSupport();
 
 	private MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -46,7 +45,8 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	public void testSendingATweet() throws Throwable {
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
 				.setHeader(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID, 21927437001L)
-				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION,
+						this.statusUpdateSupport.fromLatitudeLongitudePair(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);

@@ -12,7 +12,9 @@ public class Twitter4jGeoLocationImpl implements GeoLocation {
 	public twitter4j.GeoLocation getGeoLocation() {
 		return this.geoLocation;
 	}
-
+	public Twitter4jGeoLocationImpl(double lat, double lon){
+		this.geoLocation = new twitter4j.GeoLocation(lat,lon);
+	}
 	public Twitter4jGeoLocationImpl(twitter4j.GeoLocation gl) {
 		this.geoLocation = gl;
 	}
