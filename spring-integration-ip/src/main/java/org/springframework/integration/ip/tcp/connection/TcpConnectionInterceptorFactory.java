@@ -17,15 +17,20 @@ package org.springframework.integration.ip.tcp.connection;
 
 
 /**
- * Base class for TcpConnectionInterceptorFactories. Subclasses create prototype beans by
- * default.
+ * Interface for TCP connection interceptor factories. 
  * 
  * @author Gary Russell
  * @since 2.0
  *
  */
-public abstract class TcpConnectionInterceptorFactory {
+public interface TcpConnectionInterceptorFactory {
 
+	/**
+	 * Called for each new connection - if an interceptor is
+	 * stateful, a new interceptor must be returned on each call.
+	 *  
+	 * @return the TcpInterceptor 
+	 */
 	public abstract TcpConnectionInterceptor getInterceptor();
 }
 

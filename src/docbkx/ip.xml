@@ -251,14 +251,77 @@
       connections and uses Java serialization on the wire.
     </para>
     <para>
+      For full details of the attributes available on connection factories, see the 
+      reference at the end of this section.
+    </para>
+  </section>
+  <section id="ip-interceptors">
+    <title>Tcp Connection Interceptors</title>
+    <para>
         Connection factories can be configured with a reference to a 
         <classname>TcpConnectionInterceptorFactoryChain</classname>. Interceptors can be used
         to add behavior to connections, such as negotiation, security, and other setup.
-        Further documentation to follow.
+        No interceptors are currently provided by the framework but, for an example, 
+        see the <classname>InterceptedSharedConnectionTests</classname> in the source
+        repository.
     </para>
     <para>
-      For full details of the attributes available on connection factories, see the 
-      reference at the end of this section.
+        The <classname>HelloWorldInterceptor</classname> used in the test case works as follows:
+    </para>
+    <para>
+        When configured with a client connection factory,
+        when the first message is sent over a connection that is intercepted, the interceptor
+        sends 'Hello' over the connection, and expects to receive 'world!'. When that occurs,
+        the negotiation is complete and the original message is sent; further messages 
+        that use the same connection are sent without any additional negotiation. 
+    </para>
+    <para>
+        When configured with a server connection factory, the interceptor requires the first
+        message to be 'Hello' and, if it is, returns 'world!'. Otherwise it throws an exception causing
+        the connection to be closed.
+    </para>
+    <para>
+        All <classname>TcpConnection</classname> methods are intercepted.
+        Interceptor instances are created for each connection by an interceptor factory. 
+        If an interceptor is stateful, the factory should create a new instance for each connection. 
+        Interceptor
+        factories are added to the configuration of an interceptor factory chain, which is provided
+        to a connection factory using the <classname>interceptor-factory</classname> attribute.
+        Interceptors must implement the <classname>TcpConnectionInterceptor</classname> interface;
+        factories
+        must implement the <classname>TcpConnectionInterceptorFactory</classname> interface. A 
+        convenience class <classname>AbstractTcpConnectionInterceptor</classname> is provided
+        with passthrough methods; by extending this class, you only need to implement those
+        methods you wish to intercept.
+    </para>
+    <para>
+    <programlisting language="xml"><![CDATA[<bean id="helloWorldInterceptorFactory" 
+   class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
+  <property name="interceptors">
+    <array>
+      <bean class="org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory"/>
+    </array>
+  </property>
+</bean>
+	
+<int-ip:tcp-connection-factory id="server"
+	type="server"
+	port="12345"
+	using-nio="true"
+	single-use="true"
+	interceptor-factory-chain="helloWorldInterceptorFactory"
+/>
+
+<int-ip:tcp-connection-factory id="client"
+	type="client"
+	host="localhost"
+	port="12345"
+	single-use="true"
+	so-timeout="100000"
+	using-nio="true"
+	interceptor-factory-chain="helloWorldInterceptorFactory"
+/>]]></programlisting>
+        Configuring a connection interceptor factory chain.
     </para>
   </section>
   <section id="tcp-adapters">
