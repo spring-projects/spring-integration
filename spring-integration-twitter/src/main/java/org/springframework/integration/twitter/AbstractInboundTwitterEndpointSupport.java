@@ -62,9 +62,9 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 
 	abstract protected void markLastStatusId(T statusId);
 
-	abstract protected List<T> sort(List<T> rl);
+	abstract protected List<T> sort( List<T> rl);
 
-	protected void forwardAll(ResponseList<T> tResponses) {
+	protected void forwardAll( List<T> tResponses) {
 		List<T> stats = new ArrayList<T>();
 
 		for (T t : tResponses)

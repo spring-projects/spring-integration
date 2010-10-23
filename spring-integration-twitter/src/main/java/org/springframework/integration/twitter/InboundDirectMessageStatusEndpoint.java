@@ -15,8 +15,12 @@
  */
 package org.springframework.integration.twitter;
 
-import twitter4j.DirectMessage;
+//import twitter4j.DirectMessage;
+import org.springframework.integration.twitter.model.DirectMessage;
+import org.springframework.integration.twitter.model.Twitter4jDirectMessageImpl;
 import twitter4j.Paging;
+
+
 import twitter4j.Twitter;
 
 import java.util.ArrayList;
@@ -44,8 +48,11 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 
 	@Override
 	protected List<DirectMessage> sort(List<DirectMessage> rl) {
+
 		List<DirectMessage> dms = new ArrayList<DirectMessage>();
+
 		dms.addAll(rl);
+
 		Collections.sort(dms, dmComparator);
 
 		return dms;
@@ -56,8 +63,18 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDirectMessageStatusEndpoint>() {
 			public void run(InboundDirectMessageStatusEndpoint t, Twitter twitter)
 					throws Exception {
-				forwardAll((!hasMarkedStatus()) ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId())));
+
+				List<twitter4j.DirectMessage> dms = !hasMarkedStatus() ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId()));
+
+				List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
+
+				for( twitter4j.DirectMessage dm : dms)
+					dmsToFwd.add( new Twitter4jDirectMessageImpl( dm));
+
+				forwardAll( dmsToFwd );
 			}
 		});
 	}
+
+
 }

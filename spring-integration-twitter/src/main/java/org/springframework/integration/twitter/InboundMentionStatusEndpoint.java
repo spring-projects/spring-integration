@@ -18,19 +18,29 @@ package org.springframework.integration.twitter;
 import twitter4j.Paging;
 import twitter4j.Twitter;
 
+import java.util.List;
+
 
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
  *
  * @author Josh Long
  */
-public class InboundMentionStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+public class InboundMentionStatusEndpoint
+		extends AbstractInboundTwitterStatusEndpointSupport {
+
+
 	@Override
 	protected void refresh() throws Exception {
 		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundMentionStatusEndpoint>() {
-			public void run(InboundMentionStatusEndpoint ctx, Twitter twitter)
-					throws Exception {
-				forwardAll((!hasMarkedStatus()) ? twitter.getMentions() : twitter.getMentions(new Paging(ctx.getMarkerId())));
+			public void run(InboundMentionStatusEndpoint ctx,
+							Twitter twitter) throws Exception {
+				List<twitter4j.Status> stats = (!hasMarkedStatus())
+						? twitter.getMentions()
+						: twitter.getMentions(new Paging(ctx.getMarkerId()));
+
+
+				forwardAll( fromTwitter4jStatus( stats));
 			}
 		});
 	}

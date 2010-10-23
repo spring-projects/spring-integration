@@ -15,7 +15,12 @@
  */
 package org.springframework.integration.twitter;
 
-import twitter4j.Status;
+//import twitter4j.Status;
+
+//import twitter4j.Status;
+
+import org.springframework.integration.twitter.model.Status;
+import org.springframework.integration.twitter.model.Twitter4jStatusImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,12 +34,19 @@ import java.util.List;
  *
  * @author Josh Long
  */
-abstract public class AbstractInboundTwitterStatusEndpointSupport extends AbstractInboundTwitterEndpointSupport<Status> {
+abstract public class AbstractInboundTwitterStatusEndpointSupport
+		extends AbstractInboundTwitterEndpointSupport<Status> {
 	private Comparator<Status> statusComparator = new Comparator<Status>() {
 		public int compare(Status status, Status status1) {
 			return status.getCreatedAt().compareTo(status1.getCreatedAt());
 		}
 	};
+	protected List<Status> fromTwitter4jStatus(List<twitter4j.Status> stats) { 		
+		   List<Status> fwd = new ArrayList<Status>();
+		   for (twitter4j.Status s : stats)
+			   fwd.add(new Twitter4jStatusImpl(s));
+		   return fwd;
+	   }
 
 	@Override
 	protected void markLastStatusId(Status statusId) {
