@@ -37,14 +37,17 @@ import twitter4j.GeoLocation;
         "/org/springframework/integration/twitter/sending_dms_using_ns.xml"}
 )
 public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
+
 	private volatile MessagingTemplate messagingTemplate = new MessagingTemplate();
-	@Value("#{out}")
-	private MessageChannel channel;
+
+	@Value("#{out}") private MessageChannel channel;
 
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
+
 		String dmUsr = System.getProperties().getProperty("twitter.dm.user");
+
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
 				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
@@ -53,8 +56,6 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 			mb.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, dmUsr);
 		}
 
-		Message<String> m = mb.build();
-
-		this.messagingTemplate.send(this.channel, m);
+		this.messagingTemplate.send(this.channel,  mb.build());
 	}
 }

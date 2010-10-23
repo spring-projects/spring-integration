@@ -36,9 +36,10 @@ import twitter4j.GeoLocation;
         "/org/springframework/integration/twitter/sending_updates_using_ns.xml"}
 )
 public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContextTests {
+
 	private MessagingTemplate messagingTemplate = new MessagingTemplate();
-	@Value("#{out}")
-	private MessageChannel channel;
+
+	@Value("#{out}") private MessageChannel channel;
 
 	@Test
 	@Ignore

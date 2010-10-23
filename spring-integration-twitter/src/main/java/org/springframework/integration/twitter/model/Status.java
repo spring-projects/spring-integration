@@ -25,10 +25,6 @@ public interface Status {
 
 	java.lang.String getInReplyToScreenName();
 
-	//twitter4j.GeoLocation getGeoLocation();
-
-	//twitter4j.Place getPlace();
-
 	boolean isFavorited();
 
 	 User getUser();

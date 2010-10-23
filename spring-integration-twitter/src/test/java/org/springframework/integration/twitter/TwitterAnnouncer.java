@@ -1,14 +1,16 @@
 package org.springframework.integration.twitter;
 
+import org.springframework.integration.twitter.model.DirectMessage;
+import org.springframework.integration.twitter.model.Status;
 import org.springframework.stereotype.Component;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
+
 
 
 @Component
 public class TwitterAnnouncer {
 	public void dm(DirectMessage directMessage) {
-		System.out.println("A direct message has been received from " + directMessage.getSenderScreenName() + " with text " + directMessage.getText());
+		System.out.println("A direct message has been received from " +
+				directMessage.getSender().getScreenName() + " with text " + directMessage.getText());
 	}
 
 	public void mention(Status s) {
