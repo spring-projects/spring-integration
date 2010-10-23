@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -60,7 +63,13 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 	}
 
 	@Override
-	protected void refresh() throws Exception {
+	public String getComponentType() {
+		return null;  
+	}
+
+	@Override
+	protected void beginPolling() throws Exception {
+
 		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDirectMessageStatusEndpoint>() {
 			public void run(InboundDirectMessageStatusEndpoint t, Twitter twitter)
 					throws Exception {
@@ -76,6 +85,5 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 			}
 		});
 	}
-
 
 }

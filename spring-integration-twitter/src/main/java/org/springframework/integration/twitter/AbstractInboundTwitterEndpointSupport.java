@@ -20,9 +20,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.springframework.context.Lifecycle;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.support.MessageBuilder;
@@ -36,6 +34,9 @@ import twitter4j.Twitter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -53,16 +54,35 @@ import java.util.List;
  * @author Josh Long
  * @since 2.0
  */
-public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint implements Lifecycle, TrackableComponent {
+public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessageProducerSupport implements Lifecycle, TrackableComponent, Runnable {
+
     protected volatile OAuthConfiguration configuration;
-    protected final MessagingTemplate messagingTemplate = new MessagingTemplate();
-    private volatile MessageChannel requestChannel;
     protected volatile long markerId = -1;
     protected Twitter twitter;
     private final Object markerGuard = new Object();
     private final Object apiPermitGuard = new Object();
-    private final HistoryWritingMessagePostProcessor historyWritingPostProcessor =
-        new HistoryWritingMessagePostProcessor();
+    private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
+    protected Executor taskExecutor;
+    protected int poolSize = 1;
+
+    public void setPoolSize(int poolSize) {
+        this.poolSize = poolSize;
+    }
+
+    protected void checkTaskExecutor(final String threadName) {
+        if (this.taskExecutor == null) {
+            this.taskExecutor = Executors.newFixedThreadPool(this.poolSize,
+                    new ThreadFactory() {
+                        public Thread newThread(Runnable runner) {
+                            Thread thread = new Thread(runner);
+                            thread.setName(threadName);
+                            thread.setDaemon(true);
+
+                            return thread;
+                        }
+                    });
+        }
+    }
 
     public void setConfiguration(OAuthConfiguration configuration) {
         this.configuration = configuration;
@@ -71,6 +91,14 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
     abstract protected void markLastStatusId(T statusId);
 
     abstract protected List<T> sort(List<T> rl);
+
+    @Override
+    protected void onInit() {
+        super.onInit();
+        Assert.notNull(this.configuration, "'configuration' can't be null");
+        this.twitter = this.configuration.getTwitter();
+        Assert.notNull(this.twitter, "'twitter' instance can't be null");
+    }
 
     protected void forwardAll(List<T> tResponses) {
         List<T> stats = new ArrayList<T>();
@@ -86,35 +114,39 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
         return markerId;
     }
 
-    public String getComponentType() {
-        return "twitter:inbound-dm-channel-adapter";
-    }
-
-    public void setRequestChannel(MessageChannel requestChannel) {
-        this.messagingTemplate.setDefaultChannel(requestChannel);
-        this.requestChannel = requestChannel;
-    }
+    abstract public String getComponentType();
 
     @Override
     protected void doStart() {
-        try {
-            this.historyWritingPostProcessor.setTrackableComponent(this);
-            refresh();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        historyWritingPostProcessor.setTrackableComponent(this);
+
+        checkTaskExecutor(getClass().getName() + "-taskExecutor");
+
+        taskExecutor.execute(this);
     }
 
     protected void forward(T status) {
         synchronized (this.markerGuard) {
             Message<T> twtMsg = MessageBuilder.withPayload(status).build();
-            messagingTemplate.convertAndSend(requestChannel, twtMsg,
-                this.historyWritingPostProcessor);
+
+            sendMessage(twtMsg);
+
             markLastStatusId(status);
         }
     }
 
-    abstract protected void refresh() throws Exception;
+    /**
+     * this is execu
+     */
+    public void run() {
+        try {
+            beginPolling();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    abstract protected void beginPolling() throws Exception;
 
     protected void forwardAll(ResponseList<T> tResponses) {
         List<T> stats = new ArrayList<T>();
@@ -127,7 +159,7 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
     }
 
     @SuppressWarnings("unchecked")
-    protected void runAsAPIRateLimitsPermit(ApiCallback cb)
+    protected void runAsAPIRateLimitsPermit(ApiCallback apiCallback)
         throws Exception {
         synchronized (this.apiPermitGuard) {
             while (waitUntilPullAvailable()) {
@@ -135,7 +167,7 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
                     logger.debug("have room to make an API request now");
                 }
 
-                cb.run(this, twitter);
+                apiCallback.run(this, twitter);
             }
         }
     }
@@ -171,8 +203,8 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 
             Thread.sleep(msUntilWeCanPullAgain);
         } catch (Throwable throwable) {
-            logger.debug("encountered an error when" +
-                " trying to refresh the timeline: " +
+            logger.debug(
+                "encountered an error when trying to refresh the timeline: " +
                 ExceptionUtils.getFullStackTrace(throwable));
         }
 
@@ -185,14 +217,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 
     protected boolean hasMarkedStatus() {
         return markerId > -1;
-    }
-
-    @Override
-    protected void onInit() throws Exception {
-        messagingTemplate.afterPropertiesSet();
-        Assert.notNull(this.configuration, "'configuration' can't be null");
-        this.twitter = this.configuration.getTwitter();
-        Assert.notNull(this.twitter, "'twitter' instance can't be null");
     }
 
     @Override

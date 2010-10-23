@@ -17,51 +17,50 @@
   -->
 
 <beans:beans
-		xmlns="http://www.springframework.org/schema/integration"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:p="http://www.springframework.org/schema/p"
-		xmlns:context="http://www.springframework.org/schema/context"
-		xmlns:util="http://www.springframework.org/schema/util"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:lang="http://www.springframework.org/schema/lang"
-		xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        xmlns="http://www.springframework.org/schema/integration"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:p="http://www.springframework.org/schema/p"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xmlns:tool="http://www.springframework.org/schema/tool"
+        xmlns:lang="http://www.springframework.org/schema/lang"
+        xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
-	
-	<message-history/>
-	
-	<context:component-scan
-			base-package="org.springframework.integration.twitter"/>
 
-	<context:property-placeholder
-			location="file://${user.home}/Desktop/twitter.properties"
-			ignore-unresolvable="true"/>
+    <message-history/>
 
-	<channel id="inbound_dm"/>
+    <context:component-scan
+            base-package="org.springframework.integration.twitter"/>
+
+    <context:property-placeholder
+            location="file://${user.home}/Desktop/twitter.properties"
+            ignore-unresolvable="true"/>
+
+    <channel id="inbound_dm"/>
     <channel id="inbound_mentions"/>
     <channel id="inbound_updates"/>
 
-	<twitter:twitter-connection id="tc"
-			access-token="${twitter.oauth.accessToken}"
-			access-token-secret="${twitter.oauth.accessTokenSecret}"
-			consumer-key="${twitter.oauth.consumerKey}"
-			consumer-secret="${twitter.oauth.consumerSecret}"/>
+    <twitter:twitter-connection id="tc"
+                                access-token="${twitter.oauth.accessToken}"
+                                access-token-secret="${twitter.oauth.accessTokenSecret}"
+                                consumer-key="${twitter.oauth.consumerKey}"
+                                consumer-secret="${twitter.oauth.consumerSecret}"/>
 
-    <twitter:inbound-update-channel-adapter twitter-connection="tc" channel="inbound_updates"/>
-    <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
 
     <twitter:inbound-mention-channel-adapter twitter-connection="tc" channel="inbound_mentions"/>
     <service-activator input-channel="inbound_mentions" ref="twitterAnnouncer" method="mention"/>
 
-    <twitter:inbound-dm-channel-adapter twitter-connection="tc" channel="inbound_dm" />
+    <twitter:inbound-dm-channel-adapter twitter-connection="tc" channel="inbound_dm"/>
     <service-activator input-channel="inbound_dm" ref="twitterAnnouncer" method="dm"/>
 
-
+    <twitter:inbound-update-channel-adapter twitter-connection="tc" channel="inbound_updates"/>
+    <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
 
 
 </beans:beans>

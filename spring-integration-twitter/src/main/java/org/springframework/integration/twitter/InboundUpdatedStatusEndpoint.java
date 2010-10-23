@@ -27,8 +27,14 @@ import twitter4j.Twitter;
  * @since 2.0
  */
 public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+
 	@Override
-	protected void refresh() throws Exception {
+	 public String getComponentType() {
+		return null;  
+	}
+
+	@Override
+	protected void beginPolling() throws Exception {
 		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundUpdatedStatusEndpoint>() {
 			public void run(InboundUpdatedStatusEndpoint t, Twitter twitter)
 					throws Exception {
@@ -36,6 +42,5 @@ public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEn
 						? twitter.getFriendsTimeline() :
 						twitter.getFriendsTimeline(new Paging(t.getMarkerId()))));
 			}
-		});
-	}
+		}); }
 }

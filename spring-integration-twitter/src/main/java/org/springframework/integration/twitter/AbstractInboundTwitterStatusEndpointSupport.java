@@ -19,6 +19,7 @@ package org.springframework.integration.twitter;
 
 //import twitter4j.Status;
 
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.twitter.model.Status;
 import org.springframework.integration.twitter.model.Twitter4jStatusImpl;
 
@@ -26,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 
 /**
@@ -34,8 +38,9 @@ import java.util.List;
  *
  * @author Josh Long
  */
-abstract public class AbstractInboundTwitterStatusEndpointSupport
-		extends AbstractInboundTwitterEndpointSupport<Status> {
+abstract public class AbstractInboundTwitterStatusEndpointSupport extends AbstractInboundTwitterEndpointSupport<Status> {
+
+
 
 	private Comparator<Status> statusComparator = new Comparator<Status>() {
 		public int compare(Status status, Status status1) {
