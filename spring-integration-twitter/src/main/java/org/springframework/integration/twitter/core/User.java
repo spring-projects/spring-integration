@@ -13,43 +13,34 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core;
 
-import java.util.Date;
 
 /**
- * describes a simple status message on twitter. this could be a message
- * that updates a timeline on behalf of a user, or it could be a message that contains a reply.
- *
+ * describes the user producing or receiving messages
  *
  * @author Josh Long
+ * @since 2.0
  */
-public interface Status {
+public interface User {
 
- 	Date getCreatedAt();
+    int getId();
 
-	long getId();
+    java.lang.String getName();
 
-	String getText();
+    java.lang.String getScreenName();
 
-	String getSource();
+    java.lang.String getLocation();
 
-	boolean isTruncated();
+    java.lang.String getDescription();
 
-	long getInReplyToStatusId();
+    boolean isContributorsEnabled();
 
-	int getInReplyToUserId();
+    java.net.URL getProfileImageURL();
 
-	java.lang.String getInReplyToScreenName();
+    java.net.URL getURL();
 
-	boolean isFavorited();
+    boolean isProtected();
 
-	 User getUser();
-
-	boolean isRetweet();
-
-	 Status getRetweetedStatus();
-
-	String[] getContributors();
-
+    int getFollowersCount();
 }

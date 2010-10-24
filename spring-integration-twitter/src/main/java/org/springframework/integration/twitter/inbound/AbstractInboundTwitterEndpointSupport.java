@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.inbound;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * There are a lot of operations that are common to receiving the various types of messages when using the
  * Twitter API, and this class abstracts most of them for you. Implementers must take note of
- * {@link org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport#runAsAPIRateLimitsPermit(org.springframework.integration.twitter.AbstractInboundTwitterEndpointSupport.ApiCallback)}
+ * {@link AbstractInboundTwitterEndpointSupport#runAsAPIRateLimitsPermit(AbstractInboundTwitterEndpointSupport.ApiCallback)}
  * which will invoke the instance of {@link AbstractInboundTwitterEndpointSupport.ApiCallback} when the
  * rate-limit API deems that its OK to do so. This class handles keeping tabs on that and on spacing out requests
  * as required.

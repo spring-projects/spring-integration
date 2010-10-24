@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core.twitter;
 
 import twitter4j.User;
 
@@ -24,8 +24,9 @@ import java.net.URL;
  * implementation of the User interfce to represent Users in a Twitter application
  *
  * @author Josh Long
+ * @since 2.0
  */
-public class Twitter4jUser implements org.springframework.integration.twitter.model.User {
+public class Twitter4jUser implements org.springframework.integration.twitter.core.User {
 
 	private twitter4j.User user;
 

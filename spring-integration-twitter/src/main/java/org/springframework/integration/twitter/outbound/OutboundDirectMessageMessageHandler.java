@@ -13,9 +13,10 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.util.Assert;
 
 import twitter4j.TwitterException;
@@ -25,11 +26,11 @@ import twitter4j.TwitterException;
  * Simple adapter to support sending outbound direct messages ("DM"s) using twitter
  *
  * @author Josh Long
- * @see org.springframework.integration.twitter.TwitterHeaders
+ * @see org.springframework.integration.twitter.core.TwitterHeaders
  * @see twitter4j.Twitter
  * @since 2.0
  */
-public class OutboundDirectMessageStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class OutboundDirectMessageMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {

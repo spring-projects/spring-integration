@@ -23,10 +23,10 @@ import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
-public class DirectMessageInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class InboundDirectMessageEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
-        return   BASE_PACKAGE + ".InboundDirectMessageStatusEndpoint";
+        return  BASE_PACKAGE +  ".inbound.InboundDirectMessageEndpoint"; 
     }
 
     @Override

@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.inbound;
 
 import twitter4j.Paging;
 import twitter4j.Twitter;
@@ -26,7 +26,7 @@ import twitter4j.Twitter;
  * @author Josh Long
  * @since 2.0
  */
-public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
 
 	@Override
 	 public String getComponentType() {
@@ -35,8 +35,8 @@ public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEn
 
 	@Override
 	protected void beginPolling() throws Exception {
-		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundUpdatedStatusEndpoint>() {
-			public void run(InboundUpdatedStatusEndpoint t, Twitter twitter)
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundTimelineUpdateEndpoint>() {
+			public void run(InboundTimelineUpdateEndpoint t, Twitter twitter)
 					throws Exception {
 				forwardAll( fromTwitter4jStatuses(!t.hasMarkedStatus()
 						? twitter.getFriendsTimeline() :

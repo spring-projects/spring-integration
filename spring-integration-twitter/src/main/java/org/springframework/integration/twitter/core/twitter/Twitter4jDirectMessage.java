@@ -13,20 +13,22 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core.twitter;
 
+import org.springframework.integration.twitter.core.User;
 import twitter4j.DirectMessage;
 
 import java.util.Date;
 
 
 /**
- * implementation of the {@link org.springframework.integration.twitter.model.DirectMessage} interface
+ * implementation of the {@link org.springframework.integration.twitter.core.DirectMessage} interface
  * that wraps, and works with, a {@link twitter4j.DirectMessage} instance.
  *
  * @author Josh Long
+ * @since 2.0 
  */
-public class Twitter4jDirectMessage implements org.springframework.integration.twitter.model.DirectMessage {
+public class Twitter4jDirectMessage implements org.springframework.integration.twitter.core.DirectMessage {
 	private DirectMessage directMessage;
 
 	public Twitter4jDirectMessage(DirectMessage directMessage) {

@@ -23,7 +23,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.model.Twitter4jGeoLocation;
+import org.springframework.integration.twitter.core.twitter.Twitter4jGeoLocation;
+import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 

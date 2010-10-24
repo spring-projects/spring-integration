@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
@@ -30,7 +30,7 @@ import twitter4j.Twitter;
 public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractMessageHandler {
 	protected volatile OAuthConfiguration configuration;
 	protected volatile Twitter twitter;
-	protected final StatusUpdateOptboundMessageMapper statusUpdateSupport = new StatusUpdateOptboundMessageMapper();
+	protected final OutboundStatusUpdateMessageMapper supportStatusUpdate = new OutboundStatusUpdateMessageMapper();
 
 	public void setConfiguration(OAuthConfiguration configuration) {
 		this.configuration = configuration;

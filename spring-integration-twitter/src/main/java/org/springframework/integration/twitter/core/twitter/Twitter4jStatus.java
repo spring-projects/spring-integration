@@ -13,16 +13,20 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core.twitter;
+
+import org.springframework.integration.twitter.core.Status;
+import org.springframework.integration.twitter.core.User;
 
 import java.util.Date;
 
 /**
  *
- * An implemention o the {@link org.springframework.integration.twitter.model.Status} interface that
+ * An implemention o the {@link org.springframework.integration.twitter.core.Status} interface that
  * forwards requests to a {@link twitter4j.Status} implementation
  *
  * @author Josh Long
+ * @since 2.0 
  */
 public class Twitter4jStatus implements Status {
 	private twitter4j.Status status;

@@ -50,7 +50,7 @@ public class CycleDetectorTests {
 		CycleDetector builder = new CycleDetector();
 		builder.detectCycle(parent, "org.springframework.integration.transformer");
 		// should not throw an exception, however if you remove additional package from
-		// the above method there is a cycle in the domain model
+		// the above method there is a cycle in the domain core
 	}
 
 	@Test

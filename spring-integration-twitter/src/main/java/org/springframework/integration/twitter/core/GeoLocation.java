@@ -13,33 +13,16 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
-
+package org.springframework.integration.twitter.core;
 
 /**
- * describes the user producing or receiving messages
+ * interface for geo location records
  *
  * @author Josh Long
+ * @since 2.0 
+ *
  */
-public interface User {
-
-    int getId();
-
-    java.lang.String getName();
-
-    java.lang.String getScreenName();
-
-    java.lang.String getLocation();
-
-    java.lang.String getDescription();
-
-    boolean isContributorsEnabled();
-
-    java.net.URL getProfileImageURL();
-
-    java.net.URL getURL();
-
-    boolean isProtected();
-
-    int getFollowersCount();
+public interface GeoLocation {
+  	double getLongitude() ;
+	double getLatitude() ;
 }

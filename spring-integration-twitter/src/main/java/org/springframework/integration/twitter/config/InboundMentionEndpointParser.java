@@ -15,26 +15,28 @@
  */
 package org.springframework.integration.twitter.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
-public class UpdatedStatusOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
+public class InboundMentionEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
-    protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+    protected String getBeanClassName(Element element) {
+        return BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
+    }
 
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                BASE_PACKAGE + ".OutboundUpdatedStatusMessageHandler" );
+    @Override
+    protected boolean shouldGenerateIdAsFallback() {
+        return true;
+    }
 
-
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-                "twitter-connection", "configuration");
-
-        return builder.getBeanDefinition();
+    @Override
+    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
     }
 }

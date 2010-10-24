@@ -13,15 +13,27 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core;
+
+import java.util.Date;
 
 /**
- * interface for geo location records
+ * Describes a direct-message in twitter. (Also known as a "DM").
+ * <p/>
+ * these are messages sent privately to a user.
  *
  * @author Josh Long
- *
+ * @since 2.0 
  */
-public interface GeoLocation {
-  	double getLongitude() ;
-	double getLatitude() ;
-}
+public interface DirectMessage {
+	int getId();
+
+	String getText();
+
+	Date getCreatedAt();
+
+	User getSender() ;
+
+	User getRecipient();
+
+ }

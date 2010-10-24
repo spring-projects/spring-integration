@@ -13,12 +13,13 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.twitter.model.Twitter4jGeoLocation;
+import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.integration.twitter.core.twitter.Twitter4jGeoLocation;
 import org.springframework.util.StringUtils;
 import twitter4j.StatusUpdate;
 
@@ -28,18 +29,18 @@ import twitter4j.StatusUpdate;
  *
  * @author Josh Long
  * @see twitter4j.StatusUpdate
- * @see org.springframework.integration.twitter.TwitterHeaders
+ * @see org.springframework.integration.twitter.core.TwitterHeaders
  * @since 2.0
  */
-public class StatusUpdateOptboundMessageMapper implements OutboundMessageMapper<StatusUpdate> {
+public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<StatusUpdate> {
 	/**
-	 * convenient, interf-ace-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.model.Twitter4jGeoLocation}
+	 * convenient, interface-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.core.twitter.Twitter4jGeoLocation}
 	 *
 	 * @param lat the latitude
 	 * @param lon the longitude
-	 * @return a {@link org.springframework.integration.twitter.model.GeoLocation} instance
+	 * @return a {@link org.springframework.integration.twitter.core.GeoLocation} instance
 	 */
-	public org.springframework.integration.twitter.model.GeoLocation fromLatitudeLongitudePair(double lat, double lon) {
+	public org.springframework.integration.twitter.core.GeoLocation fromLatitudeLongitudePair(double lat, double lon) {
 		return new Twitter4jGeoLocation(lat, lon);
 	}
 
@@ -78,7 +79,7 @@ public class StatusUpdateOptboundMessageMapper implements OutboundMessageMapper<
 
 			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
 
-				org.springframework.integration.twitter.model.GeoLocation geoLocation = (org.springframework.integration.twitter.model.GeoLocation) message.getHeaders()
+				org.springframework.integration.twitter.core.GeoLocation geoLocation = (org.springframework.integration.twitter.core.GeoLocation) message.getHeaders()
 						.get(TwitterHeaders.TWITTER_GEOLOCATION);
 				twitter4j.GeoLocation gl = null;
 

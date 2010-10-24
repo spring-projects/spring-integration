@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.inbound;
 
 import twitter4j.Paging;
 import twitter4j.Twitter;
@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public class InboundMentionStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
 
 	@Override
 	public String getComponentType() {
@@ -35,9 +35,9 @@ public class InboundMentionStatusEndpoint extends AbstractInboundTwitterStatusEn
 
 	@Override
 	protected void beginPolling() throws Exception {
-		 this.runAsAPIRateLimitsPermit(new ApiCallback<InboundMentionStatusEndpoint>() {
+		 this.runAsAPIRateLimitsPermit(new ApiCallback<InboundMentionEndpoint>() {
 
-			public void run(InboundMentionStatusEndpoint ctx, Twitter twitter) throws Exception {
+			public void run(InboundMentionEndpoint ctx, Twitter twitter) throws Exception {
 				List<twitter4j.Status> stats = (!hasMarkedStatus())
 						? twitter.getMentions()
 						: twitter.getMentions(new Paging(ctx.getMarkerId()));

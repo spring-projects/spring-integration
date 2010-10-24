@@ -13,9 +13,9 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
-import org.springframework.integration.twitter.model.Status;
-import org.springframework.integration.twitter.model.Twitter4jStatus;
+package org.springframework.integration.twitter.inbound;
+import org.springframework.integration.twitter.core.Status;
+import org.springframework.integration.twitter.core.twitter.Twitter4jStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;

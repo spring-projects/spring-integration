@@ -1,7 +1,7 @@
 package org.springframework.integration.twitter;
 
-import org.springframework.integration.twitter.model.DirectMessage;
-import org.springframework.integration.twitter.model.Status;
+import org.springframework.integration.twitter.core.DirectMessage;
+import org.springframework.integration.twitter.core.Status;
 import org.springframework.stereotype.Component;
 
 

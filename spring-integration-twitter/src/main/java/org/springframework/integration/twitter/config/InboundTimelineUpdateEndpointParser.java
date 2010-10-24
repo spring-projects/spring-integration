@@ -23,10 +23,10 @@ import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
-public class MentionInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class InboundTimelineUpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
-        return BASE_PACKAGE + ".InboundMentionStatusEndpoint";
+        return BASE_PACKAGE +".inbound.InboundTimelineUpdateEndpoint" ;
     }
 
     @Override
@@ -36,7 +36,9 @@ public class MentionInboundEndpointParser extends AbstractSingleBeanDefinitionPa
 
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+                "channel", "outputChannel");
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+                "twitter-connection", "configuration");
     }
 }

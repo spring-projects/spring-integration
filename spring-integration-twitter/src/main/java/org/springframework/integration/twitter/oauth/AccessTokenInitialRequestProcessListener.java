@@ -27,7 +27,6 @@ import twitter4j.http.AccessToken;
  */
 public interface AccessTokenInitialRequestProcessListener {
 
-
 	String openUrlAndReturnPin(String urlToOpen) throws Exception;
 
 	void persistReturnedAccessToken(AccessToken accessToken) throws Exception;

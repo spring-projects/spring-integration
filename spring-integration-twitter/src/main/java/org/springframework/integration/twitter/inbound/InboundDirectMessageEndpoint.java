@@ -13,10 +13,10 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.inbound;
 
-import org.springframework.integration.twitter.model.DirectMessage;
-import org.springframework.integration.twitter.model.Twitter4jDirectMessage;
+import org.springframework.integration.twitter.core.DirectMessage;
+import org.springframework.integration.twitter.core.twitter.Twitter4jDirectMessage;
 import twitter4j.Paging;
 import twitter4j.Twitter;
 
@@ -31,7 +31,7 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
+public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
 	
 	private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
 		public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
@@ -64,8 +64,8 @@ public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEn
 	@Override
 	protected void beginPolling() throws Exception {
 
-		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDirectMessageStatusEndpoint>() {
-			public void run(InboundDirectMessageStatusEndpoint t, Twitter twitter)
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDirectMessageEndpoint>() {
+			public void run(InboundDirectMessageEndpoint t, Twitter twitter)
 					throws Exception {
 
 				List<twitter4j.DirectMessage> dms = !hasMarkedStatus() ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId()));

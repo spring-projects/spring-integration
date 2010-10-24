@@ -13,26 +13,21 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter.model;
+package org.springframework.integration.twitter.core;
 
-import java.util.Date;
 
 /**
- * Describes a direct-message in twitter. (Also known as a "DM").
+ * An enum to allow users to express interest in particular kinds of tweets.
  * <p/>
- * these are messages sent privately to a user.
+ * Contains header keys used by the various adapters.
  *
  * @author Josh Long
+ * @since 2.0
  */
-public interface DirectMessage {
-	int getId();
-
-	String getText();
-
-	Date getCreatedAt();
-
-	User getSender() ;
-
-	User getRecipient();
-
- }
+public class TwitterHeaders {
+	public static final String TWITTER_IN_REPLY_TO_STATUS_ID = "TWITTER_IN_REPLY_TO_STATUS_ID";
+	public static final String TWITTER_PLACE_ID = "TWITTER_PLACE_ID";
+	public static final String TWITTER_GEOLOCATION = "TWITTER_GEOLOCATION";
+	public static final String TWITTER_DISPLAY_COORDINATES = "TWITTER_DISPLAY_COORDINATES";
+	public static final String TWITTER_DM_TARGET_USER_ID = "TWITTER_DM_TARGET_USER_ID";
+}

@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
 import org.springframework.util.Assert;
@@ -27,10 +27,10 @@ import twitter4j.StatusUpdate;
  * @author Josh Long
  * @since 2.0
  */
-public class OutboundUpdatedStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class OutboundTimelineUpdateMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		StatusUpdate statusUpdate = this.statusUpdateSupport.fromMessage(message);
+		StatusUpdate statusUpdate = this.supportStatusUpdate.fromMessage(message);
 		Assert.notNull(statusUpdate, "couldn't send message, unable to build a StatusUpdate instance correctly");
 		this.twitter.updateStatus(statusUpdate);
 	}

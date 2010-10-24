@@ -36,7 +36,7 @@ import org.springframework.web.servlet.mvc.Controller;
  * The {@link #setViewName(String) viewName} will be passed into the ModelAndView return value.
  * <p/>
  * This endpoint will have request/reply behavior by default. That can be overridden by passing <code>false</code> to
- * the constructor. In the request/reply case, the model map will be passed to the view, and it will contain either the
+ * the constructor. In the request/reply case, the core map will be passed to the view, and it will contain either the
  * reply Message or payload depending on the value of {@link #extractReplyPayload} (true by default, meaning just the
  * payload). The corresponding key in the map is determined by the {@link #replyKey} property (with a default of
  * "reply").
@@ -76,7 +76,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	}
 
 	/**
-	 * Specify the key to be used when adding the reply Message or payload to the model map (will be payload only unless
+	 * Specify the key to be used when adding the reply Message or payload to the core map (will be payload only unless
 	 * the value of {@link HttpRequestHandlingController#setExtractReplyPayload(boolean)} is <code>false</code>). The
 	 * default key is "reply".
 	 */
@@ -85,7 +85,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	}
 
 	/**
-	 * The key used to expose {@link Errors} in the model, in the case that message handling fails. Defaults to
+	 * The key used to expose {@link Errors} in the core, in the case that message handling fails. Defaults to
 	 * "errors".
 	 * @param errorsKey the key value to set
 	 */
