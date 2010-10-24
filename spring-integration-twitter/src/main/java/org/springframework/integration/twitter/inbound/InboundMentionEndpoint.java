@@ -30,7 +30,7 @@ public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpoint
 
 	@Override
 	public String getComponentType() {
-		return null; 
+		return  "twitter:inbound-mention-channel-adapter";
 	}
 
 	@Override

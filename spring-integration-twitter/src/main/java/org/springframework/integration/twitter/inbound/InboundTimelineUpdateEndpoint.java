@@ -30,7 +30,7 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusE
 
 	@Override
 	 public String getComponentType() {
-		return null;  
+		return "twitter:inbound-update-channel-adapter";  
 	}
 
 	@Override
@@ -42,5 +42,6 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusE
 						? twitter.getFriendsTimeline() :
 						twitter.getFriendsTimeline(new Paging(t.getMarkerId()))));
 			}
-		}); }
+		});
+	}
 }

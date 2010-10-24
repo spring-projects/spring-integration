@@ -23,6 +23,14 @@ import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
+/**
+ * a parser for the {@link org.springframework.integration.twitter.inbound.InboundMentionEndpoint} endpoint.
+ * The parser exepcts an outbound channel and a reference to a connection, as typically factoried by a
+ * {@link org.springframework.integration.twitter.config.ConnectionParser}
+ *
+ * @author Josh Long
+ * @since 2.0
+ */
 public class InboundMentionEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {

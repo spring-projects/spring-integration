@@ -23,13 +23,25 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
-public class OutboundDirectMessageEndpointParser extends AbstractOutboundChannelAdapterParser {
+
+/**
+ *
+ * this outbound adapter updates the twitter status for an account
+ *
+ * @author Josh Long
+ * @since 2.0
+ */
+public class OutboundTimelineUpdateMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
     @Override
     protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler" );
-        
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+                BASE_PACKAGE + ".outbound.OutboundTimelineUpdateMessageHandler" );
+
+
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+                "twitter-connection", "configuration");
+
         return builder.getBeanDefinition();
     }
 }

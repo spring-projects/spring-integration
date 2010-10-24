@@ -23,6 +23,13 @@ import org.w3c.dom.Element;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
+/**
+ * A parser for the {@link org.springframework.integration.twitter.inbound.InboundTimelineUpdateEndpoint} endpoint. The endpoint takes a channel and a reference to
+ * the appropriate connection, typically factoried by {@link org.springframework.integration.twitter.config.ConnectionParser}
+ *
+ * @author Josh Long
+ * @since 2.0
+ */
 public class InboundTimelineUpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
@@ -36,9 +43,7 @@ public class InboundTimelineUpdateEndpointParser extends AbstractSingleBeanDefin
 
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-                "channel", "outputChannel");
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-                "twitter-connection", "configuration");
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
     }
 }

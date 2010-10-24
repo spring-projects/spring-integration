@@ -58,7 +58,7 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 
 	@Override
 	public String getComponentType() {
-		return null;  
+		return "twitter:inbound-dm-channel-adapter";  
 	}
 
 	@Override
