@@ -4,7 +4,6 @@ import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
-import org.springframework.integration.config.xml.ControlBusTests;
 import org.springframework.integration.jmx.AttributePollingMessageSourceTests;
 import org.springframework.integration.jmx.NotificationListeningMessageProducerTests;
 import org.springframework.integration.jmx.OperationInvokingMessageHandlerTests;
@@ -40,7 +39,7 @@ import org.springframework.integration.monitor.MessageChannelsMonitorIntegration
 		OperationInvokingChannelAdapterParserTests.class, HandlerMonitoringIntegrationTests.class,
 		NotificationListeningMessageProducerTests.class, OperationInvokingOutboundGatewayTests.class,
 		NotificationListeningChannelAdapterParserTests.class, ExponentialMovingAverageRatioTests.class,
-		AttributePollingMessageSourceTests.class, ControlBusTests.class, MessageChannelsMonitorIntegrationTests.class })
+		AttributePollingMessageSourceTests.class, MessageChannelsMonitorIntegrationTests.class })
 @Ignore
 public class IgnoredTestSuite {
 
