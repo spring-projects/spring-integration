@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.context.metadata;
 
 import java.util.Properties;
 
 /**
- * Strategy interface for persisting metadata from certain adapters / endpoints 
+ * Strategy interface for persisting metadata from certain adapters / endpoints
  * to avoid duplicate delivery of messages, for example.
- *
+ * 
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public interface MetadataStore {
+
 	/**
-	 * Wil write propertoes to a persistent store
-	 * @param metadata
+	 * Writes metadata as Properties to this store.
 	 */
-    void write(Properties metadata);
-    /**
-     * Will load Properties from the persistent store
-     * @return
-     */
-    Properties load();
+	void write(Properties metadata);
+
+	/**
+	 * Loads metadata as Properties from this store.
+	 */
+	Properties load();
+
 }
