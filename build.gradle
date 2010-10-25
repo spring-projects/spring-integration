@@ -1,0 +1,214 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+// -----------------------------------------------------------------------------
+// Main gradle build file for Spring Integration
+//
+// - run `./gradlew(.bat) build` to kick off a complete compile-test-package
+//
+// - the imports above are from groovy and/or java classes in buildSrc/
+//   or from jars on 'buildscript' classpath (in our case, it's all buildSrc)
+//   sources in buildSrc are compiled and placed on the classpath automatically
+//
+// @author cbeams
+// -----------------------------------------------------------------------------
+
+
+// -----------------------------------------------------------------------------
+// Configuration for all projects including this one (the root project)
+//
+// @see settings.gradle for list of all subprojects
+// -----------------------------------------------------------------------------
+
+apply from: "$rootDir/gradle/version.gradle"
+apply plugin: 'idea'
+
+
+allprojects {
+    // group will translate to groupId during pom generation and deployment
+    group = 'org.springframework.integration'
+
+    // version will be used in maven pom generation as well as determining
+    // where artifacts should be deployed, based on release type of snapshot,
+    // milestone or release.
+    // @see org.springframework.build.Version under buildSrc/ for more info
+    // @see gradle.properties for the declaration of this property.
+    version = createVersion(springIntegrationVersion)
+
+    // default set of maven repositories to be used when resolving dependencies
+    repositories {
+        mavenRepo urls: 'http://maven.springframework.org/snapshot'
+        mavenCentral()
+        mavenRepo urls: 'http://maven.springframework.org/release'
+        mavenRepo urls: 'http://maven.springframework.org/milestone'
+        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/external'
+        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/release'
+        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/milestone'
+    }
+
+}
+
+
+// -----------------------------------------------------------------------------
+// Create collections of subprojects - each will receive their own configuration
+// - all subprojects that start with spring-integration-* are 'java projects'
+// - documentation-related subprojects are not collected here
+//
+// @see configure(*) sections below
+// -----------------------------------------------------------------------------
+
+javaprojects = subprojects.findAll { project ->
+    project.path.startsWith(':spring-integration-')
+}
+
+// -----------------------------------------------------------------------------
+// Configuration for all java subprojects
+// -----------------------------------------------------------------------------
+configure(javaprojects) {
+
+    apply plugin: 'java' // tasks for conventional java lifecycle
+    apply plugin: 'maven' // `gradle install` to push jars to local .m2 cache
+    apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
+    apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
+
+    // all core projects should be OSGi-compliant bundles
+    // add the bundlor task to ensure proper manifests
+    apply from: "$rootDir/gradle/bundlor.gradle"
+    apply from: "$rootDir/gradle/maven-deployment.gradle"
+
+    springVersion = '3.0.5.RELEASE'
+
+    // dependencies that are common across all java projects
+    dependencies {
+        testCompile 'junit:junit:4.7'
+        testCompile "log4j:log4j:1.2.12"
+    }
+
+    // enable all compiler warnings (GRADLE-1077)
+    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all']
+
+    // generate .classpath files without GRADLE_CACHE variable (GRADLE-1079)
+    eclipseClasspath.variables = [:]
+}
+
+
+// -----------------------------------------------------------------------------
+// Configuration for each individual core java subproject
+//
+// @see configure(javaprojects) above for general config
+// -----------------------------------------------------------------------------
+project('spring-integration-core') {
+    description = 'Spring Integration Core'
+    dependencies {
+        compile "org.codehaus.jackson:jackson-mapper-asl:1.4.3"
+        compile "org.springframework:spring-aop:3.0.5.RELEASE"
+        compile "org.springframework:spring-context:3.0.5.RELEASE"
+        compile "org.springframework:spring-tx:3.0.5.RELEASE"
+        testCompile "org.hamcrest:hamcrest-all:1.1"
+        testCompile "org.easymock:easymock:2.3"
+        testCompile "org.mockito:mockito-all:1.8.4"
+        testCompile "org.springframework:spring-test:3.0.5.RELEASE"
+        testCompile "org.aspectj:aspectjrt:1.6.5"
+        testCompile "org.aspectj:aspectjweaver:1.6.5"
+        testCompile "cglib:cglib-nodep:2.2"
+    }
+}
+
+/*
+project('spring-integration-event') {
+}
+
+project('spring-integration-feed') {
+}
+
+project('spring-integration-file') {
+}
+
+project('spring-integration-ftp') {
+}
+
+project('spring-integration-groovy') {
+}
+
+project('spring-integration-http') {
+}
+
+project('spring-integration-httpinvoker') {
+}
+
+project('spring-integration-ip') {
+}
+
+project('spring-integration-jdbc') {
+}
+
+project('spring-integration-jms') {
+}
+
+project('spring-integration-jmx') {
+}
+
+project('spring-integration-mail') {
+}
+
+project('spring-integration-rmi') {
+}
+
+project('spring-integration-security') {
+}
+
+project('spring-integration-sftp') {
+}
+
+project('spring-integration-stream') {
+}
+
+project('spring-integration-test') {
+}
+
+project('spring-integration-twitter') {
+}
+
+project('spring-integration-ws') {
+}
+
+project('spring-integration-xml') {
+}
+
+project('spring-integration-xmpp') {
+}
+*/
+
+// add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
+// running `gradle clean` from the root project and deleting the build directory
+apply plugin: 'base'
+
+// add tasks like 'distArchive'
+//apply from: "$rootDir/gradle/dist.gradle"
+
+// add tasks like 'snapshotDependencyCheck'
+apply from: "${rootDir}/gradle/checks.gradle"
+
+
+// -----------------------------------------------------------------------------
+// Import tasks related to releasing and managing the project
+// depending on the role played by the current user.
+//
+// @see gradle.properties for more information on roles
+// -----------------------------------------------------------------------------
+// add management tasks like `wrapper` for generating the gradlew* scripts
+apply from: "$rootDir/gradle/wrapper.gradle"
