@@ -12,3 +12,5 @@ spring-integration-parent/.project
 *.iml
 .idea
 derby.log
+.gradle
+build
