@@ -30,7 +30,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
  * @author Josh Long
  */
 @ContextConfiguration
-public class TestRecievingUsingNamespace
+public class TestReceivingUsingNamespace
     extends AbstractJUnit4SpringContextTests {
     @Autowired
     private TwitterAnnouncer twitterAnnouncer;

@@ -60,7 +60,7 @@ public class InboundDirectMessageStatusEndpointTests {
 	 */
 	public void testUpdatesWithRealTwitter() throws Exception{
 		CountDownLatch latch = new CountDownLatch(1);
-		new ClassPathXmlApplicationContext("TestRecievingUsingNamespace-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("TestReceivingUsingNamespace-context.xml", this.getClass());
 		latch.await(10000, TimeUnit.SECONDS);
 	}
 
