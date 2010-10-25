@@ -66,7 +66,6 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 	@Override
 	Runnable getApiCallback() {
 		Runnable apiCallback = new Runnable() {	
-			@Override
 			public void run() {
 				try {
 					long sinceId = getMarkerId();

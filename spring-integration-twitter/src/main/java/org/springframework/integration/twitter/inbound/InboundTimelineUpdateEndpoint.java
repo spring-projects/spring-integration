@@ -38,7 +38,6 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusE
 	@Override
 	Runnable getApiCallback() {
 		Runnable apiCallback = new Runnable() {	
-			@Override
 			public void run() {
 				try {
 					long sinceId = getMarkerId();

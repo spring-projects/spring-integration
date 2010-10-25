@@ -44,7 +44,6 @@ class RateLimitStatusTrigger implements Trigger {
 	/* (non-Javadoc)
 	 * @see org.springframework.scheduling.Trigger#nextExecutionTime(org.springframework.scheduling.TriggerContext)
 	 */
-	@Override
 	public Date nextExecutionTime(TriggerContext triggerContext) {
 		if (triggerContext.lastCompletionTime() == null){
 			return new Date(System.currentTimeMillis());
