@@ -6,14 +6,6 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:p="http://www.springframework.org/schema/p">
 
-	<int:channel id="controlChannel" />
-
-	<bean id="controlBus" class="org.springframework.integration.jmx.ControlBus">
-		<constructor-arg ref="mbeanExporter" />
-		<constructor-arg ref="mbeanServer" />
-		<constructor-arg ref="controlChannel" />
-	</bean>
-
 	<bean id="mbeanExporter"
 		class="org.springframework.integration.monitor.IntegrationMBeanExporter"
 		p:server-ref="mbeanServer" p:defaultDomain="forum" />

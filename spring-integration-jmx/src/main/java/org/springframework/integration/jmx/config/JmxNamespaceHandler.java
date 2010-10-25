@@ -23,6 +23,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Dave Syer
  * @since 2.0
  */
 public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
@@ -34,7 +35,6 @@ public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("notification-listening-channel-adapter", new NotificationListeningChannelAdapterParser());
 		this.registerBeanDefinitionParser("notification-publishing-channel-adapter", new NotificationPublishingChannelAdapterParser());
 		this.registerBeanDefinitionParser("mbean-export", new MBeanExporterParser());
-		this.registerBeanDefinitionParser("control-bus", new ControlBusParser());
 	}
 
 }

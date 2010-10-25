@@ -117,45 +117,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="control-bus">
-		<xsd:annotation>
-			<xsd:documentation>
-				Control bus accepts control messages for channels and endpoints on an (optional) "operation
-				channel".
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID" use="optional" />
-			<xsd:attribute name="mbean-exporter" use="required">
-				<xsd:annotation>
-					<xsd:documentation>
-						A reference to the MBeanExporter created using &lt;mbean-exporter/&gt; in this namespace.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation>
-							<tool:expected-type type="org.springframework.integration.monitor.IntegrationMBeanExporter" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="operation-channel" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						If provided a control bus will be created and subscribed to the Message Channel.
-						The channel can
-						then be used to send operation commands to
-						this Control Bus. It must implement SubscribableChannel.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation>
-							<tool:expected-type type="org.springframework.integration.core.SubscribableChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:complexType name="adapterType">
 		<xsd:annotation>
 			<xsd:documentation>
