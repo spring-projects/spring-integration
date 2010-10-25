@@ -1,17 +1,14 @@
 /*
  * Copyright 2002-2010 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 package org.springframework.integration.util;
@@ -42,12 +39,10 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
-
 	public AbstractExpressionEvaluator() {
 		this.evaluationContext.setTypeConverter(this.typeConverter);
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
-
 
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
@@ -55,7 +50,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.typeConverter.setBeanFactory(beanFactory);
-			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
+			this.evaluationContext.setBeanResolver(new SimpleBeanResolver(beanFactory));
 		}
 	}
 
@@ -72,13 +67,11 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	protected <T> T evaluateExpression(Expression expression, Message<?> message, Class<T> expectedType) {
 		try {
 			return evaluateExpression(expression, (Object) message, expectedType);
-		}
-		catch (EvaluationException e) {
+		} catch (EvaluationException e) {
 			Throwable cause = e.getCause();
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), cause == null ? e : cause);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), e);
 		}

@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
+public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 

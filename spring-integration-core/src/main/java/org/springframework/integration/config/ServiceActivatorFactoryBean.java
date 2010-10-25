@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ServiceActivatorFactoryBean extends AbstractMessageHandlerFactoryBean {
+public class ServiceActivatorFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 

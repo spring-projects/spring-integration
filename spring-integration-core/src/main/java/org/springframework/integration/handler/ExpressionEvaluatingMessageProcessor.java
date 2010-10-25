@@ -16,7 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ParseException;
 import org.springframework.integration.Message;
@@ -52,7 +51,6 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 		Assert.notNull(expression, "The expression must not be null");
 		try {
 			this.expression = expression;
-			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
 			this.expectedType = expectedType;
 		}
 		catch (ParseException e) {

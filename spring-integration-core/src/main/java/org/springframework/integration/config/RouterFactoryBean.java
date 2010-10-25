@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
-public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
+public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile ChannelResolver channelResolver;
 	

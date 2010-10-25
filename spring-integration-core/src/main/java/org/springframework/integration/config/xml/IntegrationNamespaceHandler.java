@@ -65,6 +65,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("channel-interceptor", new GlobalChannelInterceptorParser());
 		registerBeanDefinitionParser("converter", new ConverterParser());
 		registerBeanDefinitionParser("message-history", new MessageHistoryParser());
+		registerBeanDefinitionParser("control-bus", new ControlBusParser());
 	}
 
 }

@@ -18,7 +18,6 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
@@ -52,7 +51,6 @@ public class ExpressionEvaluatingMessageListProcessor extends AbstractExpression
 	public ExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
 			this.expression = parser.parseExpression(expression);
-			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);

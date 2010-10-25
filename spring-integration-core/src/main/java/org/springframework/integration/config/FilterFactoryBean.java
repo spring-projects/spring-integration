@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
+public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile MessageChannel discardChannel;
 

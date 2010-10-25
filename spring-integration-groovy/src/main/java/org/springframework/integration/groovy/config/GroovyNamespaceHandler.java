@@ -26,6 +26,7 @@ public class GroovyNamespaceHandler extends AbstractIntegrationNamespaceHandler 
 
 	public void init() {
 		this.registerBeanDefinitionParser("script", new GroovyScriptParser());
+		this.registerBeanDefinitionParser("control-bus", new GroovyControlBusParser());
 	}
 
 }

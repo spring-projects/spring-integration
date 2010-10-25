@@ -63,25 +63,4 @@ class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 			binding.setVariable("headers", this.message.getHeaders());
 		}
 	}
-
-	private static class MapContextBindingCustomizer implements GroovyObjectCustomizer {
-
-		private final Map<String, ?> map;
-
-		public MapContextBindingCustomizer(Map<String, ?> map) {
-			this.map = map;
-		}
-
-		public void customize(GroovyObject goo) {
-			Assert.state(goo instanceof Script, "Expected a Script");
-			if (this.map != null) {
-				Binding binding = ((Script) goo).getBinding();
-				for (String key : map.keySet()) {
-					binding.setVariable(key, map.get(key));
-				}
-			}
-
-		}
-
-	}
 }

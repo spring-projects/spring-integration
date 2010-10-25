@@ -675,10 +675,10 @@
 						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 				</xsd:choice>
-				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
-			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes"/>
-			<xsd:attributeGroup ref="channelAdapterAttributes"/>
+			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
+			<xsd:attributeGroup ref="channelAdapterAttributes" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -777,7 +777,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					SpEL expression to be evaluated for each triggered execution.
-					The result of the evaluation will be passed as the payload of
+					The result of the evaluation will be
+					passed as the payload of
 					the Message that is sent to the MessageChannel.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -801,7 +802,7 @@
 	<xsd:complexType name="methodInvokingChannelAdapterType">
 		<xsd:complexContent>
 			<xsd:extension base="channelAdapterType">
-				<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes"/>
+				<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -811,7 +812,7 @@
 			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
-		<xsd:attributeGroup ref="channelAdapterAttributes"/>
+		<xsd:attributeGroup ref="channelAdapterAttributes" />
 	</xsd:complexType>
 
 	<xsd:element name="service-activator">
@@ -835,9 +836,11 @@
 					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify whether the service method must return a non-null value. This value will be
-	FALSE by default, but if set to TRUE, a MessageHandlingException will be thrown when
-	the underlying service method (or expression) returns a NULL value.
+								Specify whether the service method must return a non-null value. This value will be
+								FALSE by
+								default, but if set to TRUE, a MessageHandlingException will be thrown when
+								the underlying service method (or
+								expression) returns a NULL value.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -958,7 +961,8 @@
 					delegate when scheduling the sending of delayed Messages. If not
 					provided, the default
 					will use a thread pool of
-					size 1.
+					size
+					1.
 					</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -986,7 +990,7 @@
 				<xsd:documentation>
 					Specify whether tasks should be able to complete on shutdown. By
 					default this is 'false'.
-					</xsd:documentation>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -1089,16 +1093,19 @@
 				<xsd:element name="interval-trigger" type="intervalTriggerType">
 					<xsd:annotation>
 						<xsd:documentation>
-	NOTE: The 'interval-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be removed in version 2.1.
-	Use one of the interval trigger attributes instead ('fixed-delay' or 'fixed-rate').			
+							NOTE: The 'interval-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be
+							removed in version
+							2.1.
+							Use one of the interval trigger attributes instead ('fixed-delay' or 'fixed-rate').
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
 				<xsd:element name="cron-trigger" type="cronTriggerType">
 					<xsd:annotation>
 						<xsd:documentation>
-	NOTE: The 'cron-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be removed in version 2.1.
-	Use the 'cron' attribute instead.
+							NOTE: The 'cron-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be
+							removed in version 2.1.
+							Use the 'cron' attribute instead.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
@@ -1304,7 +1311,8 @@
 							<xsd:documentation>
 								Boolean value to indicate whether this header value should overwrite
 								an existing header
-								value for the same name.
+								value
+								for the same name.
 								</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -1327,13 +1335,15 @@
 				<xsd:documentation>
 					Specify the default boolean value for whether to overwrite existing
 					header values. This will
-					only take effect for
+					only
+					take effect for
 					sub-elements that do not provide their own 'overwrite' attribute. If the
 					'default-overwrite'
 					attribute is not
 					provided, then the specified header values will NOT overwrite any
 					existing ones with the same
-					header names. 
+					header
+					names. 
 					</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
@@ -1359,7 +1369,8 @@
 				<xsd:documentation>
 					Reference to an Object to be invoked for header values.
 					The 'method' attribute is required
-					along with this.
+					along
+					with this.
 					</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref" />
@@ -1423,7 +1434,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="referenceHeaderType">
 				<xsd:sequence minOccurs="0" maxOccurs="1">
-					<xsd:element name="expression" type="innerExpressionType"/>
+					<xsd:element name="expression" type="innerExpressionType" />
 				</xsd:sequence>
 				<xsd:attribute name="value" type="xsd:string">
 					<xsd:annotation>
@@ -1628,7 +1639,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to a Jackson ObjectMapper instance to be provided optionally
-					if the default ObjectMapper configuration is not desirable.
+					if the default ObjectMapper
+					configuration is not desirable.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1669,7 +1681,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to a Jackson ObjectMapper instance to be provided optionally
-					if the default ObjectMapper configuration is not desirable.
+					if the default ObjectMapper
+					configuration is not desirable.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1703,7 +1716,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to a Serializer instance to convert from an object to a byte array.
-					This is optional. The default will use standard Java serialization.
+					This is optional.
+					The default will use standard Java serialization.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1737,7 +1751,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to a Deserializer instance to convert from a byte array to an object.
-					This is optional. The default will use standard Java deserialization.
+					This is optional.
+					The default will use standard Java deserialization.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1752,7 +1767,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that stores a Message and returns a new Message whose
-				payload is the id of the stored Message.
+				payload is the id of
+				the stored Message.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -1761,7 +1777,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that accepts a Message whose payload is a UUID and
-				retrieves the Message associated with that id from a MessageStore if
+				retrieves the Message
+				associated with that id from a MessageStore if
 				available (else null).
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1775,7 +1792,8 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Reference to the MessageStore to be used by this Claim Check transformer.
-					If not specified, the default reference will be to a bean named 'messageStore'.
+					If not specified, the
+					default reference will be to a bean named 'messageStore'.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1882,9 +1900,11 @@ Name of the header whose value to use.
 							<xsd:attribute name="selector-expression" type="xsd:string">
 								<xsd:annotation>
 									<xsd:documentation>
-										An expression to be evaluated to determine if this recipient should be included in the recipient
+										An expression to be evaluated to determine if this recipient should be included in the
+										recipient
 										list for a given input Message. The evaluation result of the expression must be a boolean.
-										If this attribute is not defined, the channel will always be among the list of recipients.
+										If this
+										attribute is not defined, the channel will always be among the list of recipients.
 										</xsd:documentation>
 								</xsd:annotation>
 							</xsd:attribute>
@@ -2112,18 +2132,21 @@ Name of the header whose value to use.
 					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify whether the splitter method must return a non-null value. This value will be
-	FALSE by default, but if set to TRUE, a MessageHandlingException will be thrown when
-	the underlying service method (or expression) returns a NULL value.
+								Specify whether the splitter method must return a non-null value. This value will be
+								FALSE by
+								default, but if set to TRUE, a MessageHandlingException will be thrown when
+								the underlying service method (or
+								expression) returns a NULL value.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="apply-sequence" type="xsd:boolean" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
-	Set this flag to false to prevent adding sequence related headers in this splitter. This
-	can be convenient in cases where the set sequence numbers conflict with downstream custom
-	aggregations.
+								Set this flag to false to prevent adding sequence related headers in this splitter. This
+								can be
+								convenient in cases where the set sequence numbers conflict with downstream custom
+								aggregations.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -2154,7 +2177,7 @@ Name of the header whose value to use.
 					<xsd:annotation>
 						<xsd:documentation>
 							A SpEL expression to be evaluated against the input message list as its root object.
-							</xsd:documentation>
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
@@ -2224,11 +2247,13 @@ Name of the header whose value to use.
 						<xsd:documentation>
 							Reference to a MessageGroupStore for holding
 							state in between message processing. The default
-							is to use a
+							is
+							to use a
 							volatile in-memory store, which means that unprocessed messages
 							will be lost if the
 							JVM exits. To
-							customize the expiry of incomplete message groups
+							customize
+							the expiry of incomplete message groups
 							configure the message store.
 							</xsd:documentation>
 						<xsd:appinfo>
@@ -2264,8 +2289,9 @@ Name of the header whose value to use.
 				<xsd:attribute name="comparator" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							Comparator for messages used to sort the sequence when released.  Defaults to comparing
-							the sequence number header.
+							Comparator for messages used to sort the sequence when released. Defaults to comparing
+							the
+							sequence number header.
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
@@ -2405,7 +2431,7 @@ Name of the header whose value to use.
 			<xsd:extension base="handlerEndpointType">
 				<xsd:choice minOccurs="0" maxOccurs="2">
 					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
-					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">
@@ -2435,7 +2461,7 @@ Name of the header whose value to use.
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.integration.expression.ExpressionSource" />
-					</tool:annotation>				
+					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -2582,14 +2608,31 @@ only be one Message History writer per ApplicationContext hierarchy.
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="tracked-components" type="xsd:string" default="*">
-			<xsd:annotation>
-				<xsd:documentation>
+				<xsd:annotation>
+					<xsd:documentation>
 				<![CDATA[
 The list of component name patterns you want to track (e.g.,  tracked-components="inputChannel, out*, *Channel, *Service")
 					]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="control-bus">
+		<xsd:annotation>
+			<xsd:documentation>
+				Control bus that accepts messages in the form of Groovy scripts. The scripts should be provided as
+				String payloads
+				in incoming messages. Scripts can refer to beans in the context using the standard @beanName
+				convention.
 			</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:all minOccurs="0" maxOccurs="1">
+				<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+			</xsd:all>
+			<xsd:attributeGroup ref="inputOutputChannelGroup" />
 		</xsd:complexType>
 	</xsd:element>
 

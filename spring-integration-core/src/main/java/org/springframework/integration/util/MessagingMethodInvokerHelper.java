@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -54,9 +53,9 @@ import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
+import org.springframework.util.StringUtils;
 
 /**
  * A helper class for processors that invoke a method on a target Object using a combination of message payload(s) and
@@ -192,7 +191,6 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					"Cannot convert to expected type (" + expectedType + ") from " + method);
 			context.registerMethodFilter(targetType, filter);
 		}
-		context.addPropertyAccessor(new MapAccessor());
 		context.setVariable("target", targetObject);
 	}
 

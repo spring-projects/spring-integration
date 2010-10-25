@@ -20,6 +20,7 @@ import java.util.Map;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
@@ -31,14 +32,18 @@ import org.springframework.util.Assert;
  */
 public class GroovyScriptPayloadMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
-	private final Map<String, ?> map;
+	private final GroovyObjectCustomizer customizer;
 
 	public GroovyScriptPayloadMessageProcessor() {
-		this(null);
+		this((GroovyObjectCustomizer)null);
 	}
 
 	public GroovyScriptPayloadMessageProcessor(Map<String, ?> map) {
-		this.map = map;
+		this(new MapContextBindingCustomizer(map));
+	}
+	
+	public GroovyScriptPayloadMessageProcessor(GroovyObjectCustomizer customizer) {
+		this.customizer = customizer;
 	}
 
 	@Override
@@ -52,7 +57,7 @@ public class GroovyScriptPayloadMessageProcessor extends AbstractScriptExecuting
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
 		// Keeping everything local prevents PermGen (class instances) leaks...
-		MessageContextBindingCustomizer bindingCustomizer = new MessageContextBindingCustomizer(this.map);
+		MessageContextBindingCustomizer bindingCustomizer = new MessageContextBindingCustomizer(this.customizer);
 		bindingCustomizer.setMessage(message);
 		GroovyScriptFactory scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), bindingCustomizer);
 		Object result = scriptFactory.getScriptedObject(scriptSource, null);

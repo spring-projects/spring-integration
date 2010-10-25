@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
+public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 
