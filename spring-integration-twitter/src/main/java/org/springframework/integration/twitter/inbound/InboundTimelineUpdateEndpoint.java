@@ -1,22 +1,23 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2010 the original author or authors.
  *
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.integration.twitter.inbound;
 
+import org.springframework.integration.MessagingException;
+
 import twitter4j.Paging;
-import twitter4j.Twitter;
 
 
 /**
@@ -24,6 +25,7 @@ import twitter4j.Twitter;
  * as messages. It has support for dynamic throttling of API requests.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
@@ -34,14 +36,25 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusE
 	}
 
 	@Override
-	protected void beginPolling() throws Exception {
-		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundTimelineUpdateEndpoint>() {
-			public void run(InboundTimelineUpdateEndpoint t, Twitter twitter)
-					throws Exception {
-				forwardAll( fromTwitter4jStatuses(!t.hasMarkedStatus()
-						? twitter.getFriendsTimeline() :
-						twitter.getFriendsTimeline(new Paging(t.getMarkerId()))));
+	Runnable getApiCallback() {
+		Runnable apiCallback = new Runnable() {	
+			@Override
+			public void run() {
+				try {
+					long sinceId = getMarkerId();
+					forwardAll( fromTwitter4jStatuses(!hasMarkedStatus()
+							? twitter.getFriendsTimeline() :
+							twitter.getFriendsTimeline(new Paging(sinceId))));
+				} catch (Exception e) {
+					if (e instanceof RuntimeException){
+						throw (RuntimeException)e;
+					}
+					else {
+						throw new MessagingException("Failed to poll for Twitter mentions updates", e);
+					}
+				}
 			}
-		});
+		};
+		return apiCallback;
 	}
 }

@@ -39,7 +39,7 @@
             base-package="org.springframework.integration.twitter"/>
 
     <context:property-placeholder
-            location="file://${user.home}/Desktop/twitter.properties"
+            location="classpath:twitter.properties"
             ignore-unresolvable="true"/>
 
     <channel id="inbound_dm"/>
