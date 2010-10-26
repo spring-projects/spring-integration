@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.context.metadata;
 
 import static junit.framework.Assert.assertEquals;
@@ -24,47 +25,46 @@ import java.util.Properties;
 
 import org.junit.Test;
 
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0
  */
-public class FileBasedPropertiesStoreTests {
+public class PropertiesPersistingMetadataStoreTests {
 
-	@Test(expected=IllegalArgumentException.class)
-	public void validateFailureWithNoPersistentKey(){
-		new FileBasedPropertiesStore(null);
-	}
-	
 	@Test
-	public void validateWithDefaultBaseDir() throws Exception{
-		File file = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/" + "foo.last.entry");
+	public void validateWithDefaultBaseDir() throws Exception {
+		File file = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/metadata-store.properties");
 		file.delete();
-		FileBasedPropertiesStore metaStore = new FileBasedPropertiesStore("foo");
-		metaStore.afterPropertiesSet();
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
 		assertTrue(file.exists());
-		Properties prop = new Properties();
-		prop.setProperty("foo", "bar");
-		metaStore.write(prop);
-		Properties persistentProperties = metaStore.load();
+		metadataStore.put("foo", "bar");
+		metadataStore.destroy();
+		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
 		assertNotNull(persistentProperties);
 		assertEquals(1, persistentProperties.size());
 		assertEquals("bar", persistentProperties.get("foo"));
-	}
-	@Test
-	public void validateWithCustomBaseDir() throws Exception{
-		File file = new File("foo/" + "foo.last.entry");
 		file.delete();
+	}
+
+	@Test
+	public void validateWithCustomBaseDir() throws Exception {
+		File file = new File("foo" + "/metadata-store.properties");
 		file.deleteOnExit();
-		FileBasedPropertiesStore metaStore = new FileBasedPropertiesStore("foo");
-		metaStore.setBaseDirectory("foo"); 
-		metaStore.afterPropertiesSet();
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.setBaseDirectory("foo"); 
+		metadataStore.afterPropertiesSet();
+		metadataStore.put("foo", "bar");
+		metadataStore.destroy();
 		assertTrue(file.exists());
-		Properties prop = new Properties();
-		prop.setProperty("foo", "bar");
-		metaStore.write(prop);
-		Properties persistentProperties = metaStore.load();
+		Properties persistentProperties = PropertiesLoaderUtils.loadProperties(new FileSystemResource(file));
 		assertNotNull(persistentProperties);
 		assertEquals(1, persistentProperties.size());
 		assertEquals("bar", persistentProperties.get("foo"));
 	}
+
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.feed;
 
 import static junit.framework.Assert.assertEquals;
@@ -29,42 +30,47 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
+import org.springframework.integration.context.metadata.PropertiesPersistingMetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class FeedEntryReaderMessageSourceTests {
+
 	@Before
-	public void prepare(){
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "feedReader.last.entry");
-		if (persisterFile.exists()){
-			persisterFile.delete();
+	public void prepare() {
+		File metadataStoreFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "metadata-store.properties");
+		if (metadataStoreFile.exists()) {
+			metadataStoreFile.delete();
 		}
 	}
 
 	@Test(expected=IllegalArgumentException.class)
-	public void testFailureWhenNotInitialized(){
+	public void testFailureWhenNotInitialized() {
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(mock(FeedReaderMessageSource.class));
 		feedEntrySource.receive();
 	}
-	
+
 	@Test
-	public void testReceieveFeedWithNoEntries(){
+	public void testReceiveFeedWithNoEntries() {
 		FeedReaderMessageSource feedReaderSource = mock(FeedReaderMessageSource.class);
 		SyndFeed feed = mock(SyndFeed.class);
 		when(feedReaderSource.receiveSyndFeed()).thenReturn(feed);
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
-		feedEntrySource.setPersistentIdentifier("feedReader");
+		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		assertNull(feedEntrySource.receive());
 	}
+
 	@Test
-	public void testReceieveFeedWithEntriesSorted(){
+	public void testReceiveFeedWithEntriesSorted() {
 		FeedReaderMessageSource feedReaderSource = mock(FeedReaderMessageSource.class);
 		SyndFeed feed = mock(SyndFeed.class);
 		SyndEntry entry1 = mock(SyndEntry.class);
@@ -79,7 +85,7 @@ public class FeedEntryReaderMessageSourceTests {
 		when(feedReaderSource.receiveSyndFeed()).thenReturn(feed);
 		
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
-		feedEntrySource.setPersistentIdentifier("feedReader");
+		feedEntrySource.setComponentName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		Message<SyndEntry> entryMessage = feedEntrySource.receive();
 		assertEquals(entry2, entryMessage.getPayload());
@@ -89,15 +95,18 @@ public class FeedEntryReaderMessageSourceTests {
 		entryMessage = feedEntrySource.receive();
 		assertNull(entryMessage);
 	}
-	// will test, that last feed entry is remembered between the sessions
+
+	// will test that last feed entry is remembered between the sessions
 	// and no duplicate entries are retrieved
 	@Test
-	public void testReceieveFeedWithRealEntriesAndRepeatWithPersistentIdentifier() throws Exception{
-		FeedReaderMessageSource feedReaderSource = 
-			new FeedReaderMessageSource(new URL("file:src/test/java/org/springframework/integration/feed/sample.rss"));
-		
+	public void testReceiveFeedWithRealEntriesAndRepeatWithPersistentMetadataStore() throws Exception {
+		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		FeedReaderMessageSource feedReaderSource = new FeedReaderMessageSource(url);
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
-		feedEntrySource.setPersistentIdentifier("feedReader");
+		feedEntrySource.setBeanName("feedReader");
+		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -113,23 +122,29 @@ public class FeedEntryReaderMessageSourceTests {
 		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
 		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
 		
+		metadataStore.destroy();
+		metadataStore.afterPropertiesSet();
+
 		// now test that what's been read is no longer retrieved
 		feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
-		feedEntrySource.setPersistentIdentifier("feedReader");
+		feedEntrySource.setBeanName("feedReader");
+		metadataStore = new PropertiesPersistingMetadataStore();
+		metadataStore.afterPropertiesSet();
+		feedEntrySource.setMetadataStore(metadataStore);
 		feedEntrySource.afterPropertiesSet();
 		assertNull(feedEntrySource.receive());
 		assertNull(feedEntrySource.receive());
 		assertNull(feedEntrySource.receive());
 	}
-	// will test, that last feed entry is NOT remembered between the sessions, since
-	// persister is not used due to the lack of persistentIdentifier (id attribute in xml)
-	// and the same entries are retrieved again
+
+	// will test that last feed entry is NOT remembered between the sessions, since
+	// no persistent MetadataStore is provided and the same entries are retrieved again
 	@Test
-	public void testReceieveFeedWithRealEntriesAndRepeatNoPersistentIdentifier() throws Exception{
-		FeedReaderMessageSource feedReaderSource = 
-			new FeedReaderMessageSource(new URL("file:src/test/java/org/springframework/integration/feed/sample.rss"));
-		
+	public void testReceiveFeedWithRealEntriesAndRepeatNoPersistentMetadataStore() throws Exception {
+		URL url = new URL("file:src/test/java/org/springframework/integration/feed/sample.rss");
+		FeedReaderMessageSource feedReaderSource = new FeedReaderMessageSource(url);
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
+		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		SyndEntry entry1 = feedEntrySource.receive().getPayload();
 		SyndEntry entry2 = feedEntrySource.receive().getPayload();
@@ -148,6 +163,7 @@ public class FeedEntryReaderMessageSourceTests {
 		// UNLIKE the previous test
 		// now test that what's been read is read AGAIN
 		feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
+		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
 		entry1 = feedEntrySource.receive().getPayload();
 		entry2 = feedEntrySource.receive().getPayload();
@@ -162,5 +178,6 @@ public class FeedEntryReaderMessageSourceTests {
 		
 		assertEquals("Spring Integration adapters", entry3.getTitle().trim());
 		assertEquals(1272044098000L, entry3.getPublishedDate().getTime());
-	}	
+	}
+
 }

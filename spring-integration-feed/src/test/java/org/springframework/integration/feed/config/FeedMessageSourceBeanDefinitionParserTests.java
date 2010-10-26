@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.feed.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -31,6 +32,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -51,32 +53,35 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class FeedMessageSourceBeanDefinitionParserTests {
+
 	private static CountDownLatch latch;
+
 	@Before
-	public void prepare(){
+	public void prepare() {
 		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "feedAdapter.last.entry");
-		if (persisterFile.exists()){
+		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}
 	}
 
 	@Test
-	public void validateSuccessfullConfigurationWithCustomMetastore(){
-		ClassPathXmlApplicationContext context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-context.xml", this.getClass());
+	public void validateSuccessfulConfigurationWithCustomMetadataStore() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryReaderMessageSource source = (FeedEntryReaderMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		MetadataStore metaStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
-		assertTrue(metaStore instanceof SampleMetadataStore);
+		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
+		assertTrue(metadataStore instanceof SampleMetadataStore);
+		assertEquals(metadataStore, context.getBean("customMetadataStore"));
 		FeedReaderMessageSource feedReaderMessageSource = (FeedReaderMessageSource) TestUtils.getPropertyValue(source, "feedReaderMessageSource");
 		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(feedReaderMessageSource, "fetcher");
 		assertTrue(fetcher instanceof FileUrlFeedFetcher);
-		
-		context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
+		context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
 		adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		source = (FeedEntryReaderMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		feedReaderMessageSource = (FeedReaderMessageSource) TestUtils.getPropertyValue(source, "feedReaderMessageSource");
@@ -84,69 +89,72 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 		assertTrue(fetcher instanceof HttpURLFeedFetcher);
 		context.destroy();
 	}
-	
+
 	@Test
-	public void validateSuccessfullNewsRetrievalWithFileUrlAndMessageHistory() throws Exception{
-		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "feedAdapterUsage.last.entry");
-		if (persisterFile.exists()){
+	public void validateSuccessfulNewsRetrievalWithFileUrlAndMessageHistory() throws Exception {
+		File persisterFile = new File(System.getProperty("java.io.tmpdir") + "/spring-integration/", "message-store.properties");
+		if (persisterFile.exists()) {
 			persisterFile.delete();
 		}
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
-		ClassPathXmlApplicationContext context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
-		
+
 		// since we are not deleting the persister file
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
-		context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
+		context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(0)).countDown();
 		context.destroy();
 	}
+
 	@Test
-	public void validateSuccessfullNewsRetrievalWithFileUrlNoPersistentIdentifier() throws Exception{
+	public void validateSuccessfulNewsRetrievalWithFileUrlNoPersistentIdentifier() throws Exception{
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
-		ClassPathXmlApplicationContext context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
-		
+
 		// since we are not deleting the persister file
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
-		context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
+		context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
 	}
-	
+
 	@Test
 	@Ignore // goes against the real feed
-	public void validateSuccessfullNewsRetrievalWithHttpUrl() throws Exception{
+	public void validateSuccessfulNewsRetrievalWithHttpUrl() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler = spy(new MessageHandler() {		
 			public void handleMessage(Message<?> message) throws MessagingException {
 				latch.countDown();
 			}
 		});
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);	
 		feedChannel.subscribe(handler);
 		latch.await(5, TimeUnit.SECONDS);
 		verify(handler, atLeast(3)).handleMessage(Mockito.any(Message.class));
 	}
-	
-	public static class SampleService{
-		public void receiveFeedEntry(Message<?> message){
+
+
+	public static class SampleService {
+
+		public void receiveFeedEntry(Message<?> message) {
 			MessageHistory history = MessageHistory.read(message);
 			assertTrue(history.size() == 3);
 			Properties historyItem = history.get(0);
@@ -163,20 +171,24 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 			latch.countDown();
 		}
 	}
-	
-	public static class SampleServiceNoHistory{
-		public void receiveFeedEntry(SyndEntry entry){
+
+
+	public static class SampleServiceNoHistory {
+
+		public void receiveFeedEntry(SyndEntry entry) {
 			latch.countDown();
 		}
 	}
-	
-	public static class SampleMetadataStore implements MetadataStore{
 
-		public void write(Properties metadata) {
+
+	public static class SampleMetadataStore implements MetadataStore {
+
+		public void put(String key, String value) {
 		}
 
-		public Properties load() {
-			return new Properties();
+		public String get(String key) {
+			return null;
 		}
 	}
+
 }

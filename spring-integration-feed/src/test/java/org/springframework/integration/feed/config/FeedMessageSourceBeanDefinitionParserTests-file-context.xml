@@ -5,19 +5,19 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed-2.0.xsd">
-	
-	
+
 	<int-feed:inbound-channel-adapter id="feedAdapter" 
 						channel="feedChannel" 
 						auto-startup="false" 
-						metadata-store="metaStore"
+						metadata-store="customMetadataStore"
 						feed-url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</int-feed:inbound-channel-adapter>
-	
+
 	<int:channel id="feedChannel">
 		<int:queue/>
 	</int:channel>
-	
-	<bean id="metaStore" class="org.springframework.integration.feed.config.FeedMessageSourceBeanDefinitionParserTests.SampleMetadataStore"/>
+
+	<bean id="customMetadataStore" class="org.springframework.integration.feed.config.FeedMessageSourceBeanDefinitionParserTests.SampleMetadataStore"/>
+
 </beans>

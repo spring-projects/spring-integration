@@ -13,41 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.feed.config;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Handles parsing the configuration for the feed inbound channel adapter.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
 public class FeedMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected String parseSource(final Element element, final ParserContext parserContext) {
-
-		BeanDefinitionBuilder feedEntryBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.feed.FeedEntryReaderMessageSource");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(feedEntryBuilder, element, "id", "persistentIdentifier");
-		BeanDefinitionBuilder feedBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.feed.FeedReaderMessageSource");
+		BeanDefinitionBuilder feedEntryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.feed.FeedEntryReaderMessageSource");
+		BeanDefinitionBuilder feedBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.feed.FeedReaderMessageSource");
 		feedBuilder.addConstructorArgValue(element.getAttribute("feed-url"));
-		
-		String metadataStoreStrategy = element.getAttribute("metadata-store");
-		if (StringUtils.hasText(metadataStoreStrategy)){
-			feedEntryBuilder.addPropertyReference("metadataStore", metadataStoreStrategy);
-		}
-		
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(feedEntryBuilder, element, "metadata-store");
 		feedEntryBuilder.addConstructorArgValue(feedBuilder.getBeanDefinition());
-		
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(feedEntryBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
+
 }

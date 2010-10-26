@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.feed;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.metadata.FileBasedPropertiesStore;
 import org.springframework.integration.context.metadata.MetadataStore;
+import org.springframework.integration.context.metadata.SimpleMetadataStore;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -35,131 +37,128 @@ import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 
 /**
- * This implementation of {@link MessageSource} will produce individual {@link SyndEntry}s for a feed identified 
- * with 'feedUrl' attribute.
+ * This implementation of {@link MessageSource} will produce individual
+ * {@link SyndEntry}s for a feed identified with the 'feedUrl' attribute.
  * 
  * @author Josh Long
  * @author Mario Gray
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry>{
+public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
+
+	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
+
+	private final FeedReaderMessageSource feedReaderMessageSource;
+
+	private volatile String metadataKey;
+
 	private volatile MetadataStore metadataStore;
 
-	private volatile Properties lastPersistentEntry = new Properties();
-	private volatile Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
-    private volatile FeedReaderMessageSource feedReaderMessageSource;
-    private final Object monitor = new Object();
-    private volatile String feedMetadataIdKey;
-    private volatile String persistentIdentifier;
-	private volatile boolean initialized;
-    private volatile long lastTime = -1;
+	private volatile long lastTime = -1;
 
-    private Comparator<SyndEntry> syndEntryComparator = new Comparator<SyndEntry>() {
-        public int compare(SyndEntry syndEntry, SyndEntry syndEntry1) {
-            long x = syndEntry.getPublishedDate().getTime() - 
-            		 syndEntry1.getPublishedDate().getTime();
-            if (x < -1) {
-            	return -1;
-            }
-            else if (x > 1) {
-            	return 1;
-            }
-            return 0;
-        }
-    };
-    
-    public FeedEntryReaderMessageSource(FeedReaderMessageSource feedReaderMessageSource) {
-    	Assert.notNull(feedReaderMessageSource, "'feedReaderMessageSource' must not be null");
+	private volatile boolean initialized;
+
+	private final Object monitor = new Object();
+
+	private final Comparator<SyndEntry> syndEntryComparator = new SyndEntryComparator();
+
+
+	public FeedEntryReaderMessageSource(FeedReaderMessageSource feedReaderMessageSource) {
+		Assert.notNull(feedReaderMessageSource, "'feedReaderMessageSource' must not be null");
 		this.feedReaderMessageSource = feedReaderMessageSource;
 	}
 
-    public void setPersistentIdentifier(String persistentIdentifier) {
-		this.persistentIdentifier = persistentIdentifier;
-	}
-    
-    public void setMetadataStore(MetadataStore metadataStore) {
+
+	public void setMetadataStore(MetadataStore metadataStore) {
+		Assert.notNull(metadataStore, "metadataStore must not be null");
 		this.metadataStore = metadataStore;
 	}
-    
-    public String getComponentType(){
-    	return "feed:inbound-channel-adapter";
-    }
 
-    public Message<SyndEntry> receive() {
-    	Assert.isTrue(this.initialized, "'FeedEntryReaderMessageSource' must be initialized before it can produce Messages");
-        SyndEntry se = doReceieve();
-        if (se == null) {
-            return null;
-        }
-        return MessageBuilder.withPayload(se).build();
-    }
-    
-    @SuppressWarnings("unchecked")
-    private SyndEntry doReceieve() {
-    	SyndEntry nextUp = null;
-        synchronized (this.monitor) {
-            nextUp = pollAndCache();
+	public String getComponentType() {
+		return "feed:inbound-channel-adapter";
+	}
 
-            if (nextUp != null) {
-                return nextUp;
-            }
-            // otherwise, fill the backlog up
-            SyndFeed syndFeed = this.feedReaderMessageSource.receiveSyndFeed();
-            if (syndFeed != null) {
-                List<SyndEntry> feedEntries = (List<SyndEntry>) syndFeed.getEntries();
-                if (null != feedEntries) {
-                    Collections.sort(feedEntries, syndEntryComparator);
-                    for (SyndEntry se : feedEntries) {
-                        long publishedTime = se.getPublishedDate().getTime();
-                        if (publishedTime > this.lastTime){
-                        	entries.add(se);
-                        }         
-                    }
-                }
-            }
-            nextUp = pollAndCache(); 
-        }
-        return nextUp;
-    }
-    
-    @Override
-    protected void onInit() throws Exception {
-    	if (StringUtils.hasText(this.persistentIdentifier)){
-    		if (this.metadataStore == null){
-    			logger.info("Creating FileBasedPropertiesStore");
-        		metadataStore = new FileBasedPropertiesStore(this.persistentIdentifier);
-        		((FileBasedPropertiesStore)metadataStore).afterPropertiesSet();
-    		} 
-    		lastPersistentEntry =  metadataStore.load();
-    	}
-    	else {
-    		logger.info("Your '" + this.getComponentType() + "' is anonymous (no ID attribute), therefore no feed entries will be persisted " +
-    				"which may result in a duplicate feed entries once this adapter is restarted");
-    	}
-    	  	
-    	this.feedMetadataIdKey = this.getComponentType() + "@" + this.getComponentName() + 
-    								"#" + feedReaderMessageSource.getFeedUrl();
-        String keyTime = (String) this.lastPersistentEntry.get(this.feedMetadataIdKey);
-        if (StringUtils.hasText(keyTime)){
-        	this.lastTime = Long.parseLong(keyTime);
-        }
-        this.initialized = true;
-    }
+	public Message<SyndEntry> receive() {
+		Assert.isTrue(this.initialized, "'FeedEntryReaderMessageSource' must be initialized before it can produce Messages.");
+		SyndEntry entry = doReceive();
+		if (entry == null) {
+			return null;
+		}
+		return MessageBuilder.withPayload(entry).build();
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		if (this.metadataStore == null) {
+			// first try to look for a 'messageStore' in the context
+			BeanFactory beanFactory = this.getBeanFactory();
+			if (beanFactory != null) {
+				MetadataStore metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
+				if (metadataStore != null) {
+					this.metadataStore = metadataStore;
+				}
+			}
+			if (this.metadataStore == null) {
+				this.metadataStore = new SimpleMetadataStore();
+			}
+		}
+		Assert.hasText(this.getComponentName(), "FeedEntryReaderMessageSource must have a name");
+		this.metadataKey = this.getComponentType() + "." + this.getComponentName() 
+					+ "." + this.feedReaderMessageSource.getFeedUrl();
+		String lastTimeValue = this.metadataStore.get(this.metadataKey);
+		if (StringUtils.hasText(lastTimeValue)) {
+			this.lastTime = Long.parseLong(lastTimeValue);
+		}
+		this.initialized = true;
+	}
+
+	@SuppressWarnings("unchecked")
+	private SyndEntry doReceive() {
+		SyndEntry nextUp = null;
+		synchronized (this.monitor) {
+			nextUp = pollAndCache();
+			if (nextUp != null) {
+				return nextUp;
+			}
+			// otherwise, fill the backlog
+			SyndFeed syndFeed = this.feedReaderMessageSource.receiveSyndFeed();
+			if (syndFeed != null) {
+				List<SyndEntry> feedEntries = (List<SyndEntry>) syndFeed.getEntries();
+				if (null != feedEntries) {
+					Collections.sort(feedEntries, syndEntryComparator);
+					for (SyndEntry se : feedEntries) {
+						long publishedTime = se.getPublishedDate().getTime();
+						if (publishedTime > this.lastTime) {
+							entries.add(se);
+						}
+					}
+				}
+			}
+			nextUp = pollAndCache();
+		}
+		return nextUp;
+	}
 
 	private SyndEntry pollAndCache() {
-        SyndEntry next = this.entries.poll();
-        
-        if (next == null) {
-        	return null;
-        }
-        
-        this.lastTime = next.getPublishedDate().getTime();
-        this.lastPersistentEntry.put(this.feedMetadataIdKey, this.lastTime + "");
-        
-        if (metadataStore != null){
-        	metadataStore.write(this.lastPersistentEntry);
-        }
-        
-        return next;
-    }
+		SyndEntry next = this.entries.poll();
+		if (next == null) {
+			return null;
+		}
+		this.lastTime = next.getPublishedDate().getTime();
+		this.metadataStore.put(this.metadataKey, this.lastTime + "");
+		return next;
+	}
+
+
+	private static class SyndEntryComparator implements Comparator<SyndEntry> {
+
+		public int compare(SyndEntry entry1, SyndEntry entry2) {
+			if (entry1 == null || entry2 == null) {
+				
+			}
+			return entry1.getPublishedDate().compareTo(entry2.getPublishedDate());
+		}
+	}
+
 }
