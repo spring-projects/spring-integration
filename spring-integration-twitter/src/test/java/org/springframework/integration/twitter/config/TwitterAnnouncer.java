@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.config;
 
-import org.springframework.integration.twitter.core.DirectMessage;
-import org.springframework.integration.twitter.core.Status;
 import org.springframework.stereotype.Component;
+
+import twitter4j.DirectMessage;
+import twitter4j.Status;
 
 
 @Component

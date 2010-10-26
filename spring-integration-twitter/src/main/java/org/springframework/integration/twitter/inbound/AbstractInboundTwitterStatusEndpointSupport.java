@@ -19,8 +19,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.integration.twitter.core.Status;
-import org.springframework.integration.twitter.core.TwitterFactory;
+import twitter4j.Status;
+import twitter4j.TwitterFactory;
 
 /**
  * Simple base class for the reply and timeline cases (as well as any other {@link twitter4j.Status} implementations of
@@ -37,13 +37,13 @@ abstract public class AbstractInboundTwitterStatusEndpointSupport extends Abstra
 		}
 	};
 
-	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
-		List<Status> fwd = new ArrayList<Status>();
-		for (twitter4j.Status s : stats) {
-			fwd.add((Status) TwitterFactory.formTwitter4jMessage(s));
-		}		
-		return fwd;
-	}
+//	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
+//		List<Status> fwd = new ArrayList<Status>();
+//		for (twitter4j.Status s : stats) {
+//			fwd.add((Status) TwitterFactory.formTwitter4jMessage(s));
+//		}		
+//		return fwd;
+//	}
 
 	@Override
 	protected void markLastStatusId(Status statusId) {

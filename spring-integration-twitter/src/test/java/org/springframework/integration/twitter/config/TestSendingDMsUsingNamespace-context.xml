@@ -18,7 +18,7 @@
 
 
 	<context:property-placeholder
-			location="classpath:twitter.properties"
+			location="classpath:twitter.sender.properties"
 			ignore-unresolvable="true"/>
 
 	<twitter:twitter-connection

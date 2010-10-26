@@ -18,10 +18,10 @@ package org.springframework.integration.twitter.outbound;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.twitter.core.GeoLocation;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.util.StringUtils;
 
+import twitter4j.GeoLocation;
 import twitter4j.StatusUpdate;
 
 
@@ -69,15 +69,9 @@ public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<
 
 			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
 
-				org.springframework.integration.twitter.core.GeoLocation geoLocation = (org.springframework.integration.twitter.core.GeoLocation) message.getHeaders()
-						.get(TwitterHeaders.TWITTER_GEOLOCATION);
-				twitter4j.GeoLocation gl = null;
-
-				if (geoLocation instanceof GeoLocation) {
-					gl = new twitter4j.GeoLocation(geoLocation.getLatitude(), geoLocation.getLongitude());
-					if (null != gl) {
-						statusUpdate.location(gl);
-					}
+				GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.TWITTER_GEOLOCATION);
+				if (null != geoLocation) {
+					statusUpdate.location(geoLocation);
 				}
 			}
 

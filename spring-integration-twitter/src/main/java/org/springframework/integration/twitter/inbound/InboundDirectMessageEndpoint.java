@@ -21,9 +21,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.twitter.core.DirectMessage;
-import org.springframework.integration.twitter.core.TwitterFactory;
 
+import twitter4j.DirectMessage;
 import twitter4j.Paging;
 
 /**
@@ -73,13 +72,13 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 					List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
 								? twitter.getDirectMessages() 
 								: twitter.getDirectMessages(new Paging(sinceId));
-
-					List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
-			
-					for( twitter4j.DirectMessage dm : dms) {
-						dmsToFwd.add((DirectMessage) TwitterFactory.formTwitter4jMessage(dm));
-					}
-					forwardAll(dmsToFwd);
+					
+//					List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
+//			
+//					for( twitter4j.DirectMessage dm : dms) {
+//						dmsToFwd.add((DirectMessage) TwitterFactory.formTwitter4jMessage(dm));
+//					}
+					forwardAll(dms);
 				} catch (Exception e) {
 					e.printStackTrace();
 					if (e instanceof RuntimeException){

@@ -36,6 +36,8 @@ public class TestReceivingUsingNamespace {
 	public void testUpdatesWithRealTwitter() throws Exception{
 		CountDownLatch latch = new CountDownLatch(1);
 		new ClassPathXmlApplicationContext("TestReceivingUsingNamespace-context.xml", this.getClass());
+		System.out.println("done");
 		latch.await(10000, TimeUnit.SECONDS);
+		
 	}
 }
