@@ -25,13 +25,8 @@ import java.util.Date;
  * @author Josh Long
  * @since 2.0 
  */
-public interface DirectMessage {
-	int getId();
-
-	String getText();
-
-	Date getCreatedAt();
-
+public interface DirectMessage extends TwitterMessage{
+	
 	User getSender() ;
 
 	User getRecipient();

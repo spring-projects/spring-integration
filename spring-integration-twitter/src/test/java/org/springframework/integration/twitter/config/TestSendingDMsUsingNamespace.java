@@ -1,0 +1,55 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.twitter.config;
+
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.twitter.core.TwitterFactory;
+import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.util.StringUtils;
+
+/**
+ * @author Josh Long
+ * @author Oleg Zhurakouksy
+ */
+@ContextConfiguration
+public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
+
+	@Autowired
+	@Qualifier("inputChannel")
+	private MessageChannel inputChannel;
+	
+	@Test
+ 	@Ignore
+	public void testSendigRealDirectMessage() throws Throwable {
+
+		String dmUsr = "z_oleg";
+		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " + System.currentTimeMillis())
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, TwitterFactory.fromLatitudeLongitude(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
+
+		if (StringUtils.hasText(dmUsr)) {
+			mb.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, dmUsr);
+		}
+		inputChannel.send(mb.build());
+	}
+}

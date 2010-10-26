@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 package org.springframework.integration.twitter.inbound;
-import org.springframework.integration.twitter.core.Status;
-import org.springframework.integration.twitter.core.twitter.Twitter4jStatus;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.springframework.integration.twitter.core.Status;
+import org.springframework.integration.twitter.core.TwitterFactory;
 
 
 /**
@@ -40,7 +40,9 @@ abstract public class AbstractInboundTwitterStatusEndpointSupport extends Abstra
 	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
 		List<Status> fwd = new ArrayList<Status>();
 		for (twitter4j.Status s : stats) {
-			fwd.add(new Twitter4jStatus(s));
+//			ProxyFactory factory = new ProxyFactory(Status.class, EmptyTargetSource.INSTANCE);
+//			factory.addAdvice(new Twitter4jDecorator(s));
+			fwd.add((Status) TwitterFactory.formTwitter4jMessage(s));
 		}		
 		return fwd;
 	}

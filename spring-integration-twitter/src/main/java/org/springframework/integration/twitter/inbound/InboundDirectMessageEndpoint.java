@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.DirectMessage;
-import org.springframework.integration.twitter.core.twitter.Twitter4jDirectMessage;
+import org.springframework.integration.twitter.core.TwitterFactory;
 
 import twitter4j.Paging;
 
@@ -77,7 +77,9 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 					List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
 			
 					for( twitter4j.DirectMessage dm : dms) {
-						dmsToFwd.add( new Twitter4jDirectMessage( dm));
+//						ProxyFactory factory = new ProxyFactory(DirectMessage.class, EmptyTargetSource.INSTANCE);
+//						factory.addAdvice(new Twitter4jDecorator(dm));
+						dmsToFwd.add((DirectMessage) TwitterFactory.formTwitter4jMessage(dm));
 					}
 					forwardAll(dmsToFwd);
 				} catch (Exception e) {

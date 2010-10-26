@@ -15,36 +15,16 @@
  */
 package org.springframework.integration.twitter.core;
 
+import java.util.Date;
 
 /**
- * describes a simple status message on twitter. this could be a message that
- * updates a timeline on behalf of a user, or it could be a message that
- * contains a reply.
- * 
- * 
- * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public interface Status extends TwitterMessage{
+public interface TwitterMessage {
+	int getId();
 
-	String getSource();
+	String getText();
 
-	boolean isTruncated();
-
-	long getInReplyToStatusId();
-
-	int getInReplyToUserId();
-
-	java.lang.String getInReplyToScreenName();
-
-	boolean isFavorited();
-
-	User getUser();
-
-	boolean isRetweet();
-
-	Status getRetweetedStatus();
-
-	String[] getContributors();
-
+	Date getCreatedAt();
 }
