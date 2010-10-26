@@ -39,6 +39,9 @@ task sourceJar(type: Jar) {
 }
 build.dependsOn sourceJar
 
+jar.destinationDir = project.libsBinDir
+sourceJar.destinationDir = project.libsSrcDir
+
 // Add the source jar archive to the set of artifacts for this project.
 // Note that the regular 'jar' archive is already added by default.
 artifacts {
@@ -91,7 +94,15 @@ uploadArchives {
 
             case 'MILESTONE':
                 description += milestoneRepositoryUrl
-                // fall through and pick up config below
+                s3credentials = [userName: project.properties.s3AccessKey, passphrase: project.properties.s3SecretAccessKey]
+                configuration = configurations.deployerJars
+                repository(url: milestoneRepositoryUrl) {
+                    authentication(s3credentials)
+                }
+                snapshotRepository(url: snapshotRepositoryUrl) {
+                    authentication(s3credentials)
+                }
+                break;
 
             case 'SNAPSHOT':
                 description += snapshotRepositoryUrl

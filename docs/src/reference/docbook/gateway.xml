@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="gateway"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Inbound Messaging Gateways</title>
+
+  <section id="gateway-proxy">
+    <title>GatewayProxyFactoryBean</title>
+    <para>
+      Working with Objects instead of Messages is an improvement. However, it would be even better to have no
+      dependency on the Spring Integration API at all - including the gateway class. For that reason, Spring
+      Integration also provides a <classname>GatewayProxyFactoryBean</classname> that generates a proxy for
+      any interface and internally invokes the gateway methods shown above. Namespace support is also
+      provided as demonstrated by the following example.
+      <programlisting language="xml"><![CDATA[<gateway id="fooService"
+         service-interface="org.example.FooService"
+         default-request-channel="requestChannel"
+         default-reply-channel="replyChannel"/>]]></programlisting>
+      Then, the "fooService" can be injected into other beans, and the code that invokes the methods on that
+      proxied instance of the FooService interface has no awareness of the Spring Integration API. The general
+      approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
+      an example that uses this "gateway" element (in the Cafe demo).
+  </para>
+    <para>
+      The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
+      'default-reply-channel' is that you may also provide per-method channel references by using the
+      @Gateway annotation.
+      <programlisting language="java"><![CDATA[ public interface Cafe {
+
+     @Gateway(requestChannel="orders")
+     void placeOrder(Order order);
+
+ }]]></programlisting>
+   ... as well as <code>method</code> sub element if yuo prefer XML configuration (see next paragraph)
+    </para>
+    <para>
+      It is also possible to pass values to be interpreted as Message headers on the Message
+      that is created and sent to the request channel by using the @Header annotation:
+    <programlisting language="java"><![CDATA[ public interface FileWriter {
+
+     @Gateway(requestChannel="filesOut")
+     void write(byte[] content, @Header(FileHeaders.FILENAME) String filename);
+
+ }]]></programlisting>
+    </para>
+
+    <para>
+    If you prefer XML way of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements
+    to the gateway configuration (see below)
+     <programlisting language="xml"><![CDATA[<si:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
+      default-request-channel="inputC">
+  <si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+      <si:method name="echoUpperCase" request-channel="inputB"/>
+      <si:method name="echoViaDefault"/>
+</si:gateway>]]></programlisting>
+    </para>
+    <para>
+      You can also provide individual headers per method invocation via XML.
+      This could be very useful if the headers you want to set are static in nature and you don't want
+      to embed them in the gateway's method signature via <classname>@Header</classname> annotations.
+      For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes
+      will be done based on what type of request was initiated (single quote or all quotes). Determining the
+      type of the request by evaluating what gateway method was invoked, although possible would
+      violate the separation of concerns paradigm (method is a java artifact),  but expressing your
+      intention (meta information) via Message headers is natural in a Messaging architecture.
+
+      <programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway"
+         service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
+  <int:method name="getLoanQuote" request-channel="loanBrokerPreProcessingChannel">
+    <int:header name="RESPONSE_TYPE" value="BEST"/>
+  </int:method>
+  <int:method name="getAllLoanQuotes" request-channel="loanBrokerPreProcessingChannel">
+    <int:header name="RESPONSE_TYPE" value="ALL"/>
+  </int:method>
+</int:gateway>]]></programlisting>
+  In the above case you can clearly see how a different header value will be set for the 'RESPONSE_TYPE'
+  header based on the gateway's method.
+    </para>
+    <para>
+    As with anything else, Gateway invocation might result in errors.
+    By default any error that has occurred downstream will be re-thrown as a MessagingExeption (RuntimeException)
+    upon the Gateway's method invocation. However there are times when you may want to treat an Exception as a valid reply,
+    by mapping it to a Message. To accomplish this our Gateway provides support for Exception mappers via the
+    <emphasis>exception-mapper</emphasis> attribute.
+    </para>
+    <para>
+<programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
+    default-request-channel="gatewayChannel"
+    service-interface="foo.bar.SimpleGateway"
+    exception-mapper="exceptionMapper"/>
+
+<bean id="exceptionMapper" class="foo.bar.SampleExceptionMapper"/>
+
+        ]]></programlisting>
+
+  <emphasis>foo.bar.SampleExceptionMapper</emphasis> is the implementation of
+  <emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method: <code>toMessage(Object object)</code>.
+<programlisting language="java"><![CDATA[public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
+  public Message<?> toMessage(Throwable object) throws Exception {
+    MessageHandlingException ex = (MessageHandlingException) object;
+    return MessageBuilder.withPayload("Error happened in message: " +
+                ex.getFailedMessage().getPayload()).build();
+  }
+
+}
+        ]]></programlisting>
+
+     </para>
+     <para>
+       <important>
+       Exposing messaging system via POJO Gateway is obviously a great benefit, but it does come at the price so there
+       are certain things you must be aware of.
+
+            We want our Java method to return as quick as possible and not hang for infinite amount of time until they can
+            return (void , exception or return value). When regular methods are used as a proxies in front of the Messaging
+            system we have to take into account the asynchronous nature of the Messaging Systems. This means that there might
+            be a chance that a Message hat was initiated by a Gateway could be dropped by a Filter, thus never reaching a
+            component that is responsible to produce a reply. Some Service Activator method might result in the Exception,
+            thus resulting in no-reply (as we don't generate Null messages).So as you can see there are multiple scenarios
+            where reply message might not be coming which is perfectly natural in messaging systems. However think about the
+            implication on the gateway method.  The Gateway's method input arguments  were incorporated into a Message and
+            sent downstream. The reply Message would be converted to a return value of the Gateway's method. So you can see
+            how ugly it could get if you can not guarantee that for each Gateway call there will alway be a reply Message.
+            Basically your Gateway method will never return and will hang infinitely. (work in progress!!!!)
+One of the ways of handling this situation is via AsyncGateway (explained later in this section). Another way of handling it is to explicitly set the reply-timeout attribute. This way gateway will not hang for more then the time that was specified by the reply-timout and will return 'null'. 
+       </important>
+     </para>
+  </section>
+  <section id="async-gateway">
+    <title>Asynchronous Gateway</title>
+    <para>
+      As a pattern the Messaging Gateway is a very nice way to hide messaging-specific code while still exposing the full capabilities of the
+      messaging system. And <classname>GatewayProxyFactoryBean</classname> provides a convenient way to expose a Proxy over a service-interface
+      thus giving you a POJO-based access to a messaging system (based on objects in your own domain, or primitives/Strings, etc).  But when a
+      gateway is exposed via simple POJO methods which return values it does imply that for each Request message (generated when the method is invoked)
+      there must be a Reply message (generated when the method has returned). Since Messaging systems naturally are asynchronous you may not always be
+      able to guarantee the contract where <emphasis>"for each request there will always be be a reply"</emphasis>. 
+      With Spring Integration 2.0 we are introducing support for an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate
+      flows where you may not know if a reply is expected or how long will it take for it to arrive.
+      </para>
+      <para>
+      A natural way to handle these types of scenarios in Java would be relying upon <emphasis>java.util.concurrent.Future</emphasis> instances, and
+      that is exactly what Spring Integration uses to support an <emphasis>Asynchronous Gateway</emphasis>.
+      </para>
+      <para>
+    From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as a regular Gateway.
+      <programlisting language="xml"><![CDATA[<int:gateway id="mathService" 
+     service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
+     default-request-channel="requestChannel"/>]]></programlisting>
+      However the Gateway Interface (service-interface) is a bit different.
+
+      <programlisting language="java">public interface MathServiceGateway {
+  Future&lt;Integer&gt; multiplyByTwo(int i);
+}</programlisting>
+    </para>
+    <para>
+    As you can see from the example above the return type for the gateway method is <classname>Future</classname>. When
+    <classname>GatewayProxyFactoryBean</classname> sees that the
+    return type of the gateway method is <classname>Future</classname>, it immediately switches to the async mode by utilizing
+    an <classname>AsyncTaskExecutor</classname>. That is all. The call to a method always returns immediately with <classname>Future</classname>
+    encapsulating  the interaction with the framework.
+    Now you can interact with the <classname>Future</classname> at your own pace to get the result, timeout, get the exception etc...
+    <programlisting language="java">MathServiceGateway mathService = ac.getBean("mathService", MathServiceGateway.class);
+Future&lt;Integer&gt; result = mathService.multiplyByTwo(number);
+// do something else here since the reply might take a moment
+int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
+For a more detailed example, please refer to the <emphasis>async-gateway</emphasis> sample distributed within the Spring Integration samples.
+    </para>
+
+  </section>
+  <section>
+    <title>Gateway behavior when no response is coming</title>
+    <para>
+    As it was explained earlier, Gateway provides a convenient way of interacting with Messaging system via POJO method
+    invocations, but realizing that a typical method invocation, which is generally expected to always return (even with Exception),
+    might not always map one-to-one to message exchanges (e.g., reply message might not be coming which is equivalent to
+    method not returning), it is important to go over several scenarios especially in the Sync Gateway case and understand
+    what the default behavior of the Gateway and how to deal with these scenarios to make Sync Gateway behavior more
+    predictable regardless of the outcome of the message flow that was initialed from such Gateway.
+    </para>
+    <para>
+    There are certain attributes that could be configured to make Sync Gateway behavior more predictable,
+    but some of them might not always work as you might have expected. One of them is <emphasis>reply-timeout</emphasis>.
+    So, lets look at the <emphasis>reply-timeout</emphasis> attribute and see how it can/can't influence the behavior
+    of the Sync Gateway in various scenarios. We will look at single-theraded scenario
+    (all components downstream are connected via Direct Channel) and multi-theraded scenarios
+    (e.g., somewhere downstream you may have Pollable or Executor Channel which breaks single-thread boundary)
+    </para>
+    <para>
+    <emphasis>Long running process downstream</emphasis>
+    </para>
+    <para>
+    <emphasis>Sync Gateway - single-threaded</emphasis>.
+  If a component downstream is still running (e.g., infinite loop or a very slow service), then setting <emphasis>reply-timeout</emphasis>
+  has no effect and Gateway method call will not return until such downstream service exits (e.g., return or exception).
+    <emphasis>Sync Gateway - multi-threaded</emphasis>.
+  If a component downstream is still running (e.g., infinite loop or a very slow service), in a multi-threaded message
+  flow setting <emphasis>reply-timeout</emphasis> will have an effect by allowing gateway method invocation to
+  return once the timeout has been reached, since <classname>GatewayProxyFactoryBean</classname>  will simply
+  poll on the reply channel waiting for a message untill the timeout expires. However it could result in the 'null' return
+  from the Gateway method if the timeout has been reached before the actual reply was produced. It is also important to understand that
+  the reply message (if produced) will be sent to a reply channel after Gateway method invocation might have returned, so you must be aware of that
+  and design your flow with this in mind.
+    </para>
+    <para>
+    <emphasis>Downstream component returns 'null'</emphasis>
+    </para>
+    <para>
+    <emphasis>Sync Gateway - single-threaded</emphasis>.
+  If a component downstream returns 'null' and no <emphasis>reply-timeout</emphasis> has been configured, the Gateway
+  method call will hang indefinitely unless: a) <emphasis>reply-timeout</emphasis> has been configured or b)
+  <emphasis>requires-reply</emphasis> attribute has been set on the downstream component (e.g., service-activator)
+  that might return 'null'. In this case, the exception will be thrown and propagated to the Gateway.
+  <emphasis>Sync Gateway - multi-threaded</emphasis>. Behavior is the same as above.
+    </para>
+    <para>
+    <emphasis>Downstream component return signature is 'void' while Gateway method signature is non-void</emphasis>
+    </para>
+    <para>
+    <emphasis>Sync Gateway - single-threaded</emphasis>.
+  If a component downstream returns 'void' and no <emphasis>reply-timeout</emphasis> has been configured,
+  the Gateway method call will hang indefinitely unless <emphasis>reply-timeout</emphasis> has been configured 
+  <emphasis>Sync Gateway - multi-threaded</emphasis> Behavior is the same as above.
+    </para>
+    <para>
+    <emphasis>Downstream component results in Runtime Exception (regardless of the method signature)</emphasis>
+    </para>
+    <para>
+    <emphasis>Sync Gateway - single-threaded</emphasis>.
+  If a component downstream throws a Runtime Exception, such exception will be propagated via Error Message back to
+  the gateway and re-thrown.
+  <emphasis>Sync Gateway - multi-threaded</emphasis> Behavior is the same as above.
+    </para>
+    <para>
+      <important>
+    It is also important to understand that by default <emphasis>reply-timout</emphasis> is unbounded which means that
+    if not explicitly set there are several scenarios (described above) where your Gateway method invocation might
+    hang indefinitely, so make sure you analyze your flow and if there is even a remote possibility of one of these
+    scenarios to occur, set the <emphasis>reply-timout</emphasis> attribute to a 'safe' value or better off
+    set  the <emphasis>requires-reply</emphasis>  attribute of the downstream component to 'true' to ensure a timely response.
+    But also, realize that there are some scenarios (see the very first one)
+    where <emphasis>reply-timout</emphasis> will not help which means it is also important to analyze your message
+    flow and decide when to use Sync Gateway vs Async Gateway where Gateway method invocation is always guaranteed
+    to return while giving you a more granular control over the results of the invocation via Java Futures.
+    <para>
+    Also, when dealing with Router you should remember that seeting <emphasis>resolution-required</emphasis> attribute to 'true'
+    will result in the exception thrown by the router if it can not resolve a particular chanel. And when dealing with the filter
+    you can also set <emphasis>throw-exception-on-rejection</emphasis> attribute. Both of these will help to ensure a timely response
+    from the Gateway method invocation.
+    </para>
+      </important>
+    </para>
+  </section>
+
+</chapter>

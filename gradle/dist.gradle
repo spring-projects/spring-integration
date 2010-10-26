@@ -65,22 +65,38 @@ task distArchive(type: Zip) {
     // configuration phase event. no zip is being created yet. the Zip
     // task we extend will do that for us during the execution phase.
     into(zipRootDir) {
-        with(project(':docs').docsSpec)
+        // add all jars from java subprojects
+        into('bin') {
+            from javaprojects.collect { project -> project.libsBinDir }
+        }
 
-        // add each subproject, but only add the 'src' dir and 'pom.xml'
-        project('spring-amqp-samples').subprojects.each { sample ->
-            into("${zipRootDir}/samples/${sample.name}") {
-                from(sample.projectDir) {
-                    include 'src/**/*'
-                    include 'pom.xml'
-                }
+        // add all source jars from java subprojects
+        into('src') {
+            from javaprojects.collect { project -> project.libsSrcDir }
+        }
+
+        into('') {
+            from('docs/src/info')
+        }
+
+        into("docs/api") {
+            from("docs/build/api")
+        }
+
+        into("docs/reference") {
+            from("docs/build/reference")
+        }
+
+        // copy images and css into respective html dirs
+        ['html', 'htmlsingle'].each { dir ->
+            into("docs/reference/${dir}/images") {
+                from "src/docbook/images"
+            }
+            into("docs/reference/${dir}/css") {
+                from "src/resources/css"
             }
         }
-        // add all jars and source jars from all core java projects
-        // (i.e.: don't include sample project jars!)
-        into('dist') {
-            from coreprojects.collect { project -> project.libsDir }
-        }
+
     }
 
     // once the zip has been written, create a sha1 hash for it
@@ -94,8 +110,8 @@ task distArchive(type: Zip) {
 /**
  * Upload the distribution zip file.
  *
- * @author ltaylor
- * @author cbeams
+ * @author Luke Taylor
+ * @author Chris Beams
  */
 task uploadArchives(overwrite: true, dependsOn: distArchive) { // base plugin adds one we need to overwrite
     group = 'Buildmaster'
@@ -116,14 +132,14 @@ task uploadArchives(overwrite: true, dependsOn: distArchive) { // base plugin ad
                     classpath: configurations.antlibs.asPath)
             s3(accessKey: s3AccessKey, secretKey: s3SecretAccessKey) {
                 upload(bucketName: 'dist.springframework.org', file: distArchive.archivePath,
-                        toFile: releaseType + "/AMQP/${distArchive.archiveName}", publicRead: 'true') {
-                    metadata(name: 'project.name', value: 'Spring AMQP')
+                        toFile: releaseType + "/${rootProject.abbreviation}/${distArchive.archiveName}", publicRead: 'true') {
+                    metadata(name: 'project.name', value: 'Spring Integration')
                     metadata(name: 'release.type', value: releaseType)
                     metadata(name: 'bundle.version', value: version)
                     metadata(name: 'package.file.name', value: distArchive.archiveName)
                 }
                 upload(bucketName: 'dist.springframework.org', file: "${distArchive.archivePath}.sha1",
-                        toFile: releaseType + "/AMQP/${distArchive.archiveName}.sha1", publicRead: 'true')
+                        toFile: releaseType + "/${rootProject.abbreviation}/${distArchive.archiveName}.sha1", publicRead: 'true')
             }
         }
     }

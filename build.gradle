@@ -25,15 +25,20 @@
 
 
 // -----------------------------------------------------------------------------
+// Configuration for the root project
+// -----------------------------------------------------------------------------
+apply from: "$rootDir/gradle/version.gradle"
+apply plugin: 'idea'
+
+// used for artifact names, building doc upload urls, etc.
+description = 'Spring Integration'
+abbreviation = 'INT'
+
+// -----------------------------------------------------------------------------
 // Configuration for all projects including this one (the root project)
 //
 // @see settings.gradle for list of all subprojects
 // -----------------------------------------------------------------------------
-
-apply from: "$rootDir/gradle/version.gradle"
-apply plugin: 'idea'
-
-
 allprojects {
     // group will translate to groupId during pom generation and deployment
     group = 'org.springframework.integration'
@@ -79,6 +84,11 @@ configure(javaprojects) {
     apply plugin: 'maven' // `gradle install` to push jars to local .m2 cache
     apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
     apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
+
+    // set up dedicated directories for jars and source jars.
+    // this makes it easier when putting together the distribution
+    libsBinDir = new File(libsDir, 'bin')
+    libsSrcDir = new File(libsDir, 'src')
 
     // all core projects should be OSGi-compliant bundles
     // add the bundlor task to ensure proper manifests
@@ -405,7 +415,7 @@ project('spring-integration-xmpp') {
 apply plugin: 'base'
 
 // add tasks like 'distArchive'
-//apply from: "$rootDir/gradle/dist.gradle"
+apply from: "$rootDir/gradle/dist.gradle"
 
 // add tasks like 'snapshotDependencyCheck'
 apply from: "${rootDir}/gradle/checks.gradle"
