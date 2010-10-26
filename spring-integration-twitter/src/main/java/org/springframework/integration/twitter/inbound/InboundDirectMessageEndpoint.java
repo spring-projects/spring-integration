@@ -77,8 +77,6 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 					List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
 			
 					for( twitter4j.DirectMessage dm : dms) {
-//						ProxyFactory factory = new ProxyFactory(DirectMessage.class, EmptyTargetSource.INSTANCE);
-//						factory.addAdvice(new Twitter4jDecorator(dm));
 						dmsToFwd.add((DirectMessage) TwitterFactory.formTwitter4jMessage(dm));
 					}
 					forwardAll(dmsToFwd);

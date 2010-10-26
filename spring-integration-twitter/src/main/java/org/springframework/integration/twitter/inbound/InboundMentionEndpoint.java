@@ -42,7 +42,6 @@ public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpoint
 					List<twitter4j.Status> stats = (!hasMarkedStatus())
 					? twitter.getMentions()
 					: twitter.getMentions(new Paging(sinceId));
-					System.out.println("Polling. . . .");
 					forwardAll( fromTwitter4jStatuses( stats));
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){

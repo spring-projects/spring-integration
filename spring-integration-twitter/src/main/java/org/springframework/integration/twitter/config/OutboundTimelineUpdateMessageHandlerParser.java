@@ -26,7 +26,7 @@ import static org.springframework.integration.twitter.config.TwitterNamespaceHan
 
 /**
  *
- * this outbound adapter updates the twitter status for an account
+ * Parsers for 'outbound-update-channel-adapter' element
  *
  * @author Josh Long
  * @since 2.0

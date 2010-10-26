@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.outbound;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.twitter.core.GeoLocation;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.util.StringUtils;
 
@@ -33,17 +34,6 @@ import twitter4j.StatusUpdate;
  * @since 2.0
  */
 public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<StatusUpdate> {
-//	/**
-//	 * convenient, interface-oriented way of obtaining a reference to a {@link org.springframework.integration.twitter.core.twitter.Twitter4jGeoLocation}
-//	 *
-//	 * @param lat the latitude
-//	 * @param lon the longitude
-//	 * @return a {@link org.springframework.integration.twitter.core.GeoLocation} instance
-//	 */
-//	public org.springframework.integration.twitter.core.GeoLocation fromLatitudeLongitudePair(double lat, double lon) {
-//		return new Twitter4jGeoLocation(lat, lon);
-//	}
-
 	/**
 	 * {@link StatusUpdate} instances are used to drive status updates.
 	 *
@@ -79,16 +69,16 @@ public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<
 
 			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
 
-//				org.springframework.integration.twitter.core.GeoLocation geoLocation = (org.springframework.integration.twitter.core.GeoLocation) message.getHeaders()
-//						.get(TwitterHeaders.TWITTER_GEOLOCATION);
-//				twitter4j.GeoLocation gl = null;
-//
-//				if (geoLocation instanceof Twitter4jGeoLocation) {
-//					gl = ((Twitter4jGeoLocation) geoLocation).getGeoLocation();
-//					if (null != gl) {
-//						statusUpdate.location(gl);
-//					}
-//				}
+				org.springframework.integration.twitter.core.GeoLocation geoLocation = (org.springframework.integration.twitter.core.GeoLocation) message.getHeaders()
+						.get(TwitterHeaders.TWITTER_GEOLOCATION);
+				twitter4j.GeoLocation gl = null;
+
+				if (geoLocation instanceof GeoLocation) {
+					gl = new twitter4j.GeoLocation(geoLocation.getLatitude(), geoLocation.getLongitude());
+					if (null != gl) {
+						statusUpdate.location(gl);
+					}
+				}
 			}
 
 			if (message.getHeaders()
