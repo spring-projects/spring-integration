@@ -24,25 +24,37 @@ import org.w3c.dom.Element;
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
- * Parser for 'inbound-mention-channel-adapter' element
- *
- * @author Josh Long
+ * A parser for InboundTimelineUpdateEndpoint endpoint. 
+ * 
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class InboundMentionEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class UpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
-        return BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
+    	String elementName = element.getLocalName().trim();
+    	if ("inbound-update-channel-adapter".equals(elementName)){
+    		 return BASE_PACKAGE +".inbound.InboundTimelineUpdateEndpoint" ;
+    	}
+    	else if ("inbound-dm-channel-adapter".equals(elementName)){
+    		 return  BASE_PACKAGE +  ".inbound.InboundDirectMessageEndpoint"; 
+    	}
+    	else if ("inbound-mention-channel-adapter".equals(elementName)){
+    		 return BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
+    	}
+    	else {
+    		throw new IllegalArgumentException("Element '" + elementName + "' is not supported by this parser");
+    	}
     }
-
     @Override
-    protected boolean shouldGenerateIdAsFallback() {
-        return true;
-    }
+    protected boolean shouldGenerateId() {
+		return true;
+	}
 
     @Override
     protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
         IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
         IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "id", "persistentIdentifier");
     }
 }

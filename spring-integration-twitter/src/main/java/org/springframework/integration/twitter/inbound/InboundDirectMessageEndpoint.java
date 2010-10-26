@@ -41,11 +41,6 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 	};
 
 	@Override
-	protected void markLastStatusId(DirectMessage dm) {
-		this.markerId = dm.getId();
-	}
-
-	@Override
 	protected List<DirectMessage> sort(List<DirectMessage> rl) {
 
 		List<DirectMessage> dms = new ArrayList<DirectMessage>();
@@ -73,11 +68,6 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 								? twitter.getDirectMessages() 
 								: twitter.getDirectMessages(new Paging(sinceId));
 					
-//					List<DirectMessage> dmsToFwd = new ArrayList<DirectMessage>();
-//			
-//					for( twitter4j.DirectMessage dm : dms) {
-//						dmsToFwd.add((DirectMessage) TwitterFactory.formTwitter4jMessage(dm));
-//					}
 					forwardAll(dms);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -92,5 +82,4 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 		};
 		return apiCallback;
 	}
-
 }
