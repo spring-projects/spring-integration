@@ -25,6 +25,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -67,7 +68,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * @see XMPPConnection the XMPPConnection (as
  *      created by {@link XmppConnectionFactory}
  */
-public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
+public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
 	private static final Log logger = LogFactory.getLog(XmppMessageDrivenEndpoint.class);
 
