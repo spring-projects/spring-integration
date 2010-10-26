@@ -17,6 +17,7 @@ package org.springframework.integration.twitter.inbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,11 +63,10 @@ public class InboundDirectMessageStatusEndpointTests {
 		endpoint.start();
 		Message message1 = channel.receive(3000);
 		assertNotNull(message1);
-		System.out.println();
+		// should be second message since its timestamp is newer
 		assertEquals(secondMessage.getId(), ((DirectMessage)message1.getPayload()).getId());
-		Message message2 = channel.receive(3000);
-		assertNotNull(message2);
-		assertEquals(firstMessage.getId(), ((DirectMessage)message2.getPayload()).getId());
+		Message message2 = channel.receive(100);
+		assertNull(message2); // should be null, since 
 	}
 	
 	@Before

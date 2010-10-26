@@ -36,9 +36,9 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 		registerBeanDefinitionParser("twitter-connection", new ConnectionParser());
 
 		// inbound
-		registerBeanDefinitionParser("inbound-update-channel-adapter", new InboundTimelineUpdateEndpointParser());
-		registerBeanDefinitionParser("inbound-dm-channel-adapter", new InboundDirectMessageEndpointParser());
-		registerBeanDefinitionParser("inbound-mention-channel-adapter", new InboundMentionEndpointParser());
+		registerBeanDefinitionParser("inbound-update-channel-adapter", new UpdateEndpointParser());
+		registerBeanDefinitionParser("inbound-dm-channel-adapter", new UpdateEndpointParser());
+		registerBeanDefinitionParser("inbound-mention-channel-adapter", new UpdateEndpointParser());
 
 		// outbound
 		registerBeanDefinitionParser("outbound-update-channel-adapter", new OutboundTimelineUpdateMessageHandlerParser());
