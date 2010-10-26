@@ -40,9 +40,9 @@ public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpoint
 				try {
 					long sinceId = getMarkerId();
 					List<twitter4j.Status> stats = (!hasMarkedStatus())
-					? twitter.getMentions()
-					: twitter.getMentions(new Paging(sinceId));
-					forwardAll( fromTwitter4jStatuses( stats));
+						? twitter.getMentions()
+						: twitter.getMentions(new Paging(sinceId));
+						forwardAll(stats);
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;

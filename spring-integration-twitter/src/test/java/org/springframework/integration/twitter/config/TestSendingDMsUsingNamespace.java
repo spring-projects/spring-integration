@@ -21,11 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.core.TwitterFactory;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.util.StringUtils;
+
+import twitter4j.GeoLocation;
 
 /**
  * @author Josh Long
@@ -44,7 +45,7 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 
 		String dmUsr = "z_oleg";
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " + System.currentTimeMillis())
-				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, TwitterFactory.fromLatitudeLongitude(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
 
 		if (StringUtils.hasText(dmUsr)) {

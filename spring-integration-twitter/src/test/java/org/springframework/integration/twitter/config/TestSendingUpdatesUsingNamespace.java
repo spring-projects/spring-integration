@@ -14,7 +14,7 @@
  *     limitations under the License.
  */
 
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.config;
 
 import org.junit.Ignore;
 import org.junit.Test;

@@ -22,10 +22,10 @@ import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.core.TwitterFactory;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 
+import twitter4j.GeoLocation;
 import twitter4j.Twitter;
 
 /**
@@ -38,7 +38,7 @@ public class OutboundDirectMessageMessageHandlerTests {
 	@Test
 	public void validateSendDirectMessage() throws Exception{
 		MessageBuilder<String> mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, TwitterFactory.fromLatitudeLongitude(-76.226823, 23.642465)) // antarctica
+			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
 			.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, "foo");
 		OutboundDirectMessageMessageHandler handler = new OutboundDirectMessageMessageHandler();
@@ -50,7 +50,7 @@ public class OutboundDirectMessageMessageHandlerTests {
 		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
 		
 		mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, TwitterFactory.fromLatitudeLongitude(-76.226823, 23.642465)) // antarctica
+			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
 			.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, 123);
 		

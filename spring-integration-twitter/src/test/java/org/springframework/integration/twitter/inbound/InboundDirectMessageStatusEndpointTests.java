@@ -63,10 +63,10 @@ public class InboundDirectMessageStatusEndpointTests {
 		Message message1 = channel.receive(3000);
 		assertNotNull(message1);
 		System.out.println();
-		assertEquals(secondMessage.getId(), ((org.springframework.integration.twitter.core.DirectMessage)message1.getPayload()).getId());
+		assertEquals(secondMessage.getId(), ((DirectMessage)message1.getPayload()).getId());
 		Message message2 = channel.receive(3000);
 		assertNotNull(message2);
-		assertEquals(firstMessage.getId(), ((org.springframework.integration.twitter.core.DirectMessage)message2.getPayload()).getId());
+		assertEquals(firstMessage.getId(), ((DirectMessage)message2.getPayload()).getId());
 	}
 	
 	@Before
