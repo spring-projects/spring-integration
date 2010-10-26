@@ -16,26 +16,25 @@
 
 package org.springframework.integration.context.metadata;
 
-import java.util.Properties;
-
 /**
- * Strategy interface for persisting metadata from certain adapters / endpoints
+ * Strategy interface for storing metadata from certain adapters
  * to avoid duplicate delivery of messages, for example.
  * 
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public interface MetadataStore {
 
 	/**
-	 * Writes metadata as Properties to this store.
+	 * Writes a key value pair to this MetadataStore.
 	 */
-	void write(Properties metadata);
+	void put(String key, String value);
 
 	/**
-	 * Loads metadata as Properties from this store.
+	 * Reads a value for the given key from this MetadataStore.
 	 */
-	Properties load();
+	String get(String key);
 
 }

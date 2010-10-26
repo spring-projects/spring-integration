@@ -36,20 +36,21 @@ import org.springframework.util.Assert;
  */
 public abstract class IntegrationContextUtils {
 
-    public static final String METADATA_PERSISTER_BEAN_NAME = "metadataPersister";
-
     public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
     public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
     public static final String NULL_CHANNEL_BEAN_NAME = "nullChannel";
 
+    public static final String METADATA_STORE_BEAN_NAME = "metadataStore";
+
     public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
     public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
 
-    public static MetadataStore getMetadataPersister(BeanFactory beanFactory) {
-        return getBeanOfType(beanFactory, METADATA_PERSISTER_BEAN_NAME, MetadataStore.class);
+
+    public static MetadataStore getMetadataStore(BeanFactory beanFactory) {
+        return getBeanOfType(beanFactory, METADATA_STORE_BEAN_NAME, MetadataStore.class);
     }
 
     public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
