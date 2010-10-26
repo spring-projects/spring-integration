@@ -59,7 +59,6 @@ allprojects {
         mavenRepo urls: 'http://repository.springsource.com/maven/bundles/release'
         mavenRepo urls: 'http://repository.springsource.com/maven/bundles/milestone'
     }
-
 }
 
 
@@ -90,28 +89,46 @@ configure(javaprojects) {
     apply from: "$rootDir/gradle/bundlor.gradle"
     apply from: "$rootDir/gradle/maven-deployment.gradle"
 
-    aspectjVersion = '1.6.5'
+    aspectjVersion = '1.6.8'
+    cglibVersion = '2.2'
+    commonsIoVersion = '1.4'
+    commonsLangVersion = '2.5'
+    easymockVersion = '2.3'
     jacksonVersion = '1.4.3'
+    javaxActivationVersion = '1.1.1'
+    junitVersion = '4.7'
     log4jVersion = '1.2.12'
+    mockitoVersion = '1.8.4'
     springVersion = '3.0.5.RELEASE'
+    springSecurityVersion = '3.0.3.RELEASE'
+    springWsVersion = '1.5.9'
 
-	sourceSets {
-	    test {
-	        resources {
-	            srcDirs = ['src/test/resources', 'src/test/java']
-	        }
-	    }
-	}
+    sourceSets {
+        test {
+            resources {
+                srcDirs = ['src/test/resources', 'src/test/java']
+            }
+        }
+    }
+
+    // 'provided' dependencies should be transitive (e.g. servlet-api)
+    configurations {
+        provided { transitive = false }
+    }
+
+    sourceSets.main.compileClasspath += configurations.provided
+    sourceSets.test.compileClasspath += configurations.provided
+    sourceSets.test.runtimeClasspath += configurations.provided
 
     // dependencies that are common across all java projects
     dependencies {
-        testCompile 'junit:junit:4.7'
-        testCompile "cglib:cglib-nodep:2.2"
+        testCompile "cglib:cglib-nodep:$cglibVersion"
+        testCompile "junit:junit:$junitVersion"
         testCompile "log4j:log4j:$log4jVersion"
-        testCompile "org.easymock:easymock:2.3"
-        testCompile "org.easymock:easymockclassextension:2.3"
+        testCompile "org.easymock:easymock:$easymockVersion"
+        testCompile "org.easymock:easymockclassextension:$easymockVersion"
         testCompile "org.hamcrest:hamcrest-all:1.1"
-        testCompile "org.mockito:mockito-all:1.8.4"
+        testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.springframework:spring-test:$springVersion"
     }
 
@@ -154,71 +171,238 @@ project('spring-integration-feed') {
     dependencies {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.integration:spring-integration-core:$version"
-        compile "commons-lang:commons-lang:2.5"
+        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "net.java.dev.rome:rome-fetcher:1.0.0"
         compile "net.java.dev.rome:rome:1.0.0"
         testCompile "org.springframework.integration:spring-integration-test:2.0.0.BUILD-SNAPSHOT"
     }
 }
 
-/*
 project('spring-integration-file') {
+    description = 'Spring Integration File Support'
+    dependencies {
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+    }
 }
 
 project('spring-integration-ftp') {
+    description = 'Spring Integration FTP Support'
+    dependencies {        
+        compile "commons-io:commons-io:$commonsIoVersion"
+        compile "commons-lang:commons-lang:$commonsLangVersion"
+        compile "commons-net:commons-net:2.0"
+        compile "javax.activation:activation:$javaxActivationVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        compile "org.springframework.integration:spring-integration-file:$version"
+        compile "org.springframework.integration:spring-integration-stream:$version"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+    }
 }
 
 project('spring-integration-groovy') {
+    description = 'Spring Integration Groovy Support'
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:1.7.5"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
 
 project('spring-integration-http') {
+    description = 'Spring Integration HTTP Support'
+    dependencies {
+        compile "commons-httpclient:commons-httpclient:3.1"
+        compile "org.springframework:spring-webmvc:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+        provided "javax.servlet:servlet-api:2.4"
+    }
 }
 
 project('spring-integration-httpinvoker') {
+    description = 'Spring Integration HttpInvoker Support'
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-web:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        provided "javax.servlet:servlet-api:2.4"
+    }
 }
 
 project('spring-integration-ip') {
+    description = 'Spring Integration IP Support'
+    dependencies {
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        runtime "org.springframework.integration:spring-integration-stream:$version"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+    }
 }
 
 project('spring-integration-jdbc') {
+    description = 'Spring Integration JDBC Support'
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-jdbc:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        testCompile "com.h2database:h2:1.2.125"
+        testCompile "hsqldb:hsqldb:1.8.0.10"
+        testCompile "org.apache.derby:derby:10.5.3.0_1"
+        testCompile "org.aspectj:aspectjrt:$aspectjVersion"
+        testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+    }
 }
 
 project('spring-integration-jms') {
+    description = 'Spring Integration JMS Support'
+    dependencies {
+        compile "org.springframework:spring-jms:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        testCompile "org.apache.activemq:activemq-core:5.3.0"
+        testCompile "org.springframework:spring-oxm:$springVersion"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+        provided "org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1"
+    }
 }
 
 project('spring-integration-jmx') {
+    description = 'Spring Integration JMX Support'
+    dependencies {
+        compile "org.aspectj:aspectjrt:$aspectjVersion"
+        compile "org.aspectj:aspectjweaver:$aspectjVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
 
 project('spring-integration-mail') {
+    description = 'Spring Integration Mail Support'
+    dependencies {
+        compile "javax.activation:activation:$javaxActivationVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+        provided "javax.mail:mail:1.4.1"
+    }
 }
 
 project('spring-integration-rmi') {
+    description = 'Spring Integration RMI Support'
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
 
 project('spring-integration-security') {
+    description = 'Spring Integration Security Support'
+    dependencies {
+        compile "org.springframework:spring-aop:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
+            exclude(module: 'spring-support')
+        }
+        compile("org.springframework.security:spring-security-config:$springSecurityVersion") {
+            exclude(module: 'spring-support')
+        }
+    }
 }
 
 project('spring-integration-sftp') {
+    description = 'Spring Integration SFTP Support'
+    dependencies {
+        compile "com.jcraft:jsch:0.1.42"
+        compile "commons-io:commons-io:$commonsIoVersion"
+        compile "commons-lang:commons-lang:$commonsLangVersion"
+        compile "javax.activation:activation:$javaxActivationVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        compile "org.springframework.integration:spring-integration-file:$version"
+        compile "org.springframework.integration:spring-integration-stream:$version"
+    }
 }
 
 project('spring-integration-stream') {
+    description = 'Spring Integration Stream Support'
+    dependencies {
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
 
 project('spring-integration-test') {
+    description = 'Spring Integration Test Support'
+    dependencies {
+        compile "junit:junit:$junitVersion"
+        compile "org.mockito:mockito-all:$mockitoVersion"
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
 
 project('spring-integration-twitter') {
+    description = 'Spring Integration Twitter Support'
+    dependencies {
+        compile "commons-io:commons-io:$commonsIoVersion"
+        compile "commons-lang:commons-lang:$commonsLangVersion"
+        compile "javax.activation:activation:$javaxActivationVersion"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        compile "org.twitter4j:twitter4j-core:2.1.3"
+    }
 }
 
 project('spring-integration-ws') {
+    description = 'Spring Integration Web Services Support'
+    dependencies {
+        compile "com.sun.xml.messaging.saaj:saaj-impl:1.3"
+        compile("javax.xml.soap:saaj-api:1.3") {
+            exclude(module: 'activation')
+        }
+        compile "org.apache.geronimo.specs:geronimo-activation_1.1_spec:1.1"
+        compile "org.springframework:spring-expression:$springVersion"
+        compile "org.springframework:spring-oxm:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"     
+        compile "org.springframework.ws:spring-ws-core:$springWsVersion"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+    }
 }
 
 project('spring-integration-xml') {
+    description = 'Spring Integration XML Support'
+    dependencies {
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-oxm:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+        compile "org.springframework.ws:spring-xml:$springWsVersion"
+        testCompile "xmlunit:xmlunit:1.2"
+        testCompile "org.springframework.integration:spring-integration-test:$version"
+        provided "javax.activation:activation:$javaxActivationVersion"
+    }
 }
 
 project('spring-integration-xmpp') {
+    description = 'Spring Integration XMPP Support'
+    dependencies {
+        compile "commons-io:commons-io:$commonsIoVersion"
+        compile "commons-lang:commons-lang:$commonsLangVersion"
+        compile "javax.activation:activation:$javaxActivationVersion"
+        compile "jivesoftware:smack:3.1.0"
+        compile "jivesoftware:smackx:3.1.0"
+        compile "org.springframework:spring-context-support:$springVersion"
+        compile "org.springframework.integration:spring-integration-core:$version"
+    }
 }
-*/
+
 
 // add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
 // running `gradle clean` from the root project and deleting the build directory
