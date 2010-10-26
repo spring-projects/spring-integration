@@ -101,6 +101,8 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -130,6 +132,8 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

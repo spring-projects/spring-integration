@@ -123,6 +123,8 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 			configureXMPPConnection(element, builder, parserContext);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		}
 	}
 
@@ -153,6 +155,8 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 			configureXMPPConnection(element, builder, parserContext);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		}
 	}
 
