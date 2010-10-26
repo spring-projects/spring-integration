@@ -8,6 +8,8 @@ class Version {
 
     String value
     String releaseType
+    int majorVersion
+    int minorVersion
 
     /**
      * @param dotted -quad version spec, e.g.: 1.0.0.RELEASE
@@ -15,13 +17,24 @@ class Version {
     public Version(String value) {
         this.value = value;
         this.releaseType = releaseTypeFor(value);
+        this.majorVersion = Integer.parseInt(this.value.substring(0, this.value.indexOf('.')));
+        String afterMajor = this.value.substring(this.value.indexOf('.') + 1);
+        this.minorVersion = Integer.parseInt(afterMajor.substring(0, afterMajor.indexOf('.')));
+    }
+
+    public int getMajorVersion() {
+        return this.majorVersion;
+    }
+
+    public int getMinorVersion() {
+        return this.minorVersion
     }
 
     /**
      * @return 1.0.x style
      */
     public String getWildcardValue() {
-        return "1.0.x";
+        return majorVersion + '.' + minorVersion + '.x';
     }
 
     /**
@@ -38,9 +51,10 @@ class Version {
         if (version.endsWith("RELEASE")) return RELEASE;
         if (version.endsWith("SNAPSHOT")) return SNAPSHOT;
         if (version.matches(".*\\.M[0-9]+\$")) return MILESTONE;
+        if (version.matches(".*\\.RC[0-9]+\$")) return MILESTONE;
 
         throw new InvalidUserDataException("unknown version scheme: " +
-                "versions must end in (RELEASE|SNAPSHOT|M[0-9]+), " +
+                "versions must end in (SNAPSHOT|M[0-9]+|RC[0-9]+|RELEASE), " +
                 "but got (" + version + ")");
     }
 }

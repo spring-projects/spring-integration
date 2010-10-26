@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-
 // -----------------------------------------------------------------------------
 // Main gradle build file for Spring Integration
 //
 // - run `./gradlew(.bat) build` to kick off a complete compile-test-package
 //
-// - the imports above are from groovy and/or java classes in buildSrc/
-//   or from jars on 'buildscript' classpath (in our case, it's all buildSrc)
-//   sources in buildSrc are compiled and placed on the classpath automatically
-//
-// @author cbeams
+// @author Chris Beams
+// @author Mark Fisher
 // -----------------------------------------------------------------------------
 
 
@@ -93,6 +89,7 @@ configure(javaprojects) {
     cglibVersion = '2.2'
     commonsIoVersion = '1.4'
     commonsLangVersion = '2.5'
+    commonsNetVersion = '2.0'
     easymockVersion = '2.3'
     jacksonVersion = '1.4.3'
     javaxActivationVersion = '1.1.1'
@@ -148,10 +145,11 @@ configure(javaprojects) {
 project('spring-integration-core') {
     description = 'Spring Integration Core'
     dependencies {
-        compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
+        // 'jackson' should be 'optional' in the generated POM
+        compile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
         testCompile "org.aspectj:aspectjrt:$aspectjVersion"
         testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
     }
@@ -192,12 +190,10 @@ project('spring-integration-ftp') {
     dependencies {        
         compile "commons-io:commons-io:$commonsIoVersion"
         compile "commons-lang:commons-lang:$commonsLangVersion"
-        compile "commons-net:commons-net:2.0"
+        compile "commons-net:commons-net:$commonsNetVersion"
         compile "javax.activation:activation:$javaxActivationVersion"
         compile "org.springframework:spring-context-support:$springVersion"
-        compile "org.springframework.integration:spring-integration-core:$version"
         compile "org.springframework.integration:spring-integration-file:$version"
-        compile "org.springframework.integration:spring-integration-stream:$version"
         testCompile "org.springframework.integration:spring-integration-test:$version"
     }
 }
