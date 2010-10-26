@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.twitter.core;
 
-import java.util.Date;
 
 /**
  * Describes a direct-message in twitter. (Also known as a "DM").

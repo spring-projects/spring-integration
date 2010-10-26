@@ -47,7 +47,6 @@ class Twitter4jDecorator implements MethodInterceptor {
 	/* (non-Javadoc)
 	 * @see org.aopalliance.intercept.MethodInterceptor#invoke(org.aopalliance.intercept.MethodInvocation)
 	 */
-	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		Class<?> twitter4jClass = twitterObject.getClass();
 		Object[] args = invocation.getArguments();

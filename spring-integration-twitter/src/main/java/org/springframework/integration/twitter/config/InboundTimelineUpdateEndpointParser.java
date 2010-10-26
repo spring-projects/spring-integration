@@ -24,9 +24,8 @@ import org.w3c.dom.Element;
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
- * A parser for the {@link org.springframework.integration.twitter.inbound.InboundTimelineUpdateEndpoint} endpoint. The endpoint takes a channel and a reference to
- * the appropriate connection, typically factoried by {@link org.springframework.integration.twitter.config.ConnectionParser}
- *
+ * A parser for InboundTimelineUpdateEndpoint endpoint. 
+ * 
  * @author Josh Long
  * @since 2.0
  */

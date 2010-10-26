@@ -25,8 +25,7 @@ import org.w3c.dom.Element;
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
- * a parser for a {@link org.springframework.integration.twitter.outbound.OutboundDirectMessageMessageHandler} instance.
- * The parser expects a reference to a Twitter connection, as typically factoried by a {@link org.springframework.integration.twitter.config.ConnectionParser}.
+ * Parser for 'outbound-dm-channel-adapter' element
  *
  * @author Josh Long
  * @since 2.0

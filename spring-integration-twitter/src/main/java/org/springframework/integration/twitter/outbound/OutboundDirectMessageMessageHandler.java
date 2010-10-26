@@ -41,14 +41,13 @@ public class OutboundDirectMessageMessageHandler extends AbstractOutboundTwitter
 			Object payload = (String) message.getPayload();
 			Assert.isInstanceOf(String.class, payload, "Only payload of type String is supported. If your payload " +
 					"is not of type String you may want to introduce transformer");
-			Object toUser = message.getHeaders().containsKey(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) ?
-							message.getHeaders().get(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) :
-							null;
-
-			Assert.notNull(toUser, "the header '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + "' must be present");
+			Assert.isTrue(message.getHeaders().containsKey(TwitterHeaders.TWITTER_DM_TARGET_USER_ID), 
+					"You must provide '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + "' header");
+			Object toUser = message.getHeaders().get(TwitterHeaders.TWITTER_DM_TARGET_USER_ID);
 
 			Assert.state(toUser instanceof String || toUser instanceof Integer,
-					"the header '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + "' must be either a String (a screenname) or an int (a user ID)");
+					"the header '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + 
+					"' must be either a String (a screenname) or an int (a user ID)");
 
 			if (toUser instanceof Integer) {
 				this.twitter.sendDirectMessage((Integer) toUser, (String) payload);

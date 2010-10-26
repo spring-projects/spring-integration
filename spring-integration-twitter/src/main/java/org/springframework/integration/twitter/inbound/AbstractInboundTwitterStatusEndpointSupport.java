@@ -22,12 +22,12 @@ import java.util.List;
 import org.springframework.integration.twitter.core.Status;
 import org.springframework.integration.twitter.core.TwitterFactory;
 
-
 /**
  * Simple base class for the reply and timeline cases (as well as any other {@link twitter4j.Status} implementations of
  * {@link twitter4j.TwitterResponse}.
  *
  * @author Josh Long
+ * @author Oleg ZHurakousky
  */
 abstract public class AbstractInboundTwitterStatusEndpointSupport extends AbstractInboundTwitterEndpointSupport<Status> {
 
@@ -40,8 +40,6 @@ abstract public class AbstractInboundTwitterStatusEndpointSupport extends Abstra
 	protected List<Status> fromTwitter4jStatuses(List<twitter4j.Status> stats) {
 		List<Status> fwd = new ArrayList<Status>();
 		for (twitter4j.Status s : stats) {
-//			ProxyFactory factory = new ProxyFactory(Status.class, EmptyTargetSource.INSTANCE);
-//			factory.addAdvice(new Twitter4jDecorator(s));
 			fwd.add((Status) TwitterFactory.formTwitter4jMessage(s));
 		}		
 		return fwd;
