@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.twitter;
+package org.springframework.integration.twitter.inbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -23,17 +23,12 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.twitter.inbound.InboundDirectMessageEndpoint;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -51,17 +46,6 @@ public class InboundDirectMessageStatusEndpointTests {
 	private DirectMessage firstMessage;
 	private DirectMessage secondMessage;
 	private Twitter twitter;
-	
-	@Test
-	@Ignore
-	/*
-	 * In order to run this test you need to provide values to the twitter.properties file
-	 */
-	public void testUpdatesWithRealTwitter() throws Exception{
-		CountDownLatch latch = new CountDownLatch(1);
-		new ClassPathXmlApplicationContext("TestReceivingUsingNamespace-context.xml", this.getClass());
-		latch.await(10000, TimeUnit.SECONDS);
-	}
 
 	@Test
 	public void testTwitterMockedUpdates() throws Exception{

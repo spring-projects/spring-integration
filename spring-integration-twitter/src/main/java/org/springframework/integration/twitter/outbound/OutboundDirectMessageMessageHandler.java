@@ -16,6 +16,7 @@
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.util.Assert;
 
@@ -26,21 +27,23 @@ import twitter4j.TwitterException;
  * Simple adapter to support sending outbound direct messages ("DM"s) using twitter
  *
  * @author Josh Long
- * @see org.springframework.integration.twitter.core.TwitterHeaders
- * @see twitter4j.Twitter
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class OutboundDirectMessageMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
+		if (this.twitter == null){
+			this.afterPropertiesSet();
+		}
 		try {
-			String txt = (String) message.getPayload();
+			Object payload = (String) message.getPayload();
+			Assert.isInstanceOf(String.class, payload, "Only payload of type String is supported. If your payload " +
+					"is not of type String you may want to introduce transformer");
 			Object toUser = message.getHeaders().containsKey(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) ?
 							message.getHeaders().get(TwitterHeaders.TWITTER_DM_TARGET_USER_ID) :
 							null;
-
-			Assert.notNull(txt, "the message payload must be a String to be used as the direct message body text");
 
 			Assert.notNull(toUser, "the header '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + "' must be present");
 
@@ -48,13 +51,13 @@ public class OutboundDirectMessageMessageHandler extends AbstractOutboundTwitter
 					"the header '" + TwitterHeaders.TWITTER_DM_TARGET_USER_ID + "' must be either a String (a screenname) or an int (a user ID)");
 
 			if (toUser instanceof Integer) {
-				this.twitter.sendDirectMessage((Integer) toUser, txt);
-			} else if (toUser instanceof String) {
-				this.twitter.sendDirectMessage((String) toUser, txt);
+				this.twitter.sendDirectMessage((Integer) toUser, (String) payload);
+			} 
+			else if (toUser instanceof String) {
+				this.twitter.sendDirectMessage((String) toUser, (String) payload);
 			}
 		} catch (TwitterException e) {
-			logger.debug(e);
-			throw new RuntimeException(e);
+			throw new MessageHandlingException(message, e);
 		}
 	}
 }
