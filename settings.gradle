@@ -15,3 +15,5 @@
  */
 
 include 'spring-integration-core'
+include 'spring-integration-event'
+include 'spring-integration-feed'
