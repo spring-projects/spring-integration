@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -17,24 +33,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 
-
 /**
  * An FTP-adapter implementation of {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer}
  *
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizer
-		extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
-	protected FtpClientPool clientPool;
+public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
+
+	private volatile Trigger trigger = new PeriodicTrigger(10 * 1000);
+
+	protected volatile FtpClientPool clientPool;
+
 
 	@Override
-	protected void onInit() throws Exception {
-		Assert.notNull(this.clientPool, "clientPool can't be null");
-
-		if (this.shouldDeleteSourceFile) {
-			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
-		}
+	protected Trigger getTrigger() {
+		return this.trigger;
 	}
 
 	/**
@@ -46,37 +60,40 @@ public class FtpInboundRemoteFileSystemSynchronizer
 		this.clientPool = clientPool;
 	}
 
-	protected boolean copyFileToLocalDirectory(FTPClient client,
-											   FTPFile ftpFile, Resource localDirectory)
-			throws IOException, FileNotFoundException {
-		String remoteFileName = ftpFile.getName();
-		String localFileName = localDirectory.getFile().getPath() + "/" +
-				remoteFileName;
-		File localFile = new File(localFileName);
+	@Override
+	protected void onInit() throws Exception {
+		Assert.notNull(this.clientPool, "clientPool must not be null");
+		if (this.shouldDeleteSourceFile) {
+			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
+		}
+	}
 
+	private boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
+			throws IOException, FileNotFoundException {
+
+		String remoteFileName = ftpFile.getName();
+		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
+		File localFile = new File(localFileName);
 		if (!localFile.exists()) {
 			String tempFileName = localFileName +
 					AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
 			File file = new File(tempFileName);
 			FileOutputStream fos = new FileOutputStream(file);
-
 			try {
 				client.retrieveFile(remoteFileName, fos);
-
-				//  Perhaps we have some dispatch of hte source file to do?
+				//  Perhaps we have some dispatch of the source file to do?
 				acknowledge(client, ftpFile);
-			} catch (Throwable th) {
+			}
+			catch (Throwable th) {
 				throw new RuntimeException(th);
-			} finally {
+			}
+			finally {
 				fos.close();
 			}
-
 			file.renameTo(localFile);
-
 			return true;
-		} else {
-			return false;
 		}
+		return false;
 	}
 
 	@Override
@@ -86,44 +103,38 @@ public class FtpInboundRemoteFileSystemSynchronizer
 			Assert.state(client != null,
 					FtpClientPool.class.getSimpleName() +
 							" returned a 'null' client. " +
-							"This most likely a bug in the pool implementation.");
-
+							"This is most likely a bug in the pool implementation.");
 			Collection<FTPFile> fileList = this.filter.filterEntries(client.listFiles());
-
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(client, ftpFile,
-								this.localDirectory);
+						copyFileToLocalDirectory(client, ftpFile, this.localDirectory);
 					}
 				}
-			} finally {
+			}
+			finally {
 				this.clientPool.releaseClient(client);
 			}
-		} catch (IOException e) {
-			throw new MessagingException("Problem occurred while synchronizing remote to local directory",
-					e);
+		}
+		catch (IOException e) {
+			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
 		}
 	}
 
-	@Override
-	protected Trigger getTrigger() {
-		return new PeriodicTrigger(10 * 1000);
-	}
 
 	/**
-	 * An ackowledgment strategy that deletes
+	 * An acknowledgment strategy that deletes the file.
 	 */
-	class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
-		public void acknowledge(Object useful, FTPFile msg)
-				throws Exception {
-			FTPClient ftpClient = (FTPClient) useful;
+	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
 
-			if ((msg != null) && ftpClient.deleteFile(msg.getName())) {
+		public void acknowledge(Object useful, FTPFile fptFile) throws Exception {
+			FTPClient ftpClient = (FTPClient) useful;
+			if ((fptFile != null) && ftpClient.deleteFile(fptFile.getName())) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("deleted " + msg.getName());
+					logger.debug("deleted " + fptFile.getName());
 				}
 			}
 		}
 	}
+
 }

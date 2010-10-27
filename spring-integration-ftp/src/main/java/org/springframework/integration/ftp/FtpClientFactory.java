@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.IOException;
-
 
 /**
  * Factory for {@link FTPClient}.
@@ -26,9 +26,11 @@ import java.io.IOException;
  * @author Iwein Fuld
  */
 public interface FtpClientFactory<T extends FTPClient> {
+
 	/**
 	 * @return Fully configured and connected FTPClient. Never <code>null</code>.
 	 * @throws IOException thrown when a networking IO subsystem error occurs
 	 */
 	T getClient() throws IOException;
+
 }

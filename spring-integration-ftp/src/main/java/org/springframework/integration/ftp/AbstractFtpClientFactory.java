@@ -1,4 +1,23 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.ftp;
+
+import java.io.IOException;
+import java.net.SocketException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -6,34 +25,40 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPReply;
+
 import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.net.SocketException;
-
-
 /**
- *
  * base class for the other {@link org.springframework.integration.ftp.FtpClientFactory} implementations.
  * Most of this came out of the {@link DefaultFtpClientFactory} and was refactored into a base class
  *
  * @author Iwein Fuld
- *
- * @param <T>
  */
 abstract public class AbstractFtpClientFactory<T extends FTPClient> implements FtpClientFactory<T> {
+
 	private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
+
 	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
+
+
 	protected FTPClientConfig config;
+
 	protected String username;
+
 	protected String host;
+
 	protected String password;
+
 	protected int port = FTP.DEFAULT_PORT;
+
 	protected String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
+
 	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+
 	protected int fileType = FTP.BINARY_FILE_TYPE;
+
 
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
@@ -70,9 +95,9 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 	}
 
 	/**
-	 * Set client mode for example
-	 * <code>FTPClient.ACTIVE_LOCAL_CONNECTION_MODE</code> (default) Only local
-	 * modes are supported.
+	 * Set client mode, for example
+	 * <code>FTPClient.ACTIVE_LOCAL_CONNECTION_MODE</code> (default)
+	 * Only local modes are supported.
 	 */
 	public void setClientMode(int clientMode) {
 		this.clientMode = clientMode;
@@ -118,7 +143,6 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		}
 
 		setClientMode(client);
-
 		client.setFileType(this.fileType);
 
 		if (logger.isDebugEnabled()) {
@@ -135,7 +159,6 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 			logger.debug("working directory is: " +
 					client.printWorkingDirectory());
 		}
-
 		return client;
 	}
 
@@ -146,16 +169,13 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		switch (clientMode) {
 			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE:
 				client.enterLocalActiveMode();
-
 				break;
-
 			case FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE:
 				client.enterLocalPassiveMode();
-
 				break;
-
 			default:
 				break;
 		}
 	}
+
 }

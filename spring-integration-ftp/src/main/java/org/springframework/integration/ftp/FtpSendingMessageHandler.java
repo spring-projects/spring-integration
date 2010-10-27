@@ -85,13 +85,11 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 	}
 
 	protected void onInit() throws Exception {
-		Assert.notNull(ftpClientPool, "'ftpClientPool' must not be null");
-		Assert.notNull(temporaryBufferFolder,
+		Assert.notNull(this.ftpClientPool, "'ftpClientPool' must not be null");
+		Assert.notNull(this.temporaryBufferFolder,
 				"'temporaryBufferFolder' must not be null");
-		temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
+		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
 	}
-
-	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
 		if (sourceFile.renameTo(resultFile)) {
@@ -108,8 +106,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		return resultFile;
 	}
 
-	private File handleStringMessage(String content, File tempFile,
-									 File resultFile, String charset) throws IOException {
+	private File handleStringMessage(String content, File tempFile, File resultFile, String charset) throws IOException {
 		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), charset);
 		FileCopyUtils.copy(content, writer);
 		tempFile.renameTo(resultFile);
@@ -162,25 +159,21 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		Assert.notNull(message, "'message' must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "Message payload must not be null");
-		
 		File file = this.redeemForStorableFile(message);
-		
 		if ((file != null) && file.exists()) {
 			FTPClient client = null;
 			boolean sentSuccesfully;
 			try {
 				client = getFtpClient();
 				sentSuccesfully = sendFile(file, client);
-			} catch (FileNotFoundException e) {
+			}
+			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
-						"File [" + file +
-								"] not found in local working directory; it was moved or deleted unexpectedly",
-						e);
+						"File [" + file + "] not found in local working directory; it was moved or deleted unexpectedly", e);
 			}
 			catch (IOException e) {
 				throw new MessageDeliveryException(message,
-						"Error transferring file [" + file +
-								"] from local working directory to remote FTP directory", e);
+						"Error transferring file [" + file + "] from local working directory to remote FTP directory", e);
 			}
 			catch (Exception e) {
 				throw new MessageDeliveryException(message,
@@ -190,8 +183,9 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 				if (file.exists()) {
 					try {
 						file.delete();
-					} catch (Throwable th) {
-						/// noop
+					}
+					catch (Throwable th) {
+						// ignore
 					}
 				}
 				if (client != null) {
@@ -199,8 +193,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 				}
 			}
 			if (!sentSuccesfully) {
-				throw new MessageDeliveryException(message,
-						"Failed to store file '" + file + "'");
+				throw new MessageDeliveryException(message, "Failed to store file '" + file + "'");
 			}
 		}
 	}

@@ -1,8 +1,23 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.ftp;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
-
 
 /**
  * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.FtpSendingMessageHandler}
@@ -10,7 +25,6 @@ import javax.net.ssl.TrustManager;
  * @author Josh Long
  * @author Iwein Fuld
  */
-
 public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 
 	/**
@@ -27,15 +41,25 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 	 * "P"
 	 */
 	protected volatile String prot;
+
 	private KeyManager keyManager;
+
 	private TrustManager trustManager;
+
 	protected volatile String authValue;
+
 	private Boolean sessionCreation;
+
 	private Boolean useClientMode;
+
 	private Boolean needClientAuth;
+
 	private Boolean wantsClientAuth;
+
 	private String[] cipherSuites;
+
 	private int fileType;
+
 
 	public void setImplicit(Boolean implicit) {
 		this.implicit = implicit;
@@ -86,7 +110,7 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 	}
 
 	@Override
-	protected AbstractFtpClientFactory clientFactory() {
+	protected AbstractFtpClientFactory<?> clientFactory() {
 		DefaultFtpsClientFactory factory = ClientFactorySupport.ftpsClientFactory(this.host,
 				(this.port), this.remoteDirectory, this.username,
 				this.password, this.fileType, this.clientMode, this.prot,
@@ -94,7 +118,7 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 				this.trustManager, this.keyManager, this.sessionCreation,
 				this.useClientMode, this.wantsClientAuth, this.needClientAuth,
 				this.cipherSuites);
-
 		return factory;
 	}
+
 }

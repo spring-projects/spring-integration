@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
@@ -5,14 +21,13 @@ import org.apache.commons.net.ftp.FTPClient;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
-
 /**
- * Factory to make building the namespace easier
+ * Factory to make building the namespace easier.
  *
  * @author Josh Long
  */
-public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean
-		extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {
+public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {
+
 	/**
 	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
 	 */
@@ -27,19 +42,29 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	 * "P"
 	 */
 	protected volatile String prot;
+
 	private KeyManager keyManager;
+
 	private TrustManager trustManager;
+
 	protected volatile String authValue;
+
 	private Boolean sessionCreation;
+
 	private Boolean useClientMode;
+
 	private Boolean needClientAuth;
+
 	private Boolean wantsClientAuth;
+
 	private String[] cipherSuites;
+
 
 	public FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
 		this.defaultFtpInboundFolderName = "ftpsInbound";
 		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
 	}
+
 
 	public void setKeyManager(KeyManager keyManager) {
 		this.keyManager = keyManager;
@@ -81,8 +106,11 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.wantsClientAuth = wantsClientAuth;
 	}
 
-	protected AbstractFtpClientFactory defaultClientFactory()
-			throws Exception {
+	public void setCipherSuites(String[] cipherSuites) {
+		this.cipherSuites = cipherSuites;
+	}
+
+	protected AbstractFtpClientFactory<?> defaultClientFactory() throws Exception {
 		DefaultFtpsClientFactory factory = ClientFactorySupport.ftpsClientFactory(this.host,
 				Integer.parseInt(this.port), this.remoteDirectory,
 				this.username, this.password, this.fileType, this.clientMode,
@@ -94,7 +122,4 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		return factory;
 	}
 
-	public void setCipherSuites(String[] cipherSuites) {
-		this.cipherSuites = cipherSuites;
-	}
 }

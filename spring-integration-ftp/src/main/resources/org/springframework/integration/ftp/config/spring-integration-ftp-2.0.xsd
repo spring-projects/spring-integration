@@ -29,13 +29,10 @@
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
 				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
-
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-
                 Builds an outbound-channel-adapter that writes files to a remote FTP endpoint.
-
             ]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -49,7 +46,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-
 			<xsd:attribute name="username" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
@@ -59,7 +55,7 @@
 			<xsd:attribute name="filename-generator" type="xsd:string">
 	            <xsd:annotation>
 	            	<xsd:documentation>
-	            	Allows you to specify a reference to  
+	            	Allows you to specify a reference to
 	            	[org.springframework.integration.file.FileNameGenerator] implementation.
 	            	</xsd:documentation>
 	                <xsd:appinfo>
@@ -71,10 +67,9 @@
 	        </xsd:attribute>
 			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-                           the FTP Client-Mode.
-
-                             /***
+					<xsd:documentation><![CDATA[the FTP Client-Mode
+	
+    /***
      * A constant indicating the FTP session is expecting all transfers
      * to occur between the client (local) and server and that the server
      * should connect to the client's data port to initiate a data transfer.
@@ -107,8 +102,6 @@
      * transfer.
      ***/
     PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3
-
-
                             ]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -120,13 +113,10 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-
-			<xsd:attribute use="optional" name="file-type" default="binary-file-type">
+			<xsd:attribute name="file-type" default="binary-file-type" use="optional">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-
  			Binary, ASCII, or EBDIC. Binary's a good default
-
                             ]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -137,17 +127,13 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-
-
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-
                     Builds an inbound-channel-adapter that synchronizes a local directory with the contents of a remote FTP endpoint. 
-
             ]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -164,12 +150,10 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute use="optional" name="file-type" default="binary-file-type">
+			<xsd:attribute name="file-type" default="binary-file-type" use="optional">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-
  			Binary, ASCII, or EBDIC. Binary's a good default
-
                             ]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -190,24 +174,19 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
-
-
 			<xsd:attribute name="local-working-directory" type="xsd:string"/>
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
 			<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
-
-
 			<xsd:attribute name="username" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
 			<xsd:attribute name="password" type="xsd:string"/>
 			<xsd:attribute name="port" type="xsd:int" default="22"/>
-			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
+			<xsd:attribute name="client-mode" default="active-local-data-connection-mode" use="optional">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-                           the FTP Client-Mode.
-
-                             /***
+					<xsd:documentation><![CDATA[the FTP Client-Mode
+	
+    /***
      * A constant indicating the FTP session is expecting all transfers
      * to occur between the client (local) and server and that the server
      * should connect to the client's data port to initiate a data transfer.
@@ -240,8 +219,6 @@
      * transfer.
      ***/
     PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3
-
-
                             ]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -250,13 +227,10 @@
 						<xsd:enumeration value="active-remote-data-connection-mode"/>
 						<xsd:enumeration value="passive-local-data-connection-mode"/>
 						<xsd:enumeration value="passive-remote-data-connection-mode"/>
-
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-
 		</xsd:complexType>
 	</xsd:element>
-
 
 </xsd:schema>
