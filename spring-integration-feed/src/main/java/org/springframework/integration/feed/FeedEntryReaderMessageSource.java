@@ -31,6 +31,7 @@ import org.springframework.integration.context.metadata.SimpleMetadataStore;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
@@ -111,34 +112,20 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 		this.initialized = true;
 	}
 
-	@SuppressWarnings("unchecked")
 	private SyndEntry doReceive() {
-		SyndEntry nextUp = null;
+		SyndEntry nextEntry = null;
 		synchronized (this.monitor) {
-			nextUp = pollAndCache();
-			if (nextUp != null) {
-				return nextUp;
+			nextEntry = getNextEntry();
+			if (nextEntry == null) {
+				// read feed and try again
+				this.populateEntryList();
+				nextEntry = getNextEntry();
 			}
-			// otherwise, fill the backlog
-			SyndFeed syndFeed = this.feedReaderMessageSource.receiveSyndFeed();
-			if (syndFeed != null) {
-				List<SyndEntry> feedEntries = (List<SyndEntry>) syndFeed.getEntries();
-				if (null != feedEntries) {
-					Collections.sort(feedEntries, syndEntryComparator);
-					for (SyndEntry se : feedEntries) {
-						long publishedTime = se.getPublishedDate().getTime();
-						if (publishedTime > this.lastTime) {
-							entries.add(se);
-						}
-					}
-				}
-			}
-			nextUp = pollAndCache();
 		}
-		return nextUp;
+		return nextEntry;
 	}
 
-	private SyndEntry pollAndCache() {
+	private SyndEntry getNextEntry() {
 		SyndEntry next = this.entries.poll();
 		if (next == null) {
 			return null;
@@ -146,6 +133,22 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 		this.lastTime = next.getPublishedDate().getTime();
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void populateEntryList() {
+		SyndFeed syndFeed = this.feedReaderMessageSource.receiveSyndFeed();
+		if (syndFeed != null) {
+			List<SyndEntry> retrievedEntries = (List<SyndEntry>) syndFeed.getEntries();
+			if (!CollectionUtils.isEmpty(retrievedEntries)) {
+				Collections.sort(retrievedEntries, this.syndEntryComparator);
+				for (SyndEntry entry : retrievedEntries) {
+					if (entry.getPublishedDate().getTime() > this.lastTime) {
+						this.entries.add(entry);
+					}
+				}
+			}
+		}
 	}
 
 
