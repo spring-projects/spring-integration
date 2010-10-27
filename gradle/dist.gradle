@@ -90,10 +90,10 @@ task distArchive(type: Zip) {
         // copy images and css into respective html dirs
         ['html', 'htmlsingle'].each { dir ->
             into("docs/reference/${dir}/images") {
-                from "src/docbook/images"
+                from "src/reference/resources/images"
             }
             into("docs/reference/${dir}/css") {
-                from "src/resources/css"
+                from "src/reference/resources/css"
             }
         }
 

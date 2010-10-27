@@ -120,10 +120,10 @@ task reference(dependsOn: [docbookHtml, docbookHtmlSingle, docbookPdf]) {
 [docbookHtml, docbookPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml';
 [docbookHtml, docbookHtmlSingle, docbookPdf]*.dependsOn preprocessDocbookSources
 
-docbookHtml.stylesheet = file('src/reference/xsl/html-custom.xsl')
-docbookHtmlSingle.stylesheet = file('src/reference/xsl/html-single-custom.xsl')
-docbookPdf.stylesheet = file('src/reference/xsl/pdf-custom.xsl')
-def imagesDir = file('src/reference/docbook/images');
+docbookHtml.stylesheet = file('src/reference/resources/xsl/html-custom.xsl')
+docbookHtmlSingle.stylesheet = file('src/reference/resources/xsl/html-single-custom.xsl')
+docbookPdf.stylesheet = file('src/reference/resources/xsl/pdf-custom.xsl')
+def imagesDir = file('src/reference/resources/images');
 docbookPdf.admonGraphicsPath = "${imagesDir}/"
 
 
@@ -148,10 +148,10 @@ docsSpec = copySpec {
     // copy images and css into respective html dirs
     ['html', 'htmlsingle'].each { dir ->
         into("${version}/reference/${dir}/images") {
-            from "src/docbook/images"
+            from "src/reference/resources/images"
         }
         into("${version}/reference/${dir}/css") {
-            from "src/resources/css"
+            from "src/reference/resources/css"
         }
     }
 }
