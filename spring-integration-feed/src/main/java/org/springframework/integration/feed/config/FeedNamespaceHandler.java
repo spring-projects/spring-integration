@@ -22,12 +22,13 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * NamespaceHandler for the feed module.
  * 
  * @author Josh Long
+ * @author Mark Fisher
  * @since 2.0
  */
 public class FeedNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		registerBeanDefinitionParser("inbound-channel-adapter", new FeedMessageSourceBeanDefinitionParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new FeedInboundChannelAdapterParser());
 	}
 
 }

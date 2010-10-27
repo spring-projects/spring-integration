@@ -41,9 +41,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.metadata.MetadataStore;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.feed.FeedEntryReaderMessageSource;
-import org.springframework.integration.feed.FeedReaderMessageSource;
-import org.springframework.integration.feed.FileUrlFeedFetcher;
+import org.springframework.integration.feed.FeedEntryMessageSource;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -69,23 +67,28 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	}
 
 	@Test
-	public void validateSuccessfulConfigurationWithCustomMetadataStore() {
+	public void validateSuccessfulFileConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedMessageSourceBeanDefinitionParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
-		FeedEntryReaderMessageSource source = (FeedEntryReaderMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
 		assertTrue(metadataStore instanceof SampleMetadataStore);
 		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		FeedReaderMessageSource feedReaderMessageSource = (FeedReaderMessageSource) TestUtils.getPropertyValue(source, "feedReaderMessageSource");
-		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(feedReaderMessageSource, "fetcher");
-		assertTrue(fetcher instanceof FileUrlFeedFetcher);
-		context = new ClassPathXmlApplicationContext(
+		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "fetcher");
+		assertEquals("FileUrlFeedFetcher", fetcher.getClass().getSimpleName());
+		context.destroy();
+	}
+
+	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
-		adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
-		source = (FeedEntryReaderMessageSource) TestUtils.getPropertyValue(adapter, "source");
-		feedReaderMessageSource = (FeedReaderMessageSource) TestUtils.getPropertyValue(source, "feedReaderMessageSource");
-		fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(feedReaderMessageSource, "fetcher");
+		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
+		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
+		assertTrue(metadataStore instanceof SampleMetadataStore);
+		assertEquals(metadataStore, context.getBean("customMetadataStore"));
+		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "fetcher");
 		assertTrue(fetcher instanceof HttpURLFeedFetcher);
 		context.destroy();
 	}
