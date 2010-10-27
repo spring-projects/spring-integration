@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.integration.store.PropertiesPersistingMetadataStore;
 
 /**
  * @author Oleg Zhurakousky

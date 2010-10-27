@@ -21,8 +21,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.context.metadata.MetadataStore;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.store.MetadataStore;
 
 import org.springframework.scheduling.TaskScheduler;
 

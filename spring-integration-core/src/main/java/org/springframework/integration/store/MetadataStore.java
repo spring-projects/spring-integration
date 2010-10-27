@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context.metadata;
+package org.springframework.integration.store;
 
 /**
  * Strategy interface for storing metadata from certain adapters
