@@ -159,7 +159,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 		twitterUpdatePollingTask.cancel(true);
 	}
 
-	@Override
 	public Message<?> receive() {
 		Object tweet = tweets.poll();
 		if (tweet != null){
