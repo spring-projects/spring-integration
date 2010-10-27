@@ -77,6 +77,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Object feedMonitor = new Object();
 
+	
 	/**
 	 * Will create a default HttpURLFeedFetcher. If URL is other then http*
 	 * then consider providing custom implementation of the {@link FeedFetcher} 
@@ -86,6 +87,8 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	public FeedEntryMessageSource(URL feedUrl) {
 		this(feedUrl, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
 	}
+	 
+	
 	/**
 	 * Will allow you to provide not only URL but the custom implementation 
 	 * of the {@link FeedFetcher}
