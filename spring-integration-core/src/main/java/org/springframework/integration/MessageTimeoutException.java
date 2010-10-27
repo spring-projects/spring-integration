@@ -16,8 +16,9 @@
 
 package org.springframework.integration;
 
-
 /**
+ * Exception that indicates a timeout elapsed prior to successful message delivery.
+ * 
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
