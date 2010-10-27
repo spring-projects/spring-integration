@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context.metadata;
+package org.springframework.integration.store;
 
 import java.io.File;
 import java.io.FileInputStream;

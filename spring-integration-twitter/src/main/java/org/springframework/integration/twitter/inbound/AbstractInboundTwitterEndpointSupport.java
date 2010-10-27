@@ -23,10 +23,10 @@ import java.util.concurrent.ScheduledFuture;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.metadata.MetadataStore;
-import org.springframework.integration.context.metadata.SimpleMetadataStore;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
+import org.springframework.integration.store.MetadataStore;
+import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 import org.springframework.util.Assert;
@@ -40,7 +40,7 @@ import twitter4j.Twitter;
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of common messages. This functionality is enabled using the
- * {@link org.springframework.integration.context.metadata.MetadataStore}
+ * {@link org.springframework.integration.store.MetadataStore}
  * strategy.
  * 
  * @author Josh Long

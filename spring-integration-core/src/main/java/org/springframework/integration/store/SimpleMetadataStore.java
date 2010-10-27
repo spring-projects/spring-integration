@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.context.metadata;
+package org.springframework.integration.store;
 
 import java.util.HashMap;
 import java.util.Map;

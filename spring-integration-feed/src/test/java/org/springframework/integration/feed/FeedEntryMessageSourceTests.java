@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.context.metadata.PropertiesPersistingMetadataStore;
+import org.springframework.integration.store.PropertiesPersistingMetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.fetcher.FeedFetcher;
