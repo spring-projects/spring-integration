@@ -55,7 +55,7 @@ import twitter4j.Twitter;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint 
+public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint 
 						implements MessageSource, TrackableComponent {
 	
 	private volatile MetadataStore metadataStore;

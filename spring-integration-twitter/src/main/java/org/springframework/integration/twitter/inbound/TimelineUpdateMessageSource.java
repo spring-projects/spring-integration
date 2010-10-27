@@ -15,25 +15,27 @@
  */
 package org.springframework.integration.twitter.inbound;
 
-import java.util.List;
-
 import org.springframework.integration.MessagingException;
 
 import twitter4j.Paging;
 import twitter4j.Status;
 
+
 /**
- * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
+ * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume a given account's timeline
+ * as messages. It has support for dynamic throttling of API requests.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public class InboundMentionEndpoint extends AbstractInboundTwitterEndpointSupport<Status> {
+public class TimelineUpdateMessageSource extends AbstractTwitterMessageSource<Status> {
 
 	@Override
-	public String getComponentType() {
-		return  "twitter:inbound-mention-channel-adapter";
+	 public String getComponentType() {
+		return "twitter:inbound-update-channel-adapter";  
 	}
+
 	@Override
 	Runnable getApiCallback() {
 		Runnable apiCallback = new Runnable() {	
@@ -41,11 +43,10 @@ public class InboundMentionEndpoint extends AbstractInboundTwitterEndpointSuppor
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						List<twitter4j.Status> stats = (!hasMarkedStatus())
-						? twitter.getMentions()
-						: twitter.getMentions(new Paging(sinceId));
-						forwardAll(stats);
-					}
+						forwardAll(!hasMarkedStatus()
+								? twitter.getFriendsTimeline() 
+								: twitter.getFriendsTimeline(new Paging(sinceId)));
+					}	
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;

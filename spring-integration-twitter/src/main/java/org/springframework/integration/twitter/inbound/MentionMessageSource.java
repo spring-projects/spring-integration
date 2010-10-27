@@ -15,28 +15,25 @@
  */
 package org.springframework.integration.twitter.inbound;
 
-import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
 
-import twitter4j.DirectMessage;
 import twitter4j.Paging;
+import twitter4j.Status;
 
 /**
- * This class handles support for receiving DMs (direct messages) using Twitter.
+ * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
- * @since 2.0
  */
-public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
-	
+public class MentionMessageSource extends AbstractTwitterMessageSource<Status> {
+
 	@Override
 	public String getComponentType() {
-		return "twitter:inbound-dm-channel-adapter";  
+		return  "twitter:inbound-mention-channel-adapter";
 	}
-
 	@Override
 	Runnable getApiCallback() {
 		Runnable apiCallback = new Runnable() {	
@@ -44,15 +41,12 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						System.out.println("Polling");
-						List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
-							? twitter.getDirectMessages() 
-							: twitter.getDirectMessages(new Paging(sinceId));
-			
-						forwardAll(dms);
-					} 
+						List<twitter4j.Status> stats = (!hasMarkedStatus())
+						? twitter.getMentions()
+						: twitter.getMentions(new Paging(sinceId));
+						forwardAll(stats);
+					}
 				} catch (Exception e) {
-					e.printStackTrace();
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;
 					}
@@ -63,14 +57,5 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 			}
 		};
 		return apiCallback;
-	}
-
-	@SuppressWarnings("rawtypes")
-	protected Comparator getComparator() {
-		return new Comparator<DirectMessage>() {
-			public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
-				return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
-			}
-		};
 	}
 }

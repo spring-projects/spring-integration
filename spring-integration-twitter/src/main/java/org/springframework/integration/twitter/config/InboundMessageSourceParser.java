@@ -32,20 +32,20 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class UpdateEndpointParser extends AbstractPollingInboundChannelAdapterParser {
+public class InboundMessageSourceParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {  
 		String elementName = element.getLocalName().trim();
 		String className = null;
     	if ("inbound-update-channel-adapter".equals(elementName)){
-    		className = BASE_PACKAGE +".inbound.InboundTimelineUpdateEndpoint" ;
+    		className = BASE_PACKAGE +".inbound.TimelineUpdateMessageSource" ;
     	}
     	else if ("inbound-dm-channel-adapter".equals(elementName)){
-    		className =  BASE_PACKAGE +  ".inbound.InboundDirectMessageEndpoint"; 
+    		className =  BASE_PACKAGE +  ".inbound.DirectMessageMessageSource"; 
     	}
     	else if ("inbound-mention-channel-adapter".equals(elementName)){
-    		className = BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
+    		className = BASE_PACKAGE + ".inbound.MentionMessageSource";
     	}
     	else {
     		throw new IllegalArgumentException("Element '" + elementName + "' is not supported by this parser");
