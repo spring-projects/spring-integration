@@ -370,7 +370,7 @@ project('spring-integration-twitter') {
 project('spring-integration-ws') {
     description = 'Spring Integration Web Services Support'
     dependencies {
-        compile "com.sun.xml.messaging.saaj:saaj-impl:1.3"
+        compile "com.sun.xml.messaging.saaj:saaj-impl:1.3" // should be optional
         compile("javax.xml.soap:saaj-api:1.3") {
             exclude(module: 'activation')
         }
