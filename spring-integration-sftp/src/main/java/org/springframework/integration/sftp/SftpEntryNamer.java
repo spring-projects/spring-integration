@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp;
 
-import com.jcraft.jsch.ChannelSftp;
 import org.springframework.integration.file.entries.EntryNamer;
 
+import com.jcraft.jsch.ChannelSftp;
+
 /**
- * Knows how to name a {@link com.jcraft.jsch.ChannelSftp.LsEntry} instance
+ * Stratgy for naming a {@link com.jcraft.jsch.ChannelSftp.LsEntry} instance.
  *
  * @author Josh Long
  */
@@ -28,4 +30,5 @@ public class SftpEntryNamer implements EntryNamer<ChannelSftp.LsEntry> {
 	public String nameOf(ChannelSftp.LsEntry entry) {
 		return entry.getFilename();
 	}
+
 }

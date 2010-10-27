@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -23,9 +24,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.InputStream;
 
-
 /**
- * c
  * There are many ways to create a {@link SftpSession} just as there are many ways to SSH into a remote system.
  * You may use a username and password, you may use a username and private key, you may use a username and a private key with a password, etc.
  * <p/>
@@ -36,10 +35,15 @@ import java.io.InputStream;
  * @author Mario Gray
  */
 public class SftpSession {
+
 	private volatile ChannelSftp channel;
+
 	private volatile Session session;
+
 	private String privateKey;
+
 	private String privateKeyPassphrase;
+
 	private volatile UserInfo userInfo;
 
 
@@ -66,43 +70,40 @@ public class SftpSession {
 	 *                              to surmount that, we need the private key passphrase. Specify that here.
 	 * @throws Exception thrown if any of a myriad of scenarios plays out
 	 */
-	public SftpSession(String userName, String hostName, String userPassword, int port, String knownHostsFile, InputStream knownHostsInputStream, String privateKey, String pvKeyPassPhrase)
-			throws Exception {
-		JSch jSch = new JSch();
+	public SftpSession(String userName, String hostName, String userPassword, int port, String knownHostsFile,
+			InputStream knownHostsInputStream, String privateKey, String pvKeyPassPhrase) throws Exception {
 
+		JSch jSch = new JSch();
 		if (port <= 0) {
 			port = 22;
 		}
-
 		this.privateKey = privateKey;
 		this.privateKeyPassphrase = pvKeyPassPhrase;
-
 		if (!StringUtils.isEmpty(knownHostsFile)) {
 			jSch.setKnownHosts(knownHostsFile);
-		} else if (null != knownHostsInputStream) {
+		}
+		else if (null != knownHostsInputStream) {
 			jSch.setKnownHosts(knownHostsInputStream);
 		}
-
 		// private key
 		if (!StringUtils.isEmpty(this.privateKey)) {
 			if (!StringUtils.isEmpty(privateKeyPassphrase)) {
 				jSch.addIdentity(this.privateKey, privateKeyPassphrase);
-			} else {
+			}
+			else {
 				jSch.addIdentity(this.privateKey);
 			}
 		}
-
-		session = jSch.getSession(userName, hostName, port);
-
+		this.session = jSch.getSession(userName, hostName, port);
 		if (!StringUtils.isEmpty(userPassword)) {
-			session.setPassword(userPassword);
+			this.session.setPassword(userPassword);
 		}
-
-		userInfo = new OptimisticUserInfoImpl(userPassword);
-		session.setUserInfo(userInfo);
-		session.connect();
-		channel = (ChannelSftp) session.openChannel("sftp");
+		this.userInfo = new OptimisticUserInfoImpl(userPassword);
+		this.session.setUserInfo(userInfo);
+		this.session.connect();
+		this.channel = (ChannelSftp) this.session.openChannel("sftp");
 	}
+
 
 	public ChannelSftp getChannel() {
 		return channel;
@@ -118,15 +119,17 @@ public class SftpSession {
 		}
 	}
 
+
 	/**
 	 * this is a simple, optimistic implementation of this interface. It simply returns in the positive where possible
 	 * and handles interactive authentication (ie, 'Please enter your password: ' prompts are dispatched automatically using this)
 	 */
 	private static class OptimisticUserInfoImpl implements UserInfo {
-		private String pw;
+
+		private String password;
 
 		public OptimisticUserInfoImpl(String password) {
-			this.pw = password;
+			this.password = password;
 		}
 
 		public String getPassphrase() {
@@ -134,7 +137,7 @@ public class SftpSession {
 		}
 
 		public String getPassword() {
-			return pw;
+			return password;
 		}
 
 		public boolean promptPassphrase(String string) {
@@ -152,4 +155,5 @@ public class SftpSession {
 		public void showMessage(String string) {
 		}
 	}
+
 }
