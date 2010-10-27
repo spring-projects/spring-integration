@@ -34,6 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
@@ -41,7 +42,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
 
 /**
  * Sends message payloads to a remote SFTP endpoint.
