@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp;
 
 import org.apache.commons.logging.Log;
@@ -25,7 +26,6 @@ import java.net.SocketException;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
-
 /**
  * FtpClientPool implementation based on a Queue. This implementation has a
  * default pool size of 5, but this is configurable with a constructor argument.
@@ -36,22 +36,28 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @author Iwein Fuld
  */
 public class QueuedFtpClientPool implements FtpClientPool {
-	private static final Log log = LogFactory.getLog(QueuedFtpClientPool.class);
-	private static final int DEFAULT_POOL_SIZE = 5;
-	private final Queue<FTPClient> pool;
-	private final FtpClientFactory factory;
 
-	public QueuedFtpClientPool(FtpClientFactory factory) {
+	private static final Log logger = LogFactory.getLog(QueuedFtpClientPool.class);
+
+	private static final int DEFAULT_POOL_SIZE = 5;
+
+
+	private final Queue<FTPClient> pool;
+
+	private final FtpClientFactory<?> factory;
+
+
+	public QueuedFtpClientPool(FtpClientFactory<?> factory) {
 		this(DEFAULT_POOL_SIZE, factory);
 	}
 
 	/**
 	 * @param maxPoolSize the maximum size of the pool
 	 */
-	public QueuedFtpClientPool(int maxPoolSize, FtpClientFactory factory) {
-		Assert.notNull(factory);
+	public QueuedFtpClientPool(int maxPoolSize, FtpClientFactory<?> factory) {
+		Assert.notNull(factory, "factory must not be null");
 		this.factory = factory;
-		pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
+		this.pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
 	}
 
 	/**
@@ -65,12 +71,10 @@ public class QueuedFtpClientPool implements FtpClientPool {
 	 * reason large pools are not recommended in poor networking conditions.
 	 */
 	public FTPClient getClient() throws SocketException, IOException {
-		FTPClient client = pool.poll();
-
+		FTPClient client = this.pool.poll();
 		if (client == null) {
-			client = factory.getClient();
+			client = this.factory.getClient();
 		}
-
 		return prepareClient(client);
 	}
 
@@ -88,8 +92,7 @@ public class QueuedFtpClientPool implements FtpClientPool {
 	 * @throws SocketException
 	 * @throws IOException
 	 */
-	protected FTPClient prepareClient(FTPClient client)
-			throws SocketException, IOException {
+	protected FTPClient prepareClient(FTPClient client) throws SocketException, IOException {
 		return isClientAlive(client) ? client : getClient();
 	}
 
@@ -98,20 +101,26 @@ public class QueuedFtpClientPool implements FtpClientPool {
 			if (client.sendNoOp()) {
 				return true;
 			}
-		} catch (IOException e) {
-			log.warn("Client [" + client + "] discarded: ", e);
 		}
-
+		catch (IOException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Client [" + client + "] discarded: ", e);
+			}
+		}
 		return false;
 	}
 
 	public void releaseClient(FTPClient client) {
-		if ((client != null) && !pool.offer(client)) {
+		if ((client != null) && !this.pool.offer(client)) {
 			try {
 				client.disconnect();
-			} catch (IOException e) {
-				log.warn("Error disconnecting ftpclient", e);
+			}
+			catch (IOException e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Error disconnecting ftpclient", e);
+				}
 			}
 		}
 	}
+
 }

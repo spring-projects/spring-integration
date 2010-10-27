@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2010 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.ftp.config;
 
 import org.apache.commons.net.ftp.FTP;
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Provides namespace support for using FTP
@@ -29,9 +29,10 @@ import java.util.Map;
  *
  * @author Josh Long
  */
-@SuppressWarnings("unused")
-public class FtpNamespaceHandler extends NamespaceHandlerSupport {
+public class FtpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+
 	static public Map<String, Integer> FILE_TYPES = new HashMap<String, Integer>();
+
 	static public Map<String, Integer> CLIENT_MODES = new HashMap<String, Integer>();
 
 	static {
@@ -47,10 +48,10 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
 		CLIENT_MODES.put("passive-remote-data-connection-mode", 3);
 	}
 
+
 	public void init() {
-		registerBeanDefinitionParser("inbound-channel-adapter",
-				new FtpMessageSourceBeanDefinitionParser());
-		registerBeanDefinitionParser("outbound-channel-adapter",
-				new FtpMessageSendingConsumerBeanDefinitionParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new FtpMessageSourceBeanDefinitionParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new FtpMessageSendingConsumerBeanDefinitionParser());
 	}
+
 }

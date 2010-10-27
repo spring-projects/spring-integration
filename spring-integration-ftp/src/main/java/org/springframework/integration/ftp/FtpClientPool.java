@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
-
 
 /**
  * A pool of {@link FTPClient} instances. The pool can be used to control the
@@ -25,6 +25,7 @@ import org.apache.commons.net.ftp.FTPClient;
  * @author Iwein Fuld
  */
 public interface FtpClientPool extends FtpClientFactory {
+
 	/**
 	 * Releases the client back to the pool. When calling this method the caller
 	 * is no longer responsible for the connection. The pool is free to do with
@@ -43,4 +44,5 @@ public interface FtpClientPool extends FtpClientFactory {
 	 *               <code>null</code>.
 	 */
 	void releaseClient(FTPClient client);
+
 }
