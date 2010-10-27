@@ -54,7 +54,7 @@ public class PropertiesPersistingMetadataStoreTests {
 
 	@Test
 	public void validateWithCustomBaseDir() throws Exception {
-		File file = new File("foo" + "/metadata-store.properties");
+		File file = new File("target/foo" + "/metadata-store.properties");
 		file.deleteOnExit();
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
 		metadataStore.setBaseDirectory("foo"); 
