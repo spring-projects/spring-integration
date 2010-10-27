@@ -28,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TestReceivingUsingNamespace {
 
 	@Test
-//	@Ignore
+	@Ignore
 	/*
 	 * In order to run this test you need to provide values to the twitter.properties file
 	 */
