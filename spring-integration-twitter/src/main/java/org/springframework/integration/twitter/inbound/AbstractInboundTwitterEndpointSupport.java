@@ -18,13 +18,18 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -48,19 +53,27 @@ import twitter4j.Twitter;
  * @author Mark Fisher
  * @since 2.0
  */
-public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessageProducerSupport {
-
+@SuppressWarnings("rawtypes")
+public abstract class AbstractInboundTwitterEndpointSupport<T> extends IntegrationObjectSupport 
+			implements MessageSource, Lifecycle, TrackableComponent {
+	
 	private volatile MetadataStore metadataStore;
 
 	private volatile String metadataKey;
 
 	protected volatile OAuthConfiguration configuration;
+	
+	protected final Queue<Object> tweets = new LinkedBlockingQueue<Object>();
+	
+	protected volatile int prefetchThreshold = 0;
 
 	protected volatile long markerId = -1;
 
 	protected Twitter twitter;
 
 	private final Object markerGuard = new Object();
+	
+	private volatile boolean isRunning;
 
 	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
 
@@ -84,7 +97,7 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessagePr
 	}
 
 	@Override
-	protected void onInit() {
+	protected void onInit() throws Exception{
 		super.onInit();
 		Assert.notNull(this.configuration, "'configuration' can't be null");
 		this.twitter = this.configuration.getTwitter();
@@ -122,31 +135,46 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessagePr
 	abstract Runnable getApiCallback();
 
 	@Override
-	protected void doStart() {
+	public void start() {
 		historyWritingPostProcessor.setTrackableComponent(this);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);
 		Runnable apiCallback = this.getApiCallback();
 		twitterUpdatePollingTask = this.getTaskScheduler().schedule(apiCallback, trigger);
+		this.isRunning = true;
 	}
 
 	@Override
-	protected void doStop() {
+	public void stop() {
 		twitterUpdatePollingTask.cancel(true);
+		this.isRunning = false;
+	}
+	
+	@Override
+	public boolean isRunning() {
+		return this.isRunning;
 	}
 
-	protected void forward(T message) {
+	@Override
+	public Message<?> receive() {
+		Object tweet = tweets.poll();
+		if (tweet != null){
+			return MessageBuilder.withPayload(tweet).build();
+		}
+		return null;
+	}
+	
+	protected void forward(T tweet) {
 		synchronized (this.markerGuard) {
-			Message<T> twtMsg = MessageBuilder.withPayload(message).build();
-
+			
 			long id = 0;
-			if (message instanceof DirectMessage) {
-				id = ((DirectMessage) message).getId();
+			if (tweet instanceof DirectMessage) {
+				id = ((DirectMessage) tweet).getId();
 			}
-			else if (message instanceof Status) {
-				id = ((Status) message).getId();
+			else if (tweet instanceof Status) {
+				id = ((Status) tweet).getId();
 			}
 			else {
-				throw new IllegalArgumentException("Unsupported type of Twitter message: " + message.getClass());
+				throw new IllegalArgumentException("Unsupported type of Twitter message: " + tweet.getClass());
 			}
 			String lastId = this.metadataStore.get(this.metadataKey);
 
@@ -155,7 +183,7 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends MessagePr
 				lastTweetId = Long.parseLong(lastId);
 			}
 			if (id > lastTweetId) {
-				sendMessage(twtMsg);
+				tweets.add(tweet);
 				markLastStatusId(id);
 			}
 		}

@@ -64,7 +64,7 @@ class RateLimitStatusTrigger implements Trigger {
 	         }
 	         int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
 	         long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
-	         logger.debug("need to Thread.sleep() " + secondsUntilWeCanPullAgain +
+	         logger.debug("Waiting for " + secondsUntilWeCanPullAgain +
 	        		 " seconds until the next timeline pull. Have " + remainingHits +
 	        		 " remaining pull this rate period. The period ends in " +
 	        		 secondsUntilReset);

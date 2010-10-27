@@ -41,9 +41,11 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusE
 			public void run() {
 				try {
 					long sinceId = getMarkerId();
-					forwardAll(!hasMarkedStatus()
-							? twitter.getFriendsTimeline() 
-							: twitter.getFriendsTimeline(new Paging(sinceId)));
+					if (tweets.size() <= prefetchThreshold){
+						forwardAll(!hasMarkedStatus()
+								? twitter.getFriendsTimeline() 
+								: twitter.getFriendsTimeline(new Paging(sinceId)));
+					}	
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;
