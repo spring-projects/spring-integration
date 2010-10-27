@@ -6,13 +6,18 @@
 			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed-2.0.xsd">
 
-	<int-feed:inbound-channel-adapter channel="feedChannelUsage"
+	<int:message-history />
+
+	<int-feed:inbound-channel-adapter id="feedAdapterUsage"
+						channel="feedChannelUsage"
 						url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" fixed-delay="10000"/>
 	</int-feed:inbound-channel-adapter>
 
 	<int:service-activator id="sampleActivator" input-channel="feedChannelUsage">
-		<bean class="org.springframework.integration.feed.config.FeedMessageSourceBeanDefinitionParserTests$SampleServiceNoHistory" />
+		<bean class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests$SampleService" />
 	</int:service-activator>
+
+	<bean id="metadataStore" class="org.springframework.integration.context.metadata.PropertiesPersistingMetadataStore"/>
 
 </beans>

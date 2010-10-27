@@ -18,6 +18,6 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="customMetadataStore" class="org.springframework.integration.feed.config.FeedMessageSourceBeanDefinitionParserTests.SampleMetadataStore"/>
+	<bean id="customMetadataStore" class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests.SampleMetadataStore"/>
 
 </beans>
