@@ -16,18 +16,19 @@
 
 package org.springframework.integration.twitter.inbound;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
@@ -54,8 +55,8 @@ import twitter4j.Twitter;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractInboundTwitterEndpointSupport<T> extends IntegrationObjectSupport 
-			implements MessageSource, Lifecycle, TrackableComponent {
+public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint 
+			implements MessageSource, SmartLifecycle, TrackableComponent {
 	
 	private volatile MetadataStore metadataStore;
 
@@ -72,8 +73,6 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends Integrati
 	protected Twitter twitter;
 
 	private final Object markerGuard = new Object();
-	
-	private volatile boolean isRunning;
 
 	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
 
@@ -120,38 +119,35 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends Integrati
 				+ "." + this.configuration.getConsumerKey();
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void forwardAll(List<T> tResponses) {
-		List<T> stats = new ArrayList<T>();
-		for (T t : tResponses) {
-			stats.add(t);
-		}
-		for (T twitterResponse : this.sort(stats)) {
+		Collections.sort(tResponses, this.getComparator());
+		for (T twitterResponse : tResponses) {
 			forward(twitterResponse);
 		}
 	}
 
-	abstract protected List<T> sort(List<T> rl);
-
 	abstract Runnable getApiCallback();
+	
+	protected Comparator getComparator() {
+		return new Comparator<Status>() {
+			public int compare(Status status, Status status1) {
+				return status.getCreatedAt().compareTo(status1.getCreatedAt());
+			}
+		};
+	}
 
 	@Override
-	public void start() {
+	protected void doStart(){
 		historyWritingPostProcessor.setTrackableComponent(this);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);
 		Runnable apiCallback = this.getApiCallback();
 		twitterUpdatePollingTask = this.getTaskScheduler().schedule(apiCallback, trigger);
-		this.isRunning = true;
 	}
 
 	@Override
-	public void stop() {
+	protected void doStop(){
 		twitterUpdatePollingTask.cancel(true);
-		this.isRunning = false;
-	}
-	
-	@Override
-	public boolean isRunning() {
-		return this.isRunning;
 	}
 
 	@Override
@@ -192,5 +188,4 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends Integrati
 	protected void markLastStatusId(long statusId) {
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
-
 }

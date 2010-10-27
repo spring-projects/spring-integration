@@ -20,6 +20,7 @@ import java.util.List;
 import org.springframework.integration.MessagingException;
 
 import twitter4j.Paging;
+import twitter4j.Status;
 
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
@@ -27,7 +28,7 @@ import twitter4j.Paging;
  * @author Josh Long
  * @author Oleg Zhurakousky
  */
-public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+public class InboundMentionEndpoint extends AbstractInboundTwitterEndpointSupport<Status> {
 
 	@Override
 	public String getComponentType() {
@@ -57,5 +58,4 @@ public class InboundMentionEndpoint extends AbstractInboundTwitterStatusEndpoint
 		};
 		return apiCallback;
 	}
-
 }

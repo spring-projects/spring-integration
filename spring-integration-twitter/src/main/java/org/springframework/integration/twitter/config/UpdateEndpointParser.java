@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.config;
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -51,8 +52,7 @@ public class UpdateEndpointParser extends AbstractPollingInboundChannelAdapterPa
     	}
     	BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
     	IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-    	IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "id", "persistentIdentifier");
     	String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-		return builder.getBeanDefinition();	
+		return new RuntimeBeanReference(name);
 	}
 }

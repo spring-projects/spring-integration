@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.twitter.inbound;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -34,24 +32,6 @@ import twitter4j.Paging;
  */
 public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
 	
-	private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
-		public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
-			return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
-		}
-	};
-
-	@Override
-	protected List<DirectMessage> sort(List<DirectMessage> rl) {
-
-		List<DirectMessage> dms = new ArrayList<DirectMessage>();
-
-		dms.addAll(rl);
-
-		Collections.sort(dms, dmComparator);
-
-		return dms;
-	}
-
 	@Override
 	public String getComponentType() {
 		return "twitter:inbound-dm-channel-adapter";  
@@ -83,5 +63,14 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 			}
 		};
 		return apiCallback;
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected Comparator getComparator() {
+		return new Comparator<DirectMessage>() {
+			public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
+				return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
+			}
+		};
 	}
 }
