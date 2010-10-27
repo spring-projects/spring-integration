@@ -16,7 +16,11 @@
 
 package org.springframework.integration.file.config;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -24,7 +28,6 @@ import org.springframework.integration.config.xml.AbstractPollingInboundChannelA
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;inbound-channel-adapter&gt; element of the 'file' namespace.
@@ -38,7 +41,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 
     @Override
-    protected String parseSource(Element element, ParserContext parserContext) {
+    protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
                 PACKAGE_NAME + ".config.FileReadingMessageSourceFactoryBean");
         IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "comparator");
@@ -52,7 +55,8 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
             builder.addPropertyReference("locker", lockerBeanName);
         }
         builder.addPropertyReference("filter", filterBeanName);
-        return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+        String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+        return new RuntimeBeanReference(beanName);
     }
 
     private String registerLocker(Element element, ParserContext parserContext) {

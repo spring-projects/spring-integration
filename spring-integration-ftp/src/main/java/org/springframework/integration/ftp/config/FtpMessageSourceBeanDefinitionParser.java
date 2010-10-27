@@ -1,45 +1,42 @@
 package org.springframework.integration.ftp.config;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.w3c.dom.Element;
+
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ftp.FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean;
-import org.w3c.dom.Element;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 
 /**
- * Logic that configures an ftp:inbound-channel-adapter
+ * Parser for the FTP inbound-channel-adapter.
  *
  * @author Josh Long
  */
-public class FtpMessageSourceBeanDefinitionParser
-		extends AbstractPollingInboundChannelAdapterParser {
+public class FtpMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
+
 	private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList(
-			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(
-					",")));
+			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(",")));
 
 	@Override
-	@SuppressWarnings("unused")
-	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
-
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
-				element, "filter");
-
-		for (String a : receiveAttrs)
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
-					element, a);
-
-		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element,
-				parserContext);
-
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(),
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
+		for (String a : receiveAttrs) {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, a);
+		}
+		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
+		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(),
 				parserContext.getRegistry());
+		return new RuntimeBeanReference(beanName);
 	}
+
 }

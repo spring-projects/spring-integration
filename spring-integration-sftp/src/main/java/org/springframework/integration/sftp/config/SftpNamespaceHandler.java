@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.config;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -24,7 +26,6 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
-
 
 /**
  * Provides namespace support for using SFTP.
@@ -47,11 +48,9 @@ public class SftpNamespaceHandler extends NamespaceHandlerSupport {
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpMessageSendingConsumerFactoryBean.class.getName());
-
 			for (String p : "auto-create-directories,username,password,host,port,key-file,key-file-password,remote-directory,charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
-
 			return builder.getBeanDefinition();
 		}
 	}
@@ -61,18 +60,17 @@ public class SftpNamespaceHandler extends NamespaceHandlerSupport {
 	 * consumer
 	 */
 	private static class SFTPMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
+
 		@Override
-		protected String parseSource(Element element, ParserContext parserContext) {
+		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 					SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
-
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
-
 			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
-
-			return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+			return builder.getBeanDefinition();
 		}
 	}
+
 }

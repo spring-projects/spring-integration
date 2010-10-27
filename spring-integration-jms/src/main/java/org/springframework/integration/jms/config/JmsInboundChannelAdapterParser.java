@@ -18,6 +18,7 @@ package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -43,7 +44,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 	}
 
 	@Override
-	protected String parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.jms.JmsDestinationPollingSource");
 		String componentName =  this.resolveId(element, builder.getBeanDefinition(), parserContext);
@@ -88,9 +89,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName); 
-		parserContext.registerBeanComponent(component);
-		return beanName;
+		return new BeanComponentDefinition(beanDefinition, beanName);
 	}
 
 }
