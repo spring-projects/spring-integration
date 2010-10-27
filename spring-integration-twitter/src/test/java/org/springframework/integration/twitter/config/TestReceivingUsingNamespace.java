@@ -18,7 +18,6 @@ package org.springframework.integration.twitter.config;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -29,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TestReceivingUsingNamespace {
 
 	@Test
-	@Ignore
+//	@Ignore
 	/*
 	 * In order to run this test you need to provide values to the twitter.properties file
 	 */

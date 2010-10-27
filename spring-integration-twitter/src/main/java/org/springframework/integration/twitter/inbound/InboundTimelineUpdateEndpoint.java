@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.inbound;
 import org.springframework.integration.MessagingException;
 
 import twitter4j.Paging;
+import twitter4j.Status;
 
 
 /**
@@ -28,7 +29,7 @@ import twitter4j.Paging;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
+public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterEndpointSupport<Status> {
 
 	@Override
 	 public String getComponentType() {
