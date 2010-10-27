@@ -30,6 +30,7 @@ import static org.springframework.integration.twitter.config.TwitterNamespaceHan
  * @since 2.0
  */
 public class UpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
+	
     @Override
     protected String getBeanClassName(Element element) {
     	String elementName = element.getLocalName().trim();
@@ -46,6 +47,7 @@ public class UpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
     		throw new IllegalArgumentException("Element '" + elementName + "' is not supported by this parser");
     	}
     }
+    
     @Override
     protected boolean shouldGenerateId() {
 		return true;
