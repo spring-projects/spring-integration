@@ -54,7 +54,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FeedMessageSourceBeanDefinitionParserTests {
+public class FeedInboundChannelAdapterParserTests {
 
 	private static CountDownLatch latch;
 
@@ -69,7 +69,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 	@Test
 	public void validateSuccessfulFileConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-file-context.xml", this.getClass());
+				"FeedInboundChannelAdapterParserTests-file-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
@@ -82,7 +82,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 
 	public void validateSuccessfulHttpConfigurationWithCustomMetadataStore() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
+				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = context.getBean("feedAdapter", SourcePollingChannelAdapter.class);
 		FeedEntryMessageSource source = (FeedEntryMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
@@ -102,7 +102,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -111,7 +111,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
 		context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-file-usage-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(0)).countDown();
 		context.destroy();
@@ -122,7 +122,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 		//Test file samples.rss has 3 news items
 		latch = spy(new CountDownLatch(3));
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -131,7 +131,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 		// in this iteration no new feeds will be received and the latch will timeout
 		latch = spy(new CountDownLatch(3));
 		context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-file-usage-noid-context.xml", this.getClass());	
+				"FeedInboundChannelAdapterParserTests-file-usage-noid-context.xml", this.getClass());	
 		latch.await(5, TimeUnit.SECONDS);
 		verify(latch, times(3)).countDown();
 		context.destroy();
@@ -147,7 +147,7 @@ public class FeedMessageSourceBeanDefinitionParserTests {
 			}
 		});
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"FeedMessageSourceBeanDefinitionParserTests-http-context.xml", this.getClass());
+				"FeedInboundChannelAdapterParserTests-http-context.xml", this.getClass());
 		DirectChannel feedChannel = context.getBean("feedChannel", DirectChannel.class);	
 		feedChannel.subscribe(handler);
 		latch.await(5, TimeUnit.SECONDS);
