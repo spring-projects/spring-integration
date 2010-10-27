@@ -39,7 +39,7 @@ public class FeedMessageSourceBeanDefinitionParser extends AbstractPollingInboun
 				"org.springframework.integration.feed.FeedEntryReaderMessageSource");
 		BeanDefinitionBuilder feedBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.feed.FeedReaderMessageSource");
-		feedBuilder.addConstructorArgValue(element.getAttribute("feed-url"));
+		feedBuilder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(feedEntryBuilder, element, "metadata-store");
 		feedEntryBuilder.addConstructorArgValue(feedBuilder.getBeanDefinition());
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(feedEntryBuilder.getBeanDefinition(), parserContext.getRegistry());

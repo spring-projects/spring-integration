@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed-2.0.xsd">
 
 	<int-feed:inbound-channel-adapter channel="feedChannelUsage"
-						feed-url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
+						url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" fixed-delay="10000"/>
 	</int-feed:inbound-channel-adapter>
 
