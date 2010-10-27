@@ -18,15 +18,15 @@
 // Task definitions and configuration relating to the SpringSource 'bundlor'
 // OSGi manifest generation utility.
 //
-// @author cbeams
+// @author Chris Beams
 // see: http://www.springsource.org/bundlor
 // -----------------------------------------------------------------------------
 
 /**
  * Generate an OSGi manifest using the ant bundlor task.
  *
- * @author ltaylor
- * @author cbeams
+ * @author Luke Taylor
+ * @author Chris Beams
  * @see http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s02.html
  */
 task bundlor(dependsOn: compileJava) {

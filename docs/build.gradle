@@ -30,8 +30,8 @@ task build(dependsOn: assemble) {
  * suitable for packaging into a distribution zip or viewing directly with
  * a browser.
  *
- * @author cbeams
- * @author ltaylor
+ * @author Chris Beams
+ * @author Luke Taylor
  * @see http://gradle.org/0.9-rc-1/docs/javadoc/org/gradle/api/tasks/javadoc/Javadoc.html
  */
  task api(type: Javadoc) {

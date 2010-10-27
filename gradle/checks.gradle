@@ -19,7 +19,7 @@
  * Issue a snapshot dependency report across all Java projects. Detects not
  * only direct snapshot dependencies, but transitive as well.
  *
- * @author cbeams
+ * @author Chris Beams
  * @see snapshotDependencyCheck
  */
 task snapshotDependencyReport {
@@ -66,7 +66,7 @@ task snapshotDependencyReport {
  * this option would be if a transitive dependency out of your control is a
  * snapshot release and you wish to proceed with releasing anyway.
  *
- * @author cbeams
+ * @author Chris Beams
  * @see snapshotDependencyReport
  */
 task snapshotDependencyCheck(dependsOn: snapshotDependencyReport) {

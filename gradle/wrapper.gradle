@@ -19,7 +19,7 @@
  * convenience scripts allow users to operate the build without being forced to
  * download and install gradle.
  *
- * @author cbeams
+ * @author Chris Beams
  * @see http://gradle.org/0.9-preview-3/docs/userguide/userguide_single.html#gradle_wrapper
  */
 task wrapper(type: Wrapper) {

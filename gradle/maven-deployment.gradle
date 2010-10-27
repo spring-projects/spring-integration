@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 // Tasks related to deploying Maven artifacts.
 //
-// @author cbeams
+// @author Chris Beams
 // -----------------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@ checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: require
 /**
  * Builds a source jar artifact for all main java sources.
  *
- * @author ltaylor
+ * @author Luke Taylor
  */
 task sourceJar(type: Jar) {
     description = 'Builds a source jar artifact suitable for maven deployment.'
@@ -66,7 +66,7 @@ artifacts {
  * that have the erlangLicense property set to true, the Erlang License will be
  * added to the pom as well.
  *
- * @author cbeams
+ * @author Chris Beams
  * @see 'mavenSyncRepoDir' in gradle.properties
  * @see `gradle install` for deploying artifacts to the local .m2 cache
  * @see http://maven.apache.org/guides/mini/guide-central-repository-upload.html

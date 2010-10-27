@@ -17,7 +17,7 @@
 // -----------------------------------------------------------------------------
 // Task definitions related to releasing the project
 //
-// @author cbeams
+// @author Chris Beams
 // -----------------------------------------------------------------------------
 
 // ensure that every project has been evaluated before this script
@@ -38,7 +38,7 @@ task build(dependsOn: [check, assemble]) {
 /**
  * Build the distribution zip file.
  *
- * @author cbeams
+ * @author Chris Beams
  */
 task distArchive(type: Zip) {
     group = 'Build'

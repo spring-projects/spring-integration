@@ -65,7 +65,7 @@ buildscript {
  * Creates three tasks: docbookHtml, docbookHtmlSingle and docbookPdf.
  * Each task takes a single File on which it operates.
  *
- * @author ltaylor
+ * @author Luke Taylor
  */
 // Add the plugin tasks to the project
 task docbookHtml(type: DocbookHtml) {
