@@ -62,7 +62,7 @@ public class FeedEntryReaderMessageSourceTests {
 	public void testReceiveFeedWithNoEntries() {
 		FeedReaderMessageSource feedReaderSource = mock(FeedReaderMessageSource.class);
 		SyndFeed feed = mock(SyndFeed.class);
-		when(feedReaderSource.receiveSyndFeed()).thenReturn(feed);
+		when(feedReaderSource.receiveFeed()).thenReturn(feed);
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
 		feedEntrySource.setBeanName("feedReader");
 		feedEntrySource.afterPropertiesSet();
@@ -82,7 +82,7 @@ public class FeedEntryReaderMessageSourceTests {
 		entries.add(entry2);
 		entries.add(entry1);
 		when(feed.getEntries()).thenReturn(entries);
-		when(feedReaderSource.receiveSyndFeed()).thenReturn(feed);
+		when(feedReaderSource.receiveFeed()).thenReturn(feed);
 		
 		FeedEntryReaderMessageSource feedEntrySource = new FeedEntryReaderMessageSource(feedReaderSource);
 		feedEntrySource.setComponentName("feedReader");

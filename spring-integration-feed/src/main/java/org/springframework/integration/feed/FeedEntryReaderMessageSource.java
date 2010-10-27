@@ -137,7 +137,7 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 
 	@SuppressWarnings("unchecked")
 	private void populateEntryList() {
-		SyndFeed syndFeed = this.feedReaderMessageSource.receiveSyndFeed();
+		SyndFeed syndFeed = this.feedReaderMessageSource.receiveFeed();
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = (List<SyndEntry>) syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
