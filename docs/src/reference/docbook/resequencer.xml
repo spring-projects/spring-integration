@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<chapter id="resequencer">
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="resequencer"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Resequencer</title>
 
   <section>
@@ -71,33 +70,33 @@
         </callout>
 
         <callout arearefs="resxml5-co" id="resxml5">
-           
+
 
           <para>Whether to send out ordered sequences as soon as they are
           available, or only after the whole message group arrives.
           <emphasis>Optional (false by default)</emphasis>.</para>
 
-           If this flag is not specified (so a complete sequence is defined by the sequence headers) then it can make sense to provide a custom 
+           If this flag is not specified (so a complete sequence is defined by the sequence headers) then it can make sense to provide a custom
 
           <code>Comparator</code>
 
-           to be used to order the messages when sending (use the XML attribute 
+           to be used to order the messages when sending (use the XML attribute
 
           <literal>comparator</literal>
 
-           to point to a bean definition). If 
+           to point to a bean definition). If
 
           <literal>release-partial-sequences</literal>
 
-           is true then there is no way with a custom comparator to define a partial sequence. To do that you would have to provide a 
+           is true then there is no way with a custom comparator to define a partial sequence. To do that you would have to provide a
 
           <literal>release-strategy</literal>
 
-           (also a reference to another bean definition, either a POJO or a 
+           (also a reference to another bean definition, either a POJO or a
 
           <code>ReleaseStrategy</code>
 
-          ). 
+          ).
         </callout>
 
         <callout arearefs="resxml6-co" id="resxml6">
@@ -121,7 +120,7 @@
       </calloutlist></para>
 
     <note>
-       Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it. 
+       Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.
     </note>
   </section>
 </chapter>
