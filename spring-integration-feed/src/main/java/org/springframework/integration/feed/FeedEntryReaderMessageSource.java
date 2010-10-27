@@ -94,11 +94,9 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (beanFactory != null) {
-				MetadataStore metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
-				if (metadataStore != null) {
-					this.metadataStore = metadataStore;
-				}
+				this.metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
 			}
+			// if no 'messageStore' in context, fall back to in-memory Map-based default
 			if (this.metadataStore == null) {
 				this.metadataStore = new SimpleMetadataStore();
 			}
@@ -154,9 +152,6 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 	private static class SyndEntryComparator implements Comparator<SyndEntry> {
 
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
-			if (entry1 == null || entry2 == null) {
-				
-			}
 			return entry1.getPublishedDate().compareTo(entry2.getPublishedDate());
 		}
 	}
