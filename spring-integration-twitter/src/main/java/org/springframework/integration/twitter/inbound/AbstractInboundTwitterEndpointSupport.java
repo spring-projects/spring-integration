@@ -24,7 +24,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
@@ -36,6 +35,7 @@ import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.oauth.OAuthConfiguration;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
@@ -56,7 +56,7 @@ import twitter4j.Twitter;
  */
 @SuppressWarnings("rawtypes")
 public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractEndpoint 
-			implements MessageSource, SmartLifecycle, TrackableComponent {
+						implements MessageSource, TrackableComponent {
 	
 	private volatile MetadataStore metadataStore;
 
@@ -114,9 +114,18 @@ public abstract class AbstractInboundTwitterEndpointSupport<T> extends AbstractE
 				this.metadataStore = new SimpleMetadataStore();
 			}
 		}
-		Assert.hasText(this.getComponentName(), "Inbound Twitter adapter must have a name");
-		this.metadataKey = this.getComponentType() + "." + this.getComponentName() 
-				+ "." + this.configuration.getConsumerKey();
+		StringBuilder metadataKeyBuilder = new StringBuilder();
+		if (StringUtils.hasText(this.getComponentType())) {
+			metadataKeyBuilder.append(this.getComponentType() + ".");
+		}
+		if (StringUtils.hasText(this.getComponentName())) {
+			metadataKeyBuilder.append(this.getComponentName() + ".");
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
+		}
+		metadataKeyBuilder.append(this.configuration.getConsumerKey());
+		this.metadataKey = metadataKeyBuilder.toString();
 	}
 
 	@SuppressWarnings("unchecked")
