@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp;
 
+package org.springframework.integration.sftp;
 
 /**
  * @author Josh Long
  */
 public class SftpConstants {
+
 	public static final String SFTP_REMOTE_DIRECTORY_HEADER = "SFTP_REMOTE_DIRECTORY_HEADER";
+
 }
