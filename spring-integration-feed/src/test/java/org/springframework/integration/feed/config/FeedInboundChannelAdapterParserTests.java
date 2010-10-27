@@ -75,7 +75,7 @@ public class FeedInboundChannelAdapterParserTests {
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
 		assertTrue(metadataStore instanceof SampleMetadataStore);
 		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "fetcher");
+		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "feedFetcher");
 		assertEquals("FileUrlFeedFetcher", fetcher.getClass().getSimpleName());
 		context.destroy();
 	}
@@ -88,7 +88,7 @@ public class FeedInboundChannelAdapterParserTests {
 		MetadataStore metadataStore = (MetadataStore) TestUtils.getPropertyValue(source, "metadataStore");
 		assertTrue(metadataStore instanceof SampleMetadataStore);
 		assertEquals(metadataStore, context.getBean("customMetadataStore"));
-		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "fetcher");
+		AbstractFeedFetcher fetcher = (AbstractFeedFetcher) TestUtils.getPropertyValue(source, "feedFetcher");
 		assertTrue(fetcher instanceof HttpURLFeedFetcher);
 		context.destroy();
 	}

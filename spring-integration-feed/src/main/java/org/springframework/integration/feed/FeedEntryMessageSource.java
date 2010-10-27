@@ -38,9 +38,9 @@ import org.springframework.util.StringUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.fetcher.FeedFetcher;
 import com.sun.syndication.fetcher.FetcherEvent;
 import com.sun.syndication.fetcher.FetcherListener;
-import com.sun.syndication.fetcher.impl.AbstractFeedFetcher;
 import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
@@ -58,7 +58,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final URL feedUrl;
 
-	private final AbstractFeedFetcher fetcher;
+	private final FeedFetcher feedFetcher;
 
 	private final Queue<SyndFeed> feeds = new ConcurrentLinkedQueue<SyndFeed>();
 
@@ -82,16 +82,17 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	public FeedEntryMessageSource(URL feedUrl) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
 		this.feedUrl = feedUrl;
-		if (feedUrl.getProtocol().equals("file")) {
-			this.fetcher = new FileUrlFeedFetcher();
-		}
-		else if (feedUrl.getProtocol().equals("http")) {
-			FeedFetcherCache fetcherCache = HashMapFeedInfoCache.getInstance();
-			this.fetcher = new HttpURLFeedFetcher(fetcherCache);
-		}
-		else {
-			throw new IllegalArgumentException("Unsupported URL protocol: " + feedUrl.getProtocol());
-		}
+		Assert.isTrue(feedUrl.getProtocol().equals("http"),
+				"Only 'http' URLs are supported. Consider providing a custom FeedFetcher.");
+		FeedFetcherCache fetcherCache = HashMapFeedInfoCache.getInstance();
+		this.feedFetcher = new HttpURLFeedFetcher(fetcherCache);
+	}
+
+	public FeedEntryMessageSource(URL feedUrl, FeedFetcher feedFetcher) {
+		Assert.notNull(feedUrl, "feedUrl must not be null");
+		Assert.notNull(feedFetcher, "feedFetcher must not be null");
+		this.feedUrl = feedUrl;
+		this.feedFetcher = feedFetcher;
 	}
 
 
@@ -115,7 +116,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	@Override
 	protected void onInit() throws Exception {
-		this.fetcher.addFetcherEventListener(new FeedQueueUpdatingFetcherListener());
+		this.feedFetcher.addFetcherEventListener(new FeedQueueUpdatingFetcherListener());
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -189,7 +190,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		SyndFeed feed = null;
 		try {
 			synchronized (this.feedMonitor) {
-				feed = this.fetcher.retrieveFeed(this.feedUrl);
+				feed = this.feedFetcher.retrieveFeed(this.feedUrl);
 				if (logger.isDebugEnabled()) {
 					logger.debug("retrieved feed at url '" + this.feedUrl + "'");
 				}

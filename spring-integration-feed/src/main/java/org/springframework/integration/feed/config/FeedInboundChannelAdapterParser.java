@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Handles parsing the configuration for the feed inbound-channel-adapter.
@@ -39,6 +40,10 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.feed.FeedEntryMessageSource");
 		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
+		String feedFetcherRef = element.getAttribute("feed-fetcher");
+		if (StringUtils.hasText(feedFetcherRef)) {
+			sourceBuilder.addConstructorArgReference(feedFetcherRef);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
