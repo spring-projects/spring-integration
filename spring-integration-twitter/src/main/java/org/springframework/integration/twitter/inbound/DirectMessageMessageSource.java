@@ -15,25 +15,26 @@
  */
 package org.springframework.integration.twitter.inbound;
 
+import java.util.Comparator;
+import java.util.List;
+
 import org.springframework.integration.MessagingException;
 
+import twitter4j.DirectMessage;
 import twitter4j.Paging;
-import twitter4j.Status;
-
 
 /**
- * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume a given account's timeline
- * as messages. It has support for dynamic throttling of API requests.
+ * This class handles support for receiving DMs (direct messages) using Twitter.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterEndpointSupport<Status> {
-
+public class DirectMessageMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
+	
 	@Override
-	 public String getComponentType() {
-		return "twitter:inbound-update-channel-adapter";  
+	public String getComponentType() {
+		return "twitter:inbound-dm-channel-adapter";  
 	}
 
 	@Override
@@ -43,11 +44,14 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterEndpoin
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						forwardAll(!hasMarkedStatus()
-								? twitter.getFriendsTimeline() 
-								: twitter.getFriendsTimeline(new Paging(sinceId)));
-					}	
+						List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
+							? twitter.getDirectMessages() 
+							: twitter.getDirectMessages(new Paging(sinceId));
+			
+						forwardAll(dms);
+					} 
 				} catch (Exception e) {
+					e.printStackTrace();
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;
 					}
@@ -58,5 +62,14 @@ public class InboundTimelineUpdateEndpoint extends AbstractInboundTwitterEndpoin
 			}
 		};
 		return apiCallback;
+	}
+
+	@SuppressWarnings("rawtypes")
+	protected Comparator getComparator() {
+		return new Comparator<DirectMessage>() {
+			public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
+				return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
+			}
+		};
 	}
 }
