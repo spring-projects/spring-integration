@@ -13,21 +13,33 @@
 
 package org.springframework.integration.control;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
-import org.springframework.util.Assert;
 
 /**
+ * A MessageProcessor implementation that expects an Expression or expressionString
+ * as the Message payload. When processing, it simply evaluates that expression.
+ * 
  * @author Dave Syer
+ * @author Mark Fisher
  * @since 2.0
- *
  */
 public class ExpressionPayloadMessageProcessor extends AbstractMessageProcessor<Object> {
-	
+
+	/**
+	 * Evaluates the Message payload expression.
+	 * @throws IllegalArgumentException if the payload is not an Exception or String
+	 */
 	public Object processMessage(Message<?> message) {
-		Assert.state(message.getPayload() instanceof String, "Message payload must be a String expression");
-		String expression = (String) message.getPayload();
-		return evaluateExpression(expression, message);
+		Object expression = message.getPayload();
+		if (expression instanceof Expression) {
+			return evaluateExpression((Expression) expression, message);
+		}
+		if (expression instanceof String) {
+			return evaluateExpression((String) expression, message);
+		}
+		throw new IllegalArgumentException("Message payload must be an Expression instance or an expression String.");
 	}
 
 }
