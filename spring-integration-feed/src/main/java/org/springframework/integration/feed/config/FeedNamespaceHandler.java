@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.feed.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
- * NamespaceHandler for FEED module
+ * NamespaceHandler for the feed module.
  * 
  * @author Josh Long
+ * @since 2.0
  */
-public class FeedNamespaceHandler extends NamespaceHandlerSupport {
+public class FeedNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
-    public void init() {
-        registerBeanDefinitionParser("inbound-channel-adapter", new FeedMessageSourceBeanDefinitionParser());
-    }
+	public void init() {
+		registerBeanDefinitionParser("inbound-channel-adapter", new FeedMessageSourceBeanDefinitionParser());
+	}
+
 }
