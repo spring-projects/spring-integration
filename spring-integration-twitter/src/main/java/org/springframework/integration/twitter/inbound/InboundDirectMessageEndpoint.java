@@ -63,12 +63,14 @@ public class InboundDirectMessageEndpoint extends AbstractInboundTwitterEndpoint
 			public void run() {
 				try {
 					long sinceId = getMarkerId();
-					
-					List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
-								? twitter.getDirectMessages() 
-								: twitter.getDirectMessages(new Paging(sinceId));
-					
-					forwardAll(dms);
+					if (tweets.size() <= prefetchThreshold){
+						System.out.println("Polling");
+						List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
+							? twitter.getDirectMessages() 
+							: twitter.getDirectMessages(new Paging(sinceId));
+			
+						forwardAll(dms);
+					} 
 				} catch (Exception e) {
 					e.printStackTrace();
 					if (e instanceof RuntimeException){

@@ -15,13 +15,15 @@
  */
 package org.springframework.integration.twitter.config;
 
+import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
+
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
-
-import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
  * A parser for InboundTimelineUpdateEndpoint endpoint. 
@@ -29,34 +31,28 @@ import static org.springframework.integration.twitter.config.TwitterNamespaceHan
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class UpdateEndpointParser extends AbstractSingleBeanDefinitionParser {
-	
-    @Override
-    protected String getBeanClassName(Element element) {
-    	String elementName = element.getLocalName().trim();
+public class UpdateEndpointParser extends AbstractPollingInboundChannelAdapterParser {
+
+	@Override
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {  
+		String elementName = element.getLocalName().trim();
+		String className = null;
     	if ("inbound-update-channel-adapter".equals(elementName)){
-    		 return BASE_PACKAGE +".inbound.InboundTimelineUpdateEndpoint" ;
+    		className = BASE_PACKAGE +".inbound.InboundTimelineUpdateEndpoint" ;
     	}
     	else if ("inbound-dm-channel-adapter".equals(elementName)){
-    		 return  BASE_PACKAGE +  ".inbound.InboundDirectMessageEndpoint"; 
+    		className =  BASE_PACKAGE +  ".inbound.InboundDirectMessageEndpoint"; 
     	}
     	else if ("inbound-mention-channel-adapter".equals(elementName)){
-    		 return BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
+    		className = BASE_PACKAGE + ".inbound.InboundMentionEndpoint";
     	}
     	else {
     		throw new IllegalArgumentException("Element '" + elementName + "' is not supported by this parser");
     	}
-    }
-    
-    @Override
-    protected boolean shouldGenerateId() {
-		return true;
+    	BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+    	IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+    	IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "id", "persistentIdentifier");
+    	String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();	
 	}
-
-    @Override
-    protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "id", "persistentIdentifier");
-    }
 }
