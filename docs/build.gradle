@@ -115,6 +115,20 @@ task preprocessDocbookSources {
 task reference(dependsOn: [docbookHtml, docbookHtmlSingle, docbookPdf]) {
     group = 'Documentation'
     description = 'Generates all HTML and PDF reference documentation.'
+
+    doLast {
+        // copy images and css into respective html dirs
+        ['html', 'htmlsingle'].each { dir ->
+            copy {
+                into "${buildDir}/reference/${dir}/images"
+                from "src/reference/resources/images"
+            }
+            copy {
+                into "${buildDir}/reference/${dir}/css"
+                from "src/reference/resources/css"
+            }
+        }
+    }
 }
 
 [docbookHtml, docbookPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml';
@@ -143,16 +157,6 @@ docsSpec = copySpec {
 
     into("${version}/reference") {
         from("${buildDir}/reference")
-    }
-
-    // copy images and css into respective html dirs
-    ['html', 'htmlsingle'].each { dir ->
-        into("${version}/reference/${dir}/images") {
-            from "src/reference/resources/images"
-        }
-        into("${version}/reference/${dir}/css") {
-            from "src/reference/resources/css"
-        }
     }
 }
 
