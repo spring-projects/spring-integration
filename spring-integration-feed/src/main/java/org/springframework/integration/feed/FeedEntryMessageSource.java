@@ -16,6 +16,7 @@
 
 package org.springframework.integration.feed;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.context.metadata.MetadataStore;
@@ -36,6 +38,12 @@ import org.springframework.util.StringUtils;
 
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
+import com.sun.syndication.fetcher.FetcherEvent;
+import com.sun.syndication.fetcher.FetcherListener;
+import com.sun.syndication.fetcher.impl.AbstractFeedFetcher;
+import com.sun.syndication.fetcher.impl.FeedFetcherCache;
+import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
+import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 
 /**
  * This implementation of {@link MessageSource} will produce individual
@@ -46,11 +54,15 @@ import com.sun.syndication.feed.synd.SyndFeed;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class FeedEntryReaderMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
+public class FeedEntryMessageSource extends IntegrationObjectSupport implements MessageSource<SyndEntry> {
+
+	private final URL feedUrl;
+
+	private final AbstractFeedFetcher fetcher;
+
+	private final Queue<SyndFeed> feeds = new ConcurrentLinkedQueue<SyndFeed>();
 
 	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
-
-	private final FeedReaderMessageSource feedReaderMessageSource;
 
 	private volatile String metadataKey;
 
@@ -64,10 +76,22 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 
 	private final Comparator<SyndEntry> syndEntryComparator = new SyndEntryComparator();
 
+	private final Object feedMonitor = new Object();
 
-	public FeedEntryReaderMessageSource(FeedReaderMessageSource feedReaderMessageSource) {
-		Assert.notNull(feedReaderMessageSource, "'feedReaderMessageSource' must not be null");
-		this.feedReaderMessageSource = feedReaderMessageSource;
+
+	public FeedEntryMessageSource(URL feedUrl) {
+		Assert.notNull(feedUrl, "feedUrl must not be null");
+		this.feedUrl = feedUrl;
+		if (feedUrl.getProtocol().equals("file")) {
+			this.fetcher = new FileUrlFeedFetcher();
+		}
+		else if (feedUrl.getProtocol().equals("http")) {
+			FeedFetcherCache fetcherCache = HashMapFeedInfoCache.getInstance();
+			this.fetcher = new HttpURLFeedFetcher(fetcherCache);
+		}
+		else {
+			throw new IllegalArgumentException("Unsupported URL protocol: " + feedUrl.getProtocol());
+		}
 	}
 
 
@@ -91,6 +115,7 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 
 	@Override
 	protected void onInit() throws Exception {
+		this.fetcher.addFetcherEventListener(new FeedQueueUpdatingFetcherListener());
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -103,8 +128,7 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 			}
 		}
 		Assert.hasText(this.getComponentName(), "FeedEntryReaderMessageSource must have a name");
-		this.metadataKey = this.getComponentType() + "." + this.getComponentName() 
-					+ "." + this.feedReaderMessageSource.getFeedUrl();
+		this.metadataKey = this.getComponentType() + "." + this.getComponentName() + "." + this.feedUrl;
 		String lastTimeValue = this.metadataStore.get(this.metadataKey);
 		if (StringUtils.hasText(lastTimeValue)) {
 			this.lastTime = Long.parseLong(lastTimeValue);
@@ -137,7 +161,7 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 
 	@SuppressWarnings("unchecked")
 	private void populateEntryList() {
-		SyndFeed syndFeed = this.feedReaderMessageSource.receiveFeed();
+		SyndFeed syndFeed = this.getFeed();
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = (List<SyndEntry>) syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
@@ -151,11 +175,54 @@ public class FeedEntryReaderMessageSource extends IntegrationObjectSupport imple
 		}
 	}
 
+	private SyndFeed getFeed() {
+		SyndFeed feed = null;
+		try {
+			synchronized (this.feedMonitor) {
+				feed = this.fetcher.retrieveFeed(this.feedUrl);
+				if (logger.isDebugEnabled()) {
+					logger.debug("retrieved feed at url '" + this.feedUrl + "'");
+				}
+				if (feed == null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("no feeds updated, returning null");
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new MessagingException(
+					"Failed to retrieve feed at url '" + this.feedUrl + "'", e);
+		}
+		return feed;
+	}
+
 
 	private static class SyndEntryComparator implements Comparator<SyndEntry> {
 
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
 			return entry1.getPublishedDate().compareTo(entry2.getPublishedDate());
+		}
+	}
+
+
+	private class FeedQueueUpdatingFetcherListener implements FetcherListener {
+
+		/**
+		 * @see com.sun.syndication.fetcher.FetcherListener#fetcherEvent(com.sun.syndication.fetcher.FetcherEvent)
+		 */
+		public void fetcherEvent(final FetcherEvent event) {
+			String eventType = event.getEventType();
+			if (FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {
+				logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
+			}
+			else if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(eventType)) {
+				logger.debug("\tEVENT: Feed Retrieved. URL = " + event.getUrlString());
+				feeds.add(event.getFeed());
+			}
+			else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
+				logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
+			}
 		}
 	}
 

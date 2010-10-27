@@ -25,24 +25,22 @@ import org.springframework.integration.config.xml.AbstractPollingInboundChannelA
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
- * Handles parsing the configuration for the feed inbound channel adapter.
+ * Handles parsing the configuration for the feed inbound-channel-adapter.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class FeedMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
+public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected String parseSource(final Element element, final ParserContext parserContext) {
-		BeanDefinitionBuilder feedEntryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.feed.FeedEntryReaderMessageSource");
-		BeanDefinitionBuilder feedBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.feed.FeedReaderMessageSource");
-		feedBuilder.addConstructorArgValue(element.getAttribute("url"));
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(feedEntryBuilder, element, "metadata-store");
-		feedEntryBuilder.addConstructorArgValue(feedBuilder.getBeanDefinition());
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(feedEntryBuilder.getBeanDefinition(), parserContext.getRegistry());
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.feed.FeedEntryMessageSource");
+		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

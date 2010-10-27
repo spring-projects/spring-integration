@@ -39,10 +39,10 @@ import com.sun.syndication.io.XmlReader;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FileUrlFeedFetcher extends AbstractFeedFetcher {
+class FileUrlFeedFetcher extends AbstractFeedFetcher {
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Retrieve a SyndFeed for the given URL.
 	 * @see com.sun.syndication.fetcher.FeedFetcher#retrieveFeed(java.net.URL)
 	 */
 	public SyndFeed retrieveFeed(URL feedUrl) throws IOException, FeedException, FetcherException {
