@@ -41,7 +41,6 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.fetcher.FeedFetcher;
 import com.sun.syndication.fetcher.FetcherEvent;
 import com.sun.syndication.fetcher.FetcherListener;
-import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 
@@ -78,16 +77,21 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Object feedMonitor = new Object();
 
-
+	/**
+	 * Will create a default HttpURLFeedFetcher. If URL is other then http*
+	 * then consider providing custom implementation of the {@link FeedFetcher} 
+	 * and use the other constructor.
+	 * @param feedUrl
+	 */
 	public FeedEntryMessageSource(URL feedUrl) {
-		Assert.notNull(feedUrl, "feedUrl must not be null");
-		this.feedUrl = feedUrl;
-		Assert.isTrue(feedUrl.getProtocol().equals("http"),
-				"Only 'http' URLs are supported. Consider providing a custom FeedFetcher.");
-		FeedFetcherCache fetcherCache = HashMapFeedInfoCache.getInstance();
-		this.feedFetcher = new HttpURLFeedFetcher(fetcherCache);
+		this(feedUrl, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
 	}
-
+	/**
+	 * Will allow you to provide not only URL but the custom implementation 
+	 * of the {@link FeedFetcher}
+	 * @param feedUrl
+	 * @param feedFetcher
+	 */
 	public FeedEntryMessageSource(URL feedUrl, FeedFetcher feedFetcher) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
 		Assert.notNull(feedFetcher, "feedFetcher must not be null");
