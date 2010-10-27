@@ -18,9 +18,9 @@ package org.springframework.integration.mail.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -28,8 +28,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Parser for the &lt;inbound-channel-adapter&gt; element of Spring
- * Integration's 'mail' namespace. 
+ * Parser for the &lt;inbound-channel-adapter&gt; element of Spring Integration's 'mail' namespace. 
  * 
  * @author Jonas Partner
  * @author Mark Fisher
@@ -41,12 +40,11 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 
 	@Override
-	protected String parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE + ".MailReceivingMessageSource");
 		builder.addConstructorArgValue(this.parseMailReceiver(element, parserContext));
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();
 	}
 
 	private BeanDefinition parseMailReceiver(Element element, ParserContext parserContext) {
@@ -85,7 +83,6 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		if (StringUtils.hasText(markAsRead)){
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
-		
 		return receiverBuilder.getBeanDefinition();
 	}
 

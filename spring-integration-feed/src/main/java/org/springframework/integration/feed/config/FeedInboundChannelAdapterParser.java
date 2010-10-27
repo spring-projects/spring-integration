@@ -18,8 +18,8 @@ package org.springframework.integration.feed.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
 public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
-	protected String parseSource(final Element element, final ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.feed.FeedEntryMessageSource");
 		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
@@ -45,7 +45,7 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 			sourceBuilder.addConstructorArgReference(feedFetcherRef);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "metadata-store");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
+		return sourceBuilder.getBeanDefinition();
 	}
 
 }

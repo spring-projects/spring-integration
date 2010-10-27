@@ -18,8 +18,8 @@ package org.springframework.integration.jmx.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -36,14 +36,13 @@ public class AttributePollingChannelAdapterParser extends AbstractPollingInbound
 	}
 
 	@Override
-	protected String parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.jmx.AttributePollingMessageSource");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server", "server");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "attribute-name");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();
 	}
 
 }

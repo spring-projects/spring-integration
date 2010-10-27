@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -33,13 +33,13 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		String source = this.parseSource(element, parserContext);
-		if (!StringUtils.hasText(source)) {
+		BeanMetadataElement source = this.parseSource(element, parserContext);
+		if (source == null) {
 			parserContext.getReaderContext().error("failed to parse source", element);
 		}
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SourcePollingChannelAdapterFactoryBean");
-		adapterBuilder.addPropertyReference("source", source);
+		adapterBuilder.addPropertyValue("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		if (pollerElement != null) {
@@ -53,6 +53,6 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	 * Subclasses must implement this method to parse the PollableSource instance
 	 * which the created Channel Adapter will poll.
 	 */
-	protected abstract String parseSource(Element element, ParserContext parserContext);
+	protected abstract BeanMetadataElement parseSource(Element element, ParserContext parserContext);
 
 }
