@@ -57,7 +57,7 @@ public class PropertiesPersistingMetadataStoreTests {
 		File file = new File("target/foo" + "/metadata-store.properties");
 		file.deleteOnExit();
 		PropertiesPersistingMetadataStore metadataStore = new PropertiesPersistingMetadataStore();
-		metadataStore.setBaseDirectory("foo"); 
+		metadataStore.setBaseDirectory("target/foo"); 
 		metadataStore.afterPropertiesSet();
 		metadataStore.put("foo", "bar");
 		metadataStore.destroy();
