@@ -39,7 +39,7 @@ import com.sun.syndication.io.XmlReader;
  * @author Mark Fisher
  * @since 2.0
  */
-class FileUrlFeedFetcher extends AbstractFeedFetcher {
+public class FileUrlFeedFetcher extends AbstractFeedFetcher {
 
 	/**
 	 * Retrieve a SyndFeed for the given URL.
