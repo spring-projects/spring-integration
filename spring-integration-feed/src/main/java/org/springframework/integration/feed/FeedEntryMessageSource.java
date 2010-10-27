@@ -77,23 +77,18 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Object feedMonitor = new Object();
 
-	
+
 	/**
-	 * Will create a default HttpURLFeedFetcher. If URL is other then http*
-	 * then consider providing custom implementation of the {@link FeedFetcher} 
-	 * and use the other constructor.
-	 * @param feedUrl
+	 * Creates a FeedEntryMessageSource that will use a HttpURLFeedFetcher to read feeds from the given URL.
+	 * If the feed URL has a protocol other than http*, consider providing a custom implementation of the
+	 * {@link FeedFetcher} via the alternate constructor.
 	 */
 	public FeedEntryMessageSource(URL feedUrl) {
 		this(feedUrl, new HttpURLFeedFetcher(HashMapFeedInfoCache.getInstance()));
 	}
-	 
-	
+
 	/**
-	 * Will allow you to provide not only URL but the custom implementation 
-	 * of the {@link FeedFetcher}
-	 * @param feedUrl
-	 * @param feedFetcher
+	 * Creates a FeedEntryMessageSource that will use the provided FeedFetcher to read from the given feed URL.
 	 */
 	public FeedEntryMessageSource(URL feedUrl, FeedFetcher feedFetcher) {
 		Assert.notNull(feedUrl, "feedUrl must not be null");
