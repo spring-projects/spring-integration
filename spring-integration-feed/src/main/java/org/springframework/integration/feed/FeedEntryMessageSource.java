@@ -127,8 +127,18 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				this.metadataStore = new SimpleMetadataStore();
 			}
 		}
-		Assert.hasText(this.getComponentName(), "FeedEntryReaderMessageSource must have a name");
-		this.metadataKey = this.getComponentType() + "." + this.getComponentName() + "." + this.feedUrl;
+		StringBuilder metadataKeyBuilder = new StringBuilder();
+		if (StringUtils.hasText(this.getComponentType())) {
+			metadataKeyBuilder.append(this.getComponentType() + ".");
+		}
+		if (StringUtils.hasText(this.getComponentName())) {
+			metadataKeyBuilder.append(this.getComponentName() + ".");
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("FeedEntryMessageSource has no name. MetadataStore key might not be unique.");
+		}
+		metadataKeyBuilder.append(this.feedUrl);
+		this.metadataKey = metadataKeyBuilder.toString();
 		String lastTimeValue = this.metadataStore.get(this.metadataKey);
 		if (StringUtils.hasText(lastTimeValue)) {
 			this.lastTime = Long.parseLong(lastTimeValue);
