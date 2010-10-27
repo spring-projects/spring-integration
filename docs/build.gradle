@@ -91,17 +91,22 @@ task preprocessDocbookSources {
 
     doLast {
         docbookSrcDir = file('src/reference/docbook')
-        docbookBuildDir = file('build/reference-work')
+        docbookResourceDir = file('src/reference/resources/')
+        docbookWorkDir = file('build/reference-work')
 
         // copy everything but index.xml
         copy {
-            into(docbookBuildDir)
+            into(docbookWorkDir)
             from(docbookSrcDir) { exclude '**/index.xml' }
+        }
+        copy {
+            into(docbookWorkDir)
+            from(docbookResourceDir)
         }
         // copy index.xml and expand ${...} variables along the way
         // e.g.: ${version} needs to be replaced in the header
         copy {
-            into(docbookBuildDir)
+            into(docbookWorkDir)
             from(docbookSrcDir) { include '**/index.xml' }
             expand(version: "$version")
         }
