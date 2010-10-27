@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.context;
 
-import org.springframework.beans.BeansException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -26,14 +29,25 @@ import org.springframework.context.support.ConversionServiceFactoryBean;
 
 /**
  * @author Oleg Zhurakousky
- * @sini 2.0
+ * @author Mark Fisher
+ * @since 2.0
  */
 class ConversionServiceCreator implements BeanFactoryPostProcessor {
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (!beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)){
-			BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(ConversionServiceFactoryBean.class);
-			BeanDefinitionHolder csHolder = new BeanDefinitionHolder(conversionServiceBuilder.getBeanDefinition(), IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(csHolder, (BeanDefinitionRegistry) beanFactory);
+
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		if (!beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)) {
+			if (beanFactory instanceof BeanDefinitionRegistry) {
+				BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(ConversionServiceFactoryBean.class);
+				BeanDefinitionHolder beanDefinitionHolder = new BeanDefinitionHolder(
+						conversionServiceBuilder.getBeanDefinition(), IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
+				BeanDefinitionReaderUtils.registerBeanDefinition(beanDefinitionHolder, (BeanDefinitionRegistry) beanFactory);
+			}
+			else if (logger.isWarnEnabled()) {
+				logger.warn("BeanFactory is not a BeanDefinitionRegistry implementation. Cannot register a default ConversionService.");
+			}
 		}
 	}
+
 }
