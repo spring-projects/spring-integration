@@ -35,13 +35,13 @@ public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler
 		registerBeanDefinitionParser("twitter-connection", new ConnectionParser());
 
 		// inbound
-		registerBeanDefinitionParser("inbound-update-channel-adapter", new InboundMessageSourceParser());
-		registerBeanDefinitionParser("inbound-dm-channel-adapter", new InboundMessageSourceParser());
-		registerBeanDefinitionParser("inbound-mention-channel-adapter", new InboundMessageSourceParser());
+		registerBeanDefinitionParser("inbound-update-channel-adapter", new TwitterMessageSourceParser());
+		registerBeanDefinitionParser("inbound-dm-channel-adapter", new TwitterMessageSourceParser());
+		registerBeanDefinitionParser("inbound-mention-channel-adapter", new TwitterMessageSourceParser());
 
 		// outbound
-		registerBeanDefinitionParser("outbound-update-channel-adapter", new OutboundTimelineUpdateMessageHandlerParser());
-		registerBeanDefinitionParser("outbound-dm-channel-adapter", new OutboundDirectMessageMessageHandlerParser());
+		registerBeanDefinitionParser("outbound-update-channel-adapter", new TwitterMessageHandlerParser());
+		registerBeanDefinitionParser("outbound-dm-channel-adapter", new TwitterMessageHandlerParser());
 	}
 
 }
