@@ -3,25 +3,35 @@ SPRING INTEGRATION 2.0.0 Release Candidate 1 (Oct 28, 2010)
 
 To find out what has changed since version 1.0.x or 2.0 M7, see 'changelog.txt'
 
-Please consult the documentation located within the 'docs/reference' directory of this
-release and also visit the official Spring Integration home at:
+Please consult the documentation located within the 'docs/reference' directory
+of this release and also visit the official Spring Integration home at
 http://www.springsource.org/spring-integration
 
 There you will find links to the forum, issue tracker, and several other resources.
 
-To build and run the sample applications that are included with this distribution,
-view the README.txt file in the 'samples' directory.
-
-To checkout the project from the Git repository and build from source, do the following:
+To check out the project and build from source, do the following:
 
     git clone git://git.springsource.org/spring-integration/spring-integration.git
     cd spring-integration
     ./gradlew build
 
-To build the JavaDoc, run `mvn javadoc:aggregate` from within the root directory. The
-result will be available in 'target/site/apidocs'.
+To generate Eclipse metadata (.classpath and .project files), do the following:
 
-The projects are Maven enabled, so you should be able to import them into any IDE that
-has support for Maven (2.2 or greater). The SpringSource Tool Suite (STS) ships with
-support for Maven projects, is free-of-charge and is the recommended IDE for use with
-Spring Integration (http://springsource.com/products/sts).
+    ./gradlew eclipse
+
+Once complete, you may then import projects into Eclipse as usual:
+
+    File->Import->Existing projects into workspace
+
+and point to the 'spring-integration' root directory.  All projects should import
+free of errors.
+
+To generate IDEA metadata (.iml and .ipr files), do the following:
+
+    ./gradlew idea
+
+To build the JavaDoc, do the following from within the root directory:
+
+    ./gradlew :docs:api
+
+the result will be available in 'docs/build/api'.
