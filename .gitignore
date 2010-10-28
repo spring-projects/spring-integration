@@ -1,5 +1,11 @@
+*.iml
+*.ipr
+*.sw?
+*/src/main/java/META-INF
+.classpath
 .gradle
 .idea
+.project
 .settings
 .springBeans
 build
@@ -7,10 +13,7 @@ derby.log
 integration-repo
 lib
 logs
+pom.xml
 si.java.hsp
-target
 spring-integration-jms/activemq-data/
-spring-integration-parent/.project
 spring-integration-samples/loanshark/application.log*
-*.iml
-*/src/main/java/META-INF

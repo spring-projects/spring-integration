@@ -106,7 +106,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
 		EvaluationContext evaluationContext = TestUtils.getPropertyValue(processor, "evaluationContext", EvaluationContext.class);
 		evaluationContext.setVariable("target", new TestTarget());
-		String result = (String) processor.processMessage(new GenericMessage<String>("classpath:*.properties"));
+		String result = (String) processor.processMessage(new GenericMessage<String>("classpath*:*.properties"));
 		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
 	}
 

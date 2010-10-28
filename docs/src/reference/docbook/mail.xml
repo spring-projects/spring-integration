@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="mail"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Mail Support</title>
+
+  <section id="mail-outbound">
+    <title>Mail-Sending Channel Adapter</title>
+    <para>
+      Spring Integration provides support for outbound email with the
+      <classname>MailSendingMessageHandler</classname>. It delegates to a configured instance of Spring's
+      <interfacename>JavaMailSender</interfacename>:
+      <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
+
+ MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
+      <classname>MailSendingMessageHandler</classname> has various mapping strategies that use Spring's
+      <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
+      a <classname>MailMessage</classname> instance, it will be sent directly.
+      Therefore, it is generally recommended to precede this
+      consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple
+      Message mapping strategies are supported out-of-the-box. For example, if the message payload is a byte array,
+      then that will be mapped to an attachment. For simple text-based emails, you can provide a String-based
+      Message payload. In that case, a MailMessage will be created with that String as the text content. If you
+      are working with a Message payload type whose toString() method returns appropriate mail text content, then
+      consider adding Spring Integration's <emphasis>ObjectToStringTransformer</emphasis> prior to the outbound
+      Mail adapter (see the example within <xref linkend="transformer-namespace"/> for more detail).
+    </para>
+    <para>
+      The outbound MailMessage may also be configured with certain values from the
+      <classname>MessageHeaders</classname>. If available, values will be mapped to the outbound mail's
+      properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject. The header names are
+      defined by the following constants:
+      <programlisting language="java"> MailHeaders.SUBJECT
+ MailHeaders.TO
+ MailHeaders.CC
+ MailHeaders.BCC
+ MailHeaders.FROM
+ MailHeaders.REPLY_TO</programlisting>
+    </para>
+    <note>
+      <classname>MailHeaders</classname>  also allows you to override corresponding <classname>MailMessage</classname> values.
+      For example: If <classname>MailMessage.to</classname> is set to 'foo@bar.com' and <classname>MailHeaders.TO</classname>
+      Message header is provided it will take precedence and override the corresponding value in <classname>MailMessage</classname>
+    </note>
+  </section>
+
+  <section id="mail-inbound">
+    <title>Mail-Receiving Channel Adapter</title>
+    <para>
+      Spring Integration also provides support for inbound email with the
+      <classname>MailReceivingMessageSource</classname>. It delegates to a configured instance of Spring
+      Integration's own <interfacename>MailReceiver</interfacename> interface, and there are two implementations:
+      <classname>Pop3MailReceiver</classname> and <classname>ImapMailReceiver</classname>. The easiest way to
+      instantiate either of these is by passing the 'uri' for a Mail store to the receiver's constructor. For example:
+      <programlisting language="java"><![CDATA[ MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
+]]></programlisting>
+    </para>
+    <para>
+      Another option for receiving mail is the IMAP "idle" command (if supported by the mail server you are using).
+      Spring Integration provides the <classname>ImapIdleChannelAdapter</classname> which is itself a Message-producing
+      endpoint. It delegates to an instance of the <classname>ImapMailReceiver</classname> but enables asynchronous
+      reception of Mail Messages. There are examples in the next section of configuring both types of inbound Channel
+      Adapter with Spring Integration's namespace support in the 'mail' schema.
+    </para>
+  </section>
+
+  <section id="mail-namespace">
+    <title>Mail Namespace Support</title>
+    <para>
+      Spring Integration provides a namespace for mail-related configuration. To use it, configure the following schema
+      locations.<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mail="http://www.springframework.org/schema/integration/mail"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/integration/mail
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd">]]></programlisting>
+    </para>
+    <para>
+      To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              mail-sender="mailSender"/>]]></programlisting>
+      Alternatively, provide the host, username, and password:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
+      <note>
+        Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a
+        &lt;poller&gt; sub-element should be provided with either an interval-trigger or cron-trigger.
+      </note>
+    </para>
+    <para>
+      To configure an inbound Channel Adapter, you have the choice between polling or event-driven (assuming your
+      mail server supports IMAP IDLE - if not, then polling is the only option). A polling Channel Adapter simply
+      requires the store URI and the channel to send inbound Messages to. The URI may begin with "pop3" or "imap":
+      <programlisting language="xml"><![CDATA[<int-mail:inbound-channel-adapter id="imapAdapter"
+      store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
+      java-mail-properties="javaMailProperties"
+      channel="recieveChannel"
+      should-delete-messages="true"
+      should-mark-messages-as-read="true"
+      auto-startup="true">
+      <int:poller max-messages-per-poll="1" fixed-rate="5000"/>
+</int-mail:inbound-channel-adapter>]]></programlisting>
+      If you do have IMAP idle support, then you may want to configure the "imap-idle-channel-adapter" element instead.
+      Since the "idle" command enables event-driven notifications, no poller is necessary for this adapter. It will
+      send a Message to the specified channel as soon as it receives the notification that new mail is available:
+      <programlisting language="xml"><![CDATA[<int-mail:imap-idle-channel-adapter id="customAdapter"
+      store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
+      channel="recieveChannel"
+      auto-startup="true"
+      should-delete-messages="false"
+      should-mark-messages-as-read="true"
+      java-mail-properties="javaMailProperties"/>]]></programlisting>
+    ... where <emphasis>javaMailProperties</emphasis> could be provided by creating and populating
+     a regular <classname>java.utils.Properties</classname> object. For example via <emphasis>util</emphasis> namespace
+     provided by Spring.
+     <programlisting language="xml"><![CDATA[<util:properties id="javaMailProperties">
+  <prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+  <prop key="mail.imap.socketFactory.fallback">false</prop>
+  <prop key="mail.store.protocol">imaps</prop>
+  <prop key="mail.debug">false</prop>
+</util:properties>]]></programlisting>
+    </para>
+
+    <important>
+    In both configurations <code>channel</code> and <code>should-delete-messages</code> are the <emphasis>REQUIRED</emphasis>
+    attributes. The important thing to understand is why <code>should-delete-messages</code> is required?
+    The issue is with POP3 protocol, which does NOT have any knowlege of messages that were READ. It can only know what's been read 
+    within a single session. This means that when your POP3 mail adapter is running emails are successfully consumed as as they become available during each poll
+    and no single email message will be delivered more then once. However, as soon as you restart your adapter and begin a new session
+    all the email messages that might have been retreeved in the previous session will be retrieved again. That is the nature of POP3. Some might argue
+    that why not set <code>should-delete-messages</code> to TRUE by default? Becouse there are two valid amd mutually exclusive use cases 
+    which makes it very hard pick the right default. You may want to configure your adapter as the only email receiever in which
+    case you want to be able to restart such adapter without fear that messages that were delivered before will not be redelivered again. 
+    In this case setting <code>should-delete-messages</code> to TRUE would make most sence. However, you may have anoher use case where 
+    you may want to have multiple adapters that simply monitor email servers and their content. In other words you just want to 'peek but not touch'. 
+    Then setting <code>should-delete-messages</code> to FALSE would be much more appropriate. So since it is hard to choose what should be
+    the right default value for <code>should-delete-messages</code> attribute we simply made it required to be set - leaving it up to you
+    while also not letting you to forget that you must set it.
+    </important>
+
+     <note>When configuring a polling adapter (e.g., inbound-channel-adapter) <emphasis>should-mark-messages-as-read</emphasis>
+    be aware of the protocol you are configuring to retrieve messages. For example POP3 does not support this flag
+    which means setting it to either value will have no effect as messages will NOT be marked as read</note>
+
+
+    <para>
+      When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
+      This simplifies the application of the headers mentioned above to any Message prior to sending to the
+      Mail-sending Channel Adapter.
+      <programlisting language="xml"><![CDATA[<mail:header-enricher subject="Example Mail"
+                     to="to@example.org"
+                     cc="cc@example.org"
+                     bcc="bcc@example.org"
+                     from="from@example.org"
+                     reply-to="replyTo@example.org"
+                     overwrite="false"/>]]></programlisting>
+    </para>
+  </section>
+
+</chapter>

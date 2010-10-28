@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="resequencer"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Resequencer</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>Related to the Aggregator, albeit different from a functional
+    standpoint, is the Resequencer.</para>
+  </section>
+
+  <section id="resequencer-functionality">
+    <title>Functionality</title>
+
+    <para>The Resequencer works in a similar way to the Aggregator, in the
+    sense that it uses the CORRELATION_ID to store messages in groups, the
+    difference being that the Resequencer does not process the messages in any
+    way. It simply releases them in the order of their SEQUENCE_NUMBER header
+    values.</para>
+
+    <para>With respect to that, the user might opt to release all messages at
+    once (after the whole sequence, according to the SEQUENCE_SIZE, has been
+    released), or as soon as a valid sequence is available.</para>
+  </section>
+
+  <section>
+    <title>Configuring a Resequencer with XML</title>
+
+    <para>Configuring a resequencer requires only including the appropriate
+    element in XML.</para>
+
+    <para>A sample resequencer configuration is shown below.</para>
+
+    <programlisting language="xml"><![CDATA[<channel id="inputChannel"/>
+
+<channel id="outputChannel"/>
+
+<resequencer id="completelyDefinedResequencer" ]]><co id="resxml1-co"
+        linkends="resxml1" /><![CDATA[
+  input-channel="inputChannel" ]]><co id="resxml2-co" linkends="resxml2" /><![CDATA[
+  output-channel="outputChannel" ]]><co id="resxml3-co" linkends="resxml3" /><![CDATA[
+  discard-channel="discardChannel" ]]><co id="resxml4-co" linkends="resxml4" /><![CDATA[
+  release-partial-sequences="true" ]]><co id="resxml5-co" linkends="resxml5" /><![CDATA[
+  message-store="messageStore" ]]><co id="resxml6-co" linkends="resxml6" /><![CDATA[
+  send-partial-result-on-expiry="true" ]]><co id="resxml7-co"
+        linkends="resxml7" /><![CDATA[
+  send-timeout="86420000" ]]><co id="resxml10-co" linkends="resxml10" /><![CDATA[ /> ]]></programlisting>
+
+    <para><calloutlist>
+        <callout arearefs="resxml1-co" id="resxml1">
+          <para>The id of the resequencer is
+          <emphasis>optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml2-co" id="resxml2">
+          <para>The input channel of the resequencer.
+          <emphasis>Required</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml3-co" id="resxml3">
+          <para>The channel where the resequencer will send the reordered
+          messages. <emphasis>Optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml4-co" id="resxml4">
+          <para>The channel where the resequencer will send the messages that
+          timed out (if <code>send-partial-result-on-timeout</code> is
+          <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="resxml5-co" id="resxml5">
+
+
+          <para>Whether to send out ordered sequences as soon as they are
+          available, or only after the whole message group arrives.
+          <emphasis>Optional (false by default)</emphasis>.</para>
+
+           If this flag is not specified (so a complete sequence is defined by the sequence headers) then it can make sense to provide a custom
+
+          <code>Comparator</code>
+
+           to be used to order the messages when sending (use the XML attribute
+
+          <literal>comparator</literal>
+
+           to point to a bean definition). If
+
+          <literal>release-partial-sequences</literal>
+
+           is true then there is no way with a custom comparator to define a partial sequence. To do that you would have to provide a
+
+          <literal>release-strategy</literal>
+
+           (also a reference to another bean definition, either a POJO or a
+
+          <code>ReleaseStrategy</code>
+
+          ).
+        </callout>
+
+        <callout arearefs="resxml6-co" id="resxml6">
+          <para>A reference to a <code>MessageGroupStore</code> that can be
+          used to store groups of messages under their correlation key until
+          they are complete. <emphasis>Optional</emphasis> with default a
+          volatile in-memory store.</para>
+        </callout>
+
+        <callout arearefs="resxml7-co" id="resxml7">
+          <para>Whether, upon the expiration of the group, the ordered group
+          should be sent out (even if some of the messages are missing).
+          <emphasis>Optional (false by default)</emphasis>. See <xref
+          linkend="reaper" />.</para>
+        </callout>
+
+        <callout arearefs="resxml10-co" id="resxml10">
+          <para>The timeout for sending out messages.
+          <emphasis>Optional</emphasis>.</para>
+        </callout>
+      </calloutlist></para>
+
+    <note>
+       Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it.
+    </note>
+  </section>
+</chapter>

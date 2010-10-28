@@ -1,0 +1,39 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+include 'docs'
+include 'spring-integration-core'
+include 'spring-integration-event'
+include 'spring-integration-feed'
+include 'spring-integration-file'
+include 'spring-integration-ftp'
+include 'spring-integration-groovy'
+include 'spring-integration-http'
+include 'spring-integration-httpinvoker'
+include 'spring-integration-ip'
+include 'spring-integration-jdbc'
+include 'spring-integration-jms'
+include 'spring-integration-jmx'
+include 'spring-integration-mail'
+include 'spring-integration-rmi'
+include 'spring-integration-security'
+include 'spring-integration-sftp'
+include 'spring-integration-stream'
+include 'spring-integration-test'
+include 'spring-integration-twitter'
+include 'spring-integration-ws'
+include 'spring-integration-xml'
+include 'spring-integration-xmpp'
