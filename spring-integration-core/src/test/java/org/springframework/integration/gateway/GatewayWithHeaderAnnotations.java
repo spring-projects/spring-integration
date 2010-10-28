@@ -43,13 +43,14 @@ public class GatewayWithHeaderAnnotations {
 	@Test // INT-1205
 	public void priorityAsArgument() {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
-		String result = gateway.test("foo", 99);
-		assertEquals("foo99", result);
+		String result = gateway.test("foo", 99, "bar");
+		assertEquals("foo99bar", result);
 	}
 
 
 	public static interface TestService {
-		public String test(String str, @Header(MessageHeaders.PRIORITY) int priority);
+		// wrt INT-1205, priority no longer has a $ prefix, so here we are testing the $custom header as well
+		public String test(String str, @Header(MessageHeaders.PRIORITY) int priority, @Header("$custom") String custom);
 	}
 
 }

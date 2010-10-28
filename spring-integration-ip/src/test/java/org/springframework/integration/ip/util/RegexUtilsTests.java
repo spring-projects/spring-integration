@@ -19,6 +19,7 @@ package org.springframework.integration.ip.util;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.integration.ip.util.RegexUtils.escapeRegExSpecials;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.MessageHeaders;
 
@@ -41,6 +42,7 @@ public class RegexUtilsTests {
 	 * And one of the ones we are actually using
 	 */
 	@Test
+	@Ignore // no longer relevant due to INT-1568
 	public void testSiPrefix () {
 		// protect the test in case we ever change the prefix
 		if ("$^[]{()}+*\\?|.".contains(MessageHeaders.PREFIX)) {

@@ -37,7 +37,9 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -112,18 +114,18 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageWithDollarInBrackets() {
-		Expression expression = expressionParser.parseExpression("headers['$id']");
+		Expression expression = expressionParser.parseExpression("headers['$foo_id']");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		GenericMessage<String> message = new GenericMessage<String>("foo");
-		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "abc").build();
+		assertEquals("abc", processor.processMessage(message));
 	}
 
 	@Test
 	public void testProcessMessageWithDollarPropertyAccess() {
-		Expression expression = expressionParser.parseExpression("headers.$id");
+		Expression expression = expressionParser.parseExpression("headers.$foo_id");
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		GenericMessage<String> message = new GenericMessage<String>("foo");
-		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "xyz").build();
+		assertEquals("xyz", processor.processMessage(message));
 	}
 
 	@Test

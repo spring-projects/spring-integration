@@ -10,7 +10,7 @@
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<outbound-channel-adapter channel="target" data-source="dataSource">
-	  <query>insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])</query>
+	  <query>insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])</query>
 	</outbound-channel-adapter>
 
 	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />

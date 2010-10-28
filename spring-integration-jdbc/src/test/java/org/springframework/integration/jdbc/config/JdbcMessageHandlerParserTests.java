@@ -37,10 +37,10 @@ public class JdbcMessageHandlerParserTests {
 	@Test
 	public void testDollarHeaderOutboundChannelAdapter(){
 		setUp("handlingDollarHeaderJdbcOutboundChannelAdapterTest.xml", getClass());
-		Message<?> message = MessageBuilder.withPayload("foo").build();
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("$foo_id", "abc").build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
-		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
+		assertEquals("Wrong id", message.getHeaders().get("$foo_id").toString(), map.get("ID"));
 		assertEquals("Wrong id", "foo", map.get("name"));
 	}
 
