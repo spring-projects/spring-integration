@@ -91,7 +91,7 @@
   <xi:include href="./xml.xml"/>
   <xi:include href="./security.xml"/>
   <xi:include href="./groovy.xml"/>
-  <!--<xi:include href="./samples.xml"/>-->
+  <xi:include href="./samples.xml"/>
   <xi:include href="./configuration.xml"/>
   <xi:include href="./resources.xml"/>
 
