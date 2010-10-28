@@ -18,9 +18,10 @@ package org.springframework.integration.sftp;
 
 /**
  * @author Josh Long
+ * @since 2.0
  */
-public class SftpConstants {
+public abstract class SftpHeaders {
 
-	public static final String SFTP_REMOTE_DIRECTORY_HEADER = "SFTP_REMOTE_DIRECTORY_HEADER";
+	public static final String REMOTE_DIRECTORY = "sftp_remoteDirectory";
 
 }
