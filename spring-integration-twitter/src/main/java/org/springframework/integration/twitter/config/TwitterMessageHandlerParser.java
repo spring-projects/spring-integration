@@ -27,17 +27,25 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
 /**
- * Parser for 'outbound-dm-channel-adapter' element
+ * Parser for all outbound Twitter adapters
  * 
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class OutboundDirectMessageMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
+public class TwitterMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler");
+		String elementName = element.getLocalName().trim();
+		String className = null;
+		if ("outbound-update-channel-adapter".equals(elementName)) {
+			className = BASE_PACKAGE + ".outbound.OutboundTimelineUpdateMessageHandler";
+		}
+		else if ("outbound-dm-channel-adapter".equals(elementName)) {
+			className = BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler";
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
 		return builder.getBeanDefinition();
 	}
