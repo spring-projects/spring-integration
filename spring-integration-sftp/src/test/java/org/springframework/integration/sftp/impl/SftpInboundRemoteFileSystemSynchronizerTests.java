@@ -79,7 +79,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 * 
 	 * @throws Exception
 	 */
-	@org.junit.Ignore;
+	@org.junit.Ignore
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {
 		SftpInboundRemoteFileSystemSynchronizer synchronizer = new SftpInboundRemoteFileSystemSynchronizer();
