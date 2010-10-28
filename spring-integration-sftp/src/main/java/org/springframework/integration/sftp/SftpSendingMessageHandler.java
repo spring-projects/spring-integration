@@ -184,8 +184,8 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 			MessageHeaders messageHeaders = null;
 			if (message != null) {
 				messageHeaders = message.getHeaders();
-				if ((messageHeaders != null) && messageHeaders.containsKey(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER)) {
-					dynRd = (String) messageHeaders.get(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER);
+				if ((messageHeaders != null) && messageHeaders.containsKey(SftpHeaders.REMOTE_DIRECTORY)) {
+					dynRd = (String) messageHeaders.get(SftpHeaders.REMOTE_DIRECTORY);
 					if (!StringUtils.isEmpty(dynRd)) {
 						baseOfRemotePath = dynRd;
 					}
