@@ -40,10 +40,10 @@ public class TwitterSendingMessageHandlerParser extends AbstractOutboundChannelA
 		String elementName = element.getLocalName().trim();
 		String className = null;
 		if ("outbound-update-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.OutboundTimelineUpdateMessageHandler";
+			className = BASE_PACKAGE + ".outbound.TimelineUpdateSendingMessageHandler";
 		}
 		else if ("outbound-dm-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler";
+			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
