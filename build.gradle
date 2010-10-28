@@ -400,7 +400,6 @@ project('spring-integration-xmpp') {
     }
 }
 
-
 // add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
 // running `gradle clean` from the root project and deleting the build directory
 apply plugin: 'base'
