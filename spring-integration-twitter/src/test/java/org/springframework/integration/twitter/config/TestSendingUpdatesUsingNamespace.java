@@ -41,10 +41,11 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Ignore
 	public void testSendingATweet() throws Throwable {
 		MessageBuilder<String> mb = MessageBuilder.withPayload("simple test demonstrating the ability to encode location information")
-				.setHeader(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID, 21927437001L)
+				.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, 21927437001L)
 				//.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new Twitter4jGeoLocation(-76.226823, 23.642465)) // antarctica
-				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
+				.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true);
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);
 	}
+
 }
