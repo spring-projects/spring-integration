@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2010 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -25,23 +26,19 @@ import org.w3c.dom.Element;
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
- *
- * Parsers for 'outbound-update-channel-adapter' element
- *
+ * Parser for the 'outbound-update-channel-adapter' element.
+ * 
  * @author Josh Long
  * @since 2.0
  */
 public class OutboundTimelineUpdateMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
-    @Override
-    protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                BASE_PACKAGE + ".outbound.OutboundTimelineUpdateMessageHandler" );
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				BASE_PACKAGE + ".outbound.OutboundTimelineUpdateMessageHandler");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+		return builder.getBeanDefinition();
+	}
 
-
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
-                "twitter-connection", "configuration");
-
-        return builder.getBeanDefinition();
-    }
 }

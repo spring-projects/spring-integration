@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2010 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -13,31 +13,33 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
+
+import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
-
-import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 /**
  * Parser for 'outbound-dm-channel-adapter' element
- *
+ * 
  * @author Josh Long
  * @since 2.0
- *  
  */
 public class OutboundDirectMessageMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
-    @Override
-    protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler" );
-        
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-        return builder.getBeanDefinition();
-    }
+
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				BASE_PACKAGE + ".outbound.OutboundDirectMessageMessageHandler");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+		return builder.getBeanDefinition();
+	}
+
 }
