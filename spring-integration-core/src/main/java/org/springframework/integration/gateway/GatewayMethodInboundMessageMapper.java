@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -39,7 +40,6 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.util.SimpleBeanResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -106,7 +106,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.beanResolver = new SimpleBeanResolver(beanFactory);
+			this.beanResolver = new BeanFactoryResolver(beanFactory);
 			this.evaluationContext.setBeanResolver(beanResolver);
 		}
 	}
