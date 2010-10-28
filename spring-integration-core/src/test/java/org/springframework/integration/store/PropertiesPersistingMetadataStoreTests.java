@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context.metadata;
+package org.springframework.integration.store;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
