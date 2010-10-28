@@ -39,7 +39,6 @@ public class TestSendingMessageHandlerParserTests {
 	
 	public static class MockOathConfigurationFactoryBean implements FactoryBean<OAuthConfiguration>{
 
-		@Override
 		public OAuthConfiguration getObject() throws Exception {
 			OAuthConfiguration config = mock(OAuthConfiguration.class);
 			Twitter twitter = mock(Twitter.class);
@@ -47,12 +46,10 @@ public class TestSendingMessageHandlerParserTests {
 			return config;
 		}
 
-		@Override
 		public Class<?> getObjectType() {
 			return OAuthConfiguration.class;
 		}
 
-		@Override
 		public boolean isSingleton() {
 			return true;
 		}	
