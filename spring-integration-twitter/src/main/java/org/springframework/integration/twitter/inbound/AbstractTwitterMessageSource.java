@@ -99,8 +99,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	protected void onInit() throws Exception{
 		super.onInit();
 		Assert.notNull(this.configuration, "'configuration' can't be null");
-		this.twitter = this.configuration.getTwitter();
-		Assert.notNull(this.twitter, "'twitter' instance can't be null");
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -148,6 +146,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@Override
 	protected void doStart(){
+		this.twitter = this.configuration.getTwitter();
+		Assert.notNull(this.twitter, "'twitter' instance can't be null");
 		historyWritingPostProcessor.setTrackableComponent(this);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);
 		Runnable apiCallback = this.getApiCallback();
