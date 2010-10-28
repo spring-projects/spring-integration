@@ -354,6 +354,7 @@ project('spring-integration-twitter') {
         compile "org.springframework:spring-context-support:$springVersion"
         compile "org.twitter4j:twitter4j-core:2.1.3"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
+        testCompile project(":spring-integration-test")
     }
 }
 
@@ -397,6 +398,7 @@ project('spring-integration-xmpp') {
         compile "jivesoftware:smack:3.1.0"
         compile "jivesoftware:smackx:3.1.0"
         compile "org.springframework:spring-context-support:$springVersion"
+        testCompile project(":spring-integration-test")
     }
 }
 
