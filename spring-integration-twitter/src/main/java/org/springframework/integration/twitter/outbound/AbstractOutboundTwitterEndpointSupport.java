@@ -23,9 +23,10 @@ import twitter4j.Twitter;
 
 
 /**
- * The adapters that support 'sending' / 'updating status' messages will do so on top of this implementation for convenience, only.
+ * Base adapter class for all outbound Twitter adapters
  *
  * @author Josh Long
+ * @since 2.0
  */
 public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractMessageHandler {
 	protected volatile OAuthConfiguration configuration;
