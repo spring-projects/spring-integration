@@ -77,7 +77,7 @@ public class JdbcMessageHandlerIntegrationTests {
 	
 	@Test
 	public void testIdHeaderDynamicInsert() {
-		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate.getJdbcOperations(), "insert into foos (id, status, name) values (:headers[$id], 0, :payload)");
+		JdbcMessageHandler handler = new JdbcMessageHandler(jdbcTemplate.getJdbcOperations(), "insert into foos (id, status, name) values (:headers[id], 0, :payload)");
 		Message<String> message = new GenericMessage<String>("foo");
 		handler.handleMessage(message);
 		String id = message.getHeaders().getId().toString();

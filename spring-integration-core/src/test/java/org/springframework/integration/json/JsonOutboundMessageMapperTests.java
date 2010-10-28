@@ -50,8 +50,8 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 	}
 
@@ -64,10 +64,10 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
-		assertTrue(result.contains("\"$history\":"));
+		assertTrue(result.contains("\"history\":"));
 		assertTrue(result.contains("testName-1"));
 		assertTrue(result.contains("testType-1"));
 		assertTrue(result.contains("testName-2"));
@@ -93,8 +93,8 @@ public class JsonOutboundMessageMapperTests {
 		JsonOutboundMessageMapper mapper = new JsonOutboundMessageMapper();
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
-		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"id\":\""+testMessage.getHeaders().getId()+"\""));
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertEquals(payload, parsedPayload);
 	}
