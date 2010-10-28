@@ -191,8 +191,7 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	public static BeanComponentDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext) {
-		// parses out inner bean definition for concrete implementation if
-		// defined
+		// parses out the inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
 		BeanComponentDefinition innerComponentDefinition = null;
 		if (childElements != null && childElements.size() == 1) {
@@ -202,15 +201,13 @@ public abstract class IntegrationNamespaceUtils {
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
 			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());
-			parserContext.registerBeanComponent(innerComponentDefinition);
 		}
-
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		Assert.isTrue(!(StringUtils.hasText(ref) && innerComponentDefinition != null),
-				"Ambiguous definition. Inner bean "
-						+ (innerComponentDefinition == null ? innerComponentDefinition : innerComponentDefinition
-								.getBeanDefinition().getBeanClassName()) + " declaration and \"ref\" " + ref
-						+ " are not allowed together.");
+				"Ambiguous definition. Inner bean " + (innerComponentDefinition == null ? innerComponentDefinition
+						: innerComponentDefinition.getBeanDefinition().getBeanClassName())
+						+ " declaration and \"ref\" " + ref + " are not allowed together.");
 		return innerComponentDefinition;
 	}
+
 }

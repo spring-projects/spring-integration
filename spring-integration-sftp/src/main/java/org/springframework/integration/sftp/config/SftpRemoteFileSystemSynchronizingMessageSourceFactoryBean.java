@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.config;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -34,75 +35,79 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 
-
 /**
  * Factory bean to hide the fairly complex configuration possibilities for an SFTP endpoint
  *
  * @author Josh Long
  */
-public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
+public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
+		extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile ResourceLoader resourceLoader;
+
 	private volatile Resource localDirectoryResource;
+
 	private volatile String localDirectoryPath;
+
 	private volatile String autoCreateDirectories;
+
 	private volatile String autoDeleteRemoteFilesOnSync;
+
 	private volatile String filenamePattern;
+
 	private volatile EntryListFilter<ChannelSftp.LsEntry> filter;
+
 	private int port = 22;
+
 	private String host;
+
 	private String keyFile;
+
 	private String keyFilePassword;
+
 	private String remoteDirectory;
+
 	private String username;
+
 	private String password;
 
-	@SuppressWarnings("unused")
+
 	public void setLocalDirectoryResource(Resource localDirectoryResource) {
 		this.localDirectoryResource = localDirectoryResource;
 	}
 
-	@SuppressWarnings("unused")
 	public void setLocalDirectoryPath(String localDirectoryPath) {
 		this.localDirectoryPath = localDirectoryPath;
 	}
 
-	@SuppressWarnings("unused")
 	public void setAutoCreateDirectories(String autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
 	}
 
-	@SuppressWarnings("unused")
 	public void setAutoDeleteRemoteFilesOnSync(String autoDeleteRemoteFilesOnSync) {
 		this.autoDeleteRemoteFilesOnSync = autoDeleteRemoteFilesOnSync;
 	}
 
-	@SuppressWarnings("unused")
 	public void setFilenamePattern(String filenamePattern) {
 		this.filenamePattern = filenamePattern;
 	}
 
-	@SuppressWarnings("unused")
 	public void setFilter(EntryListFilter<ChannelSftp.LsEntry> filter) {
 		this.filter = filter;
 	}
 
-	@SuppressWarnings("unused")
 	public void setPort(int port) {
 		this.port = port;
 	}
 
-	@SuppressWarnings("unused")
 	public void setHost(String host) {
 		this.host = host;
 	}
 
-	@SuppressWarnings("unused")
 	public void setKeyFile(String keyFile) {
 		this.keyFile = keyFile;
 	}
 
-	@SuppressWarnings("unused")
 	public void setKeyFilePassword(String keyFilePassword) {
 		this.keyFilePassword = keyFilePassword;
 	}
@@ -110,7 +115,6 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 	/**
 	 * Set the remote directory to synchronize with
 	 */
-	@SuppressWarnings("unused")
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
@@ -118,7 +122,6 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 	/**
 	 * Set the user name to be used for authentication with the remote server
 	 */
-	@SuppressWarnings("unused")
 	public void setUsername(String username) {
 		this.username = username;
 	}
@@ -127,7 +130,6 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 	 * Set the password to be used for authentication with the remote server
 	 * @param password
 	 */
-	@SuppressWarnings("unused")
 	public void setPassword(String password) {
 		this.password = password;
 	}
@@ -152,11 +154,9 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 	 * @return Fully configured SftpInboundRemoteFileSystemSynchronizingMessageSource
 	 */
 	@Override
-	protected SftpInboundRemoteFileSystemSynchronizingMessageSource createInstance()
-			throws Exception {
+	protected SftpInboundRemoteFileSystemSynchronizingMessageSource createInstance() throws Exception {
 		boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
 		boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
-
 		SftpInboundRemoteFileSystemSynchronizingMessageSource sftpMsgSrc = new SftpInboundRemoteFileSystemSynchronizingMessageSource();
 		sftpMsgSrc.setAutoCreateDirectories(autoCreatDirs);
 
@@ -166,27 +166,22 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 			File sftpTmp = new File(tmp, "sftpInbound");
 			this.localDirectoryPath = "file://" + sftpTmp.getAbsolutePath();
 		}
-
 		this.localDirectoryResource = this.resourceFromString(localDirectoryPath);
 
 		// remote predicates
 		SftpEntryNamer sftpEntryNamer = new SftpEntryNamer();
 		CompositeEntryListFilter<ChannelSftp.LsEntry> compositeFtpFileListFilter = new CompositeEntryListFilter<ChannelSftp.LsEntry>();
-
 		if (StringUtils.hasText(this.filenamePattern)) {
 			PatternMatchingEntryListFilter<ChannelSftp.LsEntry> ftpFilePatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(sftpEntryNamer, filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
 		}
-
 		if (this.filter != null) {
 			compositeFtpFileListFilter.addFilter(this.filter);
 		}
-
 		this.filter = compositeFtpFileListFilter;
 
 		// pools
 		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
-
 		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sessionFactory);
 		pool.afterPropertiesSet();
 
@@ -197,8 +192,8 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 		sftpSync.setFilter(compositeFtpFileListFilter);
 		sftpSync.setBeanFactory(this.getBeanFactory());
 		sftpSync.setRemotePath(this.remoteDirectory);
-		sftpSync.afterPropertiesSet(); // todo is this correct  ?
-		sftpSync.start(); //todo
+		sftpSync.afterPropertiesSet();
+		sftpSync.start();
 
 		sftpMsgSrc.setRemotePredicate(compositeFtpFileListFilter);
 		sftpMsgSrc.setSynchronizer(sftpSync);
@@ -209,14 +204,13 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 		sftpMsgSrc.setAutoStartup(true);
 		sftpMsgSrc.afterPropertiesSet();
 		sftpMsgSrc.start();
-
 		return sftpMsgSrc;
 	}
 
 	private Resource resourceFromString(String path) {
 		ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
 		resourceEditor.setAsText(path);
-
 		return (Resource) resourceEditor.getValue();
 	}
+
 }

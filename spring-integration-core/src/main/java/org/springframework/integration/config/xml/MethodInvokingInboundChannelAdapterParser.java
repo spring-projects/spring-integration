@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -38,39 +40,57 @@ import org.springframework.util.xml.DomUtils;
 public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
-	protected String parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		BeanMetadataElement result = null;
 		BeanComponentDefinition innnerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String sourceRef = element.getAttribute("ref");
+		String methodName = element.getAttribute("method");
 		String expressionString = element.getAttribute("expression");
 		if (innnerBeanDef != null) {
 			if (StringUtils.hasText(sourceRef)) {
 				parserContext.getReaderContext().error(
 						"inner bean and a 'ref' attribute are mutually exclusive options", element);
 			}
-			sourceRef = innnerBeanDef.getBeanName();
+			if (StringUtils.hasText(methodName)) {
+				result = this.parseMethodInvokingSource(innnerBeanDef, methodName, element, parserContext);
+			}
+			else {
+				result = innnerBeanDef;
+			}
 		}
 		else if (StringUtils.hasText(expressionString)) {
 			if (StringUtils.hasText(sourceRef)) {
 				parserContext.getReaderContext().error(
 						"the 'expression' and 'ref' attributes are mutually exclusive options", element);
 			}
-			sourceRef = this.parseExpression(expressionString, element, parserContext);
+			String expressionBeanName = this.parseExpression(expressionString, element, parserContext);
+			result = new RuntimeBeanReference(expressionBeanName);
 		}
-		if (!StringUtils.hasText(sourceRef)) {
+		else if (StringUtils.hasText(sourceRef)) {
+			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef); 
+			if (StringUtils.hasText(methodName)) {
+				result = this.parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
+			}
+			else {
+				result = sourceValue;
+			}
+		}
+		else {
 			parserContext.getReaderContext().error("One of the following is required: " +
 					"'ref' attribute, 'expression' attribute, or an inner-bean definition.", element);
 		}
-		String methodName = element.getAttribute("method");
-		if (StringUtils.hasText(methodName)) {
-			BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.MethodInvokingMessageSource");
-			sourceBuilder.addPropertyReference("object", sourceRef);
-			sourceBuilder.addPropertyValue("methodName", methodName);
-			this.parseHeaderExpressions(sourceBuilder, element, parserContext);
-			sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
-		}
-		return sourceRef;
+		return result;
+	}
+
+	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.MethodInvokingMessageSource");
+		sourceBuilder.addPropertyValue("object", targetObject);
+		sourceBuilder.addPropertyValue("methodName", methodName);
+		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
+		String sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
+		return new RuntimeBeanReference(sourceRef);
 	}
 
 	private String parseExpression(String expressionString, Element element, ParserContext parserContext) {

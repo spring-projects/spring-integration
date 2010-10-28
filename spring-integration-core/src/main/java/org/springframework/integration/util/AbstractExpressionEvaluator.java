@@ -15,6 +15,7 @@ package org.springframework.integration.util;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationException;
@@ -50,7 +51,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.typeConverter.setBeanFactory(beanFactory);
-			this.evaluationContext.setBeanResolver(new SimpleBeanResolver(beanFactory));
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 	}
 

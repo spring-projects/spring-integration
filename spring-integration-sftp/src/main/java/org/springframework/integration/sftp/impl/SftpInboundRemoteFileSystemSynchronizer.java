@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.impl;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -34,13 +35,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
-
 /**
- * This handles the synchronization between a remote SFTP endpoint and a local mount
+ * Gandles the synchronization between a remote SFTP endpoint and a local mount.
  *
  * @author Josh Long
  */
 public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
+
 	/**
 	 * the path on the remote mount
 	 */
@@ -51,17 +52,9 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 	 */
 	private volatile SftpSessionPool clientPool;
 
+
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
-	}
-
-	@Override
-	protected void onInit() throws Exception {
-		Assert.notNull(this.clientPool, "'clientPool' can't be null");
-		Assert.notNull(this.remotePath, "'remotePath' can't be null");
-		if (this.shouldDeleteSourceFile) {
-			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
-		}
 	}
 
 	@Required
@@ -69,44 +62,51 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 		this.clientPool = clientPool;
 	}
 
-	@SuppressWarnings("ignored")
-	private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir)
-			throws Exception {
+	@Override
+	protected Trigger getTrigger() {
+		return new PeriodicTrigger(10 * 1000);
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		Assert.notNull(this.clientPool, "'clientPool' must not be null");
+		Assert.notNull(this.remotePath, "'remotePath' must not be null");
+		if (this.shouldDeleteSourceFile) {
+			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
+		}
+	}
+
+	private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir) throws Exception {
 		File fileForLocalDir = localDir.getFile();
-
 		File localFile = new File(fileForLocalDir, entry.getFilename());
-
 		if (!localFile.exists()) {
 			InputStream in = null;
 			FileOutputStream fileOutputStream = null;
-
 			try {
 				File tmpLocalTarget = new File(localFile.getAbsolutePath() +
 						AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
-
 				fileOutputStream = new FileOutputStream(tmpLocalTarget);
-
 				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
 				in = sftpSession.getChannel().get(remoteFqPath);
 				try {
 					IOUtils.copy(in, fileOutputStream);
-				} finally {
+				}
+				finally {
 					IOUtils.closeQuietly(in);
 					IOUtils.closeQuietly(fileOutputStream);
 				}
-
 				if (tmpLocalTarget.renameTo(localFile)) {
 					this.acknowledge(sftpSession, entry);
 				}
-
 				return true;
-			} catch (Throwable th) {
-				logger.error("exception thrown in #copyFromRemoteToLocalDirectory", th);
 			}
-		} else {
+			catch (Throwable th) {
+				logger.error("failure occurred while copying from remote to local directory", th);
+			}
+		}
+		else {
 			return true;
 		}
-
 		return false;
 	}
 
@@ -114,47 +114,39 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 	@SuppressWarnings("unchecked")
 	protected void syncRemoteToLocalFileSystem() throws Exception {
 		SftpSession session = null;
-
 		try {
 			session = clientPool.getSession();
 			session.start();
-
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
 			Collection<ChannelSftp.LsEntry> files = this.filter.filterEntries(entries);
-
 			for (ChannelSftp.LsEntry lsEntry : files) {
 				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
 					copyFromRemoteToLocalDirectory(session, lsEntry, this.localDirectory);
 				}
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new MessagingException("couldn't synchronize remote to local directory", e);
-		} finally {
+		}
+		finally {
 			if ((session != null) && (clientPool != null)) {
 				clientPool.release(session);
 			}
 		}
 	}
 
-	@Override
-	protected Trigger getTrigger() {
-		return new PeriodicTrigger(10 * 1000);
-	}
-
-	class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
-		public void acknowledge(Object useful, ChannelSftp.LsEntry msg)
-				throws Exception {
+	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
+	
+		public void acknowledge(Object useful, ChannelSftp.LsEntry msg) throws Exception {
 			SftpSession sftpSession = (SftpSession) useful;
-
 			String remoteFqPath = remotePath + "/" + msg.getFilename();
-
 			sftpSession.getChannel().rm(remoteFqPath);
-
 			if (logger.isDebugEnabled()) {
 				logger.debug("deleted " + msg.getFilename());
 			}
 		}
 	}
+
 }

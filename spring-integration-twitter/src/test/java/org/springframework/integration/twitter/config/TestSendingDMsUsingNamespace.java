@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
 
 import org.junit.Ignore;
@@ -42,15 +43,14 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 	@Test
  	@Ignore
 	public void testSendigRealDirectMessage() throws Throwable {
-
 		String dmUsr = "z_oleg";
 		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " + System.currentTimeMillis())
-				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
-
+				.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true);
 		if (StringUtils.hasText(dmUsr)) {
-			mb.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, dmUsr);
+			mb.setHeader(TwitterHeaders.DM_TARGET_USER_ID, dmUsr);
 		}
 		inputChannel.send(mb.build());
 	}
+
 }

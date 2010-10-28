@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.outbound;
 
 import static org.mockito.Mockito.mock;
@@ -30,19 +31,19 @@ import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class OutboundDirectMessageMessageHandlerTests {
+
 	private Twitter twitter;
 
 	@Test
 	public void validateSendDirectMessage() throws Exception{
 		MessageBuilder<String> mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-			.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true)
-			.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, "foo");
-		OutboundDirectMessageMessageHandler handler = new OutboundDirectMessageMessageHandler();
-		
+			.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
+			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo");
+
+		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler();
 		handler.setConfiguration(this.getTestConfiguration());
 		handler.afterPropertiesSet();
 		
@@ -50,18 +51,20 @@ public class OutboundDirectMessageMessageHandlerTests {
 		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
 		
 		mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-			.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true)
-			.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, 123);
-		
+			.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
+			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123);
+
 		handler.handleMessage(mb.build());
 		verify(twitter, times(1)).sendDirectMessage(123, "hello");
 	}
-	
-	private OAuthConfiguration getTestConfiguration() throws Exception{
+
+
+	private OAuthConfiguration getTestConfiguration() throws Exception {
 		twitter = mock(Twitter.class);
 		OAuthConfiguration configuration = mock(OAuthConfiguration.class);
 		when(configuration.getTwitter()).thenReturn(twitter);
 		return configuration;
 	}
+
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -47,7 +48,6 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.util.SimpleBeanResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -202,7 +202,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new SimpleBeanResolver(beanFactory));
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService != null) {

@@ -44,7 +44,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
-	public static final String PREFIX = "$";
+	public static final String PREFIX = "";
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and

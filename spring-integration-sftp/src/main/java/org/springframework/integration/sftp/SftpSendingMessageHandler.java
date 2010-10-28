@@ -34,6 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
@@ -43,9 +44,8 @@ import org.springframework.util.FileCopyUtils;
 import com.jcraft.jsch.ChannelSftp;
 
 /**
- * Sending a message payload to a remote SFTP endpoint. For now, we assume that the payload of the inbound message is of
- * type {@link java.io.File}. Perhaps we could support a payload of java.io.InputStream with a Header designating the file
- * name?
+ * Sends message payloads to a remote SFTP endpoint.
+ * Assumes that the payload of the inbound message is of type {@link java.io.File}.
  *
  * @author Josh Long
  * @since 2.0
@@ -65,7 +65,7 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 
 	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
 
-	private volatile boolean afterPropertiesSetRan;
+	private volatile boolean initialized;
 
 	private volatile String charset = Charset.defaultCharset().name();
 
@@ -88,7 +88,7 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 	}
 
 	public String getRemoteDirectory() {
-		return remoteDirectory;
+		return this.remoteDirectory;
 	}
 
 	public void setCharset(String charset) {
@@ -96,18 +96,15 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		Assert.state(this.pool != null, "the pool can't be null!");
-		temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
-		if (!afterPropertiesSetRan) {
+		Assert.notNull(this.pool, "the pool must not be null");
+		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
+		if (!this.initialized) {
 			if (StringUtils.isEmpty(this.remoteDirectory)) {
-				remoteDirectory = null;
+				this.remoteDirectory = null;
 			}
-			this.afterPropertiesSetRan = true;
+			this.initialized = true;
 		}
 	}
-
-
-	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
 		if (sourceFile.renameTo(resultFile)) {
@@ -131,13 +128,13 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		return resultFile;
 	}
 
-	private File redeemForStorableFile(Message<?> msg) throws MessageDeliveryException {
+	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
-			Object payload = msg.getPayload();
-			String generateFileName = this.fileNameGenerator.generateFileName(msg);
-			File tempFile = new File(temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
-			File resultFile = new File(temporaryBufferFolderFile, generateFileName);
-			File sendableFile;
+			Object payload = message.getPayload();
+			String generateFileName = this.fileNameGenerator.generateFileName(message);
+			File tempFile = new File(this.temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
+			File resultFile = new File(this.temporaryBufferFolderFile, generateFileName);
+			File sendableFile = null;
 			if (payload instanceof String) {
 				sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);
 			}
@@ -147,30 +144,23 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 			else if (payload instanceof byte[]) {
 				sendableFile = this.handleByteArrayMessage((byte[]) payload, tempFile, resultFile);
 			}
-			else {
-				sendableFile = null;
-			}
 			return sendableFile;
 		}
 		catch (Throwable th) {
-			throw new MessageDeliveryException(msg);
+			throw new MessageDeliveryException(message);
 		}
 	}
 
-
-	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
-
 	public void handleMessage(final Message<?> message) {
-		Assert.state(this.pool != null, "need a working pool");
+		Assert.notNull(this.pool, "the pool must not be null");
 		File inboundFilePayload = this.redeemForStorableFile(message);
 		try {
 			if ((inboundFilePayload != null) && inboundFilePayload.exists()) {
 				sendFileToRemoteEndpoint(message, inboundFilePayload);
 			}
 		}
-		catch (Throwable thr) {
-			//   logger.debug("recieved an exception.", thr);
-			throw new MessageDeliveryException(message, "couldn't deliver the message!", thr);
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "failed to deliver the message", e);
 		}
 		finally {
 			if (inboundFilePayload != null && inboundFilePayload.exists())
@@ -178,11 +168,11 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		}
 	}
 
-	private boolean sendFileToRemoteEndpoint(Message<?> message, File file) throws Throwable {
-		assert this.pool != null : "need a working pool";
+	private boolean sendFileToRemoteEndpoint(Message<?> message, File file) throws Exception {
+		Assert.notNull(this.pool, "pool must not be null");
 		SftpSession session = this.pool.getSession();
 		if (session == null) {
-			throw new RuntimeException("the session returned from the pool is null, can't possibly proceed.");
+			throw new MessagingException("The session returned from the pool is null, cannot proceed.");
 		}
 		session.start();
 		ChannelSftp sftp = session.getChannel();
@@ -190,13 +180,12 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		try {
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = StringUtils.isEmpty(this.remoteDirectory) ? StringUtils.EMPTY : remoteDirectory; // the safe default
-			// logger.debug("going to send " + file.getAbsolutePath() + " to a remote sftp endpoint");
 			String dynRd = null;
 			MessageHeaders messageHeaders = null;
 			if (message != null) {
 				messageHeaders = message.getHeaders();
-				if ((messageHeaders != null) && messageHeaders.containsKey(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER)) {
-					dynRd = (String) messageHeaders.get(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER);
+				if ((messageHeaders != null) && messageHeaders.containsKey(SftpHeaders.REMOTE_DIRECTORY)) {
+					dynRd = (String) messageHeaders.get(SftpHeaders.REMOTE_DIRECTORY);
 					if (!StringUtils.isEmpty(dynRd)) {
 						baseOfRemotePath = dynRd;
 					}
@@ -210,8 +199,8 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		}
 		finally {
 			IOUtils.closeQuietly(fileInputStream);
-			if (pool != null) {
-				pool.release(session);
+			if (this.pool != null) {
+				this.pool.release(session);
 			}
 		}
 	}

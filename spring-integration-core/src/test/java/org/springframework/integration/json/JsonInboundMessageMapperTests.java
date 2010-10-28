@@ -59,7 +59,7 @@ public class JsonInboundMessageMapperTests {
 	@Test
 	public void testToMessageWithHeadersAndStringPayload() throws Exception {
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
+		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
 		Message<?> result = mapper.toMessage(jsonMessage);
@@ -80,7 +80,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageWithHeadersAndBeanPayload() throws Exception {
 		TestBean bean = new TestBean();
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
+		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
 		Message<TestBean> expected = MessageBuilder.withPayload(bean).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(TestBean.class);
 		Message<?> result = mapper.toMessage(jsonMessage);
@@ -101,7 +101,7 @@ public class JsonInboundMessageMapperTests {
 	public void testToMessageWithBeanHeaderAndStringPayload() throws Exception {
 		TestBean bean = new TestBean();
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\", \"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
+		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\", \"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").
 			setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).setHeader("myHeader", bean).build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
@@ -115,7 +115,7 @@ public class JsonInboundMessageMapperTests {
 	@Test 
 	public void testToMessageWithHeadersAndListOfStringsPayload() throws Exception {
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
+		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
 		List<String> expectedList = Arrays.asList(new String[]{"myPayloadStuff1", "myPayloadStuff2", "myPayloadStuff3"});
 		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new TypeReference<List<String>>(){});
@@ -128,7 +128,7 @@ public class JsonInboundMessageMapperTests {
 		TestBean bean1 = new TestBean();
 		TestBean bean2 = new TestBean();
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":[" + getBeanAsJson(bean1) + "," + getBeanAsJson(bean2) + "]}";
+		String jsonMessage = "{\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\"},\"payload\":[" + getBeanAsJson(bean1) + "," + getBeanAsJson(bean2) + "]}";
 		List<TestBean> expectedList = Arrays.asList(new TestBean[]{bean1, bean2});
 		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(new TypeReference<List<TestBean>>(){});

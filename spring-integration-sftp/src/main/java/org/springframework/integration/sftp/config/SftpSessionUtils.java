@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.config;
 
 import org.springframework.integration.sftp.SftpSessionFactory;
 
-
 /**
- * Provides a single place to handle this tedious chore.
+ * Utility methods for SFTP Session management.
  *
  * @author Josh Long
  */
-public class SftpSessionUtils {
+public abstract class SftpSessionUtils {
+
 	/**
 	 * This method hides the minutae required to build an #SftpSessionFactory.
 	 *
@@ -39,8 +40,7 @@ public class SftpSessionUtils {
 	 *         commands against a remote SFTP/SSH filesystem
 	 * @throws Exception thrown in case of darned near <em>anything</em>
 	 */
-	public static SftpSessionFactory buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port)
-			throws Exception {
+	public static SftpSessionFactory buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port) throws Exception {
 		SftpSessionFactory sftpSessionFactory = new SftpSessionFactory();
 		sftpSessionFactory.setPassword(pw);
 		sftpSessionFactory.setPort(port);
@@ -49,7 +49,7 @@ public class SftpSessionUtils {
 		sftpSessionFactory.setPrivateKey(pvKey);
 		sftpSessionFactory.setPrivateKeyPassphrase(pvKeyPass);
 		sftpSessionFactory.afterPropertiesSet();
-
 		return sftpSessionFactory;
 	}
+
 }

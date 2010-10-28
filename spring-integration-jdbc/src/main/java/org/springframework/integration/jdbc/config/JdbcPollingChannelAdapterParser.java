@@ -16,14 +16,15 @@
 
 package org.springframework.integration.jdbc.config;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for {@link org.springframework.integration.jdbc.JdbcPollingChannelAdapter}.
@@ -42,7 +43,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 	}
 
 	@Override
-	protected String parseSource(Element element, ParserContext parserContext) {
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcPollingChannelAdapter");
@@ -75,8 +76,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 			builder.addPropertyValue("updateSql", update);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();
 	}
 
 }
