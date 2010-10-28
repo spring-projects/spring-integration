@@ -43,7 +43,7 @@ public class OutboundDirectMessageMessageHandlerTests {
 			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo");
 
-		OutboundDirectMessageMessageHandler handler = new OutboundDirectMessageMessageHandler();
+		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler();
 		handler.setConfiguration(this.getTestConfiguration());
 		handler.afterPropertiesSet();
 		

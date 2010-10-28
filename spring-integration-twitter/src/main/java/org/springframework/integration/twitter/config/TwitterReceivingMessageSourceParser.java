@@ -34,7 +34,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TwitterMessageSourceParser extends AbstractPollingInboundChannelAdapterParser {
+public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
