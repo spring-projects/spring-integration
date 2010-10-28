@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors
+ * Copyright 2002-2010 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -24,10 +27,9 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
 
 /**
- * A parser for InboundTimelineUpdateEndpoint endpoint. 
+ * Parser for inbound Twitter Channel Adapters.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -35,24 +37,25 @@ import org.w3c.dom.Element;
 public class InboundMessageSourceParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {  
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		String elementName = element.getLocalName().trim();
 		String className = null;
-    	if ("inbound-update-channel-adapter".equals(elementName)){
-    		className = BASE_PACKAGE +".inbound.TimelineUpdateMessageSource" ;
-    	}
-    	else if ("inbound-dm-channel-adapter".equals(elementName)){
-    		className =  BASE_PACKAGE +  ".inbound.DirectMessageMessageSource"; 
-    	}
-    	else if ("inbound-mention-channel-adapter".equals(elementName)){
-    		className = BASE_PACKAGE + ".inbound.MentionMessageSource";
-    	}
-    	else {
-    		throw new IllegalArgumentException("Element '" + elementName + "' is not supported by this parser");
-    	}
-    	BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-    	IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-    	String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		if ("inbound-update-channel-adapter".equals(elementName)) {
+			className = BASE_PACKAGE + ".inbound.TimelineUpdateMessageSource";
+		}
+		else if ("inbound-dm-channel-adapter".equals(elementName)) {
+			className = BASE_PACKAGE + ".inbound.DirectMessageMessageSource";
+		}
+		else if ("inbound-mention-channel-adapter".equals(elementName)) {
+			className = BASE_PACKAGE + ".inbound.MentionMessageSource";
+		}
+		else {
+			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+		String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(name);
 	}
+
 }
