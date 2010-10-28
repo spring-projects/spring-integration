@@ -2622,10 +2622,9 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	<xsd:element name="control-bus">
 		<xsd:annotation>
 			<xsd:documentation>
-				Control bus that accepts messages in the form of Groovy scripts. The scripts should be provided as
-				String payloads
-				in incoming messages. Scripts can refer to beans in the context using the standard @beanName
-				convention.
+				Control bus that accepts messages in the form of SpEL expressions. The expressions should be provided
+				either as Expression or String payloads (that can be parsed into valid Expressions). in incoming messages.
+				The expressions can refer to beans in the context using the standard @beanName convention.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
