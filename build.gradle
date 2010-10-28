@@ -148,10 +148,10 @@ project('spring-integration-core') {
     dependencies {
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
-        compile("org.springframework:spring-tx:$springVersion")
-        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion")
-        testCompile("org.aspectj:aspectjrt:$aspectjVersion")
-        testCompile("org.aspectj:aspectjweaver:$aspectjVersion")
+        compile("org.springframework:spring-tx:$springVersion") { optional = true }
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { optional = true }
+        testCompile "org.aspectj:aspectjrt:$aspectjVersion"
+        testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
     }
 }
 
@@ -192,8 +192,8 @@ project('spring-integration-ftp') {
         compile "commons-io:commons-io:$commonsIoVersion"
         compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "commons-net:commons-net:$commonsNetVersion"
-        compile("javax.activation:activation:$javaxActivationVersion")
         compile "org.springframework:spring-context-support:$springVersion"
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
 }
@@ -211,9 +211,9 @@ project('spring-integration-http') {
     description = 'Spring Integration HTTP Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "commons-httpclient:commons-httpclient:3.1"
         compile "org.springframework:spring-webmvc:$springVersion"
-        compile("javax.servlet:servlet-api:2.4")
+        compile("javax.servlet:servlet-api:2.4") { provided = true }
+        compile("commons-httpclient:commons-httpclient:3.1") { optional = true }
         testCompile project(":spring-integration-test")
     }
 }
@@ -224,7 +224,7 @@ project('spring-integration-httpinvoker') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-web:$springVersion"
-        compile("javax.servlet:servlet-api:2.4")
+        compile("javax.servlet:servlet-api:2.4") { provided = true }
     }
 }
 
@@ -241,17 +241,17 @@ project('spring-integration-ip') {
 project('spring-integration-jdbc') {
     description = 'Spring Integration JDBC Support'
     dependencies {
+        compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-jdbc:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
-        compile project(":spring-integration-core")
+        testCompile project(":spring-integration-test")
         testCompile "com.h2database:h2:1.2.125"
         testCompile "hsqldb:hsqldb:1.8.0.10"
         testCompile "org.apache.derby:derby:10.5.3.0_1"
         testCompile "org.aspectj:aspectjrt:$aspectjVersion"
         testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
-        testCompile project(":spring-integration-test")
     }
 }
 
@@ -261,10 +261,10 @@ project('spring-integration-jms') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-jms:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
-        compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1")
+        compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1") { provided = true }
+        testCompile project(":spring-integration-test")
         testCompile "org.apache.activemq:activemq-core:5.3.0"
         testCompile "org.springframework:spring-oxm:$springVersion"
-        testCompile project(":spring-integration-test")
     }
 }
 
@@ -282,9 +282,9 @@ project('spring-integration-mail') {
     description = 'Spring Integration Mail Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "javax.activation:activation:$javaxActivationVersion"
         compile "org.springframework:spring-context-support:$springVersion"
-        compile("javax.mail:mail:1.4.1")
+        compile("javax.mail:mail:1.4.1") { provided = true }
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
 }
@@ -292,18 +292,18 @@ project('spring-integration-mail') {
 project('spring-integration-rmi') {
     description = 'Spring Integration RMI Support'
     dependencies {
+        compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
-        compile project(":spring-integration-core")
     }
 }
 
 project('spring-integration-security') {
     description = 'Spring Integration Security Support'
     dependencies {
+        compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
-        compile project(":spring-integration-core")
         compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
             exclude(module: 'spring-support')
         }
@@ -322,8 +322,8 @@ project('spring-integration-sftp') {
         compile "com.jcraft:jsch:0.1.42"
         compile "commons-io:commons-io:$commonsIoVersion"
         compile "commons-lang:commons-lang:$commonsLangVersion"
-        compile "javax.activation:activation:$javaxActivationVersion"
         compile "org.springframework:spring-context-support:$springVersion"
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
     }
 }
 
@@ -351,9 +351,9 @@ project('spring-integration-twitter') {
         compile project(":spring-integration-core")
         compile "commons-io:commons-io:$commonsIoVersion"
         compile "commons-lang:commons-lang:$commonsLangVersion"
-        compile "javax.activation:activation:$javaxActivationVersion"
         compile "org.springframework:spring-context-support:$springVersion"
         compile "org.twitter4j:twitter4j-core:2.1.3"
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
     }
 }
 
@@ -361,14 +361,15 @@ project('spring-integration-ws') {
     description = 'Spring Integration Web Services Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile("com.sun.xml.messaging.saaj:saaj-impl:1.3")
-        compile("javax.xml.soap:saaj-api:1.3") {
-            exclude(module: 'activation')
-        }
-        compile "org.apache.geronimo.specs:geronimo-activation_1.1_spec:1.1"
         compile "org.springframework:spring-expression:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
         compile "org.springframework.ws:spring-ws-core:$springWsVersion"
+        compile("javax.xml.soap:saaj-api:1.3") {
+            optional = true
+            exclude(module: 'activation')
+        }
+        compile("com.sun.xml.messaging.saaj:saaj-impl:1.3") { optional = true }
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
 }
@@ -379,8 +380,8 @@ project('spring-integration-xml') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
-        compile("javax.activation:activation:$javaxActivationVersion")
         compile "org.springframework.ws:spring-xml:$springWsVersion"
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
         testCompile "xmlunit:xmlunit:1.2"
     }
@@ -392,7 +393,7 @@ project('spring-integration-xmpp') {
         compile project(":spring-integration-core")
         compile "commons-io:commons-io:$commonsIoVersion"
         compile "commons-lang:commons-lang:$commonsLangVersion"
-        compile "javax.activation:activation:$javaxActivationVersion"
+        compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         compile "jivesoftware:smack:3.1.0"
         compile "jivesoftware:smackx:3.1.0"
         compile "org.springframework:spring-context-support:$springVersion"

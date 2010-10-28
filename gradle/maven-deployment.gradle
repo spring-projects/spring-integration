@@ -58,7 +58,7 @@ artifacts {
  * based on the release type of the project version. Snapshot builds will
  * be deployed via s3 to the springframework maven snapshot repository;
  * milestone builds will happen via s3 as well; release builds will be deployed
- * to the local filesystem to be sync'd via sourceforge CVS and ultimately
+ * to the local filesystem to be sync'd via sourceforge SVN and ultimately
  * deployed to maven central.
  *
  * Gradle will generate Maven poms on-the-fly during the deployment process.
@@ -119,6 +119,79 @@ uploadArchives {
             default:
                 throw new GradleException("unknown ReleaseType")
         }
+
+        pom.whenConfigured { pom ->
+            def optionalDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->
+                gradleDep.asDynamicObject.hasProperty('optional') && gradleDep.optional
+            }
+            def providedDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->
+                gradleDep.asDynamicObject.hasProperty('provided') && gradleDep.provided
+            }
+            pom.dependencies.each { mavenDep ->
+                mavenDep.optional = optionalDeps.any { optionalDep ->
+                    optionalDep.group == mavenDep.groupId &&
+                    optionalDep.name == mavenDep.artifactId &&
+                    optionalDep.version == mavenDep.version
+                }
+                mavenDep.provided = providedDeps.any { providedDep ->
+                    providedDep.group == mavenDep.groupId &&
+                    providedDep.name == mavenDep.artifactId &&
+                    providedDep.version == mavenDep.version
+                }
+            }
+        }
+
+        pom.project {
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }
+}
+
+install {
+    group = 'Build'
+    description = "Does a maven install of archives artifacts to local m2 cache"
+
+    def releaseRepositoryUrl = "file://${project.properties.mavenSyncRepoDir}"
+    def milestoneRepositoryUrl = 's3://maven.springframework.org/milestone'
+    def snapshotRepositoryUrl = 's3://maven.springframework.org/snapshot'
+
+    // add a configuration with a classpath that includes our s3 maven deployer
+    configurations { deployerJars }
+    dependencies {
+        deployerJars "org.springframework.build.aws:org.springframework.build.aws.maven:3.0.0.RELEASE"
+    }
+
+    repositories.mavenInstaller {
+        pom.whenConfigured { pom ->
+            def optionalDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->
+                gradleDep.asDynamicObject.hasProperty('optional') && gradleDep.optional
+            }
+            def providedDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->
+                gradleDep.asDynamicObject.hasProperty('provided') && gradleDep.provided
+            }
+            pom.dependencies.each { mavenDep ->
+                mavenDep.optional = optionalDeps.any { optionalDep ->
+                    optionalDep.group == mavenDep.groupId &&
+                    optionalDep.name == mavenDep.artifactId &&
+                    optionalDep.version == mavenDep.version
+                }
+                def isProvided = providedDeps.any { providedDep ->
+                    providedDep.group == mavenDep.groupId &&
+                    providedDep.name == mavenDep.artifactId &&
+                    providedDep.version == mavenDep.version
+                }
+                if (isProvided) {
+                    mavenDep.scope = 'provided'
+                }
+            }
+        }
+
 
         pom.project {
             licenses {
