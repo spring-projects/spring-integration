@@ -27,7 +27,7 @@ import twitter4j.StatusUpdate;
  * @author Josh Long
  * @since 2.0
  */
-public class OutboundTimelineUpdateMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		StatusUpdate statusUpdate = this.supportStatusUpdate.fromMessage(message);

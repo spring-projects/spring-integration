@@ -30,7 +30,7 @@ import twitter4j.TwitterException;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class OutboundDirectMessageMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {

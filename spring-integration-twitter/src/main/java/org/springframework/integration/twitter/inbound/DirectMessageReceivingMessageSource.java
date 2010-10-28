@@ -30,7 +30,7 @@ import twitter4j.Paging;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DirectMessageMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
+public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
 	
 	@Override
 	public String getComponentType() {

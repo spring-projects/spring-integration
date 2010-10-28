@@ -33,7 +33,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TwitterMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
+public class TwitterSendingMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
