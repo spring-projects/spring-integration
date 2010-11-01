@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector;
 import org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
@@ -52,7 +52,7 @@ public class XPathSelectorParser extends AbstractSingleBeanDefinitionParser {
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		String stringTestValue = element.getAttribute("string-test-value");
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
-		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified");
+		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
