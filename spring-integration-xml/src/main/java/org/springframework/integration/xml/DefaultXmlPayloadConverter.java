@@ -25,89 +25,95 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.MessagingException;
-import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+import org.springframework.integration.MessagingException;
+import org.springframework.xml.transform.StringSource;
+
 /**
- * Default implementation of {@link XmlPayloadConverter}.
- * Supports {@link Document} and {@link String}.
- *
+ * Default implementation of {@link XmlPayloadConverter}. Supports
+ * {@link Document}, {@link File} and {@link String} payloads.
+ * 
  * @author Jonas Partner
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
-    private DocumentBuilderFactory documentBuilderFactory;
+	private DocumentBuilderFactory documentBuilderFactory;
 
 
-    public DefaultXmlPayloadConverter() {
-        this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        this.documentBuilderFactory.setNamespaceAware(true);
-    }
+	public DefaultXmlPayloadConverter() {
+		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		this.documentBuilderFactory.setNamespaceAware(true);
+	}
 
-    public DefaultXmlPayloadConverter(DocumentBuilderFactory documentBuilderFactory) {
-        this.documentBuilderFactory = documentBuilderFactory;
-    }
+	public DefaultXmlPayloadConverter(DocumentBuilderFactory documentBuilderFactory) {
+		this.documentBuilderFactory = documentBuilderFactory;
+	}
 
 
-    public Document convertToDocument(Object object) {
-        if (object instanceof Document) {
-            return (Document) object;
-        }
-        if (object instanceof File) {
-        	try {
-        		return getDocumentBuilder().parse((File) object);
-        	}
-        	catch (Exception e) {
-        		throw new MessagingException("failed to parse File payload '" + object + "'", e);
-        	}
-        }
-        if (object instanceof String) {
-            try {
-                return getDocumentBuilder().parse(new InputSource(new StringReader((String) object)));
-            }
-            catch (Exception e) {
-                throw new MessagingException("failed to parse String payload '" + object + "'", e);
-            }
-        }
-        throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
-    }
+	public Document convertToDocument(Object object) {
+		if (object instanceof Document) {
+			return (Document) object;
+		}
+		if (object instanceof File) {
+			try {
+				return getDocumentBuilder().parse((File) object);
+			}
+			catch (Exception e) {
+				throw new MessagingException("failed to parse File payload '" + object + "'", e);
+			}
+		}
+		if (object instanceof String) {
+			try {
+				return getDocumentBuilder().parse(new InputSource(new StringReader((String) object)));
+			}
+			catch (Exception e) {
+				throw new MessagingException("failed to parse String payload '" + object + "'", e);
+			}
+		}
+		throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+	}
 
-    public Node convertToNode(Object object) {
-        Node n = null;
-        if (object instanceof Node) {
-            n = (Node) object;
-        } else if (object instanceof DOMSource) {
-            n = ((DOMSource) object).getNode();
-        } else {
-            n = convertToDocument(object);
-        }
-        return n;
-    }
+	public Node convertToNode(Object object) {
+		Node node = null;
+		if (object instanceof Node) {
+			node = (Node) object;
+		}
+		else if (object instanceof DOMSource) {
+			node = ((DOMSource) object).getNode();
+		}
+		else {
+			node = convertToDocument(object);
+		}
+		return node;
+	}
 
-    public Source convertToSource(Object object) {
-        Source source;
-        if (object instanceof Source) {
-            source = (Source) object;
-        } else if (object instanceof Document) {
-            source = new DOMSource((Document) object);
-        } else if (object instanceof String) {
-            source = new StringSource((String) object);
-        } else {
-            throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
-        }
-        return source;
-    }
+	public Source convertToSource(Object object) {
+		Source source = null;
+		if (object instanceof Source) {
+			source = (Source) object;
+		}
+		else if (object instanceof Document) {
+			source = new DOMSource((Document) object);
+		}
+		else if (object instanceof String) {
+			source = new StringSource((String) object);
+		}
+		else {
+			throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+		}
+		return source;
+	}
 
-    protected synchronized DocumentBuilder getDocumentBuilder() {
-        try {
-            return this.documentBuilderFactory.newDocumentBuilder();
-        }
-        catch (ParserConfigurationException e) {
-            throw new MessagingException("failed to create a new DocumentBuilder", e);
-        }
-    }
+	protected synchronized DocumentBuilder getDocumentBuilder() {
+		try {
+			return this.documentBuilderFactory.newDocumentBuilder();
+		}
+		catch (ParserConfigurationException e) {
+			throw new MessagingException("failed to create a new DocumentBuilder", e);
+		}
+	}
 
 }
