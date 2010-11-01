@@ -33,7 +33,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * The headers for a {@link Message}.
+ * The headers for a {@link Message}.<br>
+ * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.) 
+ * will result in {@link UnsupportedOperationException}
+ * To create MessageHeaders instance use fluent MessageBuilder API
+ * <pre>
+ * MessageBuilder.withPayload("foo").setHeader("key1", "value1").setHeader("key2", "value2");
+ * </pre>
+ * or create an instance of GenericMessage passing payload as {@link Object} and headers as a regular {@link Map}
+ * <pre>
+ * Map headers = new HashMap();
+ * headers.put("key1", "value1");
+ * headers.put("key2", "value2");
+ * new GenericMessage("foo", headers);
+ * </pre>
  * 
  * @author Arjen Poutsma
  * @author Mark Fisher
@@ -192,19 +205,27 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	/*
 	 * Unsupported operations
 	 */
-
+	/**
+	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
+	 */
 	public Object put(String key, Object value) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
-
+	/**
+	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
+	 */
 	public void putAll(Map<? extends String, ? extends Object> t) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
-
+	/**
+	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
+	 */
 	public Object remove(Object key) {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
-
+	/**
+	 * Since MessageHeaders are immutable the call to this method will result in {@link UnsupportedOperationException}
+	 */
 	public void clear() {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}

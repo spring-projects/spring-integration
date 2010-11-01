@@ -27,6 +27,7 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * Base Message class defining common properties such as id, payload, and headers.
+ * Once created this object is immutable.
  * 
  * @author Mark Fisher
  */
