@@ -63,67 +63,19 @@
     </partintro>
     <xi:include href="./overview.xml"/>
   </part>
+  
   <part id="spring-integration-core-messaging">
     <title>Core Messaging</title>
     <partintro id="spring-integration-core-msg">
     	 <para>Core Messaging TODO</para>
     </partintro>
     
-    <part id="spring-integration-channels">
-    	<title>Messaging Channels</title>
-    	<partintro id="spring-integration-ch">
-    	 	<para>Message Channels TODO</para>
-    	</partintro>
-    	<xi:include href="./channel.xml"/>
-    	<xi:include href="./channel-adapter.xml"/>
-    	<xi:include href="./bridge.xml"/>
-    </part>
-    <part id="spring-integration-message-construction">
-    	<title>Messaging Construction</title>
-    	<partintro id="spring-integration-msg-cnstrct">
-    	 	<para>Message Construction TODO</para>
-    	</partintro>
-    	<xi:include href="./message.xml"/>
-    </part>
-    
-    <part id="spring-integration-routing">
-    	<title>Messaging Routing</title>
-    	<partintro id="spring-integration-rt">
-    	 	<para>Message Routing TODO</para>
-    	</partintro>
-    	<xi:include href="./router.xml"/>
-    	<xi:include href="./filter.xml"/>
-	    <xi:include href="./splitter.xml"/>
-	    <xi:include href="./aggregator.xml"/>
-	    <xi:include href="./resequencer.xml"/>
-	    <xi:include href="./chain.xml"/>
-    </part>
-    <part id="spring-integration-transformation">
-    	<title>Messaging Transformation</title>
-    	<partintro id="spring-integration-xfmr">
-    	 	<para>Message Transformation TODO</para>
-    	</partintro>
-    	<xi:include href="./transformer.xml"/>		
-    </part>
-    <part id="spring-integration-endpoint">
-    	<title>Messaging Endpoints</title>
-    	<partintro id="spring-integration-endpts">
-    	 	<para>Message Endpoints TODO</para>
-    	</partintro>
-    	<xi:include href="./endpoint.xml"/>
-    	<xi:include href="./gateway.xml"/>
-    	<xi:include href="./service-activator.xml"/>	
-    	<xi:include href="./delayer.xml"/>	
-    	<xi:include href="./groovy.xml"/>
-    </part>
-    <part id="spring-integration-management">
-    	<title>System Management</title>
-    	<partintro id="spring-integration-mgm">
-    	 	<para>Message Endpoints TODO</para>
-    	</partintro>
-    	 <xi:include href="./message-history.xml"/>
-    	 <xi:include href="./jmx.xml"/>	
-    </part>
+   <xi:include href="./messaging-channels.xml"/>
+   <xi:include href="./message-construction.xml"/>
+   <xi:include href="./message-routing.xml"/>
+   <xi:include href="./message-transformation.xml"/>
+   <xi:include href="./messaging-endpoints.xml"/>
+   <xi:include href="./system-management.xml"/>
   </part>
   <part id="spring-integration-adapters">
     <title>Integration Adapters</title>

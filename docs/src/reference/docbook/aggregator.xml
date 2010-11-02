@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="aggregator"
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="aggregator"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Aggregator</title>
 
@@ -622,4 +622,4 @@
     the @MessageEndpoint is defined on the class, detected automatically
     through classpath scanning.</para>
   </section>
-</chapter>
+</section>
