@@ -149,29 +149,56 @@ public class XmppConnectionFactory extends AbstractFactoryBean<XMPPConnection> {
 		this.subscriptionMode = subscriptionMode;
 	}
 
+
 	@Override
 	public Class<? extends XMPPConnection> getObjectType() {
 		return XMPPConnection.class;
 	}
 
-	private XMPPConnection configureAndConnect(String usr, String pw, String host, int port, String serviceName, String resource, String saslMechanismSupported, int saslMechanismSupportedIndex) {
+	/**
+	 * this provides a hook for subclasses to provide extra setup before the {@link org.jivesoftware.smack.XMPPConnection} is created
+	 *
+	 * @param xmppConnection the connection to configure
+	 * @throws Exception
+	 */
+	protected void setupXmppConnectionConfiguration(XMPPConnection xmppConnection) throws Exception {
+		// noop
+	}
+
+	/**
+	 * this provides a hook for subclasses to provide extra setup before the {@link org.jivesoftware.smack.ConnectionConfiguration} is created.
+	 *
+	 * @param connectionConfiguration
+	 * @throws Exception
+	 */
+	protected void setupConnectionConfiguration(ConnectionConfiguration connectionConfiguration) throws Exception {
+		// noop
+	}
+
+	protected XMPPConnection configureAndConnect(String usr, String pw, String host, int port, String serviceName, String resource, String saslMechanismSupported, int saslMechanismSupportedIndex) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("usr=%s, pw=%s, host=%s, port=%s, serviceName=%s, resource=%s, saslMechanismSupported=%s, saslMechanismSupportedIndex=%s", usr, pw, host, port, serviceName,
 					resource, saslMechanismSupported, saslMechanismSupportedIndex));
 		}
 
-		XMPPConnection.DEBUG_ENABLED = false; // default
-
-		ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(host, port, serviceName);
-		XMPPConnection connection = new XMPPConnection(connectionConfiguration);
-
 		try {
+
+			XMPPConnection.DEBUG_ENABLED = false; // default
+
+			ConnectionConfiguration connectionConfiguration = new ConnectionConfiguration(host, port, serviceName);
+			setupConnectionConfiguration(connectionConfiguration);
+			XMPPConnection connection = new XMPPConnection(connectionConfiguration);
+
+
+			setupXmppConnectionConfiguration(connection);
+
 			connection.connect();
 
 			// You have to put this code before you login
 			if (StringUtils.hasText(saslMechanismSupported)) {
 				SASLAuthentication.supportSASLMechanism(saslMechanismSupported, saslMechanismSupportedIndex);
 			}
+
 
 			// You have to specify the resoure (e.g. "@host.com") at the end
 			if (StringUtils.hasText(resource)) {
@@ -188,11 +215,12 @@ public class XmppConnectionFactory extends AbstractFactoryBean<XMPPConnection> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("authenticated? " + connection.isAuthenticated());
 			}
+
+			return connection;
 		} catch (Exception e) {
 			logger.warn("failed to establish XMPP connnection", e);
 		}
-
-		return connection;
+		return null;
 	}
 
 
