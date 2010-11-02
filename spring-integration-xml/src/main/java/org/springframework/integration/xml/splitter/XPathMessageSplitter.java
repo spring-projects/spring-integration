@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.splitter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,9 +26,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
@@ -46,12 +45,13 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * Message Splitter that uses an {@link XPathExpression} to split a
- * {@link Document} or {@link String} payload into a {@link NodeList}. The
- * return value will be either Strings or {@link Node}s depending on the
+ * {@link Document}, {@link File} or {@link String} payload into a {@link NodeList}.
+ * The return value will be either Strings or {@link Node}s depending on the
  * received payload type. Additionally, node types will be converted to
  * Documents if the 'createDocuments' property is set to <code>true</code>.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class XPathMessageSplitter extends AbstractMessageSplitter {
 
@@ -83,6 +83,10 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		this.createDocuments = createDocuments;
 	}
 
+	public String getComponentType() {
+		return "xml:xpath-splitter";
+	}
+
 	public void setDocumentBuilder(DocumentBuilderFactory documentBuilderFactory) {
 		Assert.notNull(documentBuilderFactory, "DocumentBuilderFactory must not be null");
 		this.documentBuilderFactory = documentBuilderFactory;
@@ -99,17 +103,12 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			Object payload = message.getPayload();
 			Object result = null;
 			if (payload instanceof Node) {
-				result = splitNodePayload((Node) payload, message);
-			}
-			else if (payload instanceof String) {
-				payload = xmlPayloadConverter.convertToDocument(payload);
-				result = splitStringPayload(message);
+				result = splitNode((Node) payload);
 			}
 			else {
-				throw new IllegalArgumentException(
-						"Unsupported payload type [" + payload.getClass().getName()
-						+ "]. The XPathMessageSplitter only accepts [" + Node.class.getName()
-						+ "] or [java.lang.String] typed payloads.");
+				Document document = this.xmlPayloadConverter.convertToDocument(payload);
+				Assert.notNull(document, "unsupported payload type [" + payload.getClass().getName() + "]");
+				result = splitDocument(document);
 			}
 			return result;
 		}
@@ -121,10 +120,8 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		}
 	}
 
-	private Object splitStringPayload(Message<?> message) throws ParserConfigurationException,
-			TransformerFactoryConfigurationError, TransformerException {
-		Node node = xmlPayloadConverter.convertToDocument(message.getPayload());
-		List<Node> nodes = splitNodePayload(node, message);
+	private Object splitDocument(Document document) throws Exception {
+		List<Node> nodes = splitNode(document);
 		Transformer transformer = TransformerFactory.newInstance().newTransformer();
 		List<String> splitStrings = new ArrayList<String>(nodes.size());
 		for (Node nodeFromList : nodes) {
@@ -136,37 +133,32 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected List<Node> splitNodePayload(Node node, Message message) throws ParserConfigurationException {
-		List<Node> nodeList = xpathExpression.evaluateAsNodeList(node);
+	private List<Node> splitNode(Node node) throws ParserConfigurationException {
+		List<Node> nodeList = this.xpathExpression.evaluateAsNodeList(node);
 		if (nodeList.size() == 0) {
-			throw new MessagingException(message, "Could not split message with XPath " + xpathExpression);
+			throw new IllegalArgumentException("failed to split message with XPath expression: " + this.xpathExpression);
 		}
 		if (this.createDocuments) {
 			return convertNodesToDocuments(nodeList);
 		}
 		return nodeList;
-
 	}
 
-	private List<Node> convertNodesToDocuments(List<Node> nodeList) throws ParserConfigurationException {
+	private List<Node> convertNodesToDocuments(List<Node> nodes) throws ParserConfigurationException {
 		DocumentBuilder documentBuilder = this.getNewDocumentBuilder();
-		List<Node> docList = new ArrayList<Node>(nodeList.size());
-		for (Node node : nodeList) {
-			Document doc = documentBuilder.newDocument();
-			doc.appendChild(doc.importNode(node, true));
-			docList.add(doc);
+		List<Node> documents = new ArrayList<Node>(nodes.size());
+		for (Node node : nodes) {
+			Document document = documentBuilder.newDocument();
+			document.appendChild(document.importNode(node, true));
+			documents.add(document);
 		}
-		return docList;
+		return documents;
 	}
 
-	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
+	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
 		synchronized (this.documentBuilderFactory) {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}
-	}
-	
-	public String getComponentType(){
-		return "xml:xpath-splitter";
 	}
 
 }
