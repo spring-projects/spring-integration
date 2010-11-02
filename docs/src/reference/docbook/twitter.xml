@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="twitter"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Twitter Adapter</title>
+  <para>
+    Spring Integration provides support for interacting with Twitter via Twitter adapters. With Twitter adapters you can both 
+    receive and send Twitter messages. 
+  </para>
+  <section id="twitter-intro">
+    <title>Introduction</title>
+    <para>
+      Twitter is a social networking and microblogging service that enables its users to send and read messages known as tweets. 
+      Tweets are text-based posts of up to 140 characters displayed on the author's profile page and delivered to the author's 
+      subscribers who are known as followers.
+    </para>
+    <para>
+    	<important>
+    	Current Twitter support is based on  <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>, 
+    	however future version will be changed to use <link linkend="https://jira.springframework.org/browse/SOCIAL">Spring Social</link>  
+    	project as it is nearing its first release at the time of writing. 
+    	</important>
+    </para>
+    <para>
+    Spring Integration provides a convenient namespace configuration to define Twitter artifacts.
+    <programlisting language="xml"><![CDATA[xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
+xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter 
+	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.0.xsd"]]></programlisting>
+    </para>
+  </section>
+  
+  <section id="twitter-oauth">
+    <title>Twitter Connection and OAuth Configuration</title>
+    
+  	<para>
+  	Before using inbound or outbound Twitter adapters you must establish secured Twitter connection. This connection object 
+  	could be shared by all twitter adapters connected to a particular account.
+  	</para>
+  	<para>
+  	Twitter uses OAuth - an authentication protocol that allows users to approve application to act on their behalf without 
+  	sharing their password. More information can be found at <link linkend="http://oauth.net/">http://oauth.net/</link>  or 
+  	in this article <link linkend="http://hueniverse.com/oauth/">http://hueniverse.com/oauth/</link> from Hueniverse. 
+  	Please also see <link linkend="http://dev.twitter.com/pages/oauth_faq">OAuth FAQ</link> for more information about OAuth and Twitter.	
+  	</para>
+  	<para>
+  	In order to use OAuth authentication/authorization with Twitter you must create new Application on Twitter Developers site. 
+  	Follow the directions below to create a new application and obtain consumer keys and access token:
+  	</para>
+  	<para>
+  	<itemizedlist>
+          <listitem>
+            <para>Go to <link linkend="http://dev.twitter.com/">http://dev.twitter.com/</link></para>
+          </listitem>
+          <listitem>
+            <para>Click on <code>Register an app</code> link and fill out all required fields on the form provided; 
+            set <code>Application Type</code> to <code>Client</code> and depending on the nature of your application select 
+            <code>Default Access Type</code> as <emphasis>Read &amp; Write</emphasis> or <emphasis>Read-only</emphasis> 
+            and Submit the form. If everything is successful you'll be presented with the <code>Consumer Key</code> 
+            and <code>Consumer Secret</code>. Copy both values in the safe place.</para>
+          </listitem>
+          <listitem>
+            <para>On the same page you should see <code>My Access Token</code> button on the side bar (right). 
+            Click on it and you'll be presented with two more values: <code>Access Token</code> and <code>Access Token Secret</code>. 
+            Copy these values in a safe place as well.</para>
+          </listitem>
+      </itemizedlist>
+  	</para>
+  	<para>
+  	<emphasis>Twitter Connection</emphasis>
+  	</para>
+  	
+  	<para>
+  	Spring Integration provides a convenient namespace configuration to define Twitter Connection. As you can see form the 
+  	configuration below you configure Twitter connection via <code>twitter-connection</code> element while providing 
+  	OAuth <code>attributes</code> filling them with values you have obtained in the previous step.
+  	
+  	<programlisting language="xml"><![CDATA[<twitter:twitter-connection id="tc"
+	access-token="21691649-4XYZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE6AMv4"
+	access-token-secret="AbRxUAvyNCtqQtvxFK8w5ZMtMj20KFhB6oEfTA0"
+	consumer-key="4XzBPabcJQxyBzzzH3TrRQ"
+	consumer-secret="ab2piKdMfPu8bVa3ab6DAIvIWEVZyMDL0RSEN2I8"/>]]></programlisting>
+    <note>The values above are not real</note>
+  	</para>
+
+  	<para>
+  	However a more practical way to manage OAuth connection attributes would be via Spring's placeholder support by simply 
+  	creating a property file (e.g., oauth.properties):
+  	
+  	<programlisting language="java"><![CDATA[twitter.oauth.consumerKey=4XzBPabcJQxyBzzzH3TrRQ
+twitter.oauth.consumerSecret=ab2piKdMfPu8bVa3ab6DAIvIWEVZyMDL0RSEN2I8
+twitter.oauth.accessToken=21691649-4XYZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE6AMv4
+twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtvxFK8w5ZMtMj20KFhB6oEfTA0]]></programlisting>
+
+and configuring a <code>property-placeholder</code> pointing to he above property file:
+
+<programlisting language="java"><![CDATA[<context:property-placeholder
+            location="classpath:oauth.properties"/>
+
+<twitter:twitter-connection id="tc"
+	access-token="${twitter.oauth.accessToken}"
+	access-token-secret="${twitter.oauth.accessTokenSecret}"
+	consumer-key="${twitter.oauth.consumerKey}"
+	consumer-secret="${twitter.oauth.consumerSecret}"/>]]></programlisting>
+  	</para>
+  </section>
+  
+  <section id="twitter-inbound">
+  	<title>Twitter Inbound Adapters</title>
+  	<para>
+  	Twitter inbound adapters allow you to receive Twitter Messages. There are several types of twitter messages:
+  	<link linkend="http://support.twitter.com/groups/31-twitter-basics/topics/109-tweets-messages/articles/119138-types-of-tweets-and-where-they-appear">Types of Tweets</link>
+  	</para>
+  	<para>
+  	Current release of Spring Integration provides support for Public Messages, Direct Messages as well as Mention Messages 
+  	</para>
+  	<para>
+  	Every Inbound Twitter Channel Adapter is a <emphasis>Polling consumer</emphasis> which means you have to provide a poller 
+  	configuration. However, one important thing you must understand with regard to Twitter since its inner-workings are slightly 
+  	different then any other poling consumer. Twitter defines a concept of Rate Limiting. You can read more about 
+  	it here: <link linkend="http://dev.twitter.com/pages/rate-limiting">Rate Limiting</link> . In the nutshell Rate Limiting 
+  	is the way Twitter manages how often an application can poll for updates. Luckily for you you don't have to worry about it 
+  	since the special Rate limit aware polling thread is created when any Twitter adapter is started. This thread will 
+  	poll Messages (Tweets) from the Twitter account at the rate allowed by Twitter at the time (it may change after every poll). The Tweets 
+  	will be stored in the instance of the <classname>org.springframework.integration.store.MetadataStore</classname> which is a 
+  	strategy interface designed for storing various types of metadata (e.g., last retrieved tweet) to help components such as Twitter 
+  	to deal with duplicates. By default, Spring Integration will look for a bean of type <classname>org.springframework.integration.store.MetadataStore</classname> 
+  	in the ApplicationContext. If one found then it will be used, otherwise it will create a new instance of <classname>SimpleMetadataStore</classname> 
+  	which is a simple in-memory implementation that will only persist meta-data within the life-cycle of the application context 
+  	which means upon restart you may end up with duplicate entries. If you need to persist meta-data between Application Context 
+  	restarts, you may use <classname>PropertiesPersistingMetadataStore</classname> (property file based persister) or provide your 
+  	own implementation of the <classname>MetedataStore</classname>  interface (e.g., JdbcMetadatStore) and configure it 
+  	as bean in the Application Context.
+  	<programlisting language="java"><![CDATA[<bean class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
+]]></programlisting>
+The Poller that is configured as part of the any Inbound Twitter Adapter (see below) will simply poll from this MetadataStore
+  	</para>
+  	<section id="inbound-twitter-update">
+  		<title>Inbound Update Channel Adapter</title>
+  		<para>
+  		This adapter allows you to receive updates from everyone you follow.
+  		<programlisting language="java"><![CDATA[<twitter:inbound-mention-channel-adapter twitter-connection="tc" channel="inbound_mentions">
+    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
+</twitter:inbound-mention-channel-adapter>]]></programlisting>
+  		</para>
+  	</section>
+  	
+  	<section id="inbound-twitter-direct">
+  		<title>Inbound Direct Message Channel Adapter</title>
+  		<para>
+  		This adapter allows you to receive Twitter Messages that were sent directly to you
+  		<programlisting language="java"><![CDATA[<twitter:inbound-dm-channel-adapter twitter-connection="tc" channel="inbound_dm">
+    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
+</twitter:inbound-dm-channel-adapter>]]></programlisting>
+  		</para>
+  	</section>
+  	
+  	<section id="inbound-twitter-mention">
+  		<title>Inbound Mention Message Channel Adapter</title>
+  		<para>
+  		This adapter allows you to receive Twitter Messages that Mention you via @user
+  		<programlisting language="java"><![CDATA[<twitter:inbound-mention-channel-adapter twitter-connection="tc" channel="inbound_mentions">
+    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
+</twitter:inbound-mention-channel-adapter>]]></programlisting>
+  		</para>
+  	</section>
+  	<para>
+  	As you can see the configuration of all of these adapters is very similar to other inbound adapters with one exception. 
+  	Each one needs to be injected with the <code>twitter-connection</code>. Once configured the Twitter Messages would be 
+  	encapsulated into a Spring Integration Message and sent to a channel specified via <code>channel</code> attribute. 
+  	Currently the Payload of the Message is <classname>twitter4j.DirectMessage</classname> for <emphasis>Inbound Direct Message Channel Adapter</emphasis> 
+  	or <classname>twitter4j.Status</classname> for <emphasis>Inbound Update Channel Adapter</emphasis> and 
+  	<emphasis>Inbound Mention Message Channel Adapter</emphasis>.
+  	</para>
+  	<para>
+  	For example; to get the text from the <classname>twitter4j.DirectMessage</classname> or <classname>twitter4j.Status</classname> 
+  	simply invoke <code>getText()</code> method. For more information please refer to <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>
+  	</para>
+  </section>
+</chapter>
