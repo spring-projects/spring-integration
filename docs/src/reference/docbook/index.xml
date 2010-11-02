@@ -83,7 +83,9 @@
     	 <para>Adapters TODO</para>
     </partintro>
       <xi:include href="./event.xml"/> 
+      <xi:include href="./feed.xml"/> 
       <xi:include href="./file.xml"/> 
+      <xi:include href="./ftp.xml"/> 
       <xi:include href="./http.xml"/>
       <xi:include href="./httpinvoker.xml"/> 
       <xi:include href="./mail.xml"/>
@@ -91,6 +93,7 @@
 	  <xi:include href="./jdbc.xml"/>
 	  <xi:include href="./jms.xml"/>	 
 	  <xi:include href="./rmi.xml"/>
+	  <xi:include href="./sftp.xml"/> 
 	  <xi:include href="./stream.xml"/>
 	  <xi:include href="./twitter.xml"/>
 	  <xi:include href="./ws.xml"/>	 

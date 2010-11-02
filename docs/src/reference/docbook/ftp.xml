@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="ftp"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>FTP Adapter</title>
+  <para>
+    Spring Integration provides support for FTP 
+  </para>
+  <section id="ftp-intro">
+    <title>Introduction</title>
+    <para>
+      TODO
+    </para>
+  </section>
+</chapter>
