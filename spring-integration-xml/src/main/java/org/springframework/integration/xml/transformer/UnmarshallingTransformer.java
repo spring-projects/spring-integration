@@ -50,11 +50,11 @@ import org.springframework.xml.transform.StringSource;
  */
 public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
-	private volatile boolean alwaysUseSourceFactory = false;
-
 	private final Unmarshaller unmarshaller;
 
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
+
+	private volatile boolean alwaysUseSourceFactory = false;
 
 
 	public UnmarshallingTransformer(Unmarshaller unmarshaller) {
@@ -63,21 +63,20 @@ public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object,
 
 
 	/**
-	 * If true always delegate to the {@link SourceFactory}.
-	 * 
-	 * @param alwaysUseSourceFactory
-	 */
-	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
-		this.alwaysUseSourceFactory = alwaysUseSourceFactory;
-	}
-
-	/**
-	 * @param sourceFactory
+	 * Provide the SourceFactory to be used. Must not be null.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
 		Assert.notNull(sourceFactory, "sourceFactory must not be null");
 		this.sourceFactory = sourceFactory;
 	}
+
+	/**
+	 * If true always delegate to the {@link SourceFactory}.
+	 */
+	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
+		this.alwaysUseSourceFactory = alwaysUseSourceFactory;
+	}
+
 
 	@Override
 	public Object transformPayload(Object payload) {
