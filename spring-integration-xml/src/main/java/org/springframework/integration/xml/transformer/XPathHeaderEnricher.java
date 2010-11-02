@@ -31,7 +31,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * Transformer implementation that evaluates XPath expressions against the
- * message payload and inserts the result of the evaluation into a messsage
+ * message payload and inserts the result of the evaluation into a message
  * header. The header names will match the keys in the map of expressions.
  * 
  * @author Jonas Partner
@@ -49,7 +49,7 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	}
 
 
-	public static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object> {
+	static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object> {
 
 		private final XPathExpression expression;
 

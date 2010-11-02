@@ -106,11 +106,12 @@ and configuring a <code>property-placeholder</code> pointing to he above propert
   <section id="twitter-inbound">
   	<title>Twitter Inbound Adapters</title>
   	<para>
-  	Twitter inbound adapters allow you to receive Twitter Messages. There are several types of twitter messages:
-  	<link linkend="http://support.twitter.com/groups/31-twitter-basics/topics/109-tweets-messages/articles/119138-types-of-tweets-and-where-they-appear">Types of Tweets</link>
+  	Twitter inbound adapters allow you to receive Twitter Messages. There are several types of 
+  	<link linkend="http://support.twitter.com/groups/31-twitter-basics/topics/109-tweets-messages/articles/119138-types-of-tweets-and-where-they-appear">twitter messages - tweets</link>
   	</para>
   	<para>
-  	Current release of Spring Integration provides support for Public Messages, Direct Messages as well as Mention Messages 
+  	Current release of Spring Integration provides support for receiving <emphasis>Public Messages</emphasis>, 
+  	<emphasis>Direct Messages</emphasis> as well as <emphasis>Mention Messages</emphasis> 
   	</para>
   	<para>
   	Every Inbound Twitter Channel Adapter is a <emphasis>Polling consumer</emphasis> which means you have to provide a poller 
@@ -173,6 +174,45 @@ The Poller that is configured as part of the any Inbound Twitter Adapter (see be
   	<para>
   	For example; to get the text from the <classname>twitter4j.DirectMessage</classname> or <classname>twitter4j.Status</classname> 
   	simply invoke <code>getText()</code> method. For more information please refer to <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>
+  	</para>
+  </section>
+  
+  <section id="twitter-outbound">
+  	<title>Twitter Outbound Adapter</title>
+  	<para>
+  	Twitter outbound channels adapters allow you to send Twitter Messages - tweets
+  	</para>
+  	<para>
+  	Current release of Spring Integration supports sending <emphasis>Status Update Messages</emphasis> and <emphasis>Direct Messages</emphasis>. 
+    Twitter outbound channels adapters as any other outbound adapter will take the Message payload and send it as 
+    Twitter message. Currently the only supported payload type is <classname>String</classname>, so consider adding a <emphasis>transformer</emphasis> 
+    if the payload of the incoming message is not a String. 
+  	</para>
+  	
+  	<section id="outbound-twitter-update">
+  		<title>Twitter Outbound Update Channel Adapter</title>
+  		<para>
+  		This adapter allows you to send regular status updates by simply sending a Message to a channel 
+  		identified via <code>channel</code> attribute. 
+  		<programlisting language="java"><![CDATA[<twitter:outbound-update-channel-adapter twitter-connection="tc" channel="out"/>]]></programlisting>
+  		The only extra configuration that is required for this adapter is <code>twitter-connection</code>
+  		</para>
+  	</section>
+  	
+  	<section id="outbound-twitter-direct">
+  		<title>Twitter Outbound Direct Message Channel Adapter</title>
+  		<para>
+  		This adapter allows you to send Direct Twitter Messages (i.e., @user) by simply sending a Message to a channel 
+  		identified via <code>channel</code> attribute. 
+  		<programlisting language="java"><![CDATA[<twitter:outbound-dm-channel-adapter twitter-connection="tc" channel="inputChannel"/>]]></programlisting>
+  		The only extra configuration that is required for this adapter is <code>twitter-connection</code>
+  		</para>
+  	</section>
+  	<para>
+  		<important>Twitter does not allow you to post duplicate Messages. This is a common problem during testing when 
+  		the same code works the first time but doesn't work the second time,so make sure to change the content of the Message. 
+  		One thing that works good for testing is appent timestamp to the end of the message.
+  		</important>
   	</para>
   </section>
 </chapter>

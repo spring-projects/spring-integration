@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.transformer;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -30,62 +28,49 @@ import org.springframework.integration.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 /**
- * Converts the passed {@link Result} to an instance of {@link String}
- * 
+ * Converts the passed {@link Result} to an instance of {@link String}.
  * Supports {@link StringResult} and {@link DOMResult}
  * 
  * @author Jonas Partner
- * 
+ * @author Mark Fisher
  */
 public class ResultToStringTransformer implements ResultTransformer {
 
-	private DocumentBuilderFactory docBuilderFactory;
+	private final TransformerFactory transformerFactory;
 
-	private TransformerFactory transformerFactory;
 
 	public ResultToStringTransformer() {
-		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
-		this.docBuilderFactory.setNamespaceAware(true);
 		this.transformerFactory = TransformerFactory.newInstance();
 	}
 
-	protected Transformer getNewTransformer()
-			throws TransformerConfigurationException {
-		synchronized (transformerFactory) {
-			return transformerFactory.newTransformer();
-		}
-	}
 
-	public Object transformResult(Result res) {
+	public Object transformResult(Result result) {
 		String returnString = null;
-		if (res instanceof StringResult) {
-			returnString = ((StringResult) res).toString();
-		} else if (res instanceof DOMResult) {
+		if (result instanceof StringResult) {
+			returnString = ((StringResult) result).toString();
+		}
+		else if (result instanceof DOMResult) {
 			try {
-				StringResult strRes = new StringResult();
-				getNewTransformer().transform(
-						new DOMSource(((DOMResult) res).getNode()), strRes);
-				returnString = strRes.toString();
-			} catch (TransformerException transE) {
-				throw new MessagingException(
-						"Transformation from DOMSOurce failed", transE);
+				StringResult stringResult = new StringResult();
+				this.getNewTransformer().transform(
+						new DOMSource(((DOMResult) result).getNode()), stringResult);
+				returnString = stringResult.toString();
+			}
+			catch (TransformerException e) {
+				throw new MessagingException("failed to transform from DOMSource failed", e);
 			}
 		}
-
 		if (returnString == null) {
-			throw new MessagingException("Could not convert Result type "
-					+ res.getClass().getName() + " to string");
+			throw new MessagingException("failed to convert Result type ["
+					+ result.getClass().getName() + "] to string");
 		}
-
 		return returnString;
 	}
 
-	protected DocumentBuilder getNewDocumentBuilder()
-			throws ParserConfigurationException {
-		synchronized (docBuilderFactory) {
-			return docBuilderFactory.newDocumentBuilder();
+	private Transformer getNewTransformer() throws TransformerConfigurationException {
+		synchronized (this.transformerFactory) {
+			return this.transformerFactory.newTransformer();
 		}
-
 	}
 
 }

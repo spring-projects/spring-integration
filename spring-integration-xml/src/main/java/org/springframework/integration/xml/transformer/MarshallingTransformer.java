@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,7 @@ public class MarshallingTransformer extends AbstractTransformer {
 	private volatile boolean extractPayload = true;
 
 
-	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer)
-			throws ParserConfigurationException {
+	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer) throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;
@@ -88,9 +87,6 @@ public class MarshallingTransformer extends AbstractTransformer {
 		}
 		catch (IOException e) {
 			throw new MessagingException("Failed to marshal payload", e);
-		}
-		if (transformedPayload == null) {
-			throw new MessagingException("Failed to transform payload");
 		}
 		if (this.resultTransformer != null) {
 			transformedPayload = this.resultTransformer.transformResult(result);
