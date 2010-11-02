@@ -55,44 +55,105 @@
   </bookinfo>
 
   <toc></toc>
-
-  <xi:include href="./overview.xml"/>
-  <xi:include href="./message.xml"/>
-  <xi:include href="./channel.xml"/>
-  <xi:include href="./endpoint.xml"/>
-  <xi:include href="./service-activator.xml"/>
-  <xi:include href="./channel-adapter.xml"/>
-  <xi:include href="./router.xml"/>
-  <xi:include href="./filter.xml"/>
-  <xi:include href="./transformer.xml"/>
-  <xi:include href="./splitter.xml"/>
-  <xi:include href="./aggregator.xml"/>
-  <xi:include href="./resequencer.xml"/>
-  <xi:include href="./delayer.xml"/>
-  <xi:include href="./chain.xml"/>
-  <xi:include href="./bridge.xml"/>
-  <xi:include href="./gateway.xml"/>
-  <xi:include href="./message-publishing.xml"/>
-  <xi:include href="./transactions.xml"/>
-  <xi:include href="./message-history.xml"/>
-  <xi:include href="./file.xml"/> 
-  <xi:include href="./jdbc.xml"/>
-  <xi:include href="./jms.xml"/>
-  <xi:include href="./ws.xml"/>
-  <xi:include href="./rmi.xml"/>
-  <xi:include href="./httpinvoker.xml"/> 
-  <xi:include href="./http.xml"/>
-  <xi:include href="./ip.xml"/>
-  <xi:include href="./mail.xml"/>
-  <xi:include href="./jmx.xml"/>
-  <xi:include href="./xmpp.xml"/>
-  <xi:include href="./stream.xml"/>
-  <xi:include href="./event.xml"/> 
-  <xi:include href="./xml.xml"/>
-  <xi:include href="./security.xml"/>
-  <xi:include href="./groovy.xml"/>
-  <xi:include href="./samples.xml"/>
-  <xi:include href="./configuration.xml"/>
-  <xi:include href="./resources.xml"/>
-
+  
+  <part id="spring-integration-introduction">
+    <title>Overview of Spring Integration Framework</title>
+    <partintro id="spring-integration-intro">
+    	 <para>The Spring Integration Framework is a lightweight solution TODO</para>
+    </partintro>
+    <xi:include href="./overview.xml"/>
+  </part>
+  <part id="spring-integration-core-messaging">
+    <title>Core Messaging</title>
+    <partintro id="spring-integration-core-msg">
+    	 <para>Core Messaging TODO</para>
+    </partintro>
+    
+    <part id="spring-integration-channels">
+    	<title>Messaging Channels</title>
+    	<partintro id="spring-integration-ch">
+    	 	<para>Message Channels TODO</para>
+    	</partintro>
+    	<xi:include href="./channel.xml"/>
+    	<xi:include href="./channel-adapter.xml"/>
+    	<xi:include href="./bridge.xml"/>
+    </part>
+    <part id="spring-integration-message-construction">
+    	<title>Messaging Construction</title>
+    	<partintro id="spring-integration-msg-cnstrct">
+    	 	<para>Message Construction TODO</para>
+    	</partintro>
+    	<xi:include href="./message.xml"/>
+    </part>
+    
+    <part id="spring-integration-routing">
+    	<title>Messaging Routing</title>
+    	<partintro id="spring-integration-rt">
+    	 	<para>Message Routing TODO</para>
+    	</partintro>
+    	<xi:include href="./router.xml"/>
+    	<xi:include href="./filter.xml"/>
+	    <xi:include href="./splitter.xml"/>
+	    <xi:include href="./aggregator.xml"/>
+	    <xi:include href="./resequencer.xml"/>
+	    <xi:include href="./chain.xml"/>
+    </part>
+    <part id="spring-integration-transformation">
+    	<title>Messaging Transformation</title>
+    	<partintro id="spring-integration-xfmr">
+    	 	<para>Message Transformation TODO</para>
+    	</partintro>
+    	<xi:include href="./transformer.xml"/>		
+    </part>
+    <part id="spring-integration-endpoint">
+    	<title>Messaging Endpoints</title>
+    	<partintro id="spring-integration-endpts">
+    	 	<para>Message Endpoints TODO</para>
+    	</partintro>
+    	<xi:include href="./endpoint.xml"/>
+    	<xi:include href="./gateway.xml"/>
+    	<xi:include href="./service-activator.xml"/>	
+    	<xi:include href="./delayer.xml"/>	
+    	<xi:include href="./groovy.xml"/>
+    </part>
+    <part id="spring-integration-management">
+    	<title>System Management</title>
+    	<partintro id="spring-integration-mgm">
+    	 	<para>Message Endpoints TODO</para>
+    	</partintro>
+    	 <xi:include href="./message-history.xml"/>
+    	 <xi:include href="./jmx.xml"/>	
+    </part>
+  </part>
+  <part id="spring-integration-adapters">
+    <title>Integration Adapters</title>
+    <partintro id="spring-integration-adapters">
+    	 <para>Adapters TODO</para>
+    </partintro>
+      <xi:include href="./file.xml"/> 
+	  <xi:include href="./jdbc.xml"/>
+	  <xi:include href="./jms.xml"/>
+	  <xi:include href="./ws.xml"/>
+	  <xi:include href="./rmi.xml"/>
+	  <xi:include href="./httpinvoker.xml"/> 
+	  <xi:include href="./http.xml"/>
+	  <xi:include href="./ip.xml"/>
+	  <xi:include href="./mail.xml"/>
+	  <xi:include href="./xmpp.xml"/>
+	  <xi:include href="./stream.xml"/>
+	  <xi:include href="./event.xml"/> 
+	  <xi:include href="./xml.xml"/>
+  </part>
+  <part id="spring-integration-appendices">
+    <title>Appendices</title>
+    <partintro id="spring-integration-adapters">
+    	 <para>Appendices TODO</para>
+    </partintro>
+      <xi:include href="./message-publishing.xml"/>
+      <xi:include href="./transactions.xml"/>
+	  <xi:include href="./security.xml"/>
+	  <xi:include href="./samples.xml"/>
+	  <xi:include href="./configuration.xml"/>
+	  <xi:include href="./resources.xml"/>
+  </part>
 </book>
