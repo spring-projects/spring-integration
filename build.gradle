@@ -85,6 +85,10 @@ configure(javaprojects) {
     apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
     apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
 
+    // ensure JDK 5 compatibility
+    sourceCompatibility=1.5
+    targetCompatibility=1.5
+
     // set up dedicated directories for jars and source jars.
     // this makes it easier when putting together the distribution
     libsBinDir = new File(libsDir, 'bin')
