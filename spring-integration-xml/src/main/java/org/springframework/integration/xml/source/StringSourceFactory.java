@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.source;
+
+import java.io.File;
+import java.io.FileReader;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.MessagingException;
-import org.springframework.xml.transform.StringResult;
-import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 
+import org.springframework.integration.MessagingException;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.xml.transform.StringResult;
+import org.springframework.xml.transform.StringSource;
+
 /**
- * {@link SourceFactory} implementation which supports creation of a
- * {@link StringSource} from either a {@link Document} or {@link String} payload
+ * {@link SourceFactory} implementation which supports creation of a {@link StringSource}
+ * from a {@link Document}, {@link File} or {@link String} payload
  * 
  * @author Jonas Partner
- * 
+ * @author Mark Fisher
  */
 public class StringSourceFactory implements SourceFactory {
 
 	private final TransformerFactory transformerFactory;
+
 
 	public StringSourceFactory() {
 		this(TransformerFactory.newInstance());
@@ -44,39 +51,52 @@ public class StringSourceFactory implements SourceFactory {
 		this.transformerFactory = transformerFactory;
 	}
 
+
 	public Source createSource(Object payload) {
 		Source source = null;
-		if (payload instanceof Document) {
-			source = createStringSourceForDocument((Document) payload);
-		} else if (payload instanceof String) {
+		if (payload instanceof String) {
 			source = new StringSource((String) payload);
 		}
-
+		else if (payload instanceof Document) {
+			source = createStringSourceForDocument((Document) payload);
+		}
+		else if (payload instanceof File) {
+			source = createStringSourceForFile((File) payload);
+		}
 		if (source == null) {
-			throw new MessagingException(
-					"Failed to create Source for payload type ["
-							+ payload.getClass().getName() + "]");
+			throw new MessagingException("Failed to create Source for payload type ["
+					+ payload.getClass().getName() + "]");
 		}
 		return source;
-
 	}
 
-	protected StringSource createStringSourceForDocument(Document doc) {
+	private StringSource createStringSourceForDocument(Document document) {
 		try {
 			StringResult result = new StringResult();
 			Transformer transformer = getTransformer();
-			transformer.transform(new DOMSource(doc), result);
+			transformer.transform(new DOMSource(document), result);
 			return new StringSource(result.toString());
-		} catch (Exception e) {
-			throw new MessagingException(
-					"Exception creating StringSource from document", e);
+		}
+		catch (Exception e) {
+			throw new MessagingException("failed to create StringSource from document", e);
 		}
 	}
 
-	protected synchronized Transformer getTransformer() {
+	private StringSource createStringSourceForFile(File file) {
+		try {
+			String content = FileCopyUtils.copyToString(new FileReader(file));
+			return new StringSource(content);
+		}
+		catch (Exception e) {
+			throw new MessagingException("failed to create StringSource from file", e);
+		}
+	}
+
+	private synchronized Transformer getTransformer() {
 		try {
 			return transformerFactory.newTransformer();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessagingException("Exception creating transformer", e);
 		}
 	}

@@ -95,7 +95,7 @@ public class DomSourceFactory implements SourceFactory {
 		}
 	}
 
-	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
+	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
 		synchronized (this.documentBuilderFactory) {
 			return documentBuilderFactory.newDocumentBuilder();
 		}
