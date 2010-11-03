@@ -111,7 +111,7 @@ configure(javaprojects) {
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
     springVersion = '3.0.5.RELEASE'
-    springSecurityVersion = '3.0.3.RELEASE'
+    springSecurityVersion = '3.0.4.RELEASE'
     springWsVersion = '1.5.9'
 
     sourceSets {
