@@ -34,7 +34,7 @@ import java.util.Collection;
 
 
 /**
- * Describes an endpoint that is able to login as usual with a {@link org.springframework.integration.xmpp.XmppConnectionFactory} and then emit {@link org.springframework.integration.Message}s when a particular event happens to the logged in users {@link org.jivesoftware.smack.Roster}. We try
+ * Describes an endpoint that is able to login as usual with a {@link org.springframework.integration.xmpp.XmppConnectionFactoryBean} and then emit {@link org.springframework.integration.Message}s when a particular event happens to the logged in users {@link org.jivesoftware.smack.Roster}. We try
  * and generically propagate these events. In practical terms, there are a few events worth being notified of: <ul> <li>the {@link org.jivesoftware.smack.packet.Presence} of a user in the {@link org.jivesoftware.smack.Roster} has changed.</li> <li>the actual makeup of the logged-in user's {@link
  * org.jivesoftware.smack.Roster} has changed: entries added, deleted, etc.</li> </ul>
  *

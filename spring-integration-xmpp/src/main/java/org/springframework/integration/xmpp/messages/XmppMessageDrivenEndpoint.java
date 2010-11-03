@@ -18,7 +18,6 @@ package org.springframework.integration.xmpp.messages;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.PacketListener;
@@ -29,7 +28,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xmpp.XmppConnectionFactory;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**
