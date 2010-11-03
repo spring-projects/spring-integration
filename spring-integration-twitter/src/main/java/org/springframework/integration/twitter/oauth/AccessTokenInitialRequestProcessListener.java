@@ -24,6 +24,7 @@ import twitter4j.http.AccessToken;
  * In doing so it will need input fro the user (automatic or human intervention is required)
  *
  * @author Josh Long
+ * @since 2.0
  */
 public interface AccessTokenInitialRequestProcessListener {
 

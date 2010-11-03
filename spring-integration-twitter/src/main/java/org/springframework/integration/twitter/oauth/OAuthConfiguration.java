@@ -23,10 +23,11 @@ import twitter4j.Twitter;
  * and an {@link twitter4j.Twitter} instance.
  * <p/>
  * client should store this bean and simply lookup the Twitter configuration from there
+ * @author Josh Long
+ * @since 2.0
  */
 public class OAuthConfiguration {
-	//
-	// private AsyncTwitter asyncTwitter;
+
 	private Twitter twitter;
 	private volatile String consumerKey;
 	private volatile String consumerSecret;

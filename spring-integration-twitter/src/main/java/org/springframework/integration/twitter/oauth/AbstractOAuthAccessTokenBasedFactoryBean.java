@@ -15,16 +15,17 @@
  */
 package org.springframework.integration.twitter.oauth;
 
+import java.util.Properties;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
 import twitter4j.http.AccessToken;
 import twitter4j.http.RequestToken;
-
-import java.util.Properties;
 
 
 /**
@@ -42,9 +43,53 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	protected OAuthConfiguration configuration;
 	protected final Object monitor = new Object();
 	protected volatile T twitter;
-//	protected volatile AccessTokenInitialRequestProcessListener accessTokenInitialRequestProcessListener;
 	protected volatile boolean initialized = false;
 
+	/**
+	 * Standard {@link org.springframework.beans.factory.FactoryBean} method. Implementations may override if there's a specific method
+	 *
+	 * @return whether or not this is a singleton
+	 */
+	public boolean isSingleton() {
+		return true;
+	}
+	
+	/**
+	 * Rubber meets the road: builds up a reference to the twitter4j.(Async)Twitter instance
+	 *
+	 * @return the instance
+	 * @throws Exception thrown in case some condition isn't met correctly in construction
+	 */
+	public T getObject() throws Exception {
+		if (!initialized) {
+			afterPropertiesSet();
+		}
+
+		return this.twitter;
+	}
+	/**
+	 * provides lifecycle for initiation of the reference. By the time this method is left we should have a fully configured twitter connection that can connect and make calls
+	 *
+	 * @throws Exception
+	 */
+	public void afterPropertiesSet() throws Exception {
+		synchronized (this.monitor) {
+	
+			Assert.notNull(this.configuration.getConsumerKey(), "'consumerKey' mustn't be null");
+			Assert.notNull(this.configuration.getConsumerSecret(), "'consumerSecret' mustn't be null");
+
+			AccessToken accessTokenObj=null;
+		    establishTwitterObject(accessTokenObj);
+			if (StringUtils.hasText(this.configuration.getAccessToken()) && StringUtils.hasText(this.configuration.getAccessTokenSecret())) {
+				accessTokenObj = new AccessToken(this.configuration.getAccessToken(), this.configuration.getAccessTokenSecret());
+			} 
+			establishTwitterObject(accessTokenObj);
+
+			Assert.notNull(accessTokenObj, "'accessTokenObj' can't be null");
+
+			this.initialized = true;
+		}
+	}
 	/**
 	 * Nasty little bit of circular indirection here: the {@link org.springframework.integration.twitter.oauth.OAuthConfiguration} hosts the String values for authentication,
 	 * which we need to build up this instance, but the {@link org.springframework.integration.twitter.oauth.OAuthConfiguration} in turn needs references to the instances provided by
@@ -66,7 +111,6 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	 * @return returns a fully configured {@link java.util.Properties} instance
 	 * @throws Exception thrown if anythign goes wrong
 	 */
-	@SuppressWarnings("unused")
 	protected static Properties fromResource(Resource resource)
 			throws Exception {
 		PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
@@ -77,41 +121,6 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 		return propertiesFactoryBean.getObject();
 	}
 
-	/**
-	 * provides lifecycle for initiation of the reference. By the time this method is left we should have a fully configured twitter connection that can connect and make calls
-	 *
-	 * @throws Exception
-	 */
-	public void afterPropertiesSet() throws Exception {
-		synchronized (this.monitor) {
-			/*if (this.accessTokenInitialRequestProcessListener == null) {
-				accessTokenInitialRequestProcessListener = new ConsoleBasedAccessTokenInitialRequestProcessListener();
-			}*/
-
-			Assert.notNull(this.configuration.getConsumerKey(), "'consumerKey' mustn't be null");
-			Assert.notNull(this.configuration.getConsumerSecret(), "'consumerSecret' mustn't be null");
-
-			AccessToken accessTokenObj=null;
-		    establishTwitterObject(accessTokenObj);
-			if (StringUtils.hasText(this.configuration.getAccessToken()) && StringUtils.hasText(this.configuration.getAccessTokenSecret())) {
-				accessTokenObj = new AccessToken(this.configuration.getAccessToken(), this.configuration.getAccessTokenSecret());
-			} /*else {
-			//	accessTokenObj = initialAuthorizationWizard();
-			}*/
-
-			establishTwitterObject(accessTokenObj);
-
-			Assert.notNull(accessTokenObj, "'accessTokenObj' can't be null");
-
-			this.initialized = true;
-		}
-	}
-
-	/*@SuppressWarnings("unused")
-	public void setAccessTokenInitialRequestProcessListener(AccessTokenInitialRequestProcessListener accessTokenInitialRequestProcessListener) {
-		this.accessTokenInitialRequestProcessListener = accessTokenInitialRequestProcessListener;
-	}
-*/
 	public abstract void establishTwitterObject(AccessToken accessToken)
 			throws Exception;
 
@@ -151,29 +160,6 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	public abstract AccessToken getOAuthAccessToken() throws Exception;
 
 	/**
-	 * @return returns the freshly created {@link twitter4j.http.AccessToken} object from the service
-	 * @throws Exception for just about any deviation from the expected
-	 */
-/*
-	private AccessToken initialAuthorizationWizard() throws Exception {
-		Assert.notNull(this.accessTokenInitialRequestProcessListener, "'accessTokenInitialRequestProcessListener' can't be null");
-
-		try {
-			RequestToken requestToken = getOAuthRequestToken();
-			String pin = this.accessTokenInitialRequestProcessListener.openUrlAndReturnPin(requestToken.getAuthorizationURL());
-			AccessToken at = StringUtils.hasText(pin) ? getOAuthAccessToken(requestToken, pin) : getOAuthAccessToken();
-			this.accessTokenInitialRequestProcessListener.persistReturnedAccessToken(at);
-
-			return at;
-		} catch (Throwable th) {
-			this.accessTokenInitialRequestProcessListener.failure(th);
-		}
-
-		return null;
-	}
-*/
-
-	/**
 	 * Responsibility of subclasses to call this because we cant dereference the generic type appropriately. The responsibility is
 	 * to call {@link twitter4j.Twitter#verifyCredentials()} or {@link twitter4j.AsyncTwitter#verifyCredentials()}  as appropriate
 	 *
@@ -182,32 +168,9 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	public abstract void verifyCredentials() throws Exception;
 
 	/**
-	 * Rubber meets the road: builds up a reference to the twitter4j.(Async)Twitter instance
-	 *
-	 * @return the instance
-	 * @throws Exception thrown in case some condition isn't met correctly in construction
-	 */
-	public T getObject() throws Exception {
-		if (!initialized) {
-			afterPropertiesSet();
-		}
-
-		return this.twitter;
-	}
-
-	/**
 	 * this method is delegated to implementations because we can't correctly dereference the generic type's class
 	 *
 	 * @return a class
 	 */
 	abstract public Class<?> getObjectType();
-
-	/**
-	 * Standard {@link org.springframework.beans.factory.FactoryBean} method. Implementations may override if there's a specific method
-	 *
-	 * @return whether or not this is a singleton
-	 */
-	public boolean isSingleton() {
-		return true;
-	}
 }

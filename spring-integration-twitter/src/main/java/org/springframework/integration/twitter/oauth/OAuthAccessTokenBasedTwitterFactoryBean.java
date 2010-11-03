@@ -20,7 +20,11 @@ import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
 import twitter4j.http.RequestToken;
 
-
+/**
+ * 
+ * @author Josh Long
+ * @since 2.0
+ */
 public class OAuthAccessTokenBasedTwitterFactoryBean extends AbstractOAuthAccessTokenBasedFactoryBean<Twitter> {
 	protected OAuthAccessTokenBasedTwitterFactoryBean(OAuthConfiguration configuration) {
 		super(configuration);
