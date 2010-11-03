@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -105,8 +106,13 @@ public class ApplicationEventListeningMessageProducer extends MessageProducerSup
 	}
 
 	private void sendEventAsMessage(ApplicationEvent event) {
-		Object payload = (this.payloadExpression != null) ? this.payloadExpression.getValue(event) : event;
-		this.sendMessage(MessageBuilder.withPayload(payload).build());
+		if (event.getSource() instanceof Message<?>) {
+			this.sendMessage((Message<?>) event.getSource());
+		}
+		else {
+			Object payload = (this.payloadExpression != null) ? this.payloadExpression.getValue(event) : event;
+			this.sendMessage(MessageBuilder.withPayload(payload).build());
+		}
 	}
 
 }

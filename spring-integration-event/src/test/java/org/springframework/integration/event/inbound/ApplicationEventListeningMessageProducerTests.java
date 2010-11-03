@@ -31,7 +31,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
+import org.springframework.integration.event.core.MessagingEvent;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -116,6 +117,34 @@ public class ApplicationEventListeningMessageProducerTests {
 		assertEquals("received: event2", message3.getPayload());
 	}
 
+	@Test
+	public void messagingEventReceived() {
+		QueueChannel channel = new QueueChannel();
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		Message<?> message1 = channel.receive(0);
+		assertNull(message1);
+		adapter.onApplicationEvent(new MessagingEvent(new GenericMessage<String>("test")));
+		Message<?> message2 = channel.receive(20);
+		assertNotNull(message2);
+		assertEquals("test", message2.getPayload());
+	}
+
+	@Test
+	public void messageAsSourceOrCustomEventType() {
+		QueueChannel channel = new QueueChannel();
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
+		adapter.setOutputChannel(channel);
+		adapter.start();
+		Message<?> message1 = channel.receive(0);
+		assertNull(message1);
+		adapter.onApplicationEvent(new TestMessagingEvent(new GenericMessage<String>("test")));
+		Message<?> message2 = channel.receive(20);
+		assertNotNull(message2);
+		assertEquals("test", message2.getPayload());
+	}
+
 
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent1 extends ApplicationEvent {
@@ -131,6 +160,15 @@ public class ApplicationEventListeningMessageProducerTests {
 
 		public TestApplicationEvent2() {
 			super("event2");
+		}
+	}
+
+
+	@SuppressWarnings("serial")
+	private static class TestMessagingEvent extends ApplicationEvent {
+
+		public TestMessagingEvent(Message<?> message) {
+			super(message);
 		}
 	}
 
