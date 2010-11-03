@@ -42,8 +42,8 @@
 			<xsd:attribute name="host" type="xsd:string"/>
 			<xsd:attribute name="service-name" type="xsd:string"/>
 			<xsd:attribute name="resource" type="xsd:string"/>
-			<xsd:attribute name="sasl-mechanism-supported" type="xsd:string"/>
-			<xsd:attribute name="sasl-mechanism-supported-index" type="xsd:string"/>
+<!--			<xsd:attribute name="sasl-mechanism-supported" type="xsd:string"/>-->
+<!--			<xsd:attribute name="sasl-mechanism-supported-index" type="xsd:string"/>-->
 			<xsd:attribute name="port" type="xsd:string" default="5222"/>
 			<xsd:attribute name="subscription-mode" default="accept_all">
 				<xsd:annotation>

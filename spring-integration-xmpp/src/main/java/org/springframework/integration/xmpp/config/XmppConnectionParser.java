@@ -57,7 +57,7 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 			Assert.hasText(serviceName, "'serviceName' is requuired if 'host' is not provided");
 		}
 		if (StringUtils.hasText(serviceName)){
-			connectionConfigurationBuilder.addConstructorArgValue(port);
+			connectionConfigurationBuilder.addConstructorArgValue(serviceName);
 		}
 		for (String attribute : connectionFactoryAttributes) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
