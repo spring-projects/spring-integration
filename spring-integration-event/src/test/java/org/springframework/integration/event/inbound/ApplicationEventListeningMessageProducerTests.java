@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.event;
+package org.springframework.integration.event.inbound;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -26,21 +31,19 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 
 /**
  * @author Mark Fisher
  */
-public class ApplicationEventInboundChannelAdapterTests {
+public class ApplicationEventListeningMessageProducerTests {
 
 	@Test
 	public void anyApplicationEventSentByDefault() {
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
 		adapter.setOutputChannel(channel);
+		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -57,9 +60,10 @@ public class ApplicationEventInboundChannelAdapterTests {
 	@SuppressWarnings("unchecked")
 	public void onlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
 		adapter.setOutputChannel(channel);
 		adapter.setEventTypes(new Class[]{TestApplicationEvent1.class});
+		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -96,9 +100,10 @@ public class ApplicationEventInboundChannelAdapterTests {
 	@Test
 	public void payloadExpressionEvaluatedAgainstApplicationEvent() {
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
 		adapter.setPayloadExpression("'received: ' + source");
 		adapter.setOutputChannel(channel);
+		adapter.start();
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -118,8 +123,6 @@ public class ApplicationEventInboundChannelAdapterTests {
 		public TestApplicationEvent1() {
 			super("event1");
 		}
-
-		
 	}
 
 

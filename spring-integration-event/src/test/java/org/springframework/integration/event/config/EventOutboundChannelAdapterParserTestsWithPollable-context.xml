@@ -15,9 +15,7 @@
 	</int:channel>
 	
 	<int-event:outbound-channel-adapter id="eventAdapter" channel="input">
-		<int:poller max-messages-per-poll="1" task-executor="executor">
-			<int:interval-trigger interval="100" time-unit="MILLISECONDS"/>
-		</int:poller>
+		<int:poller max-messages-per-poll="1" task-executor="executor" fixed-delay="100"/>
 	</int-event:outbound-channel-adapter>
 
 	<task:executor id="executor" pool-size="5"/>

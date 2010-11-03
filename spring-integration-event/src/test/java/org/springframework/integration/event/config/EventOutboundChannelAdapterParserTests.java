@@ -16,6 +16,7 @@
 
 package org.springframework.integration.event.config;
 
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
 import junit.framework.Assert;
@@ -34,7 +35,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.event.ApplicationEventPublishingMessageHandler;
+import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -46,13 +47,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class EventOutboundChannelAdapterParserTests {
+
 	@Autowired
-	private ConfigurableApplicationContext context;
-	
-	private boolean recievedEvent;
-	
+	private volatile ConfigurableApplicationContext context;
+
+	private volatile boolean receivedEvent;
+
+
 	@Test
-	public void validateEventParser(){
+	public void validateEventParser() {
 		EventDrivenConsumer adapter = context.getBean("eventAdapter", EventDrivenConsumer.class);
 		Assert.assertNotNull(adapter);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
@@ -60,16 +63,16 @@ public class EventOutboundChannelAdapterParserTests {
 		Assert.assertTrue(handler instanceof ApplicationEventPublishingMessageHandler);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("inputChannel"));
 	}
+
 	@Test
-	public void validateUsage(){
-		
-		ApplicationListener listener = new ApplicationListener<ApplicationEvent>() {
+	public void validateUsage() {
+		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){
-					String payload = (String) ((Message)source).getPayload();
-					if (payload.equals("hello")){
-						recievedEvent = true;
+					String payload = (String) ((Message<?>) source).getPayload();
+					if (payload.equals("hello")) {
+						receivedEvent = true;
 					}
 				}
 			}
@@ -77,34 +80,38 @@ public class EventOutboundChannelAdapterParserTests {
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
-		Assert.assertTrue(recievedEvent);
+		Assert.assertTrue(receivedEvent);
 	}
-	
+
 	@Test(timeout=2000)
 	public void validateUsageWithPollableChannel() throws Exception {
-		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml", EventOutboundChannelAdapterParserTests.class);
+		ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml", EventOutboundChannelAdapterParserTests.class);
 		final CyclicBarrier barier = new CyclicBarrier(2);
-		ApplicationListener listener = new ApplicationListener<ApplicationEvent>() {
+		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
 			public void onApplicationEvent(ApplicationEvent event) {
 				Object source = event.getSource();
 				if (source instanceof Message){
-					String payload = (String) ((Message)source).getPayload();
+					String payload = (String) ((Message<?>) source).getPayload();
 					if (payload.equals("hello")){
-						recievedEvent = true;
+						receivedEvent = true;
 						try {
 							barier.await();
-						} catch (Exception e) {
-							e.printStackTrace();
-						} 
+						}
+						catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
+						catch (BrokenBarrierException e) {
+							throw new IllegalStateException("broken barrier", e);
+						}
 					}
 				}
 			}
 		};
-		ac.addApplicationListener(listener);
-		QueueChannel channel = ac.getBean("input", QueueChannel.class);
+		context.addApplicationListener(listener);
+		QueueChannel channel = context.getBean("input", QueueChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
 		barier.await();
-		Assert.assertTrue(recievedEvent);
+		Assert.assertTrue(receivedEvent);
 	}
-	
+
 }

@@ -9,7 +9,7 @@
 		<int:queue capacity="5"/>
 	</int:channel>
 
-	<bean id="adapter" class="org.springframework.integration.event.ApplicationEventInboundChannelAdapter">
+	<bean id="adapter" class="org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer">
 		<property name="outputChannel" ref="channel"/>
 	</bean>
 

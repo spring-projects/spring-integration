@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.event;
+package org.springframework.integration.event.inbound;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -31,15 +32,17 @@ import org.springframework.util.CollectionUtils;
 /**
  * An inbound Channel Adapter that passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
  * If a {@link #setPayloadExpression(String) payloadExpression} is provided, it will be evaluated against
- * the ApplicationEvent instance to create the Message payload.
+ * the ApplicationEvent instance to create the Message payload. Otherwise, the event itself will be the payload.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventInboundChannelAdapter extends MessageProducerSupport implements ApplicationListener<ApplicationEvent> {
+public class ApplicationEventListeningMessageProducer extends MessageProducerSupport implements ApplicationListener<ApplicationEvent> {
 
 	private final Set<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArraySet<Class<? extends ApplicationEvent>>();
 
 	private volatile Expression payloadExpression;
+
+	private volatile boolean active;
 
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 
@@ -77,29 +80,33 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (CollectionUtils.isEmpty(this.eventTypes)) {
-			this.sendEventAsMessage(event);
-			return;
-		}
-		for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
-			if (eventType.isAssignableFrom(event.getClass())) {
+		if (this.active || event instanceof ApplicationContextEvent) {
+			if (CollectionUtils.isEmpty(this.eventTypes)) {
 				this.sendEventAsMessage(event);
 				return;
 			}
+			for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
+				if (eventType.isAssignableFrom(event.getClass())) {
+					this.sendEventAsMessage(event);
+					return;
+				}
+			}
 		}
+	}
+
+	@Override
+	protected void doStart() {
+		this.active = true;
+	}
+
+	@Override
+	protected void doStop() {
+		this.active = false;
 	}
 
 	private void sendEventAsMessage(ApplicationEvent event) {
 		Object payload = (this.payloadExpression != null) ? this.payloadExpression.getValue(event) : event;
 		this.sendMessage(MessageBuilder.withPayload(payload).build());
-	}
-
-	@Override
-	protected void doStart() {
-	}
-
-	@Override
-	protected void doStop() {
 	}
 
 }

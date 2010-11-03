@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.event;
+package org.springframework.integration.event.outbound;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.Message;
+import org.springframework.integration.event.core.MessagingEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventPublishingMessageHandler<T> extends AbstractMessageHandler implements ApplicationEventPublisherAware {
+public class ApplicationEventPublishingMessageHandler extends AbstractMessageHandler implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -43,7 +44,12 @@ public class ApplicationEventPublishingMessageHandler<T> extends AbstractMessage
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Assert.notNull(this.applicationEventPublisher, "applicationEventPublisher is required");
-		this.applicationEventPublisher.publishEvent(new MessagingEvent(message));		
+		if (message.getPayload() instanceof ApplicationEvent) {
+			this.applicationEventPublisher.publishEvent((ApplicationEvent) message.getPayload());
+		}
+		else {
+			this.applicationEventPublisher.publishEvent(new MessagingEvent(message));
+		}
 	}
 
 }
