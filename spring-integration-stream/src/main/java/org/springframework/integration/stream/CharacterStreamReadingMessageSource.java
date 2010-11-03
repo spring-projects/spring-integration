@@ -60,6 +60,10 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 	}
 
 
+	public String getComponentType() {
+		return "stream:stdin-channel-adapter";
+	}
+
 	public Message<String> receive() {
 		try {
 			synchronized (this.monitor) {
@@ -88,8 +92,5 @@ public class CharacterStreamReadingMessageSource extends IntegrationObjectSuppor
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
 		}
 	}
-	
-	public String getComponentType(){
-		return "stream:stdin-channel-adapter";
-	}
+
 }
