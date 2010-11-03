@@ -127,7 +127,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	public int getPhase() {
-		return 0;
+		return Integer.MIN_VALUE;
 	}
 
 	@Override

@@ -108,6 +108,12 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 	@Override
 	protected void doStart() {
 		logger.debug("start: " + xmppConnection.isConnected() + ":" + xmppConnection.isAuthenticated());
+		xmppConnection.addPacketListener(new PacketListener() {
+			public void processPacket(final Packet packet) {
+				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
+				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
+			}
+		}, null);
 	}
 
 	@Override
@@ -121,12 +127,6 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 	@Override
 	protected void onInit() throws Exception {
 		messagingTemplate.afterPropertiesSet();
-		xmppConnection.addPacketListener(new PacketListener() {
-			public void processPacket(final Packet packet) {
-				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
-				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
-			}
-		}, null);
 	}
 
 	private void forwardXmppMessage(Chat chat, Message xmppMessage) {

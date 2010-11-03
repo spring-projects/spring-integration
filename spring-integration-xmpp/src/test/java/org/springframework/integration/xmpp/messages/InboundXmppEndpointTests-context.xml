@@ -29,14 +29,11 @@
 			user="${user.2.login}"
 			password="${user.2.password}"
 			host="${user.2.host}"
-			port="${user.2.port}"
-			resource="${user.2.resource}"
-			sasl-mechanism-supported="${user.2.sasl.mechanism}"
-			sasl-mechanism-supported-index="${user.2.sasl.index}"
 			service-name="${user.2.service}"
 			/>
 
-	<xmpp:message-inbound-channel-adapter channel="xmppInbound" xmpp-connection="testConnection" extract-payload="false" auto-startup="false"/>
+	<xmpp:message-inbound-channel-adapter channel="xmppInbound" xmpp-connection="testConnection" 
+						extract-payload="false"/>
 
 	<service-activator input-channel="xmppInbound" ref="xmppMessageConsumer"/>
 

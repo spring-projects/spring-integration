@@ -33,7 +33,7 @@ public class InboundXmppEndpointTests {
 	@Test
 	@Ignore
 	public void run() throws Exception {
-		Thread.sleep(10 * 1000);
+		Thread.sleep(10 * 1000 * 1000);
 	}
 
 }
