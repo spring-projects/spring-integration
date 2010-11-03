@@ -123,6 +123,7 @@ uploadArchives {
     configurePom(deployer.pom)
 }
 
+
 /**
  * Install gradle-built artifacts to the local m2 maven cache.
  * Further customizes the 'install' task contributed by the 'maven' plugin.
@@ -134,6 +135,105 @@ install {
     configurePom(repositories.mavenInstaller.pom)
 }
 
+
+/**
+ * Generate a Maven pom.xml for use at build time.  Dependency information will
+ * be based on Gradle metadata for the project, and other customizations such
+ * as licensing information and source compatibility settings are configured
+ * within.
+ *
+ * @author Chris Beams
+ * @see http://gradle.org/0.9-preview-3/docs/userguide/userguide_single.html#pomBuilder
+ */
+task generatePom {
+    group = 'Build'
+    description = 'Generates a Maven POM file suitable for use in building the project'
+
+    generatedPomFileName = "pom.xml"
+
+    // enable partial cleaning with `gradle cleanGeneratePom`
+    outputs.files(generatedPomFileName)
+
+    doLast() {
+        // customize the pom creation process
+        p = pom {
+            project {
+                name = project.description
+                properties {
+                    setProperty('project.build.sourceEncoding', 'UTF8')
+                }
+                build {
+                    plugins {
+                        plugin {
+                            groupId = 'org.apache.maven.plugins'
+                            artifactId = 'maven-compiler-plugin'
+                            configuration {
+                                source = '1.5'
+                                target = '1.5'
+                            }
+                        }
+                        plugin {
+                            groupId = 'org.apache.maven.plugins'
+                            artifactId = 'maven-surefire-plugin'
+                            configuration {
+                                includes {
+                                    include = '**/*Tests.java'
+                                }
+                                excludes {
+                                    exclude = '**/*Abstract*.java'
+                                }
+                            }
+                        }
+                    }
+                    resources {
+                        resource {
+                            directory = 'src/main/java'
+                            includes = ['**/*']
+                            excludes = ['**/*.java']
+                        }
+                        resource {
+                            directory = 'src/main/resources'
+                            includes = ['**/*']
+                        }
+                    }
+                    testResources {
+                        testResource {
+                            directory = 'src/test/java'
+                            includes = ['**/*']
+                            excludes = ['**/*.java']
+                        }
+                        testResource {
+                            directory = 'src/test/resources'
+                            includes = ['**/*']
+                        }
+                    }
+                }
+            }
+        }
+
+        // customizing the artifact id is a special case that must be configured
+        // after the pom is fully configured, otherwise it'll be overwritten
+        p.whenConfigured { pom -> pom.artifactId = project.name }
+
+        configurePom(p)
+
+        // write the pom.xml file out to the filesystem
+        p.writeTo(generatedPomFileName)
+    }
+
+    // ensure that pom generation happens every time resources are processed
+    // (which practically means any time a build happens). if the dependencies
+    // for the project have been updated (in $rootDir/build.gradle), the pom
+    // will have diffs in it and the developer will be reminded to check in
+    // the change during the next commit cycle.
+    //processResources.dependsOn generatePom
+}
+
+
+/**
+ * Read dynamic 'optional' and 'provided' properties from gradle dependencies
+ * and translate them to their maven POM equivalents.
+ */
 def configurePom(def pom) {
     pom.whenConfigured { generatedPom ->
         def optionalDeps = configurations.testRuntime.allDependencies.findAll { gradleDep ->

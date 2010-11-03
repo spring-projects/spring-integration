@@ -263,6 +263,7 @@ project('spring-integration-jms') {
     description = 'Spring Integration JMS Support'
     dependencies {
         compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-jms:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1") { provided = true }
@@ -416,6 +417,8 @@ apply from: "$rootDir/gradle/dist.gradle"
 // add tasks like 'snapshotDependencyCheck'
 apply from: "${rootDir}/gradle/checks.gradle"
 
+// add 'generatePom' task to generate root pom with <modules> section
+apply from: "$rootDir/gradle/maven-root-pom.gradle"
 
 // -----------------------------------------------------------------------------
 // Import tasks related to releasing and managing the project
