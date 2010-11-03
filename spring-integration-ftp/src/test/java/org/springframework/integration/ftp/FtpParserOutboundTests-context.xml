@@ -10,8 +10,8 @@
 	<int:channel id="ftpOutbound"/>
 
 	<int-ftp:outbound-channel-adapter id="ftpOutboundAdapter" 
-						username="ozhurakousky" 
-						password="seva@1994"
+						username="xxxx" 
+						password="xxxx"
 						channel="ftpOutbound" 
 						remote-directory="temp" 
 						host="localhost"
