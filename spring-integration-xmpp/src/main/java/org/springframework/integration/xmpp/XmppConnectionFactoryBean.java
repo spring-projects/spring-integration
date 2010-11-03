@@ -18,7 +18,9 @@ package org.springframework.integration.xmpp;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -32,9 +34,9 @@ import org.springframework.util.StringUtils;
  * @see org.jivesoftware.smack.XMPPConnection
  * @since 2.0
  */
-public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> {
+public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnection> implements SmartLifecycle{
 
-	private volatile ConnectionConfiguration connectionConfiguration;
+	private final ConnectionConfiguration connectionConfiguration;
 	
 	private volatile String resource = "Smack"; // default value used by Smack
 	
@@ -43,30 +45,28 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	private volatile String password;
 	
 	private volatile String subscriptionMode = "accept_all";
+	
+	private volatile XMPPConnection connection;
+	
+	private volatile boolean autoStartup;
+	
+	private volatile boolean started;
 
 	public XmppConnectionFactoryBean(ConnectionConfiguration connectionConfiguration) {
 		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
 		this.connectionConfiguration = connectionConfiguration;
 	}
 	
-	public String getSubscriptionMode() {
-		return subscriptionMode;
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	public void setSubscriptionMode(String subscriptionMode) {
 		this.subscriptionMode = subscriptionMode;
 	}
 
-	public String getUser() {
-		return user;
-	}
-
 	public void setUser(String user) {
 		this.user = user;
-	}
-
-	public String getPassword() {
-		return password;
 	}
 
 	public void setPassword(String password) {
@@ -77,10 +77,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		this.resource = resource;
 	}
 	
-	public String getResource() {
-		return resource;
-	}
-	
 	@Override
 	public Class<? extends XMPPConnection> getObjectType() {
 		return XMPPConnection.class;
@@ -88,24 +84,59 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
-		
-		XMPPConnection connection = new XMPPConnection(connectionConfiguration);
-		connection.connect();
-		if (StringUtils.hasText(user)){
-			connection.login(user, password, resource);
-			
-			Assert.isTrue(connection.isAuthenticated(), "Failed to authenticate user: " + user);
-			
-			if (StringUtils.hasText(this.subscriptionMode)) {
-				Roster.SubscriptionMode subscriptionMode = Roster.SubscriptionMode.valueOf(this.subscriptionMode);
-				connection.getRoster().setSubscriptionMode(subscriptionMode);
-			}	
-		}
-		else {
-			connection.loginAnonymously();
-		}
+		connection = new XMPPConnection(connectionConfiguration);
 		
 		return connection;
+	}
+
+	@Override
+	public void start() {
+		try {
+			connection.connect();
+			if (StringUtils.hasText(user)){
+				connection.login(user, password, resource);
+				
+				Assert.isTrue(connection.isAuthenticated(), "Failed to authenticate user: " + user);
+				
+				if (StringUtils.hasText(this.subscriptionMode)) {
+					Roster.SubscriptionMode subscriptionMode = Roster.SubscriptionMode.valueOf(this.subscriptionMode);
+					connection.getRoster().setSubscriptionMode(subscriptionMode);
+				}	
+			}
+			else {
+				connection.loginAnonymously();
+			}
+			this.started = true;
+		} catch (Exception e) {
+			throw new BeanInitializationException("Failed to connect to " + this.connectionConfiguration.getHost(), e);
+		}
+	}
+
+	@Override
+	public void stop() {
+		if (this.isRunning()){
+			this.connection.disconnect();
+			this.started = false;
+		}
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.started;
+	}
+
+	@Override
+	public int getPhase() {
+		return 0;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Override
+	public void stop(Runnable callback) {
+		callback.run();
 	}
 }

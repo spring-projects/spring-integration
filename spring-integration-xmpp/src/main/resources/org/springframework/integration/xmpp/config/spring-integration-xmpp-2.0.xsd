@@ -37,6 +37,7 @@
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="user" type="xsd:string" use="required"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="password" type="xsd:string" use="required"/>
 			<xsd:attribute name="host" type="xsd:string"/>
 			<xsd:attribute name="service-name" type="xsd:string"/>

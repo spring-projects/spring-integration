@@ -26,6 +26,7 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 
 /**
@@ -38,12 +39,6 @@ import org.w3c.dom.Element;
 public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 	private static final String PACKAGE_NAME = "org.springframework.integration.xmpp";
-
-//	private static String[] connectionFactoryAttributes = 
-//		new String[]{"userid", "password", "resource","subscription-mode"};
-	
-
-
 
 	public void init() {
 		// connection
@@ -120,7 +115,9 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 		@Override
 		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			//configureXMPPConnection(element, builder, parserContext);
+			String connectionName = element.getAttribute("xmpp-connection");
+			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
+			builder.addPropertyReference("xmppConnection", connectionName);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");

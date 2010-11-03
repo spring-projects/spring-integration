@@ -7,7 +7,7 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
 
-	<int-xmpp:xmpp-connection id="connection" user="foo" password="foo" host="localhost"/>
+	<int-xmpp:xmpp-connection id="connection" 
+				user="happy.user" password="blah" host="localhost" auto-startup="false"/>
 
-	<int:bridge ></int:bridge>
 </beans>
