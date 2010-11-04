@@ -26,10 +26,16 @@ import java.util.Set;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Mode;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.integration.Message;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -73,5 +79,23 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	public void testNonInitializedFailure(){
 		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint();
 		rosterEndpoint.start();
+	}
+	
+	@Test
+	public void testPresenceChangeEvent(){
+		XMPPConnection connection = mock(XMPPConnection.class);
+		Roster roster = mock(Roster.class);
+		when(connection.getRoster()).thenReturn(roster);
+		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint();
+		rosterEndpoint.setXmppConnection(connection);
+		QueueChannel channel = new QueueChannel();
+		rosterEndpoint.setRequestChannel(channel);
+		rosterEndpoint.afterPropertiesSet();
+		rosterEndpoint.start();
+		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
+		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
+		rosterListener.presenceChanged(presence);
+		Message<?> message = channel.receive(10);
+		assertEquals(presence, message.getPayload());
 	}
 }

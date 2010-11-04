@@ -21,23 +21,25 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
 
-
 /**
- * Describes an endpoint that is able to login as usual with a {@link org.springframework.integration.xmpp.XmppConnectionFactoryBean} and then emit {@link org.springframework.integration.Message}s when a particular event happens to the logged in users {@link org.jivesoftware.smack.Roster}. We try
- * and generically propagate these events. In practical terms, there are a few events worth being notified of: <ul> <li>the {@link org.jivesoftware.smack.packet.Presence} of a user in the {@link org.jivesoftware.smack.Roster} has changed.</li> <li>the actual makeup of the logged-in user's {@link
- * org.jivesoftware.smack.Roster} has changed: entries added, deleted, etc.</li> </ul>
+ * Describes an inbound endpoint that is able to login and then emit {@link Message}s when a 
+ * particular event happens to the logged in users {@link Roster} (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
@@ -99,22 +101,29 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	}
 
 	/**
-	 * Called whenever an event happesn related to the {@link org.jivesoftware.smack.Roster}
+	 * Called whenever an event happens related to the {@link Roster}
 	 *
-	 * @param presence the {@link org.jivesoftware.smack.packet.Presence} object representing the new state (optional)
+	 * @param presence the {@link Presence} object representing the new state
 	 */
-	private void forwardRosterEventMessage(Presence presence) {
+	private void forwardRosterEventMessage(Presence presence) {	
+		Message<?> message = null;
 		try {
-			Message<?> msg = this.messageMapper.toMessage(presence);
-			messagingTemplate.send(requestChannel, msg);
+			message = this.messageMapper.toMessage(presence);
+			messagingTemplate.send(requestChannel, message);
 		}
 		catch (Exception e) {
-			logger.error("Failed to map packet to message ", e);
+			if (e instanceof MessagingException){
+				throw (MessagingException)e;
+			}
+			else {
+				throw new MessageHandlingException(message, "Failed to send message", e);
+			}
 		}
 	}
 
 	/**
-	 * Subscribes to a given {@link org.jivesoftware.smack.Roster}s events and forwards them to components on the bus.
+	 * RosterListener that subscribes to a given {@link Roster}s events 
+	 * and forwards them to messaging bus
 	 */
 	class EventForwardingRosterListener implements RosterListener {
 		public void entriesAdded(final Collection<String> entries) {
