@@ -16,14 +16,11 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.jivesoftware.smack.packet.Presence;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 
@@ -97,21 +94,4 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		}
 	}
-
-	private static class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
-
-		public XmppHeaderEnricherParser() {
-
-			// chat headers
-			this.addElementToHeaderMapping("message-to", XmppHeaders.CHAT_TO_USER);
-			this.addElementToHeaderMapping("message-thread-id", XmppHeaders.CHAT_THREAD_ID);
-
-			// presence headers
-			this.addElementToHeaderMapping("presence-mode", XmppHeaders.PRESENCE_MODE, Presence.Mode.class);
-			this.addElementToHeaderMapping("presence-from", XmppHeaders.PRESENCE_FROM);
-			this.addElementToHeaderMapping("presence-status", XmppHeaders.PRESENCE_STATUS);
-			this.addElementToHeaderMapping("presence-priority", XmppHeaders.PRESENCE_PRIORITY, Integer.class);
-		}
-	}
-
 }

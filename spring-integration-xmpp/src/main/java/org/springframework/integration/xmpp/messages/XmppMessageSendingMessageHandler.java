@@ -34,8 +34,6 @@ import org.springframework.util.StringUtils;
  */
 public class XmppMessageSendingMessageHandler extends AbstractMessageHandler {
 
-//private static final Log logger = LogFactory.getLog(XmppMessageSendingMessageHandler.class);
-
 	private final XMPPConnection xmppConnection;
 	
 	public XmppMessageSendingMessageHandler(XMPPConnection xmppConnection){
