@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.presence;
+package org.springframework.integration.xmpp.ignore;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
@@ -25,7 +25,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
 
 /**
  * This is used in
- * {@link org.springframework.integration.xmpp.presence.OutboundXmppRosterEventsEndpointTests}
+ * {@link org.springframework.integration.xmpp.ignore.OutboundXmppRosterEventsEndpointTests}
  * to produce fake status / presence updates.
  *
  * @author Josh Long

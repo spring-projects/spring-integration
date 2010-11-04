@@ -123,7 +123,7 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
 			builder.addPropertyReference("xmppConnection", connectionName);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+			//IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		}
 	}

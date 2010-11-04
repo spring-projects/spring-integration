@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.messages;
+package org.springframework.integration.xmpp.ignore;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

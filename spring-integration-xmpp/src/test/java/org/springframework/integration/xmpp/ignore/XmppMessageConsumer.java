@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.messages;
+package org.springframework.integration.xmpp.ignore;
 
 import org.jivesoftware.smack.packet.Message;
 import org.springframework.integration.annotation.ServiceActivator;

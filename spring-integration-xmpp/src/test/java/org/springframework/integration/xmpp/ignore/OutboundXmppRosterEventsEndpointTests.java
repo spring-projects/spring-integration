@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.messages;
+package org.springframework.integration.xmpp.ignore;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Testing support for sending messages.
+ * Tests {@link XmppRosterEventMessageSendingHandler} to ensure that we are able to publish status.
  *
  * @author Josh Long
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class OutboundXmppEndpointTests {
+public class OutboundXmppRosterEventsEndpointTests {
 
 	@Test
 	@Ignore
-	public void run() throws Exception {
-		Thread.sleep(10 * 1000);
+	public void testOutbound() throws Throwable {
+		Thread.sleep(60 * 1000);
 	}
-
 }

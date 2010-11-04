@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.presence;
+package org.springframework.integration.xmpp.ignore;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,19 +23,22 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * this class demonstrates that when I launch this and then manipulate the status of the
- * user using Pidgin, the updated state is immediately delivered to the Spring Integration bus.
+ * This class will demonstrate using both inbound adapter types in a 1-2 punch of:
+ * <UL>
+ * <LI> notifying the bus of a user's sudden online availability using &lt;xmpp:roster-event-inbound-channel-adapter&gt;</LI>
+ * <LI> sending that user a message using the &lt;xmpp:outbound-message-channel-adapter /&gt;</LI>
+ * </UL>
  *
  * @author Josh Long
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class InboundXmppRosterEventsEndpointTests {
+public class PresenceMessageComboTests {
 
 	@Test
 	@Ignore
-	public void run() throws Exception {
+	public void run() throws Throwable {
 		Thread.sleep(60 * 1000);
 	}
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.presence;
+package org.springframework.integration.xmpp.ignore;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.integration.Message;

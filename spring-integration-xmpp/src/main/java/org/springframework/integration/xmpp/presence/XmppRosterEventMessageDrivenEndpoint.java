@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.xmpp.presence;
+
+import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -23,14 +24,12 @@ import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.mapping.InboundMessageMapper;
-
-import java.util.Collection;
+import org.springframework.util.Assert;
 
 
 /**
@@ -41,10 +40,9 @@ import java.util.Collection;
  * @author Josh Long
  * @since 2.0
  */
-public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
+public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
-
 
 	private volatile MessageChannel requestChannel;
 
@@ -53,14 +51,17 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
 	private InboundMessageMapper<Presence> messageMapper;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	
+	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
+	private volatile boolean initialized;
 
 	/**
 	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
 	 *
 	 * @param xmppConnection the connection
 	 */
-	public void setXmppConnection(final XMPPConnection xmppConnection) {
+	public void setXmppConnection(XMPPConnection xmppConnection) {
 		this.xmppConnection = xmppConnection;
 	}
 
@@ -71,20 +72,20 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.requestChannel = requestChannel;
 	}
+	
+	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
+		this.messageMapper = messageMapper;
+	}
 
 	@Override
 	protected void doStart() {
-		logger.debug("start: " + xmppConnection.isConnected() + ":" +
-				xmppConnection.isAuthenticated());
+		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
+		this.xmppConnection.getRoster().addRosterListener(rosterListener);
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.xmppConnection.isConnected()) {
-			logger.debug("shutting down " + XmppRosterEventMessageDrivenEndpoint.class.getName() +
-					".");
-			this.xmppConnection.disconnect();
-		}
+		this.xmppConnection.getRoster().removeRosterListener(rosterListener);
 	}
 
 	@Override
@@ -94,7 +95,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
 		}
 
 		this.messagingTemplate.afterPropertiesSet();
-		this.xmppConnection.getRoster().addRosterListener(new EventForwardingRosterListener());
+		this.initialized = true;
 	}
 
 	/**
@@ -110,10 +111,6 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
 		catch (Exception e) {
 			logger.error("Failed to map packet to message ", e);
 		}
-	}
-
-	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
-		this.messageMapper = messageMapper;
 	}
 
 	/**

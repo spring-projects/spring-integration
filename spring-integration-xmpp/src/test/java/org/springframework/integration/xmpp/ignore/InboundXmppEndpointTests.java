@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.messages;
+package org.springframework.integration.xmpp.ignore;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,17 +23,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Mark Fisher
+ * @author Josh Long
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ConsoleChatTests {
+public class InboundXmppEndpointTests {
 
 	@Test
 	@Ignore
 	public void run() throws Exception {
-		Thread.sleep(10 * 1000);
+		Thread.sleep(10 * 1000 * 1000);
 	}
 
 }

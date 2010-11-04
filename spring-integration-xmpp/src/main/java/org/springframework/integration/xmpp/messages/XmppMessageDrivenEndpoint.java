@@ -112,7 +112,6 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
-		logger.debug("start: " + xmppConnection.isConnected() + ":" + xmppConnection.isAuthenticated());
 		xmppConnection.addPacketListener(this.packetListener, null);
 	}
 
