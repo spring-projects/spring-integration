@@ -16,24 +16,17 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.Assert;
-import org.w3c.dom.Element;
 
 /**
  * This class parses the schema for XMPP support.
  *
  * @author Josh Long
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class XmppNamespaceHandler extends NamespaceHandlerSupport {
-
-	private static final String PACKAGE_NAME = "org.springframework.integration.xmpp";
 
 	public void init() {
 		// connection
@@ -48,50 +41,5 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("roster-event-outbound-channel-adapter", new XmppRosterEventOutboundEndpointParser());
 
 		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
-	}
-
-	private static class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
-
-		@Override
-		protected String getBeanClassName(Element element) {
-			return PACKAGE_NAME + ".messages.XmppMessageDrivenEndpoint";
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			String connectionName = element.getAttribute("xmpp-connection");
-			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-			builder.addPropertyReference("xmppConnection", connectionName);
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		}
-	}
-
-	private static class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
-
-		@Override
-		protected String getBeanClassName(Element element) {
-			return PACKAGE_NAME + ".presence.XmppRosterEventMessageDrivenEndpoint";
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			String connectionName = element.getAttribute("xmpp-connection");
-			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-			builder.addPropertyReference("xmppConnection", connectionName);
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		}
 	}
 }

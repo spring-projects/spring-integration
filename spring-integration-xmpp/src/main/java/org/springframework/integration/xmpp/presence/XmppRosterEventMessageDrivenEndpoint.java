@@ -143,5 +143,4 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 			forwardRosterEventMessage(presence);
 		}
 	}
-
 }
