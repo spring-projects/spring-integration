@@ -33,6 +33,14 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class XmppPresenceMessageMapperTests {
 
 	@Test
+	public void testToMessage() throws Exception{
+		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
+		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
+		Message<Presence> presenceMessage = mapper.toMessage(presence);
+		assertEquals(presence, presenceMessage.getPayload());
+		// TODO look into why presence attributes are also duplicated as headers
+	}
+	@Test
 	public void testFromMessageWithPayloadPresence() throws Exception{
 		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
 		Message<?> message = MessageBuilder.withPayload(presence).build();
@@ -50,7 +58,6 @@ public class XmppPresenceMessageMapperTests {
 		.setHeader(XmppHeaders.PRESENCE_FROM, "oleg")
 		.setHeader(XmppHeaders.PRESENCE_MODE, Mode.chat)
 		.setHeader(XmppHeaders.PRESENCE_STATUS, "hello")
-		.setHeader(XmppHeaders.PRESENCE_TYPE, Type.subscribed)
 		.setHeader(XmppHeaders.PRESENCE_PRIORITY, 1)
 		.build();
 		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
@@ -66,7 +73,6 @@ public class XmppPresenceMessageMapperTests {
 		.setHeader(XmppHeaders.PRESENCE_FROM, "oleg")
 		.setHeader(XmppHeaders.PRESENCE_MODE, "chat")
 		.setHeader(XmppHeaders.PRESENCE_STATUS, "hello")
-		.setHeader(XmppHeaders.PRESENCE_TYPE, "subscribed")
 		.setHeader(XmppHeaders.PRESENCE_PRIORITY, 1)
 		.build();
 		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
@@ -82,16 +88,6 @@ public class XmppPresenceMessageMapperTests {
 		
 		Message<?> message = MessageBuilder.withPayload(Type.available)
 		.setHeader(XmppHeaders.PRESENCE_MODE, 1)
-		.build();
-		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
-		mapper.fromMessage(message);
-	}
-	
-	@Test(expected=MessageMappingException.class)
-	public void testFromMessageWithPayloadPresenceTypeUnsupportedType() throws Exception{
-		
-		Message<?> message = MessageBuilder.withPayload(Type.available)
-		.setHeader(XmppHeaders.PRESENCE_TYPE, 1)
 		.build();
 		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
 		mapper.fromMessage(message);

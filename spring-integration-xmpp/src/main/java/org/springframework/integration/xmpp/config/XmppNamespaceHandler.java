@@ -138,7 +138,6 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 			// presence headers
 			this.addElementToHeaderMapping("presence-mode", XmppHeaders.PRESENCE_MODE, Presence.Mode.class);
-			this.addElementToHeaderMapping("presence-type", XmppHeaders.PRESENCE_TYPE, Presence.Type.class);
 			this.addElementToHeaderMapping("presence-from", XmppHeaders.PRESENCE_FROM);
 			this.addElementToHeaderMapping("presence-status", XmppHeaders.PRESENCE_STATUS);
 			this.addElementToHeaderMapping("presence-priority", XmppHeaders.PRESENCE_PRIORITY, Integer.class);

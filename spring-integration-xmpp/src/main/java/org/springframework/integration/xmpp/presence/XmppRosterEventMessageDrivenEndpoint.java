@@ -103,7 +103,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	 *
 	 * @param presence the {@link org.jivesoftware.smack.packet.Presence} object representing the new state (optional)
 	 */
-	protected void forwardRosterEventMessage(Presence presence) {
+	private void forwardRosterEventMessage(Presence presence) {
 		try {
 			Message<?> msg = this.messageMapper.toMessage(presence);
 			messagingTemplate.send(requestChannel, msg);

@@ -38,10 +38,6 @@ public class XmppHeaders {
 
 	public static final String TYPE = PREFIX + "type";
 
-//	public static final String ROSTER_CHANGE_TYPE = PREFIX + "roster_change_type";
-	
-//	public static final String ROSTER = PREFIX + "roster";
-
 	public static final String PRESENCE = PREFIX + "presence";
 
 	public static final String PRESENCE_LANGUAGE = PRESENCE + "language";
@@ -49,8 +45,6 @@ public class XmppHeaders {
 	public static final String PRESENCE_PRIORITY = PRESENCE + "priority";
 
 	public static final String PRESENCE_MODE = PRESENCE + "mode";
-
-	public static final String PRESENCE_TYPE = PRESENCE + "type";
 
 	public static final String PRESENCE_STATUS = PRESENCE + "status";
 

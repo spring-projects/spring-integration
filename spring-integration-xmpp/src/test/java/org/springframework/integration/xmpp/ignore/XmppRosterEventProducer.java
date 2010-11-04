@@ -18,6 +18,7 @@ package org.springframework.integration.xmpp.ignore;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
@@ -40,12 +41,11 @@ public class XmppRosterEventProducer implements MessageSource<String> {
 		catch (InterruptedException e) {
 			// eat it
 		}
-		return (Math.random() > .5) ? MessageBuilder.withPayload(StringUtils.EMPTY).setHeader(
-				XmppHeaders.PRESENCE_MODE, Presence.Mode.chat).setHeader(XmppHeaders.PRESENCE_TYPE,
-				Presence.Type.available).setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me").build()
+		return (Math.random() > .5) ? MessageBuilder.withPayload("available").setHeader(
+				XmppHeaders.PRESENCE_MODE, Presence.Mode.chat)
+				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me").build()
 				: MessageBuilder.withPayload(StringUtils.EMPTY).setHeader(XmppHeaders.PRESENCE_MODE, Presence.Mode.dnd)
-				.setHeader(XmppHeaders.PRESENCE_TYPE, Presence.Type.available).setHeader(
-						XmppHeaders.PRESENCE_STATUS, "She Loves me not").build();
+				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me not").build();
 	}
 
 }
