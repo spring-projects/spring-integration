@@ -19,10 +19,11 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 
 /**
+ * Parser for 'message-inbound-channel-adapter' element
+ * 
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -42,8 +43,7 @@ public class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefiniti
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String connectionName = element.getAttribute("xmpp-connection");
-		Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-		builder.addPropertyReference("xmppConnection", connectionName);
+		builder.addConstructorArgReference(connectionName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xmpp.messages;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.PacketListener;
@@ -33,48 +31,35 @@ import org.springframework.util.Assert;
 
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
- * user on to downstream components. The component is an endpoint that has its
- * own lifecycle and does not need any poller
- * to work. It takes any message from a given XMPP session (as established by
+ * user on to downstream components. 
+ * It takes any message from a given XMPP session (as established by
  * the current {@link XMPPConnection}) and forwards the
  * {@link org.jivesoftware.smack.packet.Message} as the payload of the Spring
- * Integration {@link org.springframework.integration.Message}. The
- * {@link org.jivesoftware.smack.Chat} instance that's used is passed along as a
- * header (under {@link org.springframework.integration.xmpp.XmppHeaders#CHAT}).
- * Additionally, the {@link org.jivesoftware.smack.packet.Message.Type} is
- * passed along under the header
- * {@link org.springframework.integration.xmpp.XmppHeaders#TYPE}. Both of these
- * pieces of metadata can be obtained directly from the payload, if required.
- * They are here as a convenience.
- * <p/>
+ * Integration {@link org.springframework.integration.Message}. 
  * <strong>Note</strong>: the {@link org.jivesoftware.smack.ChatManager}
  * maintains a Map&lt;String, Chat&gt; for threads and users, where the threadID
  * ({@link String}) is the key or the userID {@link String} is the key. This
  * {@link java.util.Map} is a Smack-specific implementation called
  * {@link org.jivesoftware.smack.util.collections.ReferenceMap} that removes
- * key/values as references are dereferenced. Take care to enable this garbage
- * collection, taking what you need from the payload and the headers and
- * discarding as soon as possible.
+ * key/values as references are dereferenced.
  *
  * @author Josh Long
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
+ * 
  * @see ChatManager the ChatManager class that
  *      keeps watch over all Chats between the client and any other
  *      participants.
- * @see MessagingTemplate
- *      handles all interesing operations on any Spring Integration channels.
  * @see XMPPConnection the XMPPConnection (as
  *      created by {@link XmppConnectionFactory}
  */
 public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
-	private static final Log logger = LogFactory.getLog(XmppMessageDrivenEndpoint.class);
-
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel requestChannel;
 
-	private volatile XMPPConnection xmppConnection;
+	private final XMPPConnection xmppConnection;
 
 	private volatile boolean extractPayload = true;
 	
@@ -82,23 +67,16 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 	
 	private volatile boolean initialized;
 
-	/**
-	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
-	 *
-	 * @param xmppConnection the connection
-	 */
-	public void setXmppConnection(final XMPPConnection xmppConnection) {
+	public XmppMessageDrivenEndpoint(XMPPConnection xmppConnection){
 		this.xmppConnection = xmppConnection;
 	}
-
+	
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
-	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
+	public void setRequestChannel(MessageChannel requestChannel) {
 		this.requestChannel = requestChannel;
 	}
-
 
 	/**
 	 * Specify whether the text message body should be extracted when mapping to a
@@ -122,7 +100,8 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
 	@Override
 	protected void onInit() throws Exception {
-		messagingTemplate.afterPropertiesSet();
+		this.messagingTemplate.setDefaultChannel(requestChannel);
+		this.messagingTemplate.afterPropertiesSet();
 		this.packetListener = new PacketListener() {
 			public void processPacket(final Packet packet) {
 				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;

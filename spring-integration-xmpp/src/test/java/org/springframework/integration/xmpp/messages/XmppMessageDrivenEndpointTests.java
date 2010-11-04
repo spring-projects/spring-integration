@@ -43,9 +43,10 @@ public class XmppMessageDrivenEndpointTests {
 	 */
 	public void testLifecycle(){
 		final Set<PacketListener> packetListSet = new HashSet<PacketListener>();
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
-		
 		XMPPConnection connection = mock(XMPPConnection.class);
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(connection);
+		
+		
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -62,7 +63,6 @@ public class XmppMessageDrivenEndpointTests {
 			}
 		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));
 		
-		endpoint.setXmppConnection(connection);
 		assertEquals(0, packetListSet.size());
 		endpoint.afterPropertiesSet();
 		endpoint.start();
@@ -73,7 +73,7 @@ public class XmppMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializationFailure(){
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(mock(XMPPConnection.class));
 		endpoint.start();
 	}
 }
