@@ -19,7 +19,10 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 
+import java.util.List;
+
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
@@ -32,6 +35,18 @@ import org.springframework.integration.xmpp.XmppConnectionFactoryBean;
  *
  */
 public class XmppConnectionParserTests {
+	
+	@Test
+	public void testSmackSasl(){
+		/*
+		 * Possible SASL mechanisms
+		 * EXTERNAL, GSSAPI, DIGEST-MD5, CRAM-MD5, PLAIN, ANONYMOUS
+		 */
+		// values are set in META-INF/smack-config.xml
+		List<String> saslMechNames = SmackConfiguration.getSaslMechs();
+		assertEquals(2, saslMechNames.size());
+		assertEquals("PLAIN", saslMechNames.get(0));
+	}
 
 	@Test
 	public void testSimpleConfiguration(){
