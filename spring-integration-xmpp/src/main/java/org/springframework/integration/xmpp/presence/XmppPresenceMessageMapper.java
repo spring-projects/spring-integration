@@ -15,12 +15,11 @@
  */
 package org.springframework.integration.xmpp.presence;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -28,21 +27,21 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * Implementation of the strategy interface {@link org.springframework.integration.mapping.OutboundMessageMapper}. This is the hook that lets the adapter receive various payloads from
- * components inside Spring Integration and forward them correctly as {@link org.jivesoftware.smack.packet.Presence} instances.
+ * Implementation of the strategy interface {@link OutboundMessageMapper}
+ * which maps {@link Presence} to {@link Message}
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence>,
 		InboundMessageMapper<Presence> {
 
-	private static final Log logger = LogFactory.getLog(XmppPresenceMessageMapper.class);
-
 	/**
-	 * Returns a {@link org.springframework.integration.Message} with payload {@link org.jivesoftware.smack.packet.Presence}
+	 * Builds {@link Message} with payload of {@link Presence} while also 
+	 * setting Presense attributes as {@link MessageHeaders}
 	 *
-	 * @param presence the presence object that can be used to present the priority, status, mode, and type of a given roster entry. This will be decomposed into a series of headers, as well as a payload
+	 * @param presence the presence object
 	 * @return the Message
 	 * @throws Exception thrown if conversion should fail
 	 */
@@ -72,46 +71,50 @@ public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence
 		String language = (String) messageHeaders.get(XmppHeaders.PRESENCE_LANGUAGE);
 		String from = (String) messageHeaders.get(XmppHeaders.PRESENCE_FROM);
 
-		// trickery afoot
 		Object modeObj = messageHeaders.get(XmppHeaders.PRESENCE_MODE);
 		Presence.Mode mode = null;
 
 		Object typeObj = messageHeaders.get(XmppHeaders.PRESENCE_TYPE);
 		Presence.Type type = null;
 
-		if (typeObj instanceof String) {
-			try {
+		if (typeObj != null){
+			if (typeObj instanceof String) {
 				type = Presence.Type.valueOf((String) typeObj);
-			} catch (Throwable th) {
-				logger.debug("couldn't convert type header into an object of type Presence.Type");
+			} 
+			else if (typeObj instanceof Presence.Type) {
+				type = (Presence.Type) typeObj;
 			}
-		} else if (modeObj instanceof Presence.Type) {
-			type = (Presence.Type) typeObj;
+			else {
+				throw new MessageMappingException("Unsupported type for Presence type. Only" +
+						" String or Presence.Type is allowed, but was: " + typeObj.getClass().getName());
+			}
 		}
+		
 
-		if (modeObj instanceof String) {
-			try {
+		if (modeObj != null){
+			if (modeObj instanceof String) {
 				mode = Presence.Mode.valueOf((String) modeObj);
-			} catch (Throwable th) {
-				logger.debug("couldn't convert mode header into an object of type Presence.Mode ");
+			} 
+			else if (modeObj instanceof Presence.Mode) {
+				mode = (Presence.Mode) modeObj;
 			}
-		} else if (modeObj instanceof Presence.Mode) {
-			mode = (Presence.Mode) modeObj;
+			else {
+				throw new MessageMappingException("Unsupported type for Presence mode. Only" +
+						" String or Presence.Mode is allowed, but was: " + modeObj.getClass().getName());
+			}
 		}
-
+		
 		Object payload = message.getPayload();
-
-		if (null != payload) {
-			if (payload instanceof Presence) {
-				return (Presence) payload;
-			}
-
-			if (payload instanceof Presence.Type) {
-				type = (Presence.Type) payload;
-			}
+		if (payload instanceof Presence) {
+			return (Presence) payload;
 		}
-
-		return this.factoryPresence(from, status, priority, type, mode, language);
+		else if (payload instanceof Presence.Type) {
+			type = (Presence.Type) payload;
+			return this.factoryPresence(from, status, priority, type, mode, language);
+		}
+		else {
+			throw new MessageMappingException("Unsupported Payload type: " + payload.getClass().getName());
+		}
 	}
 
 	private Presence factoryPresence(String from, String status, Integer priority,
