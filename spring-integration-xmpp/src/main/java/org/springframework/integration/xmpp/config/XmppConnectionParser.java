@@ -33,7 +33,7 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 	
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp" + ".XmppConnectionFactoryBean";
+		return "org.springframework.integration.xmpp.XmppConnectionFactoryBean";
 	}
 
 	@Override

@@ -54,40 +54,6 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
 	}
-
-
-//	private static void configureXMPPConnection(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
-//		String ref = element.getAttribute("xmpp-connection");
-//		if (StringUtils.hasText(ref)) {
-//			builder.addPropertyReference("xmppConnection", ref);
-//		} else {
-//			for (String attribute : attributes) {
-//				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
-//			}
-//		}
-//	}
-
-
-	// connection management
-
-//	private static class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
-//
-//		@Override
-//		protected String getBeanClassName(Element element) {
-//			return PACKAGE_NAME + ".XmppConnectionFactory";
-//		}
-//
-//		@Override
-//		protected boolean shouldGenerateIdAsFallback() {
-//			return true;
-//		}
-//
-//		@Override
-//		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-//			configureXMPPConnection(element, builder, parserContext);
-//		}
-//	}
-
 	// messages
 
 	private static class XmppMessageOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
@@ -96,7 +62,9 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 					PACKAGE_NAME + ".messages.XmppMessageSendingMessageHandler");
-			//configureXMPPConnection(element, builder, parserContext);
+			String connectionName = element.getAttribute("xmpp-connection");
+			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
+			builder.addPropertyReference("xmppConnection", connectionName);
 			return builder.getBeanDefinition();
 		}
 	}
@@ -130,7 +98,9 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 					PACKAGE_NAME + ".presence.XmppRosterEventMessageSendingHandler");
-			//configureXMPPConnection(element, builder, parserContext);
+			String connectionName = element.getAttribute("xmpp-connection");
+			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
+			builder.addPropertyReference("xmppConnection", connectionName);
 			return builder.getBeanDefinition();
 		}
 	}
@@ -149,7 +119,9 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 		@Override
 		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			//configureXMPPConnection(element, builder, parserContext);
+			String connectionName = element.getAttribute("xmpp-connection");
+			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
+			builder.addPropertyReference("xmppConnection", connectionName);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
