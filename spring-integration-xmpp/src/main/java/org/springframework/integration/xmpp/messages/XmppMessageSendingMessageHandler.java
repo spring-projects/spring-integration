@@ -16,12 +16,10 @@
 
 package org.springframework.integration.xmpp.messages;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.springframework.context.Lifecycle;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -34,19 +32,18 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppMessageSendingMessageHandler extends AbstractMessageHandler implements Lifecycle {
+public class XmppMessageSendingMessageHandler extends AbstractMessageHandler {
 
-	private static final Log logger = LogFactory.getLog(XmppMessageSendingMessageHandler.class);
+//private static final Log logger = LogFactory.getLog(XmppMessageSendingMessageHandler.class);
 
-	private volatile boolean running;
-	private volatile XMPPConnection xmppConnection;
-
-	public void setXmppConnection(final XMPPConnection xmppConnection) {
+	private final XMPPConnection xmppConnection;
+	
+	public XmppMessageSendingMessageHandler(XMPPConnection xmppConnection){
+		Assert.notNull(xmppConnection, "'xmppConnection' must no be null");
 		this.xmppConnection = xmppConnection;
 	}
 
-	protected void handleMessageInternal(final org.springframework.integration.Message<?> message) {
-		// pre-reqs: user to send, string to send as msg body
+	protected void handleMessageInternal(Message<?> message) {
 		String messageBody = null;
 		String destinationUser = null;
 		Object payload = message.getPayload();
@@ -65,29 +62,12 @@ public class XmppMessageSendingMessageHandler extends AbstractMessageHandler imp
 		}
 	}
 
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public void start() {
-		this.running = true;
-	}
-
-	public void stop() {
-		this.running = false;
-		if (xmppConnection.isConnected()) {
-			if (logger.isInfoEnabled()) {
-				logger.info("shutting down XMPP connection");
-			}
-			xmppConnection.disconnect();
-		}
-	}
-
 	private Chat getOrCreateChatWithParticipant(String userId, String thread) {
 		Chat chat = null;
 		if (!StringUtils.hasText(thread)) {
 			chat = xmppConnection.getChatManager().createChat(userId, null);
-		} else {
+		} 
+		else {
 			chat = xmppConnection.getChatManager().getThreadChat(thread);
 			if (chat == null) {
 				chat = xmppConnection.getChatManager().createChat(userId, thread, null);

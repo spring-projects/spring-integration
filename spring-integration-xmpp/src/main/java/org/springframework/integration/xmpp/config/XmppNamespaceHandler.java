@@ -17,12 +17,10 @@
 package org.springframework.integration.xmpp.config;
 
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -53,20 +51,6 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("roster-event-outbound-channel-adapter", new XmppRosterEventOutboundEndpointParser());
 
 		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
-	}
-	// messages
-
-	private static class XmppMessageOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
-
-		@Override
-		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-					PACKAGE_NAME + ".messages.XmppMessageSendingMessageHandler");
-			String connectionName = element.getAttribute("xmpp-connection");
-			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-			builder.addPropertyReference("xmppConnection", connectionName);
-			return builder.getBeanDefinition();
-		}
 	}
 
 	private static class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefinitionParser {

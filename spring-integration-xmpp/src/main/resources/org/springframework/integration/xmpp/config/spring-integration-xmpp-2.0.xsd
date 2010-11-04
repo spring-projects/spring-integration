@@ -43,8 +43,6 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-
-
 		</xsd:complexType>
 	</xsd:element>
 
@@ -158,6 +156,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
