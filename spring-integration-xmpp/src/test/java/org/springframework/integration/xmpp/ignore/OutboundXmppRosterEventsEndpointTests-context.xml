@@ -42,8 +42,6 @@
 			host="${user.1.host}"
 			port="${user.1.port}"
 			resource="${user.1.resource}"
-			sasl-mechanism-supported="${user.1.sasl.mechanism}"
-			sasl-mechanism-supported-index="${user.1.sasl.index}"
 			service-name="${user.1.service}"
 			/>
 

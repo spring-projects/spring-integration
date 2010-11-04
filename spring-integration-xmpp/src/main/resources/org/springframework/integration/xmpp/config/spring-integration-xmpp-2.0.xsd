@@ -55,7 +55,19 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="message-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.OutboundMessageMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

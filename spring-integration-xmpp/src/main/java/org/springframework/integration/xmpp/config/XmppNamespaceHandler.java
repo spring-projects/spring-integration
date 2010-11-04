@@ -92,19 +92,6 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		}
 	}
 
-	private static class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
-
-		@Override
-		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-					PACKAGE_NAME + ".presence.XmppRosterEventMessageSendingHandler");
-			String connectionName = element.getAttribute("xmpp-connection");
-			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-			builder.addPropertyReference("xmppConnection", connectionName);
-			return builder.getBeanDefinition();
-		}
-	}
-
 	private static class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 		@Override
@@ -123,7 +110,6 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 			Assert.hasText(connectionName, "'xmpp-connection' must be defined");
 			builder.addPropertyReference("xmppConnection", connectionName);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			//IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		}
 	}
