@@ -33,6 +33,7 @@ import org.springframework.util.xml.DomUtils;
 public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String LOCATION_ATTRIBUTE = "location";
+
 	private static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
 
 
@@ -61,7 +62,8 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			resourceScriptSourceBuilder.addConstructorArgValue(element.getAttribute(LOCATION_ATTRIBUTE));
 			if (StringUtils.hasText(refreshDelayText)) {
 				resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
-			} else {
+			}
+			else {
 				resourceScriptSourceBuilder.addConstructorArgValue(-1L);				
 			}
 			return resourceScriptSourceBuilder.getBeanDefinition();

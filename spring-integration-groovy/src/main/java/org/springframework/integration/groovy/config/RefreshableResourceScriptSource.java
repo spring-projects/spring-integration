@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.groovy.config;
 
 import java.io.IOException;
@@ -26,7 +27,6 @@ import org.springframework.scripting.support.ResourceScriptSource;
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @since 2.0
- * 
  */
 public class RefreshableResourceScriptSource implements ScriptSource {
 
@@ -34,40 +34,41 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 
 	private final ResourceScriptSource source;
 
-	private AtomicLong lastModifiedChecked = new AtomicLong(System.currentTimeMillis());
+	private final AtomicLong lastModifiedChecked = new AtomicLong(System.currentTimeMillis());
 
-	private String script;
+	private volatile String script;
+
 
 	public RefreshableResourceScriptSource(Resource resource, long refreshDelay) {
 		this.refreshDelay = refreshDelay;
 		this.source = new ResourceScriptSource(resource);
 		try {
-			this.script = source.getScriptAsString();
+			this.script = this.source.getScriptAsString();
 		}
 		catch (IOException e) {
-			lastModifiedChecked.set(0);
+			this.lastModifiedChecked.set(0);
 		}
 	}
 
 	public String getScriptAsString() throws IOException {
 		this.script = source.getScriptAsString();
-		return script;
-	}
-
-	public boolean isModified() {
-		if (refreshDelay < 0) {
-			return false;
-		}
-		long time = System.currentTimeMillis();
-		if (refreshDelay == 0 || (time - lastModifiedChecked.get()) > refreshDelay) {
-			lastModifiedChecked.set(time);
-			return source.isModified();
-		}
-		return false;
+		return this.script;
 	}
 
 	public String suggestedClassName() {
-		return source.suggestedClassName();
+		return this.source.suggestedClassName();
+	}
+
+	public boolean isModified() {
+		if (this.refreshDelay < 0) {
+			return false;
+		}
+		long time = System.currentTimeMillis();
+		if (this.refreshDelay == 0 || (time - this.lastModifiedChecked.get()) > this.refreshDelay) {
+			this.lastModifiedChecked.set(time);
+			return this.source.isModified();
+		}
+		return false;
 	}
 
 }

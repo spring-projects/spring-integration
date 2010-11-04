@@ -31,10 +31,12 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	public final T processMessage(Message<?> message) {
 		try {
 			return this.executeScript(getScriptSource(message), message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessageHandlingException(message, "failed to execute script", e);
 		}
 	}
+
 
 	/**
 	 * Subclasses must implement this method to create a script source, optionally using the message to locate or

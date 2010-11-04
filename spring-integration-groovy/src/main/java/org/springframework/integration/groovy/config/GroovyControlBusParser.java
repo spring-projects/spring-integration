@@ -13,16 +13,15 @@
 
 package org.springframework.integration.groovy.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.groovy.BeanFactoryContextBindingCustomizer;
-import org.springframework.integration.groovy.GroovyScriptPayloadMessageProcessor;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Dave Syer
@@ -42,13 +41,15 @@ public class GroovyControlBusParser extends AbstractConsumerEndpointParser {
 	}
 
 	protected BeanMetadataElement getMessageProcessorBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(GroovyScriptPayloadMessageProcessor.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.groovy.GroovyScriptPayloadMessageProcessor");
 		String customizerAttr = element.getAttribute(CUSTOMIZER_ATTRIBUTE);
 		if (StringUtils.hasText(customizerAttr)) {
 			builder.addConstructorArgReference(customizerAttr.trim());
-		} else {
-			builder.addConstructorArgValue(new RootBeanDefinition(BeanFactoryContextBindingCustomizer.class));
+		}
+		else {
+			builder.addConstructorArgValue(new RootBeanDefinition(
+					"org.springframework.integration.groovy.BeanFactoryContextBindingCustomizer"));
 		}
 		return builder.getBeanDefinition();
 	}

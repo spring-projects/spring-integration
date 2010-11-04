@@ -22,23 +22,28 @@ import java.util.Map;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 
+/**
+ * @author Dave Syer
+ * @since 2.0
+ */
 public class MapContextBindingCustomizer implements GroovyObjectCustomizer {
 
 	private final Map<String, ?> map;
+
 
 	public MapContextBindingCustomizer(Map<String, ?> map) {
 		this.map = map;
 	}
 
+
 	public void customize(GroovyObject goo) {
 		Assert.state(goo instanceof Script, "Expected a Script");
 		if (this.map != null) {
 			Binding binding = ((Script) goo).getBinding();
-			for (String key : map.keySet()) {
-				binding.setVariable(key, map.get(key));
+			for (String key : this.map.keySet()) {
+				binding.setVariable(key, this.map.get(key));
 			}
 		}
-
 	}
 
 }

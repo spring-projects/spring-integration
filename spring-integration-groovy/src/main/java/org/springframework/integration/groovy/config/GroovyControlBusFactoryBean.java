@@ -22,24 +22,27 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a Groovy Script.
  * 
  * @author Dave Syer
- * 
  * @since 2.0
  */
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
+
 	private final GroovyScriptPayloadMessageProcessor processor;
-	
+
+
 	public GroovyControlBusFactoryBean(GroovyScriptPayloadMessageProcessor processor) {
 		this.processor = processor;
 	}
+
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
 
+	@Override
 	protected MessageHandler createHandler() {
-		return this.configureHandler(new ServiceActivatingHandler(processor));
+		return this.configureHandler(new ServiceActivatingHandler(this.processor));
 	}
 
 	private ServiceActivatingHandler configureHandler(ServiceActivatingHandler handler) {
