@@ -29,6 +29,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.util.Assert;
 
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
@@ -76,7 +77,10 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 	private volatile XMPPConnection xmppConnection;
 
 	private volatile boolean extractPayload = true;
-
+	
+	private volatile PacketListener packetListener;
+	
+	private volatile boolean initialized;
 
 	/**
 	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
@@ -107,26 +111,26 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
 	@Override
 	protected void doStart() {
+		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
 		logger.debug("start: " + xmppConnection.isConnected() + ":" + xmppConnection.isAuthenticated());
-		xmppConnection.addPacketListener(new PacketListener() {
-			public void processPacket(final Packet packet) {
-				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
-				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
-			}
-		}, null);
+		xmppConnection.addPacketListener(this.packetListener, null);
 	}
 
 	@Override
 	protected void doStop() {
-		if (xmppConnection.isConnected()) {
-			logger.debug("shutting down " + XmppMessageDrivenEndpoint.class.getName() + ".");
-			xmppConnection.disconnect();
-		}
+		xmppConnection.removePacketListener(this.packetListener);
 	}
 
 	@Override
 	protected void onInit() throws Exception {
 		messagingTemplate.afterPropertiesSet();
+		this.packetListener = new PacketListener() {
+			public void processPacket(final Packet packet) {
+				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
+				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
+			}
+		};
+		this.initialized = true;
 	}
 
 	private void forwardXmppMessage(Chat chat, Message xmppMessage) {

@@ -1,0 +1,79 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.xmpp.messages;
+
+import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jivesoftware.smack.PacketListener;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.filter.PacketFilter;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+/**
+ * @author Oleg Zhurakousky
+ *
+ */
+public class XmppMessageDrivenEndpointTests {
+
+	
+	@Test
+	/**
+	 * Should add/remove PacketListener when endpoint started/stopped
+	 */
+	public void testLifecycle(){
+		final Set<PacketListener> packetListSet = new HashSet<PacketListener>();
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		
+		XMPPConnection connection = mock(XMPPConnection.class);
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				packetListSet.add((PacketListener) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(connection).addPacketListener(Mockito.any(PacketListener.class), (PacketFilter) Mockito.any());
+		
+		doAnswer(new Answer<Object>() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				packetListSet.remove((PacketListener) invocation.getArguments()[0]);
+				return null;
+			}
+		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));
+		
+		endpoint.setXmppConnection(connection);
+		assertEquals(0, packetListSet.size());
+		endpoint.afterPropertiesSet();
+		endpoint.start();
+		assertEquals(1, packetListSet.size());
+		endpoint.stop();
+		assertEquals(0, packetListSet.size());
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNonInitializationFailure(){
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		endpoint.start();
+	}
+}
