@@ -36,7 +36,8 @@ import org.springframework.util.Assert;
 
 /**
  * Describes an inbound endpoint that is able to login and then emit {@link Message}s when a 
- * particular event happens to the logged in users {@link Roster} (e.g., logged in/out, changed status etc.)
+ * particular Presence event happens to the logged in users {@link Roster} 
+ * (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -71,7 +72,6 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
 	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.requestChannel = requestChannel;
 	}
 	
@@ -95,7 +95,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 		if (null == this.messageMapper) {
 			this.messageMapper = new XmppPresenceMessageMapper();
 		}
-
+		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
 		this.initialized = true;
 	}
