@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.http;
+package org.springframework.integration.http.outbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;

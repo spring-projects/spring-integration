@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.outbound;
 
 import static org.junit.Assert.assertEquals;
 
