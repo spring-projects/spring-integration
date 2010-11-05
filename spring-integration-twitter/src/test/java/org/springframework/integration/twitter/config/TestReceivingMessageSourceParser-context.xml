@@ -17,27 +17,29 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
 
-	<beans:bean id="tc" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-	</beans:bean>
+	<twitter:twitter-connection id="twitter" 
+			consumer-key="consumerKey" 
+			consumer-secret="consumerSecret" 
+			access-token="accessToken"  
+			access-token-secret="accessTokenSecret"/>
 	
 	<channel id="inbound_mentions"/>
 	
     <twitter:inbound-mention-channel-adapter id="mentionAdapter" 
-    					twitter-connection="tc" 
+    					twitter-connection="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
     </twitter:inbound-mention-channel-adapter>
     
     <twitter:inbound-dm-channel-adapter id="dmAdapter" 
-    					twitter-connection="tc" 
+    					twitter-connection="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
     </twitter:inbound-dm-channel-adapter>
     <twitter:inbound-update-channel-adapter id="updateAdapter" 
-    					twitter-connection="tc" 
+    					twitter-connection="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>

@@ -21,6 +21,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.util.Assert;
 
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
@@ -31,6 +32,10 @@ import twitter4j.TwitterException;
  * @since 2.0
  */
 public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+	
+	public DirectMessageSendingMessageHandler(Twitter twitter){
+		super(twitter);
+	}
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {

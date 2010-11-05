@@ -46,7 +46,7 @@ public class TwitterSendingMessageHandlerParser extends AbstractOutboundChannelA
 			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+		builder.addConstructorArgReference(element.getAttribute("twitter-connection"));
 		return builder.getBeanDefinition();
 	}
 

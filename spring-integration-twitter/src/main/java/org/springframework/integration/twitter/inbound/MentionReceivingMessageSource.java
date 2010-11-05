@@ -21,6 +21,7 @@ import org.springframework.integration.MessagingException;
 
 import twitter4j.Paging;
 import twitter4j.Status;
+import twitter4j.Twitter;
 
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
@@ -30,6 +31,9 @@ import twitter4j.Status;
  */
 public class MentionReceivingMessageSource extends AbstractTwitterMessageSource<Status> {
 
+	public MentionReceivingMessageSource(Twitter twitter){
+		super(twitter);
+	}
 	@Override
 	public String getComponentType() {
 		return  "twitter:inbound-mention-channel-adapter";

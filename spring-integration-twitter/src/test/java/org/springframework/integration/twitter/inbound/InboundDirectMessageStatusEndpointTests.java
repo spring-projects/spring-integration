@@ -16,9 +16,6 @@
 
 package org.springframework.integration.twitter.inbound;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,11 +26,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.twitter.oauth.OAuthConfiguration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -86,24 +78,24 @@ public class InboundDirectMessageStatusEndpointTests {
 	}
 
 
-	@SuppressWarnings("unchecked")
-	private OAuthConfiguration getTestConfigurationForDirectMessages() throws Exception{
-		OAuthConfiguration configuration = mock(OAuthConfiguration.class);
-		RateLimitStatus rateLimitStatus = mock(RateLimitStatus.class);
-		when(twitter.getRateLimitStatus()).thenReturn(rateLimitStatus);
-		when(configuration.getTwitter()).thenReturn(twitter);
-		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(2464);
-		when(rateLimitStatus.getRemainingHits()).thenReturn(250);
-
-		ResponseList<DirectMessage> responses = mock(ResponseList.class);
-		List<DirectMessage> testMessages = new ArrayList<DirectMessage>();
-		testMessages.add(firstMessage);
-		testMessages.add(secondMessage);
-
-		when(responses.iterator()).thenReturn(testMessages.iterator());
-		when(twitter.getDirectMessages()).thenReturn(responses);
-		when(twitter.getDirectMessages(Mockito.any(Paging.class))).thenReturn(responses);
-		return configuration;
-	}
+//	@SuppressWarnings("unchecked")
+//	private OAuthConfiguration getTestConfigurationForDirectMessages() throws Exception{
+//		OAuthConfiguration configuration = mock(OAuthConfiguration.class);
+//		RateLimitStatus rateLimitStatus = mock(RateLimitStatus.class);
+//		when(twitter.getRateLimitStatus()).thenReturn(rateLimitStatus);
+//		when(configuration.getTwitter()).thenReturn(twitter);
+//		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(2464);
+//		when(rateLimitStatus.getRemainingHits()).thenReturn(250);
+//
+//		ResponseList<DirectMessage> responses = mock(ResponseList.class);
+//		List<DirectMessage> testMessages = new ArrayList<DirectMessage>();
+//		testMessages.add(firstMessage);
+//		testMessages.add(secondMessage);
+//
+//		when(responses.iterator()).thenReturn(testMessages.iterator());
+//		when(twitter.getDirectMessages()).thenReturn(responses);
+//		when(twitter.getDirectMessages(Mockito.any(Paging.class))).thenReturn(responses);
+//		return configuration;
+//	}
 
 }

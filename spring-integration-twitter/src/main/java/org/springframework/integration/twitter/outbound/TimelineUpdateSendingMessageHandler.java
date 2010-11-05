@@ -19,6 +19,7 @@ import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 
 import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
 
 
 /**
@@ -28,6 +29,11 @@ import twitter4j.StatusUpdate;
  * @since 2.0
  */
 public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+	
+	public TimelineUpdateSendingMessageHandler(Twitter twitter){
+		super(twitter);
+	}
+	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		StatusUpdate statusUpdate = this.supportStatusUpdate.fromMessage(message);

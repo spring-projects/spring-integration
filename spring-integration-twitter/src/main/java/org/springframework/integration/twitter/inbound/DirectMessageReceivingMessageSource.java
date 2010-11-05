@@ -22,6 +22,7 @@ import org.springframework.integration.MessagingException;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
+import twitter4j.Twitter;
 
 /**
  * This class handles support for receiving DMs (direct messages) using Twitter.
@@ -31,6 +32,10 @@ import twitter4j.Paging;
  * @since 2.0
  */
 public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
+	
+	public DirectMessageReceivingMessageSource(Twitter twitter){
+		super(twitter);
+	}
 	
 	@Override
 	public String getComponentType() {

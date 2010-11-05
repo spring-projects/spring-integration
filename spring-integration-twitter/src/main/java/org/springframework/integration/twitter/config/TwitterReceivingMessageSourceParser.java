@@ -53,7 +53,7 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
+		builder.addConstructorArgReference(element.getAttribute("twitter-connection"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(name);
