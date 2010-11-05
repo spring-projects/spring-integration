@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import static org.mockito.Mockito.*;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-@SuppressWarnings("unchecked")
 @RunWith(MockitoJUnitRunner.class)
 public class FileReadingMessageSourceTests {
 
@@ -76,7 +75,7 @@ public class FileReadingMessageSourceTests {
     @Test
     public void requeueOnFailure() throws Exception {
         when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
-        Message received = source.receive();
+        Message<File> received = source.receive();
         assertNotNull(received);
         source.onFailure(received);
         assertEquals(received.getPayload(), source.receive().getPayload());

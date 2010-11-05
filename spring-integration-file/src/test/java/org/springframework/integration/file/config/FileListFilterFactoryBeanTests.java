@@ -53,7 +53,6 @@ public class FileListFilterFactoryBeanTests {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void customFilterAndPreventDuplicatesTrue() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
         TestFilter testFilter = new TestFilter();
@@ -61,7 +60,7 @@ public class FileListFilterFactoryBeanTests {
         factory.setPreventDuplicates(Boolean.TRUE);
         EntryListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeEntryListFilter);
-        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        Collection<?> filters = (Collection<?>) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
         assertTrue(filters.iterator().next() instanceof AcceptOnceEntryFileListFilter);
         assertTrue(filters.contains(testFilter));
     }
@@ -84,8 +83,9 @@ public class FileListFilterFactoryBeanTests {
         factory.setFilenamePattern("foo");
         EntryListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeEntryListFilter);
-        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
-        Iterator<EntryListFilter> iterator = filters.iterator();
+        Collection<EntryListFilter<?>> filters = (Collection<EntryListFilter<?>>)
+        		new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        Iterator<EntryListFilter<?>> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
         assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
@@ -98,8 +98,9 @@ public class FileListFilterFactoryBeanTests {
         factory.setPreventDuplicates(Boolean.TRUE);
         EntryListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeEntryListFilter);
-        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
-        Iterator<EntryListFilter> iterator = filters.iterator();
+        Collection<EntryListFilter<?>> filters = (Collection<EntryListFilter<?>>)
+        		new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        Iterator<EntryListFilter<?>> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
         assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
