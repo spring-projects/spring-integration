@@ -31,7 +31,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -51,7 +51,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	private volatile XMPPConnection xmppConnection;
 
-	private InboundMessageMapper<Presence> messageMapper;
+	//private volatile InboundMessageMapper<Presence> messageMapper;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
@@ -75,9 +75,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 		this.requestChannel = requestChannel;
 	}
 	
-	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
-		this.messageMapper = messageMapper;
-	}
+//	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
+//		this.messageMapper = messageMapper;
+//	}
 
 	@Override
 	protected void doStart() {
@@ -92,9 +92,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	@Override
 	protected void onInit() throws Exception {
-		if (null == this.messageMapper) {
-			this.messageMapper = new XmppPresenceMessageMapper();
-		}
+//		if (null == this.messageMapper) {
+//			this.messageMapper = new XmppPresenceMessageMapper();
+//		}
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
 		this.initialized = true;
@@ -106,9 +106,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	 * @param presence the {@link Presence} object representing the new state
 	 */
 	private void forwardRosterEventMessage(Presence presence) {	
-		Message<?> message = null;
+		Message<Presence> message = null;
 		try {
-			message = this.messageMapper.toMessage(presence);
+			message = MessageBuilder.withPayload(presence).build();
 			messagingTemplate.send(requestChannel, message);
 		}
 		catch (Exception e) {

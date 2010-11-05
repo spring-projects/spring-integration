@@ -23,6 +23,8 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 /**
+ * Parser for 'xmpp:roster-event-outbound-channel-adapter' element
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */

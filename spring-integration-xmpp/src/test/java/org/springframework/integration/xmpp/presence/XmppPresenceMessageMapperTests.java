@@ -33,14 +33,6 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class XmppPresenceMessageMapperTests {
 
 	@Test
-	public void testToMessage() throws Exception{
-		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
-		XmppPresenceMessageMapper mapper = new XmppPresenceMessageMapper();
-		Message<Presence> presenceMessage = mapper.toMessage(presence);
-		assertEquals(presence, presenceMessage.getPayload());
-		// TODO look into why presence attributes are also duplicated as headers
-	}
-	@Test
 	public void testFromMessageWithPayloadPresence() throws Exception{
 		Presence presence = new Presence(Type.available, "Hello", 1, Mode.chat);
 		Message<?> message = MessageBuilder.withPayload(presence).build();

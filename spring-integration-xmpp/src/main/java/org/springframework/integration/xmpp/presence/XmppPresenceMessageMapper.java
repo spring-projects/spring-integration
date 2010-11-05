@@ -18,10 +18,8 @@ package org.springframework.integration.xmpp.presence;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.StringUtils;
 
@@ -34,27 +32,26 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence>,
-		InboundMessageMapper<Presence> {
+public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence> {
 
-	/**
-	 * Builds {@link Message} with payload of {@link Presence} while also 
-	 * setting Presence attributes as {@link MessageHeaders}
-	 *
-	 * @param presence the presence object
-	 * @return the Message
-	 * @throws Exception thrown if conversion should fail
-	 */
-	@SuppressWarnings("unchecked")
-	public Message<Presence> toMessage(Presence presence) throws Exception {
-		MessageBuilder<?> presenceMessageBuilder = MessageBuilder.withPayload(presence);
-		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_PRIORITY, presence.getPriority());
-		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_STATUS, presence.getStatus());
-		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_MODE, presence.getMode());
-		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_FROM, presence.getFrom());
-
-		return (Message<Presence>) presenceMessageBuilder.build();
-	}
+//	/**
+//	 * Builds {@link Message} with payload of {@link Presence} while also 
+//	 * setting Presence attributes as {@link MessageHeaders}
+//	 *
+//	 * @param presence the presence object
+//	 * @return the Message
+//	 * @throws Exception thrown if conversion should fail
+//	 */
+//	@SuppressWarnings("unchecked")
+//	public Message<Presence> toMessage(Presence presence) throws Exception {
+//		MessageBuilder<?> presenceMessageBuilder = MessageBuilder.withPayload(presence);
+//		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_PRIORITY, presence.getPriority());
+//		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_STATUS, presence.getStatus());
+//		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_MODE, presence.getMode());
+//		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_FROM, presence.getFrom());
+//
+//		return (Message<Presence>) presenceMessageBuilder.build();
+//	}
 
 	/**
 	 * Builds a {@link Presence} object from the inbound Message headers, if possible.
@@ -95,7 +92,8 @@ public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence
 			return this.factoryPresence(from, status, priority, presenceType, mode, language);
 		}
 		else {
-			throw new MessageMappingException("Unsupported Payload type: " + payload.getClass().getName());
+			throw new MessageMappingException("Unsupported Payload type. " +
+					"The only supported payload type is org.jivesoftware.smack.packet.Presence: " + payload.getClass().getName());
 		}
 	}
 
