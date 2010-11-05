@@ -19,18 +19,15 @@ package org.springframework.integration.twitter.inbound;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.springframework.integration.Message;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import twitter4j.DirectMessage;
-import twitter4j.Paging;
-import twitter4j.RateLimitStatus;
-import twitter4j.ResponseList;
 import twitter4j.Twitter;
 
 /**
@@ -42,7 +39,7 @@ public class InboundDirectMessageStatusEndpointTests {
 
 	private DirectMessage secondMessage;
 
-	private Twitter twitter;
+	private Twitter twitter = mock(Twitter.class);
 
 
 	@Before
@@ -60,12 +57,12 @@ public class InboundDirectMessageStatusEndpointTests {
 	@Test
 	public void testTwitterMockedUpdates() throws Exception{
 //		QueueChannel channel = new QueueChannel();
-//		InboundDirectMessageEndpoint endpoint = new InboundDirectMessageEndpoint();
-//		endpoint.setOutputChannel(channel);
+//		DirectMessageReceivingMessageSource endpoint = new DirectMessageReceivingMessageSource(twitter);
+//		//endpoint.setOutputChannel(channel);
 //		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 //		scheduler.afterPropertiesSet();
 //		endpoint.setTaskScheduler(scheduler);
-//		endpoint.setConfiguration(this.getTestConfigurationForDirectMessages());
+//		//endpoint.setConfiguration(this.getTestConfigurationForDirectMessages());
 //		endpoint.setBeanName("twitterEndpoint");
 //		endpoint.afterPropertiesSet();
 //		endpoint.start();

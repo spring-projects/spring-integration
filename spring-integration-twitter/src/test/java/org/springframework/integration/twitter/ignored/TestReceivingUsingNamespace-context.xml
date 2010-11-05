@@ -48,7 +48,7 @@
     </twitter:inbound-update-channel-adapter>
     <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
 
-	<beans:bean id="twitterAnnouncer" class="org.springframework.integration.twitter.config.TwitterAnnouncer"/>
+	<beans:bean id="twitterAnnouncer" class="org.springframework.integration.twitter.ignored.TwitterAnnouncer"/>
 </beans:beans>
 
 

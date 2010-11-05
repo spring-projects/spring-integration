@@ -39,6 +39,7 @@ import org.springframework.util.StringUtils;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.http.OAuthAuthorization;
 
 /**
  * Abstract class that defines common operations for receiving various types of
@@ -78,10 +79,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	public AbstractTwitterMessageSource(Twitter twitter){
 		this.twitter = twitter;
 	}
-//
-//	public void setConfiguration(OAuthConfiguration configuration) {
-//		this.configuration = configuration;
-//	}
 
 	public void setShouldTrack(boolean shouldTrack) {
 		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
@@ -98,7 +95,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	@Override
 	protected void onInit() throws Exception{
 		super.onInit();
-		//Assert.notNull(this.configuration, "'configuration' can't be null");
+
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -122,7 +119,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		//metadataKeyBuilder.append(this.configuration.getConsumerKey());
+		String accessToken = ((OAuthAuthorization)twitter.getAuthorization()).getOAuthAccessToken().getToken();
+		metadataKeyBuilder.append(accessToken);
 		this.metadataKey = metadataKeyBuilder.toString();
 	}
 
@@ -146,7 +144,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@Override
 	protected void doStart(){
-		//this.twitter = this.configuration.getTwitter();
 		Assert.notNull(this.twitter, "'twitter' instance can't be null");
 		historyWritingPostProcessor.setTrackableComponent(this);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);

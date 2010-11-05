@@ -23,11 +23,9 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.integration.twitter.oauth.OAuthTwitterFactoryBean;
 
 import twitter4j.GeoLocation;
 import twitter4j.Twitter;
-import twitter4j.http.AccessToken;
 
 /**
  * @author Oleg Zhurakousky
