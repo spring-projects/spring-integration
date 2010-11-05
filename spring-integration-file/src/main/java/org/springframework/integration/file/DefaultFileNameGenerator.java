@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,7 @@ public class DefaultFileNameGenerator implements FileNameGenerator {
 
 	public String generateFileName(Message<?> message) {
 		Object filenameProperty = message.getHeaders().get(this.headerName);
-		if (filenameProperty instanceof String
-				&& StringUtils.hasText((String) filenameProperty)) {
+		if (filenameProperty instanceof String && StringUtils.hasText((String) filenameProperty)) {
 			return (String) filenameProperty;
 		}
 		if (message.getPayload() instanceof File) {

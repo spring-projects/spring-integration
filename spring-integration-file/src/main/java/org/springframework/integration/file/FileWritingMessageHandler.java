@@ -204,9 +204,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile)
-			throws IOException {
-
+	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile) throws IOException {
 		FileCopyUtils.copy(bytes, tempFile);
 		tempFile.renameTo(resultFile);
 		if (this.deleteSourceFiles && originalFile != null) {
@@ -215,11 +213,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		return resultFile;
 	}
 
-	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile)
-			throws IOException {
-
-		OutputStreamWriter writer = new OutputStreamWriter(
-				new FileOutputStream(tempFile), this.charset);
+	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile) throws IOException {
+		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), this.charset);
 		FileCopyUtils.copy(content, writer);
 		tempFile.renameTo(resultFile);
 		if (this.deleteSourceFiles && originalFile != null) {

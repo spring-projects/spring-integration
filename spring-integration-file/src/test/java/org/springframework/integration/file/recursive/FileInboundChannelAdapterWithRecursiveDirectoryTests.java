@@ -61,7 +61,7 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
     }
 
 	@SuppressWarnings("unchecked")
-	@Test(timeout = 2000)
+	@Test(timeout = 3000)
 	public void shouldReturnFilesMultipleLevels() throws IOException {
 
 		//when
