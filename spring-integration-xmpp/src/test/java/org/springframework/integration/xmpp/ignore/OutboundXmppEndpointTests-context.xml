@@ -6,7 +6,7 @@
 			 xmlns:tool="http://www.springframework.org/schema/tool" xmlns:lang="http://www.springframework.org/schema/lang"
 			 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
                         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
@@ -18,16 +18,15 @@
                 class="org.springframework.integration.xmpp.ignore.XmppMessageProducer"
                 p:recipient="${user.2.login}"/>
 
-	<poller default="true">
-		<interval-trigger fixed-rate="true" interval="10" time-unit="SECONDS"/>
-	</poller>
     <xmpp:xmpp-connection id="testConnection"
             user="${user.1.login}"
             password="${user.1.password}"
             host="${user.1.host}"
             service-name="${user.1.service}"/>
 
-	<inbound-channel-adapter ref="xmppProducer" channel="outboundChannel"/>
+	<inbound-channel-adapter ref="xmppProducer" channel="outboundChannel">
+		<poller fixed-rate="1000"/>
+	</inbound-channel-adapter>
 
 	<channel id="outboundChannel"/>
 
