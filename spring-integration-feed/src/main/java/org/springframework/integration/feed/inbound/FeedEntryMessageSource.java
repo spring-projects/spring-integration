@@ -168,7 +168,12 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		if (next == null) {
 			return null;
 		}
-		this.lastTime = next.getPublishedDate().getTime();
+		if (next.getPublishedDate() != null) {
+			this.lastTime = next.getPublishedDate().getTime();
+		}
+		else {
+			this.lastTime += 1;
+		}
 		this.metadataStore.put(this.metadataKey, this.lastTime + "");
 		return next;
 	}
@@ -179,10 +184,14 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		if (syndFeed != null) {
 			List<SyndEntry> retrievedEntries = (List<SyndEntry>) syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
+				boolean withinNewEntries = false;
 				Collections.sort(retrievedEntries, this.syndEntryComparator);
 				for (SyndEntry entry : retrievedEntries) {
-					if (entry.getPublishedDate().getTime() > this.lastTime) {
+					Date entryDate = getLastModifiedDate(entry);
+					if ((entryDate != null && entryDate.getTime() > this.lastTime) 
+						|| (entryDate == null && withinNewEntries)) {
 						this.entries.add(entry);
+						withinNewEntries = true;
 					}
 				}
 			}
@@ -211,12 +220,16 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		return feed;
 	}
 
+	private static Date getLastModifiedDate(SyndEntry entry) {
+		return (entry.getUpdatedDate() != null) ? entry.getUpdatedDate() : entry.getPublishedDate();
+	}
+
 
 	private static class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
 
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
-			Date date1 = entry1.getPublishedDate();
-			Date date2 = entry2.getPublishedDate();
+			Date date1 = getLastModifiedDate(entry1);
+			Date date2 = getLastModifiedDate(entry2);
 			if (date1 != null && date2 != null) {
 				return date1.compareTo(date2);
 			}
