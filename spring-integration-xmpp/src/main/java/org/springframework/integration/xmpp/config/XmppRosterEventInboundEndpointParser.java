@@ -45,8 +45,7 @@ public class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefi
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String connectionName = element.getAttribute("xmpp-connection");
-		Assert.hasText(connectionName, "'xmpp-connection' must be defined");
-		builder.addPropertyReference("xmppConnection", connectionName);
+		builder.addConstructorArgReference(connectionName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}

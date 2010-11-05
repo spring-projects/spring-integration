@@ -111,22 +111,22 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	 * and forwards them to messaging bus
 	 */
 	class EventForwardingRosterListener implements RosterListener {
-		public void entriesAdded(final Collection<String> entries) {
+		public void entriesAdded(Collection<String> entries) {
 			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
 			forwardRosterEventMessage(entries);
 		}
 
-		public void entriesUpdated(final Collection<String> entries) {
+		public void entriesUpdated(Collection<String> entries) {
 			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
 			forwardRosterEventMessage(entries);
 		}
 
-		public void entriesDeleted(final Collection<String> entries) {
+		public void entriesDeleted(Collection<String> entries) {
 			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
 			forwardRosterEventMessage(entries);
 		}
 
-		public void presenceChanged(final Presence presence) {
+		public void presenceChanged(Presence presence) {
 			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
 			forwardRosterEventMessage(presence);
 		}

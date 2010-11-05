@@ -19,7 +19,7 @@
 		<beans:property name="location" value="classpath:test.properties"/>
 	</beans:bean>
 
-	<beans:bean id="xmppRosterEventConsumer" class="org.springframework.integration.xmpp.presence.XmppRosterEventConsumer"/>
+	<beans:bean id="xmppRosterEventConsumer" class="org.springframework.integration.xmpp.ignore.XmppRosterEventConsumer"/>
 
 	<xmpp:xmpp-connection
 			id="testConnection"

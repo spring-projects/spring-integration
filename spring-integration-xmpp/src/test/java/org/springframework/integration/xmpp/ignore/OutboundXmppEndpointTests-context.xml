@@ -12,27 +12,20 @@
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
 
-	<context:component-scan base-package="org.springframework.integration.xmpp"/>
-
-	<context:property-placeholder location="classpath:test.properties" ignore-unresolvable="true"/>
+	<context:property-placeholder location="classpath:test.properties"/>
 
 	<beans:bean id="xmppProducer"
-                class="org.springframework.integration.xmpp.messages.XmppMessageProducer"
-                p:recipient="${recipient.address}"/>
+                class="org.springframework.integration.xmpp.ignore.XmppMessageProducer"
+                p:recipient="${user.2.login}"/>
 
 	<poller default="true">
 		<interval-trigger fixed-rate="true" interval="10" time-unit="SECONDS"/>
 	</poller>
     <xmpp:xmpp-connection id="testConnection"
-            user="${user.2.login}"
-            password="${user.2.password}"
-            host="${user.2.host}"
-            port="${user.2.port}"
-            resource="${user.2.resource}"
-            service-name="${user.2.service}"
-            />
-
-
+            user="${user.1.login}"
+            password="${user.1.password}"
+            host="${user.1.host}"
+            service-name="${user.1.service}"/>
 
 	<inbound-channel-adapter ref="xmppProducer" channel="outboundChannel"/>
 

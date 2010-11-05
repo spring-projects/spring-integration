@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.xmpp.config;
 
-package org.springframework.integration.xmpp.ignore;
-
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Testing support for sending messages.
+ * @author Oleg Zhurakousky
  *
- * @author Josh Long
- * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
-public class OutboundXmppEndpointTests {
+public class XmppRosterEventMessageDrivenEndpointParserTests {
 
 	@Test
-	@Ignore
-	public void run() throws Exception {
-		Thread.sleep(10 * 1000*100);
+	public void testXmppRosterEventMessageDrivenEndpointParser(){
+		new ClassPathXmlApplicationContext("XmppRosterEventMessageDrivenEndpointParserTests-context.xml", this.getClass());
+		// no assertion needed. THe fact that no exception was thrown satisfies this test
 	}
-
 }

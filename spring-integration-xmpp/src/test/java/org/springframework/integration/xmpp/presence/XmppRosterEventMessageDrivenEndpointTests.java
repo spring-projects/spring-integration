@@ -20,7 +20,9 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.jivesoftware.smack.Roster;
@@ -81,7 +83,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	}
 	
 	@Test
-	public void testPresenceChangeEvent(){
+	public void testRosterPresenceChangeEvent(){
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
@@ -95,5 +97,22 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		rosterListener.presenceChanged(presence);
 		Message<?> message = channel.receive(10);
 		assertEquals(presence, message.getPayload());
+	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void testRosterEntriesEvents(){
+		XMPPConnection connection = mock(XMPPConnection.class);
+		Roster roster = mock(Roster.class);
+		when(connection.getRoster()).thenReturn(roster);
+		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
+		QueueChannel channel = new QueueChannel();
+		rosterEndpoint.setRequestChannel(channel);
+		rosterEndpoint.afterPropertiesSet();
+		rosterEndpoint.start();
+		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
+		List entries = Arrays.asList(new String[]{"many", "moe", "jack"});
+		rosterListener.entriesUpdated(entries);
+		Message<?> message = channel.receive(10);
+		assertEquals(entries, message.getPayload());
 	}
 }
