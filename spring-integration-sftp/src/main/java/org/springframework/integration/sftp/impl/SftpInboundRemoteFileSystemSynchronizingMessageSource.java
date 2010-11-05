@@ -17,7 +17,8 @@ package org.springframework.integration.sftp.impl;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.SftpSession;
 import org.springframework.integration.sftp.SftpSessionPool;
 import org.springframework.util.Assert;

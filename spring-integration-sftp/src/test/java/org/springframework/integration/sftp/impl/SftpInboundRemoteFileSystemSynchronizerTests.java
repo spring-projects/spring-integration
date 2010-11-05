@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy;
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy;
 import org.springframework.integration.sftp.SftpSession;
 import org.springframework.util.ReflectionUtils;
 
