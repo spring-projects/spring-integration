@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
@@ -27,134 +29,129 @@ import org.springframework.integration.file.locking.AbstractFileLockerFilter;
 import java.io.File;
 import java.util.Comparator;
 
-
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  * @since 1.0.3
  */
 public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileReadingMessageSource> {
-    private static Log logger = LogFactory.getLog(FileReadingMessageSourceFactoryBean.class);
-    private volatile FileReadingMessageSource source;
-    private volatile File directory;
-    private volatile EntryListFilter<File> filter;
-    private volatile AbstractFileLockerFilter locker;
-    private volatile Comparator<File> comparator;
-    private volatile DirectoryScanner scanner;
-    private volatile Boolean scanEachPoll;
-    private volatile Boolean autoCreateDirectory;
-    private volatile Integer queueSize;
-    private final Object initializationMonitor = new Object();
 
-    @SuppressWarnings("unused")
-    public void setDirectory(File directory) {
-        this.directory = directory;
-    }
+	private static Log logger = LogFactory.getLog(FileReadingMessageSourceFactoryBean.class);
 
-    @SuppressWarnings("unused")
-    public void setComparator(Comparator<File> comparator) {
-        this.comparator = comparator;
-    }
+	private volatile FileReadingMessageSource source;
 
-    @SuppressWarnings("unused")
-    public void setScanner(DirectoryScanner scanner) {
-        this.scanner = scanner;
-    }
+	private volatile File directory;
 
-    @SuppressWarnings("unused")
-    public void setFilter(EntryListFilter<File> filter) {
-        if (filter instanceof AbstractFileLockerFilter && (this.locker == null)) {
-            this.setLocker((AbstractFileLockerFilter) filter);
-        }
+	private volatile EntryListFilter<File> filter;
 
-        this.filter = filter;
-    }
+	private volatile AbstractFileLockerFilter locker;
 
-    @SuppressWarnings("unused")
-    public void setScanEachPoll(Boolean scanEachPoll) {
-        this.scanEachPoll = scanEachPoll;
-    }
+	private volatile Comparator<File> comparator;
 
-    @SuppressWarnings("unused")
-    public void setAutoCreateDirectory(Boolean autoCreateDirectory) {
-        this.autoCreateDirectory = autoCreateDirectory;
-    }
+	private volatile DirectoryScanner scanner;
 
-    @SuppressWarnings("unused")
-    public void setQueueSize(Integer queueSize) {
-        this.queueSize = queueSize;
-    }
+	private volatile Boolean scanEachPoll;
 
-    public void setLocker(AbstractFileLockerFilter locker) {
-        this.locker = locker;
-    }
+	private volatile Boolean autoCreateDirectory;
 
-    public FileReadingMessageSource getObject() throws Exception {
-        if (this.source == null) {
-            initSource();
-        }
+	private volatile Integer queueSize;
 
-        return this.source;
-    }
+	private final Object initializationMonitor = new Object();
 
-    public Class<?> getObjectType() {
-        return FileReadingMessageSource.class;
-    }
 
-    public boolean isSingleton() {
-        return true;
-    }
+	public void setDirectory(File directory) {
+		this.directory = directory;
+	}
 
-    private void initSource() {
-        synchronized (this.initializationMonitor) {
-            if (this.source != null) {
-                return;
-            }
+	public void setComparator(Comparator<File> comparator) {
+		this.comparator = comparator;
+	}
 
-            boolean comparatorSet = this.comparator != null;
-            boolean queueSizeSet = this.queueSize != null;
+	public void setScanner(DirectoryScanner scanner) {
+		this.scanner = scanner;
+	}
 
-            if (comparatorSet) {
-                if (queueSizeSet) {
-                    logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
-                }
+	public void setFilter(EntryListFilter<File> filter) {
+		if (filter instanceof AbstractFileLockerFilter && (this.locker == null)) {
+			this.setLocker((AbstractFileLockerFilter) filter);
+		}
+		this.filter = filter;
+	}
 
-                this.source = new FileReadingMessageSource(this.comparator);
-            } else if (queueSizeSet) {
-                this.source = new FileReadingMessageSource(queueSize);
-            } else {
-                this.source = new FileReadingMessageSource();
-            }
+	public void setScanEachPoll(Boolean scanEachPoll) {
+		this.scanEachPoll = scanEachPoll;
+	}
 
-            this.source.setDirectory(this.directory);
+	public void setAutoCreateDirectory(Boolean autoCreateDirectory) {
+		this.autoCreateDirectory = autoCreateDirectory;
+	}
 
-            if (this.scanner != null) {
-                this.source.setScanner(this.scanner);
-            }
+	public void setQueueSize(Integer queueSize) {
+		this.queueSize = queueSize;
+	}
 
-            if (this.filter != null) {
-                if (this.locker == null) {
-                    this.source.setFilter(this.filter);
-                } else {
-                    CompositeEntryListFilter<File> fileCompositeEntryListFilter = new CompositeEntryListFilter<File>();
+	public void setLocker(AbstractFileLockerFilter locker) {
+		this.locker = locker;
+	}
 
+	public FileReadingMessageSource getObject() throws Exception {
+		if (this.source == null) {
+			initSource();
+		}
+		return this.source;
+	}
+
+	public Class<?> getObjectType() {
+		return FileReadingMessageSource.class;
+	}
+
+	public boolean isSingleton() {
+		return true;
+	}
+
+	private void initSource() {
+		synchronized (this.initializationMonitor) {
+			if (this.source != null) {
+				return;
+			}
+			boolean comparatorSet = this.comparator != null;
+			boolean queueSizeSet = this.queueSize != null;
+			if (comparatorSet) {
+				if (queueSizeSet) {
+					logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
+				}
+				this.source = new FileReadingMessageSource(this.comparator);
+			}
+			else if (queueSizeSet) {
+				this.source = new FileReadingMessageSource(queueSize);
+			}
+			else {
+				this.source = new FileReadingMessageSource();
+			}
+			this.source.setDirectory(this.directory);
+			if (this.scanner != null) {
+				this.source.setScanner(this.scanner);
+			}
+			if (this.filter != null) {
+				if (this.locker == null) {
+					this.source.setFilter(this.filter);
+				}
+				else {
+					CompositeEntryListFilter<File> fileCompositeEntryListFilter = new CompositeEntryListFilter<File>();
 					fileCompositeEntryListFilter.addFilter(this.filter);
 					fileCompositeEntryListFilter.addFilter(this.locker);
+					this.source.setFilter(fileCompositeEntryListFilter);
+					this.source.setLocker(locker);
+				}
+			}
+			if (this.scanEachPoll != null) {
+				this.source.setScanEachPoll(this.scanEachPoll);
+			}
+			if (this.autoCreateDirectory != null) {
+				this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+			}
+			this.source.afterPropertiesSet();
+		}
+	}
 
-                    this.source.setFilter(fileCompositeEntryListFilter);
-                    this.source.setLocker(locker);
-                }
-            }
-
-            if (this.scanEachPoll != null) {
-                this.source.setScanEachPoll(this.scanEachPoll);
-            }
-
-            if (this.autoCreateDirectory != null) {
-                this.source.setAutoCreateDirectory(this.autoCreateDirectory);
-            }
-
-            this.source.afterPropertiesSet();
-        }
-    }
 }
