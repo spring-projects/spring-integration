@@ -33,13 +33,14 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.http.OAuthAuthorization;
 
 /**
  * Abstract class that defines common operations for receiving various types of
@@ -94,6 +95,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@Override
 	protected void onInit() throws Exception{
+		Assert.notNull(this.getTaskScheduler(), 
+				"Can not locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'");
 		super.onInit();
 
 		if (this.metadataStore == null) {
@@ -119,13 +122,14 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		String accessToken = ((OAuthAuthorization)twitter.getAuthorization()).getOAuthAccessToken().getToken();
+		String accessToken = twitter.getOAuthAccessToken().getToken();
 		metadataKeyBuilder.append(accessToken);
 		this.metadataKey = metadataKeyBuilder.toString();
 	}
 
 	@SuppressWarnings("unchecked")
 	protected void forwardAll(List<T> tResponses) {
+		Object o = tResponses.iterator();
 		Collections.sort(tResponses, this.getComparator());
 		for (T twitterResponse : tResponses) {
 			forward(twitterResponse);

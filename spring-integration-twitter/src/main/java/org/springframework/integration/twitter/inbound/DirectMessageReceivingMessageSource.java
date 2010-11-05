@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.util.CollectionUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -53,7 +54,9 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 							? twitter.getDirectMessages() 
 							: twitter.getDirectMessages(new Paging(sinceId));
 			
-						forwardAll(dms);
+							if (!CollectionUtils.isEmpty(dms)){
+								forwardAll(dms);
+							}	
 					} 
 				} catch (Exception e) {
 					e.printStackTrace();
