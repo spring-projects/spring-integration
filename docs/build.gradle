@@ -186,7 +186,7 @@ dependencies {
     scpAntTask("org.apache.ant:ant-jsch:1.8.1")
 }
 
-checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: ['sshHost', 'sshUsername'])
+checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: ['sshHost', 'sshUsername', 'sshPrivateKey'])
 
 uploadArchives {
     def sshHost = project.properties.sshHost
@@ -206,9 +206,7 @@ uploadArchives {
             name = 'sshHost: ' + sshHost // used for debugging
             host = sshHost
             user = sshUsername
-            if (project.hasProperty('remoteSiteDir')) {
-                keyFile = sshPrivateKey as File
-            }
+            keyFile = sshPrivateKey as File
             addArtifactPattern "${remoteDocsDir}/${archive.archiveName}"
         }
     }
@@ -227,7 +225,7 @@ uploadArchives {
                     classpath: configurations.scpAntTask.asPath)
 
             // copy the archive, unpack it, then delete it
-            def unpackCommand = "cd ${remoteDocsDir} && unzip ${archive.archiveName}"
+            def unpackCommand = "cd ${remoteDocsDir} && unzip -o ${archive.archiveName}"
             def deleteCommand = "rm ${remoteDocsDir}/${archive.archiveName}"
 
             println "sshexec ${unpackCommand}"
