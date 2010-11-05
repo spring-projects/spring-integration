@@ -225,7 +225,7 @@ uploadArchives {
                     classpath: configurations.scpAntTask.asPath)
 
             // copy the archive, unpack it, then delete it
-            def unpackCommand = "cd ${remoteDocsDir} && unzip -o ${archive.archiveName}"
+            def unpackCommand = "cd ${remoteDocsDir} && unzip -K -o ${archive.archiveName}"
             def deleteCommand = "rm ${remoteDocsDir}/${archive.archiveName}"
 
             println "sshexec ${unpackCommand}"
