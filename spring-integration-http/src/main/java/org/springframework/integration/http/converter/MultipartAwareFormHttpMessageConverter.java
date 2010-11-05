@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.converter;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -28,6 +28,9 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter;
+import org.springframework.integration.http.multipart.DefaultMultipartFileReader;
+import org.springframework.integration.http.multipart.MultipartFileReader;
+import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

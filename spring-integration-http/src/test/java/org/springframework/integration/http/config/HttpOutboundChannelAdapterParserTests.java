@@ -36,7 +36,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;

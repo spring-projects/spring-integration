@@ -37,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;

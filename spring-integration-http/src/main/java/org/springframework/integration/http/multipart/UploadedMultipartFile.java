@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.multipart;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

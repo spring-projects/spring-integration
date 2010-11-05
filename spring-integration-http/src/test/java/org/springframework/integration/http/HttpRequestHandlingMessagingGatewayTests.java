@@ -38,6 +38,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.SerializationUtils;

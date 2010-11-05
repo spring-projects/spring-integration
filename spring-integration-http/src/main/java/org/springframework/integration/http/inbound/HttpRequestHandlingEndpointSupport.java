@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +42,10 @@ import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
+import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;

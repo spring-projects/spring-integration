@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.outbound;
 
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -46,6 +46,8 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.http.converter.SerializingHttpMessageConverter;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;

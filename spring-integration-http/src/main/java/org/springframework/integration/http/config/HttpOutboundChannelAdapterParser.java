@@ -39,12 +39,10 @@ import org.springframework.util.xml.DomUtils;
  */
 public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	private static final String PACKAGE_PATH = "org.springframework.integration.http";
-
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
+				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
 		builder.addPropertyValue("expectReply", false);
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
@@ -61,7 +59,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		}
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.http.DefaultHttpHeaderMapper");
+					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}

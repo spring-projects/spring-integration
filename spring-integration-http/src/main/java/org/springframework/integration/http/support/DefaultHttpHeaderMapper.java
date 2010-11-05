@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.support;
 
 import java.util.HashMap;
 import java.util.List;

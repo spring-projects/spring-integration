@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http;
+package org.springframework.integration.http.inbound;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
