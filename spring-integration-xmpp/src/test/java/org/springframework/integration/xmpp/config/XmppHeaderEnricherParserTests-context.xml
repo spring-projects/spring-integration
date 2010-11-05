@@ -17,11 +17,7 @@
 	<channel id="output"/>
 	
 	<xmpp:header-enricher input-channel="input" output-channel="output">
-		<xmpp:presence-from value="test@example.org"/>
-		<xmpp:presence-mode value="available"/>
-		<xmpp:message-to value="test1@example.org"/>
-		<xmpp:presence-type value="unavailable"/>
+		<xmpp:message-to value="test1@example.org"/>		
 	</xmpp:header-enricher>
-
 
 </beans:beans>

@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.xmpp.config;
 
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
@@ -24,10 +22,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.xmpp.presence.XmppPresenceMessageMapper;
-import org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler;
 
 /**
  * @author Oleg Zhurakousky
@@ -42,29 +36,12 @@ public class XmppRosterEventOutboundChannelAdapterParserTests {
 		Object pollingConsumer = ac.getBean("pollingOutboundRosterAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 	}
+	
 	@Test
-	@SuppressWarnings("rawtypes")
-	public void testRosterEventOutboundChannelAdapterParserDefaultMapper(){
-		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object pollingConsumer = ac.getBean("pollingOutboundRosterAdapter");
-		XmppRosterEventMessageSendingHandler handler = 
-				TestUtils.getPropertyValue(pollingConsumer, "handler", XmppRosterEventMessageSendingHandler.class);
-		OutboundMessageMapper mapper = TestUtils.getPropertyValue(handler, "messageMapper", OutboundMessageMapper.class);
-		assertNotNull(mapper);
-		assertTrue(mapper instanceof XmppPresenceMessageMapper);
-	}
-	@SuppressWarnings("rawtypes")
-	@Test
-	public void testRosterEventOutboundChannelAdapterParserCustomMapperEventDriven(){
+	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object eventConsumer = ac.getBean("eventOutboundRosterAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
-		XmppRosterEventMessageSendingHandler handler = 
-				TestUtils.getPropertyValue(eventConsumer, "handler", XmppRosterEventMessageSendingHandler.class);
-		OutboundMessageMapper mapper = TestUtils.getPropertyValue(handler, "messageMapper", OutboundMessageMapper.class);
-		assertNotNull(mapper);
-		assertFalse(mapper instanceof XmppPresenceMessageMapper);
 	}
 }

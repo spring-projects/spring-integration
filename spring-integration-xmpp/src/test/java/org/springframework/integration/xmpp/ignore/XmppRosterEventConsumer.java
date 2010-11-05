@@ -33,13 +33,13 @@ public class XmppRosterEventConsumer {
 
 	@ServiceActivator
 	public void presenceChanged(Message<?> presenceEventMsg) throws Exception {
-		System.out.println(StringUtils.repeat("-", 100));
-		String whosePresence = (String) presenceEventMsg.getHeaders().get(XmppHeaders.PRESENCE_FROM);
-		System.out.println("entries affected:  " + whosePresence);
-		MessageHeaders messageHeaders = presenceEventMsg.getHeaders();
-		for (String h : messageHeaders.keySet()) {
-			System.out.println(String.format("%s = %s", h, messageHeaders.get(h)));
-		}
+//		System.out.println(StringUtils.repeat("-", 100));
+//		String whosePresence = (String) presenceEventMsg.getHeaders().get(XmppHeaders.PRESENCE_FROM);
+//		System.out.println("entries affected:  " + whosePresence);
+//		MessageHeaders messageHeaders = presenceEventMsg.getHeaders();
+//		for (String h : messageHeaders.keySet()) {
+//			System.out.println(String.format("%s = %s", h, messageHeaders.get(h)));
+//		}
 	}
 
 }

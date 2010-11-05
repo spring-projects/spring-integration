@@ -19,7 +19,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -36,7 +35,6 @@ public class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChann
 				"org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler");
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-mapper");
 		return builder.getBeanDefinition();
 	}
 }

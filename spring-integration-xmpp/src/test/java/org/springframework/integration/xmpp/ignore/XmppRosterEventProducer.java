@@ -35,17 +35,18 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class XmppRosterEventProducer implements MessageSource<String> {
 
 	public Message<String> receive() {
-		try {
-			Thread.sleep(1000 * 10);
-		}
-		catch (InterruptedException e) {
-			// eat it
-		}
-		return (Math.random() > .5) ? MessageBuilder.withPayload("available").setHeader(
-				XmppHeaders.PRESENCE_MODE, Presence.Mode.chat)
-				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me").build()
-				: MessageBuilder.withPayload(StringUtils.EMPTY).setHeader(XmppHeaders.PRESENCE_MODE, Presence.Mode.dnd)
-				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me not").build();
+//		try {
+//			Thread.sleep(1000 * 10);
+//		}
+//		catch (InterruptedException e) {
+//			// eat it
+//		}
+//		return (Math.random() > .5) ? MessageBuilder.withPayload("available").setHeader(
+//				XmppHeaders.PRESENCE_MODE, Presence.Mode.chat)
+//				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me").build()
+//				: MessageBuilder.withPayload(StringUtils.EMPTY).setHeader(XmppHeaders.PRESENCE_MODE, Presence.Mode.dnd)
+//				.setHeader(XmppHeaders.PRESENCE_STATUS, "She Loves me not").build();
+		return null;
 	}
 
 }

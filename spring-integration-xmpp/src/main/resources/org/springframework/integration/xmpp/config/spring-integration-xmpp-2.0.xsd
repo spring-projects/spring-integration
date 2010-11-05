@@ -57,15 +57,6 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="message-mapper" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.OutboundMessageMapper"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -191,15 +182,8 @@
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
-
-
 						<xsd:element name="message-to" type="headerType"/>
 						<xsd:element name="message-thread-id" type="headerType"/>
-						<xsd:element name="presence-from" type="headerType"/>
-						<xsd:element name="presence-mode" type="headerType"/>
-						<xsd:element name="presence-type" type="headerType"/>
-						<xsd:element name="presence-status" type="headerType"/>
-						<xsd:element name="presence-priority" type="headerType"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

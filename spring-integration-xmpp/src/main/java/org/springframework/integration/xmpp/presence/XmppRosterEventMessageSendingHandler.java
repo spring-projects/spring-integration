@@ -36,34 +36,18 @@ import org.springframework.util.Assert;
  */
 public class XmppRosterEventMessageSendingHandler extends AbstractMessageHandler  {
 	
-	private OutboundMessageMapper<Presence> messageMapper;
-
 	private final XMPPConnection xmppConnection;
 	
 	public XmppRosterEventMessageSendingHandler(XMPPConnection xmppConnection){
 		Assert.notNull(xmppConnection, "'xmppConnection' must not be null");
 		this.xmppConnection = xmppConnection;
 	}
-	
-	/**
-	 * the MessageMapper is responsible for converting outbound Messages into status updates of type
-	 * {@link org.jivesoftware.smack.packet.Presence}
-	 *
-	 * @param messageMapper mapper for the message into a {@link Presence} instance
-	 */
-	public void setMessageMapper(OutboundMessageMapper<Presence> messageMapper) {
-		this.messageMapper = messageMapper;
-	}
-
-	protected void onInit() throws Exception {
-		if (this.messageMapper == null) {
-			this.messageMapper = new XmppPresenceMessageMapper();
-		}
-	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Presence presence = this.messageMapper.fromMessage(message);
-		this.xmppConnection.sendPacket(presence);
+		Object payload = message.getPayload();
+		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was " 
+					+ payload.getClass().getName());
+		this.xmppConnection.sendPacket((Presence)payload);
 	}
 }
