@@ -18,7 +18,7 @@
   support the HTTP inbound adapters need to be deployed within a servlet container.  The easiest way to do this is to provide a servlet
   definition in <emphasis>web.xml</emphasis>, see
   <xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
-    <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpRequestHandlingMessagingGateway">
+    <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
 </bean>]]></programlisting>
@@ -51,7 +51,7 @@
   configured to serve as a Spring MVC Controller with a view name. Because of the constructor arg value of TRUE, it wait for a reply.  This also shows
   how to customize the HTTP methods accepted by the gateway, which
   are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.
-  <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpRequestHandlingController">
+  <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
   <constructor-arg value="true" /> <!-- indicates that a reply is expected -->
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
@@ -75,14 +75,14 @@
 
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpRequestExecutingMessageHandler" >
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
     This bean definition will execute HTTP requests by delegating to a <classname>RestTemplate</classname>. That template in turn delegates
     to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
     as the ClientHttpRequestFactory instance to use:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpRequestExecutingMessageHandler" >
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
   <property name="messageConverters" ref="messageConverterList" />
@@ -176,7 +176,7 @@ On the server side we have the following configuration:
 <int:channel id="receiveChannel"/>
 
 <int:service-activator input-channel="receiveChannel">
-  <bean class="org.springframework.integration.samples.multipart.MultipartReceiever"/>
+  <bean class="org.springframework.integration.samples.multipart.MultipartReceiver"/>
 </int:service-activator>
 
 <bean id="multipartResolver"
@@ -186,8 +186,8 @@ On the server side we have the following configuration:
 <para>
 The 'httpInboundAdapter' will receive the request, convert it to a <classname>Message</classname> with a payload as <classname>LinkedMultiValueMap</classname> which
 we are parsing in the 'multipartReceiver' service-activator;
-<programlisting language="java"><![CDATA[public void recieve(LinkedMultiValueMap<String, Object> multipartRequest){
-  System.out.println("### Successfully recieved multipart request ###");
+<programlisting language="java"><![CDATA[public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
+  System.out.println("### Successfully received multipart request ###");
   for (String elementName : multipartRequest.keySet()) {
     if (elementName.equals("company")){
       System.out.println("\t" + elementName + " - " +
@@ -201,7 +201,7 @@ we are parsing in the 'multipartReceiver' service-activator;
 
 ]]></programlisting>
 You should see the following output:
-<programlisting language="xml"><![CDATA[### Successfully recieved multipart request ###
+<programlisting language="xml"><![CDATA[### Successfully received multipart request ###
    company - SpringSource
    company-logo - as UploadedMultipartFile: spring09_logo.png]]></programlisting>
 </para>
