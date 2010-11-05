@@ -49,9 +49,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	private volatile MessageChannel requestChannel;
 
-	private volatile XMPPConnection xmppConnection;
-
-	//private volatile InboundMessageMapper<Presence> messageMapper;
+	private final XMPPConnection xmppConnection;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
@@ -59,15 +57,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	private volatile boolean initialized;
 
-	/**
-	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
-	 *
-	 * @param xmppConnection the connection
-	 */
-	public void setXmppConnection(XMPPConnection xmppConnection) {
+	public XmppRosterEventMessageDrivenEndpoint(XMPPConnection xmppConnection){
 		this.xmppConnection = xmppConnection;
 	}
-
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
@@ -75,10 +67,6 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 		this.requestChannel = requestChannel;
 	}
 	
-//	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
-//		this.messageMapper = messageMapper;
-//	}
-
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
@@ -92,9 +80,6 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	@Override
 	protected void onInit() throws Exception {
-//		if (null == this.messageMapper) {
-//			this.messageMapper = new XmppPresenceMessageMapper();
-//		}
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
 		this.initialized = true;
@@ -102,13 +87,13 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	/**
 	 * Called whenever an event happens related to the {@link Roster}
-	 *
-	 * @param presence the {@link Presence} object representing the new state
+	 * 
+	 * @param payload
 	 */
-	private void forwardRosterEventMessage(Presence presence) {	
-		Message<Presence> message = null;
+	private void forwardRosterEventMessage(Object payload) {	
+		Message<?> message = null;
 		try {
-			message = MessageBuilder.withPayload(presence).build();
+			message = MessageBuilder.withPayload(payload).build();
 			messagingTemplate.send(requestChannel, message);
 		}
 		catch (Exception e) {
@@ -128,14 +113,17 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	class EventForwardingRosterListener implements RosterListener {
 		public void entriesAdded(final Collection<String> entries) {
 			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
 		public void entriesUpdated(final Collection<String> entries) {
 			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
 		public void entriesDeleted(final Collection<String> entries) {
 			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
 		public void presenceChanged(final Presence presence) {

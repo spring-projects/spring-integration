@@ -24,6 +24,8 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
+ * Parser for 'xmpp:xmpp-connection' element
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */

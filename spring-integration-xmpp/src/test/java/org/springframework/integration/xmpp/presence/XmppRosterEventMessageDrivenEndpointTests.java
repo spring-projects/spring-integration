@@ -65,8 +65,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 				return null;
 			}
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint();
-		rosterEndpoint.setXmppConnection(connection);
+		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
 		rosterEndpoint.afterPropertiesSet();
 		assertEquals(0, rosterSet.size());
 		rosterEndpoint.start();
@@ -77,7 +76,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializedFailure(){
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint();
+		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(mock(XMPPConnection.class));
 		rosterEndpoint.start();
 	}
 	
@@ -86,8 +85,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint();
-		rosterEndpoint.setXmppConnection(connection);
+		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setRequestChannel(channel);
 		rosterEndpoint.afterPropertiesSet();
