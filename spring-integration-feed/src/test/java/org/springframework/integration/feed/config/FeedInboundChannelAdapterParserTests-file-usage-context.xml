@@ -10,7 +10,7 @@
 
 	<int-feed:inbound-channel-adapter id="feedAdapterUsage"
 						channel="feedChannelUsage"
-						url="file:src/test/java/org/springframework/integration/feed/config/sample.rss"
+						url="file:src/test/java/org/springframework/integration/feed/sample.rss"
 						feed-fetcher="fileUrlFeedFetcher">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" fixed-delay="10000"/>
 	</int-feed:inbound-channel-adapter>
@@ -19,7 +19,7 @@
 		<bean class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests$SampleService" />
 	</int:service-activator>
 
-	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.FileUrlFeedFetcher"/>
+	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.inbound.FileUrlFeedFetcher"/>
 
 	<bean id="metadataStore" class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
 

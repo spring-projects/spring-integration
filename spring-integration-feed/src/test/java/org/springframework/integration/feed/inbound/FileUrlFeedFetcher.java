@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.feed;
+package org.springframework.integration.feed.inbound;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -39,7 +39,7 @@ import com.sun.syndication.io.XmlReader;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FileUrlFeedFetcher extends AbstractFeedFetcher {
+class FileUrlFeedFetcher extends AbstractFeedFetcher {
 
 	/**
 	 * Retrieve a SyndFeed for the given URL.

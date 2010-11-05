@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.feed;
+package org.springframework.integration.feed.inbound;
 
 import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -73,7 +74,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final Object monitor = new Object();
 
-	private final Comparator<SyndEntry> syndEntryComparator = new SyndEntryComparator();
+	private final Comparator<SyndEntry> syndEntryComparator = new SyndEntryPublishedDateComparator();
 
 	private final Object feedMonitor = new Object();
 
@@ -211,10 +212,18 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	}
 
 
-	private static class SyndEntryComparator implements Comparator<SyndEntry> {
+	private static class SyndEntryPublishedDateComparator implements Comparator<SyndEntry> {
 
 		public int compare(SyndEntry entry1, SyndEntry entry2) {
-			return entry1.getPublishedDate().compareTo(entry2.getPublishedDate());
+			Date date1 = entry1.getPublishedDate();
+			Date date2 = entry2.getPublishedDate();
+			if (date1 != null && date2 != null) {
+				return date1.compareTo(date2);
+			}
+			if (date1 == null && date2 == null) {
+				return 0;
+			}
+			return (date2 == null) ? 1 : 0;
 		}
 	}
 
@@ -227,14 +236,20 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 		public void fetcherEvent(final FetcherEvent event) {
 			String eventType = event.getEventType();
 			if (FetcherEvent.EVENT_TYPE_FEED_POLLED.equals(eventType)) {
-				logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
+				if (logger.isDebugEnabled()) {
+					logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
+				}
 			}
 			else if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(eventType)) {
-				logger.debug("\tEVENT: Feed Retrieved. URL = " + event.getUrlString());
+				if (logger.isDebugEnabled()) {
+					logger.debug("\tEVENT: Feed Retrieved. URL = " + event.getUrlString());
+				}
 				feeds.add(event.getFeed());
 			}
 			else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
-				logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
+				if (logger.isDebugEnabled()) {
+					logger.debug("\tEVENT: Feed Unchanged. URL = " + event.getUrlString());
+				}
 			}
 		}
 	}

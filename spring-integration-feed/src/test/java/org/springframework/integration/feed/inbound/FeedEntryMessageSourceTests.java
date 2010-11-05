@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.feed;
+package org.springframework.integration.feed.inbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.store.PropertiesPersistingMetadataStore;
 
 import com.sun.syndication.feed.synd.SyndEntry;
