@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ package org.springframework.integration.file.entries;
 
 import java.io.File;
 
-
 /**
- * {@link java.io.File} implementation of the {@link org.springframework.integration.file.entries.EntryNamer} strategy.
- * <p/>
- * This part feels a little over-engineered...
- *
+ * {@link java.io.File}-based implementation of the {@link EntryNamer} strategy.
+ * 
  * @author Josh Long
+ * @since 2.0
  */
 public class FileEntryNamer implements EntryNamer<File> {
+
 	public String nameOf(File entry) {
 		return (entry != null) ? entry.getName() : null;
 	}
+
 }

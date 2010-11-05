@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.entries;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -30,7 +31,9 @@ import java.util.*;
  * @param <T>
  */
 public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
+
 	private final Set<EntryListFilter<T>> fileFilters;
+
 
 	public CompositeEntryListFilter() {
 		this.fileFilters = new LinkedHashSet<EntryListFilter<T>>();
@@ -40,23 +43,9 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 		this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(fileFilters);
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<T> filterEntries(T[] entries) {
-		Assert.notNull(entries, "'files' should not be null");
 
-		List<T> leftOver = Arrays.asList(entries);
-
-		for (EntryListFilter<T> fileFilter : this.fileFilters) {
-			T[] ts = (T[]) leftOver.toArray();
-			leftOver = fileFilter.filterEntries(ts);
-		}
-
-		return leftOver;
-	}
-
-	@SuppressWarnings("unchecked") //to please the eclipse compiler
 	public CompositeEntryListFilter<T> addFilter(EntryListFilter<T> filter) {
-		return this.addFilters(filter);
+		return this.addFilters(Collections.singletonList(filter));
 	}
 
 	/**
@@ -76,19 +65,31 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 	 * @param filtersToAdd a list of filters to add
 	 * @return this CompositeEntryListFilter instance with the added filters
 	 */
-	@SuppressWarnings("unchecked")
 	public CompositeEntryListFilter<T> addFilters(Collection<? extends EntryListFilter<T>> filtersToAdd) {
-		for (EntryListFilter<? extends T> elf : filtersToAdd)
+		for (EntryListFilter<? extends T> elf : filtersToAdd) {
 			if (elf instanceof InitializingBean) {
 				try {
 					((InitializingBean) elf).afterPropertiesSet();
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw new RuntimeException(e);
 				}
 			}
-
+		}
 		this.fileFilters.addAll(filtersToAdd);
-
 		return this;
 	}
+
+
+	@SuppressWarnings("unchecked")
+	public List<T> filterEntries(T[] entries) {
+		Assert.notNull(entries, "'files' should not be null");
+		List<T> leftOver = Arrays.asList(entries);
+		for (EntryListFilter<T> fileFilter : this.fileFilters) {
+			T[] ts = (T[]) leftOver.toArray();
+			leftOver = fileFilter.filterEntries(ts);
+		}
+		return leftOver;
+	}
+
 }

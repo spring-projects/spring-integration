@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,19 @@
 
 package org.springframework.integration.file.entries;
 
-
 /**
- * Simple NOOP implementation for {@link org.springframework.integration.file.entries.EntryListFilter} implementation.
- * Suitable as a default in implementations.
+ * Simple NO-OP implementation of {@link org.springframework.integration.file.entries.EntryListFilter}.
+ * Suitable as a default.
  *
  * @author Iwein Fuld
  * @author Josh Long
  * @param <T>
  */
 public class AcceptAllEntryListFilter<T> extends AbstractEntryListFilter<T> {
+
 	@Override
-	public boolean accept(T t) {
+	public boolean accept(T entry) {
 		return true;
 	}
+
 }
