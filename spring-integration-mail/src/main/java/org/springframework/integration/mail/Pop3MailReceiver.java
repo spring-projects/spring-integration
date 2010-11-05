@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.URLName;
