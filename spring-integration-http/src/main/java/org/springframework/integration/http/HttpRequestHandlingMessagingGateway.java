@@ -53,10 +53,10 @@ import org.springframework.web.HttpRequestHandler;
  * @author Mark Fisher
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements
-		HttpRequestHandler {
+public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
 
 	private volatile boolean convertExceptions;
+
 
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
@@ -65,6 +65,7 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	public HttpRequestHandlingMessagingGateway(boolean expectReply) {
 		super(expectReply);
 	}
+
 
 	/**
 	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default
@@ -99,22 +100,24 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 	}
 
 	private Object handleExceptionInternal(Exception e) throws IOException {
-		if (convertExceptions && isExpectReply()) {
+		if (this.convertExceptions && isExpectReply()) {
 			return e;
 		}
 		else {
 			if (e instanceof IOException) {
 				throw (IOException) e;
 			}
-			else {
+			else if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
+			}
+			else {
+				throw new MessagingException("error occurred handling HTTP request", e);
 			}
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes)
-			throws IOException {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
 		for (HttpMessageConverter converter : this.getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
 				if (converter.canWrite(content.getClass(), acceptType)) {

@@ -98,10 +98,9 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		return this.readMultipart(multipartInputMessage);
 	}
 
-	@SuppressWarnings("unchecked")
 	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
 		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<String, Object>();
-		Map parameterMap = multipartRequest.getParameterMap();
+		Map<?, ?> parameterMap = multipartRequest.getParameterMap();
 		for (Object key : parameterMap.keySet()) {
 			resultMap.add((String) key, parameterMap.get(key));
 		}

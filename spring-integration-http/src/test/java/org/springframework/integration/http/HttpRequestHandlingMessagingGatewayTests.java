@@ -21,9 +21,12 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -37,6 +40,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.SerializationUtils;
 
 /**
  * @author Mark Fisher
@@ -113,7 +117,7 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setRequestChannel(requestChannel);
 		gateway.setConvertExceptions(true);
-		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new DumbHttpMessageConverter()));
+		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new TestHttpMessageConverter()));
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.addHeader("Accept", "application/x-java-serialized-object");
 		request.setMethod("GET");
@@ -123,9 +127,61 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		assertEquals("Planned", content);
 	}
 
-	private static class DumbHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
+	@Test
+	public void multiValueParameterMap() throws Exception {
+		QueueChannel channel = new QueueChannel(); 
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setRequestChannel(channel);
+		MockHttpServletRequest request = new MockHttpServletRequest("GET", "/test");
+		request.setParameter("foo", "123");
+		request.addParameter("bar", "456");
+		request.addParameter("bar", "789");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		Message<?> message = channel.receive(0);
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
+		assertEquals(LinkedMultiValueMap.class, message.getPayload().getClass());
+		@SuppressWarnings("unchecked")
+		LinkedMultiValueMap<String, String> map = (LinkedMultiValueMap<String, String>) message.getPayload();
+		List<String> fooValues = map.get("foo");
+		List<String> barValues = map.get("bar");
+		assertEquals(1, fooValues.size());
+		assertEquals("123", fooValues.get(0));
+		assertEquals(2, barValues.size());
+		assertEquals("456", barValues.get(0));
+		assertEquals("789", barValues.get(1));
+	}
+
+	@Test
+	public void serializableRequestBody() throws Exception {
+		QueueChannel channel = new QueueChannel(); 
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(false);
+		gateway.setRequestPayloadType(TestBean.class);
+		gateway.setRequestChannel(channel);
+		MockHttpServletRequest request = new MockHttpServletRequest("POST", "/test");
+		request.setContentType("application/x-java-serialized-object");
+		TestBean testBean = new TestBean();
+		testBean.setName("T. Bean");
+		testBean.setAge(42);
+		request.setContent(SerializationUtils.serialize(testBean));
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		byte[] bytes = response.getContentAsByteArray();
+		assertNotNull(bytes);
+		Message<?> message = channel.receive(0);
+		assertNotNull(message);
+		assertNotNull(message.getPayload());
+		assertEquals(TestBean.class, message.getPayload().getClass());
+		TestBean result = (TestBean) message.getPayload();
+		assertEquals("T. Bean", result.name);
+		assertEquals(84, result.age);
+	}
+
+
+	private static class TestHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
 		
-		public DumbHttpMessageConverter() {
+		public TestHttpMessageConverter() {
 			setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
 		}
 
@@ -141,11 +197,27 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		}
 
 		@Override
-		protected void writeInternal(Exception t, HttpOutputMessage outputMessage) throws IOException,
-				HttpMessageNotWritableException {
+		protected void writeInternal(Exception t, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
 			new PrintWriter(outputMessage.getBody()).append(t.getCause().getMessage()).flush();
 		}
+	}
 
+
+
+	@SuppressWarnings("serial")
+	public static class TestBean implements Serializable {
+
+		String name;
+
+		int age;
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public void setAge(int age) {
+			this.age = age * 2;
+		}
 	}
 
 }

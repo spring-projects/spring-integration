@@ -62,7 +62,7 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Serializable readInternal(Class clazz, HttpInputMessage inputMessage) throws IOException {
 		try {
 			return (Serializable) new ObjectInputStream(inputMessage.getBody()).readObject();

@@ -62,7 +62,7 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 	}
 
 	// TODO: return MultiValueMap?
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Map getParameterMap() {
 		return this.multipartServletRequest.getParameterMap();
 	}

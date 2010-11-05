@@ -106,7 +106,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		this(true);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public HttpRequestHandlingEndpointSupport(boolean expectReply) {
 		this.expectReply = expectReply;
 		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
@@ -324,7 +324,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	/**
 	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
 		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>();
 		for (Object key : parameterMap.keySet()) {
@@ -336,7 +336,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		return convertedMap;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		Class<?> expectedType = this.requestPayloadType;
