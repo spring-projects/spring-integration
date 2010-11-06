@@ -225,13 +225,20 @@ uploadArchives {
                     classpath: configurations.scpAntTask.asPath)
 
             // copy the archive, unpack it, then delete it
-            def unpackCommand = "cd ${remoteDocsDir} && unzip -K -o ${archive.archiveName}"
-            def deleteCommand = "rm ${remoteDocsDir}/${archive.archiveName}"
+            def unpackCommand = "cd ${remoteDocsDir} && rm -rf ${version} && unzip -qKo ${archive.archiveName} && rm ${archive.archiveName}"
+            def wildcardSymlinkCommand = "cd ${remoteDocsDir} && rm -f ${version.wildcardValue} && ln -s ${version} ${version.wildcardValue}"
+            def latestGASymlinkCommand = "cd ${remoteDocsDir} && rm -f latest-ga && ln -s ${version} latest-ga"
 
-            println "sshexec ${unpackCommand}"
+            println "Unpacking docs archive: (${unpackCommand})"
             sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: unpackCommand)
-            println "sshexec ${deleteCommand}"
-            sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: deleteCommand)
+            if (version.releaseType != 'SNAPSHOT') {
+                println "Creating wildcard symlink: (${wildcardSymlinkCommand})"
+                sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: wildcardSymlinkCommand)
+            }
+            if (version.releaseType == 'RELEASE') {
+                println "Creating latest-ga symlink: (${latestGASymlinkCommand})"
+                sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: latestGASymlinkCommand)
+            }
             println "UPLOAD SUCCESSFUL - validate by visiting ${docUrl}"
         }
     }
