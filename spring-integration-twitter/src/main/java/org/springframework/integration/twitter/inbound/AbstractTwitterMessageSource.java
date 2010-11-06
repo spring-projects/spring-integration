@@ -33,8 +33,6 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,7 +45,7 @@ import twitter4j.Twitter;
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of common messages. This functionality is enabled using the
- * {@link org.springframework.integration.store.MetadataStore}
+ * {@link org.springframework.integration.store.MetadataStore} 
  * strategy.
  * 
  * @author Josh Long
@@ -129,7 +127,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@SuppressWarnings("unchecked")
 	protected void forwardAll(List<T> tResponses) {
-		Object o = tResponses.iterator();
 		Collections.sort(tResponses, this.getComparator());
 		for (T twitterResponse : tResponses) {
 			forward(twitterResponse);
@@ -195,6 +192,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	}
 
 	protected void markLastStatusId(long statusId) {
+		this.markerId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
 }

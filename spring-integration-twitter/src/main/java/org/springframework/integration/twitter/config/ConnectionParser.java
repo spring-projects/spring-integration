@@ -38,22 +38,8 @@ public class ConnectionParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-//		String ref = element.getAttribute("twitter-connection");
-//		if (StringUtils.hasText(ref)) {
-//			builder.addPropertyReference("twitterConnection", ref);
-//		}
-//		else {
-//			for (String attribute : new String[] { "consumer-key", "consumer-secret", "access-token", "access-token-secret" }) {
-//				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
-//			}
-//		}
-	
+
 		BeanDefinitionBuilder accessTokenBuilder = BeanDefinitionBuilder.genericBeanDefinition("twitter4j.http.AccessToken");
 		accessTokenBuilder.addConstructorArgValue(element.getAttribute("access-token"));
 		accessTokenBuilder.addConstructorArgValue(element.getAttribute("access-token-secret"));
