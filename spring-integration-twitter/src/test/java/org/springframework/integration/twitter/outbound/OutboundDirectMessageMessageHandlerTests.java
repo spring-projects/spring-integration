@@ -19,22 +19,20 @@ package org.springframework.integration.twitter.outbound;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.integration.twitter.oauth.OAuthConfiguration;
+import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.GeoLocation;
-import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
  */
 public class OutboundDirectMessageMessageHandlerTests {
 
-	private Twitter twitter;
+	private TwitterOperations twitter = mock(TwitterOperations.class);
 
 	@Test
 	public void validateSendDirectMessage() throws Exception{
@@ -43,8 +41,7 @@ public class OutboundDirectMessageMessageHandlerTests {
 			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo");
 
-		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler();
-		handler.setConfiguration(this.getTestConfiguration());
+		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
 		handler.afterPropertiesSet();
 		
 		handler.handleMessage(mb.build());
@@ -57,14 +54,6 @@ public class OutboundDirectMessageMessageHandlerTests {
 
 		handler.handleMessage(mb.build());
 		verify(twitter, times(1)).sendDirectMessage(123, "hello");
-	}
-
-
-	private OAuthConfiguration getTestConfiguration() throws Exception {
-		twitter = mock(Twitter.class);
-		OAuthConfiguration configuration = mock(OAuthConfiguration.class);
-		when(configuration.getTwitter()).thenReturn(twitter);
-		return configuration;
 	}
 
 }

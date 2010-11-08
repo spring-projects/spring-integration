@@ -34,10 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.http.HttpRequestHandlingController;
-import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.MockHttpServletResponse;
+import org.springframework.integration.http.inbound.HttpRequestHandlingController;
+import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

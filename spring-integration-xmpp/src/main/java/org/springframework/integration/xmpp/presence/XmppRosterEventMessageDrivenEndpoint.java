@@ -13,129 +13,122 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.xmpp.presence;
+
+import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.mapping.InboundMessageMapper;
-
-import java.util.Collection;
-
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 /**
- * Describes an endpoint that is able to login as usual with a {@link org.springframework.integration.xmpp.XmppConnectionFactory} and then emit {@link org.springframework.integration.Message}s when a particular event happens to the logged in users {@link org.jivesoftware.smack.Roster}. We try
- * and generically propagate these events. In practical terms, there are a few events worth being notified of: <ul> <li>the {@link org.jivesoftware.smack.packet.Presence} of a user in the {@link org.jivesoftware.smack.Roster} has changed.</li> <li>the actual makeup of the logged-in user's {@link
- * org.jivesoftware.smack.Roster} has changed: entries added, deleted, etc.</li> </ul>
+ * Describes an inbound endpoint that is able to login and then emit {@link Message}s when a 
+ * particular Presence event happens to the logged in users {@link Roster} 
+ * (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
+public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
 
-
 	private volatile MessageChannel requestChannel;
 
-	private volatile XMPPConnection xmppConnection;
-
-	private InboundMessageMapper<Presence> messageMapper;
+	private final XMPPConnection xmppConnection;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	
+	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
+	private volatile boolean initialized;
 
-	/**
-	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
-	 *
-	 * @param xmppConnection the connection
-	 */
-	public void setXmppConnection(final XMPPConnection xmppConnection) {
+	public XmppRosterEventMessageDrivenEndpoint(XMPPConnection xmppConnection){
 		this.xmppConnection = xmppConnection;
 	}
-
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
 	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.requestChannel = requestChannel;
 	}
-
+	
 	@Override
 	protected void doStart() {
-		logger.debug("start: " + xmppConnection.isConnected() + ":" +
-				xmppConnection.isAuthenticated());
+		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
+		this.xmppConnection.getRoster().addRosterListener(rosterListener);
 	}
 
 	@Override
 	protected void doStop() {
-		if (this.xmppConnection.isConnected()) {
-			logger.debug("shutting down " + XmppRosterEventMessageDrivenEndpoint.class.getName() +
-					".");
-			this.xmppConnection.disconnect();
-		}
+		this.xmppConnection.getRoster().removeRosterListener(rosterListener);
 	}
 
 	@Override
 	protected void onInit() throws Exception {
-		if (null == this.messageMapper) {
-			this.messageMapper = new XmppPresenceMessageMapper();
-		}
-
+		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
-		this.xmppConnection.getRoster().addRosterListener(new EventForwardingRosterListener());
+		this.initialized = true;
 	}
 
 	/**
-	 * Called whenever an event happesn related to the {@link org.jivesoftware.smack.Roster}
-	 *
-	 * @param presence the {@link org.jivesoftware.smack.packet.Presence} object representing the new state (optional)
+	 * Called whenever an event happens related to the {@link Roster}
+	 * 
+	 * @param payload
 	 */
-	protected void forwardRosterEventMessage(Presence presence) {
+	private void forwardRosterEventMessage(Object payload) {	
+		Message<?> message = null;
 		try {
-			Message<?> msg = this.messageMapper.toMessage(presence);
-			messagingTemplate.send(requestChannel, msg);
+			message = MessageBuilder.withPayload(payload).build();
+			messagingTemplate.send(requestChannel, message);
 		}
 		catch (Exception e) {
-			logger.error("Failed to map packet to message ", e);
+			if (e instanceof MessagingException){
+				throw (MessagingException)e;
+			}
+			else {
+				throw new MessageHandlingException(message, "Failed to send message", e);
+			}
 		}
-	}
-
-	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
-		this.messageMapper = messageMapper;
 	}
 
 	/**
-	 * Subscribes to a given {@link org.jivesoftware.smack.Roster}s events and forwards them to components on the bus.
+	 * RosterListener that subscribes to a given {@link Roster}s events 
+	 * and forwards them to messaging bus
 	 */
 	class EventForwardingRosterListener implements RosterListener {
-		public void entriesAdded(final Collection<String> entries) {
+		public void entriesAdded(Collection<String> entries) {
 			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
-		public void entriesUpdated(final Collection<String> entries) {
+		public void entriesUpdated(Collection<String> entries) {
 			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
-		public void entriesDeleted(final Collection<String> entries) {
+		public void entriesDeleted(Collection<String> entries) {
 			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
+			forwardRosterEventMessage(entries);
 		}
 
-		public void presenceChanged(final Presence presence) {
+		public void presenceChanged(Presence presence) {
 			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
 			forwardRosterEventMessage(presence);
 		}
 	}
-
 }

@@ -47,8 +47,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 	@Override
 	protected String getBeanClassName(Element element) {
 		return element.hasAttribute("view-name")
-				? "org.springframework.integration.http.HttpRequestHandlingController"
-				: "org.springframework.integration.http.HttpRequestHandlingMessagingGateway";
+				? "org.springframework.integration.http.inbound.HttpRequestHandlingController"
+				: "org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway";
 	}
 
 	@Override

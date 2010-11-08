@@ -16,9 +16,11 @@
 package org.springframework.integration.twitter.inbound;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.Paging;
 import twitter4j.Status;
+import twitter4j.Twitter;
 
 
 /**
@@ -30,7 +32,10 @@ import twitter4j.Status;
  * @since 2.0
  */
 public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessageSource<Status> {
-
+	
+	public TimelineUpdateReceivingMessageSource(TwitterOperations twitter){
+		super(twitter);
+	}
 	@Override
 	 public String getComponentType() {
 		return "twitter:inbound-update-channel-adapter";  

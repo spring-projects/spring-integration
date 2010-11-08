@@ -1,13 +1,26 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.integration.xmpp.presence;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.util.Assert;
 
 /**
  * This class will facilitate publishing updated presence values for a given connection. This change happens on the
@@ -21,61 +34,20 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
  *      {@link org.jivesoftware.smack.packet.Presence.Type#available} )
  * @since 2.0
  */
-public class XmppRosterEventMessageSendingHandler extends AbstractMessageHandler implements  Lifecycle {
-	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
-
-	private volatile boolean running;
-
-	private OutboundMessageMapper<Presence> messageMapper;
-
-	private volatile XMPPConnection xmppConnection;
-
-	public void setXmppConnection(final XMPPConnection xmppConnection) {
+public class XmppRosterEventMessageSendingHandler extends AbstractMessageHandler  {
+	
+	private final XMPPConnection xmppConnection;
+	
+	public XmppRosterEventMessageSendingHandler(XMPPConnection xmppConnection){
+		Assert.notNull(xmppConnection, "'xmppConnection' must not be null");
 		this.xmppConnection = xmppConnection;
-	}
-
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public void start() {
-		if (null == this.messageMapper) {
-			this.messageMapper = new XmppPresenceMessageMapper();
-		}
-
-		this.running = true;
-	}
-
-	public void stop() {
-		this.running = false;
-
-		if (xmppConnection.isConnected()) {
-			if (logger.isInfoEnabled()) {
-				logger.info("shutting down XMPP connection");
-			}
-
-			xmppConnection.disconnect();
-		}
-	}
-
-	/**
-	 * the MessageMapper is responsible for converting outbound Messages into status updates of type
-	 * {@link org.jivesoftware.smack.packet.Presence}
-	 *
-	 * @param messageMapper mapper for the message into a {@link Presence} instance
-	 */
-	public void setMessageMapper(OutboundMessageMapper<Presence> messageMapper) {
-		this.messageMapper = messageMapper;
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		try {
-			Presence presence = this.messageMapper.fromMessage(message);
-			this.xmppConnection.sendPacket(presence);
-		}
-		catch (Exception e) {
-			logger.error("Failed to map packet to message ", e);
-		}
+		Object payload = message.getPayload();
+		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was " 
+					+ payload.getClass().getName());
+		this.xmppConnection.sendPacket((Presence)payload);
 	}
 }

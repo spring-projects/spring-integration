@@ -14,18 +14,19 @@
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
-						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
+						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd 
+						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.0.xsd">
 
 
-	<beans:bean id="tc" class="org.springframework.integration.twitter.config.TestSendingMessageHandlerParserTests.MockOathConfigurationFactoryBean"/>
-	
+	<beans:bean id="twitter" class="org.springframework.integration.twitter.core.Twitter4jTemplate"/>
+			
 	<channel id="inbound_mentions"/>
 	
    <channel id="inputChannel"/>
 
-	<twitter:outbound-dm-channel-adapter twitter-connection="tc" channel="inputChannel"/>
+	<twitter:outbound-dm-channel-adapter twitter-connection="twitter" channel="inputChannel" />
 	
-	<twitter:outbound-update-channel-adapter twitter-connection="tc" channel="inputChannel"/>
+	<twitter:outbound-update-channel-adapter twitter-connection="twitter" channel="inputChannel" />
    
 </beans:beans>
 

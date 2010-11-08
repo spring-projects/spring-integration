@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
@@ -76,8 +78,11 @@ import org.w3c.dom.Document;
 public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
 	private final Templates templates;
-	private final StandardEvaluationContext context = new StandardEvaluationContext();
+
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
 	private Map<String, Expression> xslParameterMappings;
 
 	private final ResultTransformer resultTransformer;
@@ -88,15 +93,11 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private volatile boolean alwaysUseSourceResultFactories = false;
 
-	private String[] xsltParamHeaders;
+	private volatile String[] xsltParamHeaders;
+
 
 	public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {
 		this(templates, null);
-	}
-
-	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
-		this.templates = templates;
-		this.resultTransformer = resultTransformer;
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
@@ -107,28 +108,18 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		this(TransformerFactory.newInstance().newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
 	}
 
-
-	/**
-	 * Compensate for the fact that a Resource <i>may</i> not be a File or even
-	 * addressable through a URI. If it is, we want the created StreamSource to
-	 * read other resources relative to the provided one. If it isn't, it loads
-	 * from the default path.
-	 */
-	private static StreamSource createStreamSourceOnResource(Resource xslResource) throws IOException {
-		try {
-			String systemId = xslResource.getURI().toString();
-			return new StreamSource(xslResource.getInputStream(), systemId);
-		}
-		catch (IOException e) {
-			return new StreamSource(xslResource.getInputStream());
-		}
+	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
+		this.templates = templates;
+		this.resultTransformer = resultTransformer;
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
+
 
 	/**
 	 * Sets the SourceFactory.
 	 */
 	public void setSourceFactory(SourceFactory sourceFactory) {
-		Assert.notNull(sourceFactory, "SourceFactory can not be null");
+		Assert.notNull(sourceFactory, "SourceFactory must not be null");
 		this.sourceFactory = sourceFactory;
 	}
 
@@ -136,7 +127,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	 * Sets the ResultFactory
 	 */
 	public void setResultFactory(ResultFactory resultFactory) {
-		Assert.notNull(sourceFactory, "ResultFactory can not be null");
+		Assert.notNull(sourceFactory, "ResultFactory must not be null");
 		this.resultFactory = resultFactory;
 	}
 
@@ -144,8 +135,20 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 	 * Specifies whether {@link ResultFactory} and {@link SourceFactory} should always
 	 * be used, even for directly supported payloads such as {@link String} and {@link Document}.
 	 */
-	public void setAlwaysUseSourceResultFactories(boolean alwaysUserSourceResultFactories) {
-		this.alwaysUseSourceResultFactories = alwaysUserSourceResultFactories;
+	public void setAlwaysUseSourceResultFactories(boolean alwaysUseSourceResultFactories) {
+		this.alwaysUseSourceResultFactories = alwaysUseSourceResultFactories;
+	}
+
+	public void setXslParameterMappings(Map<String, Expression> xslParameterMappings) {
+		this.xslParameterMappings = xslParameterMappings;
+	}
+
+	public void setXsltParamHeaders(String[] xsltParamHeaders) {
+		this.xsltParamHeaders = xsltParamHeaders;
+	}
+
+	public String getComponentType() {
+		return "xml:xslt-transformer";
 	}
 
 	@Override
@@ -172,29 +175,29 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		return transformedPayload;
 	}
 
-	protected Object transformUsingFactories(Object payload, Transformer transformer) throws TransformerException {
-		Source source = sourceFactory.createSource(payload);
+	private Object transformUsingFactories(Object payload, Transformer transformer) throws TransformerException {
+		Source source = this.sourceFactory.createSource(payload);
 		return transformSource(source, payload, transformer);
 	}
 
-	protected Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
-		Result result = resultFactory.createResult(payload);
+	private Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
+		Result result = this.resultFactory.createResult(payload);
 		transformer.transform(source, result);
-		if (resultTransformer != null) {
-			return resultTransformer.transformResult(result);
+		if (this.resultTransformer != null) {
+			return this.resultTransformer.transformResult(result);
 		}
 		return result;
 	}
 
-	protected String transformString(String stringPayload, Transformer transformer) throws TransformerException {
+	private String transformString(String stringPayload, Transformer transformer) throws TransformerException {
 		StringResult result = new StringResult();
 		transformer.transform(new StringSource(stringPayload), result);
 		return result.toString();
 	}
 
-	protected Document transformDocument(Document documentPayload, Transformer transformer) throws TransformerException {
+	private Document transformDocument(Document documentPayload, Transformer transformer) throws TransformerException {
 		DOMSource source = new DOMSource(documentPayload);
-		Result result = resultFactory.createResult(documentPayload);
+		Result result = this.resultFactory.createResult(documentPayload);
 		if (!DOMResult.class.isAssignableFrom(result.getClass())) {
 			throw new MessagingException(
 					"Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");
@@ -203,51 +206,52 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		transformer.transform(source, domResult);
 		return (Document) domResult.getNode();
 	}
-	
-	protected Transformer buildTransformer(Message<?> message) throws TransformerException {
+
+	private Transformer buildTransformer(Message<?> message) throws TransformerException {
 		//process  individual mappings
 		Transformer transformer = this.templates.newTransformer();
-		context.setRootObject(message);
-		context.addPropertyAccessor(new MapAccessor());
-		if (xslParameterMappings != null){
-			for (String parameterName: xslParameterMappings.keySet()) {
-				Expression expression = xslParameterMappings.get(parameterName);
-				Object value = null;
+		if (this.xslParameterMappings != null){
+			for (String parameterName: this.xslParameterMappings.keySet()) {
+				Expression expression = this.xslParameterMappings.get(parameterName);
 				try {
-					value = expression.getValue(context);
+					Object value = expression.getValue(this.evaluationContext, message);
 					transformer.setParameter(parameterName, value);
-				} catch (Exception e) {
-					logger.warn("Header expression '" + expression.getExpressionString() + "' can not resolve within current message and will not be mapped to XSLT parameter");
-				}		
+				}
+				catch (Exception e) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("Evaluation of header expression '" + expression.getExpressionString() +
+								"' failed. The XSLT parameter '" + parameterName + "' will be skipped.");
+					}
+				}
 			}
 		}
 		// process xslt-parameter-headers
 		MessageHeaders headers =  message.getHeaders();
-		if (xsltParamHeaders != null){
+		if (!ObjectUtils.isEmpty(this.xsltParamHeaders)) {
 			for (String headerName : headers.keySet()) {
-				if (PatternMatchUtils.simpleMatch(xsltParamHeaders, headerName)){
+				if (PatternMatchUtils.simpleMatch(this.xsltParamHeaders, headerName)) {
 					transformer.setParameter(headerName, headers.get(headerName));
-				}			
+				}
 			}
 		}
 		return transformer;
 	}
 
-	public Map<String, Expression> getXslParameterMappings() {
-		return xslParameterMappings;
+
+	/**
+	 * Compensate for the fact that a Resource <i>may</i> not be a File or even
+	 * addressable through a URI. If it is, we want the created StreamSource to
+	 * read other resources relative to the provided one. If it isn't, it loads
+	 * from the default path.
+	 */
+	private static StreamSource createStreamSourceOnResource(Resource xslResource) throws IOException {
+		try {
+			String systemId = xslResource.getURI().toString();
+			return new StreamSource(xslResource.getInputStream(), systemId);
+		}
+		catch (IOException e) {
+			return new StreamSource(xslResource.getInputStream());
+		}
 	}
 
-	public void setXslParameterMappings(Map<String, Expression> xslParameterMappings) {
-		this.xslParameterMappings = xslParameterMappings;
-	}
-	public String[] getXsltParamHeaders() {
-		return xsltParamHeaders;
-	}
-
-	public void setXsltParamHeaders(String[] xsltParamHeaders) {
-		this.xsltParamHeaders = xsltParamHeaders;
-	}
-	public String getComponentType(){
-		return "xml:xslt-transformer";
-	}
 }

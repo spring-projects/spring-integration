@@ -37,9 +37,6 @@ import org.springframework.util.xml.DomUtils;
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
-	private static final String PACKAGE_PATH = "org.springframework.integration.http";
-
-
 	@Override
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
@@ -48,7 +45,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
+				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
@@ -65,7 +62,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		}
 		else if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.http.DefaultHttpHeaderMapper");
+					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "inboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

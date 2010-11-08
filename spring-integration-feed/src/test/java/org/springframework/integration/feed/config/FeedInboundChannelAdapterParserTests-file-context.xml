@@ -11,7 +11,7 @@
 						auto-startup="false" 
 						feed-fetcher="fileUrlFeedFetcher"
 						metadata-store="customMetadataStore"
-						url="file:src/test/java/org/springframework/integration/feed/config/sample.rss">
+						url="file:src/test/java/org/springframework/integration/feed/sample.rss">
 		<int:poller fixed-rate="10000" max-messages-per-poll="100" />
 	</feed:inbound-channel-adapter>
 
@@ -19,7 +19,7 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.FileUrlFeedFetcher"/>
+	<bean id="fileUrlFeedFetcher" class="org.springframework.integration.feed.inbound.FileUrlFeedFetcher"/>
 
 	<bean id="customMetadataStore" class="org.springframework.integration.feed.config.FeedInboundChannelAdapterParserTests.SampleMetadataStore"/>
 

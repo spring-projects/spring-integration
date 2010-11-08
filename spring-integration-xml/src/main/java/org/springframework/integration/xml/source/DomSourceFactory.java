@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.source;
 
+import java.io.File;
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,30 +25,33 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.MessagingException;
-
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import org.springframework.integration.MessagingException;
+
 /**
- * {@link SourceFactory} implementation which supports creation of a
- * {@link DOMSource} from a {@link Document} or {@link String} payload.
+ * {@link SourceFactory} implementation which supports creation of a {@link DOMSource}
+ * from a {@link Document}, {@link File} or {@link String} payload.
  * 
  * @author Jonas Partner
  * @author Mark Fisher
  */
 public class DomSourceFactory implements SourceFactory {
 
-	private final DocumentBuilderFactory docBuilderFactory;
+	private final DocumentBuilderFactory documentBuilderFactory;
+
 
 	public DomSourceFactory() {
-		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
-		this.docBuilderFactory.setNamespaceAware(true);
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);
+		this.documentBuilderFactory = factory;
 	}
 
-	public DomSourceFactory(DocumentBuilderFactory docBuilderFactory) {
-		this.docBuilderFactory = docBuilderFactory;
+	public DomSourceFactory(DocumentBuilderFactory documentBuilderFactory) {
+		this.documentBuilderFactory = documentBuilderFactory;
 	}
+
 
 	public Source createSource(Object payload) {
 		Source source = null;
@@ -57,34 +61,44 @@ public class DomSourceFactory implements SourceFactory {
 		else if (payload instanceof String) {
 			source = createDomSourceForString((String) payload);
 		}
-
+		else if (payload instanceof File) {
+			source = createDomSourceForFile((File) payload);
+		}
 		if (source == null) {
-			throw new MessagingException("Failed to create Source for payload type [" + payload.getClass().getName()
-					+ "]");
+			throw new MessagingException("failed to create Source for payload type [" +
+					payload.getClass().getName() + "]");
 		}
 		return source;
 	}
 
-	protected DOMSource createDomSourceForDocument(Document document) {
-		DOMSource source = new DOMSource(document.getDocumentElement());
-		return source;
+	private DOMSource createDomSourceForDocument(Document document) {
+		return new DOMSource(document.getDocumentElement());
 	}
 
-	protected DOMSource createDomSourceForString(String s) {
+	private DOMSource createDomSourceForString(String s) {
 		try {
-			Document doc = getNewDocumentBuilder().parse(new InputSource(new StringReader(s)));
-			DOMSource source = new DOMSource(doc.getDocumentElement());
-			return source;
+			Document document = getNewDocumentBuilder().parse(new InputSource(new StringReader(s)));
+			return new DOMSource(document.getDocumentElement());
 		}
 		catch (Exception e) {
-			throw new MessagingException("Exception creating DOMSource", e);
+			throw new MessagingException("failed to create DOMSource for String payload", e);
 		}
 	}
 
-	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (docBuilderFactory) {
-			return docBuilderFactory.newDocumentBuilder();
+	private DOMSource createDomSourceForFile(File file) {
+		try {
+			Document document = this.getNewDocumentBuilder().parse(file);
+			return new DOMSource(document.getDocumentElement());
 		}
-
+		catch (Exception e) {
+			throw new MessagingException("failed to create DOMSource for File payload", e);
+		}
 	}
+
+	private DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
+		synchronized (this.documentBuilderFactory) {
+			return documentBuilderFactory.newDocumentBuilder();
+		}
+	}
+
 }

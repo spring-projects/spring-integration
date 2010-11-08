@@ -15,15 +15,8 @@
  */
 package org.springframework.integration.twitter.config;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.junit.Test;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.twitter.oauth.OAuthConfiguration;
-
-import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
@@ -35,23 +28,5 @@ public class TestSendingMessageHandlerParserTests {
 	public void testSendingMessageHandlerSuccessfullBootstrap(){
 		new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
 		// the fact that no exception was thrown satisfies this test	
-	}
-	
-	public static class MockOathConfigurationFactoryBean implements FactoryBean<OAuthConfiguration>{
-
-		public OAuthConfiguration getObject() throws Exception {
-			OAuthConfiguration config = mock(OAuthConfiguration.class);
-			Twitter twitter = mock(Twitter.class);
-			when(config.getTwitter()).thenReturn(twitter);
-			return config;
-		}
-
-		public Class<?> getObjectType() {
-			return OAuthConfiguration.class;
-		}
-
-		public boolean isSingleton() {
-			return true;
-		}	
 	}
 }

@@ -22,10 +22,10 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 
 import org.junit.Test;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.TriggerContext;
 
 import twitter4j.RateLimitStatus;
-import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
@@ -35,7 +35,7 @@ public class RateLimitStatusTriggerTests {
 
 	@Test
 	public void testTriggerImediateAndSubsequentExecutionTime() throws Exception{
-		Twitter twitter = mock(Twitter.class);
+		TwitterOperations twitter = mock(TwitterOperations.class);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(twitter);
 		TriggerContext context = mock(TriggerContext.class);
 		Date currentDate = new Date(System.currentTimeMillis());

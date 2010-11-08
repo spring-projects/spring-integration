@@ -36,7 +36,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.event.ApplicationEventInboundChannelAdapter;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +59,7 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParser() {
 		Object adapter = context.getBean("eventAdapterSimple");
 		Assert.assertNotNull(adapter);
-		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("outputChannel"));
 	}
@@ -69,7 +69,7 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParserWithEventTypes() {
 		Object adapter = context.getBean("eventAdapterFiltered");
 		Assert.assertNotNull(adapter);
-		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFiltered"), adapterAccessor.getPropertyValue("outputChannel"));
 		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
@@ -84,7 +84,7 @@ public class EventInboundChannelAdapterParserTests {
 	public void validateEventParserWithEventTypesAndPlaceholder() {
 		Object adapter = context.getBean("eventAdapterFilteredPlaceHolder");
 		Assert.assertNotNull(adapter);
-		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("inputFilteredPlaceHolder"), adapterAccessor.getPropertyValue("outputChannel"));
 		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
@@ -113,7 +113,7 @@ public class EventInboundChannelAdapterParserTests {
 	public void validatePayloadExpression() {
 		Object adapter = context.getBean("eventAdapterSpel");
 		Assert.assertNotNull(adapter);
-		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Expression expression = (Expression) adapterAccessor.getPropertyValue("payloadExpression");
 		Assert.assertEquals("source + '-test'", expression.getExpressionString());

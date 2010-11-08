@@ -19,6 +19,8 @@ package org.springframework.integration.xml.config;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -29,7 +31,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
@@ -63,23 +64,21 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
-		
 		List<Element> xslParameterElements = DomUtils.getChildElementsByTagName(element, "xslt-param");
 		if (!CollectionUtils.isEmpty(xslParameterElements)) {
 			Map<String, Object> xslParameterMappings = new ManagedMap<String, Object>();
 			for (Element xslParameterElement : xslParameterElements) {
 				String name = xslParameterElement.getAttribute("name");
-				
 				String expression = xslParameterElement.getAttribute("expression");
 				String value = xslParameterElement.getAttribute("value");
 				Assert.isTrue(StringUtils.hasText(expression) ^ StringUtils.hasText(value),
 							"Exactly one of 'expression' or 'value' is required.");
-				
 				RootBeanDefinition expressionDef = null;
-				if (StringUtils.hasText(value)){
+				if (StringUtils.hasText(value)) {
 					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(value);
-				} else if (StringUtils.hasText(expression)){
+				}
+				else if (StringUtils.hasText(expression)) {
 					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
 				}
@@ -89,7 +88,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 			}
 			builder.addPropertyValue("xslParameterMappings", xslParameterMappings);
 		}
-		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
 	}
+
 }

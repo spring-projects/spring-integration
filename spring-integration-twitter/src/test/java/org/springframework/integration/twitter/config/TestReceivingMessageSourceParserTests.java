@@ -16,12 +16,17 @@
 package org.springframework.integration.twitter.config;
 
 import static junit.framework.Assert.assertFalse;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.twitter.core.Twitter4jTemplate;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.integration.twitter.inbound.AbstractTwitterMessageSource;
 
 /**
@@ -44,5 +49,26 @@ public class TestReceivingMessageSourceParserTests {
 		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
 		ms = (AbstractTwitterMessageSource<?>) TestUtils.getPropertyValue(spca, "source");
 		assertFalse(ms.isAutoStartup());
+	}
+	
+	public static class TwitterTemplateFactoryBean implements FactoryBean<TwitterOperations>{
+
+		@Override
+		public TwitterOperations getObject() throws Exception {
+			TwitterOperations oper = mock(TwitterOperations.class);
+			when(oper.getProfileId()).thenReturn("kermit");
+			return oper;
+		}
+
+		@Override
+		public Class<?> getObjectType() {
+			return TwitterOperations.class;
+		}
+
+		@Override
+		public boolean isSingleton() {
+			return true;
+		}
+		
 	}
 }

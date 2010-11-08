@@ -16,14 +16,15 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractRouterParser;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;xpath-router/&gt; element.
@@ -36,14 +37,14 @@ public class XPathRouterParser extends AbstractRouterParser {
 
 	private XPathExpressionParser xpathParser = new XPathExpressionParser();
 
+
 	@Override
-	protected BeanDefinition doParseRouter(Element element,
-			ParserContext parserContext) {
+	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder xpathRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.xml.router.XPathRouter");
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
 				element.getNamespaceURI(), "xpath-expression");
-		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified.");
+		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);

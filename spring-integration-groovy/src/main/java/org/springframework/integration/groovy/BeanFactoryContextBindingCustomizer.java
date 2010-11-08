@@ -22,10 +22,15 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 
+/**
+ * @author Dave Syer
+ * @since 2.0
+ */
 public class BeanFactoryContextBindingCustomizer implements GroovyObjectCustomizer, BeanFactoryAware {
 
 	private ListableBeanFactory beanFactory;
-	
+
+
 	public BeanFactoryContextBindingCustomizer() {
 		this(null);
 	}
@@ -34,15 +39,16 @@ public class BeanFactoryContextBindingCustomizer implements GroovyObjectCustomiz
 		setBeanFactory(beanFactory);
 	}
 
+
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory instanceof ListableBeanFactory ? (ListableBeanFactory) beanFactory : null;
+		this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
 	}
 
 	public void customize(GroovyObject goo) {
-		if (beanFactory != null) {
+		if (this.beanFactory != null) {
 			Binding binding = ((Script) goo).getBinding();
-			for (String name : beanFactory.getBeanDefinitionNames()) {
-				binding.setVariable(name, beanFactory.getBean(name));
+			for (String name : this.beanFactory.getBeanDefinitionNames()) {
+				binding.setVariable(name, this.beanFactory.getBean(name));
 			}
 		}
 	}

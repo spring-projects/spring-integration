@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp-2.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp">
+	
+	<bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
+	</bean>
+	
+	<int:channel id="pollingChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int-xmpp:roster-event-outbound-channel-adapter id="pollingOutboundRosterAdapter" 
+					xmpp-connection="testConnection" 
+					channel="pollingChannel">
+			<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
+	</int-xmpp:roster-event-outbound-channel-adapter>
+	
+	
+	<int:channel id="eventChannel"/>
+	
+	<int-xmpp:roster-event-outbound-channel-adapter id="eventOutboundRosterAdapter" 
+					xmpp-connection="testConnection" 
+					channel="eventChannel"/>
+					
+	
+</beans>

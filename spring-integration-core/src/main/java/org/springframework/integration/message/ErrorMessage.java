@@ -20,6 +20,7 @@ import java.util.Map;
 
 /**
  * A message implementation that accepts a {@link Throwable} payload.
+ * Once created this object is immutable.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky

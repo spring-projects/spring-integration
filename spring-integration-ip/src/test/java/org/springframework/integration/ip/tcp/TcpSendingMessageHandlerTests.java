@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.springframework.core.serializer.DefaultDeserializer;
@@ -61,6 +63,9 @@ import org.springframework.integration.support.MessageBuilder;
  * @since 2.0
  */
 public class TcpSendingMessageHandlerTests {
+
+	private static final Log logger = LogFactory.getLog(TcpSendingMessageHandlerTests.class);
+
 
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
@@ -86,7 +91,8 @@ public class TcpSendingMessageHandlerTests {
 						b = ("Reply" + (++i) + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -745,16 +751,16 @@ public class TcpSendingMessageHandlerTests {
 					int i = 0;
 					while (true) {
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in;
+						Object in = null;
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						if (i == 0) {
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
@@ -762,7 +768,8 @@ public class TcpSendingMessageHandlerTests {
 						in = ois.readObject();
 						oos.writeObject("Reply" + (++i));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -815,7 +822,7 @@ public class TcpSendingMessageHandlerTests {
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						if (i == 100) {
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
@@ -855,7 +862,7 @@ public class TcpSendingMessageHandlerTests {
 			assertNotNull(mOut);
 			results.add((String) mOut.getPayload());
 		}
-//		System.out.println(results);
+		logger.debug("results: " + results);
 		for (int i = 100; i < 1100; i++) {
 			assertTrue("Missing Reply" + i, results.remove("Reply" + i));
 		}
@@ -876,16 +883,16 @@ public class TcpSendingMessageHandlerTests {
 					int i = 0;
 					while (true) {
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in;
+						Object in = null;
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						if (i == 0) {
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
@@ -893,7 +900,8 @@ public class TcpSendingMessageHandlerTests {
 						in = ois.readObject();
 						oos.writeObject("Reply" + (++i));
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
 					}
@@ -932,16 +940,16 @@ public class TcpSendingMessageHandlerTests {
 					int i = 0;
 					while (true) {
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in;
+						Object in = null;
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						if (i == 0) {
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
 							in = ois.readObject();
-//							System.out.println(in);
+							logger.debug("read object: " + in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());

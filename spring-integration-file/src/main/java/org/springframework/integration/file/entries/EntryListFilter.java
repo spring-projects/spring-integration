@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.entries;
 
 import java.util.List;
-
 
 /**
  * Strategy interface for filtering entries representing files on a local or remote file system. This is a generic
@@ -26,16 +26,15 @@ import java.util.List;
  *
  * @author Josh Long
  * @author Iwein Fuld
- *
- * @since 2.0.0
- *
+ * @since 2.0
  * @see org.springframework.integration.file.filters.FileListFilter
  */
 public interface EntryListFilter<T> {
 
     /**
      * Filters out entries and returns the entries that are left in a list, or an
-     * empty list when a null is passed in.
+     * empty list when null is passed in.
      */
 	List<T> filterEntries(T[] entries);
+
 }

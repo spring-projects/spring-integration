@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp;
 
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -38,29 +33,26 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class FtpParserOutboundTests {
 	
-
 	@Test
 	public void testFtpOutboundWithFileGenerator() throws Exception{
 		ClassPathXmlApplicationContext context =  
-			new ClassPathXmlApplicationContext("FtpParserOutboundTests-context.xml", this.getClass());
-		
+				new ClassPathXmlApplicationContext("FtpParserOutboundTests-context.xml", this.getClass());
 		FileNameGenerator fileNameGenerator = context.getBean("fileNameGenerator", FileNameGenerator.class);
 		assertNotNull(fileNameGenerator);
 		when(fileNameGenerator.generateFileName(Mockito.any(Message.class))).thenReturn("oleg-ftp-test.txt");
-		
 		EventDrivenConsumer fileOutboundEndpoint = context.getBean("ftpOutboundAdapter", EventDrivenConsumer.class);
 		FtpSendingMessageHandler handler = (FtpSendingMessageHandler) TestUtils.getPropertyValue(fileOutboundEndpoint, "handler");
 		Message<String> message = new GenericMessage<String>("ftp file generator test");
 		try {
 			handler.handleMessage(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// ignore
 		}
 		verify(fileNameGenerator, times(1)).generateFileName(message);
 	}
-	
+
 }

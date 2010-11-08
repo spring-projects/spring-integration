@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2010 the original author or authors
-  ~
-  ~     Licensed under the Apache License, Version 2.0 (the "License");
-  ~     you may not use this file except in compliance with the License.
-  ~     You may obtain a copy of the License at
-  ~
-  ~         http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~     Unless required by applicable law or agreed to in writing, software
-  ~     distributed under the License is distributed on an "AS IS" BASIS,
-  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~     See the License for the specific language governing permissions and
-  ~     limitations under the License.
-  -->
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/xmpp"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:beans="http://www.springframework.org/schema/beans"
@@ -35,15 +20,14 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="user" type="xsd:string" use="required"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="password" type="xsd:string" use="required"/>
-			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="host" type="xsd:string"/>
 			<xsd:attribute name="service-name" type="xsd:string"/>
 			<xsd:attribute name="resource" type="xsd:string"/>
-			<xsd:attribute name="sasl-mechanism-supported" type="xsd:string"/>
-			<xsd:attribute name="sasl-mechanism-supported-index" type="xsd:string"/>
-			<xsd:attribute name="port" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:string" default="5222"/>
 			<xsd:attribute name="subscription-mode" default="accept_all">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -59,8 +43,6 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-
-
 		</xsd:complexType>
 	</xsd:element>
 
@@ -71,6 +53,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
@@ -162,6 +147,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
@@ -194,15 +182,8 @@
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
-
-
 						<xsd:element name="message-to" type="headerType"/>
 						<xsd:element name="message-thread-id" type="headerType"/>
-						<xsd:element name="presence-from" type="headerType"/>
-						<xsd:element name="presence-mode" type="headerType"/>
-						<xsd:element name="presence-type" type="headerType"/>
-						<xsd:element name="presence-status" type="headerType"/>
-						<xsd:element name="presence-priority" type="headerType"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

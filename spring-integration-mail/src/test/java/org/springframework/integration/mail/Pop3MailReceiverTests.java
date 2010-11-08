@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mail;
 
 import static org.mockito.Mockito.doAnswer;
@@ -26,7 +27,6 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;

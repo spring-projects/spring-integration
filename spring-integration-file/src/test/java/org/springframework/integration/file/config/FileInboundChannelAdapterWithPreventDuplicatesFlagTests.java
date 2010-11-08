@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import org.junit.Test;
@@ -43,33 +44,34 @@ import static org.junit.Assert.*;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
+
     @Autowired
     private ApplicationContext context;
+
     @Autowired
     @Qualifier("testFilter")
     private TestFileListFilter testFilter;
 
+
     @Test
     public void filterAndNull() {
-        EntryListFilter filter = this.extractFilter("filterAndNull");
+        EntryListFilter<?> filter = this.extractFilter("filterAndNull");
         assertFalse(filter instanceof CompositeEntryListFilter);
         assertSame(testFilter, filter);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void filterAndTrue() {
-        EntryListFilter filter = this.extractFilter("filterAndTrue");
+        EntryListFilter<?> filter = this.extractFilter("filterAndTrue");
         assertTrue(filter instanceof CompositeEntryListFilter);
-
-        Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
+        Collection<?> filters = (Collection<?>) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         assertTrue(filters.iterator().next() instanceof AcceptOnceEntryFileListFilter);
         assertTrue(filters.contains(testFilter));
     }
 
     @Test
     public void filterAndFalse() throws Exception {
-        EntryListFilter filter = this.extractFilter("filterAndFalse");
+        EntryListFilter<?> filter = this.extractFilter("filterAndFalse");
         assertFalse(filter instanceof CompositeEntryListFilter);
         assertSame(testFilter, filter);
     }
@@ -77,10 +79,10 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
     @Test
     @SuppressWarnings("unchecked")
     public void patternAndNull() throws Exception {
-        EntryListFilter filter = this.extractFilter("patternAndNull");
+        EntryListFilter<?> filter = this.extractFilter("patternAndNull");
         assertTrue(filter instanceof CompositeEntryListFilter);
-
-        Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
+        Collection<EntryListFilter<File>> filters = (Collection<EntryListFilter<File>>)
+        		new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         Iterator<EntryListFilter<File>> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
 		assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
@@ -89,11 +91,11 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
     @Test
     @SuppressWarnings("unchecked")
     public void patternAndTrue() throws Exception {
-        EntryListFilter filter = this.extractFilter("patternAndTrue");
+        EntryListFilter<?> filter = this.extractFilter("patternAndTrue");
         assertTrue(filter instanceof CompositeEntryListFilter);
-
-        Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
-        Iterator<EntryListFilter> iterator = filters.iterator();
+        Collection<EntryListFilter<File>> filters = (Collection<EntryListFilter<File>>)
+        		new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
+        Iterator<EntryListFilter<File>> iterator = filters.iterator();
         assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
 		assertThat(iterator.next(), is(SimplePatternFileListFilter.class));
     }
@@ -119,12 +121,10 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void defaultAndTrue() throws Exception {
-        EntryListFilter filter = this.extractFilter("defaultAndTrue");
+        EntryListFilter<File> filter = this.extractFilter("defaultAndTrue");
         assertFalse(filter instanceof CompositeEntryListFilter);
         assertTrue(filter instanceof AcceptOnceEntryFileListFilter);
-
         File testFile = new File("test");
         File[] files = new File[] { testFile, testFile, testFile };
         List<File> result = filter.filterEntries(files);
@@ -132,18 +132,17 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void defaultAndFalse() throws Exception {
-        EntryListFilter filter = this.extractFilter("defaultAndFalse");
+        EntryListFilter<File> filter = this.extractFilter("defaultAndFalse");
         assertNotNull(filter);
         assertFalse(filter instanceof CompositeEntryListFilter);
         assertFalse(filter instanceof AcceptOnceEntryFileListFilter);
-
         File testFile = new File("test");
         File[] files = new File[] { testFile, testFile, testFile };
         List<File> result = filter.filterEntries(files);
         assertEquals(3, result.size());
     }
+
 
     @SuppressWarnings("unchecked")
     private EntryListFilter<File> extractFilter(String beanName) {
@@ -155,4 +154,5 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 								.getPropertyValue("scanner"))
 						.getPropertyValue("filter");
     }
+
 }

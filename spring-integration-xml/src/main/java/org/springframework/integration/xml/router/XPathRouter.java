@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -27,18 +30,15 @@ import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 /**
- * Abstract base class for Message Routers that use
- * {@link XPathExpression} evaluation to determine channel names.
+ * Message Router that uses {@link XPathExpression} evaluation to determine channel names.
  * 
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  */
 public class XPathRouter extends AbstractMessageRouter {
-	
+
 	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
 
 	private final XPathExpression xPathExpression;
@@ -50,8 +50,8 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * Create a router that uses an XPath expression. The expression may
 	 * contain zero or more namespace prefixes.
 	 * 
-	 * @param expression
-	 * @param namespaces
+	 * @param expression the XPath expression as a String
+	 * @param namespaces map of namespaces with prefixes as the map keys
 	 */
 	public XPathRouter(String expression, Map<String, String> namespaces) {
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
@@ -61,9 +61,9 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * Create a router uses an XPath expression with one namespace. For example,
 	 * expression='/ns1:one/@type' prefix='ns1' namespace='www.example.org'
 	 * 
-	 * @param expression
-	 * @param prefix
-	 * @param namespace
+	 * @param expression the XPath expression as a String
+	 * @param prefix namespace prefix
+	 * @param namespace namespace uri
 	 */
 	public XPathRouter(String expression, String prefix, String namespace) {
 		Map<String, String> namespaces = new HashMap<String, String>();
@@ -75,7 +75,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * Create a router that uses an XPath expression with no namespaces.
 	 * For example '/one/@type'
 	 * 
-	 * @param expression
+	 * @param expression the XPath expression as a String
 	 */
 	public XPathRouter(String expression) {
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression);
@@ -84,7 +84,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	/**
 	 * Create a router that uses the provided XPath expression.
 	 * 
-	 * @param expression
+	 * @param expression the XPath expression
 	 */
 	public XPathRouter(XPathExpression expression) {
 		this.xPathExpression = expression;
@@ -96,9 +96,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	}
 
 	/**
-	 * Converter used to convert payloads prior to XPath testing.
-	 * 
-	 * @param converter
+	 * Specify the Converter to use when converting payloads prior to XPath evaluation.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
 		this.converter = converter;
@@ -107,8 +105,8 @@ public class XPathRouter extends AbstractMessageRouter {
 	protected XPathExpression getXPathExpression() {
 		return this.xPathExpression;
 	}
-	
-	public String getComponentType(){
+
+	public String getComponentType() {
 		return "xml:xpath-router";
 	}
 
@@ -125,6 +123,6 @@ public class XPathRouter extends AbstractMessageRouter {
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();
 		}
-
 	}
+
 }

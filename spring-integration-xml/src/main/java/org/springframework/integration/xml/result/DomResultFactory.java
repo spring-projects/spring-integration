@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,32 +29,34 @@ import org.springframework.integration.MessagingException;
  */
 public class DomResultFactory implements ResultFactory {
 
-	private final DocumentBuilderFactory docBuilderFactory;
+	private final DocumentBuilderFactory documentBuilderFactory;
 
-	public DomResultFactory(DocumentBuilderFactory docBuilderFactory) {
-		this.docBuilderFactory = docBuilderFactory;
+
+	public DomResultFactory(DocumentBuilderFactory documentBuilderFactory) {
+		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
 	public DomResultFactory() {
-		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
-		docBuilderFactory.setNamespaceAware(true);
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setNamespaceAware(true);
+		this.documentBuilderFactory = factory;
 	}
+
 
 	public synchronized Result createResult(Object payload) {
 		try {
 			return new DOMResult(getNewDocumentBuilder().newDocument());
 		}
 		catch (ParserConfigurationException e) {
-			throw new MessagingException("Failed to create Result for payload type [" + payload.getClass().getName()
-					+ "]");
+			throw new MessagingException("failed to create Result for payload type [" +
+					payload.getClass().getName() + "]");
 		}
 	}
 
 	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (docBuilderFactory) {
-			return docBuilderFactory.newDocumentBuilder();
+		synchronized (this.documentBuilderFactory) {
+			return this.documentBuilderFactory.newDocumentBuilder();
 		}
-
 	}
 
 }

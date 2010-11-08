@@ -116,11 +116,10 @@ public class FileInboundChannelAdapterWithPatternParserTests {
     @SuppressWarnings("unchecked")
     public void patternFilter() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-
-        Set<EntryListFilter> filters = (Set<EntryListFilter>) new DirectFieldAccessor(
+        Set<EntryListFilter<?>> filters = (Set<EntryListFilter<?>>) new DirectFieldAccessor(
                 scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
         String pattern = null;
-        for (EntryListFilter filter : filters) {
+        for (EntryListFilter<?> filter : filters) {
             if (filter instanceof SimplePatternFileListFilter) {
                 pattern = (String) new DirectFieldAccessor(filter).getPropertyValue("path");
             }

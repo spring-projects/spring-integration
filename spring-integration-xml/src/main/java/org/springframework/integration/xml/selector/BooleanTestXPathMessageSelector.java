@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,32 +36,30 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} supporting
-	 * mutliple namespaces.
+	 * multiple namespaces.
 	 * 
-	 * @param expression
-	 * @param namespaces
+	 * @param expression XPath expression as a String
+	 * @param namespaces Map of namespaces where the keys are namespace prefixes
 	 */
 	public BooleanTestXPathMessageSelector(String expression, Map<String, String> namespaces) {
 		super(expression, namespaces);
 	}
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} supporting a
-	 * single namespace.
+	 * Create a boolean testing XPath {@link MessageSelector} supporting a single namespace.
 	 * 
-	 * @param expression
-	 * @param prefix
-	 * @param namespace
+	 * @param expression XPath expression as a String
+	 * @param prefix namespace prefix
+	 * @param namespace namespace URI
 	 */
 	public BooleanTestXPathMessageSelector(String expression, String prefix, String namespace) {
 		super(expression, prefix, namespace);
 	}
 
 	/**
-	 * Create a boolean testing XPath {@link MessageSelector} with no namespace
-	 * support.
+	 * Create a boolean testing XPath {@link MessageSelector} with no namespace support.
 	 * 
-	 * @param expression
+	 * @param expression XPath expression as a String
 	 */
 	public BooleanTestXPathMessageSelector(String expression) {
 		super(expression);
@@ -71,7 +69,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	 * Create a boolean testing XPath {@link MessageSelector} using the
 	 * provided {@link XPathExpression}.
 	 * 
-	 * @param expression
+	 * @param expression XPath expression
 	 */
 	public BooleanTestXPathMessageSelector(XPathExpression expression) {
 		super(expression);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.config;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -22,107 +23,111 @@ import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import java.io.File;
 import java.util.Collection;
 
-
 /**
  * @author Mark Fisher
  * @since 1.0.3
  */
 public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<File>> {
-    private volatile EntryListFilter<File> fileListFilter;
-    private volatile EntryListFilter<File> filterReference;
-    private volatile String filenamePattern;
-    private volatile Boolean preventDuplicates;
-    private final Object monitor = new Object();
-    private volatile Collection<EntryListFilter<File>> filterReferences;
-    private FileEntryNamer fileNamer = new FileEntryNamer();
 
-    public void setFilterReferences(Collection<EntryListFilter<File>> filterReferences) {
-        this.filterReferences = filterReferences;
-    }
+	private volatile EntryListFilter<File> fileListFilter;
 
-    public void setFilterReference(EntryListFilter<File> filterReference) {
-        this.filterReference = filterReference;
-    }
+	private volatile EntryListFilter<File> filterReference;
 
-    public void setFilenamePattern(String filenamePattern) {
-        this.filenamePattern = filenamePattern;
-    }
+	private volatile String filenamePattern;
 
-    public void setPreventDuplicates(Boolean preventDuplicates) {
-        this.preventDuplicates = preventDuplicates;
-    }
+	private volatile Boolean preventDuplicates;
 
-    public EntryListFilter<File> getObject() throws Exception {
-        if (this.fileListFilter == null) {
-            synchronized (this.monitor) {
-                this.intializeFileListFilter();
-            }
-        }
+	private final Object monitor = new Object();
 
-        return this.fileListFilter;
-    }
+	private volatile Collection<EntryListFilter<File>> filterReferences;
 
-    public Class<?> getObjectType() {
-        return (this.fileListFilter != null) ? this.fileListFilter.getClass() : EntryListFilter.class;
-    }
 
-    public boolean isSingleton() {
-        return true;
-    }
+	public void setFilterReferences(Collection<EntryListFilter<File>> filterReferences) {
+		this.filterReferences = filterReferences;
+	}
 
-    private void intializeFileListFilter() {
-        if (this.fileListFilter != null) {
-            return;
-        }
+	public void setFilterReference(EntryListFilter<File> filterReference) {
+		this.filterReference = filterReference;
+	}
 
-        EntryListFilter<File> flf ;
+	public void setFilenamePattern(String filenamePattern) {
+		this.filenamePattern = filenamePattern;
+	}
 
-        if ((this.filterReference != null) && (this.filenamePattern != null)) {
-            throw new IllegalArgumentException("The 'filter' reference and " + "'filename-pattern' attributes are mutually exclusive.");
-        }
+	public void setPreventDuplicates(Boolean preventDuplicates) {
+		this.preventDuplicates = preventDuplicates;
+	}
 
-        if (this.filterReference != null) {
-            if (Boolean.TRUE.equals(this.preventDuplicates)) {
-                flf = this.createCompositeWithAcceptOnceFilter(this.filterReference);
-            } else { // preventDuplicates is either FALSE or NULL 
-                flf = this.filterReference;
-            }
-        } else if (this.filenamePattern != null) {
-            SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
+	public EntryListFilter<File> getObject() throws Exception {
+		if (this.fileListFilter == null) {
+			synchronized (this.monitor) {
+				this.intializeFileListFilter();
+			}
+		}
+		return this.fileListFilter;
+	}
 
-            if (Boolean.FALSE.equals(this.preventDuplicates)) {
-                flf = patternFilter;
-            } else { // preventDuplicates is either TRUE or NULL
-                flf = this.createCompositeWithAcceptOnceFilter(patternFilter);
-            }
-        } else if (Boolean.FALSE.equals(this.preventDuplicates)) {
-            flf = new AcceptAllEntryListFilter<File>();
-        } else { // preventDuplicates is either TRUE or NULL
-            flf = new AcceptOnceEntryFileListFilter<File>();
-        }
+	public Class<?> getObjectType() {
+		return (this.fileListFilter != null) ? this.fileListFilter.getClass() : EntryListFilter.class;
+	}
 
-        // finally, it might be that they simply want a {@link CompositeEntryListFilter}
-        if ((this.filterReferences != null) && (this.filterReferences.size() > 0)) {
-            CompositeEntryListFilter<File> flfc = new CompositeEntryListFilter<File>();
+	public boolean isSingleton() {
+		return true;
+	}
 
-            for (EntryListFilter<File> ff : filterReferences)
-                flfc.addFilter(ff);
+	private void intializeFileListFilter() {
+		if (this.fileListFilter != null) {
+			return;
+		}
+		EntryListFilter<File> filter;
+		if ((this.filterReference != null) && (this.filenamePattern != null)) {
+			throw new IllegalArgumentException("The 'filter' reference and "
+					+ "'filename-pattern' attributes are mutually exclusive.");
+		}
 
-            flf = flfc;
-        }
+		if (this.filterReference != null) {
+			if (Boolean.TRUE.equals(this.preventDuplicates)) {
+				filter = this.createCompositeWithAcceptOnceFilter(this.filterReference);
+			}
+			else { // preventDuplicates is either FALSE or NULL
+				filter = this.filterReference;
+			}
+		}
+		else if (this.filenamePattern != null) {
+			SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
+			if (Boolean.FALSE.equals(this.preventDuplicates)) {
+				filter = patternFilter;
+			}
+			else { // preventDuplicates is either TRUE or NULL
+				filter = this.createCompositeWithAcceptOnceFilter(patternFilter);
+			}
+		}
+		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
+			filter = new AcceptAllEntryListFilter<File>();
+		}
+		else { // preventDuplicates is either TRUE or NULL
+			filter = new AcceptOnceEntryFileListFilter<File>();
+		}
 
-        if (flf == null) {
-            flf = new CompositeEntryListFilter<File>();
-        }
+		// finally, it might be that they simply want a {@link CompositeEntryListFilter}
+		if ((this.filterReferences != null) && (this.filterReferences.size() > 0)) {
+			CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
+			for (EntryListFilter<File> ff : filterReferences) {
+				compositeFilter.addFilter(ff);
+			}
+			filter = compositeFilter;
+		}
+		if (filter == null) {
+			filter = new CompositeEntryListFilter<File>();
+		}
+		this.fileListFilter = filter;
+	}
 
-        this.fileListFilter = flf;
-    }
+	private CompositeEntryListFilter<File> createCompositeWithAcceptOnceFilter(EntryListFilter<File> otherFilter) {
+		CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
+		compositeFilter.addFilter(new AcceptOnceEntryFileListFilter<File>());
+		compositeFilter.addFilter(otherFilter);
+		return compositeFilter;
+	}
 
-    private CompositeEntryListFilter<File> createCompositeWithAcceptOnceFilter(EntryListFilter<File> otherFilter) {
-        CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
-        compositeFilter.addFilter(new AcceptOnceEntryFileListFilter<File>());
-        compositeFilter.addFilter(otherFilter);
-
-        return compositeFilter;
-    }
 }

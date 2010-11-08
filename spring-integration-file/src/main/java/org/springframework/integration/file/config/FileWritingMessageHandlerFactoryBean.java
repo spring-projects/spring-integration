@@ -32,8 +32,7 @@ import java.io.File;
  * @author Iwein Fuld
  * @since 1.0.3
  */
-public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWritingMessageHandler>,
-		BeanFactoryAware {
+public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWritingMessageHandler>, BeanFactoryAware {
 
 	private volatile FileWritingMessageHandler handler;
 
@@ -60,6 +59,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 	private volatile Integer order;
 
 	private final Object initializationMonitor = new Object();
+
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;

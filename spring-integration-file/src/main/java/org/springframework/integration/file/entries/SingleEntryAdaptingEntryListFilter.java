@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ package org.springframework.integration.file.entries;
 
 import org.springframework.util.Assert;
 
-
 /**
- * this simply takes an {@link org.springframework.integration.file.entries.EntryListFilter}
- * and produces an object that can field just <b>one</b> argument instea of an array
+ * This simply takes an {@link org.springframework.integration.file.entries.EntryListFilter}
+ * and produces an object that can field just <b>one</b> argument instead of an array.
  *
  * @author Josh Long
  */
@@ -30,17 +29,19 @@ public class SingleEntryAdaptingEntryListFilter<T> extends AbstractEntryListFilt
 	/**
 	 * the {@link org.springframework.integration.file.entries.EntryListFilter} that you'd like to delegate to
 	 */
-	private volatile EntryListFilter<T> entryFilter;
+	private volatile EntryListFilter<T> entryListFilter;
 
-	public SingleEntryAdaptingEntryListFilter(EntryListFilter<T> ef) {
-		this.entryFilter = ef;
-		Assert.notNull(this.entryFilter, "the entryFilter can't be null");
+	public SingleEntryAdaptingEntryListFilter(EntryListFilter<T> entryListFilter) {
+		Assert.notNull(entryListFilter, "entryListFilter must not be null");
+		this.entryListFilter = entryListFilter;
 	}
+
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean accept(T t) {
 		T[] ts = (T[]) new Object[]{t};
-		return this.entryFilter.filterEntries(ts).size() == 1;
+		return this.entryListFilter.filterEntries(ts).size() == 1;
 	}
+
 }

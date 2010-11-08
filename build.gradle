@@ -85,6 +85,10 @@ configure(javaprojects) {
     apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
     apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
 
+    // ensure JDK 5 compatibility
+    sourceCompatibility=1.5
+    targetCompatibility=1.5
+
     // set up dedicated directories for jars and source jars.
     // this makes it easier when putting together the distribution
     libsBinDir = new File(libsDir, 'bin')
@@ -107,7 +111,7 @@ configure(javaprojects) {
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
     springVersion = '3.0.5.RELEASE'
-    springSecurityVersion = '3.0.3.RELEASE'
+    springSecurityVersion = '3.0.4.RELEASE'
     springWsVersion = '1.5.9'
 
     sourceSets {
@@ -259,6 +263,7 @@ project('spring-integration-jms') {
     description = 'Spring Integration JMS Support'
     dependencies {
         compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-jms:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1") { provided = true }
@@ -399,6 +404,7 @@ project('spring-integration-xmpp') {
         compile "jivesoftware:smackx:3.1.0"
         compile "org.springframework:spring-context-support:$springVersion"
         testCompile project(":spring-integration-test")
+        testCompile project(":spring-integration-stream")
     }
 }
 
@@ -412,6 +418,8 @@ apply from: "$rootDir/gradle/dist.gradle"
 // add tasks like 'snapshotDependencyCheck'
 apply from: "${rootDir}/gradle/checks.gradle"
 
+// add 'generatePom' task to generate root pom with <modules> section
+apply from: "$rootDir/gradle/maven-root-pom.gradle"
 
 // -----------------------------------------------------------------------------
 // Import tasks related to releasing and managing the project

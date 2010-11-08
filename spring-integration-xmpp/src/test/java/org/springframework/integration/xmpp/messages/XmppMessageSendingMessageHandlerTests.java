@@ -36,8 +36,7 @@ public class XmppMessageSendingMessageHandlerTests {
 		Chat chat = mock(Chat.class);
 		when(chantManager.createChat(Mockito.any(String.class), Mockito.any(MessageListener.class))).thenReturn(chat);
 		
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
-		handler.setXmppConnection(connection);
+		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(connection);
 
 		Message<?> message = MessageBuilder.withPayload("Test Message").
 					setHeader(XmppHeaders.CHAT_TO_USER, "kermit@frog.com").
@@ -65,13 +64,13 @@ public class XmppMessageSendingMessageHandlerTests {
 	
 	@Test(expected=MessageHandlingException.class)
 	public void validateFailureNoChatToUser() throws Exception{	
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
+		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<String>("hello"));
 	}
 	
 	@Test(expected=MessageHandlingException.class)
 	public void validateMessageWithUnsupportedPayload() throws Exception{	
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
+		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<Integer>(123));
 	}
 }

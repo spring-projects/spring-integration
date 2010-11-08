@@ -16,14 +16,8 @@
 
 package org.springframework.integration.ftp;
 
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ResourceLoaderAware;
-
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.FileNameGenerator;
 
 /**
@@ -33,8 +27,7 @@ import org.springframework.integration.file.FileNameGenerator;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler>
-		implements ResourceLoaderAware, ApplicationContextAware {
+public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> {
 
 	protected int port;
 
@@ -52,11 +45,7 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
 
 	private int fileType;
 
-	private ResourceLoader resourceLoader;
-
 	private FileNameGenerator fileNameGenerator;
-
-	private ApplicationContext applicationContext;
 
 
 	public void setCharset(String charset) {
@@ -93,14 +82,6 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
 
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
-	}
-
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
-
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
 	}
 
 	@Override

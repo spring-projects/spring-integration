@@ -49,17 +49,17 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 
 	@Override
+	protected ScriptSource getScriptSource(Message<?> message) {
+		return this.scriptSource;
+	}
+
+	@Override
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
 		synchronized (this) {
 			this.customizer.setMessage(message);
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;
 		}
-	}
-
-	@Override
-	protected ScriptSource getScriptSource(Message<?> message) {
-		return scriptSource;
 	}
 
 }

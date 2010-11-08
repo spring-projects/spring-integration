@@ -34,22 +34,24 @@ public class GroovyScriptPayloadMessageProcessor extends AbstractScriptExecuting
 
 	private final GroovyObjectCustomizer customizer;
 
+
 	public GroovyScriptPayloadMessageProcessor() {
-		this((GroovyObjectCustomizer)null);
+		this((GroovyObjectCustomizer) null);
 	}
 
 	public GroovyScriptPayloadMessageProcessor(Map<String, ?> map) {
 		this(new MapContextBindingCustomizer(map));
 	}
-	
+
 	public GroovyScriptPayloadMessageProcessor(GroovyObjectCustomizer customizer) {
 		this.customizer = customizer;
 	}
 
+
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
 		Object payload = message.getPayload();
-		Assert.isInstanceOf(String.class, payload, "Payload must be String containing Groovy script.");
+		Assert.isInstanceOf(String.class, payload, "Payload must be a String containing a Groovy script.");
 		String className = generateScriptName(message);
 		return new StaticScriptSource((String) payload, className);
 	}
@@ -63,7 +65,7 @@ public class GroovyScriptPayloadMessageProcessor extends AbstractScriptExecuting
 		Object result = scriptFactory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;
 	}
-	
+
 	protected String generateScriptName(Message<?> message) {
 		// Don't use the same script (class) name for all invocations by default
 		return getClass().getSimpleName() + message.getHeaders().getId().toString().replaceAll("-", "");

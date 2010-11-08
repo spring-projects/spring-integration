@@ -77,6 +77,10 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 	public void setRemoteInvocationExecutor(RemoteInvocationExecutor remoteInvocationExecutor) {
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
+	
+	public String getComponentType() {
+		return "rmi:inbound-gateway";
+	}
 
 	@Override
 	protected void onInit() throws Exception {
@@ -98,10 +102,6 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 			}
 		}
 		super.onInit();
-	}
-	
-	public String getComponentType(){
-		return "rmi:inbound-gateway";
 	}
 
 }

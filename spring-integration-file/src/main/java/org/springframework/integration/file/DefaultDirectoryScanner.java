@@ -13,66 +13,71 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
 
-import java.io.File;
-
-import java.util.List;
-
-
 /**
- * Default directory scanner and base class for other directory scanners. It takes care of the default interrelations
- * between filtering, scanning and locking.
- *
+ * Default directory scanner and base class for other directory scanners.
+ * Manages the default interrelations between filtering, scanning and locking.
+ * 
  * @author Iwein Fuld
  * @since 2.0
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
-    private EntryListFilter<File> filter = new AcceptOnceEntryFileListFilter<File>();
-    private FileLocker locker;
 
-    public final List<File> listFiles(File directory) throws IllegalArgumentException {
-        File[] files = listEligibleFiles(directory);
+	private volatile EntryListFilter<File> filter = new AcceptOnceEntryFileListFilter<File>();
 
-        if (files == null) {
-            throw new MessagingException("The path [" + directory + "] does not denote a properly accessible directory.");
-        }
+	private volatile FileLocker locker;
 
-        return this.filter.filterEntries(files);
-    }
 
-    /**
-     * Subclasses may refine the listing strategy by overriding this method. The files returned here are passed onto the
-     * filter.
-     *
-     * @param directory root directory to use for listing
-     * @return the files this scanner should consider
-     */
-    protected File[] listEligibleFiles(File directory) {
-        return directory.listFiles();
-    }
+	public void setFilter(EntryListFilter<File> filter) {
+		this.filter = filter;
+	}
 
-    public void setFilter(EntryListFilter<File> filter) {
-        this.filter = filter;
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	public final void setLocker(FileLocker locker) {
+		this.locker = locker;
+	}
 
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * This class takes the minimal implementation and merely delegates to the locker if set.
-     */
-    public final boolean tryClaim(File file) {
-        return (locker == null) || locker.lock(file);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public final void setLocker(FileLocker locker) {
-        this.locker = locker;
-    }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * This class takes the minimal implementation and merely delegates to the
+	 * locker if set.
+	 */
+	public final boolean tryClaim(File file) {
+		return (this.locker == null) || this.locker.lock(file);
+	}
+
+	public final List<File> listFiles(File directory) throws IllegalArgumentException {
+		File[] files = listEligibleFiles(directory);
+		if (files == null) {
+			throw new MessagingException("The path [" + directory
+					+ "] does not denote a properly accessible directory.");
+		}
+		return (this.filter != null) ? this.filter.filterEntries(files) : Arrays.asList(files);
+	}
+
+	/**
+	 * Subclasses may refine the listing strategy by overriding this method. The
+	 * files returned here are passed onto the filter.
+	 * 
+	 * @param directory root directory to use for listing
+	 * @return the files this scanner should consider
+	 */
+	protected File[] listEligibleFiles(File directory) {
+		return directory.listFiles();
+	}
+
 }

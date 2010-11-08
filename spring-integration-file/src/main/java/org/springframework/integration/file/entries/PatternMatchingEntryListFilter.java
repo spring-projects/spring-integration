@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.entries;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -21,7 +22,6 @@ import org.springframework.util.StringUtils;
 
 import java.util.regex.Pattern;
 
-
 /**
  * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNamer})
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
@@ -29,13 +29,16 @@ import java.util.regex.Pattern;
  * @author Iwein Fuld
  * @author Josh Long
  * @param <T>   the type of entry
- *
- * @since 2.0.0
+ * @since 2.0
  */
 public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
-	private Pattern pattern;
-	private String patternExpression;
-	private EntryNamer<T> entryNamer;
+
+	private volatile EntryNamer<T> entryNamer;
+
+	private volatile Pattern pattern;
+
+	private volatile String patternExpression;
+
 
 	public PatternMatchingEntryListFilter(EntryNamer<T> en, String p) {
 		this.entryNamer = en;
@@ -45,6 +48,11 @@ public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T
 	public PatternMatchingEntryListFilter(EntryNamer<T> en, Pattern p) {
 		this.entryNamer = en;
 		this.pattern = p;
+	}
+
+
+	public void setEntryNamer(EntryNamer<T> entryNamer) {
+		this.entryNamer = entryNamer;
 	}
 
 	public void setPattern(Pattern pattern) {
@@ -64,11 +72,8 @@ public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T
 	}
 
 	@Override
-	public boolean accept(T t) {
-		return (t != null) && this.pattern.matcher(this.entryNamer.nameOf(t)).matches();
+	public boolean accept(T entry) {
+		return (entry != null) && this.pattern.matcher(this.entryNamer.nameOf(entry)).matches();
 	}
 
-	public void setEntryNamer(EntryNamer<T> entryNamer) {
-		this.entryNamer = entryNamer;
-	}
 }

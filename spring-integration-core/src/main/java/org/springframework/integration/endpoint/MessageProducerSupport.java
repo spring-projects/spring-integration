@@ -57,6 +57,22 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		Assert.notNull(this.outputChannel, "outputChannel is required");
 	}
 
+	/**
+	 * Takes no action by default. Subclasses may override this if they
+	 * need lifecycle-managed behavior.
+	 */
+	@Override
+	protected void doStart() {
+	}
+
+	/**
+	 * Takes no action by default. Subclasses may override this if they
+	 * need lifecycle-managed behavior.
+	 */
+	@Override
+	protected void doStop() {
+	}
+
 	protected void sendMessage(Message<?> message) {
 		if (message == null) {
 			throw new MessagingException("cannot send a null message");

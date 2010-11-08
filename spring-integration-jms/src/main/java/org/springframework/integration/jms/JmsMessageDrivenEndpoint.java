@@ -56,14 +56,12 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 		listener.setComponentName(this.getComponentName());
 	}
 
-	@Override
 	protected void doStart() {
 		if (!this.listenerContainer.isRunning()) {
 			this.listenerContainer.start();
 		}
 	}
 
-	@Override
 	protected void doStop() {
 		this.listenerContainer.stop();
 	}

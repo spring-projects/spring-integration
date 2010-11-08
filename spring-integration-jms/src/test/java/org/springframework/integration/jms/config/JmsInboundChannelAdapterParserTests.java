@@ -16,7 +16,6 @@
 
 package org.springframework.integration.jms.config;
 
-import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

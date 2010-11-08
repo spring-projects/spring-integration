@@ -38,7 +38,7 @@ public class FeedInboundChannelAdapterParser extends AbstractPollingInboundChann
 	@Override
 	protected BeanMetadataElement parseSource(final Element element, final ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.feed.FeedEntryMessageSource");
+				"org.springframework.integration.feed.inbound.FeedEntryMessageSource");
 		sourceBuilder.addConstructorArgValue(element.getAttribute("url"));
 		String feedFetcherRef = element.getAttribute("feed-fetcher");
 		if (StringUtils.hasText(feedFetcherRef)) {

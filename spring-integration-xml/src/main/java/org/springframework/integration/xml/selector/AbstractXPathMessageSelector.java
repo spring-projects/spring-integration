@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,20 +34,20 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 
 	private final XPathExpression xPathExpresion;
 
-	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
+	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
 
 	/**
-	 * @param xPathExpression simple String expression
+	 * @param xPathExpression XPath expression as a String
 	 */
 	public AbstractXPathMessageSelector(String xPathExpression) {
 		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression);
 	}
 
 	/**
-	 * @param xPathExpression
-	 * @param prefix
-	 * @param namespace
+	 * @param xPathExpression XPath expression as a String
+	 * @param prefix namespace prefix
+	 * @param namespace namespace URI
 	 */
 	public AbstractXPathMessageSelector(String xPathExpression, String prefix, String namespace) {
 		Map<String,String> namespaces = new HashMap<String, String>();
@@ -56,15 +56,15 @@ public abstract class AbstractXPathMessageSelector implements MessageSelector {
 	}
 
 	/**
-	 * @param xPathExpression
-	 * @param namespaces
+	 * @param xPathExpression XPath expression as a String
+	 * @param namespaces Map of namespaces with prefixes as the Map keys
 	 */
-	public AbstractXPathMessageSelector(String xPathExpression, Map<String,String> namespaces) {
+	public AbstractXPathMessageSelector(String xPathExpression, Map<String, String> namespaces) {
 		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}
 
 	/**
-	 * @param xPathExpression
+	 * @param xPathExpression XPath expression
 	 */
 	public AbstractXPathMessageSelector(XPathExpression xPathExpression) {
 		this.xPathExpresion = xPathExpression;

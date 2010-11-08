@@ -33,7 +33,7 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.oauth.OAuthConfiguration;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,7 +46,7 @@ import twitter4j.Twitter;
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of common messages. This functionality is enabled using the
- * {@link org.springframework.integration.store.MetadataStore}
+ * {@link org.springframework.integration.store.MetadataStore} 
  * strategy.
  * 
  * @author Josh Long
@@ -62,15 +62,13 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	private volatile String metadataKey;
 
-	protected volatile OAuthConfiguration configuration;
-	
 	protected final Queue<Object> tweets = new LinkedBlockingQueue<Object>();
 	
 	protected volatile int prefetchThreshold = 0;
 
 	protected volatile long markerId = -1;
 
-	protected Twitter twitter;
+	protected final TwitterOperations twitter;
 
 	private final Object markerGuard = new Object();
 
@@ -78,9 +76,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
 
-
-	public void setConfiguration(OAuthConfiguration configuration) {
-		this.configuration = configuration;
+	public AbstractTwitterMessageSource(TwitterOperations twitter){
+		this.twitter = twitter;
 	}
 
 	public void setShouldTrack(boolean shouldTrack) {
@@ -97,8 +94,10 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@Override
 	protected void onInit() throws Exception{
+		Assert.notNull(this.getTaskScheduler(), 
+				"Can not locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'");
 		super.onInit();
-		Assert.notNull(this.configuration, "'configuration' can't be null");
+
 		if (this.metadataStore == null) {
 			// first try to look for a 'messageStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -122,7 +121,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		metadataKeyBuilder.append(this.configuration.getConsumerKey());
+		String profileId = twitter.getProfileId();
+		metadataKeyBuilder.append(profileId);
 		this.metadataKey = metadataKeyBuilder.toString();
 	}
 
@@ -146,7 +146,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	@Override
 	protected void doStart(){
-		this.twitter = this.configuration.getTwitter();
 		Assert.notNull(this.twitter, "'twitter' instance can't be null");
 		historyWritingPostProcessor.setTrackableComponent(this);
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);
@@ -194,6 +193,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	}
 
 	protected void markLastStatusId(long statusId) {
+		this.markerId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
 }

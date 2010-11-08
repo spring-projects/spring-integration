@@ -31,9 +31,6 @@ public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler
 
 
 	public void init() {
-		// twitter connection
-		registerBeanDefinitionParser("twitter-connection", new ConnectionParser());
-
 		// inbound
 		registerBeanDefinitionParser("inbound-update-channel-adapter", new TwitterReceivingMessageSourceParser());
 		registerBeanDefinitionParser("inbound-dm-channel-adapter", new TwitterReceivingMessageSourceParser());

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="messaging-routing-chapter"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Message Routing</title>
+
+   <xi:include href="./router.xml"/>
+   <xi:include href="./filter.xml"/>
+   <xi:include href="./splitter.xml"/>
+   <xi:include href="./aggregator.xml"/>
+   <xi:include href="./resequencer.xml"/>
+   <xi:include href="./chain.xml"/>
+
+</chapter>

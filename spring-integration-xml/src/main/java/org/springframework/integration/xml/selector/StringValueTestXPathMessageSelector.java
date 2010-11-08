@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,12 +39,11 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 
 
 	/**
-	 * Create a selector which tests for the given value and supports multiple
-	 * namespaces.
+	 * Create a selector which tests for the given value and supports multiple namespaces.
 	 * 
-	 * @param expression
-	 * @param namespaces
-	 * @param valueToTestFor
+	 * @param expression XPath expression as a String
+	 * @param namespaces Map of namespaces where the keys are namespace prefixes
+	 * @param valueToTestFor value to test for
 	 */
 	public StringValueTestXPathMessageSelector(String expression, Map<String, String> namespaces, String valueToTestFor) {
 		super(expression, namespaces);
@@ -54,10 +53,10 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	/**
 	 * Creates a single namespace Xpath selector.
 	 * 
-	 * @param expression
-	 * @param prefix
-	 * @param namespace
-	 * @param valueToTestFor
+	 * @param expression XPath expression as a String
+	 * @param prefix namespace prefix
+	 * @param namespace namespace URI
+	 * @param valueToTestFor value to test for
 	 */
 	public StringValueTestXPathMessageSelector(String expression, String prefix, String namespace, String valueToTestFor) {
 		super(expression, prefix, namespace);
@@ -65,10 +64,10 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	}
 
 	/**
-	 * Creates non-namespaced testing selector.
+	 * Creates a non-namespaced testing selector.
 	 * 
-	 * @param expression
-	 * @param valueToTestFor
+	 * @param expression XPath expression as a String
+	 * @param valueToTestFor value to test for
 	 */
 	public StringValueTestXPathMessageSelector(String expression, String valueToTestFor) {
 		super(expression);
@@ -78,8 +77,8 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	/**
 	 * Creates a selector with the provided {@link XPathExpression}.
 	 * 
-	 * @param expression
-	 * @param valueToTestFor
+	 * @param expression XPath expression
+	 * @param valueToTestFor value to test for
 	 */
 	public StringValueTestXPathMessageSelector(XPathExpression expression, String valueToTestFor) {
 		super(expression);

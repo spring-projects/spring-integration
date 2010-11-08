@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,24 +58,19 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String expression = element.getAttribute("expression");
 		Assert.hasText(expression, "The 'expression' attribute is required.");
-
 		String nsPrefix = element.getAttribute("ns-prefix");
 		String nsUri = element.getAttribute("ns-uri");
 		String namespaceMapRef = element.getAttribute("namespace-map");
-
 		boolean prefixProvided = StringUtils.hasText(nsPrefix);
 		boolean namespaceProvided = StringUtils.hasText(nsUri);
 		boolean namespaceMapProvided = StringUtils.hasText(namespaceMapRef);
-
 		if (prefixProvided || namespaceProvided) {
 			Assert.isTrue(prefixProvided && namespaceProvided,
 					"Both 'ns-prefix' and 'ns-uri' must be specified if one is specified.");
 			Assert.isTrue(!namespaceMapProvided, "It is not valid to specify both namespace and namespace-map.");
 		}
-
 		builder.setFactoryMethod("createXPathExpression");
 		builder.addConstructorArgValue(expression);
-
 		if (prefixProvided) {
 			Map<String, String> namespaceMap = new HashMap<String, String>();
 			namespaceMap.put(nsPrefix, nsUri);
@@ -103,8 +98,7 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Map parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
+	protected Map<?,?> parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
 		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
 		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
 		return beanParser.parseMapElement(element, parentDefinition);

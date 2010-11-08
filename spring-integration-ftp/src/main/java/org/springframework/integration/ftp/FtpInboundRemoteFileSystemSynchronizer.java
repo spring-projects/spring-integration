@@ -20,8 +20,8 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer;
-import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.ftp.FtpClientPool;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * An FTP-adapter implementation of {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer}
+ * An FTP-adapter implementation of {@link org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer}
  *
  * @author Iwein Fuld
  * @author Josh Long

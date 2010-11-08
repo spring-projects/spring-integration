@@ -40,7 +40,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.feed.FeedEntryMessageSource;
+import org.springframework.integration.feed.inbound.FeedEntryMessageSource;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.test.util.TestUtils;

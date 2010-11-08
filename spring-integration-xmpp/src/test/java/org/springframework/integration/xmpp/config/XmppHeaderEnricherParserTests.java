@@ -16,19 +16,25 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,27 +47,30 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class XmppHeaderEnricherParserTests {
 
-
-	private static final Log logger = LogFactory.getLog(XmppHeaderEnricherParserTests.class);
-
 	@Value("#{input}")
 	private DirectChannel input;
 
 	@Value("#{output}")
 	private DirectChannel output;
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void to() {
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
-		output.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message)
-					throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				for (String h : message.getHeaders().keySet())
-					logger.debug(String.format("%s=%s (class: %s)", h, message.getHeaders().get(h), message.getHeaders().get(h).getClass().toString()));
+		MessageHandler handler = mock(MessageHandler.class);
+		doAnswer(new Answer() {
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				Message message = (Message) invocation.getArguments()[0];
+				String chatToUser = (String) message.getHeaders().get(XmppHeaders.CHAT_TO_USER);
+				assertNotNull(chatToUser);
+				assertEquals("test1@example.org", chatToUser);
+				return null;
 			}
-		});
+		}).when(handler).handleMessage(Mockito.any(Message.class));
+		output.subscribe(handler);
 		messagingTemplate.send(input, MessageBuilder.withPayload("foo").build());
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 
 }

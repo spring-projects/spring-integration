@@ -16,23 +16,25 @@
 
 package org.springframework.integration.event.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.event.ApplicationEventInboundChannelAdapter;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class EventInboundChannelAdapterParser extends AbstractChannelAdapterParser{
+public class EventInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.rootBeanDefinition(ApplicationEventInboundChannelAdapter.class);
+		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.rootBeanDefinition(
+				"org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression");

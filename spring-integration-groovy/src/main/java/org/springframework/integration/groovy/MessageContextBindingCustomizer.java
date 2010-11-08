@@ -24,17 +24,19 @@ import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.Assert;
 
 /**
- * A groovy object customizer used internally by the groovy message processors. Not public because the customizer is not
- * the best API for groovy context binding, but it's what we have in Spring right now.
- * 
- * @since 2.0
+ * A groovy object customizer used internally by the groovy message processors.
+ * Not public because the customizer is not the best API for groovy context binding,
+ * but it's what we have in Spring right now.
+ *
  * @author Dave Syer
- * 
+ * @since 2.0
  */
 class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 
 	private volatile Message<?> message;
+
 	private final GroovyObjectCustomizer customizer;
+
 
 	public MessageContextBindingCustomizer() {
 		this((GroovyObjectCustomizer) null);
@@ -48,14 +50,15 @@ class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 		this.customizer = customizer;
 	}
 
+
 	public void setMessage(Message<?> message) {
 		this.message = message;
 	}
 
 	public void customize(GroovyObject goo) {
 		Assert.state(goo instanceof Script, "Expected a Script");
-		if (customizer != null) {
-			customizer.customize(goo);
+		if (this.customizer != null) {
+			this.customizer.customize(goo);
 		}
 		if (this.message != null) {
 			Binding binding = ((Script) goo).getBinding();
@@ -63,4 +66,5 @@ class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 			binding.setVariable("headers", this.message.getHeaders());
 		}
 	}
+
 }
