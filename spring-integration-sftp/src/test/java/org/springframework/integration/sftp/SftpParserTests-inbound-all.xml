@@ -56,7 +56,7 @@
 	
 	
 	<beans:bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.file.entries.EntryListFilter"/>
+		<beans:constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</beans:bean>
 
 </beans:beans>

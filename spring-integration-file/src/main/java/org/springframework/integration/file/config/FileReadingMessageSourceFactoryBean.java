@@ -16,18 +16,18 @@
 
 package org.springframework.integration.file.config;
 
+import java.io.File;
+import java.util.Comparator;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.locking.AbstractFileLockerFilter;
-
-import java.io.File;
-import java.util.Comparator;
 
 /**
  * @author Mark Fisher
@@ -42,7 +42,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
 	private volatile File directory;
 
-	private volatile EntryListFilter<File> filter;
+	private volatile FileListFilter<File> filter;
 
 	private volatile AbstractFileLockerFilter locker;
 
@@ -71,7 +71,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 		this.scanner = scanner;
 	}
 
-	public void setFilter(EntryListFilter<File> filter) {
+	public void setFilter(FileListFilter<File> filter) {
 		if (filter instanceof AbstractFileLockerFilter && (this.locker == null)) {
 			this.setLocker((AbstractFileLockerFilter) filter);
 		}
@@ -137,10 +137,10 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 					this.source.setFilter(this.filter);
 				}
 				else {
-					CompositeEntryListFilter<File> fileCompositeEntryListFilter = new CompositeEntryListFilter<File>();
-					fileCompositeEntryListFilter.addFilter(this.filter);
-					fileCompositeEntryListFilter.addFilter(this.locker);
-					this.source.setFilter(fileCompositeEntryListFilter);
+					CompositeFileListFilter<File> compositeFileListFilter = new CompositeFileListFilter<File>();
+					compositeFileListFilter.addFilter(this.filter);
+					compositeFileListFilter.addFilter(this.locker);
+					this.source.setFilter(compositeFileListFilter);
 					this.source.setLocker(locker);
 				}
 			}

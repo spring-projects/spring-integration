@@ -16,16 +16,18 @@
 
 package org.springframework.integration.sftp.config;
 
-import com.jcraft.jsch.ChannelSftp;
+import java.io.File;
+
 import org.apache.commons.lang.SystemUtils;
+
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 import org.springframework.integration.sftp.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.SftpEntryNameExtractor;
 import org.springframework.integration.sftp.SftpSessionFactory;
@@ -33,7 +35,7 @@ import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSync
 import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
+import com.jcraft.jsch.ChannelSftp;
 
 /**
  * Factory bean to hide the fairly complex configuration possibilities for an SFTP endpoint
@@ -55,7 +57,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 
 	private volatile String filenamePattern;
 
-	private volatile EntryListFilter<ChannelSftp.LsEntry> filter;
+	private volatile FileListFilter<ChannelSftp.LsEntry> filter;
 
 	private int port = 22;
 
@@ -92,7 +94,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filenamePattern = filenamePattern;
 	}
 
-	public void setFilter(EntryListFilter<ChannelSftp.LsEntry> filter) {
+	public void setFilter(FileListFilter<ChannelSftp.LsEntry> filter) {
 		this.filter = filter;
 	}
 
@@ -170,10 +172,10 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 
 		// remote predicates
 		SftpEntryNameExtractor sftpEntryNameExtractor = new SftpEntryNameExtractor();
-		CompositeEntryListFilter<ChannelSftp.LsEntry> compositeFtpFileListFilter = new CompositeEntryListFilter<ChannelSftp.LsEntry>();
+		CompositeFileListFilter<ChannelSftp.LsEntry> compositeFtpFileListFilter = new CompositeFileListFilter<ChannelSftp.LsEntry>();
 		if (StringUtils.hasText(this.filenamePattern)) {
-			PatternMatchingEntryListFilter<ChannelSftp.LsEntry> ftpFilePatternMatchingEntryListFilter =
-					new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(sftpEntryNameExtractor, filenamePattern);
+			PatternMatchingFileListFilter<ChannelSftp.LsEntry> ftpFilePatternMatchingEntryListFilter =
+					new PatternMatchingFileListFilter<ChannelSftp.LsEntry>(sftpEntryNameExtractor, filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
 		}
 		if (this.filter != null) {

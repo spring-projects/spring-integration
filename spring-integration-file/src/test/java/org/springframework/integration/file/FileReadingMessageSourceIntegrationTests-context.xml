@@ -13,12 +13,12 @@
     <bean id="entryNameExtractor" class="org.springframework.integration.file.entries.FileEntryNameExtractor"/>
 
     <!-- customized filter -->
-    <bean id="legacyCompositeFilter" class="org.springframework.integration.file.entries.CompositeEntryListFilter">
+    <bean id="legacyCompositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
         <constructor-arg>
             <list>
-                <bean class="org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter"/>
+                <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter"/>
                 <bean class="org.springframework.integration.file.TestFileListFilter"/>
-                <bean class="org.springframework.integration.file.entries.PatternMatchingEntryListFilter">
+                <bean class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
                     <constructor-arg ref="entryNameExtractor"/>
                     <constructor-arg value="test*"/>
                 </bean>

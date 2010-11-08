@@ -16,24 +16,27 @@
 
 package org.springframework.integration.file.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.Comparator;
+import java.util.concurrent.PriorityBlockingQueue;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Iwein Fuld
@@ -76,7 +79,7 @@ public class FileInboundChannelAdapterParserTests {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
         Object filter = scannerAccessor.getPropertyValue("filter");
         assertTrue("'filter' should be set",
-                filter instanceof AcceptOnceEntryFileListFilter);
+                filter instanceof AcceptOnceFileListFilter);
     }
 
     @Test

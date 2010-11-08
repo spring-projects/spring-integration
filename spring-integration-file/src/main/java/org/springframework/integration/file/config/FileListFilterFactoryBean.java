@@ -16,22 +16,25 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.file.entries.*;
-import org.springframework.integration.file.filters.SimplePatternFileListFilter;
-
 import java.io.File;
 import java.util.Collection;
+
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.integration.file.filters.AcceptAllFileListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 
 /**
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<File>> {
+public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
 
-	private volatile EntryListFilter<File> fileListFilter;
+	private volatile FileListFilter<File> fileListFilter;
 
-	private volatile EntryListFilter<File> filterReference;
+	private volatile FileListFilter<File> filterReference;
 
 	private volatile String filenamePattern;
 
@@ -39,14 +42,14 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 
 	private final Object monitor = new Object();
 
-	private volatile Collection<EntryListFilter<File>> filterReferences;
+	private volatile Collection<FileListFilter<File>> filterReferences;
 
 
-	public void setFilterReferences(Collection<EntryListFilter<File>> filterReferences) {
+	public void setFilterReferences(Collection<FileListFilter<File>> filterReferences) {
 		this.filterReferences = filterReferences;
 	}
 
-	public void setFilterReference(EntryListFilter<File> filterReference) {
+	public void setFilterReference(FileListFilter<File> filterReference) {
 		this.filterReference = filterReference;
 	}
 
@@ -58,7 +61,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 		this.preventDuplicates = preventDuplicates;
 	}
 
-	public EntryListFilter<File> getObject() throws Exception {
+	public FileListFilter<File> getObject() throws Exception {
 		if (this.fileListFilter == null) {
 			synchronized (this.monitor) {
 				this.intializeFileListFilter();
@@ -68,7 +71,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 	}
 
 	public Class<?> getObjectType() {
-		return (this.fileListFilter != null) ? this.fileListFilter.getClass() : EntryListFilter.class;
+		return (this.fileListFilter != null) ? this.fileListFilter.getClass() : FileListFilter.class;
 	}
 
 	public boolean isSingleton() {
@@ -79,7 +82,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 		if (this.fileListFilter != null) {
 			return;
 		}
-		EntryListFilter<File> filter;
+		FileListFilter<File> filter;
 		if ((this.filterReference != null) && (this.filenamePattern != null)) {
 			throw new IllegalArgumentException("The 'filter' reference and "
 					+ "'filename-pattern' attributes are mutually exclusive.");
@@ -103,29 +106,29 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 			}
 		}
 		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
-			filter = new AcceptAllEntryListFilter<File>();
+			filter = new AcceptAllFileListFilter<File>();
 		}
 		else { // preventDuplicates is either TRUE or NULL
-			filter = new AcceptOnceEntryFileListFilter<File>();
+			filter = new AcceptOnceFileListFilter<File>();
 		}
 
-		// finally, it might be that they simply want a {@link CompositeEntryListFilter}
+		// finally, it might be that they simply want a {@link CompositeFileListFilter}
 		if ((this.filterReferences != null) && (this.filterReferences.size() > 0)) {
-			CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
-			for (EntryListFilter<File> ff : filterReferences) {
+			CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
+			for (FileListFilter<File> ff : filterReferences) {
 				compositeFilter.addFilter(ff);
 			}
 			filter = compositeFilter;
 		}
 		if (filter == null) {
-			filter = new CompositeEntryListFilter<File>();
+			filter = new CompositeFileListFilter<File>();
 		}
 		this.fileListFilter = filter;
 	}
 
-	private CompositeEntryListFilter<File> createCompositeWithAcceptOnceFilter(EntryListFilter<File> otherFilter) {
-		CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
-		compositeFilter.addFilter(new AcceptOnceEntryFileListFilter<File>());
+	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {
+		CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
+		compositeFilter.addFilter(new AcceptOnceFileListFilter<File>());
 		compositeFilter.addFilter(otherFilter);
 		return compositeFilter;
 	}

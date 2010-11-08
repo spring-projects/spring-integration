@@ -104,7 +104,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 					FtpClientPool.class.getSimpleName() +
 							" returned a 'null' client. " +
 							"This is most likely a bug in the pool implementation.");
-			Collection<FTPFile> fileList = this.filter.filterEntries(client.listFiles());
+			Collection<FTPFile> fileList = this.filter.filterFiles(client.listFiles());
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {

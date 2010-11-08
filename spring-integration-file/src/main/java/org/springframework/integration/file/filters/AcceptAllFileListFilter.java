@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.integration.file.filters.FileListFilter;
 
 /**
+ * Simple implementation of {@link FileListFilter} that always returns true.
+ * Suitable as a default.
+ *
  * @author Iwein Fuld
+ * @author Josh Long
+ * @param <F>
  */
-public class TestFileListFilter implements FileListFilter<File> {
+public class AcceptAllFileListFilter<F> extends AbstractFileListFilter<F> {
 
-    public List<File> filterFiles(File[] entries) {
-        return Arrays.asList(entries);
-    }
+	@Override
+	public boolean accept(F file) {
+		return true;
+	}
 
 }

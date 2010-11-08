@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp;
 
 import static junit.framework.Assert.assertTrue;
@@ -22,13 +23,12 @@ import java.io.File;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class SftpParserTests {
 	
@@ -44,11 +44,13 @@ public class SftpParserTests {
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
+
 	@Test(expected=BeanCreationException.class)
 	public void testLocalFilesAutoCreationFalse() throws Exception{
 		assertTrue(!new File("target/bar").exists());
 		new ClassPathXmlApplicationContext("SftpParserTests-inbound-all-fail.xml", this.getClass());
 	}
+
 	@Test
 	public void testLocalFilesAreFound() throws Exception{
 		assertTrue(new File("target").exists());
@@ -60,4 +62,5 @@ public class SftpParserTests {
 	public void cleanUp() throws Exception{
 		new File("target/foo").delete();
 	}
+
 }

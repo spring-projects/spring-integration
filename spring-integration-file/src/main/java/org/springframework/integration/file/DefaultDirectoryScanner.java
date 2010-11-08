@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * Default directory scanner and base class for other directory scanners.
@@ -33,12 +33,12 @@ import org.springframework.integration.file.entries.EntryListFilter;
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
 
-	private volatile EntryListFilter<File> filter = new AcceptOnceEntryFileListFilter<File>();
+	private volatile FileListFilter<File> filter = new AcceptOnceFileListFilter<File>();
 
 	private volatile FileLocker locker;
 
 
-	public void setFilter(EntryListFilter<File> filter) {
+	public void setFilter(FileListFilter<File> filter) {
 		this.filter = filter;
 	}
 
@@ -66,7 +66,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
 			throw new MessagingException("The path [" + directory
 					+ "] does not denote a properly accessible directory.");
 		}
-		return (this.filter != null) ? this.filter.filterEntries(files) : Arrays.asList(files);
+		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 
 	/**

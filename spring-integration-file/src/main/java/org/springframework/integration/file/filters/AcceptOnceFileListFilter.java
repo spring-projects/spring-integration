@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.filters;
 
-import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
-import org.springframework.util.Assert;
-
-import java.io.File;
-import java.util.List;
-
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * {@link FileListFilter} that passes files only one time. This can
@@ -30,34 +27,46 @@ import java.util.List;
  * This implementation is thread safe.
  *
  * @author Iwein Fuld
+ * @author Josh Long
  * @since 1.0.0
  */
-public class AcceptOnceFileListFilter extends AcceptOnceEntryFileListFilter<File> implements FileListFilter{
+public class AcceptOnceFileListFilter<F> extends AbstractFileListFilter<F> {
 
-    /**
-     * Creates an AcceptOnceFileFilter that is based on a bounded queue. If the
-     * queue overflows, files that fall out will be passed through this filter
-     * again if passed to the {@link #filterFiles(File[])} method.
-     *
-     * @param maxCapacity the maximum number of Files to maintain in the 'seen'
-     *                    queue.
-     */
-    public AcceptOnceFileListFilter(int maxCapacity) {
-		super(maxCapacity);
-    }
+	private final Queue<F> seen;
 
-    /**
-     * Creates an AcceptOnceFileFilter based on an unbounded queue.
-     */
-    public AcceptOnceFileListFilter() {
-		super();
-    }
+	private final Object monitor = new Object();
+
 
 	/**
-	 * Filter out all the files that this instance has seen before.
+	 * Creates an AcceptOnceFileListFilter that is based on a bounded queue. If the queue overflows,
+	 * files that fall out will be passed through this filter again if passed to the
+	 * {@link #filterFiles(Object[])}
+	 *
+	 * @param maxCapacity the maximum number of Files to maintain in the 'seen' queue.
 	 */
-	public List<File> filterFiles(File[] files) {
-		Assert.notNull(files, "'files' must not be null.");
-		return this.filterEntries(files);
+	public AcceptOnceFileListFilter(int maxCapacity) {
+		this.seen = new LinkedBlockingQueue<F>(maxCapacity);
 	}
+
+	/**
+	 * Creates an AcceptOnceFileListFilter based on an unbounded queue.
+	 */
+	public AcceptOnceFileListFilter() {
+		this.seen = new LinkedBlockingQueue<F>();
+	}
+
+
+	public boolean accept(F file) {
+		synchronized (this.monitor) {
+			if (this.seen.contains(file)) {
+				return false;
+			}
+			if (!this.seen.offer(file)) {
+				this.seen.poll();
+				this.seen.add(file);
+			}
+			return true;
+		}
+	}
+
 }

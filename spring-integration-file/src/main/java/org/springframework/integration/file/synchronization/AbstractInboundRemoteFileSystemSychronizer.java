@@ -16,27 +16,27 @@
 
 package org.springframework.integration.file.synchronization;
 
+import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.entries.AcceptAllEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.filters.AcceptAllFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
-
-import java.util.concurrent.ScheduledFuture;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
  * scan it for new files and then download the files.
  * <p/>
  * The implementation should run through any configured
- * {@link org.springframework.integration.file.entries.EntryListFilter}s to
- * ensure the entry is acceptable.
+ * {@link org.springframework.integration.file.filters.FileListFilter}s to
+ * ensure the file entry is acceptable.
  * 
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends AbstractEndpoint {
+public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends AbstractEndpoint {
 
 	/**
 	 * Should we <emphasis>delete</emphasis> the <b>source</b> file? For an FTP
@@ -50,9 +50,9 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 	protected volatile Resource localDirectory;
 
 	/**
-	 * An {@link EntryListFilter} that runs against the <emphasis>remote</emphasis> file system view.
+	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
 	 */
-	protected volatile EntryListFilter<T> filter = new AcceptAllEntryListFilter<T>();
+	protected volatile FileListFilter<F> filter = new AcceptAllFileListFilter<F>();
 
 	/**
 	 * The {@link ScheduledFuture} instance we get when we
@@ -63,10 +63,10 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 	/**
 	 * The {@link EntryAcknowledgmentStrategy} implementation.
 	 */
-	protected EntryAcknowledgmentStrategy<T> entryAcknowledgmentStrategy;
+	protected EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
 
 
-	public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<T> entryAcknowledgmentStrategy) {
+	public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy) {
 		this.entryAcknowledgmentStrategy = entryAcknowledgmentStrategy;
 	}
 
@@ -78,7 +78,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 		this.localDirectory = localDirectory;
 	}
 
-	public void setFilter(EntryListFilter<T> filter) {
+	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 
@@ -90,16 +90,16 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 	 *            be a 'live' stateful client (a connection?) that is inappropriate to cache as it has per-request state.
 	 * @param t
 	 *            leverages strategy implementations to enable different
-	 *            behavior. It's a hook to the entry ({@link T}) after it's been
+	 *            behavior. It's a hook to the file entry ({@link F}) after it's been
 	 *            successfully downloaded. Conceptually, you might delete the
 	 *            remote one or rename it, etc.
 	 * @throws Throwable
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
-	protected void acknowledge(Object usefulContextOrClientData, T t) throws Throwable {
+	protected void acknowledge(Object usefulContextOrClientData, F file) throws Throwable {
 		Assert.notNull(this.entryAcknowledgmentStrategy != null,
 				"entryAcknowledgmentStrategy can't be null!");
-		this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, t);
+		this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
 	}
 
 	/**
@@ -107,8 +107,8 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 	 */
 	protected void doStart() {
 		if (this.entryAcknowledgmentStrategy == null) {
-			this.entryAcknowledgmentStrategy = new EntryAcknowledgmentStrategy<T>() {
-				public void acknowledge(Object o, T msg) {
+			this.entryAcknowledgmentStrategy = new EntryAcknowledgmentStrategy<F>() {
+				public void acknowledge(Object o, F msg) {
 					// no-op
 				}
 			};
@@ -167,9 +167,9 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 	 * into the pipeline and also some more advanced scenarios (i.e., 'move file
 	 * to another folder on delete ', or 'rename on delete')
 	 * 
-	 * @param <T> the entry type (file, sftp, ftp, ...)
+	 * @param <F> the file entry type (file, sftp, ftp, ...)
 	 */
-	public static interface EntryAcknowledgmentStrategy<T> {
+	public static interface EntryAcknowledgmentStrategy<F> {
 
 		/**
 		 * Semantics are simple. You get a pointer to the entry just processed
@@ -183,7 +183,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
 		 *            the data / file / entry you want to process -- specific to subclasses
 		 * @throws Exception in case of an error while acknowledging
 		 */
-		void acknowledge(Object useful, T msg) throws Exception;
+		void acknowledge(Object useful, F msg) throws Exception;
 
 	}
 

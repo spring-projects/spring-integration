@@ -27,11 +27,11 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.entries.FileEntryNameExtractor;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 
 /**
  * Factors out the common logic between the FTP and SFTP adapters. Designed to
@@ -43,7 +43,7 @@ import org.springframework.integration.file.entries.PatternMatchingEntryListFilt
  * <p/>
  * The base class supports configuration of whether the remote file system and
  * local file system's directories should be created on start (what 'creating a
- * directory' means to the specific adapter is of course implementaton
+ * directory' means to the specific adapter is of course implementation
  * specific).
  * <p/>
  * This class is to be used as a pair with an implementation of
@@ -53,7 +53,7 @@ import org.springframework.integration.file.entries.PatternMatchingEntryListFilt
  * 
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<Y, T extends AbstractInboundRemoteFileSystemSychronizer<Y>>
+public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<F, S extends AbstractInboundRemoteFileSystemSychronizer<F>>
 		extends MessageProducerSupport implements MessageSource<File> {
 
 	/**
@@ -70,7 +70,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	 * An implementation that will handle the chores of actually connecting to and synching up
 	 * the remote file system with the local one, in an inbound direction.
 	 */
-	protected volatile T synchronizer;
+	protected volatile S synchronizer;
 
 	/**
 	 * Directory to which things should be synched locally.
@@ -85,14 +85,14 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	/**
 	 * The predicate to use in scanning the remote File system for downloads.
 	 */
-	protected EntryListFilter<Y> remotePredicate;
+	protected FileListFilter<F> remotePredicate;
 
 
 	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
 	}
 
-	public void setSynchronizer(T synchronizer) {
+	public void setSynchronizer(S synchronizer) {
 		this.synchronizer = synchronizer;
 	}
 
@@ -100,7 +100,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 		this.localDirectory = localDirectory;
 	}
 
-	public void setRemotePredicate(EntryListFilter<Y> remotePredicate) {
+	public void setRemotePredicate(FileListFilter<F> remotePredicate) {
 		this.remotePredicate = remotePredicate;
 	}
 
@@ -154,12 +154,12 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	}
 
 	@SuppressWarnings("unchecked")
-	private EntryListFilter<File> buildFilter() {
+	private FileListFilter<File> buildFilter() {
 		FileEntryNameExtractor fileEntryNameExtractor = new FileEntryNameExtractor();
 		Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
-		return new CompositeEntryListFilter<File>(Arrays.asList(
-				new AcceptOnceEntryFileListFilter<File>(),
-				new PatternMatchingEntryListFilter<File>(fileEntryNameExtractor, completePattern)));
+		return new CompositeFileListFilter<File>(Arrays.asList(
+				new AcceptOnceFileListFilter<File>(),
+				new PatternMatchingFileListFilter<File>(fileEntryNameExtractor, completePattern)));
 	}
 
 }

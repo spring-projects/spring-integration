@@ -16,10 +16,10 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.file.entries.EntryListFilter;
-
 import java.io.File;
 import java.util.List;
+
+import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * Strategy for scanning directories. Implementations may select all children
@@ -52,7 +52,7 @@ public interface DirectoryScanner {
 	 * @param filter
 	 *            the custom filter to be used
 	 */
-	void setFilter(EntryListFilter<File> filter);
+	void setFilter(FileListFilter<File> filter);
 
 	/**
 	 * Sets a custom locker to be used by this scanner. The locker will get a

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.locking;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Iwein Fuld
@@ -65,7 +67,7 @@ public class FileLockingNamespaceTests {
     @Test
     public void shouldSetCustomLockerProperly() {
         assertThat(extractFromScanner("locker", customLockingSource), is(StubLocker.class));
-        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeEntryListFilter.class));
+        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeFileListFilter.class));
     }
 
     private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
@@ -75,7 +77,7 @@ public class FileLockingNamespaceTests {
     @Test
     public void shouldSetNioLockerProperly() {
         assertThat(extractFromScanner("locker", nioLockingSource), is(NioFileLocker.class));
-        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeEntryListFilter.class));
+        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeFileListFilter.class));
     }
 
     public static class StubLocker extends AbstractFileLockerFilter {

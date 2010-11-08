@@ -16,8 +16,17 @@
 
 package org.springframework.integration.file.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,17 +34,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.SimplePatternFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -83,15 +87,14 @@ public class FileInboundChannelAdapterWithPatternParserTests {
     @Test
     public void compositeFilterType() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeEntryListFilter);
+        assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void compositeFilterSetSize() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-
-        Set<EntryListFilter<File>> filters = (Set<EntryListFilter<File>>) new DirectFieldAccessor(
+        Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
                 scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
         assertEquals(2, filters.size());
     }
@@ -100,12 +103,11 @@ public class FileInboundChannelAdapterWithPatternParserTests {
     @SuppressWarnings("unchecked")
     public void acceptOnceFilter() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-
-        Set<EntryListFilter<File>> filters = (Set<EntryListFilter<File>>) new DirectFieldAccessor(
+        Set<FileListFilter<File>> filters = (Set<FileListFilter<File>>) new DirectFieldAccessor(
                 scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
         boolean hasAcceptOnceFilter = false;
-        for (EntryListFilter<File> filter : filters) {
-            if (filter instanceof AcceptOnceEntryFileListFilter) {
+        for (FileListFilter<File> filter : filters) {
+            if (filter instanceof AcceptOnceFileListFilter) {
                 hasAcceptOnceFilter = true;
             }
         }
@@ -116,10 +118,10 @@ public class FileInboundChannelAdapterWithPatternParserTests {
     @SuppressWarnings("unchecked")
     public void patternFilter() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-        Set<EntryListFilter<?>> filters = (Set<EntryListFilter<?>>) new DirectFieldAccessor(
+        Set<FileListFilter<?>> filters = (Set<FileListFilter<?>>) new DirectFieldAccessor(
                 scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
         String pattern = null;
-        for (EntryListFilter<?> filter : filters) {
+        for (FileListFilter<?> filter : filters) {
             if (filter instanceof SimplePatternFileListFilter) {
                 pattern = (String) new DirectFieldAccessor(filter).getPropertyValue("path");
             }

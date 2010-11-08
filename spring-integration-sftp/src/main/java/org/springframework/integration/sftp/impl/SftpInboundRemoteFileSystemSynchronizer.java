@@ -120,7 +120,7 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
-			Collection<ChannelSftp.LsEntry> files = this.filter.filterEntries(entries);
+			Collection<ChannelSftp.LsEntry> files = this.filter.filterFiles(entries);
 			for (ChannelSftp.LsEntry lsEntry : files) {
 				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
 					copyFromRemoteToLocalDirectory(session, lsEntry, this.localDirectory);

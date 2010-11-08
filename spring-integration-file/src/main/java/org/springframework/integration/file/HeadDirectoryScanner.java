@@ -16,12 +16,11 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.file.entries.EntryListFilter;
-
 import java.io.File;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * A custom scanner that only returns the first <code>maxNumberOfFiles</code>
@@ -38,7 +37,7 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 	}
 
 
-	private static class HeadFilter implements EntryListFilter<File> {
+	private static class HeadFilter implements FileListFilter<File> {
 
 		private final int maxNumberOfFiles;
 
@@ -46,7 +45,7 @@ public class HeadDirectoryScanner extends DefaultDirectoryScanner {
 			this.maxNumberOfFiles = maxNumberOfFiles;
 		}
 
-		public List<File> filterEntries(File[] files) {
+		public List<File> filterFiles(File[] files) {
 			return Arrays.asList(files).subList(0, Math.min(files.length, maxNumberOfFiles));
 		}
 	}

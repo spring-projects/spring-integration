@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.filters;
 
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.*;
 
-
 /**
- * Composition that delegates to multiple {@link FileFilter}s. The composition is AND based, meaning that a file must
- * pass through each filter's {@link #filterFiles(java.io.File[])} method in order to be accepted by the composite.
+ * Simple {@link FileListFilter} that predicates its matches against any of many
+ * configured {@link FileListFilter}.
  *
  * @author Iwein Fuld
- * @author Mark Fisher
+ * @author Josh Long
+ * @param <F>
  */
-public class CompositeFileListFilter extends CompositeEntryListFilter<File> implements FileListFilter{
+public class CompositeFileListFilter<F> implements FileListFilter<F> {
 
-    public CompositeFileListFilter(EntryListFilter<File>... fileFilters) {
-		this(Arrays.asList(fileFilters));
-    }
+	private final Set<FileListFilter<F>> fileFilters;
 
-    public CompositeFileListFilter(Collection<? extends EntryListFilter<File>> fileFilters) {
-		super(fileFilters);
-    }
 
-    /**
-     * {@inheritDoc}
-     * <p/>
-     * This implementation delegates to a collection of filters and returns only files that pass all the filters.
-     */
-    public List<File> filterFiles(File[] files) {
-        Assert.notNull(files, "'files' should not be null.");
-		return this.filterEntries(files);
-    }
+	public CompositeFileListFilter() {
+		this.fileFilters = new LinkedHashSet<FileListFilter<F>>();
+	}
+
+	public CompositeFileListFilter(Collection<? extends FileListFilter<F>> fileFilters) {
+		this.fileFilters = new LinkedHashSet<FileListFilter<F>>(fileFilters);
+	}
+
+
+	public CompositeFileListFilter<F> addFilter(FileListFilter<F> filter) {
+		return this.addFilters(Collections.singletonList(filter));
+	}
+
+	/**
+	 * @param filters one or more new filters to add
+	 * @return this CompositeFileFilter instance with the added filters
+	 * @see #addFilters(Collection)
+	 */
+	public CompositeFileListFilter<F> addFilters(FileListFilter<F>... filters) {
+		return addFilters(Arrays.asList(filters));
+	}
+
+	/**
+	 * Not thread safe. Only a single thread may add filters at a time.
+	 * <p/>
+	 * Add the new filters to this CompositeFileListFilter while maintaining the existing filters.
+	 *
+	 * @param filtersToAdd a list of filters to add
+	 * @return this CompositeFileListFilter instance with the added filters
+	 */
+	public CompositeFileListFilter<F> addFilters(Collection<? extends FileListFilter<F>> filtersToAdd) {
+		for (FileListFilter<? extends F> elf : filtersToAdd) {
+			if (elf instanceof InitializingBean) {
+				try {
+					((InitializingBean) elf).afterPropertiesSet();
+				}
+				catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+		this.fileFilters.addAll(filtersToAdd);
+		return this;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	public List<F> filterFiles(F[] files) {
+		Assert.notNull(files, "'files' should not be null");
+		List<F> leftOver = Arrays.asList(files);
+		for (FileListFilter<F> fileFilter : this.fileFilters) {
+			F[] fileArray = (F[]) leftOver.toArray();
+			leftOver = fileFilter.filterFiles(fileArray);
+		}
+		return leftOver;
+	}
+
 }

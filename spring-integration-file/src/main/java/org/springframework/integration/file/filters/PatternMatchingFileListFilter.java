@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,65 @@
 
 package org.springframework.integration.file.filters;
 
-import org.springframework.integration.file.entries.FileEntryNameExtractor;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.file.entries.EntryNameExtractor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * An {@link org.springframework.integration.file.entries.EntryListFilter} implementation that matches a File against a {@link Pattern}.
+ * Filters a listing of files by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNameExtractor})
+ * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
  * @author Iwein Fuld
- * @author Mark Fisher
- *
- * @since 1.0.0
+ * @author Josh Long
+ * @param <F> the type of file entry
+ * @since 2.0
  */
-public class PatternMatchingFileListFilter extends PatternMatchingEntryListFilter<File> implements FileListFilter{
+public class PatternMatchingFileListFilter<F> extends AbstractFileListFilter<F> implements InitializingBean {
 
-	/**
-	 * Create a file filter for the given pattern.
-	 */
-	public PatternMatchingFileListFilter(Pattern pattern) {
-		super(new FileEntryNameExtractor(), pattern);
+	private volatile EntryNameExtractor<F> entryNameExtractor;
+
+	private volatile Pattern pattern;
+
+	private volatile String patternExpression;
+
+
+	public PatternMatchingFileListFilter(EntryNameExtractor<F> entryNameExtractor, String pattern) {
+		this.entryNameExtractor = entryNameExtractor;
+		this.patternExpression = pattern;
 	}
 
-	public PatternMatchingFileListFilter(String pattern) {
-		super(new FileEntryNameExtractor(), pattern);
+	public PatternMatchingFileListFilter(EntryNameExtractor<F> entryNameExtractor, Pattern pattern) {
+		this.entryNameExtractor = entryNameExtractor;
+		this.pattern = pattern;
 	}
 
-	/**
-	 * Filter out the files of which the name doesn't match the pattern of this filter
-	 */
-	public List<File> filterFiles(File[] files) {
-		Assert.notNull(files, "'files' must not be null.");
-		return this.filterEntries(files);
+
+	public void setEntryNameExtractor(EntryNameExtractor<F> entryNameExtractor) {
+		this.entryNameExtractor = entryNameExtractor;
 	}
+
+	public void setPattern(Pattern pattern) {
+		this.pattern = pattern;
+	}
+
+	public void setPatternExpression(String patternExpression) {
+		this.patternExpression = patternExpression;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		if (StringUtils.hasText(this.patternExpression) && (pattern == null)) {
+			this.pattern = Pattern.compile(this.patternExpression);
+		}
+		Assert.notNull(this.entryNameExtractor, "'entryNameExtractor' must not be null!");
+		Assert.notNull(this.pattern, "'pattern' must not be null!");
+	}
+
+	@Override
+	public boolean accept(F entry) {
+		return (entry != null) && this.pattern.matcher(this.entryNameExtractor.getName(entry)).matches();
+	}
+
 }

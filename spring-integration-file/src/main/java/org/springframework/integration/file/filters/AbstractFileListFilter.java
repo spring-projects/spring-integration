@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.file.filters;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,19 +26,16 @@ import java.util.List;
  *
  * @author Mark Fisher
  * @author Iwein Fuld
- *
- * @deprecated Replaced by AbstractEntryListFilter in 2.0.0
  */
-@Deprecated
-public abstract class AbstractFileListFilter implements FileListFilter {
+public abstract class AbstractFileListFilter<F> implements FileListFilter<F> {
 
     /**
      * {@inheritDoc}
      */
-    public final List<File> filterFiles(File[] files) {
-        List<File> accepted = new ArrayList<File>();
+    public final List<F> filterFiles(F[] files) {
+        List<F> accepted = new ArrayList<F>();
         if (files != null) {
-            for (File file : files) {
+            for (F file : files) {
                 if (this.accept(file)) {
                     accepted.add(file);
                 }
@@ -51,6 +47,6 @@ public abstract class AbstractFileListFilter implements FileListFilter {
     /**
      * Subclasses must implement this method.
      */
-    protected abstract boolean accept(File file);
+    protected abstract boolean accept(F file);
 
 }

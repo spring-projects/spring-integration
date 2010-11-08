@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 
 package org.springframework.integration.file.locking;
 
-import org.springframework.integration.file.FileLocker;
-import org.springframework.integration.file.entries.AbstractEntryListFilter;
-
 import java.io.File;
+
+import org.springframework.integration.file.FileLocker;
+import org.springframework.integration.file.filters.AbstractFileListFilter;
 
 /**
  * Convenience base class for implementing FileLockers that check a lock before accepting a file. This is needed
@@ -29,10 +29,11 @@ import java.io.File;
  * @since 2.0
  *
  */
-public abstract class AbstractFileLockerFilter extends AbstractEntryListFilter<File> implements FileLocker {
+public abstract class AbstractFileLockerFilter extends AbstractFileListFilter<File> implements FileLocker {
 
     @Override
     public boolean accept(File file) {
         return this.isLockable(file);
     }
+
 }

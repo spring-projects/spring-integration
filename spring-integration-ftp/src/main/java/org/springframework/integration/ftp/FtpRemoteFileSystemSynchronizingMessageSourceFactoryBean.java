@@ -28,9 +28,9 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.entries.EntryListFilter;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -62,7 +62,7 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 
 	protected volatile Resource localDirectoryResource;
 
-	protected volatile EntryListFilter<FTPFile> filter;
+	protected volatile FileListFilter<FTPFile> filter;
 
 	protected volatile int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
@@ -113,7 +113,7 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.localWorkingDirectory = localWorkingDirectory;
 	}
 
-	public void setFilter(EntryListFilter<FTPFile> filter) {
+	public void setFilter(FileListFilter<FTPFile> filter) {
 		this.filter = filter;
 	}
 
@@ -155,11 +155,11 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		}
 		this.localDirectoryResource = this.fromText(this.localWorkingDirectory);
 		FtpFileEntryNameExtractor fileEntryNameExtractor = new FtpFileEntryNameExtractor();
-		CompositeEntryListFilter<FTPFile> compositeFtpFileListFilter = new CompositeEntryListFilter<FTPFile>();
+		CompositeFileListFilter<FTPFile> compositeFtpFileListFilter = new CompositeFileListFilter<FTPFile>();
 		if (StringUtils.hasText(this.filenamePattern)) {
-			PatternMatchingEntryListFilter<FTPFile> ftpFilePatternMatchingEntryListFilter =
-					new PatternMatchingEntryListFilter<FTPFile>(fileEntryNameExtractor, filenamePattern);
-			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
+			PatternMatchingFileListFilter<FTPFile> ftpFilePatternMatchingFileListFilter =
+					new PatternMatchingFileListFilter<FTPFile>(fileEntryNameExtractor, filenamePattern);
+			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingFileListFilter);
 		}
 		if (this.filter != null) {
 			compositeFtpFileListFilter.addFilter(this.filter);

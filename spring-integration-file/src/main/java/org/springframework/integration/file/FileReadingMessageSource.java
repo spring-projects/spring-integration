@@ -31,14 +31,14 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
  * {@link MessageSource} that creates messages from a file system directory. To
  * prevent messages for certain files, you may supply a
- * {@link org.springframework.integration.file.entries.EntryListFilter}. By
+ * {@link org.springframework.integration.file.filters.FileListFilter}. By
  * default, an
  * {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter}
  * is used. It ensures files are picked up only once from the directory.
@@ -174,22 +174,19 @@ public class FileReadingMessageSource extends IntegrationObjectSupport implement
 	}
 
 	/**
-	 * Sets a
-	 * {@link org.springframework.integration.file.entries.EntryListFilter}. By
-	 * default a
-	 * {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter}
-	 * with no bounds is used. In most cases a customized
-	 * {@link org.springframework.integration.file.entries.EntryListFilter} will
+	 * Sets a {@link FileListFilter}. By default a
+	 * {@link org.springframework.integration.file.filters.AbstractFileListFilter}
+	 * with no bounds is used. In most cases a customized {@link FileListFilter} will
 	 * be needed to deal with modification and duplication concerns. If multiple
 	 * filters are required a
-	 * {@link org.springframework.integration.file.entries.CompositeEntryListFilter}
+	 * {@link org.springframework.integration.file.filters.CompositeFileListFilter}
 	 * can be used to group them together.
 	 * <p/>
 	 * <b>The supplied filter must be thread safe.</b>.
 	 * 
 	 * @param filter a filter
 	 */
-	public void setFilter(EntryListFilter<File> filter) {
+	public void setFilter(FileListFilter<File> filter) {
 		Assert.notNull(filter, "'filter' must not be null");
 		this.scanner.setFilter(filter);
 	}
