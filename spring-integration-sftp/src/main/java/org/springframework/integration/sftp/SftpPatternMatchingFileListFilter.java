@@ -40,7 +40,7 @@ public class SftpPatternMatchingFileListFilter extends AbstractPatternMatchingFi
 
 	@Override
 	protected String getFilename(LsEntry entry) {
-		return entry.getFilename();
+		return (entry != null) ? entry.getFilename() : null;
 	}
 
 }

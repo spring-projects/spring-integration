@@ -39,7 +39,7 @@ public class FtpPatternMatchingFileListFilter extends AbstractPatternMatchingFil
 
 	@Override
 	protected String getFilename(FTPFile file) {
-		return file.getName();
+		return (file != null) ? file.getName() : null;
 	}
 
 }
