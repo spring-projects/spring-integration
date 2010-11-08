@@ -17,11 +17,7 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
 
-	<twitter:twitter-connection id="twitter" 
-			consumer-key="consumerKey" 
-			consumer-secret="consumerSecret" 
-			access-token="accessToken"  
-			access-token-secret="accessTokenSecret"/>
+	<beans:bean id="twitter" class="org.springframework.integration.twitter.config.TestReceivingMessageSourceParserTests.TwitterTemplateFactoryBean"/>
 	
 	<channel id="inbound_mentions"/>
 	

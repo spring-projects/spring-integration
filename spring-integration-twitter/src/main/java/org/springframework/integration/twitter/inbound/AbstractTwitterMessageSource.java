@@ -33,6 +33,7 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -67,7 +68,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	protected volatile long markerId = -1;
 
-	protected final Twitter twitter;
+	protected final TwitterOperations twitter;
 
 	private final Object markerGuard = new Object();
 
@@ -75,7 +76,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
 
-	public AbstractTwitterMessageSource(Twitter twitter){
+	public AbstractTwitterMessageSource(TwitterOperations twitter){
 		this.twitter = twitter;
 	}
 
@@ -120,8 +121,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		String accessToken = twitter.getOAuthAccessToken().getToken();
-		metadataKeyBuilder.append(accessToken);
+		String profileId = twitter.getProfileId();
+		metadataKeyBuilder.append(profileId);
 		this.metadataKey = metadataKeyBuilder.toString();
 	}
 

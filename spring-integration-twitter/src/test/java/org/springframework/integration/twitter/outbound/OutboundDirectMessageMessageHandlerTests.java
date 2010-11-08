@@ -23,16 +23,16 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.GeoLocation;
-import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
  */
 public class OutboundDirectMessageMessageHandlerTests {
 
-	private Twitter twitter = mock(Twitter.class);
+	private TwitterOperations twitter = mock(TwitterOperations.class);
 
 	@Test
 	public void validateSendDirectMessage() throws Exception{

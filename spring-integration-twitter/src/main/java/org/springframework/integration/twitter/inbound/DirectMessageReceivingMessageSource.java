@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.CollectionUtils;
 
 import twitter4j.DirectMessage;
@@ -34,7 +35,7 @@ import twitter4j.Twitter;
  */
 public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
 	
-	public DirectMessageReceivingMessageSource(Twitter twitter){
+	public DirectMessageReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
 	}
 	

@@ -18,11 +18,7 @@
 						http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.0.xsd">
 
 
-	<twitter:twitter-connection id="twitter" 
-			consumer-key="consumerKey" 
-			consumer-secret="consumerSecret" 
-			access-token="accessToken"  
-			access-token-secret="accessTokenSecret"/>
+	<beans:bean id="twitter" class="org.springframework.integration.twitter.core.Twitter4jTemplate"/>
 			
 	<channel id="inbound_mentions"/>
 	

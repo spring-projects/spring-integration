@@ -23,13 +23,13 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Queue;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.CollectionUtils;
 
@@ -37,8 +37,6 @@ import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
-import twitter4j.Twitter;
-import twitter4j.http.AccessToken;
 
 /**
  * @author Oleg Zhurakousky
@@ -49,12 +47,12 @@ public class DirectMessageReceivingMessageSourceTests {
 
 	private DirectMessage secondMessage;
 
-	private Twitter twitter = mock(Twitter.class);
+	private TwitterOperations twitter;
 
 
 	@Before
 	public void prepare() throws Exception{
-		twitter = mock(Twitter.class);
+		twitter = mock(TwitterOperations.class);
 		firstMessage = mock(DirectMessage.class);
 		when(firstMessage.getCreatedAt()).thenReturn(new Date(5555555555L));
 		when(firstMessage.getId()).thenReturn(200);
@@ -63,7 +61,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		when(secondMessage.getId()).thenReturn(2000);
 		
 		
-		when(twitter.getOAuthAccessToken()).thenReturn(new AccessToken("token123", "tokenSecret123"));
+		when(twitter.getProfileId()).thenReturn("kermit");
 	}
 
 
@@ -76,7 +74,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
 		source.start();
-		assertEquals("twitter:inbound-dm-channel-adapter.twitterEndpoint.token123", TestUtils.getPropertyValue(source, "metadataKey"));
+		assertEquals("twitter:inbound-dm-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
 		assertTrue(source.isRunning());
 	}
 	

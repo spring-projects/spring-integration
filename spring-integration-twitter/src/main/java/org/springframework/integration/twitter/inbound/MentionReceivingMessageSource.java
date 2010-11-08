@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.inbound;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.Paging;
 import twitter4j.Status;
@@ -31,7 +32,7 @@ import twitter4j.Twitter;
  */
 public class MentionReceivingMessageSource extends AbstractTwitterMessageSource<Status> {
 
-	public MentionReceivingMessageSource(Twitter twitter){
+	public MentionReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
 	}
 	@Override

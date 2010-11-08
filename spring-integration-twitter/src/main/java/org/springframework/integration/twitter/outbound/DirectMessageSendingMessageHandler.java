@@ -17,12 +17,9 @@
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.twitter.core.TwitterHeaders;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
-
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
 
 /**
  * Simple adapter to support sending outbound direct messages ("DM"s) using twitter
@@ -33,7 +30,7 @@ import twitter4j.TwitterException;
  */
 public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
-	public DirectMessageSendingMessageHandler(Twitter twitter){
+	public DirectMessageSendingMessageHandler(TwitterOperations twitter){
 		super(twitter);
 	}
 	
@@ -42,7 +39,7 @@ public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterE
 		if (this.twitter == null) {
 			this.afterPropertiesSet();
 		}
-		try {
+//		try {
 			Assert.isInstanceOf(String.class, message.getPayload(), "Only payload of type String is supported. If your payload " +
 					"is not of type String consider adding a transformer to the message flow in front of this adapter.");
 			Assert.isTrue(message.getHeaders().containsKey(TwitterHeaders.DM_TARGET_USER_ID), 
@@ -58,10 +55,10 @@ public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterE
 			else if (toUser instanceof String) {
 				this.twitter.sendDirectMessage((String) toUser, payload);
 			}
-		}
-		catch (TwitterException e) {
-			throw new MessageHandlingException(message, e);
-		}
+//		}
+//		catch (TwitterException e) {
+//			throw new MessageHandlingException(message, e);
+//		}
 	}
 
 }

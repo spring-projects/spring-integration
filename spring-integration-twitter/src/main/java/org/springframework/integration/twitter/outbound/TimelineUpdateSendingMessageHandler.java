@@ -16,6 +16,7 @@
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 
 import twitter4j.StatusUpdate;
@@ -30,7 +31,7 @@ import twitter4j.Twitter;
  */
 public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
-	public TimelineUpdateSendingMessageHandler(Twitter twitter){
+	public TimelineUpdateSendingMessageHandler(TwitterOperations twitter){
 		super(twitter);
 	}
 	
