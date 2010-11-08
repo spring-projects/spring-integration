@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.filters;
 
-import org.springframework.integration.file.entries.FileEntryNamer;
+import org.springframework.integration.file.entries.FileEntryNameExtractor;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 import org.springframework.util.Assert;
 
@@ -38,11 +38,11 @@ public class PatternMatchingFileListFilter extends PatternMatchingEntryListFilte
 	 * Create a file filter for the given pattern.
 	 */
 	public PatternMatchingFileListFilter(Pattern pattern) {
-		super(new FileEntryNamer(), pattern);
+		super(new FileEntryNameExtractor(), pattern);
 	}
 
 	public PatternMatchingFileListFilter(String pattern) {
-		super(new FileEntryNamer(), pattern);
+		super(new FileEntryNameExtractor(), pattern);
 	}
 
 	/**

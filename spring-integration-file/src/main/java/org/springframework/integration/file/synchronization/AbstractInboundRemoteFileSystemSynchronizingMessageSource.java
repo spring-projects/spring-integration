@@ -30,7 +30,7 @@ import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
-import org.springframework.integration.file.entries.FileEntryNamer;
+import org.springframework.integration.file.entries.FileEntryNameExtractor;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 
 /**
@@ -155,11 +155,11 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 
 	@SuppressWarnings("unchecked")
 	private EntryListFilter<File> buildFilter() {
-		FileEntryNamer fileEntryNamer = new FileEntryNamer();
+		FileEntryNameExtractor fileEntryNameExtractor = new FileEntryNameExtractor();
 		Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
 		return new CompositeEntryListFilter<File>(Arrays.asList(
 				new AcceptOnceEntryFileListFilter<File>(),
-				new PatternMatchingEntryListFilter<File>(fileEntryNamer, completePattern)));
+				new PatternMatchingEntryListFilter<File>(fileEntryNameExtractor, completePattern)));
 	}
 
 }

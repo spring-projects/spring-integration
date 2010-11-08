@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.ftp;
 
-import org.springframework.integration.file.entries.EntryNamer;
-
-import com.jcraft.jsch.ChannelSftp;
+import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.integration.file.entries.EntryNameExtractor;
 
 /**
- * Stratgy for naming a {@link com.jcraft.jsch.ChannelSftp.LsEntry} instance.
+ * A {@link org.springframework.integration.file.entries.EntryNameExtractor} for {@link org.apache.commons.net.ftp.FTPFile} objects
  *
  * @author Josh Long
  */
-public class SftpEntryNamer implements EntryNamer<ChannelSftp.LsEntry> {
+public class FtpFileEntryNameExtractor implements EntryNameExtractor<FTPFile> {
 
-	public String nameOf(ChannelSftp.LsEntry entry) {
-		return entry.getFilename();
+	public String getName(FTPFile entry) {
+		return entry.getName();
 	}
 
 }

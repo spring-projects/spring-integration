@@ -23,7 +23,7 @@ import org.springframework.util.StringUtils;
 import java.util.regex.Pattern;
 
 /**
- * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNamer})
+ * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNameExtractor})
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
  * @author Iwein Fuld
@@ -33,26 +33,26 @@ import java.util.regex.Pattern;
  */
 public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
 
-	private volatile EntryNamer<T> entryNamer;
+	private volatile EntryNameExtractor<T> entryNameExtractor;
 
 	private volatile Pattern pattern;
 
 	private volatile String patternExpression;
 
 
-	public PatternMatchingEntryListFilter(EntryNamer<T> en, String p) {
-		this.entryNamer = en;
-		this.patternExpression = p;
+	public PatternMatchingEntryListFilter(EntryNameExtractor<T> entryNameExtractor, String pattern) {
+		this.entryNameExtractor = entryNameExtractor;
+		this.patternExpression = pattern;
 	}
 
-	public PatternMatchingEntryListFilter(EntryNamer<T> en, Pattern p) {
-		this.entryNamer = en;
-		this.pattern = p;
+	public PatternMatchingEntryListFilter(EntryNameExtractor<T> entryNameExtractor, Pattern pattern) {
+		this.entryNameExtractor = entryNameExtractor;
+		this.pattern = pattern;
 	}
 
 
-	public void setEntryNamer(EntryNamer<T> entryNamer) {
-		this.entryNamer = entryNamer;
+	public void setEntryNameExtractor(EntryNameExtractor<T> entryNameExtractor) {
+		this.entryNameExtractor = entryNameExtractor;
 	}
 
 	public void setPattern(Pattern pattern) {
@@ -67,13 +67,13 @@ public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T
 		if (StringUtils.hasText(this.patternExpression) && (pattern == null)) {
 			this.pattern = Pattern.compile(this.patternExpression);
 		}
-		Assert.notNull(this.entryNamer, "'entryNamer' must not be null!");
+		Assert.notNull(this.entryNameExtractor, "'entryNameExtractor' must not be null!");
 		Assert.notNull(this.pattern, "'pattern' must not be null!");
 	}
 
 	@Override
 	public boolean accept(T entry) {
-		return (entry != null) && this.pattern.matcher(this.entryNamer.nameOf(entry)).matches();
+		return (entry != null) && this.pattern.matcher(this.entryNameExtractor.getName(entry)).matches();
 	}
 
 }

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.file.entries;
 
-import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.integration.file.entries.EntryNamer;
+import java.io.File;
 
 /**
- * A {@link org.springframework.integration.file.entries.EntryNamer} for {@link org.apache.commons.net.ftp.FTPFile} objects
- *
+ * {@link java.io.File}-based implementation of the {@link EntryNameExtractor} strategy.
+ * 
  * @author Josh Long
+ * @since 2.0
  */
-public class FtpFileEntryNamer implements EntryNamer<FTPFile> {
+public class FileEntryNameExtractor implements EntryNameExtractor<File> {
 
-	public String nameOf(FTPFile entry) {
-		return entry.getName();
+	public String getName(File entry) {
+		return (entry != null) ? entry.getName() : null;
 	}
 
 }

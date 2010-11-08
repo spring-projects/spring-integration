@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.entries;
+package org.springframework.integration.sftp;
 
-import java.io.File;
+import org.springframework.integration.file.entries.EntryNameExtractor;
+
+import com.jcraft.jsch.ChannelSftp;
 
 /**
- * {@link java.io.File}-based implementation of the {@link EntryNamer} strategy.
- * 
+ * Stratgy for naming a {@link com.jcraft.jsch.ChannelSftp.LsEntry} instance.
+ *
  * @author Josh Long
- * @since 2.0
  */
-public class FileEntryNamer implements EntryNamer<File> {
+public class SftpEntryNameExtractor implements EntryNameExtractor<ChannelSftp.LsEntry> {
 
-	public String nameOf(File entry) {
-		return (entry != null) ? entry.getName() : null;
+	public String getName(ChannelSftp.LsEntry entry) {
+		return entry.getFilename();
 	}
 
 }

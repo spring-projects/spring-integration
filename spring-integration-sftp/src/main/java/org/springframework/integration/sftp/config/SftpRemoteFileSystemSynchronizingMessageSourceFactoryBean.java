@@ -27,7 +27,7 @@ import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 import org.springframework.integration.sftp.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.SftpEntryNamer;
+import org.springframework.integration.sftp.SftpEntryNameExtractor;
 import org.springframework.integration.sftp.SftpSessionFactory;
 import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizer;
 import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizingMessageSource;
@@ -169,10 +169,11 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.localDirectoryResource = this.resourceFromString(localDirectoryPath);
 
 		// remote predicates
-		SftpEntryNamer sftpEntryNamer = new SftpEntryNamer();
+		SftpEntryNameExtractor sftpEntryNameExtractor = new SftpEntryNameExtractor();
 		CompositeEntryListFilter<ChannelSftp.LsEntry> compositeFtpFileListFilter = new CompositeEntryListFilter<ChannelSftp.LsEntry>();
 		if (StringUtils.hasText(this.filenamePattern)) {
-			PatternMatchingEntryListFilter<ChannelSftp.LsEntry> ftpFilePatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(sftpEntryNamer, filenamePattern);
+			PatternMatchingEntryListFilter<ChannelSftp.LsEntry> ftpFilePatternMatchingEntryListFilter =
+					new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(sftpEntryNameExtractor, filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
 		}
 		if (this.filter != null) {

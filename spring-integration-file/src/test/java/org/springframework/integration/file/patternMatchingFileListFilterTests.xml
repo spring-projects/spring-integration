@@ -10,7 +10,7 @@
     -->
     <bean id="filter" class="org.springframework.integration.file.entries.PatternMatchingEntryListFilter">
         <constructor-arg>
-            <bean class="org.springframework.integration.file.entries.FileEntryNamer"/>
+            <bean class="org.springframework.integration.file.entries.FileEntryNameExtractor"/>
         </constructor-arg>
         <constructor-arg value="fo+\.[tx]{3}"/>
     </bean>

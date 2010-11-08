@@ -154,11 +154,11 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 			this.localWorkingDirectory = "file://" + tmp.getAbsolutePath();
 		}
 		this.localDirectoryResource = this.fromText(this.localWorkingDirectory);
-		FtpFileEntryNamer ftpFileEntryNamer = new FtpFileEntryNamer();
+		FtpFileEntryNameExtractor fileEntryNameExtractor = new FtpFileEntryNameExtractor();
 		CompositeEntryListFilter<FTPFile> compositeFtpFileListFilter = new CompositeEntryListFilter<FTPFile>();
 		if (StringUtils.hasText(this.filenamePattern)) {
 			PatternMatchingEntryListFilter<FTPFile> ftpFilePatternMatchingEntryListFilter =
-					new PatternMatchingEntryListFilter<FTPFile>(ftpFileEntryNamer, filenamePattern);
+					new PatternMatchingEntryListFilter<FTPFile>(fileEntryNameExtractor, filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
 		}
 		if (this.filter != null) {
