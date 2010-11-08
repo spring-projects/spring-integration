@@ -33,13 +33,13 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Status;
-import twitter4j.Twitter;
 
 /**
  * Abstract class that defines common operations for receiving various types of
@@ -137,9 +137,9 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	abstract Runnable getApiCallback();
 	
 	protected Comparator getComparator() {
-		return new Comparator<Status>() {
-			public int compare(Status status, Status status1) {
-				return status.getCreatedAt().compareTo(status1.getCreatedAt());
+		return new Comparator<Tweet>() {
+			public int compare(Tweet tweet1, Tweet tweet2) {
+				return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
 			}
 		};
 	}
@@ -170,11 +170,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		synchronized (this.markerGuard) {
 			
 			long id = 0;
-			if (tweet instanceof DirectMessage) {
-				id = ((DirectMessage) tweet).getId();
-			}
-			else if (tweet instanceof Status) {
-				id = ((Status) tweet).getId();
+			if (tweet instanceof Tweet) {
+				id = ((Tweet) tweet).getId();
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported type of Twitter message: " + tweet.getClass());

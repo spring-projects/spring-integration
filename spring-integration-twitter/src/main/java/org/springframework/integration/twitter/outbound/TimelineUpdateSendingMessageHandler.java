@@ -16,16 +16,15 @@
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
-import org.springframework.util.Assert;
-
-import twitter4j.StatusUpdate;
 
 
 /**
  * This class is useful for both sending regular status updates as well as 'replies' or 'mentions'
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
@@ -36,9 +35,8 @@ public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitter
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		StatusUpdate statusUpdate = this.supportStatusUpdate.fromMessage(message);
-		Assert.notNull(statusUpdate, "couldn't send message, unable to build a StatusUpdate instance correctly");
-		this.twitter.updateStatus(statusUpdate);
+		Tweet tweet = this.outboundMaper.fromMessage(message);
+		this.twitter.updateStatus(tweet);
 	}
 
 }

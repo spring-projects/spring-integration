@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractMessageHandler {
 	protected final TwitterOperations twitter;
-	protected final OutboundStatusUpdateMessageMapper supportStatusUpdate = new OutboundStatusUpdateMessageMapper();
+	protected final OutboundTweetMessageMapper outboundMaper = new OutboundTweetMessageMapper();
 
 	public AbstractOutboundTwitterEndpointSupport(TwitterOperations twitter){
 		Assert.notNull(twitter, "'twitter' must not be null");

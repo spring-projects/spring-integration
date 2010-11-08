@@ -26,27 +26,28 @@
     <channel id="inbound_mentions"/>
     <channel id="inbound_updates"/>
 
-    <twitter:twitter-connection id="tc"
-                                access-token="${twitter.oauth.accessToken}"
-                                access-token-secret="${twitter.oauth.accessTokenSecret}"
-                                consumer-key="${twitter.oauth.consumerKey}"
-                                consumer-secret="${twitter.oauth.consumerSecret}"/>
+	<beans:bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessTokenSecret}"/>
+	</beans:bean>
 
 
-    <twitter:inbound-mention-channel-adapter twitter-connection="tc" channel="inbound_mentions">
-    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-mention-channel-adapter>
-    <service-activator input-channel="inbound_mentions" ref="twitterAnnouncer" method="mention"/>
+<!--    <twitter:inbound-mention-channel-adapter twitter-template="twitterTemplate" channel="inbound_mentions">-->
+<!--    	<poller fixed-rate="5000" max-messages-per-poll="3"/>-->
+<!--    </twitter:inbound-mention-channel-adapter>-->
+<!--    <service-activator input-channel="inbound_mentions" ref="twitterAnnouncer" method="mention"/>-->
 
-    <twitter:inbound-dm-channel-adapter twitter-connection="tc" channel="inbound_dm">
+    <twitter:inbound-dm-channel-adapter twitter-template="twitterTemplate" channel="inbound_dm">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
     </twitter:inbound-dm-channel-adapter>
     <service-activator input-channel="inbound_dm" ref="twitterAnnouncer" method="dm"/>
 
-    <twitter:inbound-update-channel-adapter id="twitterInbound" twitter-connection="tc" channel="inbound_updates">
-    	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-update-channel-adapter>
-    <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>
+<!--    <twitter:inbound-update-channel-adapter id="twitterInbound" twitter-template="twitterTemplate" channel="inbound_updates">-->
+<!--    	<poller fixed-rate="5000" max-messages-per-poll="3"/>-->
+<!--    </twitter:inbound-update-channel-adapter>-->
+<!--    <service-activator input-channel="inbound_updates" ref="twitterAnnouncer" method="updates"/>-->
 
 	<beans:bean id="twitterAnnouncer" class="org.springframework.integration.twitter.ignored.TwitterAnnouncer"/>
 </beans:beans>

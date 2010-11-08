@@ -15,12 +15,13 @@
  */
 package org.springframework.integration.twitter.inbound;
 
+import java.util.List;
+
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.Paging;
-import twitter4j.Status;
-import twitter4j.Twitter;
 
 
 /**
@@ -31,7 +32,7 @@ import twitter4j.Twitter;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessageSource<Status> {
+public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 	
 	public TimelineUpdateReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
@@ -48,9 +49,8 @@ public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessage
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						forwardAll(!hasMarkedStatus()
-								? twitter.getFriendsTimeline() 
-								: twitter.getFriendsTimeline(new Paging(sinceId)));
+						List<Tweet> tweets = !hasMarkedStatus() ? twitter.getFriendsTimeline()  : twitter.getFriendsTimeline(new Paging(sinceId));
+						forwardAll(tweets);
 					}	
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){

@@ -19,10 +19,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.CollectionUtils;
 
-import twitter4j.DirectMessage;
 import twitter4j.Paging;
 
 /**
@@ -32,7 +32,7 @@ import twitter4j.Paging;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
+public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 	
 	public DirectMessageReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
@@ -50,7 +50,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						List<twitter4j.DirectMessage> dms = !hasMarkedStatus() 
+						List<Tweet> dms = !hasMarkedStatus() 
 							? twitter.getDirectMessages() 
 							: twitter.getDirectMessages(new Paging(sinceId));
 			
@@ -74,9 +74,9 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 
 	@SuppressWarnings("rawtypes")
 	protected Comparator getComparator() {
-		return new Comparator<DirectMessage>() {
-			public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
-				return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
+		return new Comparator<Tweet>() {
+			public int compare(Tweet tweet1, Tweet tweet2) {
+				return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
 			}
 		};
 	}

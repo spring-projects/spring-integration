@@ -22,21 +22,21 @@ public interface TwitterOperations {
 	
 	RateLimitStatus getRateLimitStatus();
 	
-	List<DirectMessage> getDirectMessages();
+	List<Tweet> getDirectMessages();
 	
-	List<DirectMessage> getDirectMessages(Paging paging);
+	List<Tweet> getDirectMessages(Paging paging);
 	
-	List<Status> getMentions();
+	List<Tweet> getMentions();
 	
-	List<Status> getMentions(Paging paging);
+	List<Tweet> getMentions(Paging paging);
 	
-	List<Status> getFriendsTimeline();
+	List<Tweet> getFriendsTimeline();
 	
-	List<Status> getFriendsTimeline(Paging paging);
+	List<Tweet> getFriendsTimeline(Paging paging);
 	
 	void sendDirectMessage(String userName, String text);
 	
 	void sendDirectMessage(int userId, String text);
 	
-	void updateStatus(StatusUpdate status);
+	void updateStatus(Tweet status);
 }

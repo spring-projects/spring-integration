@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.CollectionUtils;
@@ -43,9 +44,9 @@ import twitter4j.ResponseList;
  */
 public class DirectMessageReceivingMessageSourceTests {
 
-	private DirectMessage firstMessage;
+	private Tweet firstMessage;
 
-	private DirectMessage secondMessage;
+	private Tweet secondMessage;
 
 	private TwitterOperations twitter;
 
@@ -53,12 +54,12 @@ public class DirectMessageReceivingMessageSourceTests {
 	@Before
 	public void prepare() throws Exception{
 		twitter = mock(TwitterOperations.class);
-		firstMessage = mock(DirectMessage.class);
+		firstMessage = mock(Tweet.class);
 		when(firstMessage.getCreatedAt()).thenReturn(new Date(5555555555L));
-		when(firstMessage.getId()).thenReturn(200);
-		secondMessage = mock(DirectMessage.class);
+		when(firstMessage.getId()).thenReturn((long) 200);
+		secondMessage = mock(Tweet.class);
 		when(secondMessage.getCreatedAt()).thenReturn(new Date(2222222222L));
-		when(secondMessage.getId()).thenReturn(2000);
+		when(secondMessage.getId()).thenReturn((long) 2000);
 		
 		
 		when(twitter.getProfileId()).thenReturn("kermit");
@@ -95,7 +96,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
 		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
-		DirectMessage message = (DirectMessage) msg.poll();
+		Tweet message = (Tweet) msg.poll();
 		assertEquals(secondMessage, message);
 		
 	}

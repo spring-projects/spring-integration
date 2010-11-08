@@ -28,6 +28,7 @@ import org.mockito.Mockito;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
@@ -58,8 +59,10 @@ public class TimelineUpdateSendingMessageHandlerTests {
 	@Test
 	public void testSendingStatusUpdate() throws Exception{
 		TimelineUpdateSendingMessageHandler handler = new TimelineUpdateSendingMessageHandler(twitterOperations);
-		handler.handleMessage(new GenericMessage("writing twitter tests"));
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
+		Tweet tweet = new Tweet();
+		tweet.setText("writing twitter tests");
+		handler.handleMessage(new GenericMessage(tweet));
+		verify(twitterOperations, times(1)).updateStatus(Mockito.any(Tweet.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 	@Test
@@ -72,7 +75,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 		.build();
 		handler.handleMessage(message);
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
+		verify(twitterOperations, times(1)).updateStatus(Mockito.any(Tweet.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 }

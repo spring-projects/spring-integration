@@ -18,10 +18,9 @@ package org.springframework.integration.twitter.outbound;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.util.StringUtils;
 
-import twitter4j.GeoLocation;
 import twitter4j.StatusUpdate;
 
 /**
@@ -33,7 +32,7 @@ import twitter4j.StatusUpdate;
  * @see twitter4j.StatusUpdate
  * @see org.springframework.integration.twitter.core.TwitterHeaders
  */
-public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<StatusUpdate> {
+public class OutboundTweetMessageMapper implements OutboundMessageMapper<Tweet> {
 
 	/**
 	 * {@link StatusUpdate} instances are used to drive status updates.
@@ -41,45 +40,45 @@ public class OutboundStatusUpdateMessageMapper implements OutboundMessageMapper<
 	 * @param message the inbound messages
 	 * @return a {@link StatusUpdate}  that's been materialized from the inbound message
 	 */
-	public StatusUpdate fromMessage(Message<?> message) {
+	public Tweet fromMessage(Message<?> message) {
 		Object payload = message.getPayload();
-		StatusUpdate statusUpdate = null;
+		Tweet tweet = null;
 		if (payload instanceof String) {
-			statusUpdate = new StatusUpdate((String) payload);
+			tweet = new Tweet();
 			if (message.getHeaders().containsKey(TwitterHeaders.IN_REPLY_TO_STATUS_ID)) {
 				Long replyId = (Long) message.getHeaders().get(TwitterHeaders.IN_REPLY_TO_STATUS_ID);
 				if ((replyId != null) && (replyId > 0)) {
-					statusUpdate.inReplyToStatusId(replyId);
+					tweet.setToUserId(replyId);
 				}
 			}
-			if (message.getHeaders().containsKey(TwitterHeaders.PLACE_ID)) {
-				String placeId = (String) message.getHeaders().get(TwitterHeaders.PLACE_ID);
-				if (StringUtils.hasText(placeId)) {
-					statusUpdate.placeId(placeId);
-				}
-			}
-			if (message.getHeaders().containsKey(TwitterHeaders.GEOLOCATION)) {
-				GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.GEOLOCATION);
-				if (null != geoLocation) {
-					statusUpdate.location(geoLocation);
-				}
-			}
-			if (message.getHeaders().containsKey(TwitterHeaders.DISPLAY_COORDINATES)) {
-				Boolean displayCoords = (Boolean) message.getHeaders().get(TwitterHeaders.DISPLAY_COORDINATES);
-				if (displayCoords != null) {
-					statusUpdate.displayCoordinates(displayCoords);
-				}
-			}
+//			if (message.getHeaders().containsKey(TwitterHeaders.PLACE_ID)) {
+//				String placeId = (String) message.getHeaders().get(TwitterHeaders.PLACE_ID);
+//				if (StringUtils.hasText(placeId)) {
+//					statusUpdate.placeId(placeId);
+//				}
+//			}
+//			if (message.getHeaders().containsKey(TwitterHeaders.GEOLOCATION)) {
+//				GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.GEOLOCATION);
+//				if (null != geoLocation) {
+//					statusUpdate.location(geoLocation);
+//				}
+//			}
+//			if (message.getHeaders().containsKey(TwitterHeaders.DISPLAY_COORDINATES)) {
+//				Boolean displayCoords = (Boolean) message.getHeaders().get(TwitterHeaders.DISPLAY_COORDINATES);
+//				if (displayCoords != null) {
+//					statusUpdate.displayCoordinates(displayCoords);
+//				}
+//			}
 		}
-		else if (payload instanceof StatusUpdate) {
-			statusUpdate = (StatusUpdate) payload;
+		else if (payload instanceof Tweet) {
+			tweet = (Tweet) payload;
 		}
 		else {
 			throw new MessageHandlingException(message,
-					"Failed to create StatusUpdate from payload of type '" + message.getPayload().getClass() +
-					"'. Only java.lang.String and twitter4j.StatusUpdate are currently supported.");
+					"Failed to create Tweet from payload of type '" + message.getPayload().getClass() +
+					"'. Only java.lang.String and org.springframework.integration.twitter.core.Tweet are currently supported.");
 		}
-		return statusUpdate;
+		return tweet;
 	}
 
 }

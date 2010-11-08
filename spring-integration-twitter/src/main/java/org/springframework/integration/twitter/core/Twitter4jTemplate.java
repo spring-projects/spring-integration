@@ -3,6 +3,7 @@
  */
 package org.springframework.integration.twitter.core;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.util.Assert;
@@ -10,6 +11,7 @@ import org.springframework.util.Assert;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
+import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -67,54 +69,61 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<DirectMessage> getDirectMessages() {
+	public List<Tweet> getDirectMessages() {
+		
 		try {
-			return twitter.getDirectMessages();
+			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages();
+			return this.buildTweetsFromTwitterResponses(directMessages);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Direct Messages ", e);
 		}
 	}
 	@Override
-	public List<DirectMessage> getDirectMessages(Paging paging) {
+	public List<Tweet> getDirectMessages(Paging paging) {
 		try {
-			return twitter.getDirectMessages(paging);
+			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(paging);
+			return this.buildTweetsFromTwitterResponses(directMessages);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Direct Messages ", e);
 		}
 	}
 	@Override
-	public List<Status> getMentions() {
+	public List<Tweet> getMentions() {
 		try {
-			return twitter.getMentions();
+			ResponseList<Status> mentions = twitter.getMentions();
+			return this.buildTweetsFromTwitterResponses(mentions);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Mention statuses ", e);
 		}
 	}
 	@Override
-	public List<Status> getMentions(Paging paging) {
+	public List<Tweet> getMentions(Paging paging) {
 		try {
-			return twitter.getMentions(paging);
+			ResponseList<Status> mentions = twitter.getMentions(paging);
+			return this.buildTweetsFromTwitterResponses(mentions);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Mention statuses ", e);
 		}
 	}
 	@Override
-	public List<Status> getFriendsTimeline() {
+	public List<Tweet> getFriendsTimeline() {
 		try {
-			return twitter.getFriendsTimeline();
+			ResponseList<Status> timelines = twitter.getFriendsTimeline();
+			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Timeline statuses ", e);
 		}
 	}
 	@Override
-	public List<Status> getFriendsTimeline(Paging paging) {
+	public List<Tweet> getFriendsTimeline(Paging paging) {
 		try {
-			return twitter.getFriendsTimeline(paging);
+			ResponseList<Status> timelines = twitter.getFriendsTimeline(paging);
+			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to receive Timeline statuses ", e);
@@ -122,6 +131,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 	}
 	@Override
 	public void sendDirectMessage(String userName, String text) {
+		Assert.hasText(userName, "'userName' must be set");
+		Assert.hasText(text, "'text' must be set");
 		try {
 			twitter.sendDirectMessage(userName, text);
 		} 
@@ -131,6 +142,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 	}
 	@Override
 	public void sendDirectMessage(int userId, String text) {
+		Assert.state(userId > 0, "'userId' msut be provided");
+		Assert.hasText(text, "'text' must be set");
 		try {
 			twitter.sendDirectMessage(userId, text);
 		} 
@@ -138,13 +151,57 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Direct Message ", e);
 		}
 	}
+	
 	@Override
-	public void updateStatus(StatusUpdate status) {
+	public void updateStatus(Tweet statusTweet) {
+		Assert.notNull(statusTweet, "'statusTweet' must not be null");
 		try {
+			StatusUpdate status = new StatusUpdate(statusTweet.getText());
+			if (statusTweet.getToUserId() != null){
+				status.setInReplyToStatusId(statusTweet.getToUserId());
+			}
 			twitter.updateStatus(status);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to send Status update ", e);
 		}
+	}
+	
+	private List<Tweet> buildTweetsFromTwitterResponses(List<?> responses){
+		List<Tweet> tweets = new LinkedList<Tweet>();
+		if (responses != null){
+			for (Object response : responses) {
+				if (response instanceof Status){
+					tweets.add(this.buildTweetFromStatus((Status) response));
+				}
+				else {
+					tweets.add(this.buildTweetFromDm((DirectMessage) response));
+				}
+			}
+		}
+		return tweets;
+	}
+	
+	private Tweet buildTweetFromDm(DirectMessage dm){
+		Tweet tweet = new Tweet();
+		tweet.setCreatedAt(dm.getCreatedAt());
+		tweet.setFromUser(dm.getSenderScreenName());
+		tweet.setFromUserId(dm.getSenderId());
+		tweet.setId(dm.getId());
+		tweet.setText(dm.getText());
+		tweet.setToUserId((long)dm.getRecipientId());
+		return tweet;
+	}
+	
+	private Tweet buildTweetFromStatus(Status status){
+		Tweet tweet = new Tweet();
+		tweet.setCreatedAt(status.getCreatedAt());
+		tweet.setFromUser(status.getInReplyToScreenName());
+		tweet.setFromUserId(status.getInReplyToUserId());
+		tweet.setId(status.getId());
+		tweet.setSource(status.getSource());
+		tweet.setText(status.getText());
+		tweet.setToUserId((long)status.getUser().getId());
+		return tweet;
 	}
 }

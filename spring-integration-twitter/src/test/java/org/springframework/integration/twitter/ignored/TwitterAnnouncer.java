@@ -15,24 +15,22 @@
  */
 package org.springframework.integration.twitter.ignored;
 
+import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.stereotype.Component;
-
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 
 
 @Component
 public class TwitterAnnouncer {
-	public void dm(DirectMessage directMessage) {
+	public void dm(Tweet directMessage) {
 		System.out.println("A direct message has been received from " +
-				directMessage.getSender().getScreenName() + " with text " + directMessage.getText());
+				directMessage.getFromUser() + " with text " + directMessage.getText());
 	}
 
-	public void mention(Status s) {
+	public void mention(Tweet s) {
 		System.out.println("A tweet mentioning (or replying) to " + "you was received having text " + s.getText() + " from " + s.getSource());
 	}
 
-	public void updates(Status t) {
+	public void updates(Tweet t) {
 		System.out.println("Received timeline update: " + t.getText() + " from " + t.getSource());
 	}
 }
