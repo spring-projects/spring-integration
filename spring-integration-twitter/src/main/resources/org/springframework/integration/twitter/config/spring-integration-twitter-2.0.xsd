@@ -13,21 +13,6 @@
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
 				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
-	<xsd:element name="twitter-connection">
-		<xsd:annotation>
-			<xsd:documentation>
-				Sets up an instance of OAuthConfiguration which all adapters need to function properly
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="consumer-key" type="xsd:string" use="required"/>
-			<xsd:attribute name="consumer-secret" type="xsd:string" use="required"/>
-			<xsd:attribute name="access-token" type="xsd:string" use="required"/>
-			<xsd:attribute name="access-token-secret" type="xsd:string" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-
 	<!--
 		This defines the beans we have for working with Twitter
 		-->
