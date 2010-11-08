@@ -70,16 +70,11 @@ public class Twitter4jTemplateTests {
 		when(twitter.getScreenName()).thenReturn("kermit");
 		assertEquals("kermit", template.getProfileId());
 	}
-	@Test
-	public void testRateLimitStatus() throws Exception{
-		template.getRateLimitStatus();
-		verify(twitter, times(1)).getRateLimitStatus();
-	}
 	
 	@Test
 	public void testGetDirectMessages() throws Exception{
 		template.getDirectMessages();
-		template.getDirectMessages(new Paging());
+		template.getDirectMessages(123);
 		verify(twitter, times(1)).getDirectMessages();
 		verify(twitter, times(1)).getDirectMessages(Mockito.any(Paging.class));
 	}
@@ -87,7 +82,7 @@ public class Twitter4jTemplateTests {
 	@Test
 	public void testGetMentions() throws Exception{
 		template.getMentions();
-		template.getMentions(new Paging());
+		template.getMentions(123);
 		verify(twitter, times(1)).getMentions();
 		verify(twitter, times(1)).getMentions(Mockito.any(Paging.class));
 	}
@@ -95,7 +90,7 @@ public class Twitter4jTemplateTests {
 	@Test
 	public void testGetFriendsTimeline() throws Exception{
 		template.getFriendsTimeline();
-		template.getFriendsTimeline(new Paging());
+		template.getFriendsTimeline(123);
 		verify(twitter, times(1)).getFriendsTimeline();
 		verify(twitter, times(1)).getFriendsTimeline(Mockito.any(Paging.class));
 	}

@@ -49,7 +49,9 @@ public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessage
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						List<Tweet> tweets = !hasMarkedStatus() ? twitter.getFriendsTimeline()  : twitter.getFriendsTimeline(new Paging(sinceId));
+						List<Tweet> tweets = !hasMarkedStatus() 
+								? twitter.getFriendsTimeline()  
+								: twitter.getFriendsTimeline(sinceId);
 						forwardAll(tweets);
 					}	
 				} catch (Exception e) {

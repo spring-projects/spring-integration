@@ -47,7 +47,7 @@ public class MentionReceivingMessageSource extends AbstractTwitterMessageSource<
 					if (tweets.size() <= prefetchThreshold){
 						List<Tweet> stats = (!hasMarkedStatus())
 						? twitter.getMentions()
-						: twitter.getMentions(new Paging(sinceId));
+						: twitter.getMentions(sinceId);
 						forwardAll(stats);
 					}
 				} catch (Exception e) {

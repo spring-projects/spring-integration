@@ -17,7 +17,6 @@ package org.springframework.integration.twitter.core;
 
 import java.util.List;
 
-import twitter4j.Paging;
 import twitter4j.Twitter;
 
 /**
@@ -31,15 +30,15 @@ public interface TwitterOperations {
 	
 	List<Tweet> getDirectMessages();
 	
-	List<Tweet> getDirectMessages(Paging paging);
+	List<Tweet> getDirectMessages(long sinceId);
 	
 	List<Tweet> getMentions();
 	
-	List<Tweet> getMentions(Paging paging);
+	List<Tweet> getMentions(long sinceId);
 	
 	List<Tweet> getFriendsTimeline();
 	
-	List<Tweet> getFriendsTimeline(Paging paging);
+	List<Tweet> getFriendsTimeline(long sinceId);
 	
 	void sendDirectMessage(String userName, String text);
 	

@@ -19,9 +19,12 @@ package org.springframework.integration.twitter.inbound;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Queue;
 
@@ -48,8 +51,14 @@ public class DirectMessageReceivingMessageSourceTests {
 	private Tweet firstMessage;
 
 	private Tweet secondMessage;
+	
+	private Tweet thirdMessage;
+
+	private Tweet fourthMessage;
 
 	private TwitterOperations twitter;
+	
+	Twitter tw;
 
 
 	@Before
@@ -61,6 +70,14 @@ public class DirectMessageReceivingMessageSourceTests {
 		secondMessage = mock(Tweet.class);
 		when(secondMessage.getCreatedAt()).thenReturn(new Date(2222222222L));
 		when(secondMessage.getId()).thenReturn((long) 2000);
+		
+		thirdMessage = mock(Tweet.class);
+		when(thirdMessage.getCreatedAt()).thenReturn(new Date(66666666666L));
+		when(thirdMessage.getId()).thenReturn((long) 3000);
+		
+		fourthMessage = mock(Tweet.class);
+		when(fourthMessage.getCreatedAt()).thenReturn(new Date(77777777777L));
+		when(fourthMessage.getId()).thenReturn((long) 4000);
 		
 		when(twitter.getProfileId()).thenReturn("kermit");
 		Twitter tw = mock(Twitter.class);
@@ -101,7 +118,10 @@ public class DirectMessageReceivingMessageSourceTests {
 		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(secondMessage, message);
-		
+		Thread.sleep(1000);
+		verify(twitter, times(1)).getDirectMessages(2000);
+		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
+		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 	}
 
 
@@ -111,16 +131,18 @@ public class DirectMessageReceivingMessageSourceTests {
 		Twitter tw = mock(Twitter.class);
 		when(twitter.getUnderlyingTwitter()).thenReturn(tw);
 		when(tw.getRateLimitStatus()).thenReturn(rateLimitStatus);
-		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(2464);
-		when(rateLimitStatus.getRemainingHits()).thenReturn(250);
+		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(1000);
+		when(rateLimitStatus.getRemainingHits()).thenReturn(1000);
 
-		//ResponseList<DirectMessage> responses = mock(ResponseList.class);
 		SampleResoponceList testMessages = new SampleResoponceList();
 		testMessages.add(firstMessage);
 		testMessages.add(secondMessage);
-		//when(responses.iterator()).thenReturn(testMessages.iterator());
 		when(twitter.getDirectMessages()).thenReturn(testMessages);
-		when(twitter.getDirectMessages(Mockito.any(Paging.class))).thenReturn(testMessages);
+		
+		testMessages = new SampleResoponceList();
+		testMessages.add(thirdMessage);
+		testMessages.add(fourthMessage);
+		when(twitter.getDirectMessages((long)2000)).thenReturn(testMessages);
 	}
 
 	@SuppressWarnings({ "rawtypes", "serial" })

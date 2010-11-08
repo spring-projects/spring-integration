@@ -52,7 +52,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 					if (tweets.size() <= prefetchThreshold){
 						List<Tweet> dms = !hasMarkedStatus() 
 							? twitter.getDirectMessages() 
-							: twitter.getDirectMessages(new Paging(sinceId));
+							: twitter.getDirectMessages(sinceId);
 			
 							if (!CollectionUtils.isEmpty(dms)){
 								forwardAll(dms);

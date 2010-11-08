@@ -71,15 +71,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to obtain profile id ", e);
 		} 
 	}
-	//@Override
-	public RateLimitStatus getRateLimitStatus() {
-		try {
-			return twitter.getRateLimitStatus();
-		} 
-		catch (Exception e) {
-			throw new TwitterOperationException("Failed to obtain Rate Limit status ", e);
-		}
-	}
+	
 	@Override
 	public List<Tweet> getDirectMessages() {
 		
@@ -92,9 +84,9 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<Tweet> getDirectMessages(Paging paging) {
+	public List<Tweet> getDirectMessages(long sinceId) {
 		try {
-			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(paging);
+			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(new Paging(sinceId));
 			return this.buildTweetsFromTwitterResponses(directMessages);
 		} 
 		catch (Exception e) {
@@ -112,9 +104,9 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<Tweet> getMentions(Paging paging) {
+	public List<Tweet> getMentions(long sinceId) {
 		try {
-			ResponseList<Status> mentions = twitter.getMentions(paging);
+			ResponseList<Status> mentions = twitter.getMentions(new Paging(sinceId));
 			return this.buildTweetsFromTwitterResponses(mentions);
 		} 
 		catch (Exception e) {
@@ -132,9 +124,9 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<Tweet> getFriendsTimeline(Paging paging) {
+	public List<Tweet> getFriendsTimeline(long sinceId) {
 		try {
-			ResponseList<Status> timelines = twitter.getFriendsTimeline(paging);
+			ResponseList<Status> timelines = twitter.getFriendsTimeline(new Paging(sinceId));
 			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
