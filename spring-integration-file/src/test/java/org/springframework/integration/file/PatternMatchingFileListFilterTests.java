@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.entries.FileEntryNameExtractor;
-import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 
@@ -66,13 +65,12 @@ public class PatternMatchingFileListFilterTests {
                 new File("/some/path/bar.not")
         };
         Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-        PatternMatchingEntryListFilter<File> filter = new PatternMatchingEntryListFilter<File>(this.fileEntryNameExtractor, pattern);
-        List<File> accepted = filter.filterEntries(files);
+        PatternMatchingFileListFilter<File> filter = new PatternMatchingFileListFilter<File>(this.fileEntryNameExtractor, pattern);
+        List<File> accepted = filter.filterFiles(files);
         assertEquals(2, accepted.size());
         assertTrue(accepted.contains(new File("/some/path/foo.txt")));
         assertTrue(accepted.contains(new File("/some/path/bar.txt")));
     }
-
 
     @Test
     @SuppressWarnings("unchecked")
