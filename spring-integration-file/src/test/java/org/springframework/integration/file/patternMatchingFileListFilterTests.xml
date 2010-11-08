@@ -4,14 +4,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-    <!--<bean class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
-            <constructor-arg value="fo+\.[tx]{3}"/>
-        </bean>
-    -->
     <bean id="filter" class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
-        <constructor-arg>
-            <bean class="org.springframework.integration.file.entries.FileEntryNameExtractor"/>
-        </constructor-arg>
         <constructor-arg value="fo+\.[tx]{3}"/>
     </bean>
 

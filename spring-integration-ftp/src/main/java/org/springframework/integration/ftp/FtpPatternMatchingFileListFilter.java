@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.ftp;
 
-import org.springframework.integration.file.entries.EntryNameExtractor;
+import java.util.regex.Pattern;
 
-import com.jcraft.jsch.ChannelSftp;
+import org.apache.commons.net.ftp.FTPFile;
+
+import org.springframework.integration.file.filters.AbstractPatternMatchingFileListFilter;
 
 /**
- * Stratgy for naming a {@link com.jcraft.jsch.ChannelSftp.LsEntry} instance.
- *
- * @author Josh Long
+ * @author Mark Fisher
+ * @since 2.0
  */
-public class SftpEntryNameExtractor implements EntryNameExtractor<ChannelSftp.LsEntry> {
+public class FtpPatternMatchingFileListFilter extends AbstractPatternMatchingFileListFilter<FTPFile> {
 
-	public String getName(ChannelSftp.LsEntry entry) {
-		return entry.getFilename();
+	public FtpPatternMatchingFileListFilter(String pattern) {
+		super(pattern);
+	}
+
+	public FtpPatternMatchingFileListFilter(Pattern pattern) {
+		super(pattern);
+	}
+
+
+	@Override
+	protected String getFilename(FTPFile file) {
+		return file.getName();
 	}
 
 }

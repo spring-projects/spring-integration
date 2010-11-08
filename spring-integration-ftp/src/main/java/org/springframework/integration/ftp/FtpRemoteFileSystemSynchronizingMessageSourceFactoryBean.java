@@ -30,7 +30,6 @@ import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -154,11 +153,10 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 			this.localWorkingDirectory = "file://" + tmp.getAbsolutePath();
 		}
 		this.localDirectoryResource = this.fromText(this.localWorkingDirectory);
-		FtpFileEntryNameExtractor fileEntryNameExtractor = new FtpFileEntryNameExtractor();
 		CompositeFileListFilter<FTPFile> compositeFtpFileListFilter = new CompositeFileListFilter<FTPFile>();
 		if (StringUtils.hasText(this.filenamePattern)) {
-			PatternMatchingFileListFilter<FTPFile> ftpFilePatternMatchingFileListFilter =
-					new PatternMatchingFileListFilter<FTPFile>(fileEntryNameExtractor, filenamePattern);
+			FtpPatternMatchingFileListFilter ftpFilePatternMatchingFileListFilter =
+					new FtpPatternMatchingFileListFilter(filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingFileListFilter);
 		}
 		if (this.filter != null) {

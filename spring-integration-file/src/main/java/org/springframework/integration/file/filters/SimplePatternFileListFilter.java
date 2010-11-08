@@ -26,7 +26,7 @@ import org.springframework.util.AntPathMatcher;
  *
  * @author Iwein Fuld
  * @see org.springframework.util.AntPathMatcher
- * @see org.springframework.integration.file.filters.PatternMatchingFileListFilter
+ * @see org.springframework.integration.file.filters.AbstractPatternMatchingFileListFilter
  * @since 2.0.0
  */
 public class SimplePatternFileListFilter extends AbstractFileListFilter<File> {

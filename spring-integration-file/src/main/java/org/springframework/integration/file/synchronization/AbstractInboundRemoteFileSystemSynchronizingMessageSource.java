@@ -27,7 +27,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.entries.FileEntryNameExtractor;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
@@ -155,11 +154,10 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 
 	@SuppressWarnings("unchecked")
 	private FileListFilter<File> buildFilter() {
-		FileEntryNameExtractor fileEntryNameExtractor = new FileEntryNameExtractor();
 		Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
 				new AcceptOnceFileListFilter<File>(),
-				new PatternMatchingFileListFilter<File>(fileEntryNameExtractor, completePattern)));
+				new PatternMatchingFileListFilter(completePattern)));
 	}
 
 }
