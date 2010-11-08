@@ -38,7 +38,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute use="required" name="twitter-connection" type="xsd:string">
+			<xsd:attribute use="required" name="twitter-template" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -60,7 +60,7 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
-			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -95,7 +95,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -131,7 +131,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -162,7 +162,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+			<xsd:attribute name="twitter-template" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
