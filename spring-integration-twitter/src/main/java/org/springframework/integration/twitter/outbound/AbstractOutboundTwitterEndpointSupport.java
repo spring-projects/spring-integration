@@ -19,8 +19,6 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 
-import twitter4j.Twitter;
-
 
 /**
  * Base adapter class for all outbound Twitter adapters

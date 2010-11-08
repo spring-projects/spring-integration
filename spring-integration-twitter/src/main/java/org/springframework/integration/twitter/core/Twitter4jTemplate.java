@@ -23,7 +23,6 @@ import twitter4j.http.AccessToken;
  */
 public class Twitter4jTemplate implements TwitterOperations{
 	private final Twitter twitter;
-	
 	/**
 	 * Used to construct this template to perform Twitter API calls that do not require authorization.
 	 * (e.g., search)

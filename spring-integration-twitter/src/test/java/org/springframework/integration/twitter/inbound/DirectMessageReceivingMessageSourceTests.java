@@ -78,6 +78,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		assertTrue(source.isRunning());
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testSuccessfullInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
@@ -116,6 +117,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		when(twitter.getDirectMessages(Mockito.any(Paging.class))).thenReturn(testMessages);
 	}
 
+	@SuppressWarnings({ "rawtypes", "serial" })
 	public static class SampleResoponceList extends ArrayList implements ResponseList {
 
 		@Override

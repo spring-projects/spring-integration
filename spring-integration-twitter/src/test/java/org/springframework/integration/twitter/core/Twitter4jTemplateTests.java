@@ -110,8 +110,8 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testUpdateStatus() throws Exception{
-		StatusUpdate statusUpdate = new StatusUpdate("writing twitter test");
-		template.updateStatus(statusUpdate);
-		verify(twitter, times(1)).updateStatus(statusUpdate);
+		StatusUpdate status = new StatusUpdate("writing twitter test");
+		template.updateStatus(status);
+		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 }

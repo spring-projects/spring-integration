@@ -39,26 +39,21 @@ public class DirectMessageSendingMessageHandler extends AbstractOutboundTwitterE
 		if (this.twitter == null) {
 			this.afterPropertiesSet();
 		}
-//		try {
-			Assert.isInstanceOf(String.class, message.getPayload(), "Only payload of type String is supported. If your payload " +
-					"is not of type String consider adding a transformer to the message flow in front of this adapter.");
-			Assert.isTrue(message.getHeaders().containsKey(TwitterHeaders.DM_TARGET_USER_ID), 
-					"the '" + TwitterHeaders.DM_TARGET_USER_ID + "' header is required");
-			Object toUser = message.getHeaders().get(TwitterHeaders.DM_TARGET_USER_ID);
-			Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
-					"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
-					"' must be either a String (a screenname) or an int (a user ID)");
-			String payload = (String) message.getPayload();
-			if (toUser instanceof Integer) {
-				this.twitter.sendDirectMessage((Integer) toUser, payload);
-			} 
-			else if (toUser instanceof String) {
-				this.twitter.sendDirectMessage((String) toUser, payload);
-			}
-//		}
-//		catch (TwitterException e) {
-//			throw new MessageHandlingException(message, e);
-//		}
+		Assert.isInstanceOf(String.class, message.getPayload(), "Only payload of type String is supported. If your payload " +
+				"is not of type String consider adding a transformer to the message flow in front of this adapter.");
+		Assert.isTrue(message.getHeaders().containsKey(TwitterHeaders.DM_TARGET_USER_ID), 
+				"the '" + TwitterHeaders.DM_TARGET_USER_ID + "' header is required");
+		Object toUser = message.getHeaders().get(TwitterHeaders.DM_TARGET_USER_ID);
+		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
+				"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
+				"' must be either a String (a screenname) or an int (a user ID)");
+		String payload = (String) message.getPayload();
+		if (toUser instanceof Integer) {
+			this.twitter.sendDirectMessage((Integer) toUser, payload);
+		} 
+		else if (toUser instanceof String) {
+			this.twitter.sendDirectMessage((String) toUser, payload);
+		}
 	}
 
 }
