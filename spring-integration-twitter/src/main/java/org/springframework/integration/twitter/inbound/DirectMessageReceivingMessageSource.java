@@ -24,7 +24,6 @@ import org.springframework.util.CollectionUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
-import twitter4j.Twitter;
 
 /**
  * This class handles support for receiving DMs (direct messages) using Twitter.
