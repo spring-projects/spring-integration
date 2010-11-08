@@ -21,17 +21,17 @@
 			location="classpath:twitter.sender.properties"
 			ignore-unresolvable="true"/>
 
-	<twitter:twitter-connection
-			id="tc"
-			access-token="${twitter.oauth.accessToken}"
-			access-token-secret="${twitter.oauth.accessTokenSecret}"
-			consumer-key="${twitter.oauth.consumerKey}"
-			consumer-secret="${twitter.oauth.consumerSecret}"/>
+	<beans:bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessTokenSecret}"/>
+	</beans:bean>
 
 
 	<channel id="inputChannel"/>
 
-	<twitter:outbound-dm-channel-adapter twitter-connection="tc" channel="inputChannel"/>
+	<twitter:outbound-dm-channel-adapter twitter-template="twitterTemplate" channel="inputChannel"/>
 
 </beans:beans>
 

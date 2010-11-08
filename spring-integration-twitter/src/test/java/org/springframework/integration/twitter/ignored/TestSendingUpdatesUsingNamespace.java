@@ -16,6 +16,8 @@
 
 package org.springframework.integration.twitter.ignored;
 
+import java.util.Date;
+
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,9 +42,8 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("simple test demonstrating the ability to encode location information")
+		MessageBuilder<String> mb = MessageBuilder.withPayload("Aligning #springintegration Twitter adapter with #SpringSocial API - " + new Date(System.currentTimeMillis()))
 				.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, 21927437001L)
-				//.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new Twitter4jGeoLocation(-76.226823, 23.642465)) // antarctica
 				.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true);
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);

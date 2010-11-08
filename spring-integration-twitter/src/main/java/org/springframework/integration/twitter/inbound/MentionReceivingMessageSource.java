@@ -21,8 +21,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
-import twitter4j.Paging;
-
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
  *

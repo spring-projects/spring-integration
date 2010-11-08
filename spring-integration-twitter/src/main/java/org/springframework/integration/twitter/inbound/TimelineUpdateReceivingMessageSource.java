@@ -21,8 +21,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
-import twitter4j.Paging;
-
 
 /**
  * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume a given account's timeline

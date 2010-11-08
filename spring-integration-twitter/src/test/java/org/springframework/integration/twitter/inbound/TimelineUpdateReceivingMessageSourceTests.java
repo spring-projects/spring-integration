@@ -43,25 +43,24 @@ import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.CollectionUtils;
 
-import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
+import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
 
 /**
  * @author Oleg Zhurakousky
  */
-public class DirectMessageReceivingMessageSourceTests {
+public class TimelineUpdateReceivingMessageSourceTests {
 
-	private DirectMessage firstMessage;
+	private Status firstMessage;
 
-	private DirectMessage secondMessage;
+	private Status secondMessage;
 	
-	private DirectMessage thirdMessage;
+	private Status thirdMessage;
 
-	private DirectMessage fourthMessage;
+	private Status fourthMessage;
 
 	private TwitterOperations twitter;
 	
@@ -72,21 +71,21 @@ public class DirectMessageReceivingMessageSourceTests {
 	public void prepare() throws Exception{
 		twitter = new Twitter4jTemplate();
 		
-		firstMessage = mock(DirectMessage.class);
+		firstMessage = mock(Status.class);
 		when(firstMessage.getCreatedAt()).thenReturn(new Date(5555555555L));
-		when(firstMessage.getId()).thenReturn( 200);
+		when(firstMessage.getId()).thenReturn( (long) 200);
 		
-		secondMessage = mock(DirectMessage.class);
+		secondMessage = mock(Status.class);
 		when(secondMessage.getCreatedAt()).thenReturn(new Date(2222222222L));
-		when(secondMessage.getId()).thenReturn( 2000);
+		when(secondMessage.getId()).thenReturn((long) 2000);
 		
-		thirdMessage = mock(DirectMessage.class);
+		thirdMessage = mock(Status.class);
 		when(thirdMessage.getCreatedAt()).thenReturn(new Date(66666666666L));
-		when(thirdMessage.getId()).thenReturn( 3000);
+		when(thirdMessage.getId()).thenReturn((long) 3000);
 		
-		fourthMessage = mock(DirectMessage.class);
+		fourthMessage = mock(Status.class);
 		when(fourthMessage.getCreatedAt()).thenReturn(new Date(77777777777L));
-		when(fourthMessage.getId()).thenReturn( 4000);
+		when(fourthMessage.getId()).thenReturn( (long)4000);
 		
 		tw = mock(Twitter.class);
 		Field twField = Twitter4jTemplate.class.getDeclaredField("twitter");
@@ -101,14 +100,14 @@ public class DirectMessageReceivingMessageSourceTests {
 	@Test
 	public void testSuccessfullInitialization() throws Exception{
 		
-		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
+		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
 		source.start();
-		assertEquals("twitter:inbound-dm-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
+		assertEquals("twitter:inbound-update-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
 		assertTrue(source.isRunning());
 		source.stop();
 	}
@@ -118,7 +117,7 @@ public class DirectMessageReceivingMessageSourceTests {
 	public void testSuccessfullInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
 		
-		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
+		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		source.setTaskScheduler(scheduler);
@@ -132,7 +131,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
-		verify(twitter, times(1)).getDirectMessages(2000);
+		verify(twitter, times(1)).getFriendsTimeline(2000);
 		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
 		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 		source.stop();
@@ -154,7 +153,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
 		store.afterPropertiesSet();
 		bf.registerSingleton(IntegrationContextUtils.METADATA_STORE_BEAN_NAME, store);
-		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
+		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
 		source.setBeanFactory(bf);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -180,7 +179,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		store = new PropertiesPersistingMetadataStore();
 		store.afterPropertiesSet();
 		bf.registerSingleton(IntegrationContextUtils.METADATA_STORE_BEAN_NAME, store);	
-		source = new DirectMessageReceivingMessageSource(twitter);
+		source = new TimelineUpdateReceivingMessageSource(twitter);
 		source.setBeanFactory(bf);
 		scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -210,12 +209,12 @@ public class DirectMessageReceivingMessageSourceTests {
 		SampleResoponceList testMessages = new SampleResoponceList();
 		testMessages.add(firstMessage);
 		testMessages.add(secondMessage);
-		when(tw.getDirectMessages()).thenReturn(testMessages);
+		when(tw.getFriendsTimeline()).thenReturn(testMessages);
 		
 		testMessages = new SampleResoponceList();
 		testMessages.add(thirdMessage);
 		testMessages.add(fourthMessage);
-		when(tw.getDirectMessages(Mockito.any(Paging.class))).thenReturn(testMessages);
+		when(tw.getFriendsTimeline(Mockito.any(Paging.class))).thenReturn(testMessages);
 	}
 
 	@SuppressWarnings({ "rawtypes", "serial" })

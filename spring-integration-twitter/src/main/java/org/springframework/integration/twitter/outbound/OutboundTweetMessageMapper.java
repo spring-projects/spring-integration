@@ -45,30 +45,13 @@ public class OutboundTweetMessageMapper implements OutboundMessageMapper<Tweet> 
 		Tweet tweet = null;
 		if (payload instanceof String) {
 			tweet = new Tweet();
+			tweet.setText((String) payload);
 			if (message.getHeaders().containsKey(TwitterHeaders.IN_REPLY_TO_STATUS_ID)) {
 				Long replyId = (Long) message.getHeaders().get(TwitterHeaders.IN_REPLY_TO_STATUS_ID);
 				if ((replyId != null) && (replyId > 0)) {
 					tweet.setToUserId(replyId);
 				}
 			}
-//			if (message.getHeaders().containsKey(TwitterHeaders.PLACE_ID)) {
-//				String placeId = (String) message.getHeaders().get(TwitterHeaders.PLACE_ID);
-//				if (StringUtils.hasText(placeId)) {
-//					statusUpdate.placeId(placeId);
-//				}
-//			}
-//			if (message.getHeaders().containsKey(TwitterHeaders.GEOLOCATION)) {
-//				GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.GEOLOCATION);
-//				if (null != geoLocation) {
-//					statusUpdate.location(geoLocation);
-//				}
-//			}
-//			if (message.getHeaders().containsKey(TwitterHeaders.DISPLAY_COORDINATES)) {
-//				Boolean displayCoords = (Boolean) message.getHeaders().get(TwitterHeaders.DISPLAY_COORDINATES);
-//				if (displayCoords != null) {
-//					statusUpdate.displayCoordinates(displayCoords);
-//				}
-//			}
 		}
 		else if (payload instanceof Tweet) {
 			tweet = (Tweet) payload;

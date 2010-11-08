@@ -23,8 +23,6 @@ import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.CollectionUtils;
 
-import twitter4j.Paging;
-
 /**
  * This class handles support for receiving DMs (direct messages) using Twitter.
  *

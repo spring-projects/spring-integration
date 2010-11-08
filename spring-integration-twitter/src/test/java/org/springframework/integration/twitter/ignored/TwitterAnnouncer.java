@@ -27,7 +27,7 @@ public class TwitterAnnouncer {
 	}
 
 	public void mention(Tweet s) {
-		System.out.println("A tweet mentioning (or replying) to " + "you was received having text " + s.getText() + " from " + s.getSource());
+		System.out.println("A tweet mentioning (or replying) to " + "you was received having text " + s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
 	}
 
 	public void updates(Tweet t) {

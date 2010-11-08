@@ -16,27 +16,23 @@
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
-	<context:component-scan
-			base-package="org.springframework.integration.twitter"/>
 
-    <context:property-placeholder
-            location="file://${user.home}/Desktop/twitter.properties"
-            ignore-unresolvable="true"/>
+   <context:property-placeholder
+			location="classpath:twitter.receiver.properties"
+			ignore-unresolvable="true"/>
         
-	<twitter:twitter-connection
-			id="tc"
-			access-token="${twitter.oauth.accessToken}"
-			access-token-secret="${twitter.oauth.accessTokenSecret}"
-			consumer-key="${twitter.oauth.consumerKey}"
-			consumer-secret="${twitter.oauth.consumerSecret}"
-			/>
+	<beans:bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
+		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>
+		<beans:constructor-arg value="${twitter.oauth.accessTokenSecret}"/>
+	</beans:bean>
 
 
 	<channel id="out"/>
 
-	<twitter:outbound-update-channel-adapter twitter-connection="tc" channel="out"/>
-
-
+	<twitter:outbound-update-channel-adapter twitter-template="twitterTemplate" channel="out"/>
+	
 </beans:beans>
 
 

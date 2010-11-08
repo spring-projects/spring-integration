@@ -34,13 +34,9 @@ import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 
 /**
  * Abstract class that defines common operations for receiving various types of
@@ -125,6 +121,11 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		String profileId = twitter.getProfileId();
 		metadataKeyBuilder.append(profileId);
 		this.metadataKey = metadataKeyBuilder.toString();
+		String lastId = this.metadataStore.get(this.metadataKey);
+		// initialize the last status ID from the metadataStore
+		if (StringUtils.hasText(lastId)){
+			this.markLastStatusId(Long.parseLong(lastId));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

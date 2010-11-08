@@ -22,7 +22,6 @@ import org.springframework.util.Assert;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
-import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -204,12 +203,13 @@ public class Twitter4jTemplate implements TwitterOperations{
 	private Tweet buildTweetFromStatus(Status status){
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(status.getCreatedAt());
-		tweet.setFromUser(status.getInReplyToScreenName());
-		tweet.setFromUserId(status.getInReplyToUserId());
+		if (status.getUser() != null){
+			tweet.setFromUser(status.getUser().getScreenName());
+			tweet.setFromUserId(status.getUser().getId());
+		}
 		tweet.setId(status.getId());
 		tweet.setSource(status.getSource());
 		tweet.setText(status.getText());
-		tweet.setToUserId((long)status.getUser().getId());
 		return tweet;
 	}
 }
