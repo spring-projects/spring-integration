@@ -13,11 +13,14 @@
 
 package org.springframework.integration.store;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
 /**
@@ -26,15 +29,26 @@ import org.springframework.util.Assert;
  * execution and a {@link #destroy()} method that can optionally be called on shutdown.
  * 
  * @author Dave Syer
+ * @author Dave Turanski
  * 
  */
-public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean {
+public class MessageGroupStoreReaper implements Runnable, DisposableBean, InitializingBean, SmartLifecycle {
 
 	private static Log logger = LogFactory.getLog(MessageGroupStoreReaper.class);
 
 	private MessageGroupStore messageGroupStore;
+
 	private boolean expireOnDestroy = false;
+
 	private long timeout = -1;
+
+	private volatile boolean running;
+
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
+
+	private volatile int phase = 0;
+
+	private volatile boolean autoStartup = true;
 
 	public MessageGroupStoreReaper(MessageGroupStore messageGroupStore) {
 		this.messageGroupStore = messageGroupStore;
@@ -97,4 +111,70 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 		}
 	}
 
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.running = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public void stop() {
+		this.lifecycleLock.lock();
+		try {
+			destroy();
+			if (logger.isInfoEnabled()){
+				  logger.info("stopped " + this);
+			};
+		} catch (Exception e) {
+			logger.error("failed to stop bean",e);
+		} finally {
+			running = false;
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		} finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public int getPhase() {
+		return phase;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	
+	public boolean isAutoStartup() {
+		return autoStartup;
+	}
+	
+	public void setAutoStartup(boolean autostartup) {
+		this.autoStartup = autostartup;
+	}
+
+	public void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
 }
