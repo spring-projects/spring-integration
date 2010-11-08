@@ -26,6 +26,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.TriggerContext;
 
 import twitter4j.RateLimitStatus;
+import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
@@ -36,7 +37,9 @@ public class RateLimitStatusTriggerTests {
 	@Test
 	public void testTriggerImediateAndSubsequentExecutionTime() throws Exception{
 		TwitterOperations twitter = mock(TwitterOperations.class);
-		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(twitter);
+		Twitter tw = mock(Twitter.class);
+		when(twitter.getUnderlyingTwitter()).thenReturn(tw);
+		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(twitter.getUnderlyingTwitter());
 		TriggerContext context = mock(TriggerContext.class);
 		Date currentDate = new Date(System.currentTimeMillis());
 		Date nextDate = trigger.nextExecutionTime(context);
@@ -45,7 +48,7 @@ public class RateLimitStatusTriggerTests {
 		
 		
 		RateLimitStatus rateLimitStatis = mock(RateLimitStatus.class);
-		when(twitter.getRateLimitStatus()).thenReturn(rateLimitStatis);
+		when(tw.getRateLimitStatus()).thenReturn(rateLimitStatis);
 		when(rateLimitStatis.getRemainingHits()).thenReturn(2000);
 		when(rateLimitStatis.getSecondsUntilReset()).thenReturn(4000);
 		

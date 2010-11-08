@@ -38,6 +38,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
+import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
@@ -61,13 +62,15 @@ public class DirectMessageReceivingMessageSourceTests {
 		when(secondMessage.getCreatedAt()).thenReturn(new Date(2222222222L));
 		when(secondMessage.getId()).thenReturn((long) 2000);
 		
-		
 		when(twitter.getProfileId()).thenReturn("kermit");
+		Twitter tw = mock(Twitter.class);
+		when(twitter.getUnderlyingTwitter()).thenReturn(tw);
 	}
 
 
 	@Test
 	public void testSuccessfullInitialization() throws Exception{
+		
 		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -105,7 +108,9 @@ public class DirectMessageReceivingMessageSourceTests {
 	@SuppressWarnings("unchecked")
 	private void setUpMockScenarioForMessagePolling() throws Exception{
 		RateLimitStatus rateLimitStatus = mock(RateLimitStatus.class);
-		when(twitter.getRateLimitStatus()).thenReturn(rateLimitStatus);
+		Twitter tw = mock(Twitter.class);
+		when(twitter.getUnderlyingTwitter()).thenReturn(tw);
+		when(tw.getRateLimitStatus()).thenReturn(rateLimitStatus);
 		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(2464);
 		when(rateLimitStatus.getRemainingHits()).thenReturn(250);
 

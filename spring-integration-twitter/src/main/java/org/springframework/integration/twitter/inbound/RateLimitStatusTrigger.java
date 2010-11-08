@@ -19,12 +19,14 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.scheduling.SchedulingException;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
 
 import twitter4j.RateLimitStatus;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 /**
  * @author Oleg Zhurakousky
@@ -32,9 +34,9 @@ import twitter4j.RateLimitStatus;
  */
 class RateLimitStatusTrigger implements Trigger {
 	protected final Log logger = LogFactory.getLog(getClass());
-	private TwitterOperations twitter;
+	private Twitter twitter;
 
-	public RateLimitStatusTrigger(TwitterOperations twitter){
+	public RateLimitStatusTrigger(Twitter twitter){
 		Assert.notNull(twitter, "'twitter' must not be null");
 		this.twitter = twitter;
 	}
@@ -46,7 +48,7 @@ class RateLimitStatusTrigger implements Trigger {
 		if (triggerContext.lastCompletionTime() == null){
 			return new Date(System.currentTimeMillis());
 		}
-//		try {
+		try {
 			RateLimitStatus rateLimitStatus = twitter.getRateLimitStatus();
 			int secondsUntilReset = rateLimitStatus.getSecondsUntilReset();
 			int remainingHits = rateLimitStatus.getRemainingHits();
@@ -67,8 +69,8 @@ class RateLimitStatusTrigger implements Trigger {
 	        		 " remaining pull this rate period. The period ends in " +
 	        		 secondsUntilReset);
 	         return new Date(System.currentTimeMillis() + msUntilWeCanPullAgain);
-//		} catch (TwitterException e) {
-//			throw new SchedulingException("Failed to schedule the next Twitter update", e);
-//		}
+		} catch (TwitterException e) {
+			throw new SchedulingException("Failed to schedule the next Twitter update", e);
+		}
 	}
 }

@@ -34,6 +34,7 @@ import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.Tweet;
+import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -148,7 +149,10 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	protected void doStart(){
 		Assert.notNull(this.twitter, "'twitter' instance can't be null");
 		historyWritingPostProcessor.setTrackableComponent(this);
-		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter);
+		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits. will be changed 
+		// once we switch to Spring Social
+		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter.getUnderlyingTwitter());
+		//
 		Runnable apiCallback = this.getApiCallback();
 		twitterUpdatePollingTask = this.getTaskScheduler().schedule(apiCallback, trigger);
 	}
