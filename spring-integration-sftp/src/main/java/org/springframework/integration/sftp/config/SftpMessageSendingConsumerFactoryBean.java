@@ -41,16 +41,9 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 
 	private String username;
 
-	private boolean autoCreateDirectories;
-
 	private int port;
 
 	private String charset;
-
-
-	public void setAutoCreateDirectories(final boolean autoCreateDirectories) {
-		this.autoCreateDirectories = autoCreateDirectories;
-	}
 
 	public void setCharset(String charset) {
 		this.charset = charset;

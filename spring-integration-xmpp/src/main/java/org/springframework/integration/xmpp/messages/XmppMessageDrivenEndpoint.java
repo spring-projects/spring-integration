@@ -16,7 +16,6 @@
 package org.springframework.integration.xmpp.messages;
 
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
@@ -31,26 +30,11 @@ import org.springframework.util.Assert;
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
  * user on to downstream components. 
- * It takes any message from a given XMPP session (as established by
- * the current {@link XMPPConnection}) and forwards the
- * {@link org.jivesoftware.smack.packet.Message} as the payload of the Spring
- * Integration {@link org.springframework.integration.Message}. 
- * <strong>Note</strong>: the {@link org.jivesoftware.smack.ChatManager}
- * maintains a Map&lt;String, Chat&gt; for threads and users, where the threadID
- * ({@link String}) is the key or the userID {@link String} is the key. This
- * {@link java.util.Map} is a Smack-specific implementation called
- * {@link org.jivesoftware.smack.util.collections.ReferenceMap} that removes
- * key/values as references are dereferenced.
  *
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * 
- * @see ChatManager the ChatManager class that
- *      keeps watch over all Chats between the client and any other
- *      participants.
- * @see XMPPConnection the XMPPConnection (as
- *      created by {@link XmppConnectionFactory}
  */
 public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint  {
 

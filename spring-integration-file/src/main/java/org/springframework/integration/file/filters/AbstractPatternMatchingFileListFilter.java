@@ -22,7 +22,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 /**
- * Filters a listing of files by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNameExtractor})
+ * Filters a listing of files by qualifying their 'name'
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
  * @author Iwein Fuld

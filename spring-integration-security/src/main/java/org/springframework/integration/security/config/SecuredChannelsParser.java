@@ -68,7 +68,7 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 		builder.addConstructorArgReference(interceptorBeanName);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private String parseObjectDefinitionSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE_NAME + ".channel.ChannelInvocationDefinitionSource");

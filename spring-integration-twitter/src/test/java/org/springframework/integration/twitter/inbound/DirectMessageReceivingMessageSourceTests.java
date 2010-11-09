@@ -48,7 +48,6 @@ import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
 
 /**
  * @author Oleg Zhurakousky

@@ -90,9 +90,9 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	 *            be a 'live' stateful client (a connection?) that is inappropriate to cache as it has per-request state.
 	 * @param t
 	 *            leverages strategy implementations to enable different
-	 *            behavior. It's a hook to the file entry ({@link F}) after it's been
+	 *            behavior. It's a hook to the file entry after it's been
 	 *            successfully downloaded. Conceptually, you might delete the
-	 *            remote one or rename it, etc.
+	 *            remote one or rename it, etc.   
 	 * @throws Throwable
 	 *             escape hatch exception, let the adapter deal with it.
 	 */

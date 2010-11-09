@@ -30,7 +30,8 @@ import org.springframework.oxm.XmlMappingException;
  */
 public class StubMarshallerAndUnmarshaller implements Marshaller, Unmarshaller {
 
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings("rawtypes")
 	public boolean supports(Class clazz) {
 		return false;
 	}

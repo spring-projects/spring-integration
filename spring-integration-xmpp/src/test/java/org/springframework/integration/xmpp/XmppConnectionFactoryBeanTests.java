@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -38,7 +37,7 @@ public class XmppConnectionFactoryBeanTests {
 	}
 	@Test
 	public void testXmppConnectionFactoryBeanViaConfig() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml", this.getClass());
 		// the fact that no exception was thrown satisfies this test
 	}
 }

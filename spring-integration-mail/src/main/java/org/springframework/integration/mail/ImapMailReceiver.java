@@ -68,14 +68,12 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 
 	/**
 	 * Check if messages should be marked as read
-	 * @return
 	 */
 	public Boolean isShouldMarkMessagesAsRead() {
 		return shouldMarkMessagesAsRead;
 	}
 	/**
 	 * Specify is messages should be marked as read
-	 * @return
 	 */
 	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;

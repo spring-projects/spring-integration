@@ -61,7 +61,6 @@ public class SimpleDynamicRouter{
 	}
 	/**
 	 * 
-	 * @return
 	 */
 	public Map<String, String> getChannelMappings(){
 		return channelMappings;
@@ -69,7 +68,6 @@ public class SimpleDynamicRouter{
 	/**
 	 * 
 	 * @param key
-	 * @return
 	 */
 	public String route(Object key){
 		String className = key.getClass().getName();

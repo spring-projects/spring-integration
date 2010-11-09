@@ -19,8 +19,10 @@ package org.springframework.integration.test.util;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import org.hamcrest.Matcher;
+import java.util.Properties;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
+import org.hamcrest.Matcher;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
@@ -39,17 +41,12 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
-
-import java.util.Properties;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 /**
  * @author Mark Fisher
@@ -150,8 +147,8 @@ public abstract class TestUtils {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
+    @SuppressWarnings("rawtypes")
+	public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
         return new MessageHandler() {
             public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
                 assertThat(message, is(messageMatcher));

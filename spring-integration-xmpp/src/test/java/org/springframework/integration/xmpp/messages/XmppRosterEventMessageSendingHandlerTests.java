@@ -34,6 +34,7 @@ import org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendi
  */
 public class XmppRosterEventMessageSendingHandlerTests {
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testPresencePayload(){
 		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));
@@ -41,6 +42,7 @@ public class XmppRosterEventMessageSendingHandlerTests {
 		handler.handleMessage(new GenericMessage(mock(Presence.class)));
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected=MessageHandlingException.class)
 	public void testWrongPayload(){
 		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));

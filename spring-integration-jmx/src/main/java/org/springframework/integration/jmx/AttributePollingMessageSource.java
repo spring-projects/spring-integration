@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("rawtypes")
 public class AttributePollingMessageSource implements MessageSource {
 
 	private volatile ObjectName objectName;

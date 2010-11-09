@@ -31,6 +31,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -38,22 +39,19 @@ import org.springframework.util.Assert;
 /**
  * {@link MessageSource} that creates messages from a file system directory. To
  * prevent messages for certain files, you may supply a
- * {@link org.springframework.integration.file.filters.FileListFilter}. By
+ * {@link FileListFilter}. By
  * default, an
- * {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter}
+ * {@link AcceptOnceFileListFilter}
  * is used. It ensures files are picked up only once from the directory.
  * <p/>
  * A common problem with reading files is that a file may be detected before it
  * is ready. The default
- * {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter}
+ * {@link AcceptOnceEntryFileListFilter}
  * does not prevent this. In most cases, this can be prevented if the
  * file-writing process renames each file as soon as it is ready for reading. A
  * pattern-matching filter that accepts only files that are ready (e.g. based on
- * a known suffix), composed with the default
- * {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter}
- * would allow for this. See
- * {@link org.springframework.integration.file.entries.CompositeEntryListFilter}
- * for a way to do this.
+ * a known suffix), composed with the default {@link AcceptOnceFileListFilter}
+ * would allow for this. 
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as

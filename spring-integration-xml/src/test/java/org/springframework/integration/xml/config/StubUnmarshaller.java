@@ -33,7 +33,7 @@ public class StubUnmarshaller implements Unmarshaller {
 
 	public LinkedList<Source> sourcesPassed = new LinkedList<Source>();
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public boolean supports(Class clazz) {
 		return true;
 	}

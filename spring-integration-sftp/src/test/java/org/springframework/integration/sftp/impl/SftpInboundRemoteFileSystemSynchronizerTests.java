@@ -79,6 +79,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 * 
 	 * @throws Exception
 	 */
+	@SuppressWarnings("unchecked")
 	@org.junit.Ignore
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {

@@ -81,6 +81,7 @@ public class XmlPayloadValidatingFilterParserTests {
 		inputChannel.send(docMessage);
 		assertNotNull(validChannel.receive(100));
 	}
+	@SuppressWarnings("unused")
 	@Test
 	public void testInvalidMessageWithValidatorAndDiscardChannel() throws Exception {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("XmlPayloadValidatingFilterParserTests-context.xml", this.getClass());

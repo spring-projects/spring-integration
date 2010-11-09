@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 import org.springframework.integration.Message;
 
 /**
- * Extends {@link AbstractChannelNameResolvingMessageRouter} to support router
+ * Extends {@link AbstractMessageRouter} to support router
  * implementations that always return a single channel name (or null).
  * 
  * @author Mark Fisher

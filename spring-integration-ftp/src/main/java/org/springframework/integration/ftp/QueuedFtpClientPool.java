@@ -88,7 +88,6 @@ public class QueuedFtpClientPool implements FtpClientPool {
 	 * implement their own preparation strategy.
 	 *
 	 * @param client the unprepared client
-	 * @return
 	 * @throws SocketException
 	 * @throws IOException
 	 */

@@ -25,7 +25,6 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -33,7 +32,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.AbstractXmppConnectionAwareEndpoint;
-import org.springframework.integration.xmpp.XmppContextUtils;
 import org.springframework.util.Assert;
 
 /**

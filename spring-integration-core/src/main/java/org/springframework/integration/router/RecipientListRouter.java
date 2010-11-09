@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * <p/>
  * For more advanced, programmatic control
  * of dynamic recipient lists, consider using the @Router annotation or
- * extending {@link AbstractChannelNameResolvingMessageRouter} instead.
+ * extending {@link AbstractMessageRouter} instead.
  * <p/>
  * Contrary to a standard &lt;router .../&gt; this handler will try to send to all channels that are configured as
  * recipients. It is to channels what a publish subscribe channel is to endpoints.

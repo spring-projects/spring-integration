@@ -186,7 +186,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		return operationName;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Map<String, Object> resolveParameters(Message<?> message) {
 		Map<String, Object> map = null;
 		if (message.getPayload() instanceof Map) {
@@ -208,7 +208,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		return map;
 	}
 
-	@SuppressWarnings("unchecked")
+	
+	@SuppressWarnings("rawtypes")
 	private Map<String, Object> createParameterMapFromList(List parameters) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		for (int i = 0; i < parameters.size(); i++) {
