@@ -122,10 +122,10 @@ public class CorrelatingMessageBarrierTests {
 		private final ConcurrentMap<Object, Semaphore> keyLocks = new ConcurrentHashMap<Object, Semaphore>();
 
 		public boolean canRelease(MessageGroup messageGroup) {
-			System.out.println("Trying to release group: " + messageGroup + "\n to thread: " + Thread.currentThread());
+			// System.out.println("Trying to release group: " + messageGroup + "\n to thread: " + Thread.currentThread());
 			Object correlationKey = messageGroup.getGroupId();
 			Semaphore lock = lockForKey(correlationKey);
-			System.out.println(Thread.currentThread() + " got lock: " + lock);
+			// System.out.println(Thread.currentThread() + " got lock: " + lock);
 			return lock.tryAcquire();
 		}
 
