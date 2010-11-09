@@ -45,8 +45,7 @@ import org.springframework.util.Assert;
  * is used. It ensures files are picked up only once from the directory.
  * <p/>
  * A common problem with reading files is that a file may be detected before it
- * is ready. The default
- * {@link AcceptOnceEntryFileListFilter}
+ * is ready. The default {@link AcceptOnceFileListFilter}
  * does not prevent this. In most cases, this can be prevented if the
  * file-writing process renames each file as soon as it is ready for reading. A
  * pattern-matching filter that accepts only files that are ready (e.g. based on
