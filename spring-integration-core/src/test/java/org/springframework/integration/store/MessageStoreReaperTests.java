@@ -14,33 +14,46 @@
 package org.springframework.integration.store;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Dave Syer
+ * @author Dave Turanski
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MessageStoreReaperTests {
 	
 	@Autowired
+	@Qualifier("messageStore")
 	private MessageGroupStore messageStore;
 	
-	@Before
-	public void init() {
-		ExpiryCallback.groups.clear();
-	}
+	@Autowired
+	@Qualifier("messageStore2")
+	private MessageGroupStore messageStore2;
+	
+	@Autowired
+	@Qualifier("reaper2")
+	private MessageGroupStoreReaper reaper2;
+	
+	@Autowired 
+	@Qualifier("expiryCallback")
+	private ExpiryCallback expiryCallback;
+	
+	@Autowired 
+	@Qualifier("expiryCallback2")
+	private ExpiryCallback expiryCallback2;
 
 	@Test
 	public void testExpiry() throws Exception {
@@ -49,12 +62,38 @@ public class MessageStoreReaperTests {
 		// wait for expiry...
 		Thread.sleep(200L);
 		assertEquals(0, messageStore.getMessageGroup("FOO").size());
-		assertEquals(1, ExpiryCallback.groups.size());
+		assertEquals(1, expiryCallback.groups.size());
+	}
+	
+	@Test 
+	public void testSmartLifecycle() throws Exception{
+		
+		messageStore2.addMessageToGroup("FOO", new GenericMessage<String>("foo"));
+		assertEquals(1, messageStore2.getMessageGroup("FOO").size());
+		
+		reaper2.setExpireOnDestroy(true);
+		reaper2.setTimeout(0);
+	
+		
+		if (!reaper2.isAutoStartup()){
+			reaper2.start();
+		}
+		
+		assertTrue(reaper2.isRunning());
+	
+		//reaper timeout is set to 0, but need to ensure positive elapsed time
+		Thread.sleep(1L);
+		
+		reaper2.stop();
+		assertTrue(!reaper2.isRunning());
+		
+		assertEquals(0, messageStore2.getMessageGroup("FOO").size());
+		assertEquals(1, expiryCallback2.groups.size());
 	}
 	
 	public static class ExpiryCallback implements MessageGroupCallback {
 
-		private static final List<MessageGroup> groups = new ArrayList<MessageGroup>();
+		public final List<MessageGroup> groups = new ArrayList<MessageGroup>();
 
 		public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			groups.add(group);
