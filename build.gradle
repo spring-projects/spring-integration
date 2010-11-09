@@ -99,6 +99,9 @@ configure(javaprojects) {
     // add tasks for creating source jars and generating poms etc
     apply from: "$rootDir/buildSrc/maven-deployment.gradle"
 
+    // add tasks for finding and publishing .xsd files
+    apply from: "$rootDir/gradle/schema-publication.gradle"
+
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
     commonsIoVersion = '1.4'
