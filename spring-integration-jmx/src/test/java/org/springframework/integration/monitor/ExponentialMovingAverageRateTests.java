@@ -85,7 +85,11 @@ public class ExponentialMovingAverageRateTests {
 		assertFalse(0==history.getStandardDeviation());
 		history.reset();
 		assertEquals(0, history.getStandardDeviation(), 0.01);
-		assertEquals("[[N=0, min=0.000000, max=0.000000, mean=0.000000, sigma=0.000000], timeSinceLast=0.000000]", history.toString());
+		assertEquals(0, history.getCount());
+		assertEquals(0, history.getTimeSinceLastMeasurement(), 0.01);
+		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(0, history.getMin(), 0.01);
+		assertEquals(0, history.getMax(), 0.01);
 	}
 
 }
