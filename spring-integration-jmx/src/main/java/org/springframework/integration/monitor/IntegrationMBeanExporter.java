@@ -13,7 +13,6 @@
 package org.springframework.integration.monitor;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -50,7 +48,6 @@ import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
@@ -85,7 +82,7 @@ import org.springframework.util.ReflectionUtils;
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		BeanClassLoaderAware, SmartLifecycle, ObjectNameLocator {
+		BeanClassLoaderAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
@@ -110,8 +107,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
 	private Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
-
-	private Map<String, String> objectNamesByName = new HashMap<String, String>();
 
 	private ClassLoader beanClassLoader;
 
@@ -290,7 +285,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerChannels();
 		registerHandlers();
 		registerSources();
-		logger.info("Summary on start: " + objectNamesByName);
 	}
 
 	@Override
@@ -344,16 +338,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return channelsByName.keySet().toArray(new String[0]);
 	}
 
-	@ManagedOperation(description = "Get the JMX object name (as a String) for the specified Spring bean name")
-	public String getObjectName(String beanName) {
-		return objectNamesByName.get(beanName);
-	}
-
-	@ManagedAttribute(description = "Get a map from Spring bean names to JMX object names registered by this exporter")
-	public Map<String, String> getObjectNames() {
-		return Collections.unmodifiableMap(objectNamesByName);
-	}
-
 	public Statistics getHandlerDuration(String name) {
 		if (handlersByName.containsKey(name)) {
 			return handlersByName.get(name).getDuration();
@@ -397,7 +381,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				logger.info("Registering MessageChannel " + name);
 				if (name != null) {
 					channelsByName.put(name, monitor);
-					objectNamesByName.put(name, beanKey);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -413,7 +396,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				String beanKey = getHandlerBeanKey(monitor);
 				if (name != null) {
 					handlersByName.put(name, monitor);
-					objectNamesByName.put(name, beanKey);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
@@ -429,7 +411,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				String beanKey = getSourceBeanKey(monitor);
 				if (name != null) {
 					sourcesByName.put(name, monitor);
-					objectNamesByName.put(name, beanKey);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
 			}
