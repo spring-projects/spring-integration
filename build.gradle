@@ -27,7 +27,7 @@
 // -----------------------------------------------------------------------------
 // Configuration for the root project
 // -----------------------------------------------------------------------------
-apply from: "$rootDir/gradle/version.gradle"
+apply from: "$rootDir/buildSrc/version.gradle"
 apply plugin: 'idea'
 
 // used for artifact names, building doc upload urls, etc.
@@ -96,7 +96,7 @@ configure(javaprojects) {
     libsSrcDir = new File(libsDir, 'src')
 
     // add tasks for creating source jars and generating poms etc
-    apply from: "$rootDir/gradle/maven-deployment.gradle"
+    apply from: "$rootDir/buildSrc/maven-deployment.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -412,13 +412,13 @@ project('spring-integration-xmpp') {
 apply plugin: 'base'
 
 // add tasks like 'distArchive'
-apply from: "$rootDir/gradle/dist.gradle"
+apply from: "$rootDir/buildSrc/dist.gradle"
 
 // add tasks like 'snapshotDependencyCheck'
-apply from: "${rootDir}/gradle/checks.gradle"
+apply from: "$rootDir/buildSrc/checks.gradle"
 
 // add 'generatePom' task to generate root pom with <modules> section
-apply from: "$rootDir/gradle/maven-root-pom.gradle"
+apply from: "$rootDir/buildSrc/maven-root-pom.gradle"
 
 // -----------------------------------------------------------------------------
 // Import tasks related to releasing and managing the project
@@ -427,4 +427,4 @@ apply from: "$rootDir/gradle/maven-root-pom.gradle"
 // @see gradle.properties for more information on roles
 // -----------------------------------------------------------------------------
 // add management tasks like `wrapper` for generating the gradlew* scripts
-apply from: "$rootDir/gradle/wrapper.gradle"
+apply from: "$rootDir/buildSrc/wrapper.gradle"

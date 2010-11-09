@@ -15,7 +15,7 @@
  */
 
 apply plugin: 'base'
-apply from: "$rootDir/gradle/docbook.gradle"
+apply from: "$rootDir/buildSrc/docbook.gradle"
 
 description = "Spring Integration Documentation"
 
