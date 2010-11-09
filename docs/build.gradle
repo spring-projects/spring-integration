@@ -228,18 +228,47 @@ uploadArchives {
                     classpath: configurations.scpAntTask.asPath)
 
             // copy the archive, unpack it, then delete it
-            def unpackCommand = "cd ${remoteDocsDir} && rm -rf ${version} && unzip -qKo ${archive.archiveName} && rm ${archive.archiveName}"
-            def wildcardSymlinkCommand = "cd ${remoteDocsDir} && rm -f ${version.wildcardValue} && ln -s ${version} ${version.wildcardValue}"
-            def latestGASymlinkCommand = "cd ${remoteDocsDir} && rm -f latest-ga && ln -s ${version} latest-ga"
+            def unpackCommand = """
+                cd ${remoteDocsDir} &&
+                rm -rf ${version} &&
+                unzip -qKo ${archive.archiveName} &&
+                rm ${archive.archiveName}
+            """
 
-            println "Unpacking docs archive: (${unpackCommand})"
+            def wildcardSymlinkCommand = """
+                cd ${remoteDocsDir} &&
+                if [ -e ${version.wildcardValue} ]; then
+                    currentWildcard=`readlink ${version.wildcardValue}`
+                else
+                    currentWildcard=-1
+                fi &&
+                if [[ ${version} > \$currentWildcard ]]; then
+                    rm -f ${version.wildcardValue} &&
+                    ln -s ${version} ${version.wildcardValue}
+                fi
+            """
+
+            def latestGASymlinkCommand = """
+                cd ${remoteDocsDir} &&
+                if [ -e latest-ga ]; then
+                    latestGa=`readlink latest-ga`
+                else
+                    latestGa=-1
+                fi &&
+                if [[ ${version} > \$latestGa ]]; then
+                    rm -f latest-ga &&
+                    ln -s ${version} latest-ga
+                fi
+            """
+
+            println "Unpacking docs archive: ${unpackCommand}"
             sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: unpackCommand)
             if (version.releaseType != 'SNAPSHOT') {
-                println "Creating wildcard symlink: (${wildcardSymlinkCommand})"
+                println "Creating wildcard symlink: ${wildcardSymlinkCommand}"
                 sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: wildcardSymlinkCommand)
             }
             if (version.releaseType == 'RELEASE') {
-                println "Creating latest-ga symlink: (${latestGASymlinkCommand})"
+                println "Creating latest-ga symlink: ${latestGASymlinkCommand}"
                 sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: latestGASymlinkCommand)
             }
             println "UPLOAD SUCCESSFUL - validate by visiting ${docUrl}"
