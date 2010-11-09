@@ -13,16 +13,18 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.util.UpperBound;
-import org.springframework.util.Assert;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.util.UpperBound;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.util.Assert;
 
 /**
  * Map-based implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -34,6 +36,7 @@ import java.util.concurrent.ConcurrentMap;
  * 
  * @since 2.0
  */
+@ManagedResource
 public class SimpleMessageStore extends AbstractMessageGroupStore implements MessageStore, MessageGroupStore {
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
@@ -71,6 +74,11 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	public SimpleMessageStore() {
 		this(0);
 	}
+	
+	@ManagedAttribute
+	public int getMessageCount() {
+		return idToMessage.size();
+	}
 
 	public <T> Message<T> addMessage(Message<T> message) {
 		if (!individualUpperBound.tryAcquire(0)) {
@@ -93,7 +101,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		else
 			return null;
 	}
-
+	
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);

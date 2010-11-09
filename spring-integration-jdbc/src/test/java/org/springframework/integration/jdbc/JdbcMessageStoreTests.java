@@ -37,7 +37,6 @@ import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -83,6 +82,14 @@ public class JdbcMessageStoreTests {
 		assertThat(saved, sameExceptIgnorableHeaders(result));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
+	}
+
+	@Test
+	@Transactional
+	public void testSize() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		messageStore.addMessage(message);
+		assertEquals(1, messageStore.getMessageCount());
 	}
 
 	@Test
@@ -183,6 +190,35 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	public void testMessageGroupCount() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		messageStore.addMessageToGroup(groupId, message);
+		assertEquals(1, messageStore.getMessageGroupCount());
+	}
+
+	@Test
+	@Transactional
+	public void testMessageGroupSizes() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		messageStore.addMessageToGroup(groupId, message);
+		assertEquals(1, messageStore.getMessageCountForAllMessageGroups());
+	}
+
+	@Test
+	@Transactional
+	public void testMarkedMessageGroupSizes() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		messageStore.addMessageToGroup(groupId, message);
+		assertEquals(0, messageStore.getMarkedMessageCountForAllMessageGroups());
+		messageStore.markMessageGroup(messageStore.getMessageGroup(groupId));
+		assertEquals(1, messageStore.getMarkedMessageCountForAllMessageGroups());
+	}
+
+	@Test
+	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -213,7 +249,7 @@ public class JdbcMessageStoreTests {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
 		messageStore.addMessageToGroup(groupId, message);
-		messageStore.addMessageToGroup(groupId,  MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
 		MessageGroup group = messageStore.markMessageFromGroup(groupId, message);
 		assertEquals(1, group.getMarked().size());
 	}
