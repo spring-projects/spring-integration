@@ -15,6 +15,10 @@
  */
 package org.springframework.integration.twitter.core;
 
+import org.springframework.util.StringUtils;
+
+import twitter4j.TwitterException;
+
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -23,25 +27,27 @@ package org.springframework.integration.twitter.core;
 @SuppressWarnings("serial")
 public class TwitterOperationException extends RuntimeException {
 
+	private int twitterStatusCode = -1;
+
 	/**
 	 * 
 	 */
 	public TwitterOperationException() {
-		super();
+		this(null, null);
 	}
 
 	/**
 	 * @param description
 	 */
 	public TwitterOperationException(String description) {
-		super(description);
+		this(description, null);
 	}
 
 	/**
 	 * @param throwable
 	 */
 	public TwitterOperationException(Throwable throwable) {
-		super(throwable);
+		this(null, throwable);
 	}
 
 	/**
@@ -49,7 +55,39 @@ public class TwitterOperationException extends RuntimeException {
 	 * @param throwable
 	 */
 	public TwitterOperationException(String description, Throwable throwable) {
-		super(description, throwable);
+		super(formatDescription(description, throwable), throwable);
+		if (throwable instanceof TwitterException){
+			this.twitterStatusCode = ((TwitterException)throwable).getStatusCode();
+		}
+		
+	}
+	
+	public int getTwitterStatusCode() {
+		return twitterStatusCode;
 	}
 
+	private static String formatDescription(String description, Throwable throwable){
+		StringBuffer buffer = new StringBuffer();
+		if (StringUtils.hasText(description)){
+			buffer.append(description + " ");
+		}
+		if (throwable != null && throwable instanceof TwitterException){
+			
+			TwitterException te = (TwitterException) throwable;
+			
+			String message = te.getMessage();
+			if (StringUtils.hasText(message)){
+				buffer.append("Detailed Error: ");
+				if (message.contains("{")){
+					buffer.append(message.substring(0, message.indexOf("{")));
+				}
+				else {
+					buffer.append(message);
+				}
+			}	
+			buffer.append("For more information about this exception please visit the following Twitter website: " +
+					"http://apiwiki.twitter.com/w/page/22554652/HTTP-Response-Codes-and-Errors");
+		}
+		return buffer.toString();
+	}
 }

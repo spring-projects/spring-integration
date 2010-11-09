@@ -67,7 +67,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return twitter.getScreenName();
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to obtain profile id ", e);
+			throw new TwitterOperationException("Failed to obtain Profile ID. ", e);
 		} 
 	}
 	
@@ -79,7 +79,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(directMessages);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Direct Messages ", e);
+			throw new TwitterOperationException("Failed to receive Direct Messages. ", e);
 		}
 	}
 	@Override
@@ -89,7 +89,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(directMessages);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Direct Messages ", e);
+			throw new TwitterOperationException("Failed to receive Direct Messages since the last message with ID: " 
+					+ sinceId + ".", e);
 		}
 	}
 	@Override
@@ -99,7 +100,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(mentions);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Mention statuses ", e);
+			throw new TwitterOperationException("Failed to receive Mention statuses. ", e);
 		}
 	}
 	@Override
@@ -109,7 +110,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(mentions);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Mention statuses ", e);
+			throw new TwitterOperationException("Failed to receive Mention statuses since the last status with ID: " 
+					+ sinceId + ".", e);
 		}
 	}
 	@Override
@@ -119,7 +121,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Timeline statuses ", e);
+			throw new TwitterOperationException("Failed to receive Timeline statuses. ", e);
 		}
 	}
 	@Override
@@ -129,7 +131,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to receive Timeline statuses ", e);
+			throw new TwitterOperationException("Failed to receive Timeline statuses since the last status with ID: " 
+					+ sinceId + ".", e);
 		}
 	}
 	@Override
@@ -140,7 +143,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			twitter.sendDirectMessage(userName, text);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to send Direct Message ", e);
+			throw new TwitterOperationException("Failed to send Direct Message to user: " + userName + ".", e);
 		}
 	}
 	@Override
@@ -151,7 +154,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			twitter.sendDirectMessage(userId, text);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to send Direct Message ", e);
+			throw new TwitterOperationException("Failed to send Direct Message to user with id: " + userId + ".", e);
 		}
 	}
 	
@@ -166,7 +169,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			twitter.updateStatus(status);
 		} 
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to send Status update ", e);
+			throw new TwitterOperationException("Failed to send Status update. ", e);
 		}
 	}
 	
