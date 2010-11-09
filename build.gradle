@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.springframework.build.Version
+
 // -----------------------------------------------------------------------------
 // Main gradle build file for Spring Integration
 //
@@ -27,7 +29,6 @@
 // -----------------------------------------------------------------------------
 // Configuration for the root project
 // -----------------------------------------------------------------------------
-apply from: "$rootDir/buildSrc/version.gradle"
 apply plugin: 'idea'
 
 // used for artifact names, building doc upload urls, etc.
@@ -48,7 +49,7 @@ allprojects {
     // milestone or release.
     // @see org.springframework.build.Version under buildSrc/ for more info
     // @see gradle.properties for the declaration of this property.
-    version = createVersion(springIntegrationVersion)
+    version = new Version(springIntegrationVersion)
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
@@ -405,6 +406,9 @@ project('spring-integration-xmpp') {
         testCompile project(":spring-integration-test")
         testCompile project(":spring-integration-stream")
     }
+}
+
+project('docs') {
 }
 
 // add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows

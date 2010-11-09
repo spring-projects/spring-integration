@@ -16,6 +16,7 @@
 
 apply plugin: 'base'
 apply from: "$rootDir/buildSrc/docbook.gradle"
+apply from: "$rootDir/buildSrc/preconditions.gradle"
 
 description = "Spring Integration Documentation"
 
