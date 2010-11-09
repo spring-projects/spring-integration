@@ -26,5 +26,10 @@
 						xmpp-connection="testConnection">
 		<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
 	</int-xmpp:message-outbound-channel-adapter>
+	
+	<int-xmpp:message-outbound-channel-adapter id="outboundNoChannelAdapter" 
+						xmpp-connection="testConnection">
+<!--		<int:poller fixed-rate="1000" max-messages-per-poll="1"/>-->
+	</int-xmpp:message-outbound-channel-adapter>
 
 </beans>

@@ -57,7 +57,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" use="required" type="xsd:string">
+			<xsd:attribute name="channel"  type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -151,7 +151,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" use="required" type="xsd:string">
+			<xsd:attribute name="channel"  type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

@@ -20,6 +20,7 @@ import static junit.framework.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 
@@ -43,5 +44,13 @@ public class XmppRosterEventOutboundChannelAdapterParserTests {
 			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object eventConsumer = ac.getBean("eventOutboundRosterAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
+	}
+	
+	@Test
+	public void testRosterEventOutboundChannel(){
+		ApplicationContext ac = 
+			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object channel = ac.getBean("eventOutboundRosterChannel");
+		assertTrue(channel instanceof SubscribableChannel);
 	}
 }

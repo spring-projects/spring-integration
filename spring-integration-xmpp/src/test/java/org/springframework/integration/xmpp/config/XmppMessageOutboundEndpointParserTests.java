@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.xmpp.config;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -31,9 +32,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**
@@ -47,15 +51,25 @@ public class XmppMessageOutboundEndpointParserTests {
 		ApplicationContext context = 
 			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
 		Object pollingConsumer = context.getBean("outboundPollingAdapter");
+		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
+		assertEquals("outboundPollingChannel", channel.getComponentName());
 		assertTrue(pollingConsumer instanceof PollingConsumer);
+	}
+	
+	@Test
+	public void testEventConsumerWithNoChannel(){
+		ApplicationContext context = 
+			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
+		Object eventConsumer = context.getBean("outboundNoChannelAdapter");
+		assertTrue(eventConsumer instanceof SubscribableChannel);
 	}
 	
 	@Test
 	public void testEventConsumer(){
 		ApplicationContext context = 
 			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
-		Object pollingConsumer = context.getBean("outboundEventAdapter");
-		assertTrue(pollingConsumer instanceof EventDrivenConsumer);
+		Object eventConsumer = context.getBean("outboundEventAdapter");
+		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
 	
 	@Test

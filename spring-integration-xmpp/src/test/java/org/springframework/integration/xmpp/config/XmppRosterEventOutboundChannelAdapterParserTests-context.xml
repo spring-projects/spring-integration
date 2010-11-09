@@ -28,5 +28,8 @@
 					xmpp-connection="testConnection" 
 					channel="eventChannel"/>
 					
+	<int-xmpp:roster-event-outbound-channel-adapter id="eventOutboundRosterChannel" 
+					xmpp-connection="testConnection"/>
+					
 	
 </beans>
