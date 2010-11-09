@@ -1,5 +1,5 @@
-Bundle-SymbolicName: org.springframework.integration.ftp
-Bundle-Name: Spring Integration SFTP Support
+Bundle-SymbolicName: org.springframework.integration.feed
+Bundle-Name: Spring Integration RSS Feed Support
 Bundle-Vendor: SpringSource
 Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
