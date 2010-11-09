@@ -84,6 +84,7 @@ configure(javaprojects) {
     apply plugin: 'maven'    // `gradle install` to push jars to local .m2 cache
     apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
     apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
+    apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 
     // ensure JDK 5 compatibility
     sourceCompatibility=1.5
@@ -94,9 +95,7 @@ configure(javaprojects) {
     libsBinDir = new File(libsDir, 'bin')
     libsSrcDir = new File(libsDir, 'src')
 
-    // all core projects should be OSGi-compliant bundles
-    // add the bundlor task to ensure proper manifests
-    apply from: "$rootDir/gradle/bundlor.gradle"
+    // add tasks for creating source jars and generating poms etc
     apply from: "$rootDir/gradle/maven-deployment.gradle"
 
     aspectjVersion = '1.6.8'
