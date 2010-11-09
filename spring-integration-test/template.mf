@@ -1,6 +1,7 @@
 Bundle-SymbolicName: org.springframework.integration.test
 Bundle-Name: Spring Integration Test Support
 Bundle-Vendor: SpringSource
+Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.apache.tools.ant.*;version="[1.7.0, 2.0.0)",

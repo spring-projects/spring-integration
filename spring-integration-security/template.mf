@@ -1,6 +1,7 @@
 Bundle-SymbolicName: org.springframework.integration.security
 Bundle-Name: Spring Integration Security Support
 Bundle-Vendor: SpringSource
+Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.aopalliance.*;version="[1.0.0, 2.0.0)",

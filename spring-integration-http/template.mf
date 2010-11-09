@@ -1,6 +1,7 @@
 Bundle-SymbolicName: org.springframework.integration.http
 Bundle-Name: Spring Integration HTTP Support
 Bundle-Vendor: SpringSource
+Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.springframework.integration.*;version="[2.0.0, 2.0.1)",
