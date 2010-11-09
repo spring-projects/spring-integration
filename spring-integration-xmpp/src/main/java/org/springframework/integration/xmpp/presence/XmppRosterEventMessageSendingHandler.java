@@ -18,33 +18,30 @@ package org.springframework.integration.xmpp.presence;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
-import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.xmpp.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * This class will facilitate publishing updated presence values for a given connection. This change happens on the
- * {@link org.jivesoftware.smack.Roster#setSubscriptionMode(org.jivesoftware.smack.Roster.SubscriptionMode)} property.
+ * This class will facilitate publishing updated presence values for a given connection. 
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
- * @see org.jivesoftware.smack.packet.Presence.Mode the mode (i.e.:
- *      {@link org.jivesoftware.smack.packet.Presence.Mode#away})
- * @see org.jivesoftware.smack.packet.Presence.Type the type (i.e.:
- *      {@link org.jivesoftware.smack.packet.Presence.Type#available} )
+ * 
  * @since 2.0
  */
-public class XmppRosterEventMessageSendingHandler extends AbstractMessageHandler  {
+public class XmppRosterEventMessageSendingHandler extends AbstractXmppConnectionAwareMessageHandler  {
 	
-	private final XMPPConnection xmppConnection;
+	public XmppRosterEventMessageSendingHandler(){
+		super();
+	}
 	
 	public XmppRosterEventMessageSendingHandler(XMPPConnection xmppConnection){
-		Assert.notNull(xmppConnection, "'xmppConnection' must not be null");
-		this.xmppConnection = xmppConnection;
+		super(xmppConnection);
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
+		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		Object payload = message.getPayload();
 		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was " 
 					+ payload.getClass().getName());

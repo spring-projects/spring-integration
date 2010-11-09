@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.xmpp.messages;
 
 import org.jivesoftware.smack.Chat;
@@ -24,8 +23,8 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.xmpp.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.Assert;
 
@@ -53,22 +52,22 @@ import org.springframework.util.Assert;
  * @see XMPPConnection the XMPPConnection (as
  *      created by {@link XmppConnectionFactory}
  */
-public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
+public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint  {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel requestChannel;
 
-	private final XMPPConnection xmppConnection;
-
 	private volatile boolean extractPayload = true;
 	
 	private volatile PacketListener packetListener;
 	
-	private volatile boolean initialized;
-
+	public XmppMessageDrivenEndpoint(){
+		super();
+	}
+	
 	public XmppMessageDrivenEndpoint(XMPPConnection xmppConnection){
-		this.xmppConnection = xmppConnection;
+		super(xmppConnection);
 	}
 	
 	/**
@@ -89,7 +88,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		xmppConnection.addPacketListener(this.packetListener, null);
 	}
 
@@ -100,6 +99,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 
 	@Override
 	protected void onInit() throws Exception {
+		super.onInit();
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
 		this.packetListener = new PacketListener() {
@@ -108,7 +108,6 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint  {
 				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
 			}
 		};
-		this.initialized = true;
 	}
 
 	private void forwardXmppMessage(Chat chat, Message xmppMessage) {

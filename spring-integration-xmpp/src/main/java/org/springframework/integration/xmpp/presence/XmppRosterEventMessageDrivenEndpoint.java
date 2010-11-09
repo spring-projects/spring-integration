@@ -25,13 +25,15 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.xmpp.AbstractXmppConnectionAwareEndpoint;
+import org.springframework.integration.xmpp.XmppContextUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -43,22 +45,22 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
+public class XmppRosterEventMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
 
 	private volatile MessageChannel requestChannel;
 
-	private final XMPPConnection xmppConnection;
-
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
 	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
-	private volatile boolean initialized;
+	public XmppRosterEventMessageDrivenEndpoint(){
+		super();
+	}
 
 	public XmppRosterEventMessageDrivenEndpoint(XMPPConnection xmppConnection){
-		this.xmppConnection = xmppConnection;
+		super(xmppConnection);
 	}
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
@@ -69,7 +71,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 	
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		this.xmppConnection.getRoster().addRosterListener(rosterListener);
 	}
 
@@ -80,9 +82,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint {
 
 	@Override
 	protected void onInit() throws Exception {
+		super.onInit();
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
-		this.initialized = true;
 	}
 
 	/**

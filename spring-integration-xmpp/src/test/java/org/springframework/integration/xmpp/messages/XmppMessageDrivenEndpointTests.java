@@ -16,6 +16,7 @@
 package org.springframework.integration.xmpp.messages;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -29,6 +30,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xmpp.XmppContextUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -75,5 +79,21 @@ public class XmppMessageDrivenEndpointTests {
 	public void testNonInitializationFailure(){
 		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(mock(XMPPConnection.class));
 		endpoint.start();
+	}
+	
+	@Test
+	public void testWithImplicitXmppConnection(){
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		endpoint.setBeanFactory(bf);
+		endpoint.afterPropertiesSet();
+		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNoXmppConnection(){
+		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		endpoint.afterPropertiesSet();
 	}
 }

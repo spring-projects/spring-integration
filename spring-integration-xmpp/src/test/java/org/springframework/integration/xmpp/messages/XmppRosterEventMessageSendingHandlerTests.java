@@ -15,10 +15,52 @@
  */
 package org.springframework.integration.xmpp.messages;
 
+import static junit.framework.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.Presence;
+import org.junit.Test;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xmpp.XmppContextUtils;
+import org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler;
+
 /**
  * @author Oleg Zhurakousky
  *
  */
 public class XmppRosterEventMessageSendingHandlerTests {
-
+	
+	@Test
+	public void testPresencePayload(){
+		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));
+		handler.afterPropertiesSet();
+		handler.handleMessage(new GenericMessage(mock(Presence.class)));
+	}
+	
+	@Test(expected=MessageHandlingException.class)
+	public void testWrongPayload(){
+		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));
+		handler.afterPropertiesSet();
+		handler.handleMessage(new GenericMessage(new Object()));
+	}
+	
+	@Test
+	public void testWithImplicitXmppConnection(){
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
+		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler();
+		handler.setBeanFactory(bf);
+		handler.afterPropertiesSet();
+		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNoXmppConnection(){
+		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler();
+		handler.afterPropertiesSet();
+	}
 }

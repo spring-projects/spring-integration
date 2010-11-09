@@ -16,6 +16,7 @@
 package org.springframework.integration.xmpp.presence;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,9 +36,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xmpp.XmppContextUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -114,5 +117,21 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		rosterListener.entriesUpdated(entries);
 		Message<?> message = channel.receive(10);
 		assertEquals(entries, message.getPayload());
+	}
+	
+	@Test
+	public void testWithImplicitXmppConnection(){
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
+		XmppRosterEventMessageDrivenEndpoint endpoint = new XmppRosterEventMessageDrivenEndpoint();
+		endpoint.setBeanFactory(bf);
+		endpoint.afterPropertiesSet();
+		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
+	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testNoXmppConnection(){
+		XmppRosterEventMessageDrivenEndpoint handler = new XmppRosterEventMessageDrivenEndpoint();
+		handler.afterPropertiesSet();
 	}
 }
