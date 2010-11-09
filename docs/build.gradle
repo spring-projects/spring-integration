@@ -207,7 +207,7 @@ uploadArchives {
             host = sshHost
             user = sshUsername
             if (project.hasProperty('sshPrivateKey')) {
-                keyFile = sshPrivateKey ? sshPrivateKey as File : null
+                keyFile = sshPrivateKey as File
             }
             addArtifactPattern "${remoteDocsDir}/${archive.archiveName}"
         }
