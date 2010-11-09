@@ -80,10 +80,10 @@ javaprojects = subprojects.findAll { project ->
 // -----------------------------------------------------------------------------
 configure(javaprojects) {
 
-    apply plugin: 'java' // tasks for conventional java lifecycle
-    apply plugin: 'maven' // `gradle install` to push jars to local .m2 cache
-    apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
-    apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
+    apply plugin: 'java'     // tasks for conventional java lifecycle
+    apply plugin: 'maven'    // `gradle install` to push jars to local .m2 cache
+    apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
+    apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
 
     // ensure JDK 5 compatibility
     sourceCompatibility=1.5
