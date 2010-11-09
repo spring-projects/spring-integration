@@ -1,0 +1,3 @@
+[submodule "buildSrc"]
+	path = buildSrc
+	url = /Users/cbeams/Work/spring-build/gradle
