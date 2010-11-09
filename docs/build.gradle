@@ -187,12 +187,10 @@ dependencies {
     scpAntTask("org.apache.ant:ant-jsch:1.8.1")
 }
 
-checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: ['sshHost', 'sshUsername', 'sshPrivateKey'])
+checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: ['sshHost', 'sshUsername', 'sshPrivateKey', 'remoteDocRoot'])
 
 uploadArchives {
-    def sshHost = project.properties.sshHost
-    def sshUsername = project.properties.sshUsername
-    def remoteSiteDir = '/var/www/domains/springframework.org/static/htdocs/' + rootProject.name
+    def remoteSiteDir = remoteDocRoot + rootProject.name
     def docUrl = "http://${sshHost}/${rootProject.name}/docs/${version}"
     def remoteDocsDir = "${remoteSiteDir}/docs/"
     def fqRemoteDir = "${sshUsername}@${sshHost}:${remoteDocsDir}"
