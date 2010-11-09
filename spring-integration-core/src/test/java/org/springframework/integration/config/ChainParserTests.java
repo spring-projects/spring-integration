@@ -158,8 +158,8 @@ public class ChainParserTests {
 		assertThat(reply, sameExceptImmutableHeaders(successMessage));
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
-	@SuppressWarnings("unchecked")
 	public void chainNestingAndAggregation() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").setCorrelationId(1).setSequenceSize(1).build();
 		this.aggregatorInput.send(message);

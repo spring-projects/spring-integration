@@ -34,6 +34,7 @@ public class OrderedAwareLinkedHashSetTests {
 	/**
 	 * Tests that semantics of the LinkedHashSet were not broken
 	 */
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddUnordered(){
 		OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
@@ -54,6 +55,7 @@ public class OrderedAwareLinkedHashSetTests {
 	 * the already existing element, thus preserving the order of insertion (LinkedHashset semantics) 
 	 * within the elements that have the same "order" value. 
 	 */
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddOrdered(){
 		OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
@@ -91,6 +93,7 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(o6, elements[9]);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testAddAllOrderedUnordered(){
 		List tempList = new ArrayList();
@@ -136,6 +139,7 @@ public class OrderedAwareLinkedHashSetTests {
 			this.doConcurrent();
 		}
 	}
+	@SuppressWarnings("rawtypes")
 	private void doConcurrent(){
 		final OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
 		final Object o1 = new Foo(3);
@@ -199,6 +203,7 @@ public class OrderedAwareLinkedHashSetTests {
 			this.doConcurrentAll();
 		}
 	}
+	@SuppressWarnings("rawtypes")
 	public void doConcurrentAll(){
 		final List tempList = new ArrayList();
 		Object o1 = new Foo(3);

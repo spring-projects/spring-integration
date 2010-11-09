@@ -70,8 +70,6 @@ public class AggregatorReplyChannelTests {
 		this.verifyReply(MessageBuilder.withPayload(list).setReplyChannelName("output").build());
 	}
 
-
-	@SuppressWarnings("unchecked")
 	private void verifyReply(Message<?> message) {
 		assertNull(output.receive(0));
 		input.send(message);

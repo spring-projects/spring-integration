@@ -34,6 +34,7 @@ import org.springframework.integration.transformer.HeaderEnricher;
  */
 public class MethodInvokingHeaderEnricherTests {
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void emptyHeadersOnRequest() {
 		TestBean testBean = new TestBean();
@@ -47,6 +48,7 @@ public class MethodInvokingHeaderEnricherTests {
 		assertEquals("ABC", result.getHeaders().get("bar"));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void overwriteFalseByDefault() {
 		TestBean testBean = new TestBean();
@@ -59,6 +61,7 @@ public class MethodInvokingHeaderEnricherTests {
 		assertEquals("XYZ", result.getHeaders().get("bar"));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void overwriteFalseExplicit() {
 		TestBean testBean = new TestBean();
@@ -72,6 +75,7 @@ public class MethodInvokingHeaderEnricherTests {
 		assertEquals("XYZ", result.getHeaders().get("bar"));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void overwriteTrue() {
 		TestBean testBean = new TestBean();

@@ -152,6 +152,7 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	private boolean addOrderedElement(Ordered adding) {	
 		boolean added = false;
 		E[] tempUnorderedElements = (E[]) this.toArray();

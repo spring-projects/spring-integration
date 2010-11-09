@@ -46,6 +46,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
@@ -471,7 +472,6 @@ public class MethodInvokingMessageProcessorTests {
 			return properties;
 		}
 
-		@SuppressWarnings("unchecked")
 		public Map mapMethod(Map map) {
 			return map;
 		}

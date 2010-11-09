@@ -48,7 +48,7 @@ public class ChannelInterceptorParser {
 	}
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public ManagedList parseInterceptors(Element element, ParserContext parserContext) {
 		ManagedList interceptors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();

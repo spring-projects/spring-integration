@@ -70,6 +70,7 @@ public class PayloadTypeRouterParserTests {
 		reader.loadBeanDefinitions(new InputStreamResource(stream));
 	}
 	
+	@SuppressWarnings("unused")
 	private String routerConfigFakeType = 
 		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
 	    "<beans:beans xmlns=\"http://www.springframework.org/schema/integration\"" +

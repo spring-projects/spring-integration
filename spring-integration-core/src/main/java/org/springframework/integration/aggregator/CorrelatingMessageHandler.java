@@ -49,7 +49,6 @@ import java.util.concurrent.ConcurrentMap;
  * @author Dave Syer
  * @since 2.0
  */
-@SuppressWarnings({"SynchronizationOnLocalVariableOrMethodParameter"})
 public class CorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
 
 	private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
@@ -154,6 +153,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		return "aggregator";
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
@@ -201,6 +201,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
 		if (group.isComplete() || group.getSequenceSize() == 0) {
 			// The group is complete or else there is no
@@ -249,6 +250,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		messageStore.markMessageGroup(group);
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void mark(MessageGroup group, Collection<Message> partialSequence) {
 		Object id = group.getGroupId();
 		for (Message message : partialSequence) {
@@ -295,6 +297,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		completeGroup(first, correlationKey, group);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private Collection<Message> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey ["
@@ -310,6 +313,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		return partialSequence;
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void sendReplies(Object processorResult, Message message) {
 		Object replyChannelHeader = null;
 		if (message != null) {

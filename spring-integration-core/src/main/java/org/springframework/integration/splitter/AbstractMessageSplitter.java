@@ -44,8 +44,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		this.applySequence = applySequence;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		// return null if 'null', empty Collection or empty Array
@@ -78,7 +78,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		return messageBuilders;
 	}
 
-	@SuppressWarnings( { "unchecked" })
+	@SuppressWarnings( { "unchecked", "rawtypes" })
 	private MessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId, int sequenceNumber,
 			int sequenceSize) {
 		MessageBuilder builder;

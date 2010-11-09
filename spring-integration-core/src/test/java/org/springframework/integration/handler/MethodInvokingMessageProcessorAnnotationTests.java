@@ -40,6 +40,7 @@ import static org.junit.Assert.*;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class MethodInvokingMessageProcessorAnnotationTests {
 
 	private final TestService testService = new TestService();
@@ -171,7 +172,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapMethodAndHeadersAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("mapHeaders", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
@@ -184,7 +184,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapMethodAndMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapPayload", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);

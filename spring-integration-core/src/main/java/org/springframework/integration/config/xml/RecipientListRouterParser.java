@@ -39,7 +39,7 @@ import org.springframework.util.xml.DomUtils;
 public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.RecipientListRouter");

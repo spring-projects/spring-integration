@@ -26,8 +26,6 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
@@ -39,9 +37,10 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class MapToObjectTransformerTests {
 
-	@SuppressWarnings("unchecked")
+	
 	@Test
 	public void testMapToObjectTransformation(){
 		Map map = new HashMap();
@@ -65,7 +64,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMapToObjectTransformationWithPrototype(){
 		Map map = new HashMap();
@@ -90,7 +88,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testMapToObjectTransformationWithConversionService(){
 		Map map = new HashMap();

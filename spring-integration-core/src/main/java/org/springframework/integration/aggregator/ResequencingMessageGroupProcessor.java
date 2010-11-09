@@ -38,6 +38,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 		this.comparator = comparator;
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getUnmarked();
 

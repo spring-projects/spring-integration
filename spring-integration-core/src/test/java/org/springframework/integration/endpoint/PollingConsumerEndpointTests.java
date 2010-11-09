@@ -60,8 +60,10 @@ public class PollingConsumerEndpointTests {
 
 	private TestConsumer consumer = new TestConsumer();
 
+	@SuppressWarnings("rawtypes")
 	private Message message = new GenericMessage<String>("test");
 
+	@SuppressWarnings("rawtypes")
 	private Message badMessage = new GenericMessage<String>("bad");
 
 	private TestErrorHandler errorHandler = new TestErrorHandler();

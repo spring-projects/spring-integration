@@ -31,7 +31,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 
 /**
  * @author Mark Fisher

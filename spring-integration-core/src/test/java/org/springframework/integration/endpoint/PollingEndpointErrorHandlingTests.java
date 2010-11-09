@@ -31,8 +31,8 @@ import org.springframework.integration.message.ErrorMessage;
  */
 public class PollingEndpointErrorHandlingTests {
 
+	@SuppressWarnings("rawtypes")
 	@Test
-	@SuppressWarnings("unchecked")
 	public void checkExceptionPlacedOnErrorChannel() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingEndpointErrorHandlingTests.xml", this.getClass());

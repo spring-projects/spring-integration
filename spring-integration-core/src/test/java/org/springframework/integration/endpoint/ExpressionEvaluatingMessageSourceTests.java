@@ -22,9 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.LiteralExpression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 
 /**
@@ -32,8 +30,6 @@ import org.springframework.integration.Message;
  * @since 2.0
  */
 public class ExpressionEvaluatingMessageSourceTests {
-
-	private static final ExpressionParser parser = new SpelExpressionParser();
 
 
 	@Test

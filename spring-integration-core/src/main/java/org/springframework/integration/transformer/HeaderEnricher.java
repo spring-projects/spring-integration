@@ -108,7 +108,7 @@ public class HeaderEnricher implements Transformer {
         }
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void addHeadersFromMessageProcessor(Message<?> message, Map<String, Object> headerMap) {
 		if (this.messageProcessor != null) {
 			Object result = this.messageProcessor.processMessage(message);

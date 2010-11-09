@@ -108,7 +108,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			return bean;
 		}
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
 				for (Annotation annotation : annotations) {

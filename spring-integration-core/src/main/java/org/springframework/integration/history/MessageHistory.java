@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
+@SuppressWarnings("serial")
 public class MessageHistory implements List<Properties>, Serializable {
 
 	public static final String HEADER_NAME = MessageHeaders.PREFIX + "history";
@@ -206,7 +207,6 @@ public class MessageHistory implements List<Properties>, Serializable {
 	/**
 	 * Inner class for each Entry in the history.
 	 */
-	@SuppressWarnings("serial")
 	public static class Entry extends Properties {
 
 		public String getName() {

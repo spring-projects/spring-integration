@@ -52,7 +52,7 @@ public class DefaultMessageAggregatorIntegrationTests {
 	@Qualifier("output")
 	private PollableChannel output;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(timeout = 10000)
 	public void testAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {

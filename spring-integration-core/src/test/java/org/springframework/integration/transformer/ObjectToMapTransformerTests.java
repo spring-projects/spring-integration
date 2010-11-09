@@ -74,7 +74,7 @@ public class ObjectToMapTransformerTests {
 		transformer.transform(message);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Employee buildEmployee(){
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");

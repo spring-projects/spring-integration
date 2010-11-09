@@ -59,7 +59,7 @@ public class MapToObjectTransformerParserTests {
 	@Qualifier("outputA")
 	private PollableChannel outputA;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testMapToObjectTransformationWithType(){
 		Map map = new HashMap();
@@ -83,7 +83,7 @@ public class MapToObjectTransformerParserTests {
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testMapToObjectTransformationWithRef(){
 		Map map = new HashMap();
@@ -106,7 +106,7 @@ public class MapToObjectTransformerParserTests {
 	}
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testMapToObjectTransformationWithConversionService(){
 		Map map = new HashMap();

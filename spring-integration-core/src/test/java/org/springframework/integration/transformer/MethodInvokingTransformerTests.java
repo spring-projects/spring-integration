@@ -212,6 +212,7 @@ public class MethodInvokingTransformerTests {
 		assertNull(result);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test // this changed in 2.0 see INT-785 and INT-1130
 	public void headerEnricherConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
@@ -230,6 +231,7 @@ public class MethodInvokingTransformerTests {
 		assertEquals("baz", result.getHeaders().get("prop3"));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test // this changed in 2.0 see INT-785 and INT-1130
 	public void headerEnricherConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();

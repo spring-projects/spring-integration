@@ -18,6 +18,7 @@ public class ResequencingMessageGroupProcessorTest {
 
 	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void shouldProcessSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(3).build();
@@ -33,6 +34,7 @@ public class ResequencingMessageGroupProcessorTest {
 		assertThat(processedMessages, hasItems(message1, message2, message3));
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void shouldPartiallProcessIncompleteSequence() {
 		Message prototypeMessage = MessageBuilder.withPayload("foo").setCorrelationId("x").setSequenceNumber(1).setSequenceSize(4).build();

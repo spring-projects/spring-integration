@@ -79,6 +79,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		assertTrue("adviceChain was not applied", adviceApplied.get());
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testTransactionalAdviceChain() throws Throwable {
 		SourcePollingChannelAdapterFactoryBean factoryBean = new SourcePollingChannelAdapterFactoryBean();

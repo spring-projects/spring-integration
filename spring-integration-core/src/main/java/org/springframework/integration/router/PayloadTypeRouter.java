@@ -19,11 +19,8 @@ package org.springframework.integration.router;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 

@@ -17,6 +17,7 @@ import org.springframework.core.convert.TypeDescriptor;
  */
 public class BeanFactoryTypeConverterTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEmptyCollectionConversion(){
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();

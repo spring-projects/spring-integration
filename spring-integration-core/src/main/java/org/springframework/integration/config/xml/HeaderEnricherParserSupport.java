@@ -61,7 +61,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		ManagedMap headers = new ManagedMap();
 		this.processHeaders(element, headers, parserContext);

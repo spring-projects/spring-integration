@@ -16,12 +16,10 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
@@ -30,7 +28,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 
 /**
@@ -90,7 +87,7 @@ public class HeaderValueRouterTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void resolveChannelNameFromMap() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMap = new ManagedMap();
@@ -112,7 +109,7 @@ public class HeaderValueRouterTests {
 		assertSame(message, result);
 	}
 	@Test
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void resolveChannelNameFromMapAndCustomeResolver() {
 		final StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMap = new ManagedMap();

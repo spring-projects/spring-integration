@@ -75,7 +75,7 @@ public class ResequencerTests {
 	@Test
 	public void testBasicResequencingWithCustomComparator() throws InterruptedException {
 		this.processor.setComparator(new Comparator<Message<?>>() {			
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public int compare(Message<?> o1, Message<?> o2) {
 				return ((Comparable)o1.getPayload()).compareTo(o2.getPayload());
 			}
@@ -153,7 +153,7 @@ public class ResequencerTests {
 	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
 		this.processor.setComparator(new Comparator<Message<?>>() {			
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public int compare(Message<?> o1, Message<?> o2) {
 				return ((Comparable)o1.getPayload()).compareTo(o2.getPayload());
 			}

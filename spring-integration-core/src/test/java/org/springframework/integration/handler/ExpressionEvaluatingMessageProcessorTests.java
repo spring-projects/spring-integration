@@ -58,6 +58,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	public ExpectedException expected = ExpectedException.none();
 
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessage() {
 		Expression expression = expressionParser.parseExpression("payload");
@@ -65,6 +66,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithParameterCoercion() {
 		@SuppressWarnings("unused")
@@ -80,6 +82,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("2", processor.processMessage(new GenericMessage<String>("2")));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithVoidResult() {
 		@SuppressWarnings("unused")
@@ -94,6 +97,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals(null, processor.processMessage(new GenericMessage<String>("2")));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithParameterCoercionToNonPrimitive() {
 		class TestTarget {
@@ -112,6 +116,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithDollarInBrackets() {
 		Expression expression = expressionParser.parseExpression("headers['$foo_id']");
@@ -120,6 +125,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("abc", processor.processMessage(message));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithDollarPropertyAccess() {
 		Expression expression = expressionParser.parseExpression("headers.$foo_id");
@@ -128,6 +134,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("xyz", processor.processMessage(message));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithStaticKey() {
 		Expression expression = expressionParser.parseExpression("headers[headers.ID]");
@@ -136,6 +143,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithBeanAsMethodArgument() {
 		StaticApplicationContext context = new StaticApplicationContext();
@@ -149,6 +157,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("foobar", processor.processMessage(message));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageWithMethodCallOnBean() {
 		StaticApplicationContext context = new StaticApplicationContext();
@@ -161,7 +170,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("barfoo", processor.processMessage(message));
 	}
-
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageBadExpression() {
 		expected.expect(new TypeSafeMatcher<Exception>(Exception.class) {
@@ -180,7 +189,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
-
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageExpressionThrowsRuntimeException() {
 		expected.expect(new TypeSafeMatcher<Exception>(Exception.class) {
@@ -200,6 +210,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		assertEquals("foo", processor.processMessage(new GenericMessage<TestPayload>(new TestPayload())));
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
 	public void testProcessMessageExpressionThrowsCheckedException() {
 		expected.expect(new TypeSafeMatcher<Exception>(Exception.class) {

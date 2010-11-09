@@ -42,6 +42,7 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Mark Fisher
  * @since 1.0.3
  */
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class PayloadAndHeaderMappingTests {
 
 	private TestBean bean;
@@ -700,7 +701,7 @@ public class PayloadAndHeaderMappingTests {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "unused"})
+	@SuppressWarnings("unused")
 	private static class TestBean {
 
 		private volatile Map lastHeaders;

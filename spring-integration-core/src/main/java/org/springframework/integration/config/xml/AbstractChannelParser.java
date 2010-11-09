@@ -38,8 +38,8 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser {
 
+	@SuppressWarnings("rawtypes")
 	@Override
-	@SuppressWarnings("unchecked")
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = this.buildBeanDefinition(element, parserContext);
 		ManagedList interceptors = null;

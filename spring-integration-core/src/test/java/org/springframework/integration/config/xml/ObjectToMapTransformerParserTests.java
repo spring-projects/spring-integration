@@ -91,7 +91,7 @@ public class ObjectToMapTransformerParserTests {
 		directInput.send(message);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Employee buildEmployee(){
 		Address companyAddress = new Address();
 		companyAddress.setCity("Philadelphia");

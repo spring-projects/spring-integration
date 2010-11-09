@@ -21,7 +21,7 @@ public class ExpressionEvaluatingReleaseStrategyTests {
 	private SimpleMessageGroup messages = new SimpleMessageGroup("foo");
 
 	@Before
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void setup() {
 		for (int i = 0; i < 5; i++) {
 			messages.add(new GenericMessage(i + 1));

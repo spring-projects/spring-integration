@@ -46,6 +46,7 @@ public class PartialSequencesWithGapsTests {
 	@Autowired
 	SubscribableChannel out;
 
+	@SuppressWarnings("rawtypes")
 	Queue<Message> received = new ArrayBlockingQueue<Message>(10);
 
 	@Before

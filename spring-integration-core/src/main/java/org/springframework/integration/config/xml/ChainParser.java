@@ -38,7 +38,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 public class ChainParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MessageHandlerChain");

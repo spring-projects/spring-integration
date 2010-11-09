@@ -61,6 +61,7 @@ public class MessageStoreTests {
 	
 	private static class TestMessageStore extends AbstractMessageGroupStore {
 
+		@SuppressWarnings("unchecked")
 		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new GenericMessage<String>("foo")), "bar");
 		private boolean removed = false;
 

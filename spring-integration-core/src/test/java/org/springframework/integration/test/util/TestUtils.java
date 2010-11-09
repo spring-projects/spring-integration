@@ -147,8 +147,8 @@ public abstract class TestUtils {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
+    @SuppressWarnings("rawtypes")
+	public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
         return new MessageHandler() {
             public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
                 assertThat(message, is(messageMatcher));

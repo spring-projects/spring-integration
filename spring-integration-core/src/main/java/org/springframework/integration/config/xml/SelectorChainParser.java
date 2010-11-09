@@ -54,7 +54,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		this.parseSelectorChain(builder, element, parserContext);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void parseSelectorChain(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "voting-strategy");
 		ManagedList selectors = new ManagedList();

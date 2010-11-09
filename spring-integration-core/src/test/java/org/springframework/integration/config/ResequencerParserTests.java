@@ -134,6 +134,7 @@ public class ResequencerParserTests {
 				.getClass());
 	}
 
+	@SuppressWarnings("unused")
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
@@ -155,7 +156,7 @@ public class ResequencerParserTests {
 	}
 
 	static class TestComparator implements Comparator<Message<?>> {
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public int compare(Message<?> o1, Message<?> o2) {
 			return ((Comparable) o1.getPayload()).compareTo(o2.getPayload());
 		}

@@ -5,8 +5,6 @@ package org.springframework.integration.dispatcher;
 
 import static junit.framework.Assert.assertTrue;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.aop.framework.Advised;
 import org.springframework.context.ApplicationContext;
