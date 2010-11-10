@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.outbound;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
+
+import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
+import org.springframework.integration.ftp.client.DefaultFtpsClientFactory;
+import org.springframework.util.StringUtils;
 
 /**
  * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.outbound.FtpSendingMessageHandler}
@@ -28,7 +32,7 @@ import javax.net.ssl.TrustManager;
 public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 
 	/**
-	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
+	 * Sets whether the connection is implicit. Default is FALSE.
 	 */
 	protected volatile Boolean implicit = Boolean.FALSE;
 
@@ -42,23 +46,23 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 	 */
 	protected volatile String prot;
 
-	private KeyManager keyManager;
+	private volatile KeyManager keyManager;
 
-	private TrustManager trustManager;
+	private volatile TrustManager trustManager;
 
 	protected volatile String authValue;
 
-	private Boolean sessionCreation;
+	private volatile Boolean sessionCreation;
 
-	private Boolean useClientMode;
+	private volatile Boolean useClientMode;
 
-	private Boolean needClientAuth;
+	private volatile Boolean needClientAuth;
 
-	private Boolean wantsClientAuth;
+	private volatile Boolean wantsClientAuth;
 
-	private String[] cipherSuites;
+	private volatile String[] cipherSuites;
 
-	private int fileType;
+	private volatile int fileType;
 
 
 	public void setImplicit(Boolean implicit) {
@@ -111,13 +115,31 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 
 	@Override
 	protected AbstractFtpClientFactory<?> clientFactory() {
-		DefaultFtpsClientFactory factory = ClientFactorySupport.ftpsClientFactory(this.host,
-				(this.port), this.remoteDirectory, this.username,
-				this.password, this.fileType, this.clientMode, this.prot,
-				this.protocol, this.authValue, this.implicit,
-				this.trustManager, this.keyManager, this.sessionCreation,
-				this.useClientMode, this.wantsClientAuth, this.needClientAuth,
-				this.cipherSuites);
+		DefaultFtpsClientFactory factory = new DefaultFtpsClientFactory();
+		factory.setHost(this.host);
+		factory.setPort(this.port);
+		factory.setUsername(this.username);
+		factory.setPassword(this.password);
+		factory.setRemoteWorkingDirectory(this.remoteDirectory);
+		factory.setFileType(this.fileType);
+		factory.setClientMode(this.clientMode);
+		factory.setCipherSuites(this.cipherSuites);
+		factory.setAuthValue(this.authValue);
+		factory.setTrustManager(this.trustManager);
+		factory.setKeyManager(this.keyManager);
+		factory.setNeedClientAuth(this.needClientAuth);
+		factory.setWantsClientAuth(this.wantsClientAuth);
+		factory.setSessionCreation(this.sessionCreation);
+		factory.setUseClientMode(this.useClientMode);
+		if (StringUtils.hasText(this.prot)) {
+			factory.setProt(this.prot);
+		}
+		if (StringUtils.hasText(this.protocol)) {
+			factory.setProtocol(this.protocol);
+		}
+		if (this.implicit != null) {
+			factory.setImplicit(this.implicit);
+		}
 		return factory;
 	}
 

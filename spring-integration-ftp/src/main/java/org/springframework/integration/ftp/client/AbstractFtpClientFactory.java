@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.client;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * base class for the other {@link org.springframework.integration.ftp.FtpClientFactory} implementations.
+ * base class for the other {@link org.springframework.integration.ftp.client.FtpClientFactory} implementations.
  * Most of this came out of the {@link DefaultFtpClientFactory} and was refactored into a base class
  *
  * @author Iwein Fuld

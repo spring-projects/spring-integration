@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.client;
 
 import org.apache.commons.net.ftp.FTPClient;
+
 
 /**
  * A pool of {@link FTPClient} instances. The pool can be used to control the

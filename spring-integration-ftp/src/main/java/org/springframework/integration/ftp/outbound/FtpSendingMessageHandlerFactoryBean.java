@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.outbound;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
+import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
+import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
+import org.springframework.integration.ftp.client.QueuedFtpClientPool;
 
 /**
  * A factory bean implementation that handles constructing an outbound FTP
@@ -91,9 +93,15 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
 	}
 
 	protected AbstractFtpClientFactory<?> clientFactory() {
-		return ClientFactorySupport.ftpClientFactory(this.host, this.port,
-				this.remoteDirectory, this.username, this.password,
-				this.clientMode, this.fileType);
+		DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
+		defaultFtpClientFactory.setHost(this.host);
+		defaultFtpClientFactory.setPort(this.port);
+		defaultFtpClientFactory.setUsername(this.username);
+		defaultFtpClientFactory.setPassword(this.password);
+		defaultFtpClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
+		defaultFtpClientFactory.setClientMode(this.clientMode);
+		defaultFtpClientFactory.setFileType(this.fileType);
+		return defaultFtpClientFactory;
 	}
 
 	@Override

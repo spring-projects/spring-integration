@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ftp.FtpsSendingMessageHandlerFactoryBean;
+import org.springframework.integration.ftp.outbound.FtpsSendingMessageHandlerFactoryBean;
 
 /**
  * Parser for the FTPS outbound-channel-adapter

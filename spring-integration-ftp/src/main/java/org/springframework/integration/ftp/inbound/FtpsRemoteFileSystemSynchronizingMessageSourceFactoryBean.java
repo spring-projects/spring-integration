@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.inbound;
 
 import org.apache.commons.net.ftp.FTPClient;
+
+import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
+import org.springframework.integration.ftp.client.DefaultFtpsClientFactory;
+import org.springframework.util.StringUtils;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
@@ -111,14 +115,33 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 	}
 
 	protected AbstractFtpClientFactory<?> defaultClientFactory() throws Exception {
-		DefaultFtpsClientFactory factory = ClientFactorySupport.ftpsClientFactory(this.host,
-				Integer.parseInt(this.port), this.remoteDirectory,
-				this.username, this.password, this.fileType, this.clientMode,
-				this.prot, this.protocol, this.authValue, this.implicit,
-				this.trustManager, this.keyManager, this.sessionCreation,
-				this.useClientMode, this.wantsClientAuth, this.needClientAuth,
-				this.cipherSuites);
-
+		DefaultFtpsClientFactory factory = new DefaultFtpsClientFactory();
+		factory.setHost(this.host);
+		if (StringUtils.hasText(this.port)) {
+			factory.setPort(Integer.parseInt(this.port));
+		}
+		factory.setUsername(this.username);
+		factory.setPassword(this.password);
+		factory.setRemoteWorkingDirectory(this.remoteDirectory);
+		factory.setFileType(this.fileType);
+		factory.setClientMode(this.clientMode);
+		factory.setCipherSuites(this.cipherSuites);
+		factory.setAuthValue(this.authValue);
+		factory.setTrustManager(this.trustManager);
+		factory.setKeyManager(this.keyManager);
+		factory.setNeedClientAuth(this.needClientAuth);
+		factory.setWantsClientAuth(this.wantsClientAuth);
+		factory.setSessionCreation(this.sessionCreation);
+		factory.setUseClientMode(this.useClientMode);
+		if (StringUtils.hasText(this.prot)) {
+			factory.setProt(this.prot);
+		}
+		if (StringUtils.hasText(this.protocol)) {
+			factory.setProtocol(this.protocol);
+		}
+		if (this.implicit != null) {
+			factory.setImplicit(this.implicit);
+		}
 		return factory;
 	}
 

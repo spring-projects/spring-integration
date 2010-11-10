@@ -22,7 +22,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
-import org.springframework.integration.ftp.FtpClientPool;
+import org.springframework.integration.ftp.client.FtpClientPool;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
@@ -52,9 +52,9 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 	}
 
 	/**
-	 * The {@link org.springframework.integration.ftp.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
+	 * The {@link org.springframework.integration.ftp.client.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
 	 *
-	 * @param clientPool the {@link org.springframework.integration.ftp.FtpClientPool}
+	 * @param clientPool the {@link org.springframework.integration.ftp.client.FtpClientPool}
 	 */
 	public void setClientPool(FtpClientPool clientPool) {
 		this.clientPool = clientPool;
