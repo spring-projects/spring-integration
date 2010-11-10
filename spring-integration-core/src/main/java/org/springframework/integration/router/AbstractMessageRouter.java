@@ -93,14 +93,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Specify whether this router should ignore any failure to resolve a channel name to
-	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
-	 */
-	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
-		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
-	}
-
-	/**
 	 * Allows you to set the map which will map channel identifiers to channel names.
 	 * Channel names will be resolve via {@link ChannelResolver}
 	 * @param channelIdentifierMap
@@ -146,6 +138,14 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	public void setResolutionRequired(boolean resolutionRequired) {
 		this.resolutionRequired = resolutionRequired;
+	}
+
+	/**
+	 * Specify whether this router should ignore any failure to resolve a channel name to
+	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
+	 */
+	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
+		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
 
 	/**
@@ -245,6 +245,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+		if (this.channelResolver == null) {
+			this.onInit();
+		}
 		Assert.state(this.channelResolver != null,
 				"unable to resolve channel names, no ChannelResolver available");
 		MessageChannel channel = null;
@@ -284,14 +287,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		if (this.suffix != null) {
 			channelName = channelName + suffix;
 		}
-		if (this.channelResolver == null) {
-			this.onInit();
-		}
-		if (this.channelResolver != null) {
-			MessageChannel channel = resolveChannelForName(channelName, message);
-			if (channel != null) {
-				channels.add(channel);
-			}
+		MessageChannel channel = resolveChannelForName(channelName, message);
+		if (channel != null) {
+			channels.add(channel);
 		}
 	}
 
