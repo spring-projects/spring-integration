@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.inbound;
+package org.springframework.integration.ftp.config;
 
-import org.apache.commons.net.ftp.FTPClient;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 
 import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
 import org.springframework.integration.ftp.client.DefaultFtpsClientFactory;
 import org.springframework.util.StringUtils;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
-
 /**
- * Factory to make building the namespace easier.
+ * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.outbound.FtpSendingMessageHandler}
  *
  * @author Josh Long
+ * @author Iwein Fuld
  */
-public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {
+public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 
 	/**
-	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
+	 * Sets whether the connection is implicit. Default is FALSE.
 	 */
 	protected volatile Boolean implicit = Boolean.FALSE;
 
@@ -47,36 +46,24 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 	 */
 	protected volatile String prot;
 
-	private KeyManager keyManager;
+	private volatile KeyManager keyManager;
 
-	private TrustManager trustManager;
+	private volatile TrustManager trustManager;
 
 	protected volatile String authValue;
 
-	private Boolean sessionCreation;
+	private volatile Boolean sessionCreation;
 
-	private Boolean useClientMode;
+	private volatile Boolean useClientMode;
 
-	private Boolean needClientAuth;
+	private volatile Boolean needClientAuth;
 
-	private Boolean wantsClientAuth;
+	private volatile Boolean wantsClientAuth;
 
-	private String[] cipherSuites;
+	private volatile String[] cipherSuites;
 
+	private volatile int fileType;
 
-	public FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
-		this.defaultFtpInboundFolderName = "ftpsInbound";
-		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
-	}
-
-
-	public void setKeyManager(KeyManager keyManager) {
-		this.keyManager = keyManager;
-	}
-
-	public void setTrustManager(TrustManager trustManager) {
-		this.trustManager = trustManager;
-	}
 
 	public void setImplicit(Boolean implicit) {
 		this.implicit = implicit;
@@ -88,6 +75,14 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 
 	public void setProt(String prot) {
 		this.prot = prot;
+	}
+
+	public void setKeyManager(KeyManager keyManager) {
+		this.keyManager = keyManager;
+	}
+
+	public void setTrustManager(TrustManager trustManager) {
+		this.trustManager = trustManager;
 	}
 
 	public void setAuthValue(String authValue) {
@@ -114,12 +109,15 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 		this.cipherSuites = cipherSuites;
 	}
 
-	protected AbstractFtpClientFactory<?> defaultClientFactory() throws Exception {
+	public void setFileType(int fileType) {
+		this.fileType = fileType;
+	}
+
+	@Override
+	protected AbstractFtpClientFactory<?> clientFactory() {
 		DefaultFtpsClientFactory factory = new DefaultFtpsClientFactory();
 		factory.setHost(this.host);
-		if (StringUtils.hasText(this.port)) {
-			factory.setPort(Integer.parseInt(this.port));
-		}
+		factory.setPort(this.port);
 		factory.setUsername(this.username);
 		factory.setPassword(this.password);
 		factory.setRemoteWorkingDirectory(this.remoteDirectory);

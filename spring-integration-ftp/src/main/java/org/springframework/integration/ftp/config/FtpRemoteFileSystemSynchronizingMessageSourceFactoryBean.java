@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.inbound;
+package org.springframework.integration.ftp.config;
 
 import java.io.File;
 
@@ -34,6 +34,8 @@ import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
 import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.client.QueuedFtpClientPool;
 import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
+import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizer;
+import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**

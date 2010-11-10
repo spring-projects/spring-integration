@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.outbound;
+package org.springframework.integration.ftp.config;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
@@ -22,6 +22,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
 import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.client.QueuedFtpClientPool;
+import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
 
 /**
  * A factory bean implementation that handles constructing an outbound FTP
