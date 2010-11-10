@@ -187,14 +187,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 	}
 
-	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		this.afterPropertiesSet();
-		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		Collection<Object> channelsReturned = this.getChannelIdentifiers(message);
-		addToCollection(channels, channelsReturned, message);
-		return channels;
-	}
-
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
 			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
@@ -245,6 +237,13 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 	}
 
+	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
+		Collection<Object> channelsReturned = this.getChannelIdentifiers(message);
+		addToCollection(channels, channelsReturned, message);
+		return channels;
+	}
+
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
 		Assert.state(this.channelResolver != null,
 				"unable to resolve channel names, no ChannelResolver available");
@@ -272,21 +271,23 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 			return;
 		}
-		if (this.prefix != null) {
-			channelIdentifier = this.prefix + channelIdentifier;
-		}
-		if (this.suffix != null) {
-			channelIdentifier = channelIdentifier + suffix;
-		}
-		/*
-		 * Some routers due to their complex nature will already resolve 'channelIdentifier'
-		 * to 'channelName' (e.g., PTR, EMETR)
-		 */
+
+		// if the channelIdentifierMap contains a mapping, we'll use the mapped value
+		// otherwise, the String-based channelIdentifier itself will be used as the channel name
 		String channelName = channelIdentifier;
 		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)) {
 			channelName = channelIdentifierMap.get(channelIdentifier);
 		}
-		if (this.channelResolver != null){
+		if (this.prefix != null) {
+			channelName = this.prefix + channelName;
+		}
+		if (this.suffix != null) {
+			channelName = channelName + suffix;
+		}
+		if (this.channelResolver == null) {
+			this.onInit();
+		}
+		if (this.channelResolver != null) {
 			MessageChannel channel = resolveChannelForName(channelName, message);
 			if (channel != null) {
 				channels.add(channel);
