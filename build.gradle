@@ -100,7 +100,7 @@ configure(javaprojects) {
     apply from: "$rootDir/buildSrc/maven-deployment.gradle"
 
     // add tasks for finding and publishing .xsd files
-    apply from: "$rootDir/gradle/schema-publication.gradle"
+    apply from: "$rootDir/buildSrc/schema-publication.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -412,6 +412,7 @@ project('spring-integration-xmpp') {
 }
 
 project('docs') {
+    apply from: "$rootDir/buildSrc/docs.gradle"
 }
 
 // add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
