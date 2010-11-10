@@ -218,8 +218,8 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void ambiguityFailure() throws Throwable {
+	@Test(expected = MessageHandlingException.class)
+	public void ambiguityFailure() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		QueueChannel serializableChannel = new QueueChannel();
@@ -242,12 +242,7 @@ public class PayloadTypeRouterTests {
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message = new GenericMessage<String>("test");
-		try {
-			router.handleMessage(message);
-		}
-		catch (MessageHandlingException e) {
-			throw e.getCause();
-		}
+		router.handleMessage(message);
 	}
 
 	@Test

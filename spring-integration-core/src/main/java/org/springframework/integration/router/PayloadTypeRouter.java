@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -32,41 +33,41 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  */
 public class PayloadTypeRouter extends AbstractMessageRouter {
+
 	/**
-	 * Will select the most appropriate channel name matching channel identifiers 
-	 * which are fully qualifies class name to type available while traversing payload type.
+	 * Selects the most appropriate channel name matching channel identifiers which are the
+	 * fully qualified class names encountered while traversing the payload type hierarchy.
 	 * To resolve ties and conflicts (e.g., Serializable and String) it will match:
 	 * 1. Type name to channel identifier else...
-	 * 2. Name of the subclass of the type to channel identifier elc...
+	 * 2. Name of the subclass of the type to channel identifier else...
 	 * 3. Name of the Interface of the type to channel identifier while also
-	 *    preferring direct interface over in-direct subclass
-	 * 
+	 *    preferring direct interface over indirect subclass
 	 */
 	@Override
 	protected List<Object> getChannelIndicatorList(Message<?> message) {
 		Class<?> firstInterfaceMatch = null;
 		Class<?> type = message.getPayload().getClass();
-		
-		while (type != null && !CollectionUtils.isEmpty(channelIdentifierMap)) {
+		while (type != null && !CollectionUtils.isEmpty(this.channelIdentifierMap)) {
 			Class<?>[] interfaces = type.getInterfaces();
-			// first try to find a match amongst the interfaces and also check if there is more then one
-			for (Class<?> interfase : interfaces) {
-				if (channelIdentifierMap.containsKey(interfase.getName())){
-					if (firstInterfaceMatch != null){
-						throw new IllegalStateException("Unresolvable ambiguity while attempting to find closest match for [" +
-								type.getName() + "]. Candidate types [" + firstInterfaceMatch.getName() + "] and [" + interfase.getName() + 
-								"] have equal weight.");
+			// first try to find a match amongst the interfaces and also check if there is more than one
+			for (Class<?> ifc : interfaces) {
+				if (this.channelIdentifierMap.containsKey(ifc.getName())) {
+					if (firstInterfaceMatch != null) {
+						throw new MessageHandlingException(message,
+								"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() +
+								"]. Candidate types [" + firstInterfaceMatch.getName() + "] and [" +
+								ifc.getName() + "] have equal weight.");
 					}
 					else {
-						firstInterfaceMatch = interfase;
+						firstInterfaceMatch = ifc;
 					}
 				}
 			}
 			// the actual type should favor the possible interface match
-			String channelName = channelIdentifierMap.get(type.getName());
-			if (!StringUtils.hasText(channelName)){
-				if (firstInterfaceMatch != null){
-					return Collections.singletonList((Object)channelIdentifierMap.get(firstInterfaceMatch.getName()));
+			String channelName = this.channelIdentifierMap.get(type.getName());
+			if (!StringUtils.hasText(channelName)) {
+				if (firstInterfaceMatch != null) {
+					return Collections.singletonList((Object) this.channelIdentifierMap.get(firstInterfaceMatch.getName()));
 				}	
 			}
 			else {
@@ -76,4 +77,5 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		}
 		return null;
 	}
+
 }
