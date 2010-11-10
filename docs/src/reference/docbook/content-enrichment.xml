@@ -81,7 +81,7 @@
     </para>
     <para>
     As you go through the manual you will see that as an added convenience 
-    Spring Integration provides adapter specific Header Enrichers (e.g., WS, XMPP, etc.)
+    Spring Integration provides adapter specific Header Enrichers (e.g., MAIL, XMPP, etc.)
  	</para>
   </section>
 
