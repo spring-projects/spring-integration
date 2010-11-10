@@ -470,15 +470,14 @@
     <para>
      The gateways will automatically correlate messages. However, an outbound
      gateway should only be used for relatively low-volume use. 
-     When the connection 
-     factory is configured for 'single-use="false"', a single shared connection is
-     used for all message pairs, and only one message can be processed at a time.
+     When the connection factory is configured for a single shared connection
+     to be used for all message pairs ('single-use="false"'), 
+     only one message can be processed at a time.
      A new message will have to wait until the reply to the previous message has
      been received. 
-     When a connection
-     factory is configured for 'single-use="true"' connections, the above 
-     restriction does not apply because each message pair is
-     carried over a separate connection. While this may give higher throughput
+     When a connection factory is configured for each new message to use a new connection 
+     ('single-use="true"'), the above restriction does not apply.
+     While this may give higher throughput
      than a shared connection environment, it comes with the overhead of opening
      and closing a new connection for each message pair. 
     </para>
