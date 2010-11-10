@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
@@ -90,7 +91,7 @@ public class RouterTests {
 	}
 
 	@Test
-	public void nullChannelNameArrayIgnoredByDefault() {
+	public void nullChannelIdentifierIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
 			protected List<Object> getChannelIdentifiers(Message<?> message) {
@@ -103,8 +104,22 @@ public class RouterTests {
 		router.handleMessage(message);
 	}
 
+	@Test
+	public void nullChannelIdentifierInListIgnoredByDefault() {
+		AbstractMessageRouter router = new AbstractMessageRouter() {
+			@Override
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
+				return Collections.singletonList(null);
+			}
+		};
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		router.setChannelResolver(channelResolver);
+		Message<String> message = new GenericMessage<String>("test");
+		router.handleMessage(message);
+	}
+
 	@Test(expected = MessageDeliveryException.class)
-	public void nullChannelNameArrayThrowsExceptionWhenResolutionRequired() {
+	public void nullChannelIdentifierTriggersExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			protected List<Object> getChannelIdentifiers(Message<?> message)  {
 				return null;
@@ -117,6 +132,19 @@ public class RouterTests {
 		router.handleMessage(message);
 	}
 
+	@Test(expected = MessageDeliveryException.class)
+	public void nullChannelIdentifierInListTriggersExceptionWhenResolutionRequired() {
+		AbstractMessageRouter router = new AbstractMessageRouter() {
+			protected List<Object> getChannelIdentifiers(Message<?> message)  {
+				return Collections.singletonList(null);
+			}
+		};
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		router.setChannelResolver(channelResolver);
+		router.setResolutionRequired(true);
+		Message<String> message = new GenericMessage<String>("test");
+		router.handleMessage(message);
+	}
 
 	@Test
 	public void emptyChannelNameArrayIgnoredByDefault() {
@@ -147,18 +175,7 @@ public class RouterTests {
 	}
 
 	@Test(expected = MessagingException.class)
-	public void channelMappingIsRequiredWhenResolvingChannelNamesWithSingleChannelRouter() {
-		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String determineTargetChannelName(Message<?> message) {
-				return "notImportant";
-			}
-		};
-		router.setBeanFactory(mock(BeanFactory.class));
-		router.handleMessage(new GenericMessage<String>("this should fail"));
-	}
-
-	@Test(expected = MessagingException.class)
-	public void channelMappingIsRequiredWhenResolvingChannelNamesWithMultiChannelRouter() {
+	public void channelMappingIsRequiredWhenResolvingChannelNames() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelIdentifiers(Message<?> message){
@@ -170,23 +187,7 @@ public class RouterTests {
 	}
 
 	@Test
-	public void beanFactoryWithSingleChannelRouter() {
-		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String determineTargetChannelName(Message<?> message) {
-				return "testChannel";
-			}
-		};
-		QueueChannel testChannel = new QueueChannel();
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.getBeanFactory().registerSingleton("testChannel", testChannel);
-		router.setBeanFactory(context);
-		router.handleMessage(new GenericMessage<String>("test"));
-		Message<?> reply = testChannel.receive(0);
-		assertEquals("test", reply.getPayload());
-	}
-
-	@Test
-	public void beanFactoryWithMultiChannelRouter() {
+	public void beanFactoryWithRouter() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelIdentifiers(Message<?> message) {
