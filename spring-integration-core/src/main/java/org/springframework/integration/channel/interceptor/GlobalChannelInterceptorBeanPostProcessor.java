@@ -101,7 +101,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 				}
 			}
 			Collections.sort(tempInterceptors, this.comparator);
-			interceptors.addAll(tempInterceptors);
+			for (GlobalChannelInterceptorWrapper next : tempInterceptors) {
+				interceptors.add(next.getChannelInterceptor());
+			}
 			tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
 			for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : this.negativeOrderInterceptors) {
 				String[] patterns = globalChannelInterceptorWrapper.getPatterns();
@@ -111,7 +113,11 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 				}
 			}
 			Collections.sort(tempInterceptors, comparator);
-			interceptors.addAll(0, tempInterceptors);
+			if (!tempInterceptors.isEmpty()) {
+				for (int i = tempInterceptors.size() - 1; i >= 0; i--) {
+					interceptors.add(0, tempInterceptors.get(i).getChannelInterceptor());
+				}
+			}
 		}
 		else if (logger.isDebugEnabled()) {
 			logger.debug("Global Channel interceptors will not be applied to Channel: " + beanName);

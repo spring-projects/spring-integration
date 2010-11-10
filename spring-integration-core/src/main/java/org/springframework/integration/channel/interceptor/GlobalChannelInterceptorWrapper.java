@@ -17,16 +17,15 @@
 package org.springframework.integration.channel.interceptor;
 
 import org.springframework.core.Ordered;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.util.Assert;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Ordered {
+public class GlobalChannelInterceptorWrapper implements Ordered {
 
 	private final ChannelInterceptor channelInterceptor;
 
@@ -64,22 +63,6 @@ public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Orde
 
 	public String[] getPatterns() {
 		return this.patterns;
-	}
-
-	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		return this.channelInterceptor.preSend(message, channel);
-	}	
-
-	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-		this.channelInterceptor.postSend(message, channel, sent);
-	}
-
-	public boolean preReceive(MessageChannel channel) {
-		return this.channelInterceptor.preReceive(channel);
-	}
-
-	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return this.channelInterceptor.postReceive(message, channel);
 	}
 
 	public String toString() {
