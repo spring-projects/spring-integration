@@ -39,8 +39,8 @@ public abstract class SftpSessionUtils {
 	 *         commands against a remote SFTP/SSH filesystem
 	 * @throws Exception thrown in case of darned near <em>anything</em>
 	 */
-	public static SftpSessionFactory buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port) throws Exception {
-		SftpSessionFactory sftpSessionFactory = new SftpSessionFactory();
+	public static SftpSessionFactoryBean buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port) throws Exception {
+		SftpSessionFactoryBean sftpSessionFactory = new SftpSessionFactoryBean();
 		sftpSessionFactory.setPassword(pw);
 		sftpSessionFactory.setPort(port);
 		sftpSessionFactory.setRemoteHost(host);

@@ -21,7 +21,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSessionFactoryBean;
 import org.springframework.integration.sftp.session.SftpSessionUtils;
 
 /**
@@ -87,7 +87,7 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 	}
 
 	public SftpSendingMessageHandler getObject() throws Exception {
-		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
+		SftpSessionFactoryBean sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
 				this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
 		QueuedSftpSessionPool sessionPool = new QueuedSftpSessionPool(15, sessionFactory);
 		sessionPool.afterPropertiesSet();

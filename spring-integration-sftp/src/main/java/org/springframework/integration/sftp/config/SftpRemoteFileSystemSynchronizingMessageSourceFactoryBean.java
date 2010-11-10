@@ -31,7 +31,7 @@ import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListF
 import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSessionFactoryBean;
 import org.springframework.integration.sftp.session.SftpSessionUtils;
 import org.springframework.util.StringUtils;
 
@@ -183,7 +183,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filter = compositeFtpFileListFilter;
 
 		// pools
-		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
+		SftpSessionFactoryBean sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
 		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sessionFactory);
 		pool.afterPropertiesSet();
 

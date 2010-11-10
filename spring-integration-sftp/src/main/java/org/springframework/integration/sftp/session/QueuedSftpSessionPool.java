@@ -37,16 +37,16 @@ public class QueuedSftpSessionPool implements SftpSessionPool, InitializingBean 
 
 	private volatile Queue<SftpSession> queue;
 
-	private final SftpSessionFactory sftpSessionFactory;
+	private final SftpSessionFactoryBean sftpSessionFactory;
 
 	private final int maxPoolSize;
 
 
-	public QueuedSftpSessionPool(SftpSessionFactory factory) {
+	public QueuedSftpSessionPool(SftpSessionFactoryBean factory) {
 		this(DEFAULT_POOL_SIZE, factory);
 	}
 
-	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
+	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactoryBean sessionFactory) {
 		this.sftpSessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
 	}
