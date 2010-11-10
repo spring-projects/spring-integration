@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="content-enricher"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Content Enricher</title>
+
+  <section id="content-enricher-introduction">
+    <title>Introduction</title>
+   <para>
+   Some time you may have a requirement to enhance a request with more information then it was 
+   provided by the target system. <link href="http://www.eaipatterns.com/DataEnricher.html">Content Enricher</link> pattern 
+   describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
+   </para>
+  </section>
+  
+  <section id="header-enricher">
+    <title>Header Enricher</title>
+   
+    <para>
+    If you only need to add headers to a Message, and they are not dynamically determined by Message content,
+    then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
+    'header-enricher' element.   <programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
+     <header name="foo" value="123"/>
+     <header name="bar" ref="someBean"/>
+ </header-enricher>]]></programlisting>
+    </para>
+  </section>
+
+</section>

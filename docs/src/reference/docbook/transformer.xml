@@ -88,13 +88,8 @@
 
  <payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
   </para>
-  <para>
-    If you only need to add headers to a Message, and they are not dynamically determined by Message content,
-    then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
-    'header-enricher' element.   <programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
-     <header name="foo" value="123"/>
-     <header name="bar" ref="someBean"/>
- </header-enricher>]]></programlisting>
+    <para>
+    <emphasis>Object-to-Map Transformer</emphasis>
     </para>
     <para>
     As added convenience, Spring Integration also provides <emphasis>Object-to-Map</emphasis> and <emphasis>Map-to-Object</emphasis> transformers which
