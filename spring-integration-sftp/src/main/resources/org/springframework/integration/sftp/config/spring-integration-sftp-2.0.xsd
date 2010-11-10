@@ -33,9 +33,7 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-
                 Builds an outbound-channel-adapter that writes files to a remote SFTP endpoint.
-
             ]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -49,16 +47,14 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-
 			<xsd:attribute name="username" type="xsd:string" use="required"/>
-			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-directory" type="xsd:string"/>
+			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
-
 			<xsd:attribute name="password" type="xsd:string"/>
 			<xsd:attribute name="port" type="xsd:int" default="22"/>
 			<xsd:attribute name="key-file" type="xsd:string"/>
 			<xsd:attribute name="key-file-password" type="xsd:string"/>
-
 			<xsd:attribute name="charset" type="xsd:string"/>
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
 		</xsd:complexType>
@@ -67,14 +63,13 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-
                 Builds an inbound-channel-adapter that synchronizes with a remote SFTP endpoint.
                 You may configure a <code>poller</code> element to determine at what frequency to scan the remote directory.
                 There is support for automatically deleting remote files upon synchornization. This adapter supports two connectivity options:
-
                 <ol>
                 <li> Password authentication: using this opton, authentication is done using a username and a password.</li>
-                <li> Key-based authentication: using this option, you may specify a key that will be used to authenticate. If they key itself is encrypted and requires a password, you may specify that, as well.</li>
+                <li> Key-based authentication: using this option, you may specify a key that will be used to authenticate.
+                     If they key itself is encrypted and requires a password, you may specify that, as well.</li>
                 </ol>
             ]]></xsd:documentation>
 		</xsd:annotation>
@@ -92,7 +87,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-
 			<xsd:attribute name="filter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -102,26 +96,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
-
 			<xsd:attribute name="username" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="local-directory-path" type="xsd:string"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
-
 			<xsd:attribute name="password" type="xsd:string"/>
 			<xsd:attribute name="port" type="xsd:int" default="22"/>
 			<xsd:attribute name="key-file" type="xsd:string"/>
 			<xsd:attribute name="key-file-password" type="xsd:string"/>
-
-
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
 			<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
-
-
 		</xsd:complexType>
 	</xsd:element>
-
 
 </xsd:schema>

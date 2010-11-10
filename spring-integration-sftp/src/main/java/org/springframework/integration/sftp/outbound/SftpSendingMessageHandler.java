@@ -31,16 +31,16 @@ import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.sftp.SftpHeaders;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -53,22 +53,20 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Josh Long
  * @since 2.0
  */
-public class SftpSendingMessageHandler implements MessageHandler, InitializingBean {
+public class SftpSendingMessageHandler extends AbstractExpressionEvaluator implements MessageHandler, InitializingBean {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
 
 	private volatile SftpSessionPool pool;
 
-	private volatile String remoteDirectory;
+	private volatile Expression remoteDirectoryExpression;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
 	private volatile File temporaryBufferFolderFile;
 
 	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
-
-	private volatile boolean initialized;
 
 	private volatile String charset = Charset.defaultCharset().name();
 
@@ -86,12 +84,8 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
-	public void setRemoteDirectory(final String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
-	}
-
-	public String getRemoteDirectory() {
-		return this.remoteDirectory;
+	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.remoteDirectoryExpression = remoteDirectoryExpression;
 	}
 
 	public void setCharset(String charset) {
@@ -101,12 +95,6 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.pool, "the pool must not be null");
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
-		if (!this.initialized) {
-			if (StringUtils.isEmpty(this.remoteDirectory)) {
-				this.remoteDirectory = null;
-			}
-			this.initialized = true;
-		}
 	}
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
@@ -182,16 +170,11 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
 		InputStream fileInputStream = null;
 		try {
 			fileInputStream = new FileInputStream(file);
-			String baseOfRemotePath = StringUtils.isEmpty(this.remoteDirectory) ? StringUtils.EMPTY : remoteDirectory; // the safe default
-			String dynRd = null;
-			MessageHeaders messageHeaders = null;
-			if (message != null) {
-				messageHeaders = message.getHeaders();
-				if ((messageHeaders != null) && messageHeaders.containsKey(SftpHeaders.REMOTE_DIRECTORY)) {
-					dynRd = (String) messageHeaders.get(SftpHeaders.REMOTE_DIRECTORY);
-					if (!StringUtils.isEmpty(dynRd)) {
-						baseOfRemotePath = dynRd;
-					}
+			String baseOfRemotePath = "";
+			if (this.remoteDirectoryExpression != null) {
+				String result = this.evaluateExpression(this.remoteDirectoryExpression, message, String.class);
+				if (result != null) {
+					baseOfRemotePath = result;
 				}
 			}
 			if (!StringUtils.defaultString(baseOfRemotePath).endsWith("/")) {
