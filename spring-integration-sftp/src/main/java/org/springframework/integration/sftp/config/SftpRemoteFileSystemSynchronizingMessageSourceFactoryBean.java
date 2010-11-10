@@ -32,6 +32,7 @@ import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemS
 import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSessionUtils;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;

@@ -22,6 +22,7 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSessionUtils;
 
 /**
  * Supports the construction of a MessagHandler that knows how to take inbound File objects

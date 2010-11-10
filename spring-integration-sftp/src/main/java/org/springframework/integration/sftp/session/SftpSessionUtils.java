@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.config;
+package org.springframework.integration.sftp.session;
 
-import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 /**
  * Utility methods for SFTP Session management.
