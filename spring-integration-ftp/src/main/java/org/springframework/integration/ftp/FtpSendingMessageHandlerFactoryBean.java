@@ -19,6 +19,7 @@ package org.springframework.integration.ftp;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
 
 /**
  * A factory bean implementation that handles constructing an outbound FTP

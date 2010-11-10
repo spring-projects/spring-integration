@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp.config;
 
 import org.apache.commons.net.ftp.FTP;
+
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 import java.util.HashMap;

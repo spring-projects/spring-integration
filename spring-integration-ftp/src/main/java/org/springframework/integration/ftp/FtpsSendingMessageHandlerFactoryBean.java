@@ -20,7 +20,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 /**
- * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.FtpSendingMessageHandler}
+ * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.outbound.FtpSendingMessageHandler}
  *
  * @author Josh Long
  * @author Iwein Fuld

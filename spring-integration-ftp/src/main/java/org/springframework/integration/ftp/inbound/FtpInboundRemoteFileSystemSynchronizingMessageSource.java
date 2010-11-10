@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp;
+package org.springframework.integration.ftp.inbound;
 
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.ftp.FtpClientPool;
 
 /**
  * A {@link org.springframework.integration.core.MessageSource} implementation for FTP.
