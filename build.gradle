@@ -29,11 +29,15 @@ import org.springframework.build.Version
 // -----------------------------------------------------------------------------
 // Configuration for the root project
 // -----------------------------------------------------------------------------
+def buildSrcDir = "$rootDir/buildSrc"
+
+apply from: "$buildSrcDir/wrapper.gradle"
 apply plugin: 'idea'
 
 // used for artifact names, building doc upload urls, etc.
 description = 'Spring Integration'
 abbreviation = 'INT'
+
 
 // -----------------------------------------------------------------------------
 // Configuration for all projects including this one (the root project)
@@ -97,10 +101,10 @@ configure(javaprojects) {
     libsSrcDir = new File(libsDir, 'src')
 
     // add tasks for creating source jars and generating poms etc
-    apply from: "$rootDir/buildSrc/maven-deployment.gradle"
+    apply from: "$buildSrcDir/maven-deployment.gradle"
 
     // add tasks for finding and publishing .xsd files
-    apply from: "$rootDir/buildSrc/schema-publication.gradle"
+    apply from: "$buildSrcDir/schema-publication.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -412,7 +416,7 @@ project('spring-integration-xmpp') {
 }
 
 project('docs') {
-    apply from: "$rootDir/buildSrc/docs.gradle"
+    apply from: "$buildSrcDir/docs.gradle"
 }
 
 // add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
@@ -420,19 +424,11 @@ project('docs') {
 apply plugin: 'base'
 
 // add tasks like 'distArchive'
-apply from: "$rootDir/buildSrc/dist.gradle"
+apply from: "$buildSrcDir/dist.gradle"
 
 // add tasks like 'snapshotDependencyCheck'
-apply from: "$rootDir/buildSrc/checks.gradle"
+apply from: "$buildSrcDir/checks.gradle"
 
 // add 'generatePom' task to generate root pom with <modules> section
-apply from: "$rootDir/buildSrc/maven-root-pom.gradle"
+apply from: "$buildSrcDir/maven-root-pom.gradle"
 
-// -----------------------------------------------------------------------------
-// Import tasks related to releasing and managing the project
-// depending on the role played by the current user.
-//
-// @see gradle.properties for more information on roles
-// -----------------------------------------------------------------------------
-// add management tasks like `wrapper` for generating the gradlew* scripts
-apply from: "$rootDir/buildSrc/wrapper.gradle"
