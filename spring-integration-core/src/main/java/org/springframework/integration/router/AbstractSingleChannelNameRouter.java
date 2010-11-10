@@ -30,7 +30,7 @@ import org.springframework.integration.Message;
 public abstract class AbstractSingleChannelNameRouter extends AbstractMessageRouter {
 
 	@Override
-	protected final List<Object> getChannelIndicatorList(Message<?> message) {
+	protected final List<Object> getChannelIdentifiers(Message<?> message) {
 		List<Object> channelList = new ArrayList<Object>();
 		String channelName = determineTargetChannelName(message);
 		if(channelName != null){

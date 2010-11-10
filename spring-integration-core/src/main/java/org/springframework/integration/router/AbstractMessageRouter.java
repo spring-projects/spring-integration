@@ -190,7 +190,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		this.afterPropertiesSet();
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
+		Collection<Object> channelsReturned = this.getChannelIdentifiers(message);
 		addToCollection(channels, channelsReturned, message);
 		return channels;
 	}
@@ -205,7 +205,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Subclasses must implement this method to return the channel identifiers.
 	 */
-	protected abstract List<Object> getChannelIndicatorList(Message<?> message);
+	protected abstract List<Object> getChannelIdentifiers(Message<?> message);
 
 
 	@Override

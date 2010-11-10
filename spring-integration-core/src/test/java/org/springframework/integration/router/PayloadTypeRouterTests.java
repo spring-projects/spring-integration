@@ -56,17 +56,17 @@ public class PayloadTypeRouterTests {
 		
 		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		assertEquals(1, router.getChannelIndicatorList(message1).size());
-		assertEquals("stringChannel", router.getChannelIndicatorList(message1).iterator().next());
-		assertEquals(1, router.getChannelIndicatorList(message2).size());
-		assertEquals("integerChannel", router.getChannelIndicatorList(message2).iterator().next());
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("stringChannel", router.getChannelIdentifiers(message1).iterator().next());
+		assertEquals(1, router.getChannelIdentifiers(message2).size());
+		assertEquals("integerChannel", router.getChannelIdentifiers(message2).iterator().next());
 		
 		// validate dynamics
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(String.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelIndicatorList(message1).size());
-		assertEquals("newChannel", router.getChannelIndicatorList(message1).iterator().next());
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
 		// validate nothing happens if mappings were removed and resolutionRequires = false
 		router.removeChannelMapping(String.class.getName());
 		router.removeChannelMapping(Integer.class.getName());
@@ -108,7 +108,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelIndicatorList(message).size());
+		assertEquals(1, router.getChannelIdentifiers(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);
@@ -208,7 +208,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelIndicatorList(message).size());
+		assertEquals(1, router.getChannelIdentifiers(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);

@@ -43,7 +43,7 @@ public class RouterTests {
 	public void nullChannelIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return null;
 			}		
 		};
@@ -55,7 +55,7 @@ public class RouterTests {
 	public void nullChannelThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return null;
 			}
 		};
@@ -68,7 +68,7 @@ public class RouterTests {
 	public void emptyChannelListIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return null;
 			}
 		};
@@ -80,7 +80,7 @@ public class RouterTests {
 	public void emptyChannelListThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return null;
 			}
 		};
@@ -93,7 +93,7 @@ public class RouterTests {
 	public void nullChannelNameArrayIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return null;
 			}
 		};
@@ -106,7 +106,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			protected List<Object> getChannelIndicatorList(Message<?> message)  {
+			protected List<Object> getChannelIdentifiers(Message<?> message)  {
 				return null;
 			}
 		};
@@ -121,7 +121,7 @@ public class RouterTests {
 	@Test
 	public void emptyChannelNameArrayIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return new ArrayList<Object>();
 			}
 		};
@@ -135,7 +135,7 @@ public class RouterTests {
 	public void emptyChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {});
 			}
 		};
@@ -161,7 +161,7 @@ public class RouterTests {
 	public void channelMappingIsRequiredWhenResolvingChannelNamesWithMultiChannelRouter() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIndicatorList(Message<?> message){
+			protected List<Object> getChannelIdentifiers(Message<?> message){
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
@@ -189,7 +189,7 @@ public class RouterTests {
 	public void beanFactoryWithMultiChannelRouter() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIndicatorList(Message<?> message) {
+			protected List<Object> getChannelIdentifiers(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannel" });
 			}
 		};

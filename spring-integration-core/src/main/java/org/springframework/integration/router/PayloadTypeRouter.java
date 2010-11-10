@@ -44,7 +44,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	 *    preferring direct interface over indirect subclass
 	 */
 	@Override
-	protected List<Object> getChannelIndicatorList(Message<?> message) {
+	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Class<?> firstInterfaceMatch = null;
 		Class<?> type = message.getPayload().getClass();
 		while (type != null && !CollectionUtils.isEmpty(this.channelIdentifierMap)) {
