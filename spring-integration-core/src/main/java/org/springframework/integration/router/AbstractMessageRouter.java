@@ -57,7 +57,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	private volatile boolean applySequence;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-	
+
 	private volatile String prefix;
 
 	private volatile String suffix;
@@ -65,9 +65,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean ignoreChannelNameResolutionFailures;
-	
+
 	protected volatile Map<String, String> channelIdentifierMap = new ConcurrentHashMap<String, String>();
-	
+
+
 	/**
 	 * Specify the {@link ChannelResolver} strategy to use.
 	 * The default is a BeanFactoryChannelResolver.
@@ -98,6 +99,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
+
 	/**
 	 * Allows you to set the map which will map channel identifiers to channel names.
 	 * Channel names will be resolve via {@link ChannelResolver}
@@ -107,10 +109,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		this.channelIdentifierMap.clear();
 		this.channelIdentifierMap.putAll(channelIdentifierMap);
 	}
-	
+
 	public void setChannelMapping(String channelIdentifier, String channelName){
 		this.channelIdentifierMap.put(channelIdentifier, channelName);
 	}
+
 	/**
 	 * Removes channel mapping for a give channel identifier
 	 * @param channelIdentifier
@@ -175,7 +178,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
-	
+
 	@Override
 	public void onInit() {
 		BeanFactory beanFactory = this.getBeanFactory();
@@ -183,25 +186,27 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		}
 	}
-	
-	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+
+	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		this.afterPropertiesSet();
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
 		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
 		addToCollection(channels, channelsReturned, message);
 		return channels;
 	}
-	
+
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
 			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
 		}
 		return this.getConversionService();
 	}
+
 	/**
-	 * Subclasses must implement this method to return the channel indicators.
+	 * Subclasses must implement this method to return the channel identifiers.
 	 */
 	protected abstract List<Object> getChannelIndicatorList(Message<?> message);
+
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
@@ -259,7 +264,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 		return channel;
 	}
-	
+
 	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
 		if (channelIdentifier.indexOf(',') != -1) {
 			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
@@ -278,10 +283,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		 * to 'channelName' (e.g., PTR, EMETR)
 		 */
 		String channelName = channelIdentifier;
-		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)){
+		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)) {
 			channelName = channelIdentifierMap.get(channelIdentifier);
 		}
-
 		if (this.channelResolver != null){
 			MessageChannel channel = resolveChannelForName(channelName, message);
 			if (channel != null) {
@@ -289,7 +293,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 	}
-	
+
 	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
 		if (channelIndicators == null) {
 			return;
@@ -325,4 +329,5 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 	}
+
 }
