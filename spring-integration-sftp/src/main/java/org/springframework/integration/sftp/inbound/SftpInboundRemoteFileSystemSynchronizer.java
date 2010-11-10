@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.impl;
+package org.springframework.integration.sftp.inbound;
 
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.IOUtils;
@@ -23,8 +23,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
-import org.springframework.integration.sftp.SftpSession;
-import org.springframework.integration.sftp.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSession;
+import org.springframework.integration.sftp.session.SftpSessionPool;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
@@ -48,7 +48,7 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 	private volatile String remotePath;
 
 	/**
-	 * the pool of {@link org.springframework.integration.sftp.SftpSessionPool} SFTP sessions
+	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
 	 */
 	private volatile SftpSessionPool clientPool;
 

@@ -17,9 +17,9 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.sftp.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.SftpSendingMessageHandler;
-import org.springframework.integration.sftp.SftpSessionFactory;
+import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
+import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 /**
  * Supports the construction of a MessagHandler that knows how to take inbound File objects

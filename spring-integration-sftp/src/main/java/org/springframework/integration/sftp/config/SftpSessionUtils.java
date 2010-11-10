@@ -16,7 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
-import org.springframework.integration.sftp.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 /**
  * Utility methods for SFTP Session management.

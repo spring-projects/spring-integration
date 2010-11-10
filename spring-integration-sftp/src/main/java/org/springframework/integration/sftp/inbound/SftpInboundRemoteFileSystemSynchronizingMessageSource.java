@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp.impl;
+package org.springframework.integration.sftp.inbound;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
-import org.springframework.integration.sftp.SftpSession;
-import org.springframework.integration.sftp.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSession;
+import org.springframework.integration.sftp.session.SftpSessionPool;
 import org.springframework.util.Assert;
 
 

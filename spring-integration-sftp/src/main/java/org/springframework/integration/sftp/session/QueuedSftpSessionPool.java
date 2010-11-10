@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.session;
 
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;

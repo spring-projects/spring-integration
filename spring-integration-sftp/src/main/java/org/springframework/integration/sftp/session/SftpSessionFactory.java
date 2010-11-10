@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.session;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;

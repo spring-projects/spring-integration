@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.outbound;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +38,9 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.sftp.SftpHeaders;
+import org.springframework.integration.sftp.session.SftpSession;
+import org.springframework.integration.sftp.session.SftpSessionPool;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 

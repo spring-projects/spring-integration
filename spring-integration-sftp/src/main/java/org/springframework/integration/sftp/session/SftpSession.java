@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.session;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;

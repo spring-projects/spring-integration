@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.session;
 
 /**
  * Holds instances of {@link SftpSession} since they are stateful

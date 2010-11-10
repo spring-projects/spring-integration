@@ -27,11 +27,11 @@ import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.sftp.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.SftpPatternMatchingFileListFilter;
-import org.springframework.integration.sftp.SftpSessionFactory;
-import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizer;
-import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
+import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizer;
+import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
