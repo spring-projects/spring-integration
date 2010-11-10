@@ -16,13 +16,73 @@
     <title>Header Enricher</title>
    
     <para>
-    If you only need to add headers to a Message, and they are not dynamically determined by Message content,
-    then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
-    'header-enricher' element.   <programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
-     <header name="foo" value="123"/>
-     <header name="bar" ref="someBean"/>
- </header-enricher>]]></programlisting>
+    If you only need to add headers to a Message, and they are not dynamically determined by the Message content,
+    then referencing a custom implementation of the Transformer may be an overkill. For that reason, 
+    Spring Integration provides the <emphasis>Header Enricher</emphasis> which is exposed via <code>&lt;header-enricher&gt;</code> element.   
+    
+	    <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+     <int:header name="foo" value="123"/>
+     <int:header name="bar" ref="someBean"/>
+</int:header-enricher>]]></programlisting>
+
     </para>
+    <para>
+    <emphasis>Header Enricher</emphasis> also provides helpful sub-elements to set well known header names.
+    <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+		<int:error-channel ref="applicationErrorChannel"/>
+		<int:reply-channel ref="quoteReplyChannel"/>
+		<int:correlation-id value="123"/>
+		<int:priority value="HIGHEST"/>
+		<int:header name="bar" ref="someBean"/>
+</int:header-enricher>]]></programlisting>
+	
+	In the above configuration you can clearly see that for well known headers such as <code>errorChannel</code>, 
+	<code>correlationId</code>, <code>priority</code>, <code>replyChannel</code>etc., instead of using generic <emphasis>&lt;header&gt;</emphasis> 
+	sub-element where you would have to provide both header 'name' and 'value', you can use convenient sub-elements 
+	allowing you to set those values directly.
+    </para>
+    <para>
+    	<emphasis>SpEL Support</emphasis>
+    </para>
+    <para>
+    In Spring Integration 2.0 we are introducing convenience of 
+    <link href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">Spring Expression Language (SpEL)</link>
+     to help configure many different components. <emphasis>Header Enricher</emphasis> is one of them. 
+	A lot of times, header value cannot be defined statically and has to be computed dynamically. That is why 
+	<emphasis>Header Enricher</emphasis> allows you to also specify bean 'ref' and 'method' that will calculate the 
+	header value. Let's look at the following configuration:
+		
+	<programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+		<int:header name="foo" method="computeValue" ref="myBean"/>
+</int:header-enricher>
+	
+<bean id="myBean" class="foo.bar.MyBean"/>]]></programlisting>
+
+<programlisting language="java"><![CDATA[public class MyBean{
+	public String computeValue(String payload){
+		return payload.toUpperCase() + "_US";
+	}
+}]]></programlisting>
+
+	As you can see that the computation logic to determine the header value is actually pretty simple and the 
+	natural question would be is there a simpler way to accomplish this? And that is where SpEL shows its true power.
+	
+	<programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+	<int:header name="foo" expression="payload.toUpperCase() + '_US'"/>
+</int:header-enricher>]]></programlisting>
+
+	As you can see, with SpEL for simple cases like above we no longer have to provide a separate class and configure 
+	it in the application context. All we need is to use <emphasis>expression</emphasis> attribute and provide a valid 
+	SpEL expression. You can also see that 'payload' and 'headers' are bound as variables to the SpEL Evaluation Context 
+	giving you full access to the incoming Message.
+    </para>		
+    <para>
+    	<emphasis>Adapter specific Header Enrichers</emphasis>
+    </para>
+    <para>
+    As you go through the manual you will see that as an added convenience 
+    Spring Integration provides adapter specific Header Enrichers (e.g., WS, XMPP, etc.)
+ 	</para>
   </section>
 
 </section>
