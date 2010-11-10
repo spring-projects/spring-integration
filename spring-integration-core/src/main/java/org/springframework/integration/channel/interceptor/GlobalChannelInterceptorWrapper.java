@@ -30,7 +30,7 @@ public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Orde
 
 	private final ChannelInterceptor channelInterceptor;
 
-	private volatile String[] patterns;
+	private volatile String[] patterns = new String[]{"*"}; // default
 
 	private volatile int order = 0;
 

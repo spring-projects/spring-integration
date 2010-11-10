@@ -54,7 +54,6 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		this.createAndRegisterGlobalPostProcessorIfNecessary(parserContext);
-		String channelPattern = element.getAttribute(CHANNEL_NAME_PATTERN_ATTRIBUTE);
 		BeanDefinitionBuilder globalChannelInterceptorBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + "GlobalChannelInterceptorWrapper");
 		BeanComponentDefinition interceptorBeanDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
@@ -66,12 +65,8 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 			globalChannelInterceptorBuilder.addConstructorArgValue(new RuntimeBeanReference(beanName));
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, "order");
-		if (StringUtils.hasText(channelPattern)) {
-			globalChannelInterceptorBuilder.addPropertyValue("patterns", channelPattern);
-		}
-		else {
-			globalChannelInterceptorBuilder.addPropertyValue("patterns", new String[] {"*"});
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, CHANNEL_NAME_PATTERN_ATTRIBUTE, "patterns");
+
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(
 				globalChannelInterceptorBuilder.getBeanDefinition(), parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(globalChannelInterceptorBuilder.getBeanDefinition(), beanName));
