@@ -32,7 +32,7 @@ public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Orde
 
 	private volatile String[] patterns;
 
-	private volatile int order;
+	private volatile int order = 0;
 
 
 	public GlobalChannelInterceptorWrapper(ChannelInterceptor channelInterceptor) {
@@ -41,7 +41,7 @@ public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Orde
 		// will set initial order for this interceptor wrapper to be the same as
 		// the underlying interceptor. Could be overridden with setOrder() method
 		if (channelInterceptor instanceof Ordered) {
-			order = ((Ordered) channelInterceptor).getOrder();
+			this.order = ((Ordered) channelInterceptor).getOrder();
 		}
 	}
 
