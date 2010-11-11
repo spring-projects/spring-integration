@@ -401,6 +401,9 @@
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
+					<xsd:attribute name="receive-timeout" type="xsd:string"/>
+					<xsd:attribute name="recovery-interval" type="xsd:string"/>
+					<xsd:attribute name="idle-consumer-limit" type="xsd:string"/>
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -544,6 +547,9 @@
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
+					<xsd:attribute name="receive-timeout" type="xsd:string"/>
+					<xsd:attribute name="recovery-interval" type="xsd:string"/>
+					<xsd:attribute name="idle-consumer-limit" type="xsd:string"/>
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
 					<xsd:attribute name="reply-time-to-live" type="xsd:string"/>
 					<xsd:attribute name="reply-priority" type="xsd:string"/>

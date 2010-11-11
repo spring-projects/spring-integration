@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -57,20 +56,17 @@ public class PayloadTypeRouterTests {
 		
 		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		assertEquals(1, router.determineTargetChannels(message1).size());
-		MessageChannel result1 = router.determineTargetChannels(message1).iterator().next();
-		assertEquals(1, router.determineTargetChannels(message2).size());
-		MessageChannel result2 = router.determineTargetChannels(message2).iterator().next();
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("stringChannel", router.getChannelIdentifiers(message1).iterator().next());
+		assertEquals(1, router.getChannelIdentifiers(message2).size());
+		assertEquals("integerChannel", router.getChannelIdentifiers(message2).iterator().next());
 		
-		assertEquals(stringChannel, result1);
-		assertEquals(integerChannel, result2);
 		// validate dynamics
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(String.class.getName(), "newChannel");
-		assertEquals(1, router.determineTargetChannels(message1).size());
-		result1 = router.determineTargetChannels(message1).iterator().next();
-		assertEquals(newChannel, result1);
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
 		// validate nothing happens if mappings were removed and resolutionRequires = false
 		router.removeChannelMapping(String.class.getName());
 		router.removeChannelMapping(Integer.class.getName());
@@ -112,7 +108,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.determineTargetChannels(message).size());
+		assertEquals(1, router.getChannelIdentifiers(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);
@@ -212,14 +208,14 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.determineTargetChannels(message).size());
+		assertEquals(1, router.getChannelIdentifiers(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void ambiguityFailure() throws Throwable {
+	@Test(expected = MessageHandlingException.class)
+	public void ambiguityFailure() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		QueueChannel serializableChannel = new QueueChannel();
@@ -242,12 +238,7 @@ public class PayloadTypeRouterTests {
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message = new GenericMessage<String>("test");
-		try {
-			router.handleMessage(message);
-		}
-		catch (MessageHandlingException e) {
-			throw e.getCause();
-		}
+		router.handleMessage(message);
 	}
 
 	@Test

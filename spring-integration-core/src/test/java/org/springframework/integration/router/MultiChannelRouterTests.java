@@ -40,7 +40,7 @@ public class MultiChannelRouterTests {
 	public void routeWithChannelMapping() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIndicatorList(Message<?> message) {
+			public List<Object> getChannelIdentifiers(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"channel1", "channel2"});
 			}
 		};
@@ -64,7 +64,7 @@ public class MultiChannelRouterTests {
 	public void channelNameLookupFailure() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIndicatorList(Message<?> message) {
+			public List<Object> getChannelIdentifiers(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"} );
 			}
 		};
@@ -78,7 +78,7 @@ public class MultiChannelRouterTests {
 	public void channelMappingNotAvailable() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIndicatorList(Message<?> message) {
+			public List<Object> getChannelIdentifiers(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};

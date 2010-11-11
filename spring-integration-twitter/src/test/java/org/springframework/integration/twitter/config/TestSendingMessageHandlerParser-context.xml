@@ -24,9 +24,9 @@
 	
    <channel id="inputChannel"/>
 
-	<twitter:outbound-dm-channel-adapter twitter-template="twitter" channel="inputChannel" />
+	<twitter:dm-outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
 	
-	<twitter:outbound-update-channel-adapter twitter-template="twitter" channel="inputChannel" />
+	<twitter:outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
    
 </beans:beans>
 

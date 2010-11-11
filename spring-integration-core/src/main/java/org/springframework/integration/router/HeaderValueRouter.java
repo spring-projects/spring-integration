@@ -43,7 +43,7 @@ public class HeaderValueRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIndicatorList(Message<?> message) {
+	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Object value = message.getHeaders().get(this.headerName);
 		if (value instanceof String && ((String) value).indexOf(',') != -1) {
 			value = StringUtils.tokenizeToStringArray((String) value, ",", true, true);

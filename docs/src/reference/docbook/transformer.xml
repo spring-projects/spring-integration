@@ -28,7 +28,7 @@
   </section>
 
   <section id="transformer-namespace">
-    <title>The &lt;transformer&gt; Element</title>
+    <title>Namespace support for Transformer - &lt;transformer&gt; Element</title>
     <para>
     The &lt;transformer&gt; element is used to create a Message-transforming endpoint. In addition to "input-channel"
       and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
@@ -88,13 +88,8 @@
 
  <payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
   </para>
-  <para>
-    If you only need to add headers to a Message, and they are not dynamically determined by Message content,
-    then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
-    'header-enricher' element.   <programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
-     <header name="foo" value="123"/>
-     <header name="bar" ref="someBean"/>
- </header-enricher>]]></programlisting>
+    <para>
+    <emphasis>Object-to-Map Transformer</emphasis>
     </para>
     <para>
     As added convenience, Spring Integration also provides <emphasis>Object-to-Map</emphasis> and <emphasis>Map-to-Object</emphasis> transformers which
@@ -161,7 +156,7 @@ public class Kid{
   </section>
 
   <section id="transformer-annotation">
-    <title>The @Transformer Annotation</title>
+    <title>Annotation support for Transformer -  @Transformer</title>
     <para>
       The <interfacename>@Transformer</interfacename> annotation can also be added to methods that expect either the
       <interfacename>Message</interfacename> type or the message payload type. The return value will be handled in the
@@ -178,6 +173,23 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
     return new Order(productId, customer);
 }</programlisting>
     </para>
+  </section>
+  
+  <section id="header-filter">
+  	<title>Header Filter</title>
+  
+  	Some time your transformation use case might be as simple as removing a few headers.
+  	For this type of use cases Spring Integration provides <emphasis>Header Filter</emphasis> which allows you to specify which header should be
+  	removed from the output Message.
+  	Basically <emphasis>Header Filter</emphasis> is the opposite  of <emphasis>Header Enricher</emphasis> 
+  	that is discussed in <xref linkend="header-enricher"/>
+  	
+	    <programlisting language="xml"><![CDATA[<int:header-filter input-channel="inputChannel" 
+		output-channel="outputChannel" header-names="lastName, state"/>]]></programlisting>
+	 
+	As you can see, configuration of <emphasis>Header Filter</emphasis> is quite simple. It is a typical endpoint with input/output channels
+	and <code>header-names</code> attribute which allows you to specify  the names of the headers (delimited by coma if multiple) 
+	that need to be removed. So, in the above example headers with the name 'lastName' and 'state' will be removed.
   </section>
 
 </section>

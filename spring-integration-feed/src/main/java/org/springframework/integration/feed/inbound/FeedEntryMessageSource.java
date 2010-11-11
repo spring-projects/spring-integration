@@ -60,8 +60,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 
 	private final FeedFetcher feedFetcher;
 
-	private final Queue<SyndFeed> feeds = new ConcurrentLinkedQueue<SyndFeed>();
-
 	private final Queue<SyndEntry> entries = new ConcurrentLinkedQueue<SyndEntry>();
 
 	private volatile String metadataKey;
@@ -252,12 +250,6 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 				if (logger.isDebugEnabled()) {
 					logger.debug("\tEVENT: Feed Polled. URL = " + event.getUrlString());
 				}
-			}
-			else if (FetcherEvent.EVENT_TYPE_FEED_RETRIEVED.equals(eventType)) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("\tEVENT: Feed Retrieved. URL = " + event.getUrlString());
-				}
-				feeds.add(event.getFeed());
 			}
 			else if (FetcherEvent.EVENT_TYPE_FEED_UNCHANGED.equals(eventType)) {
 				if (logger.isDebugEnabled()) {

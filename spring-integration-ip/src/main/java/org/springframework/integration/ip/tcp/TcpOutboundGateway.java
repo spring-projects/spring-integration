@@ -35,7 +35,6 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.util.Assert;
 
-
 /** 
  * TCP outbound gateway that uses a client connection factory. If the factory is configured
  * for single-use connections, each request is sent on a new connection; if the factory does not use
@@ -45,10 +44,8 @@ import org.springframework.util.Assert;
  * 
  * @author Gary Russell
  * @since 2.0
- *
  */
-public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
-		implements TcpSender, TcpListener {
+public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener {
 
 	protected AbstractConnectionFactory connectionFactory;
 	
@@ -59,7 +56,22 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	private long replyTimeout = 10000;
 	
 	private long requestTimeout = 10000;
-	
+
+
+	/**
+	 * @param requestTimeout the requestTimeout to set
+	 */
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestTimeout = requestTimeout;
+	}
+
+	/**
+	 * @param replyTimeout the replyTimeout to set
+	 */
+	public void setReplyTimeout(long replyTimeout) {
+		this.replyTimeout = replyTimeout;
+	}
+
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Assert.notNull(connectionFactory, this.getClass().getName() +
@@ -73,7 +85,9 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 					throw new MessageTimeoutException(requestMessage, "Timed out waiting for connection");
 				}
 				haveSemaphore = true;
-				logger.debug("got semaphore");
+				if (logger.isDebugEnabled()) {
+					logger.debug("got semaphore");
+				}
 			}
 			TcpConnection connection = this.connectionFactory.getConnection();
 			AsyncReply reply = new AsyncReply();
@@ -90,16 +104,20 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				logger.debug("Respose " + replyMessage);
 			}
 			return replyMessage;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
 			logger.error("Tcp Gateway exception", e);
 			throw new MessagingException("Failed to send or receive", e);
-		} finally {
+		}
+		finally {
 			if (haveSemaphore) {
 				this.semaphore.release();
-				logger.debug("released semaphore");
+				if (logger.isDebugEnabled()) {
+					logger.debug("released semaphore");
+				}
 			}
 		}
 	}
@@ -139,32 +157,23 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		// do nothing - no asynchronous multiplexing supported
 	}
 
-	/**
-	 * @param replyTimeout the replyTimeout to set
-	 */
-	public void setReplyTimeout(long timeout) {
-		this.replyTimeout = timeout;
-	}
-
-	/**
-	 * @param requestTimeout the requestTimeout to set
-	 */
-	public void setRequestTimeout(long requestTimeout) {
-		this.requestTimeout = requestTimeout;
-	}
 
 	/**
 	 * Class used to coordinate the asynchronous reply to its request.
+	 * 
 	 * @author Gary Russell
 	 * @since 2.0
-	 *
 	 */
-	class AsyncReply {
-		private CountDownLatch latch;
-		private Message<?> reply;
+	private class AsyncReply {
+
+		private final CountDownLatch latch;
+
+		private volatile Message<?> reply;
+
 		public AsyncReply() {
 			this.latch = new CountDownLatch(1);
 		}
+
 		/**
 		 * Sender blocks here until the reply is received, or we time out
 		 * @return The return message or null if we time out
@@ -175,14 +184,16 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 				if (!this.latch.await(replyTimeout, TimeUnit.MILLISECONDS)) {
 					return null;
 				}
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
 			return this.reply;
 		}
+
 		public void setReply(Message<?> reply) {
 			this.reply = reply;
-			latch.countDown();
+			this.latch.countDown();
 		}
 	}
 

@@ -21,25 +21,25 @@
 	
 	<channel id="inbound_mentions"/>
 	
-    <twitter:inbound-mention-channel-adapter id="mentionAdapter" 
+    <twitter:mentions-inbound-channel-adapter id="mentionAdapter" 
     					twitter-template="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-mention-channel-adapter>
+    </twitter:mentions-inbound-channel-adapter>
     
-    <twitter:inbound-dm-channel-adapter id="dmAdapter" 
+    <twitter:dm-inbound-channel-adapter id="dmAdapter" 
     					twitter-template="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-dm-channel-adapter>
-    <twitter:inbound-update-channel-adapter id="updateAdapter" 
+    </twitter:dm-inbound-channel-adapter>
+    <twitter:inbound-channel-adapter id="updateAdapter" 
     					twitter-template="twitter" 
     					channel="inbound_mentions" 
     					auto-startup="false">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
-    </twitter:inbound-update-channel-adapter>
+    </twitter:inbound-channel-adapter>
    
 </beans:beans>
 

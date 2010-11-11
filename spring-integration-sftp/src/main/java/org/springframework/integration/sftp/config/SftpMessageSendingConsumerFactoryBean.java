@@ -17,9 +17,12 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.sftp.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.SftpSendingMessageHandler;
-import org.springframework.integration.sftp.SftpSessionFactory;
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
+import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactoryBean;
+import org.springframework.integration.sftp.session.SftpSessionUtils;
 
 /**
  * Supports the construction of a MessagHandler that knows how to take inbound File objects
@@ -37,13 +40,14 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 
 	private String password;
 
-	private String remoteDirectory;
+	private Expression remoteDirectoryExpression;
 
 	private String username;
 
 	private int port;
 
 	private String charset;
+
 
 	public void setCharset(String charset) {
 		this.charset = charset;
@@ -61,6 +65,10 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 		this.keyFilePassword = keyFilePassword;
 	}
 
+	public void setUsername(final String username) {
+		this.username = username;
+	}
+
 	public void setPassword(final String password) {
 		this.password = password;
 	}
@@ -69,24 +77,25 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 		this.port = port;
 	}
 
-	public void setRemoteDirectory(final String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
+	public void setRemoteDirectory(String remoteDirectory) {
+		remoteDirectory = (remoteDirectory != null) ? remoteDirectory : ""; 
+		this.remoteDirectoryExpression = new LiteralExpression(remoteDirectory);
 	}
 
-	public void setUsername(final String username) {
-		this.username = username;
+	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.remoteDirectoryExpression = remoteDirectoryExpression;
 	}
 
 	public SftpSendingMessageHandler getObject() throws Exception {
-		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
+		SftpSessionFactoryBean sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
 				this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
-		QueuedSftpSessionPool queuedSFTPSessionPool = new QueuedSftpSessionPool(15, sessionFactory);
-		queuedSFTPSessionPool.afterPropertiesSet();
-		SftpSendingMessageHandler sftpSendingMessageHandler = new SftpSendingMessageHandler(queuedSFTPSessionPool);
-		sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
-		sftpSendingMessageHandler.setCharset(this.charset);
-		sftpSendingMessageHandler.afterPropertiesSet();
-		return sftpSendingMessageHandler;
+		QueuedSftpSessionPool sessionPool = new QueuedSftpSessionPool(15, sessionFactory);
+		sessionPool.afterPropertiesSet();
+		SftpSendingMessageHandler messageHandler = new SftpSendingMessageHandler(sessionPool);
+		messageHandler.setRemoteDirectoryExpression(this.remoteDirectoryExpression);
+		messageHandler.setCharset(this.charset);
+		messageHandler.afterPropertiesSet();
+		return messageHandler;
 	}
 
 	public Class<? extends SftpSendingMessageHandler> getObjectType() {

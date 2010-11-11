@@ -16,29 +16,32 @@
 
 package org.springframework.integration.store;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
  */
 public class MessageStoreTests {
 
-
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		TestMessageStore store = new TestMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList(new MessageGroupCallback() {
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
-		assertEquals(1, ((Collection<?>)ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
+		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
 	}
 
 	@Test
@@ -58,11 +61,30 @@ public class MessageStoreTests {
 		assertEquals(0, store.getMessageGroup("bar").size());
 
 	}
-	
+
+	@Test
+	public void testGroupCount() throws Exception {
+		TestMessageStore store = new TestMessageStore();
+		assertEquals(1, store.getMessageGroupCount());
+	}
+
+	@Test
+	public void testGroupSizes() throws Exception {
+		TestMessageStore store = new TestMessageStore();
+		assertEquals(1, store.getMessageCountForAllMessageGroups());
+	}
+
+	@Test
+	public void testMarkedGroupSizes() throws Exception {
+		TestMessageStore store = new TestMessageStore();
+		assertEquals(0, store.getMarkedMessageCountForAllMessageGroups());
+	}
+
 	private static class TestMessageStore extends AbstractMessageGroupStore {
 
 		@SuppressWarnings("unchecked")
 		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new GenericMessage<String>("foo")), "bar");
+
 		private boolean removed = false;
 
 		@Override
@@ -95,7 +117,7 @@ public class MessageStoreTests {
 				removed = true;
 			}
 		}
-		
+
 	}
 
 }

@@ -112,7 +112,7 @@ public class XPathRouter extends AbstractMessageRouter {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<Object> getChannelIndicatorList(Message<?> message) {
+	public List<Object> getChannelIdentifiers(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		return getXPathExpression().evaluate(node, this.nodeMapper);
 	}

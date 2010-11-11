@@ -13,73 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.channel.interceptor;
 
 import org.springframework.core.Ordered;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.util.Assert;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class GlobalChannelInterceptorWrapper implements ChannelInterceptor, Ordered{
-	private ChannelInterceptor channelInterceptor;
-	private String[] patterns;
-	private int order;
-	
-    public GlobalChannelInterceptorWrapper(ChannelInterceptor channelInterceptor){
+public class GlobalChannelInterceptorWrapper implements Ordered {
+
+	private final ChannelInterceptor channelInterceptor;
+
+	private volatile String[] patterns = new String[]{"*"}; // default
+
+	private volatile int order = 0;
+
+
+	public GlobalChannelInterceptorWrapper(ChannelInterceptor channelInterceptor) {
+		Assert.notNull(channelInterceptor, "channelInterceptor must not be null");
 		this.channelInterceptor = channelInterceptor;
-		// will set initial order for this interceptor wrapper to be the same as the 
-		// underlying interceptor. Could be overridden with setOrder() method
-		if (channelInterceptor instanceof Ordered){
-			order = ((Ordered)channelInterceptor).getOrder();
+		// will set initial order for this interceptor wrapper to be the same as
+		// the underlying interceptor. Could be overridden with setOrder() method
+		if (channelInterceptor instanceof Ordered) {
+			this.order = ((Ordered) channelInterceptor).getOrder();
 		}
 	}
 
-	public int getOrder() {
-		return order;
+
+	public ChannelInterceptor getChannelInterceptor() {
+		return this.channelInterceptor;
 	}
 
-	/**
-	 * 
-	 * @param order
-	 */
 	public void setOrder(int order) {
 		this.order = order;
 	}
 
-	public ChannelInterceptor getChannelInterceptor() {
-		return channelInterceptor;
-	}
-
-	public String[] getPatterns() {
-		return patterns;
+	public int getOrder() {
+		return this.order;
 	}
 
 	public void setPatterns(String[] patterns) {
 		this.patterns = patterns;
 	}
 
-	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-		return channelInterceptor.postReceive(message, channel);
+	public String[] getPatterns() {
+		return this.patterns;
 	}
 
-	public void postSend(Message<?> message, MessageChannel channel,
-			boolean sent) {
-		channelInterceptor.postSend(message, channel, sent);
+	public String toString() {
+		return this.channelInterceptor.toString();
 	}
 
-	public boolean preReceive(MessageChannel channel) {
-		return channelInterceptor.preReceive(channel);
-	}
-
-	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		return channelInterceptor.preSend(message, channel);
-	}
-	
-	public String toString(){
-		return channelInterceptor.toString();
-	}
 }

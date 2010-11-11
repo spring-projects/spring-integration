@@ -7,10 +7,10 @@
 
 
 	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore">
-		<property name="expiryCallbacks">
-			<bean class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
-		</property>
+		<property name="expiryCallbacks" ref="expiryCallback"/>
 	</bean>
+	
+	<bean id="expiryCallback" class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
 	
 	<bean id="reaper" class="org.springframework.integration.store.MessageGroupStoreReaper">
 		<property name="messageGroupStore" ref="messageStore"/>
@@ -22,5 +22,15 @@
 	</task:scheduled-tasks>
 	
 	<task:scheduler id="scheduler"/>
+	
+	<bean id="messageStore2" class="org.springframework.integration.store.SimpleMessageStore">
+    <property name="expiryCallbacks" ref="expiryCallback2"/>
+  </bean>
+  
+  <bean id="expiryCallback2" class="org.springframework.integration.store.MessageStoreReaperTests$ExpiryCallback"/>
+  
+  <bean id="reaper2" class="org.springframework.integration.store.MessageGroupStoreReaper">
+    <property name="messageGroupStore" ref="messageStore2"/>
+  </bean>
 
 </beans>

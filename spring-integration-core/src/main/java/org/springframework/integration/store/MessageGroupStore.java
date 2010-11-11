@@ -13,6 +13,7 @@
 package org.springframework.integration.store;
 
 import org.springframework.integration.Message;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**
  * Interface for storage operations on groups of messages linked by a group id.
@@ -23,6 +24,36 @@ import org.springframework.integration.Message;
  * 
  */
 public interface MessageGroupStore {
+
+	/**
+	 * Optional attribute giving the number of messages in the store over all groups. Implementations may decline to
+	 * respond by throwing an exception.
+	 * 
+	 * @return the number of messages
+	 * @throws UnsupportedOperationException if not implemented
+	 */
+	@ManagedAttribute
+	int getMessageCountForAllMessageGroups();
+
+	/**
+	 * Optional attribute giving the number of marked messages in the store for all groups. Implementations may decline
+	 * to respond by throwing an exception.
+	 * 
+	 * @return the number of marked messages in each group
+	 * @throws UnsupportedOperationException if not implemented
+	 */
+	@ManagedAttribute
+	int getMarkedMessageCountForAllMessageGroups();
+
+	/**
+	 * Optional attribute giving the number of  message groups. Implementations may decline
+	 * to respond by throwing an exception.
+	 * 
+	 * @return the number message groups
+	 * @throws UnsupportedOperationException if not implemented
+	 */
+	@ManagedAttribute
+	int getMessageGroupCount();
 
 	/**
 	 * Return all Messages currently in the MessageStore that were stored using
@@ -43,14 +74,14 @@ public interface MessageGroupStore {
 	/**
 	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
 	 * messages become marked.
-	 *
+	 * 
 	 * @param group a MessageGroup with no unmarked messages
 	 */
 	MessageGroup markMessageGroup(MessageGroup group);
 
 	/**
-	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is no
-	 * longer present in the group.
+	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is
+	 * no longer present in the group.
 	 * @param key the groupId for the group containing the message
 	 * @param messageToRemove the message to be removed
 	 */
@@ -66,14 +97,14 @@ public interface MessageGroupStore {
 
 	/**
 	 * Remove the message group with this id.
-	 *
+	 * 
 	 * @param groupId the id of the group to remove
 	 */
 	void removeMessageGroup(Object groupId);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
-	 *
+	 * 
 	 * @param callback a callback to execute when a message group is cleaned up
 	 */
 	void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
@@ -83,10 +114,10 @@ public interface MessageGroupStore {
 	 * each of the registered callbacks on them in turn. For example: call with a timeout of 100 to expire all groups
 	 * that were created more than 100 milliseconds ago, and are not yet complete. Use a timeout of 0 (or negative to be
 	 * on the safe side) to expire all message groups.
-	 *
+	 * 
 	 * @param timeout the timeout threshold to use
 	 * @return the number of message groups expired
-	 *
+	 * 
 	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
 	int expireMessageGroups(long timeout);

@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**
  * @author Dave Syer
@@ -68,6 +69,33 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	}
 	
 	public abstract Iterator<MessageGroup> iterator();
+
+	@ManagedAttribute
+	public int getMessageCountForAllMessageGroups() {
+		int count = 0;
+		for (MessageGroup group : this) {
+			count += group.size();
+		}
+		return count;
+	}
+
+	@ManagedAttribute
+	public int getMarkedMessageCountForAllMessageGroups() {
+		int count = 0;
+		for (MessageGroup group : this) {
+			count += group.getMarked().size();
+		}
+		return count;
+	}
+	
+	@ManagedAttribute
+	public int getMessageGroupCount() {
+		int count = 0;
+		for (@SuppressWarnings("unused") MessageGroup group : this) {
+			count ++;
+		}
+		return count;
+	}
 
 	private void expire(MessageGroup group) {
 	

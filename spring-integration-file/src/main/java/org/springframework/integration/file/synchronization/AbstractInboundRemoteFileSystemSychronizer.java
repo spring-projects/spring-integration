@@ -55,8 +55,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	protected volatile FileListFilter<F> filter = new AcceptAllFileListFilter<F>();
 
 	/**
-	 * The {@link ScheduledFuture} instance we get when we
-	 * schedule our {@link SynchronizeTask}
+	 * The {@link ScheduledFuture} instance we get when we schedule our SynchronizeTask.
 	 */
 	protected ScheduledFuture<?> scheduledFuture;
 
@@ -88,7 +87,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	 *            {@link EntryAcknowledgmentStrategy#acknowledge(Object, Object)} will be called in line with the
 	 *            {@link org.springframework.integration.core.MessageSource#receive()} call so this could conceivably
 	 *            be a 'live' stateful client (a connection?) that is inappropriate to cache as it has per-request state.
-	 * @param t
+	 * @param file
 	 *            leverages strategy implementations to enable different
 	 *            behavior. It's a hook to the file entry after it's been
 	 *            successfully downloaded. Conceptually, you might delete the

@@ -27,7 +27,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -679,6 +681,7 @@ public class TcpSendingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
+		final List<Socket> serverSockets = new ArrayList<Socket>();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {
@@ -687,6 +690,7 @@ public class TcpSendingMessageHandlerTests {
 					int i = 0;
 					while (true) {
 						Socket socket = server.accept();
+						serverSockets.add(socket);
 						semaphore.release();
 						byte[] b = new byte[9];
 						readFully(socket.getInputStream(), b);

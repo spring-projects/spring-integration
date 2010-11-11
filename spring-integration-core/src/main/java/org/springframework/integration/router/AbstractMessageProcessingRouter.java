@@ -54,7 +54,7 @@ class AbstractMessageProcessingRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIndicatorList(Message<?> message) {
+	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		List<Object> asList = new ArrayList<Object>();
 		asList.add(result);

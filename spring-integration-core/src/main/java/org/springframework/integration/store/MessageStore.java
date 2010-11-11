@@ -19,6 +19,7 @@ package org.springframework.integration.store;
 import java.util.UUID;
 
 import org.springframework.integration.Message;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**
  * Strategy interface for storing and retrieving messages.
@@ -39,8 +40,8 @@ public interface MessageStore {
 	/**
 	 * Put the provided Message into the MessageStore. The store may need to mutate the message internally, and if it
 	 * does then the return value can be different than the input. The id of the return value will be used as an index
-	 * so that the {@link #getMessage(UUID)} and {@link #removeMessage(UUID)} behave properly. Since messages are immutable, putting
-	 * the same message more than once is a no-op.
+	 * so that the {@link #getMessage(UUID)} and {@link #removeMessage(UUID)} behave properly. Since messages are
+	 * immutable, putting the same message more than once is a no-op.
 	 * 
 	 * @return the message that was stored
 	 */
@@ -51,5 +52,15 @@ public interface MessageStore {
 	 * is present in the store, this will return <i>null</i>.
 	 */
 	Message<?> removeMessage(UUID id);
+
+	/**
+	 * Optional attribute giving the number of messages in the store. Implementations may decline to respond by throwing
+	 * an exception.
+	 * 
+	 * @return the number of messages
+	 * @throws UnsupportedOperationException if not implemented
+	 */
+	@ManagedAttribute
+	int getMessageCount();
 
 }

@@ -29,7 +29,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ftp.FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean;
 
 /**
  * Parser for the FTP inbound-channel-adapter.

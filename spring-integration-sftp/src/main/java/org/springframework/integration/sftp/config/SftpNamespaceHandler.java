@@ -26,12 +26,15 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Provides namespace support for using SFTP.
  * This is largely based on the FTP support by Iwein Fuld.
  *
  * @author Josh Long
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
@@ -49,8 +52,26 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpMessageSendingConsumerFactoryBean.class.getName());
-			for (String p : "auto-create-directories,username,password,host,port,key-file,key-file-password,remote-directory,charset".split(",")) {
+			for (String p : "auto-create-directories,username,password,host,port,key-file,key-file-password,charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
+			}
+			String remoteDirectory = element.getAttribute("remote-directory");
+			String remoteDirectoryExpression = element.getAttribute("remote-directory-expression");
+			boolean hasLiteralRemoteDirectory = StringUtils.hasText(remoteDirectory);
+			boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
+			if (hasLiteralRemoteDirectory ^ hasRemoteDirectoryExpression) {
+				if (hasLiteralRemoteDirectory) {
+					builder.addPropertyValue("remoteDirectory", remoteDirectory);
+				}
+				else {
+					BeanDefinitionBuilder expressionDefBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+							"org.springframework.integration.config.ExpressionFactoryBean");
+					expressionDefBuilder.addConstructorArgValue(remoteDirectoryExpression);
+					builder.addPropertyValue("remoteDirectoryExpression", expressionDefBuilder.getBeanDefinition());
+				}
+			}
+			else {
+				parserContext.getReaderContext().error("exactly one of 'remote-directory' or 'remote-directory-expression' is required", element);
 			}
 			return builder.getBeanDefinition();
 		}

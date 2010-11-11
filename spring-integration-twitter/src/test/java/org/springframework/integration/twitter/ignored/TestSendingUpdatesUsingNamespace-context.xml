@@ -31,7 +31,7 @@
 
 	<channel id="out"/>
 
-	<twitter:outbound-update-channel-adapter twitter-template="twitterTemplate" channel="out"/>
+	<twitter:outbound-channel-adapter twitter-template="twitterTemplate" channel="out"/>
 	
 </beans:beans>
 

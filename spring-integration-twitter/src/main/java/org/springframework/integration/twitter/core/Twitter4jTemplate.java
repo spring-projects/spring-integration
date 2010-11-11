@@ -15,13 +15,19 @@
  */
 package org.springframework.integration.twitter.core;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.commons.lang.NotImplementedException;
 
 import org.springframework.util.Assert;
 
 import twitter4j.DirectMessage;
+import twitter4j.IDs;
 import twitter4j.Paging;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -63,7 +69,12 @@ public class Twitter4jTemplate implements TwitterOperations{
 
 	public String getProfileId() {
 		try {
-			return twitter.getScreenName();
+			if (twitter.isOAuthEnabled()){
+				return twitter.getScreenName();
+			}
+			else {
+				return "twitter-anonymous";
+			}
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to obtain Profile ID. ", e);
@@ -113,9 +124,9 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 
-	public List<Tweet> getFriendsTimeline() {
+	public List<Tweet> getHomeTimeline() {
 		try {
-			ResponseList<Status> timelines = twitter.getFriendsTimeline();
+			ResponseList<Status> timelines = twitter.getHomeTimeline();
 			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
@@ -123,9 +134,9 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 
-	public List<Tweet> getFriendsTimeline(long sinceId) {
+	public List<Tweet> getHomeTimeline(long sinceId) {
 		try {
-			ResponseList<Status> timelines = twitter.getFriendsTimeline(new Paging(sinceId));
+			ResponseList<Status> timelines = twitter.getHomeTimeline(new Paging(sinceId));
 			return this.buildTweetsFromTwitterResponses(timelines);
 		} 
 		catch (Exception e) {
@@ -156,24 +167,73 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 
-	public void updateStatus(Tweet statusTweet) {
-		Assert.notNull(statusTweet, "'statusTweet' must not be null");
+	public void updateStatus(String statusTweet) {
+		Assert.hasText(statusTweet, "'statusTweet' must not be null");
 		try {
-			StatusUpdate status = new StatusUpdate(statusTweet.getText());
-			if (statusTweet.getToUserId() != null){
-				status.setInReplyToStatusId(statusTweet.getToUserId());
-			}
+			StatusUpdate status = new StatusUpdate(statusTweet);
 			twitter.updateStatus(status);
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to send Status update. ", e);
 		}
 	}
-	
+
+	public List<String> getFriends(String screenName) {
+		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
+				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface untill" +
+				"migration to use Spring Social is complete in Spring Integration 2.1.0");
+	}
+
+	public void retweet(long tweetId) {
+		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
+				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface untill" +
+				"migration to use Spring Social is complete in Spring Integration 2.1.0");
+	}
+
+	public SearchResults search(String query) {
+		Assert.hasText(query, "'query' must not be null");
+		Query q = new Query(query);	
+		return this.search(q);
+	}
+
+	public SearchResults search(String query, int page, int pageSize) {
+		Assert.hasText(query, "'query' must not be null");
+		Query q = new Query(query);	
+		q.setPage(page);
+		return this.search(q);
+	}
+
+	public SearchResults search(String query, int page, int resultsPerPage,
+			int sinceId, int maxId) {
+		Assert.hasText(query, "'query' must not be null");
+		Query q = new Query(query);	
+		q.setPage(page);
+		q.setSinceId(sinceId);
+		q.setMaxId(maxId);
+		return this.search(q);
+	}
+
 	public Twitter getUnderlyingTwitter(){
 		return this.twitter;
 	}
-	
+
+	private SearchResults search(Query query){
+		try {
+			QueryResult result = twitter.search(query);
+			
+			if (result != null){
+				List<twitter4j.Tweet> t4jTweets = result.getTweets();
+				List<Tweet> tweets = this.buildTweetsFromTwitterResponses(t4jTweets);
+				SearchResults results = new SearchResults(tweets, result.getMaxId(), result.getSinceId(), false);
+				return results;
+			}	
+		} 
+		catch (Exception e) {
+			throw new TwitterOperationException("Failed to send Status update. ", e);
+		}
+		return null;
+	}
+
 	private List<Tweet> buildTweetsFromTwitterResponses(List<?> responses){
 		List<Tweet> tweets = new LinkedList<Tweet>();
 		if (responses != null){
@@ -181,14 +241,20 @@ public class Twitter4jTemplate implements TwitterOperations{
 				if (response instanceof Status){
 					tweets.add(this.buildTweetFromStatus((Status) response));
 				}
-				else {
+				else if (response instanceof DirectMessage) {
 					tweets.add(this.buildTweetFromDm((DirectMessage) response));
+				}
+				else if (response instanceof twitter4j.Tweet){
+					tweets.add(this.buildTweetFromT4jTweet((twitter4j.Tweet) response));
+				}
+				else {
+					throw new TwitterOperationException("Unsupported response type: " + response.getClass());
 				}
 			}
 		}
 		return tweets;
 	}
-	
+
 	private Tweet buildTweetFromDm(DirectMessage dm){
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(dm.getCreatedAt());
@@ -199,7 +265,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 		tweet.setToUserId((long)dm.getRecipientId());
 		return tweet;
 	}
-	
+
 	private Tweet buildTweetFromStatus(Status status){
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(status.getCreatedAt());
@@ -210,6 +276,19 @@ public class Twitter4jTemplate implements TwitterOperations{
 		tweet.setId(status.getId());
 		tweet.setSource(status.getSource());
 		tweet.setText(status.getText());
+		return tweet;
+	}
+
+	private Tweet buildTweetFromT4jTweet(twitter4j.Tweet t4jTweet){
+		Tweet tweet = new Tweet();
+		tweet.setCreatedAt(t4jTweet.getCreatedAt());
+		tweet.setFromUser(t4jTweet.getFromUser());
+		tweet.setFromUserId(t4jTweet.getFromUserId());
+		tweet.setId(t4jTweet.getId());
+		tweet.setLanguageCode(t4jTweet.getIsoLanguageCode());
+		tweet.setProfileImageUrl(t4jTweet.getProfileImageUrl());
+		tweet.setSource(t4jTweet.getSource());
+		tweet.setText(t4jTweet.getText());
 		return tweet;
 	}
 }

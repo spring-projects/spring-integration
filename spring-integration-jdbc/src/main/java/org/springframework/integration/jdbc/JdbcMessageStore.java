@@ -29,7 +29,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
@@ -49,6 +48,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -60,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Dave Syer
  * @since 2.0
  */
+@ManagedResource
 public class JdbcMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
 	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
@@ -71,12 +73,20 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CREATED_DATE, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?";
 
+	private static final String GET_MESSAGE_COUNT = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE where REGION=?";
+
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=? and REGION=?";
 
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
 	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
+
+	private static final String COUNT_ALL_GROUPS = "SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?";
+
+	private static final String COUNT_ALL_MARKED_MESSAGES_IN_GROUPS = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where MARKED=1 AND REGION=?";
+
+	private static final String COUNT_ALL_MESSAGES_IN_GROUPS = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
 	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and GROUP_KEY=? and REGION=?";
 
@@ -238,6 +248,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return null;
 	}
 
+	@ManagedAttribute
+	public int getMessageCount() {
+		return jdbcTemplate.queryForInt(getQuery(GET_MESSAGE_COUNT), region);
+	}
+
 	public Message<?> getMessage(UUID id) {
 		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { getKey(id), region }, mapper);
 		if (list.isEmpty()) {
@@ -297,6 +312,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	}
 
+	@ManagedAttribute
+	public int getMessageGroupCount() {
+		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_GROUPS), region);
+	}
+
+	@ManagedAttribute
+	public int getMessageCountForAllMessageGroups() {
+		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MESSAGES_IN_GROUPS), region);
+	}
+
+	@ManagedAttribute
+	public int getMarkedMessageCountForAllMessageGroups() {
+		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MARKED_MESSAGES_IN_GROUPS), region);
+	}
+
 	public MessageGroup getMessageGroup(Object groupId) {
 		String key = getKey(groupId);
 		final List<Message<?>> marked = new ArrayList<Message<?>>();
@@ -305,12 +335,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region },
 				new RowCallbackHandler() {
 					int count = 0;
+
 					public void processRow(ResultSet rs) throws SQLException {
 						int markedFlag = rs.getInt("MARKED");
 						Message<?> message = mapper.mapRow(rs, count++);
 						if (markedFlag > 0) {
 							marked.add(message);
-						} else {
+						}
+						else {
 							unmarked.add(message);
 						}
 						date.set(rs.getTimestamp("CREATED_DATE"));

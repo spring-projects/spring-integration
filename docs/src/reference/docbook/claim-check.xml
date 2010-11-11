@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="claim-check"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Claim Check</title>
+
+  <section id="claim-check-introduction">
+    <title>Introduction</title>
+    <para>
+    In the earlier sections we've covered several Content Enricher type components that helps you deal with situations where a 
+    message is missing a piece of data. We also discussed Content Filtering which lets you remove uninteresting data items from a message. 
+    However there are times when we want to remove some data temporarily. For example; In a distributed system we may receive a 
+    Message with a very large payload. Some intermittent message processing steps may not need access to this payload and some may only 
+    need to access parts of the payload so carrying the large Message through each processing step may cause performance degradation 
+    and makes debugging harder.
+    </para>
+    
+    <para>
+    <link href="http://www.eaipatterns.com/StoreInLibrary.html">Claim Check</link>  pattern describes mechanism that allows you 
+    to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is and pass such 
+    pointer around as a payload of a new Message allowing any component within the message flow to get the actual data as soon as 
+    it needs it. This approach is very similar to the Certified Mail process where you'll get Claim Check in your mailbox and 
+    would have to go to the Post Office to claim your actual package or mail.
+    </para>
+    
+    <para>
+    Spring Integration provides two types of Claim Check transformers - <emphasis>Incoming Claim Check Transformer</emphasis> and 
+    <emphasis>Outgoing Claim Check Transformer</emphasis> as well as convenient namespace-based mechanism to configure them.
+    </para>
+    
+    <section id="claim-check-in">
+    	<title>Incoming Claim Check Transformer</title>
+    	
+    	<para>
+    	<emphasis>Incoming Claim Check Transformer</emphasis> - will transform incoming Message by storing it in the Message Store 
+    	identified by <code>message-store</code> attribute.
+    	
+    	<programlisting language="xml"><![CDATA[<int:claim-check-in id="checkin"
+		input-channel="checkinChannel"
+		message-store="testMessageStore"
+		output-channel="checkoutChannel"/>]]></programlisting>
+
+		In the above configuration the Message that is received on the <code>input-channel</code> will be persisted to the 
+		Message Store identified with <code>message-store</code> attribute and indexed with generated ID. That ID is the Claim Check for that Message. 
+		This Claim Check will also become the payload of the new (transformed) Message that will be sent to the <code>output-channel</code>. 
+    	</para>
+    	
+    	<para>
+    	Now, lets assume that at some point you do need access to the actual Message. You can of course access the Message Store 
+    	manually and get the contents of the Message or you can use the same approach as before except now you will be transforming 
+    	the Claim Check to the actual Message by using <emphasis>Outgoing Claim Check Transformer</emphasis>.
+    	</para>
+    </section>
+    
+    <section id="claim-check-out">
+    	<title>Outgoing Claim Check Transformer</title>
+    	
+    	<para>
+    	<emphasis>Incoming Claim Check Transformer</emphasis> allows you to transform a Message from the Message with just a Claim Check
+    	to the Message with the original content. 
+    	<programlisting language="xml"><![CDATA[<claim-check-out id="checkout"
+		input-channel="checkoutChannel"
+		message-store="testMessageStore"/>]]></programlisting>
+
+		In the above configuration the Message that is received on the <code>input-channel</code> has a Claim Check as a payload 
+		and <emphasis>Outgoing Claim Check Transformer</emphasis> will transform it into an original Message by simply querying the 
+		Message store for a Message identified by a Claim Check provided and sending the new Message to the <code>output-channel</code>.	
+    	</para>
+    </section>
+    <para>
+    Although we rarely care about the protocol of the claim checks as long as they work, but it is still worth knowing that current 
+    implementation of the actual Claim Check (the pointer) in Spring Integration is UUID to ensure uniqueness. 
+    </para>
+    
+    <para>
+    <emphasis>A word on Message Store</emphasis>
+    </para>
+    <para>
+    <classname>org.springframework.integration.store.MessageStore</classname> is a strategy interface for storing and retrieving messages. 
+    Spring Integration provides two convenient implementations of it. <classname>SimpleMessageStore</classname> - In memory  Map-based 
+    implementation (default, good for testing) and <classname>JdbcMessageStore</classname> - Implementation of <classname>MessageStore</classname> 
+    that uses relational database via JDBC.	
+    </para>
+  </section>
+
+</section>

@@ -16,6 +16,7 @@
 package org.springframework.integration.twitter.core;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -23,6 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +33,8 @@ import org.mockito.Mockito;
 import org.springframework.integration.test.util.TestUtils;
 
 import twitter4j.Paging;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.http.AccessToken;
@@ -89,10 +94,10 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testGetFriendsTimeline() throws Exception{
-		template.getFriendsTimeline();
-		template.getFriendsTimeline(123);
-		verify(twitter, times(1)).getFriendsTimeline();
-		verify(twitter, times(1)).getFriendsTimeline(Mockito.any(Paging.class));
+		template.getHomeTimeline();
+		template.getHomeTimeline(123);
+		verify(twitter, times(1)).getHomeTimeline();
+		verify(twitter, times(1)).getHomeTimeline(Mockito.any(Paging.class));
 	}
 	
 	@Test
@@ -105,10 +110,31 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testUpdateStatus() throws Exception{
-		Tweet tweet = new Tweet();
-		tweet.setToUserId((long) 123);
-		tweet.setText("writing twitter test");
-		template.updateStatus(tweet);
+		template.updateStatus("writing twitter test");
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
+	
+	@Test
+	public void testSearch() throws Exception{
+		// set up test
+		QueryResult result = mock(QueryResult.class);
+		List<twitter4j.Tweet> t4jTweets = new ArrayList<twitter4j.Tweet>();
+		t4jTweets.add(mock(twitter4j.Tweet.class));
+		t4jTweets.add(mock(twitter4j.Tweet.class));
+		t4jTweets.add(mock(twitter4j.Tweet.class));
+		
+		when(result.getTweets()).thenReturn(t4jTweets);
+		
+		when(twitter.search(Mockito.any(Query.class))).thenReturn(result);
+		// end setup test
+		
+		SearchResults results = template.search("#s2gx");
+		List<Tweet> tweets = results.getTweets();
+		assertNotNull(tweets);
+		assertEquals(3, tweets.size());
+		assertTrue(tweets.get(0) instanceof Tweet);
+		assertTrue(tweets.get(1) instanceof Tweet);
+		assertTrue(tweets.get(2) instanceof Tweet);
+	}
+	
 }

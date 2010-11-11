@@ -16,6 +16,7 @@
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
@@ -35,8 +36,18 @@ public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitter
 	
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Tweet tweet = this.outboundMaper.fromMessage(message);
-		this.twitter.updateStatus(tweet);
+		Object payload = message.getPayload();
+		String statusText = null;
+		if (payload instanceof Tweet){
+			statusText = ((Tweet)payload).getText();
+		}
+		else if (payload instanceof String){
+			statusText = (String) payload;
+		}
+		else {
+			throw new MessageHandlingException(message, "Unsupported payload type '" + payload.getClass().getName() + "'");
+		}
+		this.twitter.updateStatus(statusText);
 	}
 
 }

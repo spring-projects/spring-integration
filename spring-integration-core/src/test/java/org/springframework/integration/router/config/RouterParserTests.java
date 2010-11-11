@@ -206,7 +206,7 @@ public class RouterParserTests {
 
 
 		@Override
-		protected List<Object> getChannelIndicatorList(Message<?> message) {
+		protected List<Object> getChannelIdentifiers(Message<?> message) {
 			return Collections.singletonList((Object)this.channel);
 		}
 	}

@@ -35,12 +35,33 @@
 		 			 	 request-pub-sub-domain="false"
 		 			 	 max-messages-per-task="99"/>
 
+	<jms:inbound-gateway id="gatewayWithReceiveTimeout"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+		 				 receive-timeout="1111"/>
+
+	<jms:inbound-gateway id="gatewayWithRecoveryInterval"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+		 				 recovery-interval="2222"/>
+
 	<jms:inbound-gateway id="gatewayWithIdleTaskExecutionLimit"
 					 	 connection-factory="testConnectionFactory"
 		 		   	 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
 		 				 idle-task-execution-limit="7"/>
+
+	<jms:inbound-gateway id="gatewayWithIdleConsumerLimit"
+					 	 connection-factory="testConnectionFactory"
+		 		   	 	 request-channel="requestChannel"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
+		 				 idle-consumer-limit="33"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

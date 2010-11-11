@@ -131,7 +131,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
-		verify(twitter, times(1)).getFriendsTimeline(2000);
+		verify(twitter, times(1)).getHomeTimeline(2000);
 		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
 		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 		source.stop();
@@ -209,12 +209,12 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		SampleResoponceList testMessages = new SampleResoponceList();
 		testMessages.add(firstMessage);
 		testMessages.add(secondMessage);
-		when(tw.getFriendsTimeline()).thenReturn(testMessages);
+		when(tw.getHomeTimeline()).thenReturn(testMessages);
 		
 		testMessages = new SampleResoponceList();
 		testMessages.add(thirdMessage);
 		testMessages.add(fourthMessage);
-		when(tw.getFriendsTimeline(Mockito.any(Paging.class))).thenReturn(testMessages);
+		when(tw.getHomeTimeline(Mockito.any(Paging.class))).thenReturn(testMessages);
 	}
 
 	@SuppressWarnings({ "rawtypes", "serial" })
