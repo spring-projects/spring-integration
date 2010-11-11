@@ -25,6 +25,7 @@
     <channel id="inbound_dm"/>
     <channel id="inbound_mentions"/>
     <channel id="inbound_updates"/>
+    <channel id="inbound_search"/>
 
 	<beans:bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
 		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
@@ -42,6 +43,11 @@
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>
     </twitter:dm-inbound-channel-adapter>
     <service-activator input-channel="inbound_dm" ref="twitterAnnouncer" method="dm"/>
+    
+    <twitter:search-inbound-channel-adapter  channel="inbound_search" query="#springintegration">
+    	<poller fixed-rate="5000" max-messages-per-poll="5"/>
+    </twitter:search-inbound-channel-adapter>
+    <service-activator input-channel="inbound_search" ref="twitterAnnouncer" method="search"/>
 
     <twitter:inbound-channel-adapter id="twitterInbound" twitter-template="twitterTemplate" channel="inbound_updates">
     	<poller fixed-rate="5000" max-messages-per-poll="3"/>

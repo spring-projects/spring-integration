@@ -25,6 +25,11 @@ public class TwitterAnnouncer {
 		System.out.println("A direct message has been received from " +
 				directMessage.getFromUser() + " with text " + directMessage.getText());
 	}
+	
+	public void search(Tweet search) {
+		System.out.println("A search item was received " +
+				search.getCreatedAt() + " with text " + search.getText());
+	}
 
 	public void mention(Tweet s) {
 		System.out.println("A tweet mentioning (or replying) to " + "you was received having text " + s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
