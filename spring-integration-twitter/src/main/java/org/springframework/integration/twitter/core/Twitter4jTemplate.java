@@ -200,21 +200,10 @@ public class Twitter4jTemplate implements TwitterOperations {
 		return this.search(q);
 	}
 
-	public SearchResults search(String query, int page, int sinceId) {
+	public SearchResults search(String query, int page, long sinceId) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
-		q.setPage(page);
 		q.setSinceId(sinceId);
-		return this.search(q);
-	}
-
-	public SearchResults search(String query, int page, int resultsPerPage, int sinceId, int maxId) {
-		Assert.hasText(query, "'query' must not be null");
-		Query q = new Query(query);	
-		q.setPage(page);
-		q.setSinceId(sinceId);
-		q.setMaxId(maxId);
-		q.setRpp(resultsPerPage);
 		return this.search(q);
 	}
 

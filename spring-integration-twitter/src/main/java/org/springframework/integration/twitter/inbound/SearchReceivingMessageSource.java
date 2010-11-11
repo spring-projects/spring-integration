@@ -49,8 +49,10 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets() {
-		SearchResults results = this.getTwitterOperations().search(query);
+	protected List<Tweet> pollForTweets(long sinceId) {
+		SearchResults results = (sinceId > 0)
+				? this.getTwitterOperations().search(query, 1, sinceId)
+				: this.getTwitterOperations().search(query);
 		return (results != null) ? results.getTweets() : null;
 	}
 

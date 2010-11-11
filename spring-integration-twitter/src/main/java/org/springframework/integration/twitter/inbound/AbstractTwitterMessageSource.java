@@ -61,9 +61,9 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 
 	private volatile int prefetchThreshold = 0;
 
-	private volatile long markerId = -1;
+	private volatile long lastEnqueuedId = -1;
 
-	//private volatile long processedId = -1;
+	private volatile long lastProcessedId = -1;
 
 	private final TwitterOperations twitterOperations;
 
@@ -79,14 +79,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 		this.twitterOperations = twitterOperations;
 	}
 
-
-	public long getMarkerId() {
-		return this.markerId;
-	}
-
-	protected boolean hasMarkedStatus() {
-		return this.markerId > -1;
-	}
 
 	protected TwitterOperations getTwitterOperations() {
 		return this.twitterOperations;
@@ -125,14 +117,15 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 		String lastId = this.metadataStore.get(this.metadataKey);
 		// initialize the last status ID from the metadataStore
 		if (StringUtils.hasText(lastId)) {
-			this.markerId = Long.parseLong(lastId);
+			this.lastProcessedId = Long.parseLong(lastId);
+			this.lastEnqueuedId = this.lastProcessedId;
 		}
 	}
 
 	public Message<?> receive() {
 		Tweet tweet = this.tweets.poll();
 		if (tweet != null) {
-			this.markProcessedId(tweet.getId());
+			this.setLastProcessedId(tweet.getId());
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
@@ -149,23 +142,24 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 	private void enqueue(Tweet tweet) {
 		synchronized (this.markerGuard) {
 			long id = tweet.getId();
-			if (id > this.markerId) {
-				this.markerId = id;
+			if (id > this.lastEnqueuedId) {
+				this.lastEnqueuedId = id;
 				this.tweets.add(tweet);
 			}
 		}
 	}
 
-	private void markProcessedId(long statusId) {
-		//this.processedId = statusId;
+	private void setLastProcessedId(long statusId) {
+		this.lastProcessedId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
 
 
 	/**
 	 * Subclasses must implement this to return tweets.
+	 * The 'sinceId' value will be negative if no last id is known.
 	 */
-	protected abstract List<Tweet> pollForTweets();
+	protected abstract List<Tweet> pollForTweets(long sinceId);
 
 
 	// Lifecycle methods
@@ -191,7 +185,7 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 		public void run() {
 			try {
 				if (tweets.size() <= prefetchThreshold) {
-					List<Tweet> tweets = pollForTweets();
+					List<Tweet> tweets = pollForTweets(lastEnqueuedId);
 					if (!CollectionUtils.isEmpty(tweets)) {
 						enqueueAll(tweets);
 					}

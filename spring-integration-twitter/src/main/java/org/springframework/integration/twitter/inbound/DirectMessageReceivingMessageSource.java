@@ -42,9 +42,10 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets() {
-		long sinceId = getMarkerId();
-		return hasMarkedStatus() ? this.getTwitterOperations().getDirectMessages(sinceId) : this.getTwitterOperations().getDirectMessages(); 
+	protected List<Tweet> pollForTweets(long sinceId) {
+		return (sinceId > 0)
+				? this.getTwitterOperations().getDirectMessages(sinceId)
+				: this.getTwitterOperations().getDirectMessages(); 
 	}
 
 }

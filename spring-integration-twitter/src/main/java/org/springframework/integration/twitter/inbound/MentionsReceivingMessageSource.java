@@ -40,9 +40,8 @@ public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets() {
-		long sinceId = getMarkerId();
-		return hasMarkedStatus() ? this.getTwitterOperations().getMentions(sinceId) : this.getTwitterOperations().getMentions();
+	protected List<Tweet> pollForTweets(long sinceId) {
+		return (sinceId > 0) ? this.getTwitterOperations().getMentions(sinceId) : this.getTwitterOperations().getMentions();
 	}
 
 }

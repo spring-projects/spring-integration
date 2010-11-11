@@ -81,34 +81,14 @@ public interface TwitterOperations {
 	 *            The search query string
 	 * @param page
 	 *            The page to return
-	 * @param pageSize
-	 *            The number of {@link Tweet}s per page
-	 * 
-	 * @return a {@link SearchResults} containing {@link Tweet}s
-	 * 
-	 */
-	SearchResults search(String query, int page, int sinceId);
-
-	/**
-	 * Searches Twitter, returning a specific page out of the complete set of
-	 * results. Results are filtered to those whose ID falls between sinceId and
-	 * maxId
-	 * 
-	 * @param query
-	 *            The search query string
-	 * @param page
-	 *            The page to return
-	 * @param pageSize
-	 *            The number of {@link Tweet}s per page
 	 * @param sinceId
 	 *            The minimum {@link Tweet} ID to return in the results
-	 * @param maxId
-	 *            The maximum {@link Tweet} ID to return in the results
 	 * 
 	 * @return a {@link SearchResults} containing {@link Tweet}s
+	 * 
 	 */
-	SearchResults search(String query, int page, int resultsPerPage, int sinceId, int maxId);
-	
+	SearchResults search(String query, int page, long sinceId);
+
 	List<Tweet> getDirectMessages();
 	
 	List<Tweet> getDirectMessages(long sinceId);
