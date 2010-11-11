@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="jmx"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section version="5.0" xml:id="jmx" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1999/xhtml"
+         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
   <title>JMX Support</title>
 
   <para>Spring Integration provides Channel Adapters for receiving and
@@ -17,18 +21,17 @@
     <programlisting language="xml"> &lt;jmx:notification-listening-channel-adapter id="adapter"
                    channel="channel"
                    object-name="example.domain:name=publisher"/&gt;
-</programlisting> <tip>
-         The
-
-        <emphasis>notification-listening-channel-adapter</emphasis>
-
-         registers with an MBeanServer at startup, and the default bean name is "mbeanServer" which happens to be the same bean name generated when using Spring's &lt;context:mbean-server/&gt; element. If you need to use a different name be sure to include the "mbean-server" attribute.
-      </tip> The adapter can also accept a reference to a NotificationFilter
-    and a "handback" Object to provide some context that is passed back with
-    each Notification. Both of those attributes are optional. Extending the
-    above example to include those attributes as well as an explicit
-    MBeanServer bean name would produce the following: <programlisting
-    language="xml"> &lt;jmx:notification-listening-channel-adapter id="adapter"
+</programlisting> <tip> The
+    <emphasis>notification-listening-channel-adapter</emphasis> registers with
+    an MBeanServer at startup, and the default bean name is "mbeanServer"
+    which happens to be the same bean name generated when using Spring's
+    &lt;context:mbean-server/&gt; element. If you need to use a different name
+    be sure to include the "mbean-server" attribute. </tip> The adapter can
+    also accept a reference to a NotificationFilter and a "handback" Object to
+    provide some context that is passed back with each Notification. Both of
+    those attributes are optional. Extending the above example to include
+    those attributes as well as an explicit MBeanServer bean name would
+    produce the following: <programlisting language="xml"> &lt;jmx:notification-listening-channel-adapter id="adapter"
                    channel="channel"
                    mbean-server="someServer"
                    object-name="example.domain:name=somePublisher"
@@ -145,16 +148,17 @@
     create an instance of the <classname>IntegrationMBeanExporter</classname>,
     define a bean and provide a reference to an MBeanServer and a domain name
     (if desired). The domain can be left out in which case the default domain
-    is "spring.application". <programlisting language="xml"> &lt;jmx:mbean-exporter domain="my.company.domain" mbean-server="mbeanServer"/&gt;
+    is "org.springframework.integration". <programlisting language="xml"> &lt;jmx:mbean-exporter domain="my.company.domain" mbean-server="mbeanServer"/&gt;
 
  &lt;bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"&gt;
      &lt;property name="locateExistingServerIfPossible" value="true"/&gt;
  &lt;/bean&gt;</programlisting></para>
 
     <para>The MBean exporter is orthogonal to the one provided in Spring core
-    - it registers message channels and message handlers, but not itself (you
-    can expose the exporter itself using the standard
-    <literal>&lt;context:mbean-export/&gt;</literal> tag).</para>
+    - it registers message channels and message handlers, but not itself. You
+    can expose the exporter itself, and certain other components in Spring
+    Integration, using the standard
+    <literal>&lt;context:mbean-export/&gt;</literal> tag. </para>
   </section>
 
   <section id="jmx-control-bus">

@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="groovy"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section version="5.0" xml:id="groovy" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1999/xhtml"
+         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
   <title>Groovy support</title>
-  <para>
-  With Spring Integration 2.0 we've added Groovy support allowing you to use Groovy scripting language to provide
-  integration and business logic  for various integration components similar to the way Spring Expression Language (SpEL)
-  is use to implement routing, transformation and other integration concerns.
 
-    For more information about Groovy please refer to Groovy documentation which you can find here: http://groovy.codehaus.org/
-  </para>
+  <para>With Spring Integration 2.0 we've added Groovy support allowing you to
+  use Groovy scripting language to provide integration and business logic  for
+  various integration components similar to the way Spring Expression Language
+  (SpEL) is use to implement routing, transformation and other integration
+  concerns. For more information about Groovy please refer to Groovy
+  documentation which you can find
+  on the <ulink url="http://groovy.codehaus.org">project website</ulink></para>
 
   <section id="groovy-config">
     <title>Groovy configuration</title>
-    <para>
-      Depending on the complexity of your integration requirements Groovy scripts could be provided inline as CDATA in XML
-      configuration or as a reference to a file containing Groovy script.
 
-      To enable Groovy support Spring Integration defines <classname>GroovyScriptExecutingMessageProcessor</classname> which will
-      create a groovy Binding object identifying Message Payload as <code>payload</code> variable and Message Headers as
-      <code>headers</code> variable. All that is left for you to do is write script that uses these variables.
-      Below are couple of sample configurations:
-      </para>
+    <para>Depending on the complexity of your integration requirements Groovy
+    scripts could be provided inline as CDATA in XML configuration or as a
+    reference to a file containing Groovy script. To enable Groovy support
+    Spring Integration defines
+    <classname>GroovyScriptExecutingMessageProcessor</classname> which will
+    create a groovy Binding object identifying Message Payload as
+    <code>payload</code> variable and Message Headers as <code>headers</code>
+    variable. All that is left for you to do is write script that uses these
+    variables. Below are couple of sample configurations:</para>
 
-      <para>
-      <emphasis>Filter</emphasis>
-      <programlisting language="xml">&lt;filter input-channel="referencedScriptInput"&gt;
+    <para><emphasis>Filter</emphasis> <programlisting language="xml">&lt;filter input-channel="referencedScriptInput"&gt;
    &lt;groovy:script location="some/path/to/groovy/file/GroovyFilterTests.groovy"/&gt;
 &lt;/filter&gt;
 
@@ -32,41 +36,50 @@
      &lt;groovy:script&gt;&lt;![CDATA[
      return payload == 'good'
    ]]&gt;&lt;/groovy:script&gt;
-&lt;/filter&gt;</programlisting>
-You see that script could be included inline or via <code>location</code> attribute using the groovy namespace sport. 
-    </para>
+&lt;/filter&gt;</programlisting> You see that script could be included inline
+    or via <code>location</code> attribute using the groovy namespace
+    sport. </para>
 
-    <para>
-    Other supported elements are <emphasis>router, service-activator, transformer, splitter</emphasis>
-    </para>
+    <para>Other supported elements are <emphasis>router, service-activator,
+    transformer, splitter</emphasis></para>
 
-    <para>
-    Another interesting aspect of using Groovy support is framework's ability to update (reload) scripts 
-    without restarting the Application Context.
-    To accomplish this all you need is specify <code>refresh-check-delay</code> attribute on <emphasis>script</emphasis>
-    element. The reason for this attribute is to make reloading of  the script more efficient. 
-
-    <programlisting language="xml"><![CDATA[<groovy:script location="..." refresh-check-delay="5000"/>]]></programlisting>
-
-    In the above example for the next 5 seconds after you update the script you'll still be using the old script and
-    after 5 seconds the context will be updated with the new script. This is a good example where  'near real time'
-    is acceptable.
-
-     <programlisting language="xml"><![CDATA[<groovy:script location="..." refresh-check-delay="0"/>]]></programlisting>
-
-     In the above example the context will be updated with the new script every time the script is modified. Basically this is the example of the
-     'real-time' and might not be the most efficient way.
-
-     <programlisting language="xml"><![CDATA[<groovy:script location="..." refresh-check-delay="-1"/>]]></programlisting>
-
-
-    Any negative number value means the script will never be refreshed after initial initialization of application context.
-    DEFAULT BEHAVIOR
-
-    <important>Inline defined script can not be reloaded.</important>
-
-    </para>
-
+    <para>Another interesting aspect of using Groovy support is framework's
+    ability to update (reload) scripts  without restarting the Application
+    Context. To accomplish this all you need is specify
+    <code>refresh-check-delay</code> attribute on <emphasis>script</emphasis>
+    element. The reason for this attribute is to make reloading of the script
+    more efficient.  <programlisting language="xml">&lt;groovy:script location="..." refresh-check-delay="5000"/&gt;</programlisting>
+    In the above example for the next 5 seconds after you update the script
+    you'll still be using the old script and after 5 seconds the context will
+    be updated with the new script. This is a good example where  'near real
+    time' is acceptable. <programlisting language="xml">&lt;groovy:script location="..." refresh-check-delay="0"/&gt;</programlisting>
+    In the above example the context will be updated with the new script every
+    time the script is modified. Basically this is the example of the
+    'real-time' and might not be the most efficient way. <programlisting
+    language="xml">&lt;groovy:script location="..." refresh-check-delay="-1"/&gt;</programlisting>
+    Any negative number value means the script will never be refreshed after
+    initial initialization of application context. DEFAULT BEHAVIOR
+    <important>Inline defined script can not be reloaded.</important></para>
   </section>
 
+  <section id="groovy-control-bus">
+    <title>Control Bus</title>
+
+    <para>As described in (<ulink
+    url="http://www.eaipatterns.com/ControlBus.html">EIP</ulink>), the idea
+    behind the Control Bus is that the same messaging system can be used for
+    monitoring and managing the components within the framework as is used for
+    "application-level" messaging. In Spring Integration we build upon the
+    adapters described above so that it's possible to send Messages as a means
+    of invoking exposed operations.<programlisting language="xml"> &lt;groovy:control-bus input-channel="operationChannel"/&gt;</programlisting></para>
+
+    <para>The Control Bus has an input channel that can be accessed for
+    invoking operations on the beans in the application context.</para>
+
+    <para>The groovy control bus executes messages on the input channel as
+    Groovy scripts. It takes a message, compiles the body to a Script,
+    customizes it with a GroovyObjectCustomizer, and then executes it. The
+    default customizer just exposes all the beans in the application context
+    as script context objects.</para>
+  </section>
 </section>

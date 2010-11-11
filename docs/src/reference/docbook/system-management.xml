@@ -5,6 +5,7 @@
   <title>System Management</title>
 
 	<xi:include href="./message-history.xml"/>
+    <xi:include href="./control-bus.xml"/>	
     <xi:include href="./jmx.xml"/>	
 
 </chapter>

@@ -51,6 +51,7 @@
 			<xsd:all minOccurs="0" maxOccurs="1">
 				<xsd:element name="poller" type="integration:innerPollerType" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
+			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 			<xsd:attribute name="customizer" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -65,7 +66,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 		</xsd:complexType>
 	</xsd:element>
 
