@@ -36,13 +36,13 @@ public interface MessageChannelMetrics {
 	/**
 	 * @return the number of successful sends
 	 */
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Sends")
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Count")
 	int getSendCount();
 
 	/**
 	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
 	 */
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Errors")
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Error Count")
 	int getSendErrorCount();
 
 	/**
@@ -72,25 +72,25 @@ public interface MessageChannelMetrics {
 	/**
 	 * @return the mean send duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Mean Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Mean Duration in Milliseconds")
 	double getMeanSendDuration();
 
 	/**
 	 * @return the minimum send duration (milliseconds) since startup
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Min Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Min Duration in Milliseconds")
 	double getMinSendDuration();
 
 	/**
 	 * @return the maximum send duration (milliseconds) since startup
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Max Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Max Duration in Milliseconds")
 	double getMaxSendDuration();
 
 	/**
 	 * @return the standard deviation send duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration in Milliseconds")
 	double getStandardDeviationSendDuration();
 
 	/**

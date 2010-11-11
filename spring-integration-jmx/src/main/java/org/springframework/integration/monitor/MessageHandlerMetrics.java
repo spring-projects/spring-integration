@@ -44,25 +44,25 @@ public interface MessageHandlerMetrics {
 	/**
 	 * @return the maximum handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration (ms)")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration in Milliseconds")
 	double getMeanDuration();
 
 	/**
 	 * @return the minimum handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration (ms)")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration in Milliseconds")
 	double getMinDuration();
 
 	/**
 	 * @return the standard deviation handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration (ms)")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration in Milliseconds")
 	double getMaxDuration();
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration (ms)")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration in Milliseconds")
 	double getStandardDeviationDuration();
 	
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Count")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Execution Count")
 	int getActiveCount();
 	
 	/**
