@@ -45,34 +45,38 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	 */
 	@Override
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
-		Class<?> firstInterfaceMatch = null;
+		String channelName = this.getChannelName(message);
+		return (channelName != null) ? Collections.<Object>singletonList(channelName) : null;
+	}
+
+	private String getChannelName(Message<?> message) {
 		Class<?> type = message.getPayload().getClass();
 		while (type != null && !CollectionUtils.isEmpty(this.channelIdentifierMap)) {
+			// first, check for an exact type match
+			String channelName = this.channelIdentifierMap.get(type.getName());
+			if (StringUtils.hasText(channelName)) {
+				return channelName;
+			}
+			// next, check for interfaces of this type
+			Class<?> matchedInterface = null;
 			Class<?>[] interfaces = type.getInterfaces();
-			// first try to find a match amongst the interfaces and also check if there is more than one
-			for (Class<?> ifc : interfaces) {
-				if (this.channelIdentifierMap.containsKey(ifc.getName())) {
-					if (firstInterfaceMatch != null) {
+			for (Class<?> currentInterface : interfaces) {
+				String currentChannelName = this.channelIdentifierMap.get(currentInterface.getName());
+				if (StringUtils.hasText(currentChannelName)) {
+					if (matchedInterface != null) {
 						throw new MessageHandlingException(message,
 								"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() +
-								"]. Candidate types [" + firstInterfaceMatch.getName() + "] and [" +
-								ifc.getName() + "] have equal weight.");
+								"]. Candidate types [" + matchedInterface.getName() + "] and [" +
+								currentInterface.getName() + "] have equal weight.");
 					}
-					else {
-						firstInterfaceMatch = ifc;
-					}
+					matchedInterface = currentInterface;
+					channelName = currentChannelName;
 				}
 			}
-			// the actual type should favor the possible interface match
-			String channelName = this.channelIdentifierMap.get(type.getName());
-			if (!StringUtils.hasText(channelName)) {
-				if (firstInterfaceMatch != null) {
-					return Collections.singletonList((Object) this.channelIdentifierMap.get(firstInterfaceMatch.getName()));
-				}	
+			if (channelName != null) {
+				return channelName;
 			}
-			else {
-				return Collections.singletonList((Object)channelName);
-			}
+			// finally, continue up the hierarchy
 			type = type.getSuperclass();
 		}
 		return null;

@@ -35,62 +35,61 @@ import org.springframework.util.Assert;
  * <p/>
  * A Message Router that sends Messages to a list of recipient channels. The
  * recipients can be provided as a static list of {@link MessageChannel}
- * instances via the {@link #setChannels(List)} method, or for dynamic
- * behavior, the values can be provided via the
- * {@link #setRecipients(List)} method.
+ * instances via the {@link #setChannels(List)} method, or for dynamic behavior,
+ * the values can be provided via the {@link #setRecipients(List)} method.
  * <p/>
- * For more advanced, programmatic control
- * of dynamic recipient lists, consider using the @Router annotation or
- * extending {@link AbstractMessageRouter} instead.
+ * For more advanced, programmatic control of dynamic recipient lists, consider
+ * using the @Router annotation or extending {@link AbstractMessageRouter} instead.
  * <p/>
- * Contrary to a standard &lt;router .../&gt; this handler will try to send to all channels that are configured as
- * recipients. It is to channels what a publish subscribe channel is to endpoints.
+ * Contrary to a standard &lt;router .../&gt; this handler will try to send to
+ * all channels that are configured as recipients. It is to channels what a
+ * publish subscribe channel is to endpoints.
  * <p/>
- * Using this class only makes sense if it is essential to send messages on multiple channels instead of
- * sending them to multiple handlers. If the latter is an option using a publish subscribe channel is the more flexible
- * solution.
- *
+ * Using this class only makes sense if it is essential to send messages on
+ * multiple channels instead of sending them to multiple handlers. If the latter
+ * is an option using a publish subscribe channel is the more flexible solution.
+ * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
-    private volatile List<Recipient> recipients;
-   
+	private volatile List<Recipient> recipients;
 
-    /**
-     * Set the channels for this router. Either call this method or
-     * {@link #setRecipients(List)} but not both. If MessageSelectors
-     * should be considered, then use {@link #setRecipients(List)}.
-     */
-    public void setChannels(List<MessageChannel> channels) {
-        Assert.notEmpty(channels, "channels must not be empty");
-        List<Recipient> recipients = new ArrayList<Recipient>();
-        for (MessageChannel channel : channels) {
-        	recipients.add(new Recipient(channel));
-        }
-        this.setRecipients(recipients);
-    }
 
-    /**
-     * Set the recipients for this router.
-     */
-    public void setRecipients(List<Recipient> recipients) {
-        Assert.notEmpty(recipients, "recipients must not be empty");
-        this.recipients = recipients;
-    }
+	/**
+	 * Set the channels for this router. Either call this method or
+	 * {@link #setRecipients(List)} but not both. If MessageSelectors should be
+	 * considered, then use {@link #setRecipients(List)}.
+	 */
+	public void setChannels(List<MessageChannel> channels) {
+		Assert.notEmpty(channels, "channels must not be empty");
+		List<Recipient> recipients = new ArrayList<Recipient>();
+		for (MessageChannel channel : channels) {
+			recipients.add(new Recipient(channel));
+		}
+		this.setRecipients(recipients);
+	}
+
+	/**
+	 * Set the recipients for this router.
+	 */
+	public void setRecipients(List<Recipient> recipients) {
+		Assert.notEmpty(recipients, "recipients must not be empty");
+		this.recipients = recipients;
+	}
 
 	@Override
 	public String getComponentType() {
 		return "recipient-list-router";
 	}
 
-    @Override
-    public final void onInit() {
-        Assert.notEmpty(this.recipients, "a non-empty recipient list is required");
-    }
-    
-    @Override
+	@Override
+	public final void onInit() {
+		Assert.notEmpty(this.recipients, "recipient list must not be empty");
+	}
+
+	@Override
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		List<Object> channels = new ArrayList<Object>();
 		List<Recipient> recipientList = this.recipients;
@@ -101,12 +100,14 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 		}
 		return channels;
 	}
-    
+
+
 	public static class Recipient {
 
 		private final MessageChannel channel;
 
 		private final MessageSelector selector;
+
 
 		public Recipient(MessageChannel channel) {
 			this(channel, null);
@@ -117,12 +118,14 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			this.selector = selector;
 		}
 
-		public boolean accept(Message<?> message) {
-			return (this.selector != null ? this.selector.accept(message) : true);
-		}
 
 		public MessageChannel getChannel() {
 			return this.channel;
 		}
+
+		public boolean accept(Message<?> message) {
+			return (this.selector != null ? this.selector.accept(message) : true);
+		}
 	}
+
 }

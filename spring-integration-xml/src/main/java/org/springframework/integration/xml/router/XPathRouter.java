@@ -27,6 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
@@ -54,6 +55,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * @param namespaces map of namespaces with prefixes as the map keys
 	 */
 	public XPathRouter(String expression, Map<String, String> namespaces) {
+		Assert.hasText(expression, "expression must not be empty");
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
 	}
 
@@ -66,6 +68,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * @param namespace namespace uri
 	 */
 	public XPathRouter(String expression, String prefix, String namespace) {
+		Assert.hasText(expression, "expression must not be empty");
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put(prefix, namespace);
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
@@ -78,6 +81,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * @param expression the XPath expression as a String
 	 */
 	public XPathRouter(String expression) {
+		Assert.hasText(expression, "expression must not be empty");
 		this.xPathExpression = XPathExpressionFactory.createXPathExpression(expression);
 	}
 
@@ -87,23 +91,17 @@ public class XPathRouter extends AbstractMessageRouter {
 	 * @param expression the XPath expression
 	 */
 	public XPathRouter(XPathExpression expression) {
+		Assert.notNull(expression, "expression must not be null");
 		this.xPathExpression = expression;
 	}
 
-
-	protected XmlPayloadConverter getConverter() {
-		return this.converter;
-	}
 
 	/**
 	 * Specify the Converter to use when converting payloads prior to XPath evaluation.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
+		Assert.notNull(converter, "converter must not be null");
 		this.converter = converter;
-	}
-
-	protected XPathExpression getXPathExpression() {
-		return this.xPathExpression;
 	}
 
 	public String getComponentType() {
@@ -113,8 +111,8 @@ public class XPathRouter extends AbstractMessageRouter {
 	@Override
 	@SuppressWarnings("unchecked")
 	public List<Object> getChannelIdentifiers(Message<?> message) {
-		Node node = getConverter().convertToNode(message.getPayload());
-		return getXPathExpression().evaluate(node, this.nodeMapper);
+		Node node = this.converter.convertToNode(message.getPayload());
+		return this.xPathExpression.evaluate(node, this.nodeMapper);
 	}
 
 

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -42,6 +42,7 @@ class AbstractMessageProcessingRouter extends AbstractMessageRouter {
 		this.messageProcessor = messageProcessor;
 	}
 
+
 	@Override
 	public final void onInit() {
 		super.onInit();
@@ -56,9 +57,7 @@ class AbstractMessageProcessingRouter extends AbstractMessageRouter {
 	@Override
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
-		List<Object> asList = new ArrayList<Object>();
-		asList.add(result);
-		return asList;
+		return Collections.singletonList(result);
 	}
 
 }
