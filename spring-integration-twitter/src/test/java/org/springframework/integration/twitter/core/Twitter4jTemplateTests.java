@@ -89,10 +89,10 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testGetFriendsTimeline() throws Exception{
-		template.getFriendsTimeline();
-		template.getFriendsTimeline(123);
-		verify(twitter, times(1)).getFriendsTimeline();
-		verify(twitter, times(1)).getFriendsTimeline(Mockito.any(Paging.class));
+		template.getHomeTimeline();
+		template.getHomeTimeline(123);
+		verify(twitter, times(1)).getHomeTimeline();
+		verify(twitter, times(1)).getHomeTimeline(Mockito.any(Paging.class));
 	}
 	
 	@Test

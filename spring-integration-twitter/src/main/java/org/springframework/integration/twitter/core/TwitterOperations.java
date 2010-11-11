@@ -36,9 +36,9 @@ public interface TwitterOperations {
 	
 	List<Tweet> getMentions(long sinceId);
 	
-	List<Tweet> getFriendsTimeline();
+	List<Tweet> getHomeTimeline();
 	
-	List<Tweet> getFriendsTimeline(long sinceId);
+	List<Tweet> getHomeTimeline(long sinceId);
 	
 	void sendDirectMessage(String userName, String text);
 	
