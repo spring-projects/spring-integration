@@ -38,7 +38,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 	
 	@Override
 	public String getComponentType() {
-		return "twitter:inbound-dm-channel-adapter";  
+		return "twitter:dm-inbound-channel-adapter";  
 	}
 
 	@Override

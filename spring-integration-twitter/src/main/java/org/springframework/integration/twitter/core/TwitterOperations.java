@@ -87,7 +87,8 @@ public interface TwitterOperations {
 	 * @return a {@link SearchResults} containing {@link Tweet}s
 	 * 
 	 */
-	SearchResults search(String query, int page, int pageSize);
+	SearchResults search(String query, int page, int sinceId);
+	
 
 	/**
 	 * Searches Twitter, returning a specific page out of the complete set of

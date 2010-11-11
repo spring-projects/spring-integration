@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.twitter.core;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,7 +23,6 @@ import org.apache.commons.lang.NotImplementedException;
 import org.springframework.util.Assert;
 
 import twitter4j.DirectMessage;
-import twitter4j.IDs;
 import twitter4j.Paging;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -203,10 +201,11 @@ public class Twitter4jTemplate implements TwitterOperations{
 	}
 	
 	@Override
-	public SearchResults search(String query, int page, int pageSize) {
+	public SearchResults search(String query, int page, int sinceId) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
 		q.setPage(page);
+		q.setSinceId(sinceId);
 		return this.search(q);
 	}
 	
@@ -218,6 +217,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 		q.setPage(page);
 		q.setSinceId(sinceId);
 		q.setMaxId(maxId);
+		q.setRpp(resultsPerPage);
 		return this.search(q);
 	}
 	
@@ -228,7 +228,6 @@ public class Twitter4jTemplate implements TwitterOperations{
 	private SearchResults search(Query query){
 		try {
 			QueryResult result = twitter.search(query);
-			
 			if (result != null){
 				List<twitter4j.Tweet> t4jTweets = result.getTweets();
 				List<Tweet> tweets = this.buildTweetsFromTwitterResponses(t4jTweets);

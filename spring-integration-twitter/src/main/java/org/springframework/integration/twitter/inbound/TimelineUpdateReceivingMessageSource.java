@@ -37,7 +37,7 @@ public class TimelineUpdateReceivingMessageSource extends AbstractTwitterMessage
 	}
 	@Override
 	 public String getComponentType() {
-		return "twitter:inbound-update-channel-adapter";  
+		return "twitter:inbound-channel-adapter";  
 	}
 
 	@Override

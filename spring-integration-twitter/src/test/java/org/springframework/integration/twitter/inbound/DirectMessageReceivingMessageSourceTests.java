@@ -99,7 +99,7 @@ public class DirectMessageReceivingMessageSourceTests {
 
 	@Test
 	public void testSuccessfullInitialization() throws Exception{
-		
+		when(tw.isOAuthEnabled()).thenReturn(true);
 		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -107,7 +107,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
 		source.start();
-		assertEquals("twitter:inbound-dm-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
+		assertEquals("twitter:dm-inbound-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
 		assertTrue(source.isRunning());
 		source.stop();
 	}
@@ -127,7 +127,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Thread.sleep(1000);
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
+		assertEquals(1, msg.size()); 
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
@@ -164,7 +164,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Thread.sleep(1000);
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
+		assertEquals(1, msg.size()); 
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		source.stop();
@@ -201,7 +201,7 @@ public class DirectMessageReceivingMessageSourceTests {
 	@SuppressWarnings("unchecked")
 	private void setUpMockScenarioForMessagePolling() throws Exception{
 		RateLimitStatus rateLimitStatus = mock(RateLimitStatus.class);
-	
+		when(tw.isOAuthEnabled()).thenReturn(true);
 		when(tw.getRateLimitStatus()).thenReturn(rateLimitStatus);
 		when(rateLimitStatus.getSecondsUntilReset()).thenReturn(1000);
 		when(rateLimitStatus.getRemainingHits()).thenReturn(1000);

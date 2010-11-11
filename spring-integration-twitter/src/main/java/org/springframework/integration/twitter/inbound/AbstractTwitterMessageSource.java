@@ -59,7 +59,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	private volatile String metadataKey;
 
-	protected final Queue<Object> tweets = new LinkedBlockingQueue<Object>();
+	protected final Queue<Tweet> tweets = new LinkedBlockingQueue<Tweet>();
 	
 	protected volatile int prefetchThreshold = 0;
 
@@ -129,9 +129,9 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void forwardAll(List<T> tResponses) {
+	protected void forwardAll(List<Tweet> tResponses) {
 		Collections.sort(tResponses, this.getComparator());
-		for (T twitterResponse : tResponses) {
+		for (Tweet twitterResponse : tResponses) {
 			forward(twitterResponse);
 		}
 	}
@@ -164,23 +164,19 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	}
 
 	public Message<?> receive() {
-		Object tweet = tweets.poll();
+		Tweet tweet = tweets.poll();	
 		if (tweet != null){
+			
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
 	}
 	
-	protected void forward(T tweet) {
+	protected void forward(Tweet tweet) {
 		synchronized (this.markerGuard) {
 			
-			long id = 0;
-			if (tweet instanceof Tweet) {
-				id = ((Tweet) tweet).getId();
-			}
-			else {
-				throw new IllegalArgumentException("Unsupported type of Twitter message: " + tweet.getClass());
-			}
+			long id = tweet.getId();
+			
 			String lastId = this.metadataStore.get(this.metadataKey);
 
 			long lastTweetId = 0;
@@ -188,8 +184,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 				lastTweetId = Long.parseLong(lastId);
 			}
 			if (id > lastTweetId) {
+				markLastStatusId(tweet.getId());
 				tweets.add(tweet);
-				markLastStatusId(id);
 			}
 		}
 	}

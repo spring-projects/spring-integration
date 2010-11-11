@@ -73,6 +73,7 @@ public class Twitter4jTemplateTests {
 	@Test
 	public void testProfileId() throws Exception{
 		when(twitter.getScreenName()).thenReturn("kermit");
+		when(twitter.isOAuthEnabled()).thenReturn(true);
 		assertEquals("kermit", template.getProfileId());
 	}
 	

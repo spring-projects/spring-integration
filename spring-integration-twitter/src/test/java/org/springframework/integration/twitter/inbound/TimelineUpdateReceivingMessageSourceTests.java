@@ -99,7 +99,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 
 	@Test
 	public void testSuccessfullInitialization() throws Exception{
-		
+		when(tw.isOAuthEnabled()).thenReturn(true);
 		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -107,7 +107,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
 		source.start();
-		assertEquals("twitter:inbound-update-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
+		assertEquals("twitter:inbound-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
 		assertTrue(source.isRunning());
 		source.stop();
 	}
