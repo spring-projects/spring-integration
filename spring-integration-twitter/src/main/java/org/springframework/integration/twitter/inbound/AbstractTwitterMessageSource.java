@@ -53,7 +53,7 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("rawtypes")
 public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint 
-						implements MessageSource, TrackableComponent {
+						implements MessageSource{
 	
 	private volatile MetadataStore metadataStore;
 
@@ -73,14 +73,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 
 	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
 
-	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
-
 	public AbstractTwitterMessageSource(TwitterOperations twitter){
 		this.twitter = twitter;
-	}
-
-	public void setShouldTrack(boolean shouldTrack) {
-		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
 	}
 
 	public long getMarkerId() {
@@ -151,7 +145,6 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	@Override
 	protected void doStart(){
 		Assert.notNull(this.twitter, "'twitter' instance can't be null");
-		historyWritingPostProcessor.setTrackableComponent(this);
 		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits. will be changed 
 		// once we switch to Spring Social
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter.getUnderlyingTwitter());
