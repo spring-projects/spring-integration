@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
@@ -26,7 +27,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  */
 public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
-	public static String BASE_PACKAGE = "org.springframework.integration.twitter";
+	static String BASE_PACKAGE = "org.springframework.integration.twitter";
 
 
 	public void init() {

@@ -21,9 +21,7 @@ import static org.springframework.integration.twitter.config.TwitterNamespaceHan
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -39,8 +37,26 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		String elementName = element.getLocalName().trim();
+		String className = determineClassName(element, parserContext);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		String templateBeanName = element.getAttribute("twitter-template");
+		if (StringUtils.hasText(templateBeanName)) {
+			builder.addConstructorArgReference(templateBeanName);
+		}
+		else {
+			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					BASE_PACKAGE + ".core.Twitter4jTemplate");
+			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
+		return builder.getBeanDefinition();
+	}
+
+
+	private static String determineClassName(Element element, ParserContext parserContext) {
 		String className = null;
+		String elementName = element.getLocalName().trim();
 		if ("inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.TimelineReceivingMessageSource";
 		}
@@ -56,21 +72,7 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-		String templateBeanName = element.getAttribute("twitter-template");
-		
-		if (!StringUtils.hasText(templateBeanName)){
-			BeanDefinitionBuilder templateBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.twitter.core.Twitter4jTemplate");
-			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
-		} else {
-			builder.addConstructorArgReference(templateBeanName);
-		}
-		
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
-		String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(name);
+		return className;
 	}
 
 }
