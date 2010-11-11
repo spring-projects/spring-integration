@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundChannelAdapterParser {
+public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
