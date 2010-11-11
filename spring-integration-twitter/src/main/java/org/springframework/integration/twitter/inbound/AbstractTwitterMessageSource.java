@@ -28,8 +28,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
-import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -52,8 +50,7 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint 
-						implements MessageSource{
+public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
 	
 	private volatile MetadataStore metadataStore;
 
