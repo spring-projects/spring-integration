@@ -135,6 +135,6 @@ public class Twitter4jTemplateTests {
 		assertTrue(tweets.get(0) instanceof Tweet);
 		assertTrue(tweets.get(1) instanceof Tweet);
 		assertTrue(tweets.get(2) instanceof Tweet);
-		
 	}
+	
 }

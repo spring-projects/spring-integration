@@ -70,7 +70,12 @@ public class Twitter4jTemplate implements TwitterOperations{
 	@Override
 	public String getProfileId() {
 		try {
-			return twitter.getScreenName();
+			if (twitter.isOAuthEnabled()){
+				return twitter.getScreenName();
+			}
+			else {
+				return "twitter-anonymous";
+			}
 		} 
 		catch (Exception e) {
 			throw new TwitterOperationException("Failed to obtain Profile ID. ", e);
