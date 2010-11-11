@@ -56,8 +56,8 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 								forwardAll(dms);
 							}	
 					} 
-				} catch (Exception e) {
-					e.printStackTrace();
+				}
+				catch (Exception e) {
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;
 					}

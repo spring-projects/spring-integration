@@ -51,24 +51,25 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("rawtypes")
 public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
-	
+
 	private volatile MetadataStore metadataStore;
 
 	private volatile String metadataKey;
 
 	protected final Queue<Tweet> tweets = new LinkedBlockingQueue<Tweet>();
-	
+
 	protected volatile int prefetchThreshold = 0;
 
 	protected volatile long markerId = -1;
-	
+
 	protected volatile long processedId = -1;
 
 	protected final TwitterOperations twitter;
 
+	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
+
 	private final Object markerGuard = new Object();
 
-	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
 
 	public AbstractTwitterMessageSource(TwitterOperations twitter){
 		this.twitter = twitter;
@@ -166,9 +167,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 	
 	protected void forward(Tweet tweet) {
 		synchronized (this.markerGuard) {
-			
 			long id = tweet.getId();
-			
 			if (id > this.markerId) {
 				this.markerId = id;
 				tweets.add(tweet);
@@ -180,4 +179,5 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 		this.processedId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
+
 }
