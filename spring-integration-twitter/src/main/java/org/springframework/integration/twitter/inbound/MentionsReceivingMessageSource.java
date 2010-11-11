@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
@@ -32,32 +32,17 @@ public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource
 	public MentionsReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
 	}
+
+
 	@Override
 	public String getComponentType() {
-		return  "twitter:inbound-mention-channel-adapter";
+		return "twitter:mention-inbound-channel-adapter";
 	}
+
 	@Override
-	Runnable getApiCallback() {
-		Runnable apiCallback = new Runnable() {	
-			public void run() {
-				try {
-					long sinceId = getMarkerId();
-					if (tweets.size() <= prefetchThreshold){
-						List<Tweet> stats = (!hasMarkedStatus())
-						? twitter.getMentions()
-						: twitter.getMentions(sinceId);
-						forwardAll(stats);
-					}
-				} catch (Exception e) {
-					if (e instanceof RuntimeException){
-						throw (RuntimeException)e;
-					}
-					else {
-						throw new MessagingException("Failed to poll for Twitter mentions updates", e);
-					}
-				}
-			}
-		};
-		return apiCallback;
+	protected List<Tweet> pollForTweets() {
+		long sinceId = getMarkerId();
+		return hasMarkedStatus() ? twitter.getMentions(sinceId) : twitter.getMentions();
 	}
+
 }

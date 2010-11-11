@@ -13,60 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.SearchResults;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
 
 /**
- *
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
 	private volatile String query;
-	
-	public SearchReceivingMessageSource(TwitterOperations twitter){
+
+
+	public SearchReceivingMessageSource(TwitterOperations twitter) {
 		super(twitter);
 	}
-	
+
+
 	public void setQuery(String query) {
-		Assert.hasText(query, "'query' must no be null");
+		Assert.hasText(query, "query must no be null");
 		this.query = query;
 	}
-	
+
 	@Override
 	 public String getComponentType() {
 		return "twitter:search-inbound-channel-adapter";  
 	}
 
 	@Override
-	Runnable getApiCallback() {
-		Runnable apiCallback = new Runnable() {	
-			public void run() {
-				try {
-					if (tweets.size() <= prefetchThreshold){
-						SearchResults results = twitter.search(query);
-						
-						List<Tweet> twetList = results.getTweets();
-						forwardAll(twetList);
-					}	
-				} catch (Exception e) {
-					if (e instanceof RuntimeException){
-						throw (RuntimeException)e;
-					}
-					else {
-						throw new MessagingException("Failed to poll for Twitter mentions updates", e);
-					}
-				}
-			}
-		};
-		return apiCallback;
+	protected List<Tweet> pollForTweets() {
+		SearchResults results = this.twitter.search(query);
+		return (results != null) ? results.getTweets() : null;
 	}
+
 }

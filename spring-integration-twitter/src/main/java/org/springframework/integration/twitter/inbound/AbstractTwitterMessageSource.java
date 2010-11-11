@@ -25,6 +25,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -34,6 +35,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -129,10 +131,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 			forward(twitterResponse);
 		}
 	}
-
-	abstract Runnable getApiCallback();
 	
-	protected Comparator getComparator() {
+	private Comparator getComparator() {
 		return new Comparator<Tweet>() {
 			public int compare(Tweet tweet1, Tweet tweet2) {
 				return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
@@ -142,13 +142,12 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 
 	@Override
 	protected void doStart(){
-		Assert.notNull(this.twitter, "'twitter' instance can't be null");
-		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits. will be changed 
-		// once we switch to Spring Social
+		Assert.notNull(this.twitter, "'twitter' instance must not be null");
+		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits.
+		// This will likely change once we switch to Spring Social.
 		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter.getUnderlyingTwitter());
-		//
-		Runnable apiCallback = this.getApiCallback();
-		twitterUpdatePollingTask = this.getTaskScheduler().schedule(apiCallback, trigger);
+		Runnable twitterPollingTask = new TwitterPollingTask();
+		twitterUpdatePollingTask = this.getTaskScheduler().schedule(twitterPollingTask, trigger);
 	}
 
 	@Override
@@ -157,14 +156,14 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 	}
 
 	public Message<?> receive() {
-		Tweet tweet = tweets.poll();	
-		if (tweet != null){
+		Tweet tweet = this.tweets.poll();
+		if (tweet != null) {
 			this.markProcessedId(tweet.getId());
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
 	}
-	
+
 	protected void forward(Tweet tweet) {
 		synchronized (this.markerGuard) {
 			long id = tweet.getId();
@@ -178,6 +177,32 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 	protected void markProcessedId(long statusId) {
 		this.processedId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
+	}
+
+	/**
+	 * Subclasses must implement this to return tweets.
+	 */
+	protected abstract List<Tweet> pollForTweets();
+
+
+	private class TwitterPollingTask implements Runnable {
+
+		public void run() {
+			try {
+				if (tweets.size() <= prefetchThreshold) {
+					List<Tweet> tweets = pollForTweets();
+					if (!CollectionUtils.isEmpty(tweets)) {
+						forwardAll(tweets);
+					}
+				}	
+			}
+			catch (RuntimeException e) {
+				throw e;
+			}
+			catch (Exception e) {
+				throw new MessagingException("failed while polling Twitter", e);
+			}
+		}
 	}
 
 }

@@ -15,67 +15,35 @@
  */
 package org.springframework.integration.twitter.inbound;
 
-import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
-import org.springframework.util.CollectionUtils;
 
 /**
  * This class handles support for receiving DMs (direct messages) using Twitter.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
-	
-	public DirectMessageReceivingMessageSource(TwitterOperations twitter){
+
+	public DirectMessageReceivingMessageSource(TwitterOperations twitter) {
 		super(twitter);
 	}
-	
+
+
 	@Override
 	public String getComponentType() {
 		return "twitter:dm-inbound-channel-adapter";  
 	}
 
 	@Override
-	Runnable getApiCallback() {
-		Runnable apiCallback = new Runnable() {	
-			public void run() {
-				try {
-					long sinceId = getMarkerId();
-					if (tweets.size() <= prefetchThreshold){
-						List<Tweet> dms = !hasMarkedStatus() 
-							? twitter.getDirectMessages() 
-							: twitter.getDirectMessages(sinceId);
-			
-							if (!CollectionUtils.isEmpty(dms)){
-								forwardAll(dms);
-							}	
-					} 
-				}
-				catch (Exception e) {
-					if (e instanceof RuntimeException){
-						throw (RuntimeException)e;
-					}
-					else {
-						throw new MessagingException("Failed to poll for Twitter mentions updates", e);
-					}
-				}
-			}
-		};
-		return apiCallback;
+	protected List<Tweet> pollForTweets() {
+		long sinceId = getMarkerId();
+		return hasMarkedStatus() ? twitter.getDirectMessages(sinceId) :  twitter.getDirectMessages(); 
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected Comparator getComparator() {
-		return new Comparator<Tweet>() {
-			public int compare(Tweet tweet1, Tweet tweet2) {
-				return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
-			}
-		};
-	}
 }

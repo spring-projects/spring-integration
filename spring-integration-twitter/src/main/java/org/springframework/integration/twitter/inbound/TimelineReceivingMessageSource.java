@@ -13,55 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
-
 /**
- * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume a given account's timeline
- * as messages. It has support for dynamic throttling of API requests.
+ * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume 
+ * given account's timeline as messages. It has support for dynamic throttling of API requests.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
-	
+
 	public TimelineReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
 	}
+
+
 	@Override
 	 public String getComponentType() {
 		return "twitter:inbound-channel-adapter";  
 	}
 
 	@Override
-	Runnable getApiCallback() {
-		Runnable apiCallback = new Runnable() {	
-			public void run() {
-				try {
-					long sinceId = getMarkerId();
-					if (tweets.size() <= prefetchThreshold){
-						List<Tweet> tweets = !hasMarkedStatus() 
-								? twitter.getTimeline()  
-								: twitter.getTimeline(sinceId);
-						forwardAll(tweets);
-					}	
-				} catch (Exception e) {
-					if (e instanceof RuntimeException){
-						throw (RuntimeException)e;
-					}
-					else {
-						throw new MessagingException("Failed to poll for Twitter mentions updates", e);
-					}
-				}
-			}
-		};
-		return apiCallback;
+	protected List<Tweet> pollForTweets() {
+		long sinceId = getMarkerId();
+		return hasMarkedStatus() ? twitter.getTimeline(sinceId) : twitter.getTimeline();
 	}
+
 }
