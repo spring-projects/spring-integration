@@ -584,6 +584,49 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <emphasis>true</emphasis> enables logging of all headers in addition to the payload.
       </tip>
       </para>
+      
+      <para>
+      <emphasis>A little more on Wite Tap</emphasis>
+      </para>
+      <para>
+      One of the common misconception about the wire tap and some time other similar components (<xref linkend="message-publishing-config"/>) 
+      that they are asynchronous in nature. Wire-tap as a component is neither <emphasis>sync</emphasis> nor <emphasis>async</emphasis>. 
+      In fact non of the components in SI are <emphasis>sync</emphasis> or <emphasis>async</emphasis> except for. . . well read on. 
+
+	  What makes certain parts of the message flow <emphasis>sync</emphasis> or <emphasis>async</emphasis> is the <emphasis>Message Channel</emphasis> 
+	  abstraction. That is why from the inception of the framework we always emphasize the need and the value of the <emphasis>Message Channel</emphasis> 
+	  and that is why Spring Integration is the only framework at the time of writing where <emphasis>Message Channel</emphasis> 
+	  is a "first class citizen" of the framework (not an internal realization of EIP pattern) fulle exposed to you - the end user.
+
+	  So, Wire-tap component is ONLY responsible to perform the following 3 tasks: 
+<itemizedlist>
+           <listitem>
+             <para>wire-tap into a message flow by tapping into a channel (e.g., channelA)</para>
+           </listitem>
+           <listitem>
+             <para>grab a copy of a message</para>
+           </listitem>
+           <listitem>
+             <para>send it to another channel (e.g., channelB)</para>
+           </listitem>
+       </itemizedlist>
+
+
+	   Look at it as a variation of the Bridge (nothing more). But by bridging one channel with another wire-tap is essentially 
+	   initiates (forks) another message flow. Is this flow <emphasis>synchronous</emphasis> or <emphasis>asynchronous</emphasis>? 
+	   That is the ultimate question and the answer simply depends on the type of <emphasis>Message Channel</emphasis> 'channelB' is.
+	   And as you know we have: <emphasis>Direct Channel</emphasis>, <emphasis>Pollable Channel</emphasis> and <emphasis>Executor Channel</emphasis>.
+	   The last two do break the thread boundary making communication via such channels <emphasis>asynchronous</emphasis> simply because 
+	   the dispatching of the message from the channel happens on the different thread then the one that sent the message to that channel 
+	   and that is what is going to make your wire-tap flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>. 
+	   It is consistent with other components within the framework (e.g., Message Publisher) and if you think about it its in a way 
+	   brings a level of simplicity by sparing you form worrying in advance (other then writing thread safe code) wether a 
+	   particular piece of code should be implemented as <emphasis>sync</emphasis> or <emphasis>async</emphasis>. In fact its always neither, 
+	   the code is just a function. The actual wiring of two pieces of code (component A and component B) via <emphasis>Message Channel</emphasis> 
+	   is what's going to make their collaboration <emphasis>sync</emphasis> or <emphasis>async</emphasis>. You may even want to change 
+	   from <emphasis>sync</emphasis> to <emphasis>async</emphasis> in the future and <emphasis>Message Channel</emphasis> is what's going 
+	   to allow you to do it swiftly without ever touching the code
+      </para>
   </section>
 
     <note>
