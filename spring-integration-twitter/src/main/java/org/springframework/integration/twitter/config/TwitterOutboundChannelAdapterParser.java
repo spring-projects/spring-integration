@@ -46,7 +46,7 @@ public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannel
 		String className = null;
 		String elementName = element.getLocalName().trim();
 		if ("outbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.TimelineSendingMessageHandler";
+			className = BASE_PACKAGE + ".outbound.StatusUpdatingMessageHandler";
 		}
 		else if ("dm-outbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";

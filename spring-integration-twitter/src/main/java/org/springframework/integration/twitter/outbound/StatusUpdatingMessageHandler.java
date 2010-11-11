@@ -13,41 +13,48 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.outbound;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
-
+import org.springframework.util.Assert;
 
 /**
- * This class is useful for both sending regular status updates as well as 'replies' or 'mentions'
+ * MessageHandler for sending regular status updates as well as 'replies' or 'mentions'.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TimelineSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
-	
-	public TimelineSendingMessageHandler(TwitterOperations twitter){
-		super(twitter);
+public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
+
+	private final TwitterOperations twitterOperations;
+
+
+	public StatusUpdatingMessageHandler(TwitterOperations twitterOperations) {
+		Assert.notNull(twitterOperations, "twitterOperations must not be null");
+		this.twitterOperations = twitterOperations;
 	}
-	
+
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object payload = message.getPayload();
 		String statusText = null;
-		if (payload instanceof Tweet){
-			statusText = ((Tweet)payload).getText();
+		if (payload instanceof Tweet) {
+			statusText = ((Tweet) payload).getText();
 		}
-		else if (payload instanceof String){
+		else if (payload instanceof String) {
 			statusText = (String) payload;
 		}
 		else {
 			throw new MessageHandlingException(message, "Unsupported payload type '" + payload.getClass().getName() + "'");
 		}
-		this.twitter.updateStatus(statusText);
+		this.twitterOperations.updateStatus(statusText);
 	}
 
 }

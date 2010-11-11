@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.config;
 
 import org.junit.Test;
@@ -20,13 +21,14 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0
  */
 public class TestSendingMessageHandlerParserTests {
 
 	@Test
-	public void testSendingMessageHandlerSuccessfullBootstrap(){
+	public void testSendingMessageHandlerSuccessfulBootstrap(){
 		new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
 		// the fact that no exception was thrown satisfies this test	
 	}
+
 }

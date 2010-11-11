@@ -125,7 +125,8 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 	public Message<?> receive() {
 		Tweet tweet = this.tweets.poll();
 		if (tweet != null) {
-			this.setLastProcessedId(tweet.getId());
+			this.lastProcessedId = tweet.getId();
+			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
@@ -147,11 +148,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 				this.tweets.add(tweet);
 			}
 		}
-	}
-
-	private void setLastProcessedId(long statusId) {
-		this.lastProcessedId = statusId;
-		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
 
 
