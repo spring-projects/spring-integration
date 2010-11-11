@@ -33,7 +33,9 @@ import java.util.Queue;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.store.PropertiesPersistingMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
@@ -131,8 +133,8 @@ public class DirectMessageReceivingMessageSourceTests {
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
-		verify(twitter, times(1)).getDirectMessages(2000);
-		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
+		verify(twitter, times(1)).getDirectMessages();
+		// based on the Mock, the Queue shoud now have 1 more messages third and fourth
 		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 		source.stop();
 	}
@@ -165,8 +167,9 @@ public class DirectMessageReceivingMessageSourceTests {
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
 		assertEquals(1, msg.size()); 
-		Tweet message = (Tweet) msg.poll();
-		assertEquals(2000, message.getId());
+		Message message = source.receive();
+		Tweet tweet = (Tweet) message.getPayload();
+		assertEquals(2000, tweet.getId());
 		source.stop();
 		Thread.sleep(3000);
 		
@@ -190,10 +193,12 @@ public class DirectMessageReceivingMessageSourceTests {
 		Thread.sleep(1000);
 		msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
-		message = (Tweet) msg.poll();
-		assertEquals(3000, message.getId());
-		message = (Tweet) msg.poll();
-		assertEquals(4000, message.getId());
+		message = source.receive();
+		tweet = (Tweet) message.getPayload();
+		assertEquals(3000, tweet.getId());
+		message = source.receive();
+		tweet = (Tweet) message.getPayload();
+		assertEquals(4000, tweet.getId());
 		file.delete();
 	}
 

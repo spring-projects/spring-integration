@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.store.PropertiesPersistingMetadataStore;
 import org.springframework.integration.test.util.TestUtils;
@@ -165,10 +166,11 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
 		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
-		Tweet message = (Tweet) msg.poll();
-		assertEquals(2000, message.getId());
+		Message message = (Message) source.receive();
+		Tweet tweet = (Tweet) message.getPayload();
+		assertEquals(2000, tweet.getId());
 		source.stop();
-		Thread.sleep(3000);
+		Thread.sleep(2000);
 		
 		
 		// Resuming
@@ -190,10 +192,12 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		Thread.sleep(1000);
 		msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
-		message = (Tweet) msg.poll();
-		assertEquals(3000, message.getId());
-		message = (Tweet) msg.poll();
-		assertEquals(4000, message.getId());
+		message = (Message) source.receive();
+		tweet = (Tweet) message.getPayload();
+		assertEquals(3000, tweet.getId());
+		message = (Message) source.receive();
+		tweet = (Tweet) message.getPayload();
+		assertEquals(4000, tweet.getId());
 		file.delete();
 	}
 

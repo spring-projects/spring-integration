@@ -64,6 +64,8 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	protected volatile int prefetchThreshold = 0;
 
 	protected volatile long markerId = -1;
+	
+	protected volatile long processedId = -1;
 
 	protected final TwitterOperations twitter;
 
@@ -124,7 +126,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		String lastId = this.metadataStore.get(this.metadataKey);
 		// initialize the last status ID from the metadataStore
 		if (StringUtils.hasText(lastId)){
-			this.markLastStatusId(Long.parseLong(lastId));
+			this.markerId = Long.parseLong(lastId);
 		}
 	}
 
@@ -166,7 +168,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 	public Message<?> receive() {
 		Tweet tweet = tweets.poll();	
 		if (tweet != null){
-			
+			this.markProcessedId(tweet.getId());
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
@@ -176,22 +178,16 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		synchronized (this.markerGuard) {
 			
 			long id = tweet.getId();
-			
-			String lastId = this.metadataStore.get(this.metadataKey);
 
-			long lastTweetId = 0;
-			if (lastId != null) {
-				lastTweetId = Long.parseLong(lastId);
-			}
-			if (id > lastTweetId) {
-				markLastStatusId(tweet.getId());
+			if (id > this.markerId) {
+				this.markerId = id;
 				tweets.add(tweet);
 			}
 		}
 	}
 
-	protected void markLastStatusId(long statusId) {
-		this.markerId = statusId;
+	protected void markProcessedId(long statusId) {
+		this.processedId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
 }
