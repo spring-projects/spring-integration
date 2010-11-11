@@ -105,10 +105,7 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testUpdateStatus() throws Exception{
-		Tweet tweet = new Tweet();
-		tweet.setToUserId((long) 123);
-		tweet.setText("writing twitter test");
-		template.updateStatus(tweet);
+		template.updateStatus("writing twitter test");
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 }

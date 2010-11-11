@@ -62,7 +62,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		Tweet tweet = new Tweet();
 		tweet.setText("writing twitter tests");
 		handler.handleMessage(new GenericMessage(tweet));
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(Tweet.class));
+		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 	@Test
@@ -75,7 +75,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 		.build();
 		handler.handleMessage(message);
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(Tweet.class));
+		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
 }

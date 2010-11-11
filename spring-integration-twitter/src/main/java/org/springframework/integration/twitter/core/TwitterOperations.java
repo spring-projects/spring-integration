@@ -20,13 +20,94 @@ import java.util.List;
 import twitter4j.Twitter;
 
 /**
+ * @author Craig Walls
  * @author Oleg Zhurakousky
  * @since 2.0
  *
  */
 public interface TwitterOperations {
 
+	/**
+	 * Retrieves the user's Twitter screen name.
+	 * 
+	 * @return the user's screen name at Twitter
+	 */
 	String getProfileId();
+	
+	/**
+	 * Retrieves a list of users that the given user follows.
+	 * 
+	 * @param screenName
+	 *            The user's Twitter screen name
+	 * @return a list of user screen names
+	 */
+	List<String> getFriends(String screenName);
+	
+	/**
+	 * Updates the user's status.
+	 * 
+	 * @param status
+	 *            The status message
+	 * 
+	 */
+	void updateStatus(String status);
+	
+	/**
+	 * Posts a retweet of an existing tweet.
+	 * 
+	 * @param tweetId
+	 *            The ID of the tweet to be retweeted
+	 * 
+	 * @throws SocialException
+	 *             if an error response is received from Twitter
+	 */
+	void retweet(long tweetId);
+
+	/**
+	 * Searches Twitter, returning the first 50 matching {@link Tweet}s
+	 * 
+	 * @param query
+	 *            The search query string
+	 * @return a {@link SearchResults} containing {@link Tweet}s
+	 * 
+	 */
+	SearchResults search(String query);
+
+	/**
+	 * Searches Twitter, returning a specific page out of the complete set of
+	 * results.
+	 * 
+	 * @param query
+	 *            The search query string
+	 * @param page
+	 *            The page to return
+	 * @param pageSize
+	 *            The number of {@link Tweet}s per page
+	 * 
+	 * @return a {@link SearchResults} containing {@link Tweet}s
+	 * 
+	 */
+	SearchResults search(String query, int page, int pageSize);
+
+	/**
+	 * Searches Twitter, returning a specific page out of the complete set of
+	 * results. Results are filtered to those whose ID falls between sinceId and
+	 * maxId
+	 * 
+	 * @param query
+	 *            The search query string
+	 * @param page
+	 *            The page to return
+	 * @param pageSize
+	 *            The number of {@link Tweet}s per page
+	 * @param sinceId
+	 *            The minimum {@link Tweet} ID to return in the results
+	 * @param maxId
+	 *            The maximum {@link Tweet} ID to return in the results
+	 * 
+	 * @return a {@link SearchResults} containing {@link Tweet}s
+	 */
+	SearchResults search(String query, int page, int resultsPerPage, int sinceId, int maxId);
 	
 	List<Tweet> getDirectMessages();
 	
@@ -43,8 +124,9 @@ public interface TwitterOperations {
 	void sendDirectMessage(String userName, String text);
 	
 	void sendDirectMessage(int userId, String text);
-	
-	void updateStatus(Tweet status);
-	
+
+	/**
+	 * Temporary method. Should be removed one migrated to Spring Social
+	 */
 	Twitter getUnderlyingTwitter();
 }
