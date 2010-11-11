@@ -44,7 +44,7 @@ public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource
 	@Override
 	protected List<Tweet> pollForTweets() {
 		long sinceId = getMarkerId();
-		return hasMarkedStatus() ? twitter.getTimeline(sinceId) : twitter.getTimeline();
+		return hasMarkedStatus() ? this.getTwitterOperations().getTimeline(sinceId) : this.getTwitterOperations().getTimeline();
 	}
 
 }

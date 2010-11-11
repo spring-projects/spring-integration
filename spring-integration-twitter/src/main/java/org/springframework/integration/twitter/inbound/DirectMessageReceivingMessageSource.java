@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
@@ -43,7 +44,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 	@Override
 	protected List<Tweet> pollForTweets() {
 		long sinceId = getMarkerId();
-		return hasMarkedStatus() ? twitter.getDirectMessages(sinceId) :  twitter.getDirectMessages(); 
+		return hasMarkedStatus() ? this.getTwitterOperations().getDirectMessages(sinceId) : this.getTwitterOperations().getDirectMessages(); 
 	}
 
 }

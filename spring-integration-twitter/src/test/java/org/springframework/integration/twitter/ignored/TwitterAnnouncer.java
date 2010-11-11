@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.ignored;
 
 import org.springframework.integration.Message;
@@ -20,28 +21,29 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.stereotype.Component;
 
-
 @Component
 public class TwitterAnnouncer {
+
 	public void dm(Tweet directMessage) {
 		System.out.println("A direct message has been received from " +
 				directMessage.getFromUser() + " with text " + directMessage.getText());
 	}
-	
-	public void search(Message search) {
+
+	public void search(Message<?> search) {
 		MessageHistory history = MessageHistory.read(search);
 		System.out.println(history);
 		Tweet tweet = (Tweet) search.getPayload();
-		
 		System.out.println("A search item was received " +
 				tweet.getCreatedAt() + " with text " + tweet.getText());
 	}
 
 	public void mention(Tweet s) {
-		System.out.println("A tweet mentioning (or replying) to " + "you was received having text " + s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
+		System.out.println("A tweet mentioning (or replying) to you was received having text "
+				+ s.getFromUser() + "-" +  s.getText() + " from " + s.getSource());
 	}
 
 	public void updates(Tweet t) {
 		System.out.println("Received timeline update: " + t.getText() + " from " + t.getSource());
 	}
+
 }

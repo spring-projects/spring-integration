@@ -134,12 +134,12 @@ public class DirectMessageReceivingMessageSourceTests {
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
 		verify(twitter, times(1)).getDirectMessages();
-		// based on the Mock, the Queue shoud now have 1 more messages third and fourth
+		// based on the Mock, the Queue should now have 2 more messages third and fourth
 		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 		source.stop();
 	}
 	/**
-	 * This test will validate that last status is initilaized from the metadatastore
+	 * This test will validate that last status is initialized from the metadatastore
 	 * @throws Exception
 	 */
 	@SuppressWarnings("rawtypes")

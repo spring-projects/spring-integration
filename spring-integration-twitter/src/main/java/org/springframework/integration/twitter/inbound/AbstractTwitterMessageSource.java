@@ -42,9 +42,8 @@ import org.springframework.util.StringUtils;
  * Abstract class that defines common operations for receiving various types of
  * messages when using the Twitter API. This class also handles keeping track of
  * the latest inbound message it has received and avoiding, where possible,
- * redelivery of common messages. This functionality is enabled using the
- * {@link org.springframework.integration.store.MetadataStore} 
- * strategy.
+ * redelivery of duplicate messages. This functionality is enabled using the
+ * {@link org.springframework.integration.store.MetadataStore} strategy.
  * 
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -58,24 +57,28 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 
 	private volatile String metadataKey;
 
-	protected final Queue<Tweet> tweets = new LinkedBlockingQueue<Tweet>();
+	private final Queue<Tweet> tweets = new LinkedBlockingQueue<Tweet>();
 
-	protected volatile int prefetchThreshold = 0;
+	private volatile int prefetchThreshold = 0;
 
-	protected volatile long markerId = -1;
+	private volatile long markerId = -1;
 
-	protected volatile long processedId = -1;
+	//private volatile long processedId = -1;
 
-	protected final TwitterOperations twitter;
+	private final TwitterOperations twitterOperations;
 
-	private volatile ScheduledFuture<?> twitterUpdatePollingTask;
+	private final TweetComparator tweetComparator = new TweetComparator();
+
+	private volatile ScheduledFuture<?> twitterPollingTask;
 
 	private final Object markerGuard = new Object();
 
 
-	public AbstractTwitterMessageSource(TwitterOperations twitter){
-		this.twitter = twitter;
+	public AbstractTwitterMessageSource(TwitterOperations twitterOperations) {
+		Assert.notNull(twitterOperations, "twitterOperations must not be null");
+		this.twitterOperations = twitterOperations;
 	}
+
 
 	public long getMarkerId() {
 		return this.markerId;
@@ -85,20 +88,20 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 		return this.markerId > -1;
 	}
 
+	protected TwitterOperations getTwitterOperations() {
+		return this.twitterOperations;
+	}
+
 	@Override
 	protected void onInit() throws Exception{
 		Assert.notNull(this.getTaskScheduler(), 
-				"Can not locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'");
+				"Unable to locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'.");
 		super.onInit();
-
 		if (this.metadataStore == null) {
-			// first try to look for a 'messageStore' in the context
+			// first try to look for a 'metadataStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
 			if (beanFactory != null) {
-				MetadataStore metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
-				if (metadataStore != null) {
-					this.metadataStore = metadataStore;
-				}
+				this.metadataStore = IntegrationContextUtils.getMetadataStore(beanFactory);
 			}
 			if (this.metadataStore == null) {
 				this.metadataStore = new SimpleMetadataStore();
@@ -114,45 +117,16 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		String profileId = twitter.getProfileId();
-		metadataKeyBuilder.append(profileId);
+		String profileId = this.twitterOperations.getProfileId();
+		if (profileId != null) {
+			metadataKeyBuilder.append(profileId);
+		}
 		this.metadataKey = metadataKeyBuilder.toString();
 		String lastId = this.metadataStore.get(this.metadataKey);
 		// initialize the last status ID from the metadataStore
-		if (StringUtils.hasText(lastId)){
+		if (StringUtils.hasText(lastId)) {
 			this.markerId = Long.parseLong(lastId);
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	protected void forwardAll(List<Tweet> tResponses) {
-		Collections.sort(tResponses, this.getComparator());
-		for (Tweet twitterResponse : tResponses) {
-			forward(twitterResponse);
-		}
-	}
-	
-	private Comparator getComparator() {
-		return new Comparator<Tweet>() {
-			public int compare(Tweet tweet1, Tweet tweet2) {
-				return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
-			}
-		};
-	}
-
-	@Override
-	protected void doStart(){
-		Assert.notNull(this.twitter, "'twitter' instance must not be null");
-		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits.
-		// This will likely change once we switch to Spring Social.
-		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitter.getUnderlyingTwitter());
-		Runnable twitterPollingTask = new TwitterPollingTask();
-		twitterUpdatePollingTask = this.getTaskScheduler().schedule(twitterPollingTask, trigger);
-	}
-
-	@Override
-	protected void doStop(){
-		twitterUpdatePollingTask.cancel(true);
 	}
 
 	public Message<?> receive() {
@@ -164,25 +138,52 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 		return null;
 	}
 
-	protected void forward(Tweet tweet) {
+	@SuppressWarnings("unchecked")
+	private void enqueueAll(List<Tweet> tweets) {
+		Collections.sort(tweets, this.tweetComparator);
+		for (Tweet tweet : tweets) {
+			enqueue(tweet);
+		}
+	}
+
+	private void enqueue(Tweet tweet) {
 		synchronized (this.markerGuard) {
 			long id = tweet.getId();
 			if (id > this.markerId) {
 				this.markerId = id;
-				tweets.add(tweet);
+				this.tweets.add(tweet);
 			}
 		}
 	}
 
-	protected void markProcessedId(long statusId) {
-		this.processedId = statusId;
+	private void markProcessedId(long statusId) {
+		//this.processedId = statusId;
 		this.metadataStore.put(this.metadataKey, String.valueOf(statusId));
 	}
+
 
 	/**
 	 * Subclasses must implement this to return tweets.
 	 */
 	protected abstract List<Tweet> pollForTweets();
+
+
+	// Lifecycle methods
+
+	@Override
+	protected void doStart() {
+		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits.
+		// This will likely change once we switch to Spring Social.
+		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitterOperations.getUnderlyingTwitter());
+		this.twitterPollingTask = this.getTaskScheduler().schedule(new TwitterPollingTask(), trigger);
+	}
+
+	@Override
+	protected void doStop() {
+		if (this.twitterPollingTask != null) {
+			this.twitterPollingTask.cancel(true);
+		}
+	}
 
 
 	private class TwitterPollingTask implements Runnable {
@@ -192,7 +193,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 				if (tweets.size() <= prefetchThreshold) {
 					List<Tweet> tweets = pollForTweets();
 					if (!CollectionUtils.isEmpty(tweets)) {
-						forwardAll(tweets);
+						enqueueAll(tweets);
 					}
 				}	
 			}
@@ -202,6 +203,14 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint i
 			catch (Exception e) {
 				throw new MessagingException("failed while polling Twitter", e);
 			}
+		}
+	}
+
+
+	private static class TweetComparator implements Comparator<Tweet> {
+
+		public int compare(Tweet tweet1, Tweet tweet2) {
+			return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
 		}
 	}
 
