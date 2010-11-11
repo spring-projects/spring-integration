@@ -31,21 +31,30 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TwitterSendingMessageHandlerParser extends AbstractOutboundChannelAdapterParser {
+public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		String elementName = element.getLocalName().trim();
+		String className = determineClassName(element, parserContext);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
+		return builder.getBeanDefinition();
+	}
+
+
+	private static String determineClassName(Element element, ParserContext parserContext) {
 		String className = null;
+		String elementName = element.getLocalName().trim();
 		if ("outbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".outbound.TimelineSendingMessageHandler";
 		}
 		else if ("dm-outbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
-		return builder.getBeanDefinition();
+		else {
+			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
+		}
+		return className;
 	}
 
 }
