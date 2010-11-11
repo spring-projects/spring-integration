@@ -21,21 +21,25 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
+
 /**
- * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
+ * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume a given account's timeline
+ * as messages. It has support for dynamic throttling of API requests.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public class MentionReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
-
-	public MentionReceivingMessageSource(TwitterOperations twitter){
+public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
+	
+	public TimelineReceivingMessageSource(TwitterOperations twitter){
 		super(twitter);
 	}
 	@Override
-	public String getComponentType() {
-		return  "twitter:inbound-mention-channel-adapter";
+	 public String getComponentType() {
+		return "twitter:inbound-channel-adapter";  
 	}
+
 	@Override
 	Runnable getApiCallback() {
 		Runnable apiCallback = new Runnable() {	
@@ -43,11 +47,11 @@ public class MentionReceivingMessageSource extends AbstractTwitterMessageSource<
 				try {
 					long sinceId = getMarkerId();
 					if (tweets.size() <= prefetchThreshold){
-						List<Tweet> stats = (!hasMarkedStatus())
-						? twitter.getMentions()
-						: twitter.getMentions(sinceId);
-						forwardAll(stats);
-					}
+						List<Tweet> tweets = !hasMarkedStatus() 
+								? twitter.getTimeline()  
+								: twitter.getTimeline(sinceId);
+						forwardAll(tweets);
+					}	
 				} catch (Exception e) {
 					if (e instanceof RuntimeException){
 						throw (RuntimeException)e;

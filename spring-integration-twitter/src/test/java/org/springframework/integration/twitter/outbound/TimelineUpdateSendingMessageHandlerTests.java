@@ -58,7 +58,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testSendingStatusUpdate() throws Exception{
-		TimelineUpdateSendingMessageHandler handler = new TimelineUpdateSendingMessageHandler(twitterOperations);
+		TimelineSendingMessageHandler handler = new TimelineSendingMessageHandler(twitterOperations);
 		Tweet tweet = new Tweet();
 		tweet.setText("writing twitter tests");
 		handler.handleMessage(new GenericMessage(tweet));
@@ -67,7 +67,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 	}
 	@Test
 	public void testSendingStatusUpdateWithHeaders() throws Exception{
-		TimelineUpdateSendingMessageHandler handler = new TimelineUpdateSendingMessageHandler(twitterOperations);
+		TimelineSendingMessageHandler handler = new TimelineSendingMessageHandler(twitterOperations);
 		Message<?> message = MessageBuilder.withPayload("writing twitter tests")
 		.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, new Long(123))
 		.setHeader(TwitterHeaders.PLACE_ID, "123")

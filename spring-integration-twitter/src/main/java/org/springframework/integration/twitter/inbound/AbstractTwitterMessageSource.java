@@ -178,7 +178,7 @@ public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint
 		synchronized (this.markerGuard) {
 			
 			long id = tweet.getId();
-
+			
 			if (id > this.markerId) {
 				this.markerId = id;
 				tweets.add(tweet);

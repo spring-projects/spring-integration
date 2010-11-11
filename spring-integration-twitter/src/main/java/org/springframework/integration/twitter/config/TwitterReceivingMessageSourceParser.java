@@ -41,13 +41,13 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 		String elementName = element.getLocalName().trim();
 		String className = null;
 		if ("inbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".inbound.TimelineUpdateReceivingMessageSource";
+			className = BASE_PACKAGE + ".inbound.TimelineReceivingMessageSource";
 		}
 		else if ("dm-inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.DirectMessageReceivingMessageSource";
 		}
 		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".inbound.MentionReceivingMessageSource";
+			className = BASE_PACKAGE + ".inbound.MentionsReceivingMessageSource";
 		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);

@@ -124,7 +124,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<Tweet> getHomeTimeline() {
+	public List<Tweet> getTimeline() {
 		try {
 			ResponseList<Status> timelines = twitter.getHomeTimeline();
 			return this.buildTweetsFromTwitterResponses(timelines);
@@ -134,7 +134,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 	}
 	@Override
-	public List<Tweet> getHomeTimeline(long sinceId) {
+	public List<Tweet> getTimeline(long sinceId) {
 		try {
 			ResponseList<Status> timelines = twitter.getHomeTimeline(new Paging(sinceId));
 			return this.buildTweetsFromTwitterResponses(timelines);

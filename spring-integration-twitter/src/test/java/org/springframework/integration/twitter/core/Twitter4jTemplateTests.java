@@ -95,8 +95,8 @@ public class Twitter4jTemplateTests {
 	
 	@Test
 	public void testGetFriendsTimeline() throws Exception{
-		template.getHomeTimeline();
-		template.getHomeTimeline(123);
+		template.getTimeline();
+		template.getTimeline(123);
 		verify(twitter, times(1)).getHomeTimeline();
 		verify(twitter, times(1)).getHomeTimeline(Mockito.any(Paging.class));
 	}

@@ -28,9 +28,9 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class TimelineUpdateSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class TimelineSendingMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	
-	public TimelineUpdateSendingMessageHandler(TwitterOperations twitter){
+	public TimelineSendingMessageHandler(TwitterOperations twitter){
 		super(twitter);
 	}
 	

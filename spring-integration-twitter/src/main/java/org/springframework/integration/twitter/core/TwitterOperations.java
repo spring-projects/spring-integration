@@ -118,9 +118,9 @@ public interface TwitterOperations {
 	
 	List<Tweet> getMentions(long sinceId);
 	
-	List<Tweet> getHomeTimeline();
+	List<Tweet> getTimeline();
 	
-	List<Tweet> getHomeTimeline(long sinceId);
+	List<Tweet> getTimeline(long sinceId);
 	
 	void sendDirectMessage(String userName, String text);
 	

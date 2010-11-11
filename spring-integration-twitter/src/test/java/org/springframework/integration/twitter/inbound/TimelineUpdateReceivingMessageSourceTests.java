@@ -101,7 +101,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 	@Test
 	public void testSuccessfullInitialization() throws Exception{
 		when(tw.isOAuthEnabled()).thenReturn(true);
-		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
+		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		source.setTaskScheduler(scheduler);
@@ -118,7 +118,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 	public void testSuccessfullInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
 		
-		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
+		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		source.setTaskScheduler(scheduler);
@@ -132,7 +132,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		Tweet message = (Tweet) msg.poll();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
-		verify(twitter, times(1)).getHomeTimeline(2000);
+		verify(twitter, times(1)).getTimeline(2000);
 		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
 		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
 		source.stop();
@@ -154,7 +154,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		PropertiesPersistingMetadataStore store = new PropertiesPersistingMetadataStore();
 		store.afterPropertiesSet();
 		bf.registerSingleton(IntegrationContextUtils.METADATA_STORE_BEAN_NAME, store);
-		TimelineUpdateReceivingMessageSource source = new TimelineUpdateReceivingMessageSource(twitter);
+		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		source.setBeanFactory(bf);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
@@ -181,7 +181,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 		store = new PropertiesPersistingMetadataStore();
 		store.afterPropertiesSet();
 		bf.registerSingleton(IntegrationContextUtils.METADATA_STORE_BEAN_NAME, store);	
-		source = new TimelineUpdateReceivingMessageSource(twitter);
+		source = new TimelineReceivingMessageSource(twitter);
 		source.setBeanFactory(bf);
 		scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
