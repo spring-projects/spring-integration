@@ -237,6 +237,30 @@ public class JmsInboundGatewayParserTests {
 	}
 
 	@Test
+	public void testGatewayWithReceiveTimeout() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithReceiveTimeout");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+		assertEquals(1111L, new DirectFieldAccessor(container).getPropertyValue("receiveTimeout"));
+		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithRecoveryInterval() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithRecoveryInterval");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+		assertEquals(2222L, new DirectFieldAccessor(container).getPropertyValue("recoveryInterval"));
+		gateway.stop();
+	}
+
+	@Test
 	public void testGatewayWithIdleTaskExecutionLimit() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithContainerSettings.xml", this.getClass());
@@ -245,6 +269,18 @@ public class JmsInboundGatewayParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
+		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithIdleConsumerLimit() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gatewayWithIdleConsumerLimit");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
+		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
 		gateway.stop();
 	}
 
