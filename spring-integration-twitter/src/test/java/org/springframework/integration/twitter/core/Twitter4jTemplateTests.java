@@ -132,9 +132,6 @@ public class Twitter4jTemplateTests {
 		List<Tweet> tweets = results.getTweets();
 		assertNotNull(tweets);
 		assertEquals(3, tweets.size());
-		assertTrue(tweets.get(0) instanceof Tweet);
-		assertTrue(tweets.get(1) instanceof Tweet);
-		assertTrue(tweets.get(2) instanceof Tweet);
 	}
 	
 }

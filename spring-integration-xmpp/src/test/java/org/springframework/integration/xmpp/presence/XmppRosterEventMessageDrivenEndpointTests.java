@@ -54,17 +54,15 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
-		
+
 		doAnswer(new Answer<Object>() {
-			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				rosterSet.add((RosterListener) invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(roster).addRosterListener(Mockito.any(RosterListener.class));
-		
+
 		doAnswer(new Answer<Object>() {
-			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				rosterSet.remove(invocation.getArguments()[0]);
 				return null;
