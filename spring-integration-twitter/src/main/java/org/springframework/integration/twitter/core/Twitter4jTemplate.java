@@ -60,8 +60,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 		AccessToken at = new AccessToken(accessToken, accessTokenSecret);
 		this.twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret, at);
 	}
-	
-	@Override
+
 	public String getProfileId() {
 		try {
 			return twitter.getScreenName();
@@ -70,8 +69,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to obtain Profile ID. ", e);
 		} 
 	}
-	
-	@Override
+
 	public List<Tweet> getDirectMessages() {
 		
 		try {
@@ -82,7 +80,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Direct Messages. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getDirectMessages(long sinceId) {
 		try {
 			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(new Paging(sinceId));
@@ -93,7 +91,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getMentions() {
 		try {
 			ResponseList<Status> mentions = twitter.getMentions();
@@ -103,7 +101,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Mention statuses. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getMentions(long sinceId) {
 		try {
 			ResponseList<Status> mentions = twitter.getMentions(new Paging(sinceId));
@@ -114,7 +112,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getFriendsTimeline() {
 		try {
 			ResponseList<Status> timelines = twitter.getFriendsTimeline();
@@ -124,7 +122,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Timeline statuses. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getFriendsTimeline(long sinceId) {
 		try {
 			ResponseList<Status> timelines = twitter.getFriendsTimeline(new Paging(sinceId));
@@ -135,7 +133,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public void sendDirectMessage(String userName, String text) {
 		Assert.hasText(userName, "'userName' must be set");
 		Assert.hasText(text, "'text' must be set");
@@ -146,7 +144,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Direct Message to user: " + userName + ".", e);
 		}
 	}
-	@Override
+
 	public void sendDirectMessage(int userId, String text) {
 		Assert.state(userId > 0, "'userId' msut be provided");
 		Assert.hasText(text, "'text' must be set");
@@ -157,8 +155,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Direct Message to user with id: " + userId + ".", e);
 		}
 	}
-	
-	@Override
+
 	public void updateStatus(Tweet statusTweet) {
 		Assert.notNull(statusTweet, "'statusTweet' must not be null");
 		try {

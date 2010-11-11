@@ -52,19 +52,16 @@ public class TestReceivingMessageSourceParserTests {
 	
 	public static class TwitterTemplateFactoryBean implements FactoryBean<TwitterOperations>{
 
-		@Override
 		public TwitterOperations getObject() throws Exception {
 			TwitterOperations oper = mock(TwitterOperations.class);
 			when(oper.getProfileId()).thenReturn("kermit");
 			return oper;
 		}
 
-		@Override
 		public Class<?> getObjectType() {
 			return TwitterOperations.class;
 		}
 
-		@Override
 		public boolean isSingleton() {
 			return true;
 		}

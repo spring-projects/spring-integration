@@ -66,7 +66,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				rosterSet.remove((RosterListener) invocation.getArguments()[0]);
+				rosterSet.remove(invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));

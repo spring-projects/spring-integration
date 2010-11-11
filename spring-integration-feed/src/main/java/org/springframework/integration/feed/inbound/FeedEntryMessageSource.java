@@ -182,7 +182,7 @@ public class FeedEntryMessageSource extends IntegrationObjectSupport implements 
 	private void populateEntryList() {
 		SyndFeed syndFeed = this.getFeed();
 		if (syndFeed != null) {
-			List<SyndEntry> retrievedEntries = (List<SyndEntry>) syndFeed.getEntries();
+			List<SyndEntry> retrievedEntries = syndFeed.getEntries();
 			if (!CollectionUtils.isEmpty(retrievedEntries)) {
 				boolean withinNewEntries = false;
 				Collections.sort(retrievedEntries, this.syndEntryComparator);

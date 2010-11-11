@@ -62,7 +62,7 @@ public class XmppMessageDrivenEndpointTests {
 		doAnswer(new Answer<Object>() {
 			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.remove((PacketListener) invocation.getArguments()[0]);
+				packetListSet.remove(invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));

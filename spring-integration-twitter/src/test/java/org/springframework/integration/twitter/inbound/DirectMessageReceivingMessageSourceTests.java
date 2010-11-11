@@ -220,12 +220,10 @@ public class DirectMessageReceivingMessageSourceTests {
 	@SuppressWarnings({ "rawtypes", "serial" })
 	public static class SampleResoponceList extends ArrayList implements ResponseList {
 
-		@Override
 		public RateLimitStatus getRateLimitStatus() {
 			return mock(RateLimitStatus.class);
 		}
 
-		@Override
 		public RateLimitStatus getFeatureSpecificRateLimitStatus() {
 			return mock(RateLimitStatus.class);
 		}
