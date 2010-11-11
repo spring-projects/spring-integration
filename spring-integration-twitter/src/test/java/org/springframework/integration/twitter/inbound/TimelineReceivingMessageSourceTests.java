@@ -53,7 +53,7 @@ import twitter4j.Twitter;
 /**
  * @author Oleg Zhurakousky
  */
-public class TimelineUpdateReceivingMessageSourceTests {
+public class TimelineReceivingMessageSourceTests {
 
 	private Status firstMessage;
 
@@ -99,7 +99,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 
 
 	@Test
-	public void testSuccessfullInitialization() throws Exception{
+	public void testSuccessfulInitialization() throws Exception{
 		when(tw.isOAuthEnabled()).thenReturn(true);
 		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
@@ -115,7 +115,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 	
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testSuccessfullInitializationWithMessages() throws Exception{
+	public void testSuccessfulInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
 		
 		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
@@ -143,7 +143,7 @@ public class TimelineUpdateReceivingMessageSourceTests {
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
-	public void testSuccessfullInitializationWithMessagesWithPersistentMetadata() throws Exception{
+	public void testSuccessfulInitializationWithMessagesWithPersistentMetadata() throws Exception{
 		String fileName = System.getProperty("java.io.tmpdir") + "/spring-integration/metadata-store.properties";
 		File file = new File(fileName);
 		if (file.exists()){
