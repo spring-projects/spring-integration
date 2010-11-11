@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.core;
 
 import java.util.List;
@@ -23,7 +24,6 @@ import twitter4j.Twitter;
  * @author Craig Walls
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 public interface TwitterOperations {
 
@@ -64,7 +64,7 @@ public interface TwitterOperations {
 	void retweet(long tweetId);
 
 	/**
-	 * Searches Twitter, returning the first 50 matching {@link Tweet}s
+	 * Searches Twitter, returning the first page of {@link Tweet}s
 	 * 
 	 * @param query
 	 *            The search query string
@@ -88,7 +88,6 @@ public interface TwitterOperations {
 	 * 
 	 */
 	SearchResults search(String query, int page, int sinceId);
-	
 
 	/**
 	 * Searches Twitter, returning a specific page out of the complete set of
@@ -130,4 +129,5 @@ public interface TwitterOperations {
 	 * Temporary method. Should be removed one migrated to Spring Social
 	 */
 	Twitter getUnderlyingTwitter();
+
 }
