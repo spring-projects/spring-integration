@@ -51,7 +51,7 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
+abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
 
 	private volatile MetadataStore metadataStore;
 
