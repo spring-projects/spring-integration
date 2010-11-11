@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.core;
 
 import java.util.LinkedList;
@@ -34,19 +35,24 @@ import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
 
 /**
+ * Implementation of {@link TwitterOperations} that delegates to Twitter4J.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
-public class Twitter4jTemplate implements TwitterOperations{
+public class Twitter4jTemplate implements TwitterOperations {
+
 	private final Twitter twitter;
+
+
 	/**
 	 * Used to construct this template to perform Twitter API calls that do not require authorization.
 	 * (e.g., search)
 	 */
-	public Twitter4jTemplate(){
+	public Twitter4jTemplate() {
 		this.twitter = new TwitterFactory().getInstance();
 	}
+
 	/**
 	 * Used to construct this template with OAuth authentication/authorization to perform Twitter API calls
 	 * that do require authorization (e.g., send/receive DirectMessage)
@@ -56,19 +62,19 @@ public class Twitter4jTemplate implements TwitterOperations{
 	 * @param accessToken
 	 * @param accessTokenSecret
 	 */
-	public Twitter4jTemplate(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret){
+	public Twitter4jTemplate(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
 		Assert.hasText(consumerKey, "'consumerKey' must be provided");
 		Assert.hasText(consumerSecret, "'consumerSecret' must be provided");
 		Assert.hasText(accessToken, "'accessToken' must be provided");
 		Assert.hasText(accessTokenSecret, "'accessTokenSecret' must be provided");
-		AccessToken at = new AccessToken(accessToken, accessTokenSecret);
-		this.twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret, at);
+		AccessToken token = new AccessToken(accessToken, accessTokenSecret);
+		this.twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret, token);
 	}
-	
-	@Override
+
+
 	public String getProfileId() {
 		try {
-			if (twitter.isOAuthEnabled()){
+			if (twitter.isOAuthEnabled()) {
 				return twitter.getScreenName();
 			}
 			else {
@@ -79,10 +85,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to obtain Profile ID. ", e);
 		} 
 	}
-	
-	@Override
+
 	public List<Tweet> getDirectMessages() {
-		
 		try {
 			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages();
 			return this.buildTweetsFromTwitterResponses(directMessages);
@@ -91,7 +95,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Direct Messages. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getDirectMessages(long sinceId) {
 		try {
 			ResponseList<DirectMessage> directMessages = twitter.getDirectMessages(new Paging(sinceId));
@@ -102,7 +106,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getMentions() {
 		try {
 			ResponseList<Status> mentions = twitter.getMentions();
@@ -112,7 +116,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Mention statuses. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getMentions(long sinceId) {
 		try {
 			ResponseList<Status> mentions = twitter.getMentions(new Paging(sinceId));
@@ -123,7 +127,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getTimeline() {
 		try {
 			ResponseList<Status> timelines = twitter.getHomeTimeline();
@@ -133,7 +137,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to receive Timeline statuses. ", e);
 		}
 	}
-	@Override
+
 	public List<Tweet> getTimeline(long sinceId) {
 		try {
 			ResponseList<Status> timelines = twitter.getHomeTimeline(new Paging(sinceId));
@@ -144,10 +148,10 @@ public class Twitter4jTemplate implements TwitterOperations{
 					+ sinceId + ".", e);
 		}
 	}
-	@Override
+
 	public void sendDirectMessage(String userName, String text) {
-		Assert.hasText(userName, "'userName' must be set");
-		Assert.hasText(text, "'text' must be set");
+		Assert.hasText(userName, "'userName' is required");
+		Assert.hasText(text, "'text' is required");
 		try {
 			twitter.sendDirectMessage(userName, text);
 		} 
@@ -155,10 +159,10 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Direct Message to user: " + userName + ".", e);
 		}
 	}
-	@Override
+
 	public void sendDirectMessage(int userId, String text) {
-		Assert.state(userId > 0, "'userId' msut be provided");
-		Assert.hasText(text, "'text' must be set");
+		Assert.state(userId > 0, "'userId' is required");
+		Assert.hasText(text, "'text' is required");
 		try {
 			twitter.sendDirectMessage(userId, text);
 		} 
@@ -166,8 +170,7 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Direct Message to user with id: " + userId + ".", e);
 		}
 	}
-	
-	@Override
+
 	public void updateStatus(String statusTweet) {
 		Assert.hasText(statusTweet, "'statusTweet' must not be null");
 		try {
@@ -178,29 +181,25 @@ public class Twitter4jTemplate implements TwitterOperations{
 			throw new TwitterOperationException("Failed to send Status update. ", e);
 		}
 	}
-	
-	@Override
+
 	public List<String> getFriends(String screenName) {
 		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
-				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface untill" +
+				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface until " +
 				"migration to use Spring Social is complete in Spring Integration 2.1.0");
 	}
-	
-	@Override
+
 	public void retweet(long tweetId) {
 		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
-				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface untill" +
+				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface until " +
 				"migration to use Spring Social is complete in Spring Integration 2.1.0");
 	}
-	
-	@Override
+
 	public SearchResults search(String query) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
 		return this.search(q);
 	}
-	
-	@Override
+
 	public SearchResults search(String query, int page, int sinceId) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
@@ -208,10 +207,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 		q.setSinceId(sinceId);
 		return this.search(q);
 	}
-	
-	@Override
-	public SearchResults search(String query, int page, int resultsPerPage,
-			int sinceId, int maxId) {
+
+	public SearchResults search(String query, int page, int resultsPerPage, int sinceId, int maxId) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
 		q.setPage(page);
@@ -220,38 +217,39 @@ public class Twitter4jTemplate implements TwitterOperations{
 		q.setRpp(resultsPerPage);
 		return this.search(q);
 	}
-	
-	public Twitter getUnderlyingTwitter(){
+
+	public Twitter getUnderlyingTwitter() {
 		return this.twitter;
 	}
-	
-	private SearchResults search(Query query){
+
+
+	private SearchResults search(Query query) {
 		try {
 			QueryResult result = twitter.search(query);
-			if (result != null){
+			if (result != null) {
 				List<twitter4j.Tweet> t4jTweets = result.getTweets();
 				List<Tweet> tweets = this.buildTweetsFromTwitterResponses(t4jTweets);
 				SearchResults results = new SearchResults(tweets, result.getMaxId(), result.getSinceId(), false);
 				return results;
-			}	
-		} 
+			}
+		}
 		catch (Exception e) {
-			throw new TwitterOperationException("Failed to send Status update. ", e);
+			throw new TwitterOperationException("failed to perform Twitter search", e);
 		}
 		return null;
 	}
-	
-	private List<Tweet> buildTweetsFromTwitterResponses(List<?> responses){
+
+	private List<Tweet> buildTweetsFromTwitterResponses(List<?> responses) {
 		List<Tweet> tweets = new LinkedList<Tweet>();
-		if (responses != null){
+		if (responses != null) {
 			for (Object response : responses) {
-				if (response instanceof Status){
+				if (response instanceof Status) {
 					tweets.add(this.buildTweetFromStatus((Status) response));
 				}
 				else if (response instanceof DirectMessage) {
 					tweets.add(this.buildTweetFromDm((DirectMessage) response));
 				}
-				else if (response instanceof twitter4j.Tweet){
+				else if (response instanceof twitter4j.Tweet) {
 					tweets.add(this.buildTweetFromT4jTweet((twitter4j.Tweet) response));
 				}
 				else {
@@ -261,8 +259,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 		}
 		return tweets;
 	}
-	
-	private Tweet buildTweetFromDm(DirectMessage dm){
+
+	private Tweet buildTweetFromDm(DirectMessage dm) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(dm.getCreatedAt());
 		tweet.setFromUser(dm.getSenderScreenName());
@@ -272,8 +270,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 		tweet.setToUserId((long)dm.getRecipientId());
 		return tweet;
 	}
-	
-	private Tweet buildTweetFromStatus(Status status){
+
+	private Tweet buildTweetFromStatus(Status status) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(status.getCreatedAt());
 		if (status.getUser() != null){
@@ -285,8 +283,8 @@ public class Twitter4jTemplate implements TwitterOperations{
 		tweet.setText(status.getText());
 		return tweet;
 	}
-	
-	private Tweet buildTweetFromT4jTweet(twitter4j.Tweet t4jTweet){
+
+	private Tweet buildTweetFromT4jTweet(twitter4j.Tweet t4jTweet) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(t4jTweet.getCreatedAt());
 		tweet.setFromUser(t4jTweet.getFromUser());
@@ -298,4 +296,5 @@ public class Twitter4jTemplate implements TwitterOperations{
 		tweet.setText(t4jTweet.getText());
 		return tweet;
 	}
+
 }

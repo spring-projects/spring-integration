@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.core;
 
 import java.util.Date;
@@ -24,15 +25,25 @@ import java.util.Date;
  * @author Oleg Zhurakousky
  */
 public class Tweet {
+
 	private long id;
+
 	private String text;
+
 	private Date createdAt;
+
 	private String fromUser;
+
 	private String profileImageUrl;
+
 	private Long toUserId;
+
 	private long fromUserId;
+
 	private String languageCode;
+
 	private String source;
+
 
 	public String getText() {
 		return text;
@@ -105,4 +116,5 @@ public class Tweet {
 	public void setSource(String source) {
 		this.source = source;
 	}
+
 }

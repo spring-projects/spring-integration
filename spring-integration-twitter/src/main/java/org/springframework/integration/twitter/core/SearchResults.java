@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.core;
 
 import java.util.List;
@@ -22,13 +23,17 @@ import java.util.List;
  * and any metadata associated with that search.
  * 
  * @author Craig Walls
- * 
  */
 public class SearchResults {
+
 	private List<Tweet> tweets;
+
 	private long maxId;
+
 	private long sinceId;
+
 	private boolean lastPage;
+
 
 	public SearchResults(List<Tweet> tweets, long maxId, long sinceId, boolean lastPage) {
 		this.tweets = tweets;
@@ -36,6 +41,7 @@ public class SearchResults {
 		this.sinceId = sinceId;
 		this.lastPage = lastPage;
 	}
+
 
 	/**
 	 * Returns the list of matching {@link Tweet}s
@@ -52,19 +58,18 @@ public class SearchResults {
 	}
 
 	/**
-	 * Returns the {@link Tweet} ID after which all of the matching
-	 * {@link Tweet}s were created
+	 * Returns the {@link Tweet} ID after which all of the matching {@link Tweet}s were created
 	 */
 	public long getSinceId() {
 		return sinceId;
 	}
 
 	/**
-	 * Returns <code>true</code> if this is the last page of matching
-	 * {@link Tweet}s; <code>false</code> if there are more pages that follow
-	 * this one.
+	 * Returns <code>true</code> if this is the last page of matching {@link Tweet}s,
+	 * <code>false</code> if there are more pages that follow this one.
 	 */
 	public boolean isLastPage() {
 		return lastPage;
 	}
+
 }
