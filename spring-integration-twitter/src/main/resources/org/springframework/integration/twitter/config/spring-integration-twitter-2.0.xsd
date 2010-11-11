@@ -43,6 +43,30 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	
+	<xsd:element name="search-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes message (representing mentions of your handle)
+				from twitter and sends Messages whose payloads are Status objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inbound-twitter-type">
+					<xsd:attribute name="query" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+							Twitter search query (e.g, #springintegration . 
+							For more info on Twitter queries please refer to this site: http://search.twitter.com/operators)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="dm-inbound-channel-adapter">
 		<xsd:annotation>
@@ -95,7 +119,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="twitter-template" use="required" type="xsd:string">
+		<xsd:attribute name="twitter-template"  type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

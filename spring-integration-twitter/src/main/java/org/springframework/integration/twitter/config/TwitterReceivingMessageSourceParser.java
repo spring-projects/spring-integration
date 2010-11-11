@@ -27,6 +27,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.twitter.core.Twitter4jTemplate;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for inbound Twitter Channel Adapters.
@@ -49,12 +51,25 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.MentionsReceivingMessageSource";
 		}
+		else if ("search-inbound-channel-adapter".equals(elementName)){
+			className = BASE_PACKAGE + ".inbound.SearchReceivingMessageSource";
+		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
-		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
+		String templateBeanName = element.getAttribute("twitter-template");
+		
+		if (!StringUtils.hasText(templateBeanName)){
+			BeanDefinitionBuilder templateBuilder = 
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.twitter.core.Twitter4jTemplate");
+			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
+		} else {
+			builder.addConstructorArgReference(templateBeanName);
+		}
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
 		String name = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(name);
 	}
