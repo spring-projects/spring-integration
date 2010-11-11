@@ -40,13 +40,13 @@ public class TwitterReceivingMessageSourceParser extends AbstractPollingInboundC
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		String elementName = element.getLocalName().trim();
 		String className = null;
-		if ("inbound-update-channel-adapter".equals(elementName)) {
+		if ("inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.TimelineUpdateReceivingMessageSource";
 		}
-		else if ("inbound-dm-channel-adapter".equals(elementName)) {
+		else if ("dm-inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.DirectMessageReceivingMessageSource";
 		}
-		else if ("inbound-mention-channel-adapter".equals(elementName)) {
+		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
 			className = BASE_PACKAGE + ".inbound.MentionReceivingMessageSource";
 		}
 		else {
