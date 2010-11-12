@@ -6,4 +6,5 @@
   
   <xi:include href="./jmx.xml"/>
   <xi:include href="./message-history.xml"/>
+  <xi:include href="./control-bus.xml"/>
 </chapter>
