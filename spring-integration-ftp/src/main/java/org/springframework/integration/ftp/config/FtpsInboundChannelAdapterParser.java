@@ -33,7 +33,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  *
  * @author Josh Long
  */
-public class FtpsMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
+public class FtpsInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList(
 			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(",")));
