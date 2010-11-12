@@ -30,7 +30,7 @@ import org.springframework.integration.sftp.session.SftpSessionUtils;
  *
  * @author Josh Long
  */
-public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSendingMessageHandler> {
+class SftpSendingMessageHandlerFactoryBean implements FactoryBean<SftpSendingMessageHandler> {
 
 	private String host;
 

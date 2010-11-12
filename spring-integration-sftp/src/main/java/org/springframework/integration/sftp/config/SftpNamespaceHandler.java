@@ -39,19 +39,36 @@ import org.springframework.util.StringUtils;
 public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		registerBeanDefinitionParser("inbound-channel-adapter", new SFTPMessageSourceBeanDefinitionParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new SFTPMessageSendingConsumerBeanDefinitionParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new SftpInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new SftpOutboundChannelAdapterParser());
 	}
 
 
 	/**
-	 * Configures an object that can take inbound messages and send them.
+	 * Configures an object that can receive files from a remote SFTP endpoint and broadcast their arrival to a channel.
 	 */
-	private static class SFTPMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
+	private static class SftpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+
+		@Override
+		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
+			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
+			}
+			return builder.getBeanDefinition();
+		}
+	}
+
+
+	/**
+	 * Configures an object that can take messages and send them via SFTP.
+	 */
+	private static class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpMessageSendingConsumerFactoryBean.class.getName());
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpSendingMessageHandlerFactoryBean.class.getName());
 			for (String p : "auto-create-directories,username,password,host,port,key-file,key-file-password,charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
@@ -72,22 +89,6 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 			}
 			else {
 				parserContext.getReaderContext().error("exactly one of 'remote-directory' or 'remote-directory-expression' is required", element);
-			}
-			return builder.getBeanDefinition();
-		}
-	}
-
-	/**
-	 * Configures an object that can receive files from a remote SFTP endpoint and broadcast their arrival to the consumer.
-	 */
-	private static class SFTPMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
-
-		@Override
-		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
-			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
 			return builder.getBeanDefinition();
 		}

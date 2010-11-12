@@ -42,7 +42,7 @@ import com.jcraft.jsch.ChannelSftp;
  *
  * @author Josh Long
  */
-public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
+class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile ResourceLoader resourceLoader;
@@ -148,7 +148,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	 */
 	@Override
 	public Class<?> getObjectType() {
-		return SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class;
+		return SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class;
 	}
 
 	/**
