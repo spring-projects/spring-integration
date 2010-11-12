@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -25,44 +28,49 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class ConverterParser extends AbstractBeanDefinitionParser {
+
 	private final ManagedSet<Object> converters = new ManagedSet<Object>();
-	private boolean notInitialized = true;
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#parseInternal(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
-	 */
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
+
+
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		if (notInitialized){
-			this.initializeConversionServiceInfrustructure(parserContext);
-		}
+		this.initializeConversionServiceInfrastructureIfNecessary(parserContext);
 		BeanComponentDefinition converterDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		if (converterDefinition == null){
+		if (converterDefinition != null) {
+			this.converters.add(converterDefinition);			
+		}
+		else {
 			String beanName = element.getAttribute("ref");
-			Assert.isTrue(StringUtils.hasText(beanName), "'ref' attribute pointing to a Converter definition or sub-element <bean> converter definition must be provided");
-			converters.add(new RuntimeBeanReference(beanName));
-		} else{
-			converters.add(converterDefinition);
+			Assert.isTrue(StringUtils.hasText(beanName),
+					"Either a 'ref' attribute pointing to a Converter or a <bean> sub-element defining a Converter is required.");
+			this.converters.add(new RuntimeBeanReference(beanName));
 		}
 		return null;
 	}
-	/*
-	 * 
-	 */
-	private void initializeConversionServiceInfrustructure(ParserContext parserContext){
-		String contextPackage = "org.springframework.integration.context.";
-		BeanDefinitionBuilder creatorBuilder = BeanDefinitionBuilder.rootBeanDefinition(contextPackage + "ConversionServiceCreator");
-		BeanDefinitionReaderUtils.registerWithGeneratedName(creatorBuilder.getBeanDefinition(), parserContext.getRegistry());
-		
-		BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(contextPackage + "ConverterRegistrar");
-		conversionServiceBuilder.addConstructorArgValue(converters);
-		BeanDefinitionReaderUtils.registerWithGeneratedName(conversionServiceBuilder.getBeanDefinition(), parserContext.getRegistry());
-		notInitialized = false;
+
+	private void initializeConversionServiceInfrastructureIfNecessary(ParserContext parserContext) {
+		synchronized (this.initializationMonitor) {
+			if (!this.initialized) {
+				String contextPackage = "org.springframework.integration.context.";
+				BeanDefinitionBuilder creatorBuilder = BeanDefinitionBuilder.rootBeanDefinition(contextPackage + "ConversionServiceCreator");
+				BeanDefinitionReaderUtils.registerWithGeneratedName(creatorBuilder.getBeanDefinition(), parserContext.getRegistry());
+				BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(contextPackage + "ConverterRegistrar");
+				conversionServiceBuilder.addConstructorArgValue(converters);
+				BeanDefinitionReaderUtils.registerWithGeneratedName(conversionServiceBuilder.getBeanDefinition(), parserContext.getRegistry());
+				this.initialized = true;
+			}
+		}
 	}
+
 }
