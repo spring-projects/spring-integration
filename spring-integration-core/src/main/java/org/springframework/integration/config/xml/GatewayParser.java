@@ -83,27 +83,26 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
 		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
-		
-		ManagedMap<String, BeanDefinition> methodToChannelMap = null;
-		if (elements != null && elements.size() > 0){
-			methodToChannelMap = new ManagedMap<String, BeanDefinition>();
+		ManagedMap<String, BeanDefinition> methodMetadataMap = null;
+		if (elements != null && elements.size() > 0) {
+			methodMetadataMap = new ManagedMap<String, BeanDefinition>();
 		}
 		for (Element methodElement : elements) {
 			String methodName = methodElement.getAttribute("name");
-			BeanDefinitionBuilder gatewayDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.gateway.GatewayMethodDefinition");
-			gatewayDefinitionBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
-			gatewayDefinitionBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
-			gatewayDefinitionBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
-			gatewayDefinitionBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(gatewayDefinitionBuilder, methodElement, "payload-expression");
+			BeanDefinitionBuilder methodMetadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.gateway.GatewayMethodMetadata");
+			methodMetadataBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
+			methodMetadataBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
+			methodMetadataBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
+			methodMetadataBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(methodMetadataBuilder, methodElement, "payload-expression");
 			List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
-			if (!CollectionUtils.isEmpty(invocationHeaders)){
-				this.setMethodInvocationHeaders(gatewayDefinitionBuilder, invocationHeaders);
+			if (!CollectionUtils.isEmpty(invocationHeaders)) {
+				this.setMethodInvocationHeaders(methodMetadataBuilder, invocationHeaders);
 			}
-			methodToChannelMap.put(methodName, gatewayDefinitionBuilder.getBeanDefinition());
+			methodMetadataMap.put(methodName, methodMetadataBuilder.getBeanDefinition());
 		}
-		builder.addPropertyValue("methodToChannelMap", methodToChannelMap);
+		builder.addPropertyValue("methodMetadataMap", methodMetadataMap);
 	}
 
 	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders) {

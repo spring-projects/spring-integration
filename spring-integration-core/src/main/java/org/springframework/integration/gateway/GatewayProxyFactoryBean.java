@@ -100,7 +100,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private final Object initializationMonitor = new Object();
 
-	private Map<String, GatewayMethodDefinition> methodToChannelMap;
+	private Map<String, GatewayMethodMetadata> methodMetadataMap;
 
 
 	/**
@@ -326,24 +326,24 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			requestTimeout = gatewayAnnotation.requestTimeout();
 			replyTimeout = gatewayAnnotation.replyTimeout();
 		}
-		else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {	
-			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());	
-			if (gatewayDefinition != null) {
-				payloadExpression = gatewayDefinition.getPayloadExpression();
-				headerExpressions = gatewayDefinition.getHeaderExpressions();
-				String requestChannelName = gatewayDefinition.getRequestChannelName();
+		else if (methodMetadataMap != null && methodMetadataMap.size() > 0) {	
+			GatewayMethodMetadata methodMetadata = methodMetadataMap.get(method.getName());	
+			if (methodMetadata != null) {
+				payloadExpression = methodMetadata.getPayloadExpression();
+				headerExpressions = methodMetadata.getHeaderExpressions();
+				String requestChannelName = methodMetadata.getRequestChannelName();
 				if (StringUtils.hasText(requestChannelName)) {
 					requestChannel = this.resolveChannelName(requestChannelName);
 				}
-				String replyChannelName = gatewayDefinition.getReplyChannelName();
+				String replyChannelName = methodMetadata.getReplyChannelName();
 				if (StringUtils.hasText(replyChannelName)) {
 					replyChannel = this.resolveChannelName(replyChannelName);
 				}
-				String reqTimeout = gatewayDefinition.getRequestTimeout();
+				String reqTimeout = methodMetadata.getRequestTimeout();
 				if (StringUtils.hasText(reqTimeout)){
 					requestTimeout = this.convert(reqTimeout, Long.class);
 				}
-				String repTimeout = gatewayDefinition.getReplyTimeout();
+				String repTimeout = methodMetadata.getReplyTimeout();
 				if (StringUtils.hasText(repTimeout)){
 					replyTimeout = this.convert(repTimeout, Long.class);
 				}
@@ -397,12 +397,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
 	}
 	
-	public Map<String, GatewayMethodDefinition> getMethodToChannelMap() {
-		return methodToChannelMap;
-	}
-
-	public void setMethodToChannelMap(Map<String, GatewayMethodDefinition> methodToChannelMap) {
-		this.methodToChannelMap = methodToChannelMap;
+	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
+		this.methodMetadataMap = methodMetadataMap;
 	}
 	
 	public InboundMessageMapper<Throwable> getExceptionMapper() {

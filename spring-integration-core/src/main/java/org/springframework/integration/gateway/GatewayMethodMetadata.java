@@ -22,13 +22,16 @@ import java.util.Map;
 import org.springframework.expression.Expression;
 
 /**
- * Represents the definition of Gateway methods, when using multiple methods per Gateway interface.
- * &lt;si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/&gt;
+ * Represents the metadata associated with a Gateway method. This is most useful when there are
+ * multiple methods per Gateway interface.
+ * <p>
+ * The sub-element of a &lt;gateway&gt; element would look like this:
+ * &lt;method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/&gt;
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class GatewayMethodDefinition {
+class GatewayMethodMetadata {
 
 	private volatile String payloadExpression;
 
