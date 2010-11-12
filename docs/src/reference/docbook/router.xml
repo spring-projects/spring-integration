@@ -128,11 +128,25 @@
   <recipient channel="channel2"/>
 </recipient-list-router>]]></programlisting>
   </para>
-    <note>
+  <note>
       The 'apply-sequence' flag here has the same affect as it does for a publish-subscribe-channel,
       and like publish-subscribe-channel it is disabled by default on the recipient-list-router. Refer to
       <xref linkend="channel-configuration-pubsubchannel"/> for more information.
   </note>
+  
+  <para>
+  Another convenient option to configure Recipient List Router is to use Spring Expression Language (SpEL) support
+  
+  <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel">
+	<int:recipient channel="channel1" selector-expression="payload.equals('foo')"/>
+	<int:recipient channel="channel2" selector-expression="headers.contains('bar')"/>
+</int:recipient-list-router>]]></programlisting>
+
+	In the above configuration a SpEL expression identified by <code>selector-expression</code> attribute will be evaluated to determine if this recipient 
+ 	should be included in the recipient list for a given input Message. The evaluation result of the expression must be a boolean. If this 
+ 	attribute is not defined, the channel will always be among the list of recipients.
+  </para>
+    
   </section>
 
   <section id="router-namespace">

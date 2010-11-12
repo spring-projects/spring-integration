@@ -3,9 +3,8 @@
     xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>System Management</title>
-
-	<xi:include href="./message-history.xml"/>
-    <xi:include href="./control-bus.xml"/>	
-    <xi:include href="./jmx.xml"/>	
-
+  
+  <xi:include href="./control-bus.xml"/>
+  <xi:include href="./jmx.xml"/>
+  <xi:include href="./message-history.xml"/>
 </chapter>
