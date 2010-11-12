@@ -2,12 +2,16 @@
 To check out the project and build from source, do the following:
 
  git clone --recursive git://git.springsource.org/spring-integration/spring-integration.git
-cd spring-integration
-./gradlew build
+ cd spring-integration
+ ./gradlew build
 
 Note: the --recursive switch above is important, as spring-integration uses
 git submodules, which must themselves be cloned and initialized. If --recursive
 is omitted, doing so becomes a multi-step process.
+
+If you encounter heap space errors during the build, increase the heap size for
+gradle:
+ GRADLE_OPTS="-Xmx1024m"
 
 -------------------------------------------------------------------------------
 To generate Eclipse metadata (.classpath and .project files), do the following:
