@@ -166,7 +166,7 @@ public class TimelineReceivingMessageSourceTests {
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
 		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
-		Message message = (Message) source.receive();
+		Message message = source.receive();
 		Tweet tweet = (Tweet) message.getPayload();
 		assertEquals(2000, tweet.getId());
 		source.stop();
@@ -192,10 +192,10 @@ public class TimelineReceivingMessageSourceTests {
 		Thread.sleep(1000);
 		msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
-		message = (Message) source.receive();
+		message = source.receive();
 		tweet = (Tweet) message.getPayload();
 		assertEquals(3000, tweet.getId());
-		message = (Message) source.receive();
+		message = source.receive();
 		tweet = (Tweet) message.getPayload();
 		assertEquals(4000, tweet.getId());
 		file.delete();

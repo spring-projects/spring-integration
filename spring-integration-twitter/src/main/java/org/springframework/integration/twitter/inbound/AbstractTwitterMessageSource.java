@@ -132,7 +132,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void enqueueAll(List<Tweet> tweets) {
 		Collections.sort(tweets, this.tweetComparator);
 		for (Tweet tweet : tweets) {
