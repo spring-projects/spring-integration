@@ -21,11 +21,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
+
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
-
-import twitter4j.GeoLocation;
 
 /**
  * @author Oleg Zhurakousky
@@ -37,8 +36,6 @@ public class OutboundDirectMessageMessageHandlerTests {
 	@Test
 	public void validateSendDirectMessage() throws Exception{
 		MessageBuilder<String> mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo");
 
 		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
@@ -48,8 +45,6 @@ public class OutboundDirectMessageMessageHandlerTests {
 		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
 		
 		mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-			.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123);
 
 		handler.handleMessage(mb.build());

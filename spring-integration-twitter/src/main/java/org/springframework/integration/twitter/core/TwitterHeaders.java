@@ -20,6 +20,7 @@ package org.springframework.integration.twitter.core;
  * Header keys used by the various Twitter adapters.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public abstract class TwitterHeaders {
@@ -27,12 +28,6 @@ public abstract class TwitterHeaders {
 	private static final String PREFIX = "twitter_";
 
 	public static final String IN_REPLY_TO_STATUS_ID = PREFIX + "inReplyToStatusId";
-
-	public static final String PLACE_ID = PREFIX + "placeId";
-
-	public static final String GEOLOCATION = PREFIX + "geolocation";
-
-	public static final String DISPLAY_COORDINATES = PREFIX + "displayCoordinates";
 
 	public static final String DM_TARGET_USER_ID = PREFIX + "dmTargetUserId";
 

@@ -39,7 +39,7 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 
 
 	public void setQuery(String query) {
-		Assert.hasText(query, "query must no be null");
+		Assert.hasText(query, "'query' must not be null");
 		this.query = query;
 	}
 

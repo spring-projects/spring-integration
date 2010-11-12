@@ -70,9 +70,6 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
 		Message<?> message = MessageBuilder.withPayload("writing twitter tests")
 		.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, new Long(123))
-		.setHeader(TwitterHeaders.PLACE_ID, "123")
-		.setHeader(TwitterHeaders.GEOLOCATION, mock(GeoLocation.class))
-		.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true)
 		.build();
 		handler.handleMessage(message);
 		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));

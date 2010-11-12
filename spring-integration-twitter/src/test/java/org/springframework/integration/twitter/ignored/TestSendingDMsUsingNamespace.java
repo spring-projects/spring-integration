@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.ignored;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
@@ -26,8 +27,6 @@ import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.util.StringUtils;
-
-import twitter4j.GeoLocation;
 
 /**
  * @author Josh Long
@@ -44,9 +43,9 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
  	@Ignore
 	public void testSendigRealDirectMessage() throws Throwable {
 		String dmUsr = "z_oleg";
-		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " + System.currentTimeMillis())
-				.setHeader(TwitterHeaders.GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-				.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true);
+		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter " 
+				+ System.currentTimeMillis());
+
 		if (StringUtils.hasText(dmUsr)) {
 			mb.setHeader(TwitterHeaders.DM_TARGET_USER_ID, dmUsr);
 		}

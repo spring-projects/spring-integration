@@ -26,6 +26,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
 public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 

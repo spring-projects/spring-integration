@@ -20,12 +20,12 @@ import java.util.Date;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -42,9 +42,8 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("Aligning #springintegration Twitter adapter with #SpringSocial API - " + new Date(System.currentTimeMillis()))
-				.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, 21927437001L)
-				.setHeader(TwitterHeaders.DISPLAY_COORDINATES, true);
+		MessageBuilder<String> mb = MessageBuilder.withPayload("Aligning #springintegration Twitter adapter with #SpringSocial API - " 
+				+ new Date(System.currentTimeMillis()));
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);
 	}

@@ -86,9 +86,9 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 
 	@Override
 	protected void onInit() throws Exception{
+		super.onInit();
 		Assert.notNull(this.getTaskScheduler(), 
 				"Unable to locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'.");
-		super.onInit();
 		if (this.metadataStore == null) {
 			// first try to look for a 'metadataStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
