@@ -18,6 +18,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.BeanResolver;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -40,6 +41,8 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
+	private volatile BeanResolver beanResolver;
+
 	public AbstractExpressionEvaluator() {
 		this.evaluationContext.setTypeConverter(this.typeConverter);
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
@@ -51,8 +54,15 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.typeConverter.setBeanFactory(beanFactory);
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			if (beanResolver == null) {
+				this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			}
 		}
+	}
+	
+	public void setBeanResolver(BeanResolver beanResolver) {
+		this.beanResolver = beanResolver;
+		this.evaluationContext.setBeanResolver(beanResolver);
 	}
 
 	public void setConversionService(ConversionService conversionService) {
@@ -68,11 +78,13 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	protected <T> T evaluateExpression(Expression expression, Message<?> message, Class<T> expectedType) {
 		try {
 			return evaluateExpression(expression, (Object) message, expectedType);
-		} catch (EvaluationException e) {
+		}
+		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), cause == null ? e : cause);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), e);
 		}

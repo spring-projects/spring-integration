@@ -13,13 +13,14 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.expression.BeanResolver;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
-import org.springframework.integration.control.ExpressionPayloadMessageProcessor;
+import org.springframework.integration.control.ControlBusMessageProcessor;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 
 /**
- * FactoryBean for creating {@link MessageHandler} instances to handle a message as a Groovy Script.
+ * FactoryBean for creating {@link MessageHandler} instances to handle a message as a SpEL expression.
  * 
  * @author Dave Syer
  * 
@@ -28,10 +29,16 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
-	private final ExpressionPayloadMessageProcessor processor;
+	private volatile BeanResolver beanResolver;
+
+	private final ControlBusMessageProcessor processor;
 	
-	public ExpressionControlBusFactoryBean(ExpressionPayloadMessageProcessor processor) {
+	public ExpressionControlBusFactoryBean(ControlBusMessageProcessor processor) {
 		this.processor = processor;	
+	}
+	
+	public void setBeanResolver(BeanResolver beanResolver) {
+		this.beanResolver = beanResolver;
 	}
 
 	public void setSendTimeout(Long sendTimeout) {
@@ -39,6 +46,9 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 	}
 
 	protected MessageHandler createHandler() {
+		if (beanResolver!=null) {
+			processor.setBeanResolver(beanResolver);
+		}
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);

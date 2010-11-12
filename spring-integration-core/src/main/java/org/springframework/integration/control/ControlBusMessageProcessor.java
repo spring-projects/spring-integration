@@ -25,7 +25,7 @@ import org.springframework.integration.handler.AbstractMessageProcessor;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionPayloadMessageProcessor extends AbstractMessageProcessor<Object> {
+public class ControlBusMessageProcessor extends AbstractMessageProcessor<Object> {
 
 	/**
 	 * Evaluates the Message payload expression.
