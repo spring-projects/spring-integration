@@ -20,11 +20,9 @@ import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.gateway.SimpleMessageMapper;
-import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.endpoint.AbstractMessageSource;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.util.Assert;
 
@@ -36,15 +34,13 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-public class AttributePollingMessageSource implements MessageSource {
+public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
 
 	private volatile ObjectName objectName;
 
 	private volatile String attributeName;
 
 	private volatile MBeanServer server;
-
-	private volatile InboundMessageMapper<Object> mapper = new SimpleMessageMapper();
 
 
 	/**
@@ -74,16 +70,15 @@ public class AttributePollingMessageSource implements MessageSource {
 	}
 
 	/**
-	 * Retrieves the attribute value and returns it in the
-	 * payload of a Message.
+	 * Retrieves the JMX attribute value.
 	 */
-	public Message<?> receive() {
+	@Override
+	protected Object doReceive() {
 		Assert.notNull(this.server, "MBeanServer is required");
 		Assert.notNull(this.objectName, "object name is required");
 		Assert.notNull(this.attributeName, "attribute name is required");
 		try {
-			Object value = this.server.getAttribute(this.objectName, this.attributeName);
-			return this.mapper.toMessage(value);
+			return this.server.getAttribute(this.objectName, this.attributeName);
 		}
 		catch (Exception e) {
 			throw new MessagingException("failed to retrieve JMX attribute '"
