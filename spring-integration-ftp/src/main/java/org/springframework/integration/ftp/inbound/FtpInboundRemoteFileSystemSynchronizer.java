@@ -85,7 +85,12 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 				acknowledge(client, ftpFile);
 			}
 			catch (Throwable th) {
-				throw new RuntimeException(th);
+				if (th instanceof RuntimeException){
+					throw (RuntimeException)th;
+				}
+				else {
+					throw new MessagingException("Failed to compy file", th);
+				}
 			}
 			finally {
 				fos.close();

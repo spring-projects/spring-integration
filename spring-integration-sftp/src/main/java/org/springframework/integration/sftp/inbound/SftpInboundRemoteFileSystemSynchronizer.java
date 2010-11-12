@@ -101,13 +101,12 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 				return true;
 			}
 			catch (Throwable th) {
-				logger.error("failure occurred while copying from remote to local directory", th);
+				throw new MessagingException("Failure occurred while copying from remote to local directory", th);
 			}
 		}
 		else {
 			return true;
 		}
-		return false;
 	}
 
 	@Override
@@ -119,7 +118,8 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 			session.start();
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
-			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
+			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
+				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
 			Collection<ChannelSftp.LsEntry> files = this.filter.filterFiles(entries);
 			for (ChannelSftp.LsEntry lsEntry : files) {
 				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
