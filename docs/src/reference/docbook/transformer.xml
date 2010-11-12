@@ -64,6 +64,28 @@
       be sent (effectively the same behavior as a Message Filter returning false). Otherwise, the return value will be
       sent as the payload of an outbound reply Message.
     </para>
+    
+    <para>
+    	<emphasis>Transformers and Spring Expression Language (SpEL)</emphasis>
+    </para>
+    
+    <para>
+    Just like Routers, Aggregators and other components, since Spring Integration 2.0 Transformers can also benefit from SpEL 
+    http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html
+    whenever transformation logic is relatively simple.
+    
+    <programlisting language="xml"><![CDATA[<int:transformer input-channel="inChannel" 
+	output-channel="outChannel" 
+	expression="payload.toUpperCase() + '- [' + T(java.lang.System).currentTimeMillis() + ']'"/>]]></programlisting>
+	
+	In the above configuration we are achieving a simple transformation  of the <emphasis>payload</emphasis> with a simple SpEL 
+	expression and without writing a custom transformer. Our <emphasis>payload</emphasis> (assuming String) will be 
+	upper-cased and concatenated with the current timestamp with some simple formatting.
+    </para>
+    
+    <para>
+    	<emphasis>Common Transformers</emphasis>
+    </para>
   <para>
     There are a also a few Transformer implementations available out of the box. Because, it is fairly common
     to use the <methodname>toString()</methodname> representation of an Object, Spring Integration provides an
