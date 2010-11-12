@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
@@ -30,7 +31,7 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
  * @author Dave Syer
  * 
  */
-class AnnotationFinder {
+abstract class AnnotationFinder {
 
 	public static Method findAnnotatedMethod(Object target, final Class<? extends Annotation> annotationType) {
 		final AtomicReference<Method> reference = new AtomicReference<Method>();
