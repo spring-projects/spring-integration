@@ -144,7 +144,7 @@
     create an instance of the <classname>IntegrationMBeanExporter</classname>,
     define a bean and provide a reference to an MBeanServer and a domain name
     (if desired). The domain can be left out in which case the default domain
-    is "org.springframework.integration". <programlisting language="xml"> &lt;jmx:mbean-exporter domain="my.company.domain" mbean-server="mbeanServer"/&gt;
+    is "org.springframework.integration". <programlisting language="xml"> &lt;jmx:mbean-exporter default-domain="my.company.domain" server="mbeanServer"/&gt;
 
  &lt;bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"&gt;
      &lt;property name="locateExistingServerIfPossible" value="true"/&gt;
@@ -155,36 +155,15 @@
     can expose the exporter itself, and certain other components in Spring
     Integration, using the standard
     <literal>&lt;context:mbean-export/&gt;</literal> tag. </para>
+
+  <section id="jmx-mbean-features">
+    <title>MBean Features</title>
+
+    <para>All the MessageChannel, MessageHandler and MessageSource
+    instances in the application are wrapped by the MBean exporter to
+    provide management and monitoring features.</para>
   </section>
 
-  <section id="jmx-control-bus">
-    <title>Control Bus</title>
-
-    <para>As described in (<ulink
-    url="http://www.eaipatterns.com/ControlBus.html">EIP</ulink>), the idea
-    behind the Control Bus is that the same messaging system can be used for
-    monitoring and managing the components within the framework as is used for
-    "application-level" messaging. In Spring Integration we build upon the
-    adapters described above so that it's possible to send Messages as a means
-    of invoking exposed operations. Internally, the Control Bus uses a Spring
-    MBeanExporter instance to expose the various endpoints and channels. To
-    create an instance of the Control Bus, define a bean and provide a
-    reference to an MBeanServer and a domain name. <programlisting
-    language="xml"> &lt;jmx:control-bus mbean-exporter="mbeanExporter" operation-channel="operationChannel"/&gt;
-
- &lt;jmx:mbean-exporter id="mbeanExporter" mbean-server="mbeanServer"/&gt;
-</programlisting></para>
-
-    <para>The Control Bus has an "operationChannel" that can be accessed for
-    invoking operations on the MBeans that it has exported. This will also be
-    covered by namespace support soon to make it easier to configure
-    references to that channel for other producers. We will likely add some
-    other channels for notifications and attribute polling as well.</para>
-
-    <para>The Control Bus functionality is a work in progress. At this time,
-    one can perform some basic monitoring of Message Channels and/or invoke
-    Lifecycle operations (start/stop) on Message Endpoints. Now that the
-    foundation is available, however, we will be able to extend the attributes
-    and operations that are being exposed.</para>
   </section>
+
 </section>

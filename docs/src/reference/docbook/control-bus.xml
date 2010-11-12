@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="control-bus"
-    xmlns:xlink="http://www.w3.org/1999/xlink">
+<section version="5.0" xml:id="control-bus" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:ns5="http://www.w3.org/1999/xhtml"
+         xmlns:ns4="http://www.w3.org/1998/Math/MathML"
+         xmlns:ns3="http://www.w3.org/2000/svg"
+         xmlns:ns="http://docbook.org/ns/docbook">
   <title>Control Bus</title>
 
   <para>As described in (EIP), the idea behind the Control Bus is that
@@ -8,11 +12,10 @@
   the components within the framework as is used for
   "application-level" messaging. In Spring Integration we build upon
   the adapters described above so that it's possible to send Messages
-  as a means of invoking exposed operations.
-  
-  <programlisting language="xml"><![CDATA[<int:control-bus input-channel="operationChannel"/>]]></programlisting>
+  as a means of invoking exposed operations.</para>
 
-  </para>
+  <programlisting language="xml"><![CDATA[
+<groovy:control-bus input-channel="operationChannel"/>]]></programlisting>
 
   <para>The Control Bus has an input channel that can be accessed for
   invoking operations on the beans in the application context.  It
