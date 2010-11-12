@@ -28,7 +28,7 @@ public class FtpsNamespaceHandler extends FtpNamespaceHandler {
 	@Override
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new FtpsMessageSourceBeanDefinitionParser());
-		this.registerBeanDefinitionParser("outbound-channel-adapter", new FtpsMessageSendingConsumerBeanDefinitionParser());
+		this.registerBeanDefinitionParser("outbound-channel-adapter", new FtpsOutboundChannelAdapterParser());
 	}
 
 }

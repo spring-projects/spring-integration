@@ -52,7 +52,7 @@ public class FtpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FtpMessageSourceBeanDefinitionParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new FtpMessageSendingConsumerBeanDefinitionParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new FtpOutboundChannelAdapterParser());
 	}
 
 }
