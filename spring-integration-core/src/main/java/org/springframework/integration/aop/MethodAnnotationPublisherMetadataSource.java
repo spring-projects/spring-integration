@@ -28,6 +28,7 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.annotation.Publisher;
 
 /**
  * @author Mark Fisher

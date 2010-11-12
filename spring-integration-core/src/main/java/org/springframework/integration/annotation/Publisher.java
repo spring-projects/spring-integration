@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.aop;
+package org.springframework.integration.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

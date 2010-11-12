@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
 
 /**
