@@ -150,7 +150,7 @@
   </section>
 
   <section id="router-namespace">
-    <title>The &lt;router&gt; element</title>
+    <title>Namespace support for Router - &lt;router&gt; element</title>
     <para>
     The "router" element provides a simple way to connect a router to an input channel, and also accepts the
       optional default output channel. The "ref" may provide the bean name of a custom Router implementation
@@ -180,6 +180,34 @@
         is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
       </para>
     </note>
+    <para>
+    	<emphasis>Routers and Spring Expression Language (SpEL)</emphasis>
+    </para>
+    <para>
+    Some times the routing logic may be simple and writing a separate class for it and configuring it as a bean may seem 
+    like an overkill. Since Spring Integration 2.0 we offer an alternative where you can now use SpEL 
+    (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html)
+    to implement simple computations that otherwise were implemented in a custom POJO router.
+    
+    <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="payload + 'Channel'"/>]]></programlisting>
+    In the above configuration the result channel will be computed by the SpEL expression which simply concatenates the value 
+    of the <code>payload</code> with the literal 'Channel'  
+    </para>
+    
+    <para>
+    Another value of SpEL when it comes to configuring routers is that expression can actually return a <classname>Collection</classname>, 
+    thus making every <code>&lt;router&gt;</code> a <emphasis>Recipient List Router</emphasis>. Whenever expression returns 
+    multiple channel values Message will be forwarded to all such channels.
+    
+    <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="headers.channels"/>]]></programlisting>
+    
+    In the above configuration lets assume that you have a message header with the name 'channels' and the value being the 
+    List of channel names. Now, message will be sent to all channels in this list.
+    
+    You ,ay also fine <emphasis>Collection Projection</emphasis> and <emphasis>Collection Selection</emphasis> 
+    expressions usefull to select multiple channels. 
+    See (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12084)
+    </para>
   </section>
 
   <section id="router-annotation">
