@@ -323,7 +323,8 @@
         id="aggxmlCorrelationStrategyMethod" /><![CDATA[
     message-store="messageStore" ]]><co id="aggxml11-co" linkends="aggxml11" /><![CDATA[
     send-partial-result-on-expiry="true" ]]><co id="aggxml9" /><![CDATA[
-    send-timeout="86420000" ]]><co id="aggxml10" /><![CDATA[ /> 
+    send-timeout="86420000" ]]><co id="aggxml10" /><![CDATA[ 
+    expression="#this.toArray()" ]]><co id="aggxml12" /><![CDATA[/> 
 
 <channel id="outputChannel"/>
 
@@ -420,6 +421,10 @@
         <para>The timeout for sending the aggregated messages to the output or
         reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
+      
+      <callout arearefs="aggxml12">
+        <para>SpEL expression to handle release strategy <emphasis>Optional</emphasis>.</para>
+      </callout>
     </calloutlist>
 
     <para>Using a "ref" attribute is generally recommended if a custom
@@ -492,6 +497,38 @@
       strategy method and the aggregator method can be combined in a single
       bean (all of them or any two).</para>
     </note>
+    
+    <para>
+    	<emphasis>Aggregators and Spring Expression Language (SpEL)</emphasis>
+    </para>
+    
+    <para>
+    Since Spring Integration 2.0, the <emphasis>release strategy</emphasis> may be handled with SpEL (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html) 
+    which would be recommend if the logic behind such <emphasis>release strategy</emphasis> is relatively simple.
+	Let's say you have a legacy component which was designed to receive an array of objects. We know that default release 
+	strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract individual 
+	messages form such list, extract payload of each message and assemble them into the array of objects (see code below)
+	
+	<programlisting language="java"><![CDATA[public String[] processRelease(List<Message<String>> mesages){
+		List<String> strList = new ArrayList<String>();
+		for (Message<String> message : mesages) {
+			strList.add(message.getPayload());
+		}
+		return strList.toArray(new String[]{});
+}]]></programlisting>
+
+	However, with SpEL such requirement could actually be handled relatively easy with a simple 
+	one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
+
+	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggrChannel" 
+	output-channel="replyChannel" 
+	expression="#this.![payload].toArray()"/>]]></programlisting>
+	
+	In the above configuration we are using <emphasis>Collection Projection</emphasis> expression 
+	(http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113) to 
+	assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus 
+	achieving the same result as the java code above.
+    </para>
   </section>
 
   <section>
