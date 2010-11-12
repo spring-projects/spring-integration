@@ -130,6 +130,21 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 	@Test
+	public void testUserDefinedPropertyMappedFromHeaderWithCustomPrefix() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("foo", new Integer(123))
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setOutboundPrefix("custom_");
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		Object value = jmsMessage.getObjectProperty("custom_foo");
+		assertNotNull(value);
+		assertEquals(Integer.class, value.getClass());
+		assertEquals(123, ((Integer) value).intValue());
+	}
+
+	@Test
 	public void testUserDefinedPropertyWithUnsupportedType() throws JMSException {
 		Destination destination = new Destination() {};
 		Message<String> message = MessageBuilder.withPayload("test")
@@ -200,6 +215,19 @@ public class DefaultJmsHeaderMapperTests {
 		assertNotNull(attrib);
 		assertEquals(Integer.class, attrib.getClass());
 		assertEquals(123, ((Integer) attrib).intValue());
+	}
+
+	@Test
+	public void testUserDefinedPropertyMappedToHeaderWithCustomPrefix() throws JMSException {
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setIntProperty("foo", 123);
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		mapper.setInboundPrefix("custom_");
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object header = headers.get("custom_foo");
+		assertNotNull(header);
+		assertEquals(Integer.class, header.getClass());
+		assertEquals(123, ((Integer) header).intValue());
 	}
 
 	@Test

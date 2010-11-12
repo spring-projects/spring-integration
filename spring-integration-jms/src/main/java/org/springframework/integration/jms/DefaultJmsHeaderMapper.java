@@ -58,6 +58,36 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile String inboundPrefix = "";
+
+	private volatile String outboundPrefix = "";
+
+
+	/**
+	 * Specify a prefix to be appended to the integration message header name
+	 * for any JMS property that is being mapped into the MessageHeaders.
+	 * The Default is an empty string (no prefix).
+	 * <p/>
+	 * This does not affect the JMS properties covered by the specification/API, 
+	 * such as JMSCorrelationID, etc. The header names used for mapping such
+	 * properties are all defined in our {@link JmsHeaders}.   
+	 */
+	public void setInboundPrefix(String inboundPrefix) {
+		this.inboundPrefix = (inboundPrefix != null) ? inboundPrefix : "";
+	}
+
+	/**
+	 * Specify a prefix to be appended to the JMS property name for any
+	 * integration message header that is being mapped into the JMS Message.
+	 * The Default is an empty string (no prefix).
+	 * <p/>
+	 * This does not affect the JMS properties covered by the specification/API, 
+	 * such as JMSCorrelationID, etc. The header names used for mapping such
+	 * properties are all defined in our {@link JmsHeaders}.   
+	 */
+	public void setOutboundPrefix(String outboundPrefix) {
+		this.outboundPrefix = (outboundPrefix != null) ? outboundPrefix : "";
+	}
 
 	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
@@ -91,26 +121,23 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 					logger.info("failed to set JMSType, skipping", e);
 				}
 			}
-			Set<String> attributeNames = headers.keySet();
-			for (String attributeName : attributeNames) {
-				if (!attributeName.startsWith(JmsHeaders.PREFIX)) {
-					if (StringUtils.hasText(attributeName)) {
-						Object value = headers.get(attributeName);
-						if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
-							try {
-								jmsMessage.setObjectProperty(attributeName, value);
+			Set<String> headerNames = headers.keySet();
+			for (String headerName : headerNames) {
+				if (StringUtils.hasText(headerName) && !headerName.startsWith(JmsHeaders.PREFIX)) {
+					Object value = headers.get(headerName);
+					if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
+						try {
+							String propertyName = this.fromHeaderName(headerName);
+							jmsMessage.setObjectProperty(propertyName, value);
+						}
+						catch (Exception e) {
+							if (headerName.startsWith("JMSX")) {
+								if (logger.isTraceEnabled()) {
+									logger.trace("skipping reserved header, it cannot be set by client: " + headerName);
+								}
 							}
-							catch (Exception e) {
-								if (attributeName.startsWith("JMSX")) {
-									if (logger.isTraceEnabled()) {
-										logger.trace("skipping reserved header, it cannot be set by client: "
-												+ attributeName);
-									}
-								}
-								else if (logger.isWarnEnabled()) {
-									logger.warn("failed to map Message header '"
-											+ attributeName + "' to JMS property", e);
-								}
+							else if (logger.isWarnEnabled()) {
+								logger.warn("failed to map Message header '" + headerName + "' to JMS property", e);
 							}
 						}
 					}
@@ -174,7 +201,8 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 				while (jmsPropertyNames.hasMoreElements()) {
 					String propertyName = jmsPropertyNames.nextElement().toString();
 					try {
-						headers.put(propertyName, jmsMessage.getObjectProperty(propertyName));
+						String headerName = this.toHeaderName(propertyName);
+						headers.put(headerName, jmsMessage.getObjectProperty(propertyName));
 					}
 					catch (Exception e) {
 						if (logger.isWarnEnabled()) {
@@ -191,6 +219,28 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			}
 		}
 		return headers;
+	}
+
+	/**
+	 * Adds the outbound prefix if necessary.
+	 */
+	private String fromHeaderName(String headerName) {
+		String propertyName = headerName;
+		if (StringUtils.hasText(this.outboundPrefix) && !propertyName.startsWith(this.outboundPrefix)) {
+			propertyName = this.outboundPrefix + headerName;
+		}
+		return propertyName;
+	}
+
+	/**
+	 * Adds the inbound prefix if necessary.
+	 */
+	private String toHeaderName(String propertyName) {
+		String headerName = propertyName;
+		if (StringUtils.hasText(this.inboundPrefix) && !headerName.startsWith(this.inboundPrefix)) {
+			headerName = this.inboundPrefix + propertyName;
+		}
+		return headerName;
 	}
 
 }
