@@ -61,7 +61,22 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="filename-pattern" type="xsd:string"/>
+            <xsd:attribute name="filename-pattern" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+Only files matching this ant style path will be picked up by this adapter. Note that
+in Spring Integration 1.0 this attribute accepted a regular expression, but from 2.0
+filename-regex should be used for that purpose instead.
+                            ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="filename-regex" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+Only files matching this regular expression will be picked up by this adapter.
+                            ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="scanner" type="xsd:string">
                 <xsd:annotation>
                     <xsd:appinfo>

@@ -86,6 +86,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		if (StringUtils.hasText(filter)) {
 			factoryBeanBuilder.addPropertyReference("filterReference", filter);
 		}
+
 		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
 			if (StringUtils.hasText(filter)) {
@@ -94,6 +95,15 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 			factoryBeanBuilder.addPropertyValue("filenamePattern", filenamePattern);
 		}
+		String filenameRegex = element.getAttribute("filename-regex");
+		if (StringUtils.hasText(filenameRegex)) {
+			if (StringUtils.hasText(filter)) {
+				parserContext.getReaderContext().error(
+						"At most one of 'filter' and 'filename-regex' may be provided.", element);
+			}
+			factoryBeanBuilder.addPropertyValue("filenameRegex", filenameRegex);
+		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(factoryBeanBuilder, element, "prevent-duplicates");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				factoryBeanBuilder.getBeanDefinition(), parserContext.getRegistry());

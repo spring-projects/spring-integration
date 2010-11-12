@@ -17,14 +17,12 @@
 package org.springframework.integration.file.config;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.file.filters.AcceptAllFileListFilter;
-import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
-import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.SimplePatternFileListFilter;
+import org.springframework.integration.file.filters.*;
 
 /**
  * @author Mark Fisher
@@ -37,6 +35,8 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	private volatile FileListFilter<File> filterReference;
 
 	private volatile String filenamePattern;
+
+	private volatile String filenameRegex;
 
 	private volatile Boolean preventDuplicates;
 
@@ -55,6 +55,10 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 	public void setFilenamePattern(String filenamePattern) {
 		this.filenamePattern = filenamePattern;
+	}
+
+	public void setFilenameRegex(String filenameRegex) {
+		this.filenameRegex = filenameRegex;
 	}
 
 	public void setPreventDuplicates(Boolean preventDuplicates) {
@@ -83,11 +87,12 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			return;
 		}
 		FileListFilter<File> filter;
-		if ((this.filterReference != null) && (this.filenamePattern != null)) {
-			throw new IllegalArgumentException("The 'filter' reference and "
-					+ "'filename-pattern' attributes are mutually exclusive.");
+		if ((this.filterReference != null) && (this.filenamePattern != null || this.filenameRegex!=null)) {
+			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
+					+ "'filename-pattern' and 'filename-regex' attributes.");
 		}
 
+		//'filter' is set
 		if (this.filterReference != null) {
 			if (Boolean.TRUE.equals(this.preventDuplicates)) {
 				filter = this.createCompositeWithAcceptOnceFilter(this.filterReference);
@@ -96,15 +101,29 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 				filter = this.filterReference;
 			}
 		}
-		else if (this.filenamePattern != null) {
-			SimplePatternFileListFilter patternFilter = new SimplePatternFileListFilter(this.filenamePattern);
-			if (Boolean.FALSE.equals(this.preventDuplicates)) {
-				filter = patternFilter;
+
+		// 'file-pattern' or 'file-regex' is set
+		else if (this.filenamePattern != null || this.filenameRegex!=null) {
+			List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
+			if (!Boolean.FALSE.equals(this.preventDuplicates)) {
+				//preventDuplicates is either null or true
+				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
 			}
-			else { // preventDuplicates is either TRUE or NULL
-				filter = this.createCompositeWithAcceptOnceFilter(patternFilter);
+			if (this.filenamePattern!=null){
+				filtersNeeded.add(new SimplePatternFileListFilter(this.filenamePattern));
+			}
+			if (this.filenameRegex!=null){
+				filtersNeeded.add(new PatternMatchingFileListFilter(this.filenameRegex));
+			}
+			if (filtersNeeded.size()==1){
+				filter = filtersNeeded.get(0);
+			}
+			else {
+				filter = new CompositeFileListFilter<File>(filtersNeeded);
 			}
 		}
+
+		// no filters are provided
 		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
 			filter = new AcceptAllFileListFilter<File>();
 		}
@@ -126,10 +145,12 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		this.fileListFilter = filter;
 	}
 
-	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {
+	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File>... otherFilters) {
 		CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
 		compositeFilter.addFilter(new AcceptOnceFileListFilter<File>());
-		compositeFilter.addFilter(otherFilter);
+		for (FileListFilter<File> otherFilter : otherFilters) {
+			compositeFilter.addFilter(otherFilter);
+		}
 		return compositeFilter;
 	}
 
