@@ -29,7 +29,10 @@ import org.springframework.remoting.RemoteAccessException;
  * A base class for outbound URL-based Messaging Gateways.
  * 
  * @author Mark Fisher
+ * 
+ * @deprecated as of 2.0. Will be removed in 2.1.
  */
+@Deprecated
 public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final RequestReplyExchanger proxy;

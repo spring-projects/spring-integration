@@ -22,7 +22,10 @@ import org.springframework.integration.Message;
  * Support class for inbound Messaging Gateways.
  * 
  * @author Mark Fisher
+ * 
+ *  @deprecated as of 2.0. Will be removed in 2.1.
  */
+@Deprecated
 public abstract class RemotingInboundGatewaySupport extends MessagingGatewaySupport implements RequestReplyExchanger {
 
 	private volatile boolean expectReply = true;
