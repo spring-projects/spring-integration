@@ -62,7 +62,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		
 		when(sessionPoll.getSession()).thenReturn(sftpSession);
 		ChannelSftp channel = mock(ChannelSftp.class);
-		when(channel.get((String) Mockito.any())).thenReturn(new FileInputStream(new File(".classpath")));
+		when(channel.get((String) Mockito.any())).thenReturn(new FileInputStream(new File(".template.mf")));
 		when(sftpSession.getChannel()).thenReturn(channel);
 		Vector<LsEntry> entries = new Vector<ChannelSftp.LsEntry>();
 		LsEntry entry = mock(LsEntry.class);
