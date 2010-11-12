@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
- * Message Endpoint that connects any {@link MessageHandler} implementation
- * to a {@link SubscribableChannel}.
+ * Message Endpoint that connects any {@link MessageHandler} implementation to a {@link SubscribableChannel}.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -33,6 +32,7 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	private final MessageHandler handler;
 
+
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
@@ -41,7 +41,8 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 		this.setPhase(Integer.MIN_VALUE);
 	}
 
-	@Override // 
+
+	@Override 
 	protected void doStart() {
 		this.inputChannel.subscribe(this.handler);
 	}
@@ -50,4 +51,5 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 	protected void doStop() {
 		this.inputChannel.unsubscribe(this.handler);
 	}
+
 }
