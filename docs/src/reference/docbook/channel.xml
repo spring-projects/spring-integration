@@ -335,7 +335,7 @@
       and wait for a reply.
       <programlisting language="java">MessagingTemplate template = new MessagingTemplate();
 
-Message reply = template.sendAndReceive(new StringMessage("test"), someChannel);</programlisting>
+Message reply = template.sendAndReceive(new GenericMessage("test"), someChannel);</programlisting>
       In that example, a temporary anonymous channel would be created internally by the template. The
       'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange
       types are also supported.

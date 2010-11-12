@@ -130,16 +130,12 @@ new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</progr
       will copy the provided headers to the newly created Message.
     </para>
     <para>
-    There are also two convenient subclasses available: <classname>StringMessage</classname> and
-      <classname>ErrorMessage</classname>. The former accepts a String as its payload:
-      <programlisting language="java">StringMessage message = new StringMessage("hello world");
-
-String s = message.getPayload();</programlisting>
-      And, the latter accepts any <classname>Throwable</classname> object as its payload:
+    There is also a convenient implementation of <interfacename>Message</interfacename> designed to communicate 
+    error conditions. THis implementation takes <classname>Throwable</classname> object as its payload:
       <programlisting language="java">ErrorMessage message = new ErrorMessage(someThrowable);
 
 Throwable t = message.getPayload();</programlisting>
-      Notice that these implementations take advantage of the fact that the <classname>GenericMessage</classname>
+      Notice that this implementation takes advantage of the fact that the <classname>GenericMessage</classname>
       base class is parameterized. Therefore, as shown in both examples, no casting is necessary when retrieving
       the Message payload Object.
     </para>
