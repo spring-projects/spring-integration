@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.core;
 
 import org.springframework.util.StringUtils;
@@ -22,16 +23,13 @@ import twitter4j.TwitterException;
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 @SuppressWarnings("serial")
 public class TwitterOperationException extends RuntimeException {
 
 	private int twitterStatusCode = -1;
 
-	/**
-	 * 
-	 */
+
 	public TwitterOperationException() {
 		this(null, null);
 	}
@@ -59,24 +57,23 @@ public class TwitterOperationException extends RuntimeException {
 		if (throwable instanceof TwitterException){
 			this.twitterStatusCode = ((TwitterException)throwable).getStatusCode();
 		}
-		
 	}
-	
+
+
 	public int getTwitterStatusCode() {
 		return twitterStatusCode;
 	}
 
-	private static String formatDescription(String description, Throwable throwable){
+
+	private static String formatDescription(String description, Throwable throwable) {
 		StringBuffer buffer = new StringBuffer();
 		if (StringUtils.hasText(description)){
 			buffer.append(description + " ");
 		}
 		if (throwable != null && throwable instanceof TwitterException){
-			
 			TwitterException te = (TwitterException) throwable;
-			
 			String message = te.getMessage();
-			if (StringUtils.hasText(message)){
+			if (StringUtils.hasText(message)) {
 				buffer.append("Detailed Error: ");
 				if (message.contains("{")){
 					buffer.append(message.substring(0, message.indexOf("{")));
@@ -90,4 +87,5 @@ public class TwitterOperationException extends RuntimeException {
 		}
 		return buffer.toString();
 	}
+
 }

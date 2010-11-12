@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.twitter.inbound;
 
 import java.util.Date;
@@ -29,48 +30,56 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
+ * Trigger implementation that takes the Twitter rate limit into consideration.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 class RateLimitStatusTrigger implements Trigger {
-	protected final Log logger = LogFactory.getLog(getClass());
-	private Twitter twitter;
 
-	public RateLimitStatusTrigger(Twitter twitter){
+	private final Log logger = LogFactory.getLog(getClass());
+
+	private final Twitter twitter;
+
+
+	public RateLimitStatusTrigger(Twitter twitter) {
 		Assert.notNull(twitter, "'twitter' must not be null");
 		this.twitter = twitter;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.scheduling.Trigger#nextExecutionTime(org.springframework.scheduling.TriggerContext)
+	/**
+	 * Returns the next time the task may execute. Considers the Twitter rate limit.
 	 */
 	public Date nextExecutionTime(TriggerContext triggerContext) {
-		if (triggerContext.lastCompletionTime() == null){
-			return new Date(System.currentTimeMillis());
+		if (triggerContext.lastCompletionTime() == null) {
+			return new Date();
 		}
 		try {
-			RateLimitStatus rateLimitStatus = twitter.getRateLimitStatus();
+			RateLimitStatus rateLimitStatus = this.twitter.getRateLimitStatus();
 			int secondsUntilReset = rateLimitStatus.getSecondsUntilReset();
 			int remainingHits = rateLimitStatus.getRemainingHits();
-			 if (remainingHits == 0) {
-                logger.debug(
-                    "rate status limit service returned 0 for the remaining hits value");
-                return null;
-             }
-	         if (secondsUntilReset == 0) {
-	        	 logger.debug(
-                 	"rate status limit service returned 0 for the seconds until reset period value");
-	        	 return null;
-	         }
-	         int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
-	         long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
-	         logger.debug("Waiting for " + secondsUntilWeCanPullAgain +
-	        		 " seconds until the next timeline pull. Have " + remainingHits +
-	        		 " remaining pull this rate period. The period ends in " +
-	        		 secondsUntilReset);
-	         return new Date(System.currentTimeMillis() + msUntilWeCanPullAgain);
-		} catch (TwitterException e) {
+			if (remainingHits == 0) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("rate status limit service returned 0 for the remaining hits value");
+				}
+				return null;
+			}
+			if (secondsUntilReset == 0) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("rate status limit service returned 0 for the seconds until reset period value");
+				}
+				return null;
+			}
+			int secondsUntilWeCanPullAgain = secondsUntilReset / remainingHits;
+			long msUntilWeCanPullAgain = secondsUntilWeCanPullAgain * 1000;
+			logger.debug("Waiting for " + secondsUntilWeCanPullAgain
+					+ " seconds until the next timeline pull. Have " + remainingHits
+					+ " remaining pull this rate period. The period ends in " + secondsUntilReset);
+			return new Date(System.currentTimeMillis() + msUntilWeCanPullAgain);
+		}
+		catch (TwitterException e) {
 			throw new SchedulingException("Failed to schedule the next Twitter update", e);
 		}
 	}
+
 }
