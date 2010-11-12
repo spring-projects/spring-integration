@@ -89,7 +89,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		return connection;
 	}
 
-	@Override
 	public void start() {
 		try {
 			connection.connect();
@@ -112,7 +111,6 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
-	@Override
 	public void stop() {
 		if (this.isRunning()){
 			this.connection.disconnect();
@@ -120,22 +118,18 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		}
 	}
 
-	@Override
 	public boolean isRunning() {
 		return this.started;
 	}
 
-	@Override
 	public int getPhase() {
 		return Integer.MIN_VALUE;
 	}
 
-	@Override
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
-	@Override
 	public void stop(Runnable callback) {
 		callback.run();
 	}

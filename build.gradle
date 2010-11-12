@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.springframework.build.Version
+
 // -----------------------------------------------------------------------------
 // Main gradle build file for Spring Integration
 //
@@ -23,16 +25,21 @@
 // @author Mark Fisher
 // -----------------------------------------------------------------------------
 
-
 // -----------------------------------------------------------------------------
 // Configuration for the root project
 // -----------------------------------------------------------------------------
-apply from: "$rootDir/gradle/version.gradle"
-apply plugin: 'idea'
-
 // used for artifact names, building doc upload urls, etc.
 description = 'Spring Integration'
 abbreviation = 'INT'
+
+apply plugin: 'base'
+apply plugin: 'idea'
+
+def buildSrcDir = "$rootDir/buildSrc"
+apply from: "$buildSrcDir/wrapper.gradle"
+apply from: "$buildSrcDir/maven-root-pom.gradle"
+
+
 
 // -----------------------------------------------------------------------------
 // Configuration for all projects including this one (the root project)
@@ -48,7 +55,7 @@ allprojects {
     // milestone or release.
     // @see org.springframework.build.Version under buildSrc/ for more info
     // @see gradle.properties for the declaration of this property.
-    version = createVersion(springIntegrationVersion)
+    version = new Version(springIntegrationVersion)
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
@@ -70,20 +77,21 @@ allprojects {
 //
 // @see configure(*) sections below
 // -----------------------------------------------------------------------------
-
 javaprojects = subprojects.findAll { project ->
     project.path.startsWith(':spring-integration-')
 }
+
 
 // -----------------------------------------------------------------------------
 // Configuration for all java subprojects
 // -----------------------------------------------------------------------------
 configure(javaprojects) {
 
-    apply plugin: 'java' // tasks for conventional java lifecycle
-    apply plugin: 'maven' // `gradle install` to push jars to local .m2 cache
-    apply plugin: 'eclipse' // `gradle eclipse` to generate .classpath/.project
-    apply plugin: 'idea' // `gradle idea` to generate .ipr/.iml
+    apply plugin: 'java'     // tasks for conventional java lifecycle
+    apply plugin: 'maven'    // `gradle install` to push jars to local .m2 cache
+    apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
+    apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
+    apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 
     // ensure JDK 5 compatibility
     sourceCompatibility=1.5
@@ -94,10 +102,11 @@ configure(javaprojects) {
     libsBinDir = new File(libsDir, 'bin')
     libsSrcDir = new File(libsDir, 'src')
 
-    // all core projects should be OSGi-compliant bundles
-    // add the bundlor task to ensure proper manifests
-    apply from: "$rootDir/gradle/bundlor.gradle"
-    apply from: "$rootDir/gradle/maven-deployment.gradle"
+    // add tasks for creating source jars and generating poms etc
+    apply from: "$buildSrcDir/maven-deployment.gradle"
+
+    // add tasks for finding and publishing .xsd files
+    apply from: "$buildSrcDir/schema-publication.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -408,24 +417,12 @@ project('spring-integration-xmpp') {
     }
 }
 
-// add basic tasks like 'clean' and 'assemble' to the root project. e.g.: allows
-// running `gradle clean` from the root project and deleting the build directory
-apply plugin: 'base'
-
-// add tasks like 'distArchive'
-apply from: "$rootDir/gradle/dist.gradle"
-
-// add tasks like 'snapshotDependencyCheck'
-apply from: "${rootDir}/gradle/checks.gradle"
-
-// add 'generatePom' task to generate root pom with <modules> section
-apply from: "$rootDir/gradle/maven-root-pom.gradle"
-
 // -----------------------------------------------------------------------------
-// Import tasks related to releasing and managing the project
-// depending on the role played by the current user.
-//
-// @see gradle.properties for more information on roles
+// Configuration for the docs subproject
 // -----------------------------------------------------------------------------
-// add management tasks like `wrapper` for generating the gradlew* scripts
-apply from: "$rootDir/gradle/wrapper.gradle"
+project('docs') {
+    apply from: "$buildSrcDir/docs.gradle"
+}
+
+apply from: "$buildSrcDir/dist.gradle"
+apply from: "$buildSrcDir/checks.gradle"

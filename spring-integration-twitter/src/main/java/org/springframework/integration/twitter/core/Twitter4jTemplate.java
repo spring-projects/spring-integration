@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
-
 import org.springframework.util.Assert;
 
 import twitter4j.DirectMessage;
@@ -207,6 +206,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 		return this.search(q);
 	}
 
+<<<<<<< HEAD
 	public Twitter getUnderlyingTwitter() {
 		return this.twitter;
 	}
@@ -260,6 +260,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 		return tweet;
 	}
 
+<<<<<<< HEAD
 	private Tweet buildTweetFromStatus(Status status) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(status.getCreatedAt());

@@ -1,16 +1,14 @@
 *.iml
 *.ipr
+*.iws
 *.sw?
 */src/main/java/META-INF
 .classpath
 .gradle
-.idea
 .project
 .settings
-.springBeans
 build
 derby.log
-integration-repo
 lib
 logs
 pom.xml

@@ -49,20 +49,17 @@ public class XmppMessageDrivenEndpointTests {
 		final Set<PacketListener> packetListSet = new HashSet<PacketListener>();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(connection);
-		
-		
+
 		doAnswer(new Answer<Object>() {
-			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				packetListSet.add((PacketListener) invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(connection).addPacketListener(Mockito.any(PacketListener.class), (PacketFilter) Mockito.any());
-		
+
 		doAnswer(new Answer<Object>() {
-			@Override
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				packetListSet.remove((PacketListener) invocation.getArguments()[0]);
+				packetListSet.remove(invocation.getArguments()[0]);
 				return null;
 			}
 		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));

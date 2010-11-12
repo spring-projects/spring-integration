@@ -1,3 +1,5 @@
+//apply plugin: 'java'
+
 /**
  * Generate schema creation and drop scripts for various databases
  * supported by the Spring Integration JDBC adapter.

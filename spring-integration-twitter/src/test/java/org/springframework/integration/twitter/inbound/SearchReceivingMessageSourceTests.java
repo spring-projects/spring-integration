@@ -18,7 +18,6 @@ package org.springframework.integration.twitter.inbound;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -29,8 +28,9 @@ import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+
 /**
- * @author ozhurakousky
+ * @author Oleg Zhurakousky
  */
 public class SearchReceivingMessageSourceTests {
 
