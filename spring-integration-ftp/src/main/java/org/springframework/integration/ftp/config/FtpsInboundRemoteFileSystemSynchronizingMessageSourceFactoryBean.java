@@ -30,7 +30,7 @@ import javax.net.ssl.TrustManager;
  *
  * @author Josh Long
  */
-public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {
+class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean {
 
 	/**
 	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
@@ -64,7 +64,7 @@ public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 	private String[] cipherSuites;
 
 
-	public FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
+	public FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
 		this.defaultFtpInboundFolderName = "ftpsInbound";
 		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
 	}

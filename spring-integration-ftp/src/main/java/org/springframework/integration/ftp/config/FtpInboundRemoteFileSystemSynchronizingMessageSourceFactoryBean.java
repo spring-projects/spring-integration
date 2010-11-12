@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
+class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile String autoCreateDirectories;

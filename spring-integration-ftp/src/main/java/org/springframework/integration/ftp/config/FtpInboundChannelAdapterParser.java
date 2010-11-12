@@ -43,7 +43,7 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+				FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
 		for (String a : receiveAttrs) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, a);

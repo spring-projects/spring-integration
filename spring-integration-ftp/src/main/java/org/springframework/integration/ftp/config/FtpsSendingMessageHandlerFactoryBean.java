@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Iwein Fuld
  */
-public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
+class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 
 	/**
 	 * Sets whether the connection is implicit. Default is FALSE.

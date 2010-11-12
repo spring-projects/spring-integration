@@ -31,7 +31,7 @@ import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> {
+class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> {
 
 	protected int port;
 
