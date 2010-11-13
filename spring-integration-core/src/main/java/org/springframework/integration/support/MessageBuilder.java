@@ -88,6 +88,7 @@ public final class MessageBuilder<T> {
 	 * Set the value for the given header name. If the provided value is <code>null</code>, the header will be removed.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
+		Assert.isTrue(!this.isReadOnly(headerName), "The '" + headerName + "' header is read-only.");
 		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID)
 				&& !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.verifyType(headerName, headerValue);
@@ -135,7 +136,9 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			this.setHeader(key, headersToCopy.get(key));
+			if (!this.isReadOnly(key)) {
+				this.setHeader(key, headersToCopy.get(key));
+			}
 		}
 		return this;
 	}
@@ -146,7 +149,9 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			this.setHeaderIfAbsent(key, headersToCopy.get(key));
+			if (!this.isReadOnly(key)) {
+				this.setHeaderIfAbsent(key, headersToCopy.get(key));
+			}
 		}
 		return this;
 	}
@@ -249,6 +254,10 @@ public final class MessageBuilder<T> {
 			return (Message<T>) new ErrorMessage((Throwable) this.payload, this.headers);
 		}
 		return new GenericMessage<T>(this.payload, this.headers);
+	}
+
+	private boolean isReadOnly(String headerName) {
+		return MessageHeaders.ID.equals(headerName) || MessageHeaders.TIMESTAMP.equals(headerName);
 	}
 
 	private void verifyType(String headerName, Object headerValue) {

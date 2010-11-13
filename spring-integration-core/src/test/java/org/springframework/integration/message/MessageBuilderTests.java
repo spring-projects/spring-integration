@@ -69,22 +69,16 @@ public class MessageBuilderTests {
 		assertEquals("2", message2.getHeaders().get("bar"));
 	}
 
-	@Test
-	public void testIdHeaderValues() {
+	@Test(expected = IllegalArgumentException.class)
+	public void testIdHeaderValueReadOnly() {
 		UUID id = UUID.randomUUID();
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(MessageHeaders.ID, id)
-				.build();
-		assertNotSame(id, message.getHeaders().getId());
+		MessageBuilder.withPayload("test").setHeader(MessageHeaders.ID, id);
 	}
 
-	@Test
-	public void testTimestampHeaderValues() {
+	@Test(expected = IllegalArgumentException.class)
+	public void testTimestampValueReadOnly() {
 		Long timestamp = 12345L;
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(MessageHeaders.TIMESTAMP, timestamp)
-				.build();
-		assertNotSame(timestamp, message.getHeaders().getTimestamp());
+		MessageBuilder.withPayload("test").setHeader(MessageHeaders.TIMESTAMP, timestamp).build();
 	}
 
 	@Test
