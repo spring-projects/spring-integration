@@ -67,7 +67,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Dave Syer
- * 
  * @since 2.0
  */
 public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator {
@@ -85,6 +84,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	private final Class<?> expectedType;
 
 	private final boolean canProcessMessageList;
+
 
 	public MessagingMethodInvokerHelper(Object targetObject, Method method, Class<?> expectedType,
 			boolean canProcessMessageList) {
@@ -113,6 +113,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			Class<?> expectedType, boolean canProcessMessageList) {
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
 	}
+
 
 	public T process(Message<?> message) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(message);

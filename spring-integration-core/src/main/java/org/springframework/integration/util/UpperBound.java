@@ -31,6 +31,7 @@ public final class UpperBound {
 
 	public final Semaphore semaphore;
 
+
 	/**
 	 * Create an UpperBound with the given capacity. If the given capacity is less than 1
 	 * an infinite UpperBound is created.
@@ -38,6 +39,7 @@ public final class UpperBound {
 	public UpperBound(int capacity) {
 		this.semaphore = (capacity > 0) ? new Semaphore(capacity, true) : null;
 	}
+
 
 	/**
 	 * Acquires a permit from the underlying semaphore if this UpperBound is bounded and returns

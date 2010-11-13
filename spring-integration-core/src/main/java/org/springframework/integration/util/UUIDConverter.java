@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.util;
 
 import java.io.ByteArrayOutputStream;
@@ -28,11 +29,11 @@ import org.springframework.util.ClassUtils;
  * Utility to help generate UUID instances from generic objects.
  * 
  * @author Dave Syer
- * 
  */
 public class UUIDConverter implements Converter<Object, UUID> {
 
 	public static final String DEFAULT_CHARSET = "UTF-8";
+
 
 	/**
 	 * Convert the input to a UUID using the convenience method
@@ -64,15 +65,12 @@ public class UUIDConverter implements Converter<Object, UUID> {
 	 * @return a UUID constructed from the input
 	 */
 	public static UUID getUUID(Object input) {
-
 		if (input == null) {
 			return null;
 		}
-
 		if (input instanceof UUID) {
 			return (UUID) input;
 		}
-
 		if (input instanceof String) {
 			try {
 				return UUID.fromString((String) input);
@@ -86,7 +84,6 @@ public class UUIDConverter implements Converter<Object, UUID> {
 				}
 			}
 		}
-
 		if (ClassUtils.isPrimitiveOrWrapper(input.getClass())) {
 			try {
 				return UUID.nameUUIDFromBytes(input.toString().getBytes(DEFAULT_CHARSET));
@@ -95,18 +92,14 @@ public class UUIDConverter implements Converter<Object, UUID> {
 				throw new IllegalStateException("Cannot convert primitive using charset=" + DEFAULT_CHARSET, e);
 			}
 		}
-
 		byte[] bytes = serialize(input);
 		return UUID.nameUUIDFromBytes(bytes);
-
 	}
 
 	private static byte[] serialize(Object object) {
-
 		if (object == null) {
 			return null;
 		}
-
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
 			new ObjectOutputStream(stream).writeObject(object);
@@ -114,9 +107,7 @@ public class UUIDConverter implements Converter<Object, UUID> {
 		catch (IOException e) {
 			throw new IllegalArgumentException("Could not serialize object of type: " + object.getClass(), e);
 		}
-
 		return stream.toByteArray();
-
 	}
 
 }

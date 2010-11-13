@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.util;
 
 import java.beans.PropertyEditor;
@@ -28,22 +29,23 @@ import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
 import org.springframework.util.CollectionUtils;
+
 /**
- * 
  * @author Dave Syer
  * @author Oleg Zhurakousky
- *
  */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
-	private SimpleTypeConverter delegate = new SimpleTypeConverter();
-
 	private static ConversionService defaultConversionService;
 
-	private ConversionService conversionService;
+
+	private volatile SimpleTypeConverter delegate = new SimpleTypeConverter();
+
+	private volatile ConversionService conversionService;
+
 
 	public BeanFactoryTypeConverter() {
-		synchronized (this) {
+		synchronized (BeanFactoryTypeConverter.class) {
 			if (defaultConversionService == null) {
 				defaultConversionService = ConversionServiceFactory.createDefaultConversionService();
 			}
@@ -54,6 +56,7 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	public BeanFactoryTypeConverter(ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
+
 
 	public void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
