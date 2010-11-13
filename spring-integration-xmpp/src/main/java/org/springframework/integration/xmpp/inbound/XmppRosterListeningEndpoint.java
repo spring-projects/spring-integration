@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.inbound;
 
 import java.util.Collection;
@@ -25,6 +26,7 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -36,16 +38,16 @@ import org.springframework.util.Assert;
 
 /**
  * Describes an inbound endpoint that is able to login and then emit {@link Message}s when a 
- * particular Presence event happens to the logged in users {@link Roster} 
+ * particular Presence event happens to the logged in user's {@link Roster}. 
  * (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterEventMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint {
+public class XmppRosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
-	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
+	private static final Log logger = LogFactory.getLog(XmppRosterListeningEndpoint.class);
 
 	private volatile MessageChannel requestChannel;
 
@@ -53,20 +55,23 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractXmppConnection
 	
 	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
-	public XmppRosterEventMessageDrivenEndpoint(){
+
+	public XmppRosterListeningEndpoint() {
 		super();
 	}
 
-	public XmppRosterEventMessageDrivenEndpoint(XMPPConnection xmppConnection){
+	public XmppRosterListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
+
+
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
 	public void setRequestChannel(final MessageChannel requestChannel) {
 		this.requestChannel = requestChannel;
 	}
-	
+
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
@@ -86,49 +91,47 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractXmppConnection
 	}
 
 	/**
-	 * Called whenever an event happens related to the {@link Roster}
-	 * 
-	 * @param payload
+	 * Called whenever an event happens related to the {@link Roster}.
 	 */
-	private void forwardRosterEventMessage(Object payload) {	
+	private void forwardRosterEvent(Object event) {	
 		Message<?> message = null;
 		try {
-			message = MessageBuilder.withPayload(payload).build();
-			messagingTemplate.send(requestChannel, message);
+			message = MessageBuilder.withPayload(event).build();
+			this.messagingTemplate.send(this.requestChannel, message);
+		}
+		catch (MessagingException e) {
+			throw e;
 		}
 		catch (Exception e) {
-			if (e instanceof MessagingException){
-				throw (MessagingException)e;
-			}
-			else {
-				throw new MessageHandlingException(message, "Failed to send message", e);
-			}
+			throw new MessageHandlingException(message, "Failed to send roster event message", e);
 		}
 	}
 
 	/**
-	 * RosterListener that subscribes to a given {@link Roster}s events 
-	 * and forwards them to messaging bus
+	 * RosterListener that subscribes to a given {@link Roster}'s events 
+	 * and forwards them to a message channel.
 	 */
-	class EventForwardingRosterListener implements RosterListener {
+	private class EventForwardingRosterListener implements RosterListener {
+
 		public void entriesAdded(Collection<String> entries) {
 			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEventMessage(entries);
+			forwardRosterEvent(entries);
 		}
 
 		public void entriesUpdated(Collection<String> entries) {
 			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEventMessage(entries);
+			forwardRosterEvent(entries);
 		}
 
 		public void entriesDeleted(Collection<String> entries) {
 			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEventMessage(entries);
+			forwardRosterEvent(entries);
 		}
 
 		public void presenceChanged(Presence presence) {
 			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
-			forwardRosterEventMessage(presence);
+			forwardRosterEvent(presence);
 		}
 	}
+
 }

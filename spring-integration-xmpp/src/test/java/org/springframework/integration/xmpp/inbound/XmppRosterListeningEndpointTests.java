@@ -41,13 +41,13 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
-import org.springframework.integration.xmpp.inbound.XmppRosterEventMessageDrivenEndpoint;
+import org.springframework.integration.xmpp.inbound.XmppRosterListeningEndpoint;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-public class XmppRosterEventMessageDrivenEndpointTests {
+public class XmppRosterListeningEndpointTests {
 
 	@Test
 	public void testEndpointLifecycle(){
@@ -69,7 +69,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 				return null;
 			}
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
+		XmppRosterListeningEndpoint rosterEndpoint = new XmppRosterListeningEndpoint(connection);
 		rosterEndpoint.afterPropertiesSet();
 		assertEquals(0, rosterSet.size());
 		rosterEndpoint.start();
@@ -80,7 +80,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializedFailure(){
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(mock(XMPPConnection.class));
+		XmppRosterListeningEndpoint rosterEndpoint = new XmppRosterListeningEndpoint(mock(XMPPConnection.class));
 		rosterEndpoint.start();
 	}
 	
@@ -89,7 +89,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
+		XmppRosterListeningEndpoint rosterEndpoint = new XmppRosterListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setRequestChannel(channel);
 		rosterEndpoint.afterPropertiesSet();
@@ -106,7 +106,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
-		XmppRosterEventMessageDrivenEndpoint rosterEndpoint = new XmppRosterEventMessageDrivenEndpoint(connection);
+		XmppRosterListeningEndpoint rosterEndpoint = new XmppRosterListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setRequestChannel(channel);
 		rosterEndpoint.afterPropertiesSet();
@@ -122,7 +122,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	public void testWithImplicitXmppConnection(){
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
-		XmppRosterEventMessageDrivenEndpoint endpoint = new XmppRosterEventMessageDrivenEndpoint();
+		XmppRosterListeningEndpoint endpoint = new XmppRosterListeningEndpoint();
 		endpoint.setBeanFactory(bf);
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
@@ -130,7 +130,7 @@ public class XmppRosterEventMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
-		XmppRosterEventMessageDrivenEndpoint handler = new XmppRosterEventMessageDrivenEndpoint();
+		XmppRosterListeningEndpoint handler = new XmppRosterListeningEndpoint();
 		handler.afterPropertiesSet();
 	}
 }

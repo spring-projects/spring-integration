@@ -33,7 +33,7 @@ public class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefi
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.inbound.XmppRosterEventMessageDrivenEndpoint";
+		return "org.springframework.integration.xmpp.inbound.XmppRosterListeningEndpoint";
 	}
 
 	@Override
