@@ -33,7 +33,7 @@ public class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChann
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xmpp.outbound.XmppRosterEventMessageSendingHandler");
+				"org.springframework.integration.xmpp.outbound.XmppPresenceSendingMessageHandler");
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
 		return builder.getBeanDefinition();

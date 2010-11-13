@@ -20,12 +20,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.integration.xmpp.outbound.XmppRosterEventMessageSendingHandler;
+import org.springframework.integration.xmpp.outbound.XmppPresenceSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Tests {@link XmppRosterEventMessageSendingHandler} to ensure that we are able to publish status.
+ * Tests {@link XmppPresenceSendingMessageHandler} to ensure that we are able to publish status.
  *
  * @author Josh Long
  * @since 2.0

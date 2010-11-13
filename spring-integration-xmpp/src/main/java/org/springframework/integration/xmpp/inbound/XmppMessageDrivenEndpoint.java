@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.inbound;
 
 import org.jivesoftware.smack.Chat;
@@ -20,6 +21,7 @@ import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
+
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
@@ -34,9 +36,9 @@ import org.springframework.util.Assert;
  * @author Josh Long
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * 
+ * @since 2.0
  */
-public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint  {
+public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -45,15 +47,17 @@ public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoi
 	private volatile boolean extractPayload = true;
 	
 	private volatile PacketListener packetListener;
-	
+
+
 	public XmppMessageDrivenEndpoint(){
 		super();
 	}
-	
-	public XmppMessageDrivenEndpoint(XMPPConnection xmppConnection){
+
+	public XmppMessageDrivenEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
-	
+
+
 	/**
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
@@ -71,8 +75,23 @@ public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoi
 	}
 
 	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.messagingTemplate.setDefaultChannel(requestChannel);
+		this.messagingTemplate.afterPropertiesSet();
+		this.packetListener = new PacketListener() {
+			public void processPacket(final Packet packet) {
+				if (packet instanceof org.jivesoftware.smack.packet.Message) {
+					org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
+					forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread()), xmppMessage);
+				}
+			}
+		};
+	}
+
+	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, this.getComponentName() + " must be initialized");
 		xmppConnection.addPacketListener(this.packetListener, null);
 	}
 
@@ -81,25 +100,12 @@ public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoi
 		xmppConnection.removePacketListener(this.packetListener);
 	}
 
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		this.messagingTemplate.setDefaultChannel(requestChannel);
-		this.messagingTemplate.afterPropertiesSet();
-		this.packetListener = new PacketListener() {
-			public void processPacket(final Packet packet) {
-				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
-				forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(message.getThread()), message);
-			}
-		};
-	}
-
 	private void forwardXmppMessage(Chat chat, Message xmppMessage) {
 		Object payload = (this.extractPayload ? xmppMessage.getBody() : xmppMessage);
 		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
 				.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
 				.setHeader(XmppHeaders.CHAT, chat);
-		messagingTemplate.send(requestChannel, messageBuilder.build());
+		this.messagingTemplate.send(requestChannel, messageBuilder.build());
 	}
 
 }

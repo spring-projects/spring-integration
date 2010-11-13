@@ -26,7 +26,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
-import org.springframework.integration.xmpp.outbound.XmppRosterEventMessageSendingHandler;
+import org.springframework.integration.xmpp.outbound.XmppPresenceSendingMessageHandler;
 
 /**
  * @author Oleg Zhurakousky
@@ -37,7 +37,7 @@ public class XmppRosterEventMessageSendingHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testPresencePayload(){
-		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));
+		XmppPresenceSendingMessageHandler handler = new XmppPresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(mock(Presence.class)));
 	}
@@ -45,7 +45,7 @@ public class XmppRosterEventMessageSendingHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(expected=MessageHandlingException.class)
 	public void testWrongPayload(){
-		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler(mock(XMPPConnection.class));
+		XmppPresenceSendingMessageHandler handler = new XmppPresenceSendingMessageHandler(mock(XMPPConnection.class));
 		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage(new Object()));
 	}
@@ -54,7 +54,7 @@ public class XmppRosterEventMessageSendingHandlerTests {
 	public void testWithImplicitXmppConnection(){
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
-		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler();
+		XmppPresenceSendingMessageHandler handler = new XmppPresenceSendingMessageHandler();
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
@@ -62,7 +62,7 @@ public class XmppRosterEventMessageSendingHandlerTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
-		XmppRosterEventMessageSendingHandler handler = new XmppRosterEventMessageSendingHandler();
+		XmppPresenceSendingMessageHandler handler = new XmppPresenceSendingMessageHandler();
 		handler.afterPropertiesSet();
 	}
 }

@@ -23,28 +23,28 @@ import org.springframework.integration.xmpp.AbstractXmppConnectionAwareMessageHa
 import org.springframework.util.Assert;
 
 /**
- * This class will facilitate publishing updated presence values for a given connection. 
+ * MessageHandler that publishes updated Presence values for a given connection. 
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
- * 
  * @since 2.0
  */
-public class XmppRosterEventMessageSendingHandler extends AbstractXmppConnectionAwareMessageHandler  {
-	
-	public XmppRosterEventMessageSendingHandler(){
+public class XmppPresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler  {
+
+	public XmppPresenceSendingMessageHandler() {
 		super();
 	}
-	
-	public XmppRosterEventMessageSendingHandler(XMPPConnection xmppConnection){
+
+	public XmppPresenceSendingMessageHandler(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, this.getComponentName() + " must be initialized");
 		Object payload = message.getPayload();
-		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was " 
+		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was: " 
 					+ payload.getClass().getName());
 		this.xmppConnection.sendPacket((Presence)payload);
 	}
