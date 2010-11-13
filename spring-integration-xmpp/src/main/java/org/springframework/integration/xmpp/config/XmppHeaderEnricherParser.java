@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
@@ -28,10 +29,8 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
 
 	public XmppHeaderEnricherParser() {
-
-		// chat headers
 		this.addElementToHeaderMapping("message-to", XmppHeaders.CHAT_TO_USER);
 		this.addElementToHeaderMapping("message-thread-id", XmppHeaders.CHAT_THREAD_ID);
-
 	}
+
 }

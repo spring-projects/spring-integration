@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.core;
 
 /**
@@ -22,4 +23,5 @@ package org.springframework.integration.xmpp.core;
 public interface XmppContextUtils {
 
 	final String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
+
 }

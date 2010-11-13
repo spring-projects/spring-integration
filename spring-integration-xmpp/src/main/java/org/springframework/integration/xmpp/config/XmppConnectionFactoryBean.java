@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -49,14 +50,18 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	private volatile XMPPConnection connection;
 	
 	private volatile boolean autoStartup;
-	
+
+	private volatile int phase = Integer.MIN_VALUE;
+
 	private volatile boolean started;
+
 
 	public XmppConnectionFactoryBean(ConnectionConfiguration connectionConfiguration) {
 		Assert.notNull(connectionConfiguration, "'connectionConfiguration' must not be null");
 		this.connectionConfiguration = connectionConfiguration;
 	}
-	
+
+
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
@@ -84,9 +89,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		connection = new XMPPConnection(connectionConfiguration);
-		
-		return connection;
+		return new XMPPConnection(this.connectionConfiguration);
 	}
 
 	public void start() {
@@ -94,9 +97,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 			connection.connect();
 			if (StringUtils.hasText(user)){
 				connection.login(user, password, resource);
-				
 				Assert.isTrue(connection.isAuthenticated(), "Failed to authenticate user: " + user);
-				
 				if (StringUtils.hasText(this.subscriptionMode)) {
 					Roster.SubscriptionMode subscriptionMode = Roster.SubscriptionMode.valueOf(this.subscriptionMode);
 					connection.getRoster().setSubscriptionMode(subscriptionMode);
@@ -106,13 +107,14 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 				connection.loginAnonymously();
 			}
 			this.started = true;
-		} catch (Exception e) {
-			throw new BeanInitializationException("Failed to connect to " + this.connectionConfiguration.getHost(), e);
+		}
+		catch (Exception e) {
+			throw new BeanInitializationException("failed to connect to " + this.connectionConfiguration.getHost(), e);
 		}
 	}
 
 	public void stop() {
-		if (this.isRunning()){
+		if (this.isRunning()) {
 			this.connection.disconnect();
 			this.started = false;
 		}
@@ -123,7 +125,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	}
 
 	public int getPhase() {
-		return Integer.MIN_VALUE;
+		return this.phase;
 	}
 
 	public boolean isAutoStartup() {
@@ -133,4 +135,5 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void stop(Runnable callback) {
 		callback.run();
 	}
+
 }

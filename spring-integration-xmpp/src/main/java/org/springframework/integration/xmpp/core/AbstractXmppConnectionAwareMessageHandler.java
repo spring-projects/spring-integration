@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.core;
 
 import org.jivesoftware.smack.XMPPConnection;
@@ -23,22 +24,26 @@ import org.springframework.util.Assert;
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 public abstract class AbstractXmppConnectionAwareMessageHandler extends AbstractMessageHandler {
+
 	protected volatile XMPPConnection xmppConnection;
+
 	protected volatile boolean initialized;
-	
-	public AbstractXmppConnectionAwareMessageHandler(){}
-	
-	public AbstractXmppConnectionAwareMessageHandler(XMPPConnection xmppConnection){
+
+
+	public AbstractXmppConnectionAwareMessageHandler() {
+	}
+
+	public AbstractXmppConnectionAwareMessageHandler(XMPPConnection xmppConnection) {
 		Assert.notNull(xmppConnection, "'xmppConnection' must no be null");
 		this.xmppConnection = xmppConnection;
 	}
-	
+
+
 	protected void onInit() throws Exception {
 		BeanFactory bf = this.getBeanFactory();
-		if (xmppConnection == null && bf != null){
+		if (xmppConnection == null && bf != null) {
 			xmppConnection = bf.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
 		}
 		Assert.notNull(xmppConnection, "Failed to resolve XMPPConnection. XMPPConnection must either be set expicitly " +
@@ -46,4 +51,5 @@ public abstract class AbstractXmppConnectionAwareMessageHandler extends Abstract
 				"'org.jivesoftware.smack.XMPPConnection' in the Application Context");
 		this.initialized = true;
 	}
+
 }
