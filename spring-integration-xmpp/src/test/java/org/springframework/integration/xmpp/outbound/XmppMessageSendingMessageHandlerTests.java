@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.springframework.integration.xmpp.messages;
+package org.springframework.integration.xmpp.outbound;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
