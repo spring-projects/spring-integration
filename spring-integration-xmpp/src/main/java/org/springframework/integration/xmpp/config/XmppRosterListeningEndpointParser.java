@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class XmppRosterListeningEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {

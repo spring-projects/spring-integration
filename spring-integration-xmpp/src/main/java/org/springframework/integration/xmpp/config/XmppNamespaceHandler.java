@@ -37,7 +37,7 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("message-outbound-channel-adapter", new XmppMessageOutboundEndpointParser());
 
 		// presence
-		registerBeanDefinitionParser("roster-event-inbound-channel-adapter", new XmppRosterEventInboundEndpointParser());
+		registerBeanDefinitionParser("roster-event-inbound-channel-adapter", new XmppRosterListeningEndpointParser());
 		registerBeanDefinitionParser("roster-event-outbound-channel-adapter", new XmppRosterEventOutboundEndpointParser());
 
 		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
