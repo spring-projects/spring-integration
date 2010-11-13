@@ -3,7 +3,7 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>FTP/FTPS Adapters</title>
   <para>
-    Spring Integration provides support for FTP and FTPS 
+    Spring Integration provides support for file transfer operations via FTP and FTPS
   </para>
   <section id="ftp-intro">
     <title>Introduction</title>
@@ -17,10 +17,10 @@
     to send and/or receive copies of files. 
     </para>
     
-    <para>
+     <para>
     Spring Integration supports sending and receiving files over FTP/FTPS by providing two types of <emphasis>client</emphasis>s - 
-    Inbound Channel Adapters and Outbound Channel Adapters as well as convenient namespace configuration to define these 
-    <emphasis>client</emphasis>s.
+    <emphasis>Inbound Channel Adapters</emphasis> and <emphasis>Outbound Channel Adapters</emphasis> as well as convenient 
+    namespace configuration to define these <emphasis>client</emphasis>s.
     </para>
     <para>
     	<emphasis>FTP</emphasis>
@@ -58,7 +58,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
 </ftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see form the configuration above you can configure <emphasis>FTP Inbound Channel Adapter</emphasis> via <code>inbound-channel-adapter</code> 
-	element while also providing values for various attributes such as <code>user</code> and <code>password</code> to connect to an FTP server, 
+	element while also providing values for various attributes such as <code>username</code> and <code>password</code> to connect to an FTP server, 
 	as well as other attributes. Please refer to the schema for more details on these attributes. 
   	</para>
   	<para>
@@ -112,7 +112,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
 			client-mode="passive-local-data-connection-mode"/>]]></programlisting>	
 			
 	As you can see form the configuration above you can configure <emphasis>FTP Outbound Channel Adapter</emphasis> via 
-	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>user</code> 
+	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> 
 	and <code>password</code> to connect to an FTP server, as well as other attributes. Please refer to the schema for
 	 more details on these attributes. 
   	</para>

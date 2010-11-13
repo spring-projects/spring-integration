@@ -1,14 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="Sftp"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>SFTP Adapter</title>
+  <title>SFTP Adapters</title>
   <para>
-    Spring Integration provides support for SFTP 
+    Spring Integration provides support for file transfer operations via FTP and FTPS
   </para>
   <section id="sftp-intro">
     <title>Introduction</title>
     <para>
-      TODO
+      Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer 
+      files between two computers on the Internet over any reliable stream.
+    </para>
+    
+    <para>
+    Similar to FTP, SFTP requires two actors - <emphasis>client</emphasis> and <emphasis>server</emphasis>. The protocol also requires 
+    secure channel, such as SSH, as well as visibility to client's identity throughout SFTP session.
+    </para>
+    
+    <para>
+    Spring Integration supports sending and receiving files over SFTP by providing two types of <emphasis>client</emphasis>s - 
+    <emphasis>Inbound Channel Adapters</emphasis> and <emphasis>Outbound Channel Adapters</emphasis> as well as convenient 
+    namespace configuration to define these <emphasis>client</emphasis>s.
+    
+    <programlisting language="xml"><![CDATA[xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
+xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp 
+	http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd" 
+]]></programlisting>
     </para>
   </section>
+  
+   <section id="sftp-inbound">
+  	<title>SFTP Inbound Channel Adapter</title>
+  	<para>
+  	<emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen for 
+  	the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
+  	
+  	<programlisting language="xml"><![CDATA[<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
+			channel="requestChannel"
+			filter="filter"
+			filename-pattern="foo*.txt"
+			username="oleg"
+			remote-directory="ftp://foo"
+			local-directory-path="file:target/foo"
+			host="localhost"
+			password="hello"
+			port="1234"
+			key-file="ker.txt"
+			key-file-password="hello"
+			auto-create-directories="true"
+			auto-delete-remote-files-on-sync="false">
+		<poller fixed-rate="1000"/>
+</sftp:inbound-channel-adapter>]]></programlisting>
+
+	As you can see form the configuration above you can configure <emphasis>SFTP Inbound Channel Adapter</emphasis> via 
+	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> and 
+	<code>password</code> to connect to an FTP server, <code>key-file</code> attributes as well as other attributes. 
+	Please refer to the schema for more details on these attributes. 
+  	</para>
+  	
+  	<para>
+  	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a polling consumer and therefore 
+  	you must configure a poller (global or local)
+	Once the file has been transferred a Message with <classname>java.io.File</classname> being a payload will be generated and sent to the channel 
+	identified with <code>channel</code> attribute.
+  	
+  	</para>
+  </section>
+  
+  <section id="sftp-outbound">
+  	<title>SFTP Outbound Channel Adapter</title>
+  	
+  	<para>
+  	<emphasis>SFTP Outbound Channel Adapter </emphasis>is a special <classname>MessageHandler</classname> that will connect to the 
+  	FTP server and will initiate an FTP transfer for every file it will receive as a payload of the <classname>Message</classname>. 
+  	It also supports several representation of the File so you are not limited to the File object. 
+  	Similar to FTP outbound adapter <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads: 
+  	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents 
+  	the file contents; 3) <classname>java.lang.String</classname> - represents the file path.
+  	
+  	<programlisting language="xml"><![CDATA[<sftp:outbound-channel-adapter id="sftpAdapterAutoCreate"
+			channel="requestChannel"
+			filter="filter"
+			filename-pattern="foo*.txt"
+			username="oleg"
+			remote-directory="ftp://foo"
+			local-directory-path="file:target/foo"
+			host="localhost"
+			password="hello"
+			port="1234"
+			key-file="ker.txt"
+			key-file-password="hello"
+			auto-create-directories="true"
+			auto-delete-remote-files-on-sync="false"/>]]></programlisting>
+			
+	As you can see form the configuration above you can configure <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
+	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> and 
+	<code>password</code> to connect to an FTP server, <code>key-file</code> attributes as well as other attributes. 
+	Please refer to the schema for more details on these attributes. 
+  	</para>
+  </section>
+  
+   <para>
+  	<note>
+  	A more practical way to configure these types of adapters would be via Spring's property 
+  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
+  	</note>
+  </para>
 </chapter>
