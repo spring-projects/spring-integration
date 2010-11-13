@@ -1,7 +1,7 @@
-SPRING INTEGRATION 2.0.0 Release Candidate 1 (Oct 28, 2010)
+SPRING INTEGRATION 2.0.0 Release Candidate 2 (Nov 13, 2010)
 -----------------------------------------------------------
 
-To find out what has changed since version 1.0.x or 2.0 M7, see 'changelog.txt'
+To find out what has changed since version 1.0.x or 2.0 RC1, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory
 of this release and also visit the official Spring Integration home at
@@ -11,7 +11,7 @@ There you will find links to the forum, issue tracker, and several other resourc
 
 To check out the project and build from source, do the following:
 
-    git clone git://git.springsource.org/spring-integration/spring-integration.git
+    git clone --recursive git://git.springsource.org/spring-integration/spring-integration.git
     cd spring-integration
     ./gradlew build
 
