@@ -13,6 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter.outbound;
 
 import static org.mockito.Mockito.mock;
@@ -25,6 +26,7 @@ import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -33,17 +35,17 @@ import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
-import twitter4j.GeoLocation;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0
  */
-public class TimelineUpdateSendingMessageHandlerTests {
+public class StatusUpdatingMessageHandlerTests {
 	
 	TwitterOperations twitterOperations;
+
 	Twitter twitter;
 	
 	@Before
@@ -55,8 +57,8 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		twitterField.set(twitterOperations, twitter);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testSendingStatusUpdate() throws Exception{
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
 		Tweet tweet = new Tweet();
@@ -65,6 +67,7 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
+
 	@Test
 	public void testSendingStatusUpdateWithHeaders() throws Exception{
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
@@ -75,4 +78,5 @@ public class TimelineUpdateSendingMessageHandlerTests {
 		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
 	}
+
 }
