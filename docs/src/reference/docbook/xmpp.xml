@@ -102,17 +102,17 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 						xmpp-connection="testConnection"/>]]></programlisting> 
 	
 		The adapter expects as its input - at a minimum - a payload of type <classname>java.lang.String</classname>, and a header value
-						for <classname>XmppHeaders.CHAT_TO_USER</classname> that specifies to which user the Message should be sent to. To
+						for <classname>XmppHeaders.CHAT_TO</classname> that specifies to which user the Message should be sent to. To
 						create a message you might use the following Java code:
 						
 		<programlisting language="java"><![CDATA[Message<String> xmppOutboundMsg = MessageBuilder.withPayload("Hello, XMPP!" )
-						.setHeader(XmppHeaders.CHAT_TO_USER, "userhandle")
+						.setHeader(XmppHeaders.CHAT_TO, "userhandle")
 						.build();]]></programlisting> 
 		
 		Another mechanism of setting such header is by using the XMPP enricher support. Here is an example using the enricher. 	
 		
 		<programlisting language="xml"><![CDATA[<int-xmpp:header-enricher input-channel="input" output-channel="output">
-	<int-xmpp:message-to value="test1@example.org"/>
+	<int-xmpp:chat-to value="test1@example.org"/>
 </int-xmpp:header-enricher>]]></programlisting> 		
      </para>
     </section>
