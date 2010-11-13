@@ -11,7 +11,7 @@
 		<constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
 	</bean>
 	
-	<int-xmpp:roster-event-inbound-channel-adapter channel="outChannel" 
+	<int-xmpp:presence-inbound-channel-adapter channel="outChannel" 
 					xmpp-connection="testConnection" auto-startup="false"/>
 	
 	<int:channel id="outChannel"/>

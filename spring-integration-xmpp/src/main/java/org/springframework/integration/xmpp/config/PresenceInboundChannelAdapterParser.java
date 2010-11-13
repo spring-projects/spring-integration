@@ -16,27 +16,37 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 /**
- * Parser for 'xmpp:message-outbound-channel-adapter' element
+ * Parser for 'xmpp:roster-event-inbound-channel-adapter' element.
  * 
+ * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppMessageOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
+public class PresenceInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xmpp.outbound.XmppMessageSendingMessageHandler");
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.integration.xmpp.inbound.RosterListeningEndpoint";
+	}
+
+	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
-		return builder.getBeanDefinition();
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
 
 }

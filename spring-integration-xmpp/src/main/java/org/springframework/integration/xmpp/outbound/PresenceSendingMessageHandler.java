@@ -19,7 +19,7 @@ package org.springframework.integration.xmpp.outbound;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
-import org.springframework.integration.xmpp.AbstractXmppConnectionAwareMessageHandler;
+import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -29,13 +29,13 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppPresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler  {
+public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler  {
 
-	public XmppPresenceSendingMessageHandler() {
+	public PresenceSendingMessageHandler() {
 		super();
 	}
 
-	public XmppPresenceSendingMessageHandler(XMPPConnection xmppConnection) {
+	public PresenceSendingMessageHandler(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 

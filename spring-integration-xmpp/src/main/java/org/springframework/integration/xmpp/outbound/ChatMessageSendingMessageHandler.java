@@ -20,8 +20,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.xmpp.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -31,13 +31,13 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
+public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 	
-	public XmppMessageSendingMessageHandler(){
+	public ChatMessageSendingMessageHandler(){
 		super();
 	}
 		
-	public XmppMessageSendingMessageHandler(XMPPConnection xmppConnection){
+	public ChatMessageSendingMessageHandler(XMPPConnection xmppConnection){
 		super(xmppConnection);
 	}
 

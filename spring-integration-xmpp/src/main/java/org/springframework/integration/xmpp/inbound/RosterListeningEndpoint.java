@@ -33,7 +33,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xmpp.AbstractXmppConnectionAwareEndpoint;
+import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
 
 /**
@@ -45,9 +45,9 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
+public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
-	private static final Log logger = LogFactory.getLog(XmppRosterListeningEndpoint.class);
+	private static final Log logger = LogFactory.getLog(RosterListeningEndpoint.class);
 
 	private volatile MessageChannel requestChannel;
 
@@ -56,11 +56,11 @@ public class XmppRosterListeningEndpoint extends AbstractXmppConnectionAwareEndp
 	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
 
-	public XmppRosterListeningEndpoint() {
+	public RosterListeningEndpoint() {
 		super();
 	}
 
-	public XmppRosterListeningEndpoint(XMPPConnection xmppConnection) {
+	public RosterListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 

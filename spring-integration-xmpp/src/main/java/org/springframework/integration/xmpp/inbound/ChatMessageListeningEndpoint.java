@@ -25,8 +25,8 @@ import org.jivesoftware.smack.packet.Packet;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xmpp.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoint {
+public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -49,11 +49,11 @@ public class XmppMessageDrivenEndpoint extends AbstractXmppConnectionAwareEndpoi
 	private volatile PacketListener packetListener;
 
 
-	public XmppMessageDrivenEndpoint(){
+	public ChatMessageListeningEndpoint(){
 		super();
 	}
 
-	public XmppMessageDrivenEndpoint(XMPPConnection xmppConnection) {
+	public ChatMessageListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 

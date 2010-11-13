@@ -16,34 +16,27 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-
 /**
- * Parser for 'message-inbound-channel-adapter' element
+ * Parser for the XMPP 'outbound-channel-adapter' element
  * 
- * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class ChatMessageOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint";
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHandler");
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		return builder.getBeanDefinition();
 	}
 
 }

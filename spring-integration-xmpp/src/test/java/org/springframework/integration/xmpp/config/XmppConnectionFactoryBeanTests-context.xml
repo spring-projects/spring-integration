@@ -17,7 +17,7 @@
 	
 	<int:channel id="outboundEventChannel"/>
 	
-	<int-xmpp:message-outbound-channel-adapter id="outboundEventAdapter" 
-						channel="outboundEventChannel" 
-						xmpp-connection="xmppConnection"/>
+	<int-xmpp:outbound-channel-adapter id="outboundEventAdapter" 
+					channel="outboundEventChannel" 
+					xmpp-connection="xmppConnection"/>
 </beans>

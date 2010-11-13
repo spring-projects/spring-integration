@@ -22,9 +22,9 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.xmpp.XmppContextUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
-import org.springframework.integration.xmpp.outbound.XmppMessageSendingMessageHandler;
+import org.springframework.integration.xmpp.core.XmppContextUtils;
+import org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHandler;
 
 /**
  * @author Oleg Zhurakousky
@@ -41,7 +41,7 @@ public class XmppMessageSendingMessageHandlerTests {
 		Chat chat = mock(Chat.class);
 		when(chantManager.createChat(Mockito.any(String.class), Mockito.any(MessageListener.class))).thenReturn(chat);
 		
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(connection);
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("Test Message").
 					setHeader(XmppHeaders.CHAT_TO_USER, "kermit@frog.com").
@@ -69,20 +69,20 @@ public class XmppMessageSendingMessageHandlerTests {
 	
 	@Test(expected=MessageHandlingException.class)
 	public void validateFailureNoChatToUser() throws Exception{	
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(mock(XMPPConnection.class));
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<String>("hello"));
 	}
 	
 	@Test(expected=MessageHandlingException.class)
 	public void validateMessageWithUnsupportedPayload() throws Exception{	
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler(mock(XMPPConnection.class));
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(mock(XMPPConnection.class));
 		handler.handleMessage(new GenericMessage<Integer>(123));
 	}
 	@Test
 	public void testWithImplicitXmppConnection(){
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();
 		handler.setBeanFactory(bf);
 		handler.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(handler,"xmppConnection"));
@@ -90,7 +90,7 @@ public class XmppMessageSendingMessageHandlerTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
-		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler();
 		handler.afterPropertiesSet();
 	}
 }

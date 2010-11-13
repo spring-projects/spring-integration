@@ -32,8 +32,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.xmpp.XmppContextUtils;
-import org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint;
+import org.springframework.integration.xmpp.core.XmppContextUtils;
+import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
 
 /**
  * @author Oleg Zhurakousky
@@ -49,7 +49,7 @@ public class XmppMessageDrivenEndpointTests {
 	public void testLifecycle(){
 		final Set<PacketListener> packetListSet = new HashSet<PacketListener>();
 		XMPPConnection connection = mock(XMPPConnection.class);
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(connection);
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(connection);
 
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
@@ -75,7 +75,7 @@ public class XmppMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializationFailure(){
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint(mock(XMPPConnection.class));
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint(mock(XMPPConnection.class));
 		endpoint.start();
 	}
 	
@@ -83,7 +83,7 @@ public class XmppMessageDrivenEndpointTests {
 	public void testWithImplicitXmppConnection(){
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.setBeanFactory(bf);
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
@@ -91,7 +91,7 @@ public class XmppMessageDrivenEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection(){
-		XmppMessageDrivenEndpoint endpoint = new XmppMessageDrivenEndpoint();
+		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.afterPropertiesSet();
 	}
 }

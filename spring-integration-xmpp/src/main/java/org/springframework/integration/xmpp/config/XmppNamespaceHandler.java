@@ -33,11 +33,11 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("xmpp-connection", new XmppConnectionParser());
 
 		// send/receive messages
-		registerBeanDefinitionParser("message-inbound-channel-adapter", new XmppMessageInboundEndpointParser());
-		registerBeanDefinitionParser("message-outbound-channel-adapter", new XmppMessageOutboundEndpointParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new ChatMessageInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new ChatMessageOutboundChannelAdapterParser());
 
 		// presence
-		registerBeanDefinitionParser("roster-event-inbound-channel-adapter", new XmppRosterListeningEndpointParser());
+		registerBeanDefinitionParser("presence-inbound-channel-adapter", new PresenceInboundChannelAdapterParser());
 		registerBeanDefinitionParser("presence-outbound-channel-adapter", new PresenceOutboundChannelAdapterParser());
 
 		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());

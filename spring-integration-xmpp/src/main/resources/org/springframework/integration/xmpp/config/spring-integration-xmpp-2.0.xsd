@@ -46,6 +46,69 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will receive chat messages sent to a given account and then forward those messages to a MessageChannel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Outbound Channel Adapter that sends chat messages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel"  type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="presence-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -78,10 +141,10 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="roster-event-inbound-channel-adapter">
+	<xsd:element name="presence-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an endpoint that will forward roster based events (entry managment and presence state changes) to components in the bus.
+				Configures an endpoint that will forward Presence state changes to a MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -89,69 +152,6 @@
 			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="message-inbound-channel-adapter">
-		<xsd:annotation>
-			<xsd:documentation>
-				Configures an endpoint that will receive messages sent to a given account and then forward those messages to components in the bus.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
-			<xsd:attribute name="channel" use="required" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="message-outbound-channel-adapter">
-		<xsd:annotation>
-			<xsd:documentation>
-				Component that sends messages to an entry in the roster on behalf of components in the bus.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel"  type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

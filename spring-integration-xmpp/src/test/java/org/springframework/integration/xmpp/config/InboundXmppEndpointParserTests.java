@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint;
+import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
 
 /**
  * @author Oleg Zhurakousky
@@ -36,7 +36,7 @@ public class InboundXmppEndpointParserTests {
 	public void testInboundAdapter(){
 		ApplicationContext context = 
 			new ClassPathXmlApplicationContext("InboundXmppEndpointParserTests-context.xml", this.getClass());
-		XmppMessageDrivenEndpoint xmde = context.getBean("xmppInboundAdapter", XmppMessageDrivenEndpoint.class);
+		ChatMessageListeningEndpoint xmde = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		assertFalse(xmde.isAutoStartup());
 		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(xmde, "requestChannel");
 		assertEquals("xmppInbound", channel.getComponentName());

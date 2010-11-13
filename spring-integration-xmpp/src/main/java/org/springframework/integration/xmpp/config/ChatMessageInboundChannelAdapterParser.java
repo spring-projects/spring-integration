@@ -16,29 +16,25 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
 
 /**
- * Parser for 'xmpp:roster-event-inbound-channel-adapter' element.
+ * Parser for the XMPP 'inbound-channel-adapter' element.
  * 
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterListeningEndpointParser extends AbstractSingleBeanDefinitionParser {
+public class ChatMessageInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.inbound.XmppRosterListeningEndpoint";
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
+		return "org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint";
 	}
 
 	@Override
@@ -46,6 +42,7 @@ public class XmppRosterListeningEndpointParser extends AbstractSingleBeanDefinit
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
 

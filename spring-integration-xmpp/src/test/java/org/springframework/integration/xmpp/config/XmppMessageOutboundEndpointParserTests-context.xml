@@ -13,23 +13,23 @@
 	
 	<int:channel id="outboundEventChannel"/>
 	
-	<int-xmpp:message-outbound-channel-adapter id="outboundEventAdapter" 
-						channel="outboundEventChannel" 
-						xmpp-connection="testConnection"/>
+	<int-xmpp:outbound-channel-adapter id="outboundEventAdapter" 
+					channel="outboundEventChannel" 
+					xmpp-connection="testConnection"/>
 						
 	<int:channel id="outboundPollingChannel">
 		<int:queue/>
 	</int:channel>
 	
-	<int-xmpp:message-outbound-channel-adapter id="outboundPollingAdapter" 
-						channel="outboundPollingChannel" 
-						xmpp-connection="testConnection">
+	<int-xmpp:outbound-channel-adapter id="outboundPollingAdapter" 
+					channel="outboundPollingChannel" 
+					xmpp-connection="testConnection">
 		<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
-	</int-xmpp:message-outbound-channel-adapter>
+	</int-xmpp:outbound-channel-adapter>
 	
-	<int-xmpp:message-outbound-channel-adapter id="outboundNoChannelAdapter" 
+	<int-xmpp:outbound-channel-adapter id="outboundNoChannelAdapter" 
 						xmpp-connection="testConnection">
 <!--		<int:poller fixed-rate="1000" max-messages-per-poll="1"/>-->
-	</int-xmpp:message-outbound-channel-adapter>
+	</int-xmpp:outbound-channel-adapter>
 
 </beans>

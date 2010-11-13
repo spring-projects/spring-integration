@@ -33,7 +33,7 @@ public class PresenceOutboundChannelAdapterParser extends AbstractOutboundChanne
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xmpp.outbound.XmppPresenceSendingMessageHandler");
+				"org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler");
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
 		return builder.getBeanDefinition();
