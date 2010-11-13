@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.outbound;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -41,16 +43,17 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		super(xmppConnection);
 	}
 
+
+	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		Object messageBody = message.getPayload();
-		String destinationUser = (String) message.getHeaders().get(XmppHeaders.CHAT_TO_USER);
-		Assert.state(StringUtils.hasText(destinationUser), "'" + XmppHeaders.CHAT_TO_USER + "' header must not be null");
+		String chatTo = (String) message.getHeaders().get(XmppHeaders.CHAT_TO);
+		Assert.state(StringUtils.hasText(chatTo), "The '" + XmppHeaders.CHAT_TO + "' header must not be null");
 		Assert.isInstanceOf(String.class, messageBody, "Only payload of type String is suported. You " +
 				"can apply transformer prior to sending message to this handler");
-		
 		String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
-		Chat chat = getOrCreateChatWithParticipant(destinationUser, threadId);
+		Chat chat = getOrCreateChatWithParticipant(chatTo, threadId);
 		try {
 			chat.sendMessage((String) messageBody);
 		} 

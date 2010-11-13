@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp;
 
 import org.springframework.integration.MessageHeaders;
@@ -31,9 +32,10 @@ public class XmppHeaders {
 
 	public static final String CHAT = PREFIX + "chatKey";
 
-	public static final String CHAT_TO_USER = PREFIX + "chatToUser";
+	public static final String CHAT_TO = PREFIX + "chatTo";
 
-	public static final String CHAT_THREAD_ID = PREFIX + "threadId";
+	public static final String CHAT_THREAD_ID = PREFIX + "chatThreadId";
 
 	public static final String TYPE = PREFIX + "type";
+
 }

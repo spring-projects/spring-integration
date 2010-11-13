@@ -17,7 +17,7 @@
 	<channel id="output"/>
 	
 	<xmpp:header-enricher input-channel="input" output-channel="output">
-		<xmpp:message-to value="test1@example.org"/>		
+		<xmpp:chat-to value="test1@example.org"/>		
 	</xmpp:header-enricher>
 
 </beans:beans>

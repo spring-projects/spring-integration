@@ -24,13 +24,12 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * @author Josh Long
  * @author Oleg ZHurakousky
  * @since 2.0
- *
  */
 public class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
 
 	public XmppHeaderEnricherParser() {
-		this.addElementToHeaderMapping("message-to", XmppHeaders.CHAT_TO_USER);
-		this.addElementToHeaderMapping("message-thread-id", XmppHeaders.CHAT_THREAD_ID);
+		this.addElementToHeaderMapping("chat-to", XmppHeaders.CHAT_TO);
+		this.addElementToHeaderMapping("chat-thread-id", XmppHeaders.CHAT_THREAD_ID);
 	}
 
 }

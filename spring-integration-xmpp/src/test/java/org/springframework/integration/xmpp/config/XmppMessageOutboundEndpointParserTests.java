@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -79,7 +80,7 @@ public class XmppMessageOutboundEndpointParserTests {
 		Object pollingConsumer = context.getBean("outboundPollingAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.CHAT_TO_USER, "oleg").build();
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.CHAT_TO, "oleg").build();
 		
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
 		ChatManager chatManager = mock(ChatManager.class);
