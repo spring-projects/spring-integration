@@ -145,12 +145,10 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		this.fileListFilter = filter;
 	}
 
-	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File>... otherFilters) {
+	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {
 		CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
 		compositeFilter.addFilter(new AcceptOnceFileListFilter<File>());
-		for (FileListFilter<File> otherFilter : otherFilters) {
-			compositeFilter.addFilter(otherFilter);
-		}
+		compositeFilter.addFilter(otherFilter);
 		return compositeFilter;
 	}
 
