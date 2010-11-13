@@ -39,6 +39,8 @@ def buildSrcDir = "$rootDir/buildSrc"
 apply from: "$buildSrcDir/wrapper.gradle"
 apply from: "$buildSrcDir/maven-root-pom.gradle"
 
+// Tie pom generation into the standard build lifecycle (INT-1609)
+assemble.dependsOn generatePom
 
 
 // -----------------------------------------------------------------------------
@@ -93,7 +95,7 @@ configure(javaprojects) {
     apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
     apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
 
-    // ensure JDK 5 compatibility
+    // ensure JDK 5 compatibility (GRADLE-18; INT-1578)
     sourceCompatibility=1.5
     targetCompatibility=1.5
 
@@ -148,6 +150,9 @@ configure(javaprojects) {
 
     // generate .classpath files without GRADLE_CACHE variable (GRADLE-1079)
     eclipseClasspath.variables = [:]
+
+    // Tie pom generation into the standard build lifecycle (INT-1609)
+    assemble.dependsOn generatePom
 }
 
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework.integration</groupId>
+  <artifactId>spring-integration</artifactId>
+  <version>2.0.0.BUILD-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Spring Integration</name>
+  <modules>
+    <module>spring-integration-core</module>
+    <module>spring-integration-event</module>
+    <module>spring-integration-feed</module>
+    <module>spring-integration-file</module>
+    <module>spring-integration-ftp</module>
+    <module>spring-integration-groovy</module>
+    <module>spring-integration-http</module>
+    <module>spring-integration-httpinvoker</module>
+    <module>spring-integration-ip</module>
+    <module>spring-integration-jdbc</module>
+    <module>spring-integration-jms</module>
+    <module>spring-integration-jmx</module>
+    <module>spring-integration-mail</module>
+    <module>spring-integration-rmi</module>
+    <module>spring-integration-security</module>
+    <module>spring-integration-sftp</module>
+    <module>spring-integration-stream</module>
+    <module>spring-integration-test</module>
+    <module>spring-integration-twitter</module>
+    <module>spring-integration-ws</module>
+    <module>spring-integration-xml</module>
+    <module>spring-integration-xmpp</module>
+  </modules>
+</project>
