@@ -15,20 +15,20 @@
 		<int:queue/>
 	</int:channel>
 	
-	<int-xmpp:roster-event-outbound-channel-adapter id="pollingOutboundRosterAdapter" 
+	<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundRosterAdapter" 
 					xmpp-connection="testConnection" 
 					channel="pollingChannel">
 			<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
-	</int-xmpp:roster-event-outbound-channel-adapter>
+	</int-xmpp:presence-outbound-channel-adapter>
 	
 	
 	<int:channel id="eventChannel"/>
 	
-	<int-xmpp:roster-event-outbound-channel-adapter id="eventOutboundRosterAdapter" 
+	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterAdapter" 
 					xmpp-connection="testConnection" 
 					channel="eventChannel"/>
 					
-	<int-xmpp:roster-event-outbound-channel-adapter id="eventOutboundRosterChannel" 
+	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterChannel" 
 					xmpp-connection="testConnection"/>
 					
 	

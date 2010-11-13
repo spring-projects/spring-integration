@@ -46,7 +46,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="roster-event-outbound-channel-adapter">
+	<xsd:element name="presence-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Configures an endpoint that will publish an updated {@link org.jivesoftware.smack.packet.Presence} state on your {@link XMPPConnection } object.

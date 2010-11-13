@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertTrue;
@@ -33,7 +34,7 @@ public class XmppRosterEventOutboundChannelAdapterParserTests {
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer(){
 		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object pollingConsumer = ac.getBean("pollingOutboundRosterAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 	}
@@ -41,7 +42,7 @@ public class XmppRosterEventOutboundChannelAdapterParserTests {
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
 		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object eventConsumer = ac.getBean("eventOutboundRosterAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
@@ -49,8 +50,9 @@ public class XmppRosterEventOutboundChannelAdapterParserTests {
 	@Test
 	public void testRosterEventOutboundChannel(){
 		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object channel = ac.getBean("eventOutboundRosterChannel");
 		assertTrue(channel instanceof SubscribableChannel);
 	}
+
 }

@@ -23,12 +23,12 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.w3c.dom.Element;
 
 /**
- * Parser for 'xmpp:roster-event-outbound-channel-adapter' element
+ * Parser for 'xmpp:presence-outbound-channel-adapter' element
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
+public class PresenceOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
