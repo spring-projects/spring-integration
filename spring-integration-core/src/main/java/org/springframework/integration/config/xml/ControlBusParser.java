@@ -18,6 +18,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionControlBusFactoryBean;
 import org.springframework.integration.control.ControlBusMessageProcessor;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
