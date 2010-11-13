@@ -16,28 +16,27 @@
 
 package org.springframework.integration.file.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.filters.*;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
-import java.io.File;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- *
  * @author Mark Fisher
  * @author Iwein Fuld
  *
@@ -46,9 +45,6 @@ import static org.junit.Assert.*;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileInboundChannelAdapterWithRegexPatternParserTests {
-
-    @Autowired(required = true)
-    private ApplicationContext context;
 
     private DirectFieldAccessor accessor;
 
@@ -71,7 +67,7 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
                 pattern = (Pattern) new DirectFieldAccessor(filter).getPropertyValue("pattern");
             }
         }
-        assertNotNull("expected SimplePatternFileListFilterTest", pattern);
+        assertNotNull("expected PatternMatchingFileListFilter", pattern);
         assertEquals("^.*\\.txt$", pattern.pattern());
     }
 

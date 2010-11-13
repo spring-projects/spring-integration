@@ -25,21 +25,15 @@
         <si:queue capacity="10"/>
     </si:channel>
 
-
-    <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" id="compositeFilter">
-        <property name="filterReferences">
-
+	<bean class="org.springframework.integration.file.filters.CompositeFileListFilter" id="compositeFilter">
+		<constructor-arg>
             <util:list>
-
                 <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
                 <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
                 <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
-
             </util:list>
-
-        </property>
-
-    </bean>
+		</constructor-arg>
+	</bean>
 
     <si:poller default="true" fixed-rate="10"/>
 

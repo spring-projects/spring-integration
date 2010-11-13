@@ -52,8 +52,9 @@ public class FileReadingMessageSourceIntegrationTests {
 
     @AfterClass
     public static void cleanUp() throws Throwable {
-      if(inputDir.exists())
+      if(inputDir.exists()) {
           inputDir.delete();
+      }
     }
 
     @BeforeClass

@@ -11,27 +11,16 @@
           p:filter-ref="compositeFilter"/>
 
     <!-- customized filter -->
-    <bean id="legacyCompositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
+    <bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
         <constructor-arg>
             <list>
                 <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter"/>
                 <bean class="org.springframework.integration.file.TestFileListFilter"/>
-                <bean class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
+                <bean class="org.springframework.integration.file.filters.SimplePatternFileListFilter">
                     <constructor-arg value="test*"/>
                 </bean>
             </list>
         </constructor-arg>
-    </bean>
-
-	<!-- is equivalent to previous filter -->
-    <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" id="compositeFilter">
-        <property name="filterReferences">
-            <util:list>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
-                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="test*"/>
-            </util:list>
-        </property>
     </bean>
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>

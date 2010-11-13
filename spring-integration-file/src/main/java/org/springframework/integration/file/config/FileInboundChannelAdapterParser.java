@@ -82,14 +82,10 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				PACKAGE_NAME + ".config.FileListFilterFactoryBean");
 		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
-		String filter = element.getAttribute("filter");
-		if (StringUtils.hasText(filter)) {
-			factoryBeanBuilder.addPropertyReference("filterReference", filter);
-		}
-
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(factoryBeanBuilder, element, "filter");
 		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
-			if (StringUtils.hasText(filter)) {
+			if (element.hasAttribute("filter")) {
 				parserContext.getReaderContext().error(
 						"At most one of 'filter' and 'filename-pattern' may be provided.", element);
 			}
@@ -97,13 +93,12 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		String filenameRegex = element.getAttribute("filename-regex");
 		if (StringUtils.hasText(filenameRegex)) {
-			if (StringUtils.hasText(filter)) {
+			if (element.hasAttribute("filter")) {
 				parserContext.getReaderContext().error(
 						"At most one of 'filter' and 'filename-regex' may be provided.", element);
 			}
 			factoryBeanBuilder.addPropertyValue("filenameRegex", filenameRegex);
 		}
-
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(factoryBeanBuilder, element, "prevent-duplicates");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				factoryBeanBuilder.getBeanDefinition(), parserContext.getRegistry());

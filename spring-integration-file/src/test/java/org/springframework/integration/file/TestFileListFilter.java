@@ -24,11 +24,12 @@ import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 public class TestFileListFilter implements FileListFilter<File> {
 
-    public List<File> filterFiles(File[] entries) {
-        return Arrays.asList(entries);
-    }
+	public List<File> filterFiles(File[] entries) {
+		return Arrays.asList(entries);
+	}
 
 }

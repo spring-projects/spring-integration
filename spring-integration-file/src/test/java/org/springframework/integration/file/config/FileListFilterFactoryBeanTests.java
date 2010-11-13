@@ -44,7 +44,7 @@ public class FileListFilterFactoryBeanTests {
     @Test(expected = IllegalArgumentException.class)
     public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-        factory.setFilterReference(new TestFilter());
+        factory.setFilter(new TestFilter());
         factory.setFilenamePattern("foo");
         factory.getObject();
     }
@@ -53,7 +53,7 @@ public class FileListFilterFactoryBeanTests {
     public void customFilterAndPreventDuplicatesNull() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
         TestFilter testFilter = new TestFilter();
-        factory.setFilterReference(testFilter);
+        factory.setFilter(testFilter);
         FileListFilter<File> result = factory.getObject();
         assertFalse(result instanceof CompositeFileListFilter);
         assertSame(testFilter, result);
@@ -63,7 +63,7 @@ public class FileListFilterFactoryBeanTests {
     public void customFilterAndPreventDuplicatesTrue() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
         TestFilter testFilter = new TestFilter();
-        factory.setFilterReference(testFilter);
+        factory.setFilter(testFilter);
         factory.setPreventDuplicates(Boolean.TRUE);
         FileListFilter<File> result = factory.getObject();
         assertTrue(result instanceof CompositeFileListFilter);
@@ -76,7 +76,7 @@ public class FileListFilterFactoryBeanTests {
     public void customFilterAndPreventDuplicatesFalse() throws Exception {
         FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
         TestFilter testFilter = new TestFilter();
-        factory.setFilterReference(testFilter);
+        factory.setFilter(testFilter);
         factory.setPreventDuplicates(Boolean.FALSE);
         FileListFilter<File> result = factory.getObject();
         assertFalse(result instanceof CompositeFileListFilter);

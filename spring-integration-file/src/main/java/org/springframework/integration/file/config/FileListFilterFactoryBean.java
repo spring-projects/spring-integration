@@ -18,7 +18,6 @@ package org.springframework.integration.file.config;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.FactoryBean;
@@ -30,9 +29,9 @@ import org.springframework.integration.file.filters.*;
  */
 public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<File>> {
 
-	private volatile FileListFilter<File> fileListFilter;
+	private volatile FileListFilter<File> result;
 
-	private volatile FileListFilter<File> filterReference;
+	private volatile FileListFilter<File> filter;
 
 	private volatile String filenamePattern;
 
@@ -42,15 +41,9 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 
 	private final Object monitor = new Object();
 
-	private volatile Collection<FileListFilter<File>> filterReferences;
 
-
-	public void setFilterReferences(Collection<FileListFilter<File>> filterReferences) {
-		this.filterReferences = filterReferences;
-	}
-
-	public void setFilterReference(FileListFilter<File> filterReference) {
-		this.filterReference = filterReference;
+	public void setFilter(FileListFilter<File> filter) {
+		this.filter = filter;
 	}
 
 	public void setFilenamePattern(String filenamePattern) {
@@ -66,39 +59,39 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 	}
 
 	public FileListFilter<File> getObject() throws Exception {
-		if (this.fileListFilter == null) {
+		if (this.result == null) {
 			synchronized (this.monitor) {
-				this.intializeFileListFilter();
+				this.initializeFileListFilter();
 			}
 		}
-		return this.fileListFilter;
+		return this.result;
 	}
 
 	public Class<?> getObjectType() {
-		return (this.fileListFilter != null) ? this.fileListFilter.getClass() : FileListFilter.class;
+		return (this.result != null) ? this.result.getClass() : FileListFilter.class;
 	}
 
 	public boolean isSingleton() {
 		return true;
 	}
 
-	private void intializeFileListFilter() {
-		if (this.fileListFilter != null) {
+	private void initializeFileListFilter() {
+		if (this.result != null) {
 			return;
 		}
 		FileListFilter<File> filter;
-		if ((this.filterReference != null) && (this.filenamePattern != null || this.filenameRegex!=null)) {
+		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex!=null)) {
 			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
 					+ "'filename-pattern' and 'filename-regex' attributes.");
 		}
 
 		//'filter' is set
-		if (this.filterReference != null) {
+		if (this.filter != null) {
 			if (Boolean.TRUE.equals(this.preventDuplicates)) {
-				filter = this.createCompositeWithAcceptOnceFilter(this.filterReference);
+				filter = this.createCompositeWithAcceptOnceFilter(this.filter);
 			}
 			else { // preventDuplicates is either FALSE or NULL
-				filter = this.filterReference;
+				filter = this.filter;
 			}
 		}
 
@@ -131,18 +124,10 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			filter = new AcceptOnceFileListFilter<File>();
 		}
 
-		// finally, it might be that they simply want a {@link CompositeFileListFilter}
-		if ((this.filterReferences != null) && (this.filterReferences.size() > 0)) {
-			CompositeFileListFilter<File> compositeFilter = new CompositeFileListFilter<File>();
-			for (FileListFilter<File> ff : filterReferences) {
-				compositeFilter.addFilter(ff);
-			}
-			filter = compositeFilter;
-		}
 		if (filter == null) {
 			filter = new CompositeFileListFilter<File>();
 		}
-		this.fileListFilter = filter;
+		this.result = filter;
 	}
 
 	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {

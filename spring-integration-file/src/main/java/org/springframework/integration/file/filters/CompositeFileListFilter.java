@@ -16,10 +16,16 @@
 
 package org.springframework.integration.file.filters;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
-
-import java.util.*;
 
 /**
  * Simple {@link FileListFilter} that predicates its matches against any of many
@@ -80,15 +86,14 @@ public class CompositeFileListFilter<F> implements FileListFilter<F> {
 	}
 
 
-	@SuppressWarnings("unchecked")
 	public List<F> filterFiles(F[] files) {
 		Assert.notNull(files, "'files' should not be null");
-		List<F> leftOver = Arrays.asList(files);
+		List<F> results = new ArrayList<F>(Arrays.asList(files));
 		for (FileListFilter<F> fileFilter : this.fileFilters) {
-			F[] fileArray = (F[]) leftOver.toArray();
-			leftOver = fileFilter.filterFiles(fileArray);
+			List<F> currentResults = fileFilter.filterFiles(files);
+			results.retainAll(currentResults);
 		}
-		return leftOver;
+		return results;
 	}
 
 }
