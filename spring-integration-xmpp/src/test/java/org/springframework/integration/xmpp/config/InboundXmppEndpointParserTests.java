@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.xmpp.messages.XmppMessageDrivenEndpoint;
+import org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint;
 
 /**
  * @author Oleg Zhurakousky

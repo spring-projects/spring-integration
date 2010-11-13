@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -32,9 +33,10 @@ public class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChann
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler");
+				"org.springframework.integration.xmpp.outbound.XmppRosterEventMessageSendingHandler");
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
 		return builder.getBeanDefinition();
 	}
+
 }

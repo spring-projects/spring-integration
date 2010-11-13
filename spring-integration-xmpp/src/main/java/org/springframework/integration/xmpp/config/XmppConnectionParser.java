@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -30,12 +31,13 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
-	private static String[] connectionFactoryAttributes = 
-		new String[]{"user", "password", "resource","subscription-mode"};
-	
+
+	private static String[] connectionFactoryAttributes = new String[]{"user", "password", "resource","subscription-mode"};
+
+
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.XmppConnectionFactoryBean";
+		return "org.springframework.integration.xmpp.config.XmppConnectionFactoryBean";
 	}
 
 	@Override
@@ -67,4 +69,5 @@ public class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		builder.addConstructorArgValue(connectionConfigurationBuilder.getBeanDefinition());
 	}
+
 }

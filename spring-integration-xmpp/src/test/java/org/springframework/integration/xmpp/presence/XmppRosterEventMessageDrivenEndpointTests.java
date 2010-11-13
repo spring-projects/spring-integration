@@ -41,6 +41,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
+import org.springframework.integration.xmpp.inbound.XmppRosterEventMessageDrivenEndpoint;
 
 /**
  * @author Oleg Zhurakousky

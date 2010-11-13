@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for 'message-inbound-channel-adapter' element
@@ -32,7 +34,7 @@ public class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefiniti
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.messages.XmppMessageDrivenEndpoint";
+		return "org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint";
 	}
 
 	@Override
@@ -43,4 +45,5 @@ public class XmppMessageInboundEndpointParser extends AbstractSingleBeanDefiniti
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
+
 }

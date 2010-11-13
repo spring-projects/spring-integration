@@ -24,6 +24,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.integration.xmpp.outbound.XmppMessageSendingMessageHandler;
 
 /**
  * @author Oleg Zhurakousky

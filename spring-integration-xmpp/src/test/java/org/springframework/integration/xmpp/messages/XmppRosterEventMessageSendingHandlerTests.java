@@ -26,7 +26,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
-import org.springframework.integration.xmpp.presence.XmppRosterEventMessageSendingHandler;
+import org.springframework.integration.xmpp.outbound.XmppRosterEventMessageSendingHandler;
 
 /**
  * @author Oleg Zhurakousky

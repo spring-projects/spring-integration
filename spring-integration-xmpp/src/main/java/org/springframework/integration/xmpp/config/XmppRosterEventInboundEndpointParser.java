@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -27,13 +28,12 @@ import org.w3c.dom.Element;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 public class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.presence.XmppRosterEventMessageDrivenEndpoint";
+		return "org.springframework.integration.xmpp.inbound.XmppRosterEventMessageDrivenEndpoint";
 	}
 
 	@Override
@@ -48,4 +48,5 @@ public class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefi
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
+
 }

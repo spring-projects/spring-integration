@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.xmpp;
+package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -22,6 +22,7 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.xmpp.config.XmppConnectionFactoryBean;
 
 /**
  * @author Oleg Zhurakousky

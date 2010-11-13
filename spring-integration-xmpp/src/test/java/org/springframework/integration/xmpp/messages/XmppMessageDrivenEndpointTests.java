@@ -33,6 +33,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppContextUtils;
+import org.springframework.integration.xmpp.inbound.XmppMessageDrivenEndpoint;
 
 /**
  * @author Oleg Zhurakousky
