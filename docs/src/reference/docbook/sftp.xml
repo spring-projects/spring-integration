@@ -3,7 +3,7 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>SFTP Adapters</title>
   <para>
-    Spring Integration provides support for file transfer operations via FTP and FTPS
+    Spring Integration provides support for file transfer operations via SFTP
   </para>
   <section id="sftp-intro">
     <title>Introduction</title>
