@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp;
+
+package org.springframework.integration.ip.util;
 
 import java.net.InetAddress;
 import java.net.Socket;
 
 /**
  * @author Gary Russell
- *
+ * @since 2.0
  */
-public class SocketIoUtils {
+public abstract class SocketIoUtils {
 
 	public static String getSocketId(Socket socket) {
 		InetAddress inetAddress = socket.getInetAddress();
@@ -30,8 +31,7 @@ public class SocketIoUtils {
 		if (inetAddress != null) {
 			hostName = inetAddress.getHostName();
 		}
-		return hostName + ":" + socket.getPort() + ":" +
-		       socket.hashCode();
+		return hostName + ":" + socket.getPort() + ":" + socket.hashCode();
 	}
-	
+
 }

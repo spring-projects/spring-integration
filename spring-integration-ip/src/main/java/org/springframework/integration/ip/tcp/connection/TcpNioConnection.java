@@ -30,8 +30,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.SocketIoUtils;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * A TcpConnection that uses and underlying {@link SocketChannel}.

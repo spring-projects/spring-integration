@@ -21,8 +21,8 @@ import java.net.SocketTimeoutException;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.SocketIoUtils;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.

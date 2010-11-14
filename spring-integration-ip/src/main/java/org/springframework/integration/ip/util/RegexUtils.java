@@ -20,7 +20,7 @@ package org.springframework.integration.ip.util;
  * Regular Expression Utilities.
  * 
  * @author Gary Russell
- *
+ * @since 2.0
  */
 public abstract class RegexUtils {
 
@@ -32,7 +32,7 @@ public abstract class RegexUtils {
 	 * @param stringToEscape The string to escape.
 	 * @return The escaped string.
 	 */
-	public static String escapeRegExSpecials(String stringToEscape) {
+	public static String escapeRegexSpecials(String stringToEscape) {
 		// In the following, we look for all the specials and any we find 
 		// are escaped in the output string, allowing that string to 
 		// be used as a pattern containing the literal specials.

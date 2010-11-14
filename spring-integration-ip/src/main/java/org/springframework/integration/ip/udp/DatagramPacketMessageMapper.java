@@ -56,8 +56,7 @@ import org.springframework.util.Assert;
  * @author Dave Syer
  * @since 2.0
  */
-public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>,
-		OutboundMessageMapper<DatagramPacket> {
+public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>, OutboundMessageMapper<DatagramPacket> {
 
 	private volatile String charset = "UTF-8";
 
@@ -68,9 +67,9 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private boolean lengthCheck = false;
 
 	private static Pattern udpHeadersPattern = 
-		Pattern.compile(RegexUtils.escapeRegExSpecials(IpHeaders.ACK_ADDRESS) +
+		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
 				"=" + "([^;]*);" + 
-				RegexUtils.escapeRegExSpecials(MessageHeaders.ID) + 
+				RegexUtils.escapeRegexSpecials(MessageHeaders.ID) + 
 				"=" + "([^;]*);");
 
 
