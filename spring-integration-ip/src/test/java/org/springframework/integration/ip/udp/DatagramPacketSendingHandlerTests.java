@@ -34,7 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -48,7 +48,7 @@ public class DatagramPacketSendingHandlerTests {
 	
 	@Test
 	public void verifySend() throws Exception {
-		final int testPort = SocketUtils.findAvailableUdpSocket();
+		final int testPort = SocketTestUtils.findAvailableUdpSocket();
 		byte[] buffer = new byte[8];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -82,8 +82,8 @@ public class DatagramPacketSendingHandlerTests {
 
 	@Test
 	public void verifySendWithAck() throws Exception {
-		final int testPort = SocketUtils.findAvailableUdpSocket();
-		final int ackPort = SocketUtils.findAvailableUdpSocket(testPort + 1);
+		final int testPort = SocketTestUtils.findAvailableUdpSocket();
+		final int ackPort = SocketTestUtils.findAvailableUdpSocket(testPort + 1);
 		byte[] buffer = new byte[1000];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 		final CountDownLatch latch1 = new CountDownLatch(1);		
@@ -133,7 +133,7 @@ public class DatagramPacketSendingHandlerTests {
 	@Test
 	@Ignore
 	public void verifySendMulticast() throws Exception {
-		final int testPort = SocketUtils.findAvailableUdpSocket();
+		final int testPort = SocketTestUtils.findAvailableUdpSocket();
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foo";
 		final CountDownLatch latch1 = new CountDownLatch(2);
@@ -184,8 +184,8 @@ public class DatagramPacketSendingHandlerTests {
 	@Test
 	@Ignore
 	public void verifySendMulticastWithAcks() throws Exception {
-		final int testPort = SocketUtils.findAvailableUdpSocket();
-		final int ackPort = SocketUtils.findAvailableUdpSocket(testPort + 1);
+		final int testPort = SocketTestUtils.findAvailableUdpSocket();
+		final int ackPort = SocketTestUtils.findAvailableUdpSocket(testPort + 1);
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foobar";
 		final CountDownLatch latch1 = new CountDownLatch(2);

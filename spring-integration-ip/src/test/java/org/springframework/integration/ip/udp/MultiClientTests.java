@@ -22,7 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -48,7 +48,7 @@ public class MultiClientTests {
 	public void testNoAck() throws Exception {
 		final String payload = largePayload(1000); 
 		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket());
+			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket());
 		int drivers = 10;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -58,7 +58,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			Thread t = new Thread( new Runnable() {
 				public void run() {
@@ -89,7 +89,7 @@ public class MultiClientTests {
 		Thread.sleep(1000);
 		final String payload = largePayload(1000); 
 		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), false);
+			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket(), false);
 		int drivers = 5;
 		adapter.setPoolSize(drivers);
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -99,7 +99,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
@@ -107,7 +107,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							false, true, "localhost",
-							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
+							SocketTestUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
 							10000);
 					while (true) {
 						Message<?> message = queueIn.receive();
@@ -134,7 +134,7 @@ public class MultiClientTests {
 		Thread.sleep(1000);
 		final String payload = largePayload(1000); 
 		final UnicastReceivingChannelAdapter adapter = 
-			new UnicastReceivingChannelAdapter(SocketUtils.findAvailableUdpSocket(), true);
+			new UnicastReceivingChannelAdapter(SocketTestUtils.findAvailableUdpSocket(), true);
 		int drivers = 10;
 		adapter.setPoolSize(drivers); 
 		QueueChannel queue = new QueueChannel(drivers * 3);
@@ -144,7 +144,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
@@ -152,7 +152,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							true, true, "localhost",
-							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
+							SocketTestUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);
 					while (true) {
 						Message<?> message = queueIn.receive();

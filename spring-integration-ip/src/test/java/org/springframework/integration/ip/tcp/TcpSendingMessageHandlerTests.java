@@ -57,7 +57,7 @@ import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionF
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -77,7 +77,7 @@ public class TcpSendingMessageHandlerTests {
 	
 	@Test
 	public void newTestNetCrLf() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -126,7 +126,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioCrLf() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -178,7 +178,7 @@ public class TcpSendingMessageHandlerTests {
 	
 	@Test
 	public void newTestNetStxEtx() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -227,7 +227,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioStxEtx() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -279,7 +279,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetLength() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -331,7 +331,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioLength() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -386,7 +386,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetSerial() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -434,7 +434,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioSerial() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -485,7 +485,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetSingleUseNoInbound() throws Exception  {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -526,7 +526,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioSingleUseNoInbound() throws Exception  {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -567,7 +567,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetSingleUseWithInbound() throws Exception  {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -622,7 +622,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioSingleUseWithInbound() throws Exception  {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -677,7 +677,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioSingleUseWithInboundMany() throws Exception  {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -743,7 +743,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetNegotiate() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -810,7 +810,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioNegotiate() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -875,7 +875,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNetNegotiateSingleNoListen() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -932,7 +932,7 @@ public class TcpSendingMessageHandlerTests {
 
 	@Test
 	public void newTestNioNegotiateSingleNoListen() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {

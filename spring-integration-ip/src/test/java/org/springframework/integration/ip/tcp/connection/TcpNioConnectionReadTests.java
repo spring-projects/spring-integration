@@ -38,7 +38,7 @@ import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerial
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 
 /**
  * @author Gary Russell
@@ -79,7 +79,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadLength() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -93,14 +93,14 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendLength(port, latch);
+		SocketTestUtils.testSendLength(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -110,7 +110,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testFragmented() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -128,7 +128,7 @@ public class TcpNioConnectionReadTests {
 		int howMany = 2;
 		scf.setPoolSize(howMany + 5);
 		// Fire up the sender.
-		SocketUtils.testSendFragmented(port, howMany, false);
+		SocketTestUtils.testSendFragmented(port, howMany, false);
 		assertTrue(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS));
 		assertEquals("Expected", howMany, responses.size());
 		for (int i = 0; i < howMany; i++) {
@@ -144,7 +144,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadStxEtx() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -158,14 +158,14 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendStxEtx(port, latch);
+		SocketTestUtils.testSendStxEtx(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -176,7 +176,7 @@ public class TcpNioConnectionReadTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testReadCrLf() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -190,14 +190,14 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendCrLf(port, latch);
+		SocketTestUtils.testSendCrLf(port, latch);
 		latch.countDown();
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
 		assertEquals("Did not receive data", 2, responses.size());
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 						         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
 		         new String(((Message<byte[]>) responses.get(1)).getPayload()));
 		scf.close();
 	}
@@ -207,7 +207,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadLengthOverflow() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
@@ -232,7 +232,7 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendLengthOverflow(port);
+		SocketTestUtils.testSendLengthOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(removed.size() > 0);
@@ -244,7 +244,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -270,7 +270,7 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendStxEtxOverflow(port);
+		SocketTestUtils.testSendStxEtxOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(removed.size() > 0);
@@ -282,7 +282,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -308,7 +308,7 @@ public class TcpNioConnectionReadTests {
 		
 		// Fire up the sender.
 		
-		SocketUtils.testSendCrLfOverflow(port);
+		SocketTestUtils.testSendCrLfOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
 		assertTrue(removed.size() > 0);
@@ -322,7 +322,7 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testCloseCleanupNoData() throws Exception {
-		int port = SocketUtils.findAvailableServerSocket();
+		int port = SocketTestUtils.findAvailableServerSocket();
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
@@ -391,7 +391,7 @@ public class TcpNioConnectionReadTests {
 	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
 			throws Exception, IOException, UnknownHostException,
 			InterruptedException {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();

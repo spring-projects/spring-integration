@@ -36,14 +36,14 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.channel.ChannelResolver;
 
 public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -78,7 +78,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNetNotSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -108,7 +108,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
 		scf.setSingleUse(true);
 		TcpInboundGateway gateway = new TcpInboundGateway();
@@ -146,7 +146,7 @@ public class TcpInboundGatewayTests {
 
 	@Test
 	public void testNioNotSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
 		scf.setSingleUse(false);
 		TcpInboundGateway gateway = new TcpInboundGateway();

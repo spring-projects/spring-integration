@@ -13,7 +13,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -24,7 +24,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
+		int port = SocketTestUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -32,13 +32,13 @@ public class UdpChannelAdapterTests {
 		adapter.setTaskScheduler(taskScheduler);
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		DatagramPacket packet = mapper.fromMessage(message);
 		packet.setSocketAddress(new InetSocketAddress("localhost", port));
-		new DatagramSocket(SocketUtils.findAvailableUdpSocket()).send(packet);
+		new DatagramSocket(SocketTestUtils.findAvailableUdpSocket()).send(packet);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
 	}
@@ -47,7 +47,7 @@ public class UdpChannelAdapterTests {
 	@Test
 	public void testUnicastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
+		int port = SocketTestUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -55,14 +55,14 @@ public class UdpChannelAdapterTests {
 		adapter.setTaskScheduler(taskScheduler);
 //		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 
 //		String whichNic = SocketUtils.chooseANic(false);
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
 				"localhost", port, false, true,
 				"localhost",
 //				whichNic, 
-				SocketUtils.findAvailableUdpSocket(), 5000);
+				SocketTestUtils.findAvailableUdpSocket(), 5000);
 //		handler.setLocalAddress(whichNic);
 		handler.afterPropertiesSet();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
@@ -75,20 +75,20 @@ public class UdpChannelAdapterTests {
 	@Test @Ignore
 	public void testMulticastReceiver() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
+		int port = SocketTestUtils.findAvailableUdpSocket();
 		MulticastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.8", port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
-		String nic = SocketUtils.chooseANic(true);
+		String nic = SocketTestUtils.chooseANic(true);
 		if (nic == null) {	// no multicast support
 			LogFactory.getLog(this.getClass()).error("No Multicast support");
 			return;
 		}
 		adapter.setLocalAddress(nic);
 		adapter.start();
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -105,20 +105,20 @@ public class UdpChannelAdapterTests {
 	@Test @Ignore
 	public void testMulticastSender() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableUdpSocket();
+		int port = SocketTestUtils.findAvailableUdpSocket();
 		UnicastReceivingChannelAdapter adapter = new MulticastReceivingChannelAdapter("225.6.7.9", port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
-		String nic = SocketUtils.chooseANic(true);
+		String nic = SocketTestUtils.chooseANic(true);
 		if (nic == null) {	// no multicast support
 			LogFactory.getLog(this.getClass()).error("No Multicast support");
 			return;
 		}
 		adapter.setLocalAddress(nic);
 		adapter.start();
-		SocketUtils.waitListening(adapter);
+		SocketTestUtils.waitListening(adapter);
 		
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler("225.6.7.9", port);
 		handler.setLocalAddress(nic);

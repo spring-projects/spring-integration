@@ -31,7 +31,7 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.core.serializer.DefaultSerializer;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 
 /**
  * @author Gary Russell
@@ -41,7 +41,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteLengthHeader() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -74,7 +74,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteStxEtx() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -107,7 +107,7 @@ public class SerializationTests {
 
 	@Test
 	public void testWriteCrLf() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);
@@ -140,7 +140,7 @@ public class SerializationTests {
 	
 	@Test
 	public void testWriteSerialized() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		server.setSoTimeout(10000);

@@ -39,11 +39,11 @@ import org.springframework.integration.ip.AbstractInternetProtocolReceivingChann
  * @author Gary Russell
  *
  */
-public class SocketUtils {
+public class SocketTestUtils {
 
 	public static final String TEST_STRING = "TestMessage";
 
-	private static final Log logger = LogFactory.getLog(SocketUtils.class);
+	private static final Log logger = LogFactory.getLog(SocketTestUtils.class);
 	
 	/**
 	 * Sends a message in two chunks with a preceding length. Two such messages are sent.

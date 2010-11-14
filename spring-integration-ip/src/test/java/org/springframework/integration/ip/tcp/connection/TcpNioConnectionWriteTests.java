@@ -32,7 +32,7 @@ import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerial
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -54,7 +54,7 @@ public class TcpNioConnectionWriteTests {
 	
 	@Test
 	public void testWriteLengthHeader() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
@@ -87,7 +87,7 @@ public class TcpNioConnectionWriteTests {
 
 	@Test
 	public void testWriteStxEtx() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
@@ -120,7 +120,7 @@ public class TcpNioConnectionWriteTests {
 
 	@Test
 	public void testWriteCrLf() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
@@ -153,7 +153,7 @@ public class TcpNioConnectionWriteTests {
 
 	@Test
 	public void testWriteLengthHeaderDirect() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
@@ -186,7 +186,7 @@ public class TcpNioConnectionWriteTests {
 
 	@Test
 	public void testWriteStxEtxDirect() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
@@ -220,7 +220,7 @@ public class TcpNioConnectionWriteTests {
 
 	@Test
 	public void testWriteCrLfDirect() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);

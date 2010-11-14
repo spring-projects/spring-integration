@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 
 
@@ -44,7 +44,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testWriteTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", port);
 		factory.setSoTimeout(1000);
 		factory.start();
@@ -74,7 +74,7 @@ public class TcpNioConnectionTests {
 
 	@Test
 	public void testReadTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		TcpNioClientConnectionFactory factory = new TcpNioClientConnectionFactory("localhost", port);
 		factory.setSoTimeout(1000);
 		factory.start();

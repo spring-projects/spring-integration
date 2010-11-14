@@ -45,7 +45,7 @@ import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
-import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -56,7 +56,7 @@ public class TcpOutboundGatewayTests {
 
 	@Test 
 	public void testGoodNetSingle() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -110,7 +110,7 @@ public class TcpOutboundGatewayTests {
 
 	@Test 
 	public void testGoodNetMultiplex() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
@@ -161,7 +161,7 @@ public class TcpOutboundGatewayTests {
 
 	@Test 
 	public void testGoodNetTimeout() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
+		final int port = SocketTestUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
