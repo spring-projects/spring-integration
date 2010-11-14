@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
+	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
 
 	<int:channel id="udpChannel" />
 	<int:channel id="tcpChannel" />

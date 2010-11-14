@@ -23,7 +23,7 @@ import java.net.Socket;
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class SocketIoUtils {
+public abstract class SocketUtils {
 
 	public static String getSocketId(Socket socket) {
 		InetAddress inetAddress = socket.getInetAddress();

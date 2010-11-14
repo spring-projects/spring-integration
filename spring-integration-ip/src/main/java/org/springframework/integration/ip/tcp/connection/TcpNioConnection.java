@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
-import org.springframework.integration.ip.util.SocketIoUtils;
+import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * A TcpConnection that uses and underlying {@link SocketChannel}.
@@ -340,7 +340,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	public String getConnectionId() {
 		if (this.connectionId == null) {
-			this.connectionId = SocketIoUtils.getSocketId(this.socketChannel.socket());			
+			this.connectionId = SocketUtils.getSocketId(this.socketChannel.socket());			
 		}
 		return this.connectionId;
 	}
