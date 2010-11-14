@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
+@SuppressWarnings("deprecation")
 public class RmiInboundGateway extends RemotingInboundGatewaySupport implements InitializingBean {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframework.integration.rmiGateway.";

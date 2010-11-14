@@ -25,6 +25,7 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  * 
  * @author Mark Fisher
  */
+@SuppressWarnings("deprecation")
 public class RmiOutboundGateway extends AbstractRemotingOutboundGateway {
 
 	public RmiOutboundGateway(String url) {
