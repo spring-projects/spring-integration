@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -31,12 +32,11 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class XmppConnectionParserTests {
 	
 	@Test
-	public void testSmackSasl(){
+	public void testSmackSasl() {
 		/*
 		 * Possible SASL mechanisms
 		 * EXTERNAL, GSSAPI, DIGEST-MD5, CRAM-MD5, PLAIN, ANONYMOUS
@@ -48,7 +48,7 @@ public class XmppConnectionParserTests {
 	}
 
 	@Test
-	public void testSimpleConfiguration(){
+	public void testSimpleConfiguration() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTest-simple.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
 		assertNull(connection.getServiceName());
@@ -62,8 +62,9 @@ public class XmppConnectionParserTests {
 		assertEquals("localhost", configuration.getHost());
 		assertEquals(5222, configuration.getPort());
 	}
+
 	@Test
-	public void testCompleteConfiguration(){
+	public void testCompleteConfiguration() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTest-complete.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
 		assertNull(connection.getServiceName());
@@ -78,4 +79,5 @@ public class XmppConnectionParserTests {
 		assertEquals(6222, configuration.getPort());
 		assertEquals("foogle.com", configuration.getServiceName());
 	}
+
 }

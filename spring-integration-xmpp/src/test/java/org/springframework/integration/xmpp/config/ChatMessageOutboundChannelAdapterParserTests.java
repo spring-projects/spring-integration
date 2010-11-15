@@ -28,9 +28,11 @@ import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -40,48 +42,46 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
  */
-public class XmppMessageOutboundEndpointParserTests {
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class ChatMessageOutboundChannelAdapterParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
-	public void testPollingConsumer(){
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
+	public void testPollingConsumer() {
 		Object pollingConsumer = context.getBean("outboundPollingAdapter");
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
 		assertEquals("outboundPollingChannel", channel.getComponentName());
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 	}
-	
+
 	@Test
-	public void testEventConsumerWithNoChannel(){
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
+	public void testEventConsumerWithNoChannel() {
 		Object eventConsumer = context.getBean("outboundNoChannelAdapter");
 		assertTrue(eventConsumer instanceof SubscribableChannel);
 	}
-	
+
 	@Test
-	public void testEventConsumer(){
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
+	public void testEventConsumer() {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
-	
+
 	@Test
 	public void testPollingConsumerUsage() throws Exception{
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("XmppMessageOutboundEndpointParserTests-context.xml", XmppMessageOutboundEndpointParserTests.class);
 		Object pollingConsumer = context.getBean("outboundPollingAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.CHAT_TO, "oleg").build();
-		
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
 		ChatManager chatManager = mock(ChatManager.class);
 		when(connection.getChatManager()).thenReturn(chatManager);
@@ -90,4 +90,5 @@ public class XmppMessageOutboundEndpointParserTests {
 		channel.send(message);
 		verify(chat, times(1)).sendMessage("hello");
 	}
+
 }

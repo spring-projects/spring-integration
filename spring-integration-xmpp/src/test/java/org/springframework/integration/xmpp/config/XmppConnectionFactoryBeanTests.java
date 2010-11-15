@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertNotNull;
@@ -26,19 +27,20 @@ import org.springframework.integration.xmpp.config.XmppConnectionFactoryBean;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class XmppConnectionFactoryBeanTests {
 
 	@Test
-	public void testXmppConnectionFactoryBean() throws Exception{
+	public void testXmppConnectionFactoryBean() throws Exception {
 		XmppConnectionFactoryBean xmppConnectionFactoryBean = new XmppConnectionFactoryBean(mock(ConnectionConfiguration.class));
 		XMPPConnection connection = xmppConnectionFactoryBean.createInstance();
 		assertNotNull(connection);
 	}
+
 	@Test
-	public void testXmppConnectionFactoryBeanViaConfig() throws Exception{
+	public void testXmppConnectionFactoryBeanViaConfig() throws Exception {
 		new ClassPathXmlApplicationContext("XmppConnectionFactoryBeanTests-context.xml", this.getClass());
 		// the fact that no exception was thrown satisfies this test
 	}
+
 }
