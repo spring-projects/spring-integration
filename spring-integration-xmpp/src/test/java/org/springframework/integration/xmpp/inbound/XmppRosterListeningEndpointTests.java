@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.inbound;
 
 import static junit.framework.Assert.assertEquals;
@@ -21,9 +22,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.jivesoftware.smack.Roster;
@@ -36,21 +35,20 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
-import org.springframework.integration.xmpp.inbound.RosterListeningEndpoint;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class XmppRosterListeningEndpointTests {
 
 	@Test
-	public void testEndpointLifecycle(){
+	public void testEndpointLifecycle() {
 		final Set<RosterListener> rosterSet = new HashSet<RosterListener>();
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
@@ -79,13 +77,13 @@ public class XmppRosterListeningEndpointTests {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testNonInitializedFailure(){
+	public void testNonInitializedFailure() {
 		RosterListeningEndpoint rosterEndpoint = new RosterListeningEndpoint(mock(XMPPConnection.class));
 		rosterEndpoint.start();
 	}
 	
 	@Test
-	public void testRosterPresenceChangeEvent(){
+	public void testRosterPresenceChangeEvent() {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
@@ -100,26 +98,9 @@ public class XmppRosterListeningEndpointTests {
 		Message<?> message = channel.receive(10);
 		assertEquals(presence, message.getPayload());
 	}
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+
 	@Test
-	public void testRosterEntriesEvents(){
-		XMPPConnection connection = mock(XMPPConnection.class);
-		Roster roster = mock(Roster.class);
-		when(connection.getRoster()).thenReturn(roster);
-		RosterListeningEndpoint rosterEndpoint = new RosterListeningEndpoint(connection);
-		QueueChannel channel = new QueueChannel();
-		rosterEndpoint.setRequestChannel(channel);
-		rosterEndpoint.afterPropertiesSet();
-		rosterEndpoint.start();
-		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
-		List entries = Arrays.asList(new String[]{"many", "moe", "jack"});
-		rosterListener.entriesUpdated(entries);
-		Message<?> message = channel.receive(10);
-		assertEquals(entries, message.getPayload());
-	}
-	
-	@Test
-	public void testWithImplicitXmppConnection(){
+	public void testWithImplicitXmppConnection() {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		RosterListeningEndpoint endpoint = new RosterListeningEndpoint();
@@ -129,8 +110,9 @@ public class XmppRosterListeningEndpointTests {
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
-	public void testNoXmppConnection(){
+	public void testNoXmppConnection() {
 		RosterListeningEndpoint handler = new RosterListeningEndpoint();
 		handler.afterPropertiesSet();
 	}
+
 }

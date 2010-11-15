@@ -29,10 +29,7 @@ import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
 
@@ -48,8 +45,6 @@ import org.springframework.util.Assert;
 public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private static final Log logger = LogFactory.getLog(RosterListeningEndpoint.class);
-
-	private volatile MessageChannel requestChannel;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
@@ -69,7 +64,7 @@ public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
 	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.requestChannel = requestChannel;
+		this.messagingTemplate.setDefaultChannel(requestChannel);
 	}
 
 	@Override
@@ -86,51 +81,32 @@ public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
 	}
 
-	/**
-	 * Called whenever an event happens related to the {@link Roster}.
-	 */
-	private void forwardRosterEvent(Object event) {	
-		Message<?> message = null;
-		try {
-			message = MessageBuilder.withPayload(event).build();
-			this.messagingTemplate.send(this.requestChannel, message);
-		}
-		catch (MessagingException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "Failed to send roster event message", e);
-		}
-	}
 
 	/**
-	 * RosterListener that subscribes to a given {@link Roster}'s events 
-	 * and forwards them to a message channel.
+	 * RosterListener that subscribes to a given {@link Roster}'s events.
+	 * Presence changes will be forwarded to a message channel.
+	 * All others are only logged at debug level.
 	 */
 	private class EventForwardingRosterListener implements RosterListener {
 
 		public void entriesAdded(Collection<String> entries) {
 			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEvent(entries);
 		}
 
 		public void entriesUpdated(Collection<String> entries) {
 			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEvent(entries);
 		}
 
 		public void entriesDeleted(Collection<String> entries) {
 			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
-			forwardRosterEvent(entries);
 		}
 
 		public void presenceChanged(Presence presence) {
 			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
-			forwardRosterEvent(presence);
+			messagingTemplate.convertAndSend(presence);
 		}
 	}
 
