@@ -125,6 +125,7 @@ class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 		factory.setRemoteWorkingDirectory(this.remoteDirectory);
 		factory.setFileType(this.fileType);
 		factory.setClientMode(this.clientMode);
+		
 		factory.setCipherSuites(this.cipherSuites);
 		factory.setAuthValue(this.authValue);
 		factory.setTrustManager(this.trustManager);
