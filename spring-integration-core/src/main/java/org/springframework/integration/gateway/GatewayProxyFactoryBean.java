@@ -189,6 +189,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.typeConverter = typeConverter;
 	}
 
+	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
+		this.methodMetadataMap = methodMetadataMap;
+	}
+	
+	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
+		this.exceptionMapper = exceptionMapper;
+	}
+
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
 	}
@@ -395,18 +403,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
 			gateway.stop();
 		}
-	}
-	
-	public void setMethodMetadataMap(Map<String, GatewayMethodMetadata> methodMetadataMap) {
-		this.methodMetadataMap = methodMetadataMap;
-	}
-	
-	public InboundMessageMapper<Throwable> getExceptionMapper() {
-		return exceptionMapper;
-	}
-
-	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
-		this.exceptionMapper = exceptionMapper;
 	}
 
 	@SuppressWarnings("unchecked")
