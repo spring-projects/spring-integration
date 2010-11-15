@@ -85,6 +85,13 @@ public class ChainParserTests {
 
 	@Autowired
 	private MessageChannel payloadTypeRouterInput;
+	
+	@Autowired
+	@Qualifier("claimCheckInput")
+	private MessageChannel claimCheckInput;
+	@Autowired
+	@Qualifier("claimCheckOutput")
+	private PollableChannel claimCheckOutput;
 
 	@Autowired
 	private PollableChannel strings;
@@ -190,6 +197,13 @@ public class ChainParserTests {
 		assertEquals(9876, sendTimeout);
 	}
 
+	@Test //INT-1622
+	public void chainWithClaimChecks() {
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.claimCheckInput.send(message);
+		Message<?> reply = this.claimCheckOutput.receive(0);
+		assertEquals(message.getPayload(), reply.getPayload());
+	}
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override

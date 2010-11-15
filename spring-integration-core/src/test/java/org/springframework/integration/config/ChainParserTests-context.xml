@@ -74,6 +74,15 @@
 		</payload-type-router>
 	</chain>
 
+  <chain id="chainWithClaimChecks" input-channel="claimCheckInput" output-channel="claimCheckOutput">
+     <claim-check-in/>
+     <claim-check-out/>
+  </chain>
+  
+  <channel id="claimCheckOutput">
+    <queue/>
+  </channel>
+
 	<chain id="chainWithSendTimeout" input-channel="chainWithSendTimeoutInput" output-channel="output" send-timeout="9876">
 		<filter ref="typeSelector" />
 		<service-activator ref="testHandler" />
@@ -104,5 +113,7 @@
 		<beans:constructor-arg value="1" />
 		<beans:property name="replyMessageText" value="foo" />
 	</beans:bean>
+	
+	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 </beans:beans>
