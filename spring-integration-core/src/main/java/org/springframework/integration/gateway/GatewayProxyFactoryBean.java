@@ -70,8 +70,6 @@ import org.springframework.util.StringUtils;
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
-	private volatile InboundMessageMapper<Throwable> exceptionMapper;
-
 	private volatile Class<?> serviceInterface;
 
 	private volatile MessageChannel defaultRequestChannel;
@@ -95,6 +93,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+
+	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile boolean initialized;
 
