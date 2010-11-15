@@ -27,12 +27,12 @@
 
 	<beans:bean id="eventProducer" class="org.springframework.integration.xmpp.presence.XmppRosterEventProducer"/>
 
-	<inbound-channel-adapter ref="eventProducer" channel="rosterPresenceUpdatingProducerChannel">
+	<inbound-channel-adapter ref="eventProducer" channel="outboundPresenceChannel">
 		<poller fixed-rate="1000">
 	</inbound-channel-adapter>
 
-	<channel id="rosterPresenceUpdatingProducerChannel"/>
+	<channel id="outboundPresenceChannel"/>
 
-	<xmpp:roster-event-outbound-channel-adapter xmpp-connection="testConnection" channel="rosterPresenceUpdatingProducerChannel"/>
+	<xmpp:presence-outbound-channel-adapter xmpp-connection="testConnection" channel="outboundPresenceChannel"/>
 
 </beans:beans>

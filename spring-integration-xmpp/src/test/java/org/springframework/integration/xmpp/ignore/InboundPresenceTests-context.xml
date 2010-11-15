@@ -19,23 +19,18 @@
 		<beans:property name="location" value="classpath:test.properties"/>
 	</beans:bean>
 
-	
-
 	<xmpp:xmpp-connection
 			id="testConnection"
 			user="${user.1.login}"
 			password="${user.1.password}"
 			host="${user.1.host}"
-			service-name="${user.1.service}"
-			/>
+			service-name="${user.1.service}"/>
 
+	<xmpp:presence-inbound-channel-adapter channel="inboundPresenceChannel" xmpp-connection="testConnection"/>
 	
+	<channel id="inboundPresenceChannel"/>
 
-	<xmpp:presence-inbound-channel-adapter channel="inboundRosterEventChannel" xmpp-connection="testConnection"/>
-	
-	<channel id="inboundRosterEventChannel"/>
-
-	<service-activator input-channel="inboundRosterEventChannel" output-channel="stdOutChannel" 
+	<service-activator input-channel="inboundPresenceChannel" output-channel="stdOutChannel" 
 					expression="'Presence event from: ' + payload.getFrom() + ' - ' + payload.getMode()"/>
 	
 	<channel id="stdOutChannel"/>

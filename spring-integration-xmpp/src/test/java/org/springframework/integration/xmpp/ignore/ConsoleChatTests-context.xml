@@ -14,7 +14,6 @@
 		http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
 		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-
 	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<beans:property name="location" value="classpath:test.properties"/>
 	</beans:bean>
@@ -36,10 +35,10 @@
 		<xmpp:message-to value="${user.2.login}"/>
 	</xmpp:header-enricher>
 
-	<xmpp:message-inbound-channel-adapter channel="stdout" xmpp-connection="testConnection"/>
+	<xmpp:inbound-channel-adapter channel="stdout" xmpp-connection="testConnection"/>
 
 	<channel id="messagesToSend"/>
 
-	<xmpp:message-outbound-channel-adapter channel="messagesToSend" xmpp-connection="testConnection"/>
+	<xmpp:outbound-channel-adapter channel="messagesToSend" xmpp-connection="testConnection"/>
 
 </beans:beans>

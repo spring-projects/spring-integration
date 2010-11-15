@@ -18,10 +18,7 @@
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
 
-	
 	<context:property-placeholder location="classpath:test.properties"/>
-
-	<channel id="xmppInbound"/>
 
 	<xmpp:xmpp-connection
 			id="testConnection"
@@ -30,11 +27,12 @@
 			host="${user.1.host}"
 			service-name="${user.1.service}"/>
 
-	<xmpp:message-inbound-channel-adapter channel="xmppInbound" xmpp-connection="testConnection" 
-						extract-payload="false"/>
+	<xmpp:inbound-channel-adapter channel="inboundChatChannel" xmpp-connection="testConnection" extract-payload="false"/>
 
-	<service-activator input-channel="xmppInbound" ref="xmppMessageConsumer"/>
-	
+	<channel id="inboundChatChannel"/>
+
+	<service-activator input-channel="inboundChatChannel" ref="xmppMessageConsumer"/>
+
 	<beans:bean id="xmppMessageConsumer" class="org.springframework.integration.xmpp.ignore.XmppMessageConsumer"/>
 
 </beans:beans>

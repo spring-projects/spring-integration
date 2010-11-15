@@ -24,12 +24,12 @@
             host="${user.1.host}"
             service-name="${user.1.service}"/>
 
-	<inbound-channel-adapter ref="xmppProducer" channel="outboundChannel">
+	<inbound-channel-adapter ref="xmppProducer" channel="outboundChatChannel">
 		<poller fixed-rate="1000"/>
 	</inbound-channel-adapter>
 
-	<channel id="outboundChannel"/>
+	<channel id="outboundChatChannel"/>
 
-	<xmpp:message-outbound-channel-adapter channel="outboundChannel" xmpp-connection="testConnection"/>
+	<xmpp:outbound-channel-adapter channel="outboundChatChannel" xmpp-connection="testConnection"/>
 
 </beans:beans>

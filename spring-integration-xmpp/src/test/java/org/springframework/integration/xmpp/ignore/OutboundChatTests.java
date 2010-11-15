@@ -19,24 +19,23 @@ package org.springframework.integration.xmpp.ignore;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Tests {@link PresenceSendingMessageHandler} to ensure that we are able to publish status.
+ * Testing support for sending messages.
  *
  * @author Josh Long
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class OutboundXmppRosterEventsEndpointTests {
+public class OutboundChatTests {
 
 	@Test
 	@Ignore
-	public void testOutbound() throws Throwable {
-		Thread.sleep(60 * 1000);
+	public void run() throws Exception {
+		Thread.sleep(10 * 1000*100);
 	}
+
 }
