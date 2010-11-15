@@ -18,10 +18,9 @@ package org.springframework.integration.xmpp.inbound;
 
 import java.util.Collection;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -32,10 +31,11 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
- * Describes an inbound endpoint that is able to login and then emit {@link Message}s when a 
- * particular Presence event happens to the logged in user's {@link Roster}. 
+ * An inbound endpoint that is able to login and then emit {@link Message}s when a 
+ * particular Presence event occurs within the logged-in user's {@link Roster}. 
  * (e.g., logged in/out, changed status etc.)
  *
  * @author Josh Long
@@ -45,6 +45,7 @@ import org.springframework.util.Assert;
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
 	private static final Log logger = LogFactory.getLog(PresenceListeningEndpoint.class);
+
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
@@ -69,14 +70,16 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
+		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
 		Roster roster = this.xmppConnection.getRoster();
-		roster.addRosterListener(rosterListener);
+		roster.addRosterListener(this.rosterListener);
 	}
 
 	@Override
 	protected void doStop() {
-		this.xmppConnection.getRoster().removeRosterListener(rosterListener);
+		if (this.xmppConnection != null) {
+			this.xmppConnection.getRoster().removeRosterListener(this.rosterListener);
+		}
 	}
 
 	@Override
@@ -94,20 +97,30 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	private class EventForwardingRosterListener implements RosterListener {
 
 		public void entriesAdded(Collection<String> entries) {
-			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
+			if (logger.isDebugEnabled()) {
+				logger.debug("entries added: " + StringUtils.collectionToCommaDelimitedString(entries));
+			}
 		}
 
 		public void entriesUpdated(Collection<String> entries) {
-			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
+			if (logger.isDebugEnabled()) {
+				logger.debug("entries updated: " + StringUtils.collectionToCommaDelimitedString(entries));
+			}
 		}
 
 		public void entriesDeleted(Collection<String> entries) {
-			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
+			if (logger.isDebugEnabled()) {
+				logger.debug("entries deleted: " + StringUtils.collectionToCommaDelimitedString(entries));
+			}
 		}
 
 		public void presenceChanged(Presence presence) {
-			logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
-			messagingTemplate.convertAndSend(presence);
+			if (presence != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
+				}
+				messagingTemplate.convertAndSend(presence);
+			}
 		}
 	}
 

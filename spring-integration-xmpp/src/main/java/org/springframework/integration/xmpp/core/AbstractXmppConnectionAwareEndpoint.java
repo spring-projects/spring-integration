@@ -42,13 +42,13 @@ public abstract class AbstractXmppConnectionAwareEndpoint extends AbstractEndpoi
 
 
 	protected void onInit() throws Exception {
-		BeanFactory bf = this.getBeanFactory();
-		if (xmppConnection == null && bf != null) {
-			xmppConnection = bf.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.xmppConnection == null && beanFactory != null) {
+			this.xmppConnection = beanFactory.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);
 		}
-		Assert.notNull(xmppConnection, "Failed to resolve XMPPConnection. XMPPConnection must either be set expicitly " +
-				"via 'xmpp-connection' attribute or implicitly by registering a bean with the name 'xmppConnection' and of type " +
-				"'org.jivesoftware.smack.XMPPConnection' in the Application Context");
+		Assert.notNull(this.xmppConnection, "Failed to resolve XMPPConnection. XMPPConnection must either be set expicitly " +
+				"via the 'xmpp-connection' attribute or implicitly by registering a bean with the name 'xmppConnection' and of type " +
+				"'org.jivesoftware.smack.XMPPConnection' in the Application Context.");
 		this.initialized = true;
 	}
 

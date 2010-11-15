@@ -42,14 +42,12 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile MessageChannel requestChannel;
-
 	private volatile boolean extractPayload = true;
-	
-	private volatile PacketListener packetListener;
+
+	private final PacketListener packetListener = new ChatMessagePublishingPacketListener();
 
 
-	public ChatMessageListeningEndpoint(){
+	public ChatMessageListeningEndpoint() {
 		super();
 	}
 
@@ -62,7 +60,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	 * @param requestChannel the channel on which the inbound message should be sent
 	 */
 	public void setRequestChannel(MessageChannel requestChannel) {
-		this.requestChannel = requestChannel;
+		this.messagingTemplate.setDefaultChannel(requestChannel);
 	}
 
 	/**
@@ -77,35 +75,36 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.messagingTemplate.afterPropertiesSet();
-		this.packetListener = new PacketListener() {
-			public void processPacket(final Packet packet) {
-				if (packet instanceof org.jivesoftware.smack.packet.Message) {
-					org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
-					forwardXmppMessage(xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread()), xmppMessage);
-				}
-			}
-		};
 	}
 
 	@Override
 	protected void doStart() {
-		Assert.isTrue(this.initialized, this.getComponentName() + " must be initialized");
-		xmppConnection.addPacketListener(this.packetListener, null);
+		Assert.isTrue(this.initialized, this.getComponentName() + " [" + this.getComponentType() + "] must be initialized");
+		this.xmppConnection.addPacketListener(this.packetListener, null);
 	}
 
 	@Override
 	protected void doStop() {
-		xmppConnection.removePacketListener(this.packetListener);
+		if (this.xmppConnection != null) {
+			this.xmppConnection.removePacketListener(this.packetListener);
+		}
 	}
 
-	private void forwardXmppMessage(Chat chat, Message xmppMessage) {
-		Object payload = (this.extractPayload ? xmppMessage.getBody() : xmppMessage);
-		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
-				.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
-				.setHeader(XmppHeaders.CHAT, chat);
-		this.messagingTemplate.send(requestChannel, messageBuilder.build());
+
+	private class ChatMessagePublishingPacketListener implements PacketListener {
+
+		public void processPacket(final Packet packet) {
+			if (packet instanceof org.jivesoftware.smack.packet.Message) {
+				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
+				Chat chat = xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread());
+				Object payload = (extractPayload ? xmppMessage.getBody() : xmppMessage);
+				MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
+						.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
+						.setHeader(XmppHeaders.CHAT, chat);
+				messagingTemplate.send(messageBuilder.build());
+			}
+		}
 	}
 
 }
