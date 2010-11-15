@@ -49,7 +49,7 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
-	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
+	private final PresencePublishingRosterListener rosterListener = new PresencePublishingRosterListener();
 
 
 	public PresenceListeningEndpoint() {
@@ -91,10 +91,10 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 
 	/**
 	 * RosterListener that subscribes to a given {@link Roster}'s events.
-	 * Presence changes will be forwarded to a message channel.
-	 * All others are only logged at debug level.
+	 * Presence changes will be published to a message channel.
+	 * All other roster events are only logged at debug level.
 	 */
-	private class EventForwardingRosterListener implements RosterListener {
+	private class PresencePublishingRosterListener implements RosterListener {
 
 		public void entriesAdded(Collection<String> entries) {
 			if (logger.isDebugEnabled()) {

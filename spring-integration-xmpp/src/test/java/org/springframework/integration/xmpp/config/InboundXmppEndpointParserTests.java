@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -28,19 +29,19 @@ import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class InboundXmppEndpointParserTests {
 
 	@Test
 	public void testInboundAdapter(){
-		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("InboundXmppEndpointParserTests-context.xml", this.getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"InboundXmppEndpointParserTests-context.xml", this.getClass());
 		ChatMessageListeningEndpoint xmde = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		assertFalse(xmde.isAutoStartup());
-		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(xmde, "requestChannel");
+		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(xmde, "messagingTemplate.defaultChannel");
 		assertEquals("xmppInbound", channel.getComponentName());
 		XMPPConnection connection = (XMPPConnection)TestUtils.getPropertyValue(xmde, "xmppConnection");
 		assertEquals(connection, context.getBean("testConnection"));
 	}
+
 }

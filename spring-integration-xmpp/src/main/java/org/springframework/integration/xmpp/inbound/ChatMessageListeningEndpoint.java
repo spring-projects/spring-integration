@@ -19,7 +19,6 @@ package org.springframework.integration.xmpp.inbound;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 
 import org.springframework.integration.MessageChannel;
