@@ -43,6 +43,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
@@ -141,8 +143,7 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		return (Resource) resourceEditor.getValue();
 	}
 
-	protected AbstractFtpClientFactory<?> defaultClientFactory() throws Exception {
-		DefaultFtpClientFactory factory = new DefaultFtpClientFactory();
+	protected AbstractFtpClientFactory<?> initializeFactory(AbstractFtpClientFactory<?> factory) throws Exception {
 		factory.setHost(this.host);
 		if (StringUtils.hasText(this.port)) {
 			factory.setPort(Integer.parseInt(this.port));
@@ -176,7 +177,8 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		if (this.filter != null) {
 			compositeFilter.addFilter(this.filter);
 		}
-		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.defaultClientFactory());
+		AbstractFtpClientFactory<?> factory = this.createClientFactory();
+		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.initializeFactory(factory));
 		FtpInboundRemoteFileSystemSynchronizer synchronizer = new FtpInboundRemoteFileSystemSynchronizer();
 		synchronizer.setClientPool(queuedFtpClientPool);
 		synchronizer.setLocalDirectory(this.localDirectoryResource);
@@ -191,6 +193,10 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		messageSource.afterPropertiesSet();
 		messageSource.start();
 		return messageSource;
+	}
+	
+	protected AbstractFtpClientFactory<?> createClientFactory(){
+		return new DefaultFtpClientFactory();
 	}
 
 }

@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps-2.0.xsd">
 
 
-	<int-ftps:outbound-channel-adapter 
+	<int-ftps:inbound-channel-adapter 
 				id="ftpOutbound"
 				username="user" 
 				password="password"
@@ -18,12 +18,18 @@
 				charset="UTF-8"
 				client-mode="active-local-data-connection-mode"
 				file-type="binary-file-type"
-				filename-generator="fileNameGenerator"
-				port="22"/>
+				port="22"
+				auto-create-directories="true"
+				auto-delete-remote-files-on-sync="true"
+				filename-pattern=".?txt"
+				filter="entryListFilter"
+				local-working-directory=".">
+			<int:poller fixed-rate="1000"/>
+	</int-ftps:inbound-channel-adapter>
 				
 	<int:channel id="ftpChannel"/>
 	
-	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>
 </beans>

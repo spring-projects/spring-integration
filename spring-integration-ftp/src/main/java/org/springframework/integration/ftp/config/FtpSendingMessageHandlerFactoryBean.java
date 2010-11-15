@@ -30,24 +30,26 @@ import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
  * 
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> {
 
-	protected int port;
+	protected volatile int port;
 
-	protected String username;
+	protected volatile String username;
 
-	protected String password;
+	protected volatile String password;
 
-	protected String host;
+	protected volatile String host;
 
-	protected String remoteDirectory;
+	protected volatile String remoteDirectory;
 
-	private String charset;
+	private  volatile String charset;
 
-	protected int clientMode;
+	protected volatile int clientMode;
 
-	private int fileType;
+	private volatile int fileType;
 
 	private FileNameGenerator fileNameGenerator;
 
@@ -93,21 +95,24 @@ class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSending
 		return FtpSendingMessageHandler.class;
 	}
 
-	protected AbstractFtpClientFactory<?> clientFactory() {
-		DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
-		defaultFtpClientFactory.setHost(this.host);
-		defaultFtpClientFactory.setPort(this.port);
-		defaultFtpClientFactory.setUsername(this.username);
-		defaultFtpClientFactory.setPassword(this.password);
-		defaultFtpClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
-		defaultFtpClientFactory.setClientMode(this.clientMode);
-		defaultFtpClientFactory.setFileType(this.fileType);
-		return defaultFtpClientFactory;
+	protected AbstractFtpClientFactory<?> initializeClientFactory(AbstractFtpClientFactory<?> factory) {
+		factory.setHost(this.host);
+		factory.setPort(this.port);
+		factory.setUsername(this.username);
+		factory.setPassword(this.password);
+		factory.setRemoteWorkingDirectory(this.remoteDirectory);
+		factory.setClientMode(this.clientMode);
+		factory.setFileType(this.fileType);
+		return factory;
+	}
+	
+	protected AbstractFtpClientFactory<?> createClientFactory(){
+		return new DefaultFtpClientFactory();
 	}
 
 	@Override
 	protected FtpSendingMessageHandler createInstance() throws Exception {
-		AbstractFtpClientFactory<?> defaultFtpClientFactory = clientFactory();
+		AbstractFtpClientFactory<?> defaultFtpClientFactory = this.initializeClientFactory(this.createClientFactory());
 		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultFtpClientFactory);
 		FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(
 				queuedFtpClientPool);

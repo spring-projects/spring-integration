@@ -16,19 +16,21 @@
 
 package org.springframework.integration.ftp.config;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+
 import org.apache.commons.net.ftp.FTPClient;
 
 import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
 import org.springframework.integration.ftp.client.DefaultFtpsClientFactory;
 import org.springframework.util.StringUtils;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
-
 /**
  * Factory to make building the namespace easier.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean {
 
@@ -114,36 +116,31 @@ class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 		this.cipherSuites = cipherSuites;
 	}
 
-	protected AbstractFtpClientFactory<?> defaultClientFactory() throws Exception {
-		DefaultFtpsClientFactory factory = new DefaultFtpsClientFactory();
-		factory.setHost(this.host);
-		if (StringUtils.hasText(this.port)) {
-			factory.setPort(Integer.parseInt(this.port));
-		}
-		factory.setUsername(this.username);
-		factory.setPassword(this.password);
-		factory.setRemoteWorkingDirectory(this.remoteDirectory);
-		factory.setFileType(this.fileType);
-		factory.setClientMode(this.clientMode);
-		
-		factory.setCipherSuites(this.cipherSuites);
-		factory.setAuthValue(this.authValue);
-		factory.setTrustManager(this.trustManager);
-		factory.setKeyManager(this.keyManager);
-		factory.setNeedClientAuth(this.needClientAuth);
-		factory.setWantsClientAuth(this.wantsClientAuth);
-		factory.setSessionCreation(this.sessionCreation);
-		factory.setUseClientMode(this.useClientMode);
+	protected AbstractFtpClientFactory<?> initializeFactory(AbstractFtpClientFactory<?> factory) throws Exception {
+		super.initializeFactory(factory);
+		DefaultFtpsClientFactory ftpsFactory = (DefaultFtpsClientFactory) factory;
+		ftpsFactory.setCipherSuites(this.cipherSuites);
+		ftpsFactory.setAuthValue(this.authValue);
+		ftpsFactory.setTrustManager(this.trustManager);
+		ftpsFactory.setKeyManager(this.keyManager);
+		ftpsFactory.setNeedClientAuth(this.needClientAuth);
+		ftpsFactory.setWantsClientAuth(this.wantsClientAuth);
+		ftpsFactory.setSessionCreation(this.sessionCreation);
+		ftpsFactory.setUseClientMode(this.useClientMode);
 		if (StringUtils.hasText(this.prot)) {
-			factory.setProt(this.prot);
+			ftpsFactory.setProt(this.prot);
 		}
 		if (StringUtils.hasText(this.protocol)) {
-			factory.setProtocol(this.protocol);
+			ftpsFactory.setProtocol(this.protocol);
 		}
 		if (this.implicit != null) {
-			factory.setImplicit(this.implicit);
+			ftpsFactory.setImplicit(this.implicit);
 		}
 		return factory;
+	}
+	
+	protected AbstractFtpClientFactory<?> createClientFactory(){
+		return new DefaultFtpsClientFactory();
 	}
 
 }

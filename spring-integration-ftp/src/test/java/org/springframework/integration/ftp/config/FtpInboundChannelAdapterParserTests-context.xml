@@ -2,13 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-ftps="http://www.springframework.org/schema/integration/ftps"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps-2.0.xsd">
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
 
-	<int-ftps:outbound-channel-adapter 
+	<int-ftp:inbound-channel-adapter 
 				id="ftpOutbound"
 				username="user" 
 				password="password"
@@ -18,12 +18,18 @@
 				charset="UTF-8"
 				client-mode="active-local-data-connection-mode"
 				file-type="binary-file-type"
-				filename-generator="fileNameGenerator"
-				port="22"/>
+				port="22"
+				auto-create-directories="true"
+				auto-delete-remote-files-on-sync="true"
+				filename-pattern=".?txt"
+				filter="entryListFilter"
+				local-working-directory=".">
+			<int:poller fixed-rate="1000"/>
+	</int-ftp:inbound-channel-adapter>
 				
 	<int:channel id="ftpChannel"/>
 	
-	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>
 </beans>

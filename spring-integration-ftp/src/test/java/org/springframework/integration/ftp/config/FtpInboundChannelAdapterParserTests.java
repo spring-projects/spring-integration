@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.ftp.config;
 
+import org.junit.Test;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Parser for the FTPS inbound-channel-adapter
- *
- * @author Josh Long
  * @author Oleg Zhurakousky
- * @since 2.0
+ *
  */
-public class FtpsInboundChannelAdapterParser extends AbstractFtpInboundChannelAdapterParser {
+public class FtpInboundChannelAdapterParserTests {
 
-	@Override
-	protected String getClassName() {
-		return "org.springframework.integration.ftp.config.FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean";
+	@Test
+	public void testFtpInboundChannelAdapterComplete() throws Exception{
+
+		ApplicationContext ac = 
+			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
+		
 	}
 }

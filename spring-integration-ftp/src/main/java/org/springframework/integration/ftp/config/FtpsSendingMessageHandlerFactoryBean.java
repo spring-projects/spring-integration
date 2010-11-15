@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Josh Long
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 
@@ -61,9 +63,6 @@ class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFacto
 	private volatile Boolean wantsClientAuth;
 
 	private volatile String[] cipherSuites;
-
-	private volatile int fileType;
-
 
 	public void setImplicit(Boolean implicit) {
 		this.implicit = implicit;
@@ -109,38 +108,31 @@ class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFacto
 		this.cipherSuites = cipherSuites;
 	}
 
-	public void setFileType(int fileType) {
-		this.fileType = fileType;
-	}
-
-	@Override
-	protected AbstractFtpClientFactory<?> clientFactory() {
-		DefaultFtpsClientFactory factory = new DefaultFtpsClientFactory();
-		factory.setHost(this.host);
-		factory.setPort(this.port);
-		factory.setUsername(this.username);
-		factory.setPassword(this.password);
-		factory.setRemoteWorkingDirectory(this.remoteDirectory);
-		factory.setFileType(this.fileType);
-		factory.setClientMode(this.clientMode);
-		factory.setCipherSuites(this.cipherSuites);
-		factory.setAuthValue(this.authValue);
-		factory.setTrustManager(this.trustManager);
-		factory.setKeyManager(this.keyManager);
-		factory.setNeedClientAuth(this.needClientAuth);
-		factory.setWantsClientAuth(this.wantsClientAuth);
-		factory.setSessionCreation(this.sessionCreation);
-		factory.setUseClientMode(this.useClientMode);
+	protected AbstractFtpClientFactory<?> initializeClientFactory(AbstractFtpClientFactory<?> factory) {
+		super.initializeClientFactory(factory);
+		DefaultFtpsClientFactory ftpsFactory = (DefaultFtpsClientFactory) factory;
+		
+		ftpsFactory.setCipherSuites(this.cipherSuites);
+		ftpsFactory.setAuthValue(this.authValue);
+		ftpsFactory.setTrustManager(this.trustManager);
+		ftpsFactory.setKeyManager(this.keyManager);
+		ftpsFactory.setNeedClientAuth(this.needClientAuth);
+		ftpsFactory.setWantsClientAuth(this.wantsClientAuth);
+		ftpsFactory.setSessionCreation(this.sessionCreation);
+		ftpsFactory.setUseClientMode(this.useClientMode);
 		if (StringUtils.hasText(this.prot)) {
-			factory.setProt(this.prot);
+			ftpsFactory.setProt(this.prot);
 		}
 		if (StringUtils.hasText(this.protocol)) {
-			factory.setProtocol(this.protocol);
+			ftpsFactory.setProtocol(this.protocol);
 		}
 		if (this.implicit != null) {
-			factory.setImplicit(this.implicit);
+			ftpsFactory.setImplicit(this.implicit);
 		}
-		return factory;
+		return ftpsFactory;
 	}
 
+	protected AbstractFtpClientFactory<?> createClientFactory(){
+		return new DefaultFtpsClientFactory();
+	}
 }
