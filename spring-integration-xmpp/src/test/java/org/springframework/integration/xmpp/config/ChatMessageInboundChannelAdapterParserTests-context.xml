@@ -27,6 +27,4 @@
 	<xmpp:inbound-channel-adapter id="xmppInboundAdapter" channel="xmppInbound" 
 			xmpp-connection="testConnection" extract-payload="false" auto-startup="false"/>
 
-	
-
 </beans:beans>

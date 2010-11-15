@@ -21,26 +21,34 @@ import static junit.framework.Assert.assertFalse;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  */
-public class InboundXmppEndpointParserTests {
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class ChatMessageInboundChannelAdapterParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void testInboundAdapter(){
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"InboundXmppEndpointParserTests-context.xml", this.getClass());
-		ChatMessageListeningEndpoint xmde = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
-		assertFalse(xmde.isAutoStartup());
-		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(xmde, "messagingTemplate.defaultChannel");
+		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
+		assertFalse(adapter.isAutoStartup());
+		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(adapter, "messagingTemplate.defaultChannel");
 		assertEquals("xmppInbound", channel.getComponentName());
-		XMPPConnection connection = (XMPPConnection)TestUtils.getPropertyValue(xmde, "xmppConnection");
+		XMPPConnection connection = (XMPPConnection)TestUtils.getPropertyValue(adapter, "xmppConnection");
 		assertEquals(connection, context.getBean("testConnection"));
 	}
 
