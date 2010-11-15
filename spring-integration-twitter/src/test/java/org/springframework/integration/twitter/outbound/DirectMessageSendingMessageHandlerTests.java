@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
@@ -29,25 +30,21 @@ import org.springframework.integration.twitter.core.TwitterOperations;
 /**
  * @author Oleg Zhurakousky
  */
-public class OutboundDirectMessageMessageHandlerTests {
+public class DirectMessageSendingMessageHandlerTests {
 
 	private TwitterOperations twitter = mock(TwitterOperations.class);
 
 	@Test
 	public void validateSendDirectMessage() throws Exception{
-		MessageBuilder<String> mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo");
-
+		Message<?> message1 = MessageBuilder.withPayload("hello")
+				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo").build();
 		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
 		handler.afterPropertiesSet();
-		
-		handler.handleMessage(mb.build());
+		handler.handleMessage(message1);
 		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
-		
-		mb = MessageBuilder.withPayload("hello")
-			.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123);
-
-		handler.handleMessage(mb.build());
+		Message<?> message2 = MessageBuilder.withPayload("hello")
+				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123).build();;
+		handler.handleMessage(message2);
 		verify(twitter, times(1)).sendDirectMessage(123, "hello");
 	}
 
