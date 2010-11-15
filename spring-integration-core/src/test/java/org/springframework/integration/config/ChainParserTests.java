@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Dave Turanski
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
