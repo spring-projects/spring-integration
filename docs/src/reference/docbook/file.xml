@@ -82,23 +82,30 @@
 </beans>]]></programlisting>
       Within this namespace you can reduce the FileReadingMessageSource and wrap
       it in an inbound Channel Adapter like this:
-      <programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn"
+      <programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn1"
        directory="file:${input.directory}" prevent-duplicates="true"/>
 
- <file:inbound-channel-adapter id="filesIn"
+ <file:inbound-channel-adapter id="filesIn2"
         directory="file:${input.directory}"
         filter="customFilterBean" />
 
- <file:inbound-channel-adapter id="filesIn"
+ <file:inbound-channel-adapter id="filesIn3"
         directory="file:${input.directory}"
-        filename-pattern="test*" />               ]]></programlisting>
+        filename-pattern="test*" />
+
+ <file:inbound-channel-adapter id="filesIn4"
+	        directory="file:${input.directory}"
+	        filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
       The first channel adapter is relying on the default filter that just prevents
-      duplication, the second is using a custom filter, and the third is using the
-      <emphasis>filename-pattern</emphasis> attribute to add a <classname>AntPathMatcher</classname>
-      based filter to the <classname>FileReadingMessageSource</classname>.
-      The <emphasis>file-name-pattern</emphasis> and <emphasis>filter</emphasis> attributes are mutually exclusive, but
-      you can use a <classname>CompositeFileListFilter</classname> to use any combination of filters, including a
-      pattern based filter to fit your particular needs.
+      duplication, the second is using a custom filter, the third is using the
+      <emphasis>filename-pattern</emphasis> attribute to add an <classname>AntPathMatcher</classname>
+      based filter, and the fourth is using the <emphasis>filename-regex</emphasis> attribute to add a
+      regular expression Pattern based filter to the <classname>FileReadingMessageSource</classname>.
+      The <emphasis>filename-pattern</emphasis> and <emphasis>filename-regex</emphasis> attributes are
+      each mutually exclusive with the regular <emphasis>filter</emphasis> reference attribute. However,
+      you can use the <emphasis>filter</emphasis> attribute to reference an instance of
+      <classname>CompositeFileListFilter</classname> that combines any number of filters, including one
+      or more pattern based filters to fit your particular needs.
     </para>
         <para>
             When multiple processes are reading from the same directory it can be desirable to lock files to prevent
