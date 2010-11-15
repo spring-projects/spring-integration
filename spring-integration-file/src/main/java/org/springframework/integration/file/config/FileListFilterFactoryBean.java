@@ -80,9 +80,13 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 			return;
 		}
 		FileListFilter<File> createdFilter = null;
-		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex!=null)) {
+		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex != null)) {
 			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
-					+ "'filename-pattern' and 'filename-regex' attributes.");
+					+ "either the 'filename-pattern' or 'filename-regex' attribute.");
+		}
+
+		if (this.filenamePattern != null && this.filenameRegex != null) {
+			throw new IllegalArgumentException("The 'filename-pattern' and 'filename-regex' attributes are mutually exclusive.");
 		}
 
 		//'filter' is set
