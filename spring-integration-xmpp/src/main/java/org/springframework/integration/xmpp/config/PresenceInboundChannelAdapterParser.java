@@ -37,6 +37,11 @@ public class PresenceInboundChannelAdapterParser extends AbstractSingleBeanDefin
 	}
 
 	@Override
+	protected boolean shouldGenerateId() {
+		return false;
+	}
+
+	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}

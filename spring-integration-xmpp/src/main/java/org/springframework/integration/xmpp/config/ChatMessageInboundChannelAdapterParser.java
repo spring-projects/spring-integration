@@ -38,6 +38,16 @@ public class ChatMessageInboundChannelAdapterParser extends AbstractSingleBeanDe
 	}
 
 	@Override
+	protected boolean shouldGenerateId() {
+		return false;
+	}
+
+	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String connectionName = element.getAttribute("xmpp-connection");
 		builder.addConstructorArgReference(connectionName);
