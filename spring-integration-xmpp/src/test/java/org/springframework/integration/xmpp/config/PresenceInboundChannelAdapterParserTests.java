@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.config;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
  */
-public class XmppRosterEventMessageDrivenEndpointParserTests {
+public class PresenceInboundChannelAdapterParserTests {
 
 	@Test
-	public void testXmppRosterEventMessageDrivenEndpointParser(){
-		new ClassPathXmlApplicationContext("XmppRosterEventMessageDrivenEndpointParserTests-context.xml", this.getClass());
+	public void testPresenceInboundChannelAdapterParser() {
+		new ClassPathXmlApplicationContext("PresenceInboundChannelAdapterParserTests-context.xml", this.getClass());
 		// no assertion needed. THe fact that no exception was thrown satisfies this test
 	}
+
 }
