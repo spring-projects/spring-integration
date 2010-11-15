@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp.config;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class FtpsInboundChannelAdapterParserTests {
 
 	@Test
-	public void testFtpsInboundChannelAdapterComplete() throws Exception{
-
-		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("FtpsInboundChannelAdapterParserTests-context.xml", this.getClass());
-		
+	public void testFtpsInboundChannelAdapterComplete() throws Exception {
+		new ClassPathXmlApplicationContext("FtpsInboundChannelAdapterParserTests-context.xml", this.getClass());
 	}
+
 }
