@@ -43,7 +43,7 @@ import org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHa
  * @author Oleg Zhurakousky
  *
  */
-public class XmppMessageSendingMessageHandlerTests {
+public class ChatMessageSendingMessageHandlerTests {
 	
 
 	@Test

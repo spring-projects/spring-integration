@@ -45,7 +45,7 @@ import org.springframework.integration.xmpp.core.XmppContextUtils;
 /**
  * @author Oleg Zhurakousky
  */
-public class XmppRosterListeningEndpointTests {
+public class PresenceListeningEndpointTests {
 
 	@Test
 	public void testEndpointLifecycle() {
@@ -67,7 +67,7 @@ public class XmppRosterListeningEndpointTests {
 				return null;
 			}
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
-		RosterListeningEndpoint rosterEndpoint = new RosterListeningEndpoint(connection);
+		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		rosterEndpoint.afterPropertiesSet();
 		assertEquals(0, rosterSet.size());
 		rosterEndpoint.start();
@@ -78,7 +78,7 @@ public class XmppRosterListeningEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNonInitializedFailure() {
-		RosterListeningEndpoint rosterEndpoint = new RosterListeningEndpoint(mock(XMPPConnection.class));
+		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(mock(XMPPConnection.class));
 		rosterEndpoint.start();
 	}
 	
@@ -87,7 +87,7 @@ public class XmppRosterListeningEndpointTests {
 		XMPPConnection connection = mock(XMPPConnection.class);
 		Roster roster = mock(Roster.class);
 		when(connection.getRoster()).thenReturn(roster);
-		RosterListeningEndpoint rosterEndpoint = new RosterListeningEndpoint(connection);
+		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
 		rosterEndpoint.setRequestChannel(channel);
 		rosterEndpoint.afterPropertiesSet();
@@ -103,7 +103,7 @@ public class XmppRosterListeningEndpointTests {
 	public void testWithImplicitXmppConnection() {
 		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
-		RosterListeningEndpoint endpoint = new RosterListeningEndpoint();
+		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
 		endpoint.setBeanFactory(bf);
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
@@ -111,7 +111,7 @@ public class XmppRosterListeningEndpointTests {
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void testNoXmppConnection() {
-		RosterListeningEndpoint handler = new RosterListeningEndpoint();
+		PresenceListeningEndpoint handler = new PresenceListeningEndpoint();
 		handler.afterPropertiesSet();
 	}
 

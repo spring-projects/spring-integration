@@ -33,7 +33,7 @@ import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandl
  * @author Oleg Zhurakousky
  *
  */
-public class XmppRosterEventMessageSendingHandlerTests {
+public class PresenceSendingMessageHandlerTests {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test

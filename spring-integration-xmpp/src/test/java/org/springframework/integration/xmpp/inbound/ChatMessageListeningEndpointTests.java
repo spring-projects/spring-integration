@@ -39,7 +39,7 @@ import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint
  * @author Oleg Zhurakousky
  *
  */
-public class XmppMessageDrivenEndpointTests {
+public class ChatMessageListeningEndpointTests {
 
 	
 	@Test

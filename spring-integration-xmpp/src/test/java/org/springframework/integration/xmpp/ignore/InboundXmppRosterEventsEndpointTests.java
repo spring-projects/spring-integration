@@ -36,7 +36,7 @@ public class InboundXmppRosterEventsEndpointTests {
 	@Test
 	@Ignore
 	public void run() throws Exception {
-		Thread.sleep(60 * 1000);
+		Thread.sleep(60 * 1000 * 1000);
 	}
 
 }

@@ -89,7 +89,8 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		return new XMPPConnection(this.connectionConfiguration);
+		connection = new XMPPConnection(this.connectionConfiguration);
+		return connection;
 	}
 
 	public void start() {

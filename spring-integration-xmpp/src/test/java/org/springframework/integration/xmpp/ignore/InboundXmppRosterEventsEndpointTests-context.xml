@@ -4,7 +4,7 @@
 			 xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
 			 xmlns:util="http://www.springframework.org/schema/util" xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
 			 xmlns:tool="http://www.springframework.org/schema/tool" xmlns:lang="http://www.springframework.org/schema/lang"
-			 xmlns:console="http://www.springframework.org/schema/integration/stream"
+			 xmlns:stream="http://www.springframework.org/schema/integration/stream"
 			 xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -19,7 +19,7 @@
 		<beans:property name="location" value="classpath:test.properties"/>
 	</beans:bean>
 
-	<beans:bean id="xmppRosterEventConsumer" class="org.springframework.integration.xmpp.ignore.XmppRosterEventConsumer"/>
+	
 
 	<xmpp:xmpp-connection
 			id="testConnection"
@@ -29,10 +29,17 @@
 			service-name="${user.1.service}"
 			/>
 
+	
+
+	<xmpp:presence-inbound-channel-adapter channel="inboundRosterEventChannel" xmpp-connection="testConnection"/>
+	
 	<channel id="inboundRosterEventChannel"/>
 
-	<xmpp:roster-event-inbound-channel-adapter channel="inboundRosterEventChannel" xmpp-connection="testConnection"/>
-
-	<service-activator input-channel="inboundRosterEventChannel" ref="xmppRosterEventConsumer"/>
+	<service-activator input-channel="inboundRosterEventChannel" output-channel="stdOutChannel" 
+					expression="'Presence event from: ' + payload.getFrom() + ' - ' + payload.getMode()"/>
+	
+	<channel id="stdOutChannel"/>
+	
+	<stream:stdout-channel-adapter channel="stdOutChannel" append-newline="true"/>
 
 </beans:beans>

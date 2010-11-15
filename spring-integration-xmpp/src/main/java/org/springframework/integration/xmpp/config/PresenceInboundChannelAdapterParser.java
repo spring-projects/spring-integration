@@ -33,7 +33,7 @@ public class PresenceInboundChannelAdapterParser extends AbstractSingleBeanDefin
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.xmpp.inbound.RosterListeningEndpoint";
+		return "org.springframework.integration.xmpp.inbound.PresenceListeningEndpoint";
 	}
 
 	@Override

@@ -42,20 +42,20 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
+public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
-	private static final Log logger = LogFactory.getLog(RosterListeningEndpoint.class);
+	private static final Log logger = LogFactory.getLog(PresenceListeningEndpoint.class);
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 	
 	private final EventForwardingRosterListener rosterListener = new EventForwardingRosterListener();
 
 
-	public RosterListeningEndpoint() {
+	public PresenceListeningEndpoint() {
 		super();
 	}
 
-	public RosterListeningEndpoint(XMPPConnection xmppConnection) {
+	public PresenceListeningEndpoint(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 
@@ -70,7 +70,8 @@ public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint
 	@Override
 	protected void doStart() {
 		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
-		this.xmppConnection.getRoster().addRosterListener(rosterListener);
+		Roster roster = this.xmppConnection.getRoster();
+		roster.addRosterListener(rosterListener);
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public class RosterListeningEndpoint extends AbstractXmppConnectionAwareEndpoint
 		}
 
 		public void presenceChanged(Presence presence) {
-			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
+			logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
 			messagingTemplate.convertAndSend(presence);
 		}
 	}
