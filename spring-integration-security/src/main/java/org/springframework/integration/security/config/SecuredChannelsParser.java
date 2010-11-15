@@ -57,10 +57,10 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String objectDefinitionSourceBeanName = this.parseObjectDefinitionSource(element, parserContext);
+		String securityMetadataSourceBeanName = this.parseSecurityMetadataSource(element, parserContext);
 		BeanDefinitionBuilder interceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE_NAME + ".channel.ChannelSecurityInterceptor");
-		interceptorBuilder.addConstructorArgReference(objectDefinitionSourceBeanName);
+		interceptorBuilder.addConstructorArgReference(securityMetadataSourceBeanName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "authentication-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "access-decision-manager");
 		String interceptorBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
@@ -69,9 +69,9 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private String parseObjectDefinitionSource(Element element, ParserContext parserContext) {
+	private String parseSecurityMetadataSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE_NAME + ".channel.ChannelInvocationDefinitionSource");
+				BASE_PACKAGE_NAME + ".channel.ChannelSecurityMetadataSource");
 		List<Element> accessPolicyElements = DomUtils.getChildElementsByTagName(element, "access-policy");
 		ManagedMap patternMappings = new ManagedMap();
 		for (Element accessPolicyElement : accessPolicyElements) {

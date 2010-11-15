@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ import org.springframework.util.Assert;
  */
 public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor implements MethodInterceptor {
 
-	private final ChannelInvocationDefinitionSource objectDefinitionSource;
+	private final ChannelSecurityMetadataSource securityMetadataSource;
 
 
-	public ChannelSecurityInterceptor(ChannelInvocationDefinitionSource objectDefinitionSource) {
-		Assert.notNull(objectDefinitionSource, "objectDefinitionSource must not be null");
-		this.objectDefinitionSource = objectDefinitionSource;
+	public ChannelSecurityInterceptor(ChannelSecurityMetadataSource securityMetadataSource) {
+		Assert.notNull(securityMetadataSource, "securityMetadataSource must not be null");
+		this.securityMetadataSource = securityMetadataSource;
 	}
 
 
@@ -71,7 +71,7 @@ public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor impl
 
 	@Override
 	public SecurityMetadataSource obtainSecurityMetadataSource() {
-		return this.objectDefinitionSource;
+		return this.securityMetadataSource;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 
 	@Test
 	public void securedChannelIsProxied() {
-		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
-		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
+		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
+		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
+		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
 		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
 		QueueChannel securedChannel = new QueueChannel();
 		securedChannel.setBeanName("securedChannel");
@@ -47,9 +47,9 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 
 	@Test
 	public void nonsecuredChannelIsNotProxied() {
-		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
-		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
+		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
+		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
+		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
 		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");

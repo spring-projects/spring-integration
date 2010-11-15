@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.security.channel;
 
 import java.util.Collection;
@@ -27,7 +28,9 @@ import org.springframework.security.access.ConfigAttribute;
  * @since 2.0
  */
 public interface ChannelAccessPolicy {
+
 	public Collection<ConfigAttribute> getConfigAttributesForSend();
 
 	public Collection<ConfigAttribute> getConfigAttributesForReceive();
+
 }

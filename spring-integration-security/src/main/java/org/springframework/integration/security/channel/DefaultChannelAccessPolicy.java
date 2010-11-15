@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,23 +51,24 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 		boolean recieveAccessDefined = StringUtils.hasText(receiveAccess);
 		Assert.isTrue(sendAccessDefined || recieveAccessDefined,
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
-		
-		if (sendAccessDefined){
+		if (sendAccessDefined) {
 			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
 			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
 			for (String sendAccessValue : sendAccessValues) {
 				configAttributeDefinitionForSend.add(new SecurityConfig(StringUtils.trimAllWhitespace(sendAccessValue)));
 			}
-		} else {
+		}
+		else {
 			configAttributeDefinitionForSend = Collections.EMPTY_SET;
 		}
-		if (recieveAccessDefined){
+		if (recieveAccessDefined) {
 			String[] receiveAccessValues = StringUtils.commaDelimitedListToStringArray(receiveAccess);
 			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
 			for (String receiveAccessValue : receiveAccessValues) {
 				configAttributeDefinitionForReceive.add(new SecurityConfig(StringUtils.trimAllWhitespace(receiveAccessValue)));
 			}
-		} else {
+		}
+		else {
 			configAttributeDefinitionForReceive = Collections.EMPTY_SET;
 		}
 	}

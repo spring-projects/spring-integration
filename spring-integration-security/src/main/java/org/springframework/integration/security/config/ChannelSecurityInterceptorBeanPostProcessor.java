@@ -24,7 +24,7 @@ import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
+import org.springframework.integration.security.channel.ChannelSecurityMetadataSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.util.Assert;
 
@@ -50,8 +50,10 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageChannel && shouldProxy(beanName, (MessageChannel) bean,
-				(ChannelInvocationDefinitionSource) this.interceptor.obtainSecurityMetadataSource())) {
+		ChannelSecurityMetadataSource channelSecurityMetadataSource =
+				(ChannelSecurityMetadataSource) this.interceptor.obtainSecurityMetadataSource();
+		if (bean instanceof MessageChannel && 
+				shouldProxy(beanName, (MessageChannel) bean, channelSecurityMetadataSource)) {
 			ProxyFactory proxyFactory = new ProxyFactory(bean);
 			proxyFactory.addAdvisor(new DefaultPointcutAdvisor(this.interceptor));
 			return proxyFactory.getProxy();
@@ -59,8 +61,8 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 		return bean;
 	}
 
-	private boolean shouldProxy(String beanName, MessageChannel channel, ChannelInvocationDefinitionSource definitionSource) {
-		Set<Pattern> patterns = ((ChannelInvocationDefinitionSource) this.interceptor.obtainSecurityMetadataSource()).getPatterns();
+	private boolean shouldProxy(String beanName, MessageChannel channel, ChannelSecurityMetadataSource channelSecurityMetadataSource) {
+		Set<Pattern> patterns = channelSecurityMetadataSource.getPatterns();
 		for (Pattern pattern : patterns) {
 			if (pattern.matcher(beanName).matches()) {
 				return true;

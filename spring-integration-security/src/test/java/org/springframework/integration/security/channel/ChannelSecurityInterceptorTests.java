@@ -79,9 +79,9 @@ public class ChannelSecurityInterceptorTests {
 	}
 
 	private static ChannelSecurityInterceptor createInterceptor(String role) throws Exception {
-		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy(role, null));
-		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
+		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
+		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy(role, null));
+		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
 		AffirmativeBased accessDecisionManager = new AffirmativeBased();
 		
 		accessDecisionManager.setDecisionVoters(Collections.singletonList((AccessDecisionVoter)new RoleVoter()));

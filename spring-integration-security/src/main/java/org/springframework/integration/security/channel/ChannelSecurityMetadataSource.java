@@ -37,16 +37,16 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class ChannelInvocationDefinitionSource implements SecurityMetadataSource {
+public class ChannelSecurityMetadataSource implements SecurityMetadataSource {
 
 	private final Map<Pattern, ChannelAccessPolicy> patternMappings;
 
 
-	public ChannelInvocationDefinitionSource() {
+	public ChannelSecurityMetadataSource() {
 		this(null);
 	}
 
-	public ChannelInvocationDefinitionSource(Map<Pattern, ChannelAccessPolicy> patternMappings) {
+	public ChannelSecurityMetadataSource(Map<Pattern, ChannelAccessPolicy> patternMappings) {
 		this.patternMappings = (patternMappings != null) ? patternMappings
 				: new LinkedHashMap<Pattern, ChannelAccessPolicy>();
 	}
@@ -90,18 +90,17 @@ public class ChannelInvocationDefinitionSource implements SecurityMetadataSource
 
 	public Collection<ConfigAttribute> getAllConfigAttributes() {
 		Set<ConfigAttribute> allAttributes = new HashSet<ConfigAttribute>();
-
         for (ChannelAccessPolicy policy : patternMappings.values()) {
         	Collection<ConfigAttribute> receiveAttributes = policy.getConfigAttributesForReceive();
         	allAttributes.addAll(receiveAttributes);
         	Collection<ConfigAttribute> sendAttributes = policy.getConfigAttributesForSend();
         	allAttributes.addAll(sendAttributes);
         }
-
         return allAttributes;
 	}
 
 	public boolean supports(Class<?> clazz) {
 		return ChannelInvocation.class.isAssignableFrom(clazz);
 	}
+
 }
