@@ -79,7 +79,7 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		if (this.result != null) {
 			return;
 		}
-		FileListFilter<File> filter;
+		FileListFilter<File> createdFilter = null;
 		if ((this.filter != null) && (this.filenamePattern != null || this.filenameRegex!=null)) {
 			throw new IllegalArgumentException("The 'filter' reference is mutually exclusive with "
 					+ "'filename-pattern' and 'filename-regex' attributes.");
@@ -88,46 +88,43 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 		//'filter' is set
 		if (this.filter != null) {
 			if (Boolean.TRUE.equals(this.preventDuplicates)) {
-				filter = this.createCompositeWithAcceptOnceFilter(this.filter);
+				createdFilter = this.createCompositeWithAcceptOnceFilter(this.filter);
 			}
 			else { // preventDuplicates is either FALSE or NULL
-				filter = this.filter;
+				createdFilter = this.filter;
 			}
 		}
 
 		// 'file-pattern' or 'file-regex' is set
-		else if (this.filenamePattern != null || this.filenameRegex!=null) {
+		else if (this.filenamePattern != null || this.filenameRegex != null) {
 			List<FileListFilter<File>> filtersNeeded = new ArrayList<FileListFilter<File>>();
 			if (!Boolean.FALSE.equals(this.preventDuplicates)) {
 				//preventDuplicates is either null or true
 				filtersNeeded.add(new AcceptOnceFileListFilter<File>());
 			}
-			if (this.filenamePattern!=null){
+			if (this.filenamePattern != null) {
 				filtersNeeded.add(new SimplePatternFileListFilter(this.filenamePattern));
 			}
-			if (this.filenameRegex!=null){
+			if (this.filenameRegex != null) {
 				filtersNeeded.add(new PatternMatchingFileListFilter(this.filenameRegex));
 			}
-			if (filtersNeeded.size()==1){
-				filter = filtersNeeded.get(0);
+			if (filtersNeeded.size() == 1) {
+				createdFilter = filtersNeeded.get(0);
 			}
 			else {
-				filter = new CompositeFileListFilter<File>(filtersNeeded);
+				createdFilter = new CompositeFileListFilter<File>(filtersNeeded);
 			}
 		}
 
 		// no filters are provided
 		else if (Boolean.FALSE.equals(this.preventDuplicates)) {
-			filter = new AcceptAllFileListFilter<File>();
+			createdFilter = new AcceptAllFileListFilter<File>();
 		}
 		else { // preventDuplicates is either TRUE or NULL
-			filter = new AcceptOnceFileListFilter<File>();
+			createdFilter = new AcceptOnceFileListFilter<File>();
 		}
 
-		if (filter == null) {
-			filter = new CompositeFileListFilter<File>();
-		}
-		this.result = filter;
+		this.result = createdFilter;
 	}
 
 	private CompositeFileListFilter<File> createCompositeWithAcceptOnceFilter(FileListFilter<File> otherFilter) {
