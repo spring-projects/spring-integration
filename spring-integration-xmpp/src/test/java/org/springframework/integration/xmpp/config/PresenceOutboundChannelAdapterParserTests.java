@@ -19,39 +19,42 @@ package org.springframework.integration.xmpp.config;
 import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
  */
-public class XmppRosterEventOutboundChannelAdapterParserTests {
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
+public class PresenceOutboundChannelAdapterParserTests {
+
+	@Autowired
+	private ApplicationContext context;
 
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserAsPollingConsumer(){
-		ApplicationContext ac = 
-				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object pollingConsumer = ac.getBean("pollingOutboundRosterAdapter");
+		Object pollingConsumer = context.getBean("pollingOutboundRosterAdapter");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
 	}
 	
 	@Test
 	public void testRosterEventOutboundChannelAdapterParserEventConsumer(){
-		ApplicationContext ac = 
-				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object eventConsumer = ac.getBean("eventOutboundRosterAdapter");
+		Object eventConsumer = context.getBean("eventOutboundRosterAdapter");
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
 	
 	@Test
 	public void testRosterEventOutboundChannel(){
-		ApplicationContext ac = 
-				new ClassPathXmlApplicationContext("XmppRosterEventOutboundChannelAdapterParserTests-context.xml", this.getClass());
-		Object channel = ac.getBean("eventOutboundRosterChannel");
+		Object channel = context.getBean("eventOutboundRosterChannel");
 		assertTrue(channel instanceof SubscribableChannel);
 	}
 
