@@ -16,28 +16,18 @@
 
 package org.springframework.integration.ftp.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-
 /**
  * Parser for the FTPS outbound-channel-adapter
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public class FtpsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class FtpsOutboundChannelAdapterParser extends AbstractFtpOutboundChannelAdapterParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				FtpsSendingMessageHandlerFactoryBean.class.getName());
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,element,"charset");
-		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
-		return builder.getBeanDefinition();
+	protected String getClassName() {
+		return "org.springframework.integration.ftp.config.FtpsSendingMessageHandlerFactoryBean";
 	}
 
 }
