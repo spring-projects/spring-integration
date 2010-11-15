@@ -9,7 +9,25 @@
 
 
 	<int-ftps:inbound-channel-adapter 
-				id="ftpOutbound"
+				id="ftpInbound"
+				username="user" 
+				password="password"
+				channel="ftpChannel" 
+				remote-directory="foo/bar" 
+				host="localhost"
+				charset="UTF-8"
+				client-mode="active-local-data-connection-mode"
+				file-type="binary-file-type"
+				port="22"
+				auto-create-directories="true"
+				auto-delete-remote-files-on-sync="true"
+				filename-pattern=".?txt"
+				filter="entryListFilter"
+				local-working-directory=".">
+			<int:poller fixed-rate="1000"/>
+	</int-ftps:inbound-channel-adapter>
+	
+	<int-ftps:inbound-channel-adapter 
 				username="user" 
 				password="password"
 				channel="ftpChannel" 
