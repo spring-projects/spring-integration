@@ -49,7 +49,7 @@ public class XmppConnectionParserTests {
 
 	@Test
 	public void testSimpleConfiguration() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTest-simple.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
 		assertNull(connection.getServiceName());
 		assertFalse(connection.isConnected()); 
@@ -65,7 +65,7 @@ public class XmppConnectionParserTests {
 
 	@Test
 	public void testCompleteConfiguration() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTest-complete.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTests-complete.xml", this.getClass());
 		XMPPConnection connection  = ac.getBean("connection", XMPPConnection.class);
 		assertNull(connection.getServiceName());
 		assertFalse(connection.isConnected()); 
