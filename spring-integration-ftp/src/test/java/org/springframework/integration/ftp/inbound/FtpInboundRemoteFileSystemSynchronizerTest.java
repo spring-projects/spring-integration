@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;

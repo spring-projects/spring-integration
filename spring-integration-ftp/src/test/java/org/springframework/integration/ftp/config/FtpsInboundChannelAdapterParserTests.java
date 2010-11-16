@@ -23,15 +23,12 @@ import static junit.framework.Assert.assertTrue;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
-import org.springframework.integration.ftp.client.FtpClientFactory;
-import org.springframework.integration.ftp.client.FtpClientPool;
 import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
@@ -61,15 +58,6 @@ public class FtpsInboundChannelAdapterParserTests {
 		assertEquals(2, filters.size());
 		assertTrue(filters.contains(ac.getBean("entryListFilter")));
 		
-		FtpClientPool clientPoll = (FtpClientPool) TestUtils.getPropertyValue(inbound, "clientPool");
-		
-//		FtpClientFactory<?> clientFactory = (FtpClientFactory<?>) TestUtils.getPropertyValue(clientPoll, "factory");
-//		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
-//		assertEquals(22, TestUtils.getPropertyValue(clientFactory, "port"));
-//		assertEquals("user", TestUtils.getPropertyValue(clientFactory, "username"));
-//		assertEquals("password", TestUtils.getPropertyValue(clientFactory, "password"));
-//		assertEquals("foo/bar", TestUtils.getPropertyValue(clientFactory, "remoteWorkingDirectory"));
-//		System.out.println();
 	}
 	
 	@Test
