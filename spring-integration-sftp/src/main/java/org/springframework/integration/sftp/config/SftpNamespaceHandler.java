@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Josh Long
  * @author Mark Fisher
+ * @author Oleg ZHurakousky
  * @since 2.0
  */
 public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
@@ -51,7 +52,8 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 		@Override
 		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+			BeanDefinitionBuilder builder = 
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.config.SftpInboundSynchronizingMessageSourceFactoryBean");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
 			for (String p : "auto-startup,filename-pattern,auto-create-directories,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
@@ -69,8 +71,9 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpSendingMessageHandlerFactoryBean.class.getName());
-			for (String p : "auto-create-directories,charset".split(",")) {
+			BeanDefinitionBuilder builder = 
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.config.SftpSendingMessageHandlerFactoryBean");
+			for (String p : "charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
 			String remoteDirectory = element.getAttribute("remote-directory");

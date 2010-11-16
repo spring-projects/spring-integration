@@ -36,13 +36,12 @@ class SftpSendingMessageHandlerFactoryBean implements FactoryBean<SftpSendingMes
 	private Expression remoteDirectoryExpression;
 
 	private volatile SftpSessionFactory sftpSessionFactory;
+	
+	private volatile String charset;
 
 	public void setSftpSessionFactory(SftpSessionFactory sftpSessionFactory) {
 		this.sftpSessionFactory = sftpSessionFactory;
 	}
-
-	private String charset;
-
 
 	public void setCharset(String charset) {
 		this.charset = charset;

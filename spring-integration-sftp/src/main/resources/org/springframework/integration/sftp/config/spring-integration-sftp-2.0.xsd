@@ -35,7 +35,7 @@
 			<xsd:attribute name="remote-directory" type="xsd:string"/>
 			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
-			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
+<!--			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>-->
 		</xsd:complexType>
 	</xsd:element>
 

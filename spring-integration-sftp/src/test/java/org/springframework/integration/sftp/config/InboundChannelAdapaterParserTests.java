@@ -30,7 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author Oleg Zhurakousky
  */
-public class SftpParserTests {
+public class InboundChannelAdapaterParserTests {
 	
 	@Before
 	public void prepare(){
@@ -40,7 +40,7 @@ public class SftpParserTests {
 	@Test
 	public void testLocalFilesAutoCreationTrue() throws Exception{
 		assertTrue(!new File("target/foo").exists());
-		new ClassPathXmlApplicationContext("SftpParserTests-inbound-all.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
 		assertTrue(new File("target/foo").exists());
 		assertTrue(!new File("target/bar").exists());
 	}
@@ -48,13 +48,13 @@ public class SftpParserTests {
 	@Test(expected=BeanCreationException.class)
 	public void testLocalFilesAutoCreationFalse() throws Exception{
 		assertTrue(!new File("target/bar").exists());
-		new ClassPathXmlApplicationContext("SftpParserTests-inbound-all-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
 	}
 
 	@Test
 	public void testLocalFilesAreFound() throws Exception{
 		assertTrue(new File("target").exists());
-		new ClassPathXmlApplicationContext("SftpParserTests-inbound-all.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
 		assertTrue(new File("target").exists());
 	}
 	
