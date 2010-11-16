@@ -27,7 +27,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,20 +53,13 @@ public class GatewayInvokingMessageHandlerTests {
 	SimpleGateway gatewayWithError;
 	
 	@Autowired
-	@Qualifier("gatewayWithErrorAndMapper")
-	SimpleGateway gatewayWithErrorAndMapper;
-	
-	
-	@Autowired
 	@Qualifier("gatewayWithErrorAsync")
 	SimpleGateway gatewayWithErrorAsync;
-	
+
 	@Autowired
-	@Qualifier("gatewayWithErrorAsyncAndMapper")
-	SimpleGateway gatewayWithErrorAsyncAndMapper;
-	
-	
-	
+	@Qualifier("gatewayWithErrorChannelAndTransformer")
+	SimpleGateway gatewayWithErrorChannelAndTransformer;
+
 	@Autowired
 	@Qualifier("inputB")
 	SubscribableChannel output;
@@ -93,38 +85,43 @@ public class GatewayInvokingMessageHandlerTests {
 				Assert.assertEquals("oleg", message.getHeaders().get("name"));
 			}
 		});
-		String result = gateway.sendRecieve("hello");
+		String result = gateway.process("hello");
 		Assert.assertEquals("echo:echo:echo:hello", result);
 	}
 	
 	@Test
 	public void validateGatewayWithErrorMessageReturned() {	
-
 		try {
-			String result = gatewayWithErrorAndMapper.sendRecieve("echoWithRuntimeExceptionChannel");
+			String result = gatewayWithErrorChannelAndTransformer.process("echoWithRuntimeExceptionChannel");
 			Assert.assertNotNull(result);
 			Assert.assertEquals("Error happened in message: echoWithRuntimeExceptionChannel", result);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Assert.fail();
 		}
 		
 		try {
-			gatewayWithError.sendRecieve("echoWithRuntimeExceptionChannel");
+			gatewayWithError.process("echoWithRuntimeExceptionChannel");
 			Assert.fail();
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getFailedMessage().getPayload());
 		}
+		
 		try {
-			gatewayWithError.sendRecieve("echoWithMessagingExceptionChannel");
+			gatewayWithError.process("echoWithMessagingExceptionChannel");
 			Assert.fail();
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Assert.assertEquals("echoWithMessagingExceptionChannel", e.getFailedMessage().getPayload());
 		}
+		
 		try {
-			String result = gatewayWithErrorAndMapper.sendRecieve("echoWithMessagingExceptionChannel");
+			String result = gatewayWithErrorChannelAndTransformer.process("echoWithMessagingExceptionChannel");
 			Assert.assertNotNull(result);
 			Assert.assertEquals("Error happened in message: echoWithMessagingExceptionChannel", result);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Assert.fail();
 		}
 	}
@@ -132,25 +129,27 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayWithErrorAsync() {	
 		try {
-			gatewayWithErrorAsync.sendRecieve("echoWithErrorAsyncChannel");
+			gatewayWithErrorAsync.process("echoWithErrorAsyncChannel");
 			Assert.fail();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Assert.assertTrue(e instanceof MessageHandlingException);
 		}
 	}
 	
 	@Test
-	public void validateGatewayWithErrorAsyncAndMaper() {	
+	public void validateGatewayWithErrorFlowReturningMessage() {	
 		try {
-			Object result = gatewayWithErrorAsyncAndMapper.sendRecieve("echoWithErrorAsyncChannel");
+			Object result = gatewayWithErrorChannelAndTransformer.process("echoWithErrorAsyncChannel");
 			Assert.assertEquals("Error happened in message: echoWithErrorAsyncChannel", result);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			Assert.fail();
 		}
 	}
-	
-	
-	public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
+
+
+	public static class SampleErrorTransformer {
 		public Message<?> toMessage(Throwable object) throws Exception {
 			MessageHandlingException ex = (MessageHandlingException) object;		
 			return MessageBuilder.withPayload("Error happened in message: " + ex.getFailedMessage().getPayload()).build();
@@ -158,9 +157,11 @@ public class GatewayInvokingMessageHandlerTests {
 		
 	}
 
+
 	public static interface SimpleGateway {
-		public String sendRecieve(String str);
+		public String process(String str);
 	}
+
 
 	public static class SimpleService {
 		public String echo(String value) {
@@ -176,9 +177,9 @@ public class GatewayInvokingMessageHandlerTests {
 		public RuntimeException echoWithErrorAsync(String value) {
 			throw new RuntimeException(value);
 		}
-		
 	}
-	
+
+
 	@SuppressWarnings("serial")
 	public static class SampleCheckedException extends Exception {
 		public SampleCheckedException(String message){

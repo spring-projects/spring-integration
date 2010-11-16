@@ -54,20 +54,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 	private volatile MessageChannel replyChannel;
 
+	private volatile MessageChannel errorChannel;
+
 	private volatile long replyTimeout = DEFAULT_TIMEOUT;
 
 	@SuppressWarnings("rawtypes")
 	private volatile InboundMessageMapper requestMapper = new DefaultRequestMapper();
-
-	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
 	private final MessagingTemplate messagingTemplate;
 
 	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
-
-	private volatile boolean shouldThrowErrors = true;
 
 	private volatile boolean initialized;
 
@@ -95,13 +93,22 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	/**
-	 * Set the reply channel. If no reply channel is provided, this template will
+	 * Set the reply channel. If no reply channel is provided, this gateway will
 	 * always use an anonymous, temporary channel for handling replies.
 	 * 
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.replyChannel = replyChannel;
+	}
+
+	/**
+	 * Set the error channel. If no error channel is provided, this gateway will
+	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
+	 * a reference to the "nullChannel" here.
+	 */
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
 	}
 
 	/**
@@ -144,26 +151,6 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 	}
 
 	/**
-	 * Provide an {@link InboundMessageMapper} for creating a reply Message from
-	 * an Exception that occurs downstream from this gateway. If no exceptionMapper
-	 * is provided, then the {@link #shouldThrowErrors} property will dictate
-	 * whether the error is rethrown or returned as an ErrorMessage.
-	 */
-	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
-		this.exceptionMapper = exceptionMapper;
-	}
-
-	/**
-	 * Specify whether the Throwable payload of a received {@link ErrorMessage}
-	 * should be extracted and thrown from a send-and-receive operation.
-	 * Otherwise, the ErrorMessage would be returned just like any other
-	 * reply Message. The default is <code>true</code>.
-	 */
-	public void setShouldThrowErrors(boolean shouldThrowErrors) {
-		this.shouldThrowErrors = shouldThrowErrors;
-	}
-
-	/**
 	 * Specify whether this gateway should be tracked in the Message History
 	 * of Messages that originate from its send or sendAndReceive operations.
 	 */
@@ -193,7 +180,18 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		Assert.notNull(object, "request must not be null");
 		Assert.state(this.requestChannel != null,
 				"send is not supported, because no request channel has been configured");
-		this.messagingTemplate.convertAndSend(this.requestChannel, object, this.historyWritingPostProcessor);
+		try {
+			this.messagingTemplate.convertAndSend(this.requestChannel, object, this.historyWritingPostProcessor);
+		}
+		catch (Exception e) {
+			if (this.errorChannel != null) {
+				this.messagingTemplate.send(this.errorChannel, new ErrorMessage(e));
+			}
+			else if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new MessagingException("failed to send message", e);
+		}
 	}
 
 	protected Object receive() {
@@ -239,30 +237,32 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 					error = ((ErrorMessage) reply).getPayload();
 				}
 			}
-			if (reply == null){
-				
-			}
 		}
 		catch (Exception e) {
 			logger.warn("failure occurred in gateway sendAndReceive", e);
 			error = e;
 		}
 
-		if (error != null && this.exceptionMapper != null) {
-			try {
-				// create a reply message from the error
-				Message<?> errorMessage = this.exceptionMapper.toMessage(error);
-				return (shouldConvert) ? errorMessage.getPayload() : errorMessage;
+		if (error != null) {
+			if (this.errorChannel != null) {
+				Message<?> errorMessage = null;
+				try {
+					Message<?> errorFlowReply = this.messagingTemplate.sendAndReceive(this.errorChannel, new ErrorMessage(error));
+					if (shouldConvert) {
+						return (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
+					}
+					return errorFlowReply;
+				}
+				catch (Exception errorFlowFailure) {
+					throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
+				}
 			}
-			catch (Exception e2) {
-				// ignore this, we'll handle the original error next 
-			} 
-		}
-		if (error != null && this.shouldThrowErrors) {
-			if (error instanceof RuntimeException) {
-				throw (RuntimeException) error;
+			else { // no errorChannel so we'll propagate
+				if (error instanceof RuntimeException) {
+					throw (RuntimeException) error;
+				}
+				throw new MessagingException("gateway received checked Exception", error);
 			}
-			throw new MessagingException("gateway received checked Exception", error);
 		}
 		return reply;
 	}

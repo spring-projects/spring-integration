@@ -70,21 +70,24 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
-	
-	public String getComponentType(){
-		if (expectReply){
+
+
+	public String getComponentType() {
+		if (expectReply) {
 			return "jms:inbound-gateway";
-		} else {
+		}
+		else {
 			return "jms:message-driven-channel-adapter";
 		}
 	}
-	
+
 	/**
 	 * Specify whether a JMS reply Message is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
 	}
+
 	/**
 	 * Set the default reply destination to send reply messages to. This will
 	 * be applied in case of a request message that does not carry a

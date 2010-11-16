@@ -496,7 +496,6 @@
 					</xsd:attribute>
 					<xsd:attribute name="request-destination-name" type="xsd:string"/>
 					<xsd:attribute name="request-pub-sub-domain" type="xsd:string"/>
-					<xsd:attribute name="exception-mapper" type="xsd:string"/>
 					<xsd:attribute name="default-reply-destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -535,6 +534,15 @@
 					</xsd:attribute>
 					<xsd:attribute name="request-timeout" type="xsd:string"/>
 					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="transaction-manager" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

@@ -16,19 +16,14 @@
 				default-request-channel="routingChannel" 
 				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
 
-	<si:gateway id="gatewayWithErrorAndMapper"
-				default-request-channel="routingChannel" 
-				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"
-				exception-mapper="exceptionMapper"/>
-				
 	<si:gateway id="gatewayWithErrorAsync"
 				default-request-channel="routingChannel" 
 				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
 	
-	<si:gateway id="gatewayWithErrorAsyncAndMapper"
+	<si:gateway id="gatewayWithErrorChannelAndTransformer"
 				default-request-channel="routingChannel" 
 				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"
-				exception-mapper="exceptionMapper"/>
+				error-channel="errorTransformationChannel"/>
 				
 	<si:router input-channel="routingChannel" expression="payload"/>			
 				
@@ -67,8 +62,6 @@
 		<si:gateway request-channel="inputC"/>  
 	</si:chain>
 	
-	
-	
 	<si:chain input-channel="inputC">
 		<si:header-enricher>
 			<si:header name="name" value="oleg" />
@@ -87,7 +80,9 @@
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 	</si:chain>
+
+	<si:transformer input-channel="errorTransformationChannel" ref="errorTransformer"/>
 	
-	<bean id="exceptionMapper" class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SampleExceptionMapper"/>
+	<bean id="errorTransformer" class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SampleErrorTransformer"/>
 
 </beans>

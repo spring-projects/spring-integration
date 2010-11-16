@@ -30,14 +30,12 @@ import org.junit.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class ExceptionHandlingSiConsumerTests {
 	
@@ -120,8 +118,8 @@ public class ExceptionHandlingSiConsumerTests {
 	}
 
 
-	public static class SampleErrorMessageMapper implements InboundMessageMapper<Throwable> {
-		public org.springframework.integration.Message<?> toMessage(Throwable t) throws Exception {
+	public static class SampleErrorTransformer {
+		public org.springframework.integration.Message<?> transform(Throwable t) throws Exception {
 			return MessageBuilder.withPayload(t.getCause().getMessage()).build();
 		}
 	}

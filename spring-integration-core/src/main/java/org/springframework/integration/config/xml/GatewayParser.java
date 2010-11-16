@@ -41,7 +41,7 @@ import org.springframework.util.xml.DomUtils;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"default-request-channel", "default-reply-channel", "message-mapper", "exception-mapper"
+		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper"
 	};
 
 	private static String[] innerAttributes = new String[] {

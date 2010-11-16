@@ -49,7 +49,6 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
@@ -76,6 +75,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile MessageChannel defaultReplyChannel;
 
+	private volatile MessageChannel errorChannel;
+
 	private volatile long defaultRequestTimeout = -1;
 
 	private volatile long defaultReplyTimeout = -1;
@@ -93,8 +94,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
 	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
-
-	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile boolean initialized;
 
@@ -150,6 +149,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	}
 
 	/**
+	 * Set the error channel. If no error channel is provided, this gateway will
+	 * propagate Exceptions to the caller. To completely suppress Exceptions, provide
+	 * a reference to the "nullChannel" here.
+	 */
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
+	}
+
+	/**
 	 * Set the default timeout value for sending request messages. If not
 	 * explicitly configured with an annotation, this value will be used.
 	 * 
@@ -193,10 +201,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.methodMetadataMap = methodMetadataMap;
 	}
 	
-	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
-		this.exceptionMapper = exceptionMapper;
-	}
-
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
 	}
@@ -363,7 +367,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
  		messageMapper.setBeanFactory(this.getBeanFactory());
  		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
-		gateway.setExceptionMapper(exceptionMapper);
+		gateway.setErrorChannel(this.errorChannel);
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}

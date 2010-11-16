@@ -23,16 +23,19 @@
                      
     <int-jms:inbound-gateway request-destination="requestQueueB" 
                              request-channel="jmsinputchannel"
-                             exception-mapper="errorMessageMapper"/>
+                             error-channel="errorTransformationChannel"/>
                              
     <int-jms:inbound-gateway request-destination="requestQueueA" 
                              request-channel="jmsinputchannel"/>
                              
     <int-jms:inbound-gateway request-destination="requestQueueC" 
                              request-channel="jmsinputchannel"
-                             exception-mapper="errorMessageMapper"/>
+                             error-channel="errorTransformationChannel"/>
 	
-    <bean id="errorMessageMapper" class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleErrorMessageMapper"/>                    
+	<int:transformer input-channel="errorTransformationChannel">
+    	<bean id="errorTransformer" class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleErrorTransformer"/>
+    </int:transformer>
+                    
     <int:channel id="jmsinputchannel"/> 
       
     <int:router input-channel="jmsinputchannel" expression="payload"/>

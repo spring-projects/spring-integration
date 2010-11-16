@@ -515,25 +515,15 @@
 			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>	
-										<![CDATA[  
-								The name of the interface which will be exposed by this gateway. 
-										]]>
+						<![CDATA[  
+							The name of the interface which will be exposed by this gateway. 
+						]]>
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
 							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="exception-mapper" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>	
-							<![CDATA[  
-					Allows you to provide implementation of InboundMessageMapper which allows you to map
-					an Exception thrown by the endpoint to a successfull return message. 
-							]]>
-					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">
@@ -563,6 +553,16 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Identifies channel that error messages will be sent to if a failure occurs in this
+						gateway's invocation. If no "error-channel" reference is provided, this gateway will
+						propagate Exceptions to the caller. To completely suppress Exceptions, provide a
+						reference to the "nullChannel" here.
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="default-request-timeout" type="xsd:string">
