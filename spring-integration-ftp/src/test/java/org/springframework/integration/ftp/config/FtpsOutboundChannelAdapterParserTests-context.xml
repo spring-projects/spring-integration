@@ -7,6 +7,13 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
+	<bean id="keyManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="javax.net.ssl.KeyManager"/>
+	</bean>
+	<bean id="trustManager" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="javax.net.ssl.TrustManager"/>
+	</bean>
+
 	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
@@ -15,8 +22,19 @@
 		<property name="clientMode" value="1"/>
 		<property name="fileType" value="2"/>
 		<property name="remoteWorkingDirectory" value="foo/bar"/>
+		<property name="useClientMode" value="true"/>
+		<property name="cipherSuites" value="a,b.c"/>
+		<property name="keyManager" ref="keyManager"/>
+		<property name="protocol" value="SSL"/>
+		<property name="trustManager" ref="trustManager"/>
+		<property name="prot" value="P"/>
+		<property name="needClientAuth" value="true"/>
+		<property name="authValue" value="oleg"/>
+		<property name="sessionCreation" value="true"/>
+		<property name="protocols" value="SSL, TLS"/>
+		<property name="implicit" value="true"/>
 	</bean>
-
+	
 	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
 				client-factory="ftpClientFactory"
