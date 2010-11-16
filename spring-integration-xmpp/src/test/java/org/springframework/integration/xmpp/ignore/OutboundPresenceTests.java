@@ -16,10 +16,15 @@
 
 package org.springframework.integration.xmpp.ignore;
 
+import org.jivesoftware.smack.packet.Presence;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xmpp.outbound.PresenceSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -34,9 +39,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class OutboundPresenceTests {
 
+	@Autowired
+	@Qualifier("outboundPresenceChannel")
+	private DirectChannel input;
 	@Test
-	@Ignore
+	//@Ignore
 	public void testOutbound() throws Throwable {
+		Presence presence = new Presence(Presence.Type.available);
+		input.send(new GenericMessage<Presence>(presence));
 		Thread.sleep(60 * 1000);
 	}
 }
