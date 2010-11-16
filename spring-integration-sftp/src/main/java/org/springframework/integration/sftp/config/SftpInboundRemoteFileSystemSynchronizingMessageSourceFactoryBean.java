@@ -40,6 +40,8 @@ import com.jcraft.jsch.ChannelSftp;
  * Factory bean to hide the fairly complex configuration possibilities for an SFTP endpoint
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
@@ -60,26 +62,12 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	
 	private volatile SftpSessionFactory sftpSessionFactory;
 
-	
 
 	public void setSftpSessionFactory(SftpSessionFactory sftpSessionFactory) {
 		this.sftpSessionFactory = sftpSessionFactory;
 	}
 
-	//	private int port = 22;
-//
-//	private String host;
-//
-//	private String keyFile;
-//
-//	private String keyFilePassword;
-//
 	private String remoteDirectory;
-//
-//	private String username;
-//
-//	private String password;
-
 
 	public void setLocalDirectoryResource(Resource localDirectoryResource) {
 		this.localDirectoryResource = localDirectoryResource;
@@ -105,43 +93,12 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filter = filter;
 	}
 
-//	public void setPort(int port) {
-//		this.port = port;
-//	}
-//
-//	public void setHost(String host) {
-//		this.host = host;
-//	}
-//
-//	public void setKeyFile(String keyFile) {
-//		this.keyFile = keyFile;
-//	}
-//
-//	public void setKeyFilePassword(String keyFilePassword) {
-//		this.keyFilePassword = keyFilePassword;
-//	}
-
 	/**
 	 * Set the remote directory to synchronize with
 	 */
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
-//
-//	/**
-//	 * Set the user name to be used for authentication with the remote server
-//	 */
-//	public void setUsername(String username) {
-//		this.username = username;
-//	}
-//
-//	/**
-//	 * Set the password to be used for authentication with the remote server
-//	 * @param password
-//	 */
-//	public void setPassword(String password) {
-//		this.password = password;
-//	}
 
 	/**
 	 * {@inheritDoc}
@@ -190,9 +147,6 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filter = compositeFtpFileListFilter;
 
 		// pools
-		
-		//SftpSession session = new Sf
-		//SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
 		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sftpSessionFactory);
 		pool.afterPropertiesSet();
 

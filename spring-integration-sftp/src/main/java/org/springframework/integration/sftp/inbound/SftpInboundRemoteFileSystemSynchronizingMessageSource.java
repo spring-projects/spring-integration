@@ -28,6 +28,8 @@ import org.springframework.util.Assert;
  * a {@link org.springframework.integration.core.MessageSource} implementation for SFTP
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundRemoteFileSystemSynchronizer> {
 	/**

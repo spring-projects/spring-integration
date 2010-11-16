@@ -39,6 +39,7 @@ import java.util.Collection;
  * Gandles the synchronization between a remote SFTP endpoint and a local mount.
  *
  * @author Josh Long
+ * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
 
