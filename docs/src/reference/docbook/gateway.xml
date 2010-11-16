@@ -30,7 +30,7 @@
      void placeOrder(Order order);
 
  }]]></programlisting>
-   ... as well as <code>method</code> sub element if yuo prefer XML configuration (see next paragraph)
+   ... as well as <code>method</code> sub element if you prefer XML configuration (see next paragraph)
     </para>
     <para>
       It is also possible to pass values to be interpreted as Message headers on the Message
@@ -77,7 +77,7 @@
     </para>
     <para>
     As with anything else, Gateway invocation might result in errors.
-    By default any error that has occurred downstream will be re-thrown as a MessagingExeption (RuntimeException)
+    By default any error that has occurred downstream will be re-thrown as a MessagingException (RuntimeException)
     upon the Gateway's method invocation. However there are times when you may want
     to simply log the error rather than propagating it, or you may want to treat an
     Exception as a valid reply, by mapping it to a Message that will conform to some
@@ -127,8 +127,8 @@
             implication on the gateway method.  The Gateway's method input arguments  were incorporated into a Message and
             sent downstream. The reply Message would be converted to a return value of the Gateway's method. So you can see
             how ugly it could get if you can not guarantee that for each Gateway call there will alway be a reply Message.
-            Basically your Gateway method will never return and will hang infinitely. (work in progress!!!!)
-One of the ways of handling this situation is via AsyncGateway (explained later in this section). Another way of handling it is to explicitly set the reply-timeout attribute. This way gateway will not hang for more then the time that was specified by the reply-timout and will return 'null'. 
+            Basically your Gateway method will never return and will hang infinitely.
+One of the ways of handling this situation is via AsyncGateway (explained later in this section). Another way of handling it is to explicitly set the reply-timeout attribute. This way gateway will not hang for more then the time that was specified by the reply-timeout and will return 'null'. 
        </important>
      </para>
   </section>
@@ -188,8 +188,8 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
     There are certain attributes that could be configured to make Sync Gateway behavior more predictable,
     but some of them might not always work as you might have expected. One of them is <emphasis>reply-timeout</emphasis>.
     So, lets look at the <emphasis>reply-timeout</emphasis> attribute and see how it can/can't influence the behavior
-    of the Sync Gateway in various scenarios. We will look at single-theraded scenario
-    (all components downstream are connected via Direct Channel) and multi-theraded scenarios
+    of the Sync Gateway in various scenarios. We will look at single-threaded scenario
+    (all components downstream are connected via Direct Channel) and multi-threaded scenarios
     (e.g., somewhere downstream you may have Pollable or Executor Channel which breaks single-thread boundary)
     </para>
     <para>
@@ -203,7 +203,7 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
   If a component downstream is still running (e.g., infinite loop or a very slow service), in a multi-threaded message
   flow setting <emphasis>reply-timeout</emphasis> will have an effect by allowing gateway method invocation to
   return once the timeout has been reached, since <classname>GatewayProxyFactoryBean</classname>  will simply
-  poll on the reply channel waiting for a message untill the timeout expires. However it could result in the 'null' return
+  poll on the reply channel waiting for a message until the timeout expires. However it could result in the 'null' return
   from the Gateway method if the timeout has been reached before the actual reply was produced. It is also important to understand that
   the reply message (if produced) will be sent to a reply channel after Gateway method invocation might have returned, so you must be aware of that
   and design your flow with this in mind.
@@ -239,18 +239,18 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
     </para>
     <para>
       <important>
-    It is also important to understand that by default <emphasis>reply-timout</emphasis> is unbounded which means that
+    It is also important to understand that by default <emphasis>reply-timeout</emphasis> is unbounded which means that
     if not explicitly set there are several scenarios (described above) where your Gateway method invocation might
     hang indefinitely, so make sure you analyze your flow and if there is even a remote possibility of one of these
-    scenarios to occur, set the <emphasis>reply-timout</emphasis> attribute to a 'safe' value or better off
+    scenarios to occur, set the <emphasis>reply-timeout</emphasis> attribute to a 'safe' value or better off
     set  the <emphasis>requires-reply</emphasis>  attribute of the downstream component to 'true' to ensure a timely response.
     But also, realize that there are some scenarios (see the very first one)
-    where <emphasis>reply-timout</emphasis> will not help which means it is also important to analyze your message
+    where <emphasis>reply-timeout</emphasis> will not help which means it is also important to analyze your message
     flow and decide when to use Sync Gateway vs Async Gateway where Gateway method invocation is always guaranteed
     to return while giving you a more granular control over the results of the invocation via Java Futures.
     <para>
-    Also, when dealing with Router you should remember that seeting <emphasis>resolution-required</emphasis> attribute to 'true'
-    will result in the exception thrown by the router if it can not resolve a particular chanel. And when dealing with the filter
+    Also, when dealing with Router you should remember that setting <emphasis>resolution-required</emphasis> attribute to 'true'
+    will result in the exception thrown by the router if it can not resolve a particular channel. And when dealing with the filter
     you can also set <emphasis>throw-exception-on-rejection</emphasis> attribute. Both of these will help to ensure a timely response
     from the Gateway method invocation.
     </para>
