@@ -19,16 +19,22 @@ package org.springframework.integration.ftp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.client.FtpClientFactory;
 import org.springframework.integration.ftp.client.FtpClientPool;
 import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizer;
@@ -85,4 +91,25 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(adapter);
 	}
 
+	public static class TestClientFactoryBean implements FactoryBean<DefaultFtpClientFactory>{
+
+		@Override
+		public DefaultFtpClientFactory getObject() throws Exception {
+			DefaultFtpClientFactory factory = mock(DefaultFtpClientFactory.class);
+			FTPClient client = mock(FTPClient.class);
+			when(factory.getClient()).thenReturn(client);
+			return factory;
+		}
+
+		@Override
+		public Class<?> getObjectType() {
+			return DefaultFtpClientFactory.class;
+		}
+
+		@Override
+		public boolean isSingleton() {
+			return true;
+		}
+		
+	}
 }

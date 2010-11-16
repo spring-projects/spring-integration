@@ -16,12 +16,7 @@
 
 package org.springframework.integration.ftp.config;
 
-import org.apache.commons.net.ftp.FTP;
-
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Provides namespace support for using FTP
@@ -29,26 +24,10 @@ import java.util.Map;
  * This is *heavily* influenced by the good work done by Iwein before.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
 public class FtpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
-
-	static public Map<String, Integer> FILE_TYPES = new HashMap<String, Integer>();
-
-	static public Map<String, Integer> CLIENT_MODES = new HashMap<String, Integer>();
-
-	static {
-		// file types
-		FILE_TYPES.put("ebcdic-file-type", FTP.EBCDIC_FILE_TYPE);
-		FILE_TYPES.put("ascii-file-type", FTP.ASCII_FILE_TYPE);
-		FILE_TYPES.put("binary-file-type", FTP.BINARY_FILE_TYPE);
-
-		// client modes
-		CLIENT_MODES.put("active-local-data-connection-mode", 0);
-		CLIENT_MODES.put("active-remote-data-connection-mode", 1);
-		CLIENT_MODES.put("passive-local-data-connection-mode", 2);
-		CLIENT_MODES.put("passive-remote-data-connection-mode", 3);
-	}
-
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FtpInboundChannelAdapterParser());

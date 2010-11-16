@@ -39,7 +39,6 @@ import org.springframework.integration.test.util.TestUtils;
 public class FtpParserOutboundTests {
 	
 	@Test
-	@Ignore
 	public void testFtpOutboundWithFileGenerator() throws Exception{
 		ClassPathXmlApplicationContext context =  
 				new ClassPathXmlApplicationContext("FtpParserOutboundTests-context.xml", this.getClass());

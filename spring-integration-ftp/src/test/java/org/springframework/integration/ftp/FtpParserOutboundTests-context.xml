@@ -8,13 +8,21 @@
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
 	<int:channel id="ftpOutbound"/>
+	
+	
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="temp"/>
+	</bean>
 
 	<int-ftp:outbound-channel-adapter id="ftpOutboundAdapter" 
-						username="xxxx" 
-						password="xxxx"
+						client-factory="ftpClientFactory"
 						channel="ftpOutbound" 
-						remote-directory="temp" 
-						host="localhost"
 						filename-generator="fileNameGenerator"/>
 						
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">

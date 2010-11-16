@@ -31,7 +31,9 @@ import org.mockito.Mockito;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.ftp.client.FtpClientPool;
+import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
+import org.springframework.integration.ftp.client.QueuedFtpClientPool;
+import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,21 +50,24 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		}
 		FtpInboundRemoteFileSystemSynchronizer syncronizer = new FtpInboundRemoteFileSystemSynchronizer();
 		syncronizer.setLocalDirectory(new FileSystemResource(System.getProperty("java.io.tmpdir")));
-		FileListFilter filter = mock(FileListFilter.class);
+		FileListFilter filter = new FtpPatternMatchingFileListFilter("foo.txt");
 		//
 		syncronizer.setFilter(filter);
 		
-		FtpClientPool clientPoll = mock(FtpClientPool.class);
+		DefaultFtpClientFactory factory = mock(DefaultFtpClientFactory.class);
 		FTPClient ftpClient = mock(FTPClient.class);
+		when(ftpClient.sendNoOp()).thenReturn(true);
+		when(factory.getClient()).thenReturn(ftpClient);
+
+		QueuedFtpClientPool clientPoll = new QueuedFtpClientPool(factory);
+		
 		FTPFile f1 = mock(FTPFile.class);
 		when(f1.isFile()).thenReturn(true);
 		when(f1.getName()).thenReturn("foo.txt");
-
+		
 		FTPFile[] files = new FTPFile[]{f1};
 		when(ftpClient.listFiles()).thenReturn(files);
-		when(clientPoll.getClient()).thenReturn(ftpClient);
-		when(filter.filterFiles((Object[]) Mockito.any())).thenReturn(Arrays.asList(files));
-		
+
 		syncronizer.setClientPool(clientPoll);
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
@@ -71,6 +76,5 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		
 		verify(ftpClient, times(1)).retrieveFile(Mockito.anyString(), Mockito.any(OutputStream.class));
 		verify(ftpClient, times(1)).deleteFile(Mockito.anyString());
-		verify(clientPoll, times(1)).releaseClient(ftpClient);
 	}
 }
