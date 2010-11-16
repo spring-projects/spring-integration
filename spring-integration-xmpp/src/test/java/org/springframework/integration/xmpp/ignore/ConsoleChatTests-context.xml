@@ -32,7 +32,7 @@
 	</console:stdin-channel-adapter>
 	
 	<xmpp:header-enricher input-channel="stdin" output-channel="messagesToSend">
-		<xmpp:message-to value="${user.2.login}"/>
+		<xmpp:chat-to value="${user.2.login}"/>
 	</xmpp:header-enricher>
 
 	<xmpp:inbound-channel-adapter channel="stdout" xmpp-connection="testConnection"/>
