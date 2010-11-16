@@ -9,7 +9,7 @@
 
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
-		<property name="host" value="loclahost"/>
+		<property name="host" value="localhost"/>
 		<property name="knownHosts" value="local, foo.com, bar.foo"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftpTest"/>
 		<property name="privateKeyPassphrase" value="ghj"/>
@@ -21,13 +21,19 @@
 	<int:channel id="inputChannel"/>
 	
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
-				session-factory="sftpSessionFactory" 
+				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
 				filename-generator="fileNameGenerator"
 				remote-directory="foo/bar"/>
 				
-				
+	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
+				session-factory="sftpSessionFactory"
+				channel="inputChannel"
+				charset="UTF-8"
+				filename-generator="fileNameGenerator"
+				remote-directory-expression="'foo' + '/' + 'bar'"/>
+							
 	<int-sftp:outbound-channel-adapter 
 				session-factory="sftpSessionFactory" 
 				channel="inputChannel"

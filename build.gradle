@@ -343,6 +343,7 @@ project('spring-integration-sftp') {
         compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "org.springframework:spring-context-support:$springVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
+        testCompile project(":spring-integration-test")
     }
 }
 
