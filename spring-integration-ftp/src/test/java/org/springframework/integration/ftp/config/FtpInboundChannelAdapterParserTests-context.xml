@@ -7,17 +7,6 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
-
-<!--	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">-->
-<!--		<property name="host" value="localhost"/>-->
-<!--		<property name="port" value="22"/>-->
-<!--		<property name="username" value="oleg"/>-->
-<!--		<property name="password" value="password"/>-->
-<!--		<property name="clientMode" value="1"/>-->
-<!--		<property name="fileType" value="2"/>-->
-<!--		<property name="remoteWorkingDirectory" value="foo/bar"/>-->
-<!--	</bean>-->
-
 	<bean id="ftpClientFactory" 
 		class="org.springframework.integration.ftp.config.FtpInboundChannelAdapterParserTests.TestClientFactoryBean"/>
 	

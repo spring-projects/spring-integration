@@ -52,8 +52,5 @@ public class FtpOutboundChannelAdapterParserTests {
 		FtpClientFactory<?> clientFactory = (FtpClientFactory<?>) TestUtils.getPropertyValue(clientPoll, "factory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(clientFactory, "port"));
-//		assertEquals("user", TestUtils.getPropertyValue(clientFactory, "username"));
-//		assertEquals("password", TestUtils.getPropertyValue(clientFactory, "password"));
-//		assertEquals("foo/bar", TestUtils.getPropertyValue(clientFactory, "remoteWorkingDirectory"));
 	}
 }

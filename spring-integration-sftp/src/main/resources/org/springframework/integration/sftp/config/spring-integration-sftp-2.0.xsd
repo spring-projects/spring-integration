@@ -32,10 +32,22 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="filename-generator" type="xsd:string">
+	            <xsd:annotation>
+	            	<xsd:documentation>
+	            	Allows you to specify a reference to  
+	            	[org.springframework.integration.file.FileNameGenerator] implementation.
+	            	</xsd:documentation>
+	                <xsd:appinfo>
+	                    <tool:annotation kind="ref">
+	                        <tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
+	                    </tool:annotation>
+	                </xsd:appinfo>
+	            </xsd:annotation>
+	        </xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string"/>
 			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
-<!--			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>-->
 		</xsd:complexType>
 	</xsd:element>
 

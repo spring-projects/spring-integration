@@ -76,6 +76,7 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 			for (String p : "charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filename-generator", "fileNameGenerator");
 			String remoteDirectory = element.getAttribute("remote-directory");
 			String remoteDirectoryExpression = element.getAttribute("remote-directory-expression");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "session-factory", "sftpSessionFactory");

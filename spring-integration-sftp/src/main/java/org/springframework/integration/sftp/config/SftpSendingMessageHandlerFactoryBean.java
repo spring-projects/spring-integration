@@ -19,6 +19,7 @@ package org.springframework.integration.sftp.config;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
@@ -38,6 +39,12 @@ class SftpSendingMessageHandlerFactoryBean implements FactoryBean<SftpSendingMes
 	private volatile SftpSessionFactory sftpSessionFactory;
 	
 	private volatile String charset;
+	
+	private volatile FileNameGenerator fileNameGenerator;
+
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		this.fileNameGenerator = fileNameGenerator;
+	}
 
 	public void setSftpSessionFactory(SftpSessionFactory sftpSessionFactory) {
 		this.sftpSessionFactory = sftpSessionFactory;
@@ -62,7 +69,9 @@ class SftpSendingMessageHandlerFactoryBean implements FactoryBean<SftpSendingMes
 		SftpSendingMessageHandler messageHandler = new SftpSendingMessageHandler(sessionPool);
 		messageHandler.setRemoteDirectoryExpression(this.remoteDirectoryExpression);
 		messageHandler.setCharset(this.charset);
+		messageHandler.setFileNameGenerator(this.fileNameGenerator);
 		messageHandler.afterPropertiesSet();
+		
 		return messageHandler;
 	}
 
