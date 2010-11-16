@@ -14,8 +14,8 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.BeanResolver;
-import org.springframework.integration.control.ControlBusMessageProcessor;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.ExpressionPayloadMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 
 /**
@@ -30,10 +30,10 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 
 	private volatile BeanResolver beanResolver;
 
-	private final ControlBusMessageProcessor processor;
+	private final ExpressionPayloadMessageProcessor processor;
 
 
-	public ExpressionControlBusFactoryBean(ControlBusMessageProcessor processor) {
+	public ExpressionControlBusFactoryBean(ExpressionPayloadMessageProcessor processor) {
 		this.processor = processor;	
 	}
 

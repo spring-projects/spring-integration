@@ -15,12 +15,9 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Dave Syer
@@ -31,24 +28,14 @@ public class ControlBusParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.config.ExpressionControlBusFactoryBean");
-		builder.addConstructorArgValue(new RootBeanDefinition("org.springframework.integration.control.ControlBusMessageProcessor"));
-		BeanMetadataElement beanResolver = getBeanResolver(element, parserContext);
-		if (beanResolver!=null) {
-			builder.addPropertyValue("beanResolver", beanResolver);
-		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.config.ExpressionControlBusFactoryBean");
+		builder.addConstructorArgValue(new RootBeanDefinition(
+				"org.springframework.integration.handler.ExpressionPayloadMessageProcessor"));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "bean-resolver");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		return builder;
-	}
-
-	protected BeanMetadataElement getBeanResolver(Element element, ParserContext parserContext) {
-		String ref = element.getAttribute("bean-resolver");
-		if (!StringUtils.hasText(ref)) {
-			return null;
-		}
-		return new RuntimeBeanReference(ref);
 	}
 
 }
