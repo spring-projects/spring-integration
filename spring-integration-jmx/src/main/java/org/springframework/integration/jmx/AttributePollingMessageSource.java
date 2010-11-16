@@ -33,7 +33,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-@SuppressWarnings("rawtypes")
 public class AttributePollingMessageSource extends AbstractMessageSource<Object> {
 
 	private volatile ObjectName objectName;

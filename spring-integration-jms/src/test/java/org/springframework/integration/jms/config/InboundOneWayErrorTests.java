@@ -101,8 +101,6 @@ public class InboundOneWayErrorTests {
 		}
 	}
 
-
-	@SuppressWarnings("unused")
 	private static class TestErrorHandler implements ErrorHandler {
 
 		private final CountDownLatch latch = new CountDownLatch(1);

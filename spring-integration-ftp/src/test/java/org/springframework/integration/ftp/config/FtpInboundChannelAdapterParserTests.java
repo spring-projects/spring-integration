@@ -81,7 +81,6 @@ public class FtpInboundChannelAdapterParserTests {
 
 	public static class TestClientFactoryBean implements FactoryBean<DefaultFtpClientFactory>{
 
-		@Override
 		public DefaultFtpClientFactory getObject() throws Exception {
 			DefaultFtpClientFactory factory = mock(DefaultFtpClientFactory.class);
 			FTPClient client = mock(FTPClient.class);
@@ -89,12 +88,10 @@ public class FtpInboundChannelAdapterParserTests {
 			return factory;
 		}
 
-		@Override
 		public Class<?> getObjectType() {
 			return DefaultFtpClientFactory.class;
 		}
 
-		@Override
 		public boolean isSingleton() {
 			return true;
 		}
