@@ -33,9 +33,5 @@ public class FtpMessageHistoryTests {
 		SourcePollingChannelAdapter adapter = ac.getBean("adapterFtp", SourcePollingChannelAdapter.class);
 		assertEquals("adapterFtp", adapter.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
-		
-		adapter = ac.getBean("adapterFtps", SourcePollingChannelAdapter.class);
-		assertEquals("adapterFtps", adapter.getComponentName());
-		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
 	}
 }
