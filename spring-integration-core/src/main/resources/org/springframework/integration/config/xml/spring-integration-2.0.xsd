@@ -95,8 +95,7 @@
 									<xsd:documentation>
 										Identifies this channel as a Queue style
 										channel where messages could be prioritized
-										based on
-										custom logic
+										based on custom logic
 									</xsd:documentation>
 								</xsd:annotation>
 							</xsd:element>
@@ -762,6 +761,9 @@
 						<tool:expected-type type="java.lang.Object" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				A reference to a bean defined in the application context. 
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="method" type="xsd:string">
@@ -770,6 +772,9 @@
 					<tool:annotation>
 						<tool:expected-method type-ref="@ref" />
 					</tool:annotation>
+					<xsd:documentation>
+					A method defined on the bean referenced by 'ref' attribute
+					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -794,9 +799,20 @@
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+					Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true" />
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Lifecycle attribute signaling if this component should be started during Application Context startup.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 
 	<xsd:complexType name="methodInvokingChannelAdapterType">
@@ -862,6 +878,10 @@
 						<tool:expected-type type="java.lang.Object" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				A reference to a bean that implements the handler.
+				The bean can be an implementation of the MessageHandler interface or a POJO
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="method" type="xsd:string">
@@ -871,6 +891,9 @@
 						<tool:expected-method type-ref="@ref" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				A method defined on the bean referenced by 'ref' attribute
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -890,6 +913,10 @@
 								<tool:expected-type type="java.lang.Object" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+						A reference to a bean that implements the handler.
+						The bean can be an implementation of the MessageHandler interface or a POJO
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="method" type="xsd:string">
@@ -899,6 +926,9 @@
 								<tool:expected-method type-ref="@ref" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+						A method defined on the bean referenced by 'ref' attribute
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
@@ -2271,14 +2301,9 @@ Name of the header whose value to use.
 						<xsd:documentation>
 							Reference to a MessageGroupStore for holding
 							state in between message processing. The default
-							is
-							to use a
-							volatile in-memory store, which means that unprocessed messages
-							will be lost if the
-							JVM exits. To
-							customize
-							the expiry of incomplete message groups
-							configure the message store.
+							is to use a volatile in-memory store, which means that unprocessed messages
+							will be lost if the JVM exits. To customize
+							the expiry of incomplete message groups configure the message store.
 							</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
