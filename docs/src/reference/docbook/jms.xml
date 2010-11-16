@@ -94,7 +94,7 @@
           since this is a 'channel-adapter', not a gateway. Therefore, the flow downstream from the
           'error-channel' should also be one-way. For example, it could simply send to a logging handler,
           or it could be connected to a different JMS &lt;outbound-channel-adapter&gt; element.
-	  </section>
+      </para>
   </section>
 
   <section id="jms-outbound-channel-adapter">
@@ -177,6 +177,7 @@
       could be a simple POJO that creates error response objects, you could reference
       the "nullChannel" to suppress the errors, or you could leave 'error-channel' out
       to let the Exception propagate.
+    </para>
   </section>
 
   <section id="jms-outbound-gateway">
