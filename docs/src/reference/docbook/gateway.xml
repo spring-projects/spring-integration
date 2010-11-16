@@ -78,32 +78,39 @@
     <para>
     As with anything else, Gateway invocation might result in errors.
     By default any error that has occurred downstream will be re-thrown as a MessagingExeption (RuntimeException)
-    upon the Gateway's method invocation. However there are times when you may want to treat an Exception as a valid reply,
-    by mapping it to a Message. To accomplish this our Gateway provides support for Exception mappers via the
-    <emphasis>exception-mapper</emphasis> attribute.
+    upon the Gateway's method invocation. However there are times when you may want
+    to simply log the error rather than propagating it, or you may want to treat an
+    Exception as a valid reply, by mapping it to a Message that will conform to some
+    "error message" contract that the caller understands. To accomplish this, our
+    Gateway provides support for a Message Channel dedicated to the errors via the
+    <emphasis>error-channel</emphasis> attribute. In the example below, you can see
+    that a 'transformer' is used to create a reply Message from the Exception.
     </para>
     <para>
 <programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
     default-request-channel="gatewayChannel"
     service-interface="foo.bar.SimpleGateway"
-    exception-mapper="exceptionMapper"/>
+    error-channel="exceptionTransformationChannel"/>
 
-<bean id="exceptionMapper" class="foo.bar.SampleExceptionMapper"/>
+<si:transformer input-channel="exceptionTransformationChannel"
+        ref="exceptionTransformer" method="createErrorResponse"/>
+]]></programlisting>
 
-        ]]></programlisting>
-
-  <emphasis>foo.bar.SampleExceptionMapper</emphasis> is the implementation of
-  <emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method: <code>toMessage(Object object)</code>.
-<programlisting language="java"><![CDATA[public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
-  public Message<?> toMessage(Throwable object) throws Exception {
-    MessageHandlingException ex = (MessageHandlingException) object;
-    return MessageBuilder.withPayload("Error happened in message: " +
-                ex.getFailedMessage().getPayload()).build();
-  }
-
-}
-        ]]></programlisting>
-
+  The <emphasis>exceptionTransformer</emphasis> could be a simple POJO that
+  knows how to create the expected error response objects. That would then be
+  the payload that is sent back to the caller. Obviously, you could do many
+  more elaborate things in such an "error flow" if necessary. It might involve
+  routers (including Spring Integration's ErrorMessageExceptionTypeRouter),
+  filters, and so on. Most of the time, a simple 'transformer' should be sufficient,
+  however.
+     </para>
+     <para>
+       Alternatively, you might want to only log the Exception (or send it somewhere
+       asynchronously). If you provide a one-way flow, then nothing would be sent
+       back to the caller. In the case that you want to completely suppress Exceptions,
+       you can provide a reference to the global "nullChannel" (essentially a /dev/null
+       approach). Finally, as mentioned above, if no "error-channel" is defined at all,
+       then the Exceptions will propagate as usual.
      </para>
      <para>
        <important>

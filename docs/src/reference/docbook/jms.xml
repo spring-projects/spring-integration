@@ -144,32 +144,27 @@
     <para>
     As with anything else, Gateway invocation might result in error.
     By default Producer will not be notified of the errors thta might have occurredon ythe consumer side and will time out waiting for 
-    the reply. However there might be times when you to communicate error condition back to the consumer, 
-    in other words treat the Exception as a valid reply valid reply by mapping it to a Message. To accomplish this 
-    JMS Inbound Gateway provides support for Exception mappers via <emphasis>exception-mapper</emphasis> 
-    attribute. 
-   
-    
+    the reply. However there might be times when you want to communicate an error condition back to the consumer, 
+    in other words treat the Exception as a valid reply by mapping it to a Message. To accomplish this 
+    JMS Inbound Gateway provides support for a Message Channel to which errors
+    can be sent for processing, potentially resulting in a reply Message payload
+    that conforms to some contract defining what a caller may expect as an "error"
+    reply. Such a channel can be configured via the <emphasis>error-channel</emphasis>
+    attribute.
+
 <programlisting language="xml"><![CDATA[<int-jms:inbound-gateway request-destination="requestQueue" 
           request-channel="jmsinputchannel"
-          exception-mapper="errorMessageMapper"/>
-				
-<bean id="exceptionMapper" class="foo.bar.SampleExceptionMapper"/>
-				
-				]]></programlisting>
-				
-	<emphasis>foo.bar.SampleExceptionMapper</emphasis> is the implementation of 
-	<emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method <code>toMessage(Object object)</code>.
-<programlisting language="java"><![CDATA[public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
-	public Message<?> toMessage(Throwable object) throws Exception {
-		MessageHandlingException ex = (MessageHandlingException) object;		
-		return MessageBuilder.withPayload("Error happened in message: " + 
-		            ex.getFailedMessage().getPayload()).build();
-	}
-		
-}
-				]]></programlisting>	
-    </para>
+          error-channel="errorTransformationChannel"/>
+
+<si:transformer input-channel="exceptionTransformationChannel"
+        ref="exceptionTransformer" method="createErrorResponse"/>
+]]></programlisting>
+      You might notice that this example looks very similar to that included
+      within <xref linkend="gateway-proxy"/>.
+	  The same idea applies here: The <emphasis>exceptionTransformer</emphasis>
+      could be a simple POJO that creates error response objects, you could reference
+      the "nullChannel" to suppress the errors, or you could leave 'error-channel' out
+      to let the Exception propagate.
   </section>
 
   <section id="jms-outbound-gateway">
