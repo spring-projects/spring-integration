@@ -161,7 +161,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 			int defaults = 0;
 			if (StringUtils.hasText(element.getAttribute(DEFAULT_REPLY_DESTINATION_ATTRIB))) {
 				defaults++;
@@ -191,6 +190,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout", "requestTimeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload", "extractRequestPayload");
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
