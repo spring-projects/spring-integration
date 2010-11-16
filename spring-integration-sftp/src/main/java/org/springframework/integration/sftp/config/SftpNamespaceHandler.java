@@ -53,9 +53,10 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
-			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
+			for (String p : "filename-pattern,auto-create-directories,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "session-factory", "sftpSessionFactory");
 			return builder.getBeanDefinition();
 		}
 	}
@@ -69,11 +70,12 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpSendingMessageHandlerFactoryBean.class.getName());
-			for (String p : "auto-create-directories,username,password,host,port,key-file,key-file-password,charset".split(",")) {
+			for (String p : "auto-create-directories,charset".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
 			String remoteDirectory = element.getAttribute("remote-directory");
 			String remoteDirectoryExpression = element.getAttribute("remote-directory-expression");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "session-factory", "sftpSessionFactory");
 			boolean hasLiteralRemoteDirectory = StringUtils.hasText(remoteDirectory);
 			boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
 			if (hasLiteralRemoteDirectory ^ hasRemoteDirectoryExpression) {

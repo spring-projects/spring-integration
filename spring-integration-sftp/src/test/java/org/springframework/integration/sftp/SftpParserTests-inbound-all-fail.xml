@@ -20,18 +20,23 @@
 
 	<channel id="requestChannel"/>
 	
+	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
+		<beans:property name="host" value="loclahost"/>
+		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
+		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/sftpTest"/>
+		<beans:property name="privateKeyPassphrase" value="ghj"/>
+		<beans:property name="password" value="hello"/>
+		<beans:property name="port" value="2222"/>
+		<beans:property name="user" value="oleg"/>
+	</beans:bean>
+	
 	<sftp:inbound-channel-adapter id="sftpAdapterNoAutoCreate"
 			channel="requestChannel"
+			session-factory="sftpSessionFactory"
 			filter="filter"
 			filename-pattern="foo*.txt"
-			username="oleg"
 			remote-directory="ftp://foo"
 			local-directory-path="file:target/bar"
-			host="localhost"
-			password="hello"
-			port="1234"
-			key-file="ker.txt"
-			key-file-password="hello"
 			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>

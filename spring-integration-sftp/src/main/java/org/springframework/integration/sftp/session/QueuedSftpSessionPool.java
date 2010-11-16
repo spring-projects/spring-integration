@@ -37,16 +37,16 @@ public class QueuedSftpSessionPool implements SftpSessionPool, InitializingBean 
 
 	private volatile Queue<SftpSession> queue;
 
-	private final SftpSessionFactoryBean sftpSessionFactory;
+	private final SftpSessionFactory sftpSessionFactory;
 
 	private final int maxPoolSize;
 
 
-	public QueuedSftpSessionPool(SftpSessionFactoryBean factory) {
+	public QueuedSftpSessionPool(SftpSessionFactory factory) {
 		this(DEFAULT_POOL_SIZE, factory);
 	}
 
-	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactoryBean sessionFactory) {
+	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
 		this.sftpSessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
 	}
@@ -61,7 +61,7 @@ public class QueuedSftpSessionPool implements SftpSessionPool, InitializingBean 
 	public SftpSession getSession() throws Exception {
 		SftpSession session = this.queue.poll();
 		if (null == session) {
-			session = this.sftpSessionFactory.getObject();
+			session = this.sftpSessionFactory.getSession();
 			if (this.queue.size() < this.maxPoolSize) {
 				this.queue.add(session);
 			}

@@ -31,8 +31,7 @@ import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListF
 import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.session.SftpSessionFactoryBean;
-import org.springframework.integration.sftp.session.SftpSessionUtils;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -58,20 +57,28 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	private volatile String filenamePattern;
 
 	private volatile FileListFilter<ChannelSftp.LsEntry> filter;
+	
+	private volatile SftpSessionFactory sftpSessionFactory;
 
-	private int port = 22;
+	
 
-	private String host;
+	public void setSftpSessionFactory(SftpSessionFactory sftpSessionFactory) {
+		this.sftpSessionFactory = sftpSessionFactory;
+	}
 
-	private String keyFile;
-
-	private String keyFilePassword;
-
+	//	private int port = 22;
+//
+//	private String host;
+//
+//	private String keyFile;
+//
+//	private String keyFilePassword;
+//
 	private String remoteDirectory;
-
-	private String username;
-
-	private String password;
+//
+//	private String username;
+//
+//	private String password;
 
 
 	public void setLocalDirectoryResource(Resource localDirectoryResource) {
@@ -98,21 +105,21 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filter = filter;
 	}
 
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setKeyFile(String keyFile) {
-		this.keyFile = keyFile;
-	}
-
-	public void setKeyFilePassword(String keyFilePassword) {
-		this.keyFilePassword = keyFilePassword;
-	}
+//	public void setPort(int port) {
+//		this.port = port;
+//	}
+//
+//	public void setHost(String host) {
+//		this.host = host;
+//	}
+//
+//	public void setKeyFile(String keyFile) {
+//		this.keyFile = keyFile;
+//	}
+//
+//	public void setKeyFilePassword(String keyFilePassword) {
+//		this.keyFilePassword = keyFilePassword;
+//	}
 
 	/**
 	 * Set the remote directory to synchronize with
@@ -120,21 +127,21 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	public void setRemoteDirectory(String remoteDirectory) {
 		this.remoteDirectory = remoteDirectory;
 	}
-
-	/**
-	 * Set the user name to be used for authentication with the remote server
-	 */
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	/**
-	 * Set the password to be used for authentication with the remote server
-	 * @param password
-	 */
-	public void setPassword(String password) {
-		this.password = password;
-	}
+//
+//	/**
+//	 * Set the user name to be used for authentication with the remote server
+//	 */
+//	public void setUsername(String username) {
+//		this.username = username;
+//	}
+//
+//	/**
+//	 * Set the password to be used for authentication with the remote server
+//	 * @param password
+//	 */
+//	public void setPassword(String password) {
+//		this.password = password;
+//	}
 
 	/**
 	 * {@inheritDoc}
@@ -183,8 +190,10 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.filter = compositeFtpFileListFilter;
 
 		// pools
-		SftpSessionFactoryBean sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
-		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sessionFactory);
+		
+		//SftpSession session = new Sf
+		//SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
+		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sftpSessionFactory);
 		pool.afterPropertiesSet();
 
 		SftpInboundRemoteFileSystemSynchronizer sftpSync = new SftpInboundRemoteFileSystemSynchronizer();

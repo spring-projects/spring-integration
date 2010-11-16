@@ -17,11 +17,15 @@
 package org.springframework.integration.sftp.session;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.Identity;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 import org.apache.commons.lang.StringUtils;
 
+import org.springframework.core.io.Resource;
+
+import java.io.File;
 import java.io.InputStream;
 
 /**
@@ -86,7 +90,7 @@ public class SftpSession {
 			jSch.setKnownHosts(knownHostsInputStream);
 		}
 		// private key
-		if (!StringUtils.isEmpty(this.privateKey)) {
+		if (privateKey != null) {
 			if (!StringUtils.isEmpty(privateKeyPassphrase)) {
 				jSch.addIdentity(this.privateKey, privateKeyPassphrase);
 			}

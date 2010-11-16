@@ -16,7 +16,7 @@
 
 package org.springframework.integration.sftp.session;
 
-import org.springframework.beans.factory.config.AbstractFactoryBean;
+import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -27,9 +27,9 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Mario Gray
  */
-public class SftpSessionFactoryBean extends AbstractFactoryBean<SftpSession> {
+public class SftpSessionFactory {
 
-	private volatile String remoteHost;
+	private volatile String host;
 
 	private volatile int port = 22; // the default
 
@@ -39,13 +39,13 @@ public class SftpSessionFactoryBean extends AbstractFactoryBean<SftpSession> {
 
 	private volatile String knownHosts;
 
-	private volatile String privateKey;
+	private volatile Resource privateKey;
 
 	private volatile String privateKeyPassphrase;
 
 
-	public void setRemoteHost(String remoteHost) {
-		this.remoteHost = remoteHost;
+	public void setHost(String host) {
+		this.host = host;
 	}
 
 	public void setPort(int port) {
@@ -64,7 +64,7 @@ public class SftpSessionFactoryBean extends AbstractFactoryBean<SftpSession> {
 		this.knownHosts = knownHosts;
 	}
 
-	public void setPrivateKey(String privateKey) {
+	public void setPrivateKey(Resource privateKey) {
 		this.privateKey = privateKey;
 	}
 
@@ -72,25 +72,17 @@ public class SftpSessionFactoryBean extends AbstractFactoryBean<SftpSession> {
 		this.privateKeyPassphrase = privateKeyPassphrase;
 	}
 
-
-	@Override
-	public Class<?> getObjectType() {
-		return SftpSession.class;
-	}
-
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
-
-	@Override
-	protected SftpSession createInstance() throws Exception {
-		Assert.hasText(this.remoteHost, "remoteHost must not be empty");
+	protected SftpSession getSession() throws Exception {
+		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
-		Assert.isTrue(StringUtils.hasText(this.password) || StringUtils.hasText(this.privateKey) || StringUtils.hasText(this.privateKeyPassphrase),
+		Assert.isTrue(StringUtils.hasText(this.password) || privateKey != null || StringUtils.hasText(this.privateKeyPassphrase),
 				"either a password or a private key and/or a private key passphrase is required");
-		return new SftpSession(this.user, this.remoteHost, this.password, this.port, this.knownHosts, null, this.privateKey, this.privateKeyPassphrase);
+		String privateKeyToPass = null;
+		if (privateKey != null){
+			privateKeyToPass = privateKey.getFile().getAbsolutePath();
+		}
+		return new SftpSession(this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
 	}
 
 }
