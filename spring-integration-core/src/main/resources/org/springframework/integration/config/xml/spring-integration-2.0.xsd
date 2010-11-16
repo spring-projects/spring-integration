@@ -2196,6 +2196,11 @@ Name of the header whose value to use.
 								<tool:expected-type type="java.lang.Object" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to a bean that implements the release strategy. 
+							The bean can be an implementation of the
+							ReleaseStrategy interface or a POJO
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="release-strategy-method" type="xsd:string">
@@ -2205,11 +2210,15 @@ Name of the header whose value to use.
 								<tool:expected-method type-ref="@release-strategy" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+							A method defined on the bean referenced by release-strategy, that implements the completion
+							decision algorithm.
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="release-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>An expression to apply to the message group</xsd:documentation>
+						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">
@@ -2217,6 +2226,11 @@ Name of the header whose value to use.
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="java.lang.Object" />
+								<xsd:documentation>
+							A reference to a bean that implements the decision algorithm as to whether a given 
+							message group is complete. The bean can be an implementation of the 
+							CorrelationStrategy interface or a POJO.
+							</xsd:documentation>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -2228,11 +2242,15 @@ Name of the header whose value to use.
 								<tool:expected-method type-ref="@correlation-strategy" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+						A method defined on the bean referenced by correlation-strategy, that implements the
+						correlation decision algorithm
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>An expression to apply to the message group</xsd:documentation>
+						<xsd:documentation>A SpEL expression to apply to the Message</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
@@ -2242,6 +2260,10 @@ Name of the header whose value to use.
 								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+						The channel where the aggregator will send the messages that timed out (if send-partial-results-
+						on-expiry is 'false').
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="message-store" type="xsd:string">
@@ -2265,7 +2287,14 @@ Name of the header whose value to use.
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string" />
+				<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+						Tells if partially aggregated messages should be released when their storage time had expired (see
+						MessageGroupStore.expireMessageGroups(long))
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

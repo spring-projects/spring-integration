@@ -407,8 +407,8 @@
       
       <callout arearefs="aggxml11">
         <para>A method defined on the bean referenced by
-        <code>correlation-strategy</code>, <emphasis>that implements the
-        correlation decision algorithm.</emphasis> <emphasis>Optional, with
+        <code>correlation-strategy</code>, that implements the
+        correlation decision algorithm. <emphasis>Optional, with
         restrictions (requires <code>correlation-strategy</code> to be
         present).</emphasis></para>
       </callout>
@@ -421,8 +421,8 @@
     
       <callout arearefs="aggxml13">
         <para>A method defined on the bean referenced by <code>ref</code>,
-        <emphasis>that implements the message aggregation
-        algorithm.</emphasis> <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
+        that implements the message aggregation
+        algorithm. <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
       </callout>
       
       <callout arearefs="aggxml14">
@@ -436,8 +436,8 @@
 
       <callout arearefs="aggxml15">
         <para>A method defined on the bean referenced by
-        <code>release-strategy</code>, <emphasis>that implements the
-        completion decision algorithm.</emphasis> <emphasis>Optional, with
+        <code>release-strategy</code>, that implements the
+        completion decision algorithm. <emphasis>Optional, with
         restrictions (requires <code>release-strategy</code> to be
         present).</emphasis></para>
       </callout>
@@ -550,6 +550,8 @@
     <para>
     The same expression-based approach could be applied when dealing with custom <emphasis>Release</emphasis> and 
     <emphasis>Correlation</emphasis> strategies.
+    </para>
+    <para>
 	Instead of defining a bean for custom <classname>CorrelationStrategy</classname> via <code>correlation-strategy</code> 
 	attribute you can implement your simple correlation logic via SpEL expression and configure it via
 	<code>correlation-strategy-ecpression</code> attribute.
