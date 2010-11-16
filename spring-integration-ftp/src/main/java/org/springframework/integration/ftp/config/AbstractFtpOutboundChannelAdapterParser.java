@@ -34,6 +34,8 @@ public abstract class AbstractFtpOutboundChannelAdapterParser extends AbstractOu
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,element,"charset");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,element,"filename-generator", "fileNameGenerator");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,element,"client-factory");
+		
 		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
 		return builder.getBeanDefinition();
 	}

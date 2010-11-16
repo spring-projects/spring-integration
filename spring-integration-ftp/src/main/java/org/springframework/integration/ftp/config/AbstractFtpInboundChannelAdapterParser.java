@@ -37,16 +37,17 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 public abstract class AbstractFtpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList(
-			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(",")));
+			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory,auto-create-directories".split(",")));
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "client-factory");
 		for (String a : receiveAttrs) {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, a);
 		}
-		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
+		//FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
 		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 		return new RuntimeBeanReference(beanName);

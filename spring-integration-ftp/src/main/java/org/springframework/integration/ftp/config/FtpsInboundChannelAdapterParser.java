@@ -28,6 +28,6 @@ public class FtpsInboundChannelAdapterParser extends AbstractFtpInboundChannelAd
 
 	@Override
 	protected String getClassName() {
-		return "org.springframework.integration.ftp.config.FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean";
+		return "org.springframework.integration.ftp.config.FtpsInboundSynchronizingMessageSourceFactoryBean";
 	}
 }

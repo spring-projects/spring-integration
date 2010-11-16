@@ -19,8 +19,6 @@ package org.springframework.integration.ftp.config;
 import java.io.File;
 
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.net.ftp.FTP;
-import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
@@ -46,26 +44,28 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
+class FtpInboundSynchronizingMessageSourceFactoryBean
 		extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile String autoCreateDirectories;
 
 	private volatile String filenamePattern;
+	
+	private volatile AbstractFtpClientFactory<?> clientFactory;
 
-	volatile String host;
+	//volatile String host;
 
-	volatile String port;
+	//volatile String port;
 
-	volatile String username;
+	//volatile String username;
 
-	volatile String password;
+	//volatile String password;
 
-	volatile String remoteDirectory;
+	//volatile String remoteDirectory;
 
-	volatile int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+	//volatile int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
-	volatile int fileType = FTP.BINARY_FILE_TYPE;
+	//volatile int fileType = FTP.BINARY_FILE_TYPE;
 
 	volatile String defaultFtpInboundFolderName = "ftpInbound";
 
@@ -80,24 +80,28 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	private volatile String autoDeleteRemoteFilesOnSync;
 
 
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setPort(String port) {
-		this.port = port;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public void setFileType(int fileType) {
-		this.fileType = fileType;
+//	public void setHost(String host) {
+//		this.host = host;
+//	}
+//
+//	public void setPort(String port) {
+//		this.port = port;
+//	}
+//
+//	public void setUsername(String username) {
+//		this.username = username;
+//	}
+//
+//	public void setPassword(String password) {
+//		this.password = password;
+//	}
+//
+//	public void setFileType(int fileType) {
+//		this.fileType = fileType;
+//	}
+	
+	public void setClientFactory(AbstractFtpClientFactory<?> clientFactory) {
+		this.clientFactory = clientFactory;
 	}
 
 	public void setAutoCreateDirectories(String autoCreateDirectories) {
@@ -108,17 +112,17 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		this.autoDeleteRemoteFilesOnSync = autoDeleteRemoteFilesOnSync;
 	}
 
-	public void setRemoteDirectory(String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
-	}
+//	public void setRemoteDirectory(String remoteDirectory) {
+//		this.remoteDirectory = remoteDirectory;
+//	}
 
 	public void setLocalWorkingDirectory(String localWorkingDirectory) {
 		this.localWorkingDirectory = localWorkingDirectory;
 	}
 
-	public void setClientMode(int clientMode) {
-		this.clientMode = clientMode;
-	}
+//	public void setClientMode(int clientMode) {
+//		this.clientMode = clientMode;
+//	}
 
 	public void setFilter(FileListFilter<FTPFile> filter) {
 		this.filter = filter;
@@ -143,18 +147,18 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		return (Resource) resourceEditor.getValue();
 	}
 
-	protected AbstractFtpClientFactory<?> initializeFactory(AbstractFtpClientFactory<?> factory) throws Exception {
-		factory.setHost(this.host);
-		if (StringUtils.hasText(this.port)) {
-			factory.setPort(Integer.parseInt(this.port));
-		}
-		factory.setUsername(this.username);
-		factory.setPassword(this.password);
-		factory.setRemoteWorkingDirectory(this.remoteDirectory);
-		factory.setClientMode(this.clientMode);
-		factory.setFileType(this.fileType);
-		return factory;
-	}
+//	protected AbstractFtpClientFactory<?> initializeFactory(AbstractFtpClientFactory<?> factory) throws Exception {
+//		factory.setHost(this.host);
+//		if (StringUtils.hasText(this.port)) {
+//			factory.setPort(Integer.parseInt(this.port));
+//		}
+//		factory.setUsername(this.username);
+//		factory.setPassword(this.password);
+//		factory.setRemoteWorkingDirectory(this.remoteDirectory);
+//		factory.setClientMode(this.clientMode);
+//		factory.setFileType(this.fileType);
+//		return factory;
+//	}
 
 	@Override
 	protected FtpInboundRemoteFileSystemSynchronizingMessageSource createInstance() throws Exception {
@@ -177,8 +181,7 @@ class FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		if (this.filter != null) {
 			compositeFilter.addFilter(this.filter);
 		}
-		AbstractFtpClientFactory<?> factory = this.createClientFactory();
-		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.initializeFactory(factory));
+		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.clientFactory);
 		FtpInboundRemoteFileSystemSynchronizer synchronizer = new FtpInboundRemoteFileSystemSynchronizer();
 		synchronizer.setClientPool(queuedFtpClientPool);
 		synchronizer.setLocalDirectory(this.localDirectoryResource);

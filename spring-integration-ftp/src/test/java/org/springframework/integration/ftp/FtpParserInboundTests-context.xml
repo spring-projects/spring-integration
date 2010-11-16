@@ -10,56 +10,38 @@
         http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
        http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="foo/bar"/>
+	</bean>
 	
 	<ftp:inbound-channel-adapter id="adapterFtp" 
+								 client-factory="ftpClientFactory"
 								 channel="ftpIn"
-								 file-type="binary-file-type"	
 								 filter="filter" 
 								 filename-pattern="foo"
 								 local-working-directory="file:target/foo"
 								 auto-create-directories="true"
-								 auto-delete-remote-files-on-sync="false"
-								 username="oleg"
-								 remote-directory="ftp://localhost" 
-								 host="localhost" 
-								 password="zhurakousky" 
-								 port="21"
-								 client-mode="passive-local-data-connection-mode">
+								 auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-		<ftp:inbound-channel-adapter id="adapterFtp" 
+	
+	
+	<ftp:inbound-channel-adapter id="adapterFtp2" 
+		                         client-factory="ftpClientFactory"
 								 channel="ftpIn"
-								 file-type="binary-file-type"	
 								 filter="filter" 
 								 filename-pattern="foo"
 								 local-working-directory="file:target"
 								 auto-create-directories="true"
-								 auto-delete-remote-files-on-sync="false"
-								 username="oleg"
-								 remote-directory="ftp://localhost" 
-								 host="localhost" 
-								 password="zhurakousky" 
-								 port="21"
-								 client-mode="passive-local-data-connection-mode">
+								 auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
-
-<!--	<ftps:inbound-channel-adapter id="adapterFtp" -->
-<!--								 channel="ftpIn"-->
-<!--								 file-type="binary-file-type"	-->
-<!--								 filter="filter" -->
-<!--								 filename-pattern="foo"-->
-<!--								 local-working-directory="file:target/ftps"-->
-<!--								 auto-create-directories="true"-->
-<!--								 auto-delete-remote-files-on-sync="false"-->
-<!--								 username="oleg"-->
-<!--								 remote-directory="ftp://localhost" -->
-<!--								 host="localhost" -->
-<!--								 password="zhurakousky" -->
-<!--								 port="21"-->
-<!--								 client-mode="passive-local-data-connection-mode">-->
-<!--		<int:poller fixed-rate="1000"/>-->
-<!--	</ftps:inbound-channel-adapter>-->
 	
 	<bean id="filter" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>

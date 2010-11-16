@@ -72,6 +72,15 @@
 	
 	<xsd:complexType name="base-ftp-adapter-type">
 		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="client-factory" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.ftp.client.AbstractFtpClientFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="channel" use="required" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -81,76 +90,76 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="username" type="xsd:string" use="required"/>
-		<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
-		<xsd:attribute name="host" type="xsd:string" use="required"/>
-		<xsd:attribute name="password" type="xsd:string" use="required"/>
+<!--		<xsd:attribute name="username" type="xsd:string" use="required"/>-->
+<!--		<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>-->
+<!--		<xsd:attribute name="host" type="xsd:string" use="required"/>-->
+<!--		<xsd:attribute name="password" type="xsd:string" use="required"/>-->
         <xsd:attribute name="charset" type="xsd:string" default="UTF-8"/>
-		<xsd:attribute name="port" type="xsd:int" default="22"/>
-		<xsd:attribute name="client-mode" default="active-local-data-connection-mode" use="optional" >
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-                          the FTP Client-Mode
-
-   /***
-    * A constant indicating the FTP session is expecting all transfers
-    * to occur between the client (local) and server and that the server
-    * should connect to the client's data port to initiate a data transfer.
-    * This is the default data connection mode when and FTPClient instance
-    * is created.
-    ***/
-   ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0
-
-   /***
-    * A constant indicating the FTP session is expecting all transfers
-    * to occur between two remote servers and that the server
-    * the client is connected to should connect to the other server's
-    * data port to initiate a data transfer.
-    ***/
-   ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1
-
-   /***
-    * A constant indicating the FTP session is expecting all transfers
-    * to occur between the client (local) and server and that the server
-    * is in passive mode, requiring the client to connect to the
-    * server's data port to initiate a transfer.
-    ***/
-   PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2
-
-   /***
-    * A constant indicating the FTP session is expecting all transfers
-    * to occur between two remote servers and that the server
-    * the client is connected to is in passive mode, requiring the other
-    * server to connect to the first server's data port to initiate a data
-    * transfer.
-    ***/
-   PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3
-
-                           ]]></xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="active-local-data-connection-mode"/>
-					<xsd:enumeration value="active-remote-data-connection-mode"/>
-					<xsd:enumeration value="passive-local-data-connection-mode"/>
-					<xsd:enumeration value="passive-remote-data-connection-mode"/>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
-		<xsd:attribute name="file-type" default="binary-file-type" use="optional">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-			Binary, ASCII, or EBDIC. Binary's a good default
-                   ]]></xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="ebcdic-file-type"/>
-					<xsd:enumeration value="ascii-file-type"/>
-					<xsd:enumeration value="binary-file-type"/>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
+<!--		<xsd:attribute name="port" type="xsd:int" default="22"/>-->
+<!--		<xsd:attribute name="client-mode" default="active-local-data-connection-mode" use="optional" >-->
+<!--			<xsd:annotation>-->
+<!--				<xsd:documentation><![CDATA[-->
+<!--                          the FTP Client-Mode-->
+<!---->
+<!--   /***-->
+<!--    * A constant indicating the FTP session is expecting all transfers-->
+<!--    * to occur between the client (local) and server and that the server-->
+<!--    * should connect to the client's data port to initiate a data transfer.-->
+<!--    * This is the default data connection mode when and FTPClient instance-->
+<!--    * is created.-->
+<!--    ***/-->
+<!--   ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0-->
+<!---->
+<!--   /***-->
+<!--    * A constant indicating the FTP session is expecting all transfers-->
+<!--    * to occur between two remote servers and that the server-->
+<!--    * the client is connected to should connect to the other server's-->
+<!--    * data port to initiate a data transfer.-->
+<!--    ***/-->
+<!--   ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1-->
+<!---->
+<!--   /***-->
+<!--    * A constant indicating the FTP session is expecting all transfers-->
+<!--    * to occur between the client (local) and server and that the server-->
+<!--    * is in passive mode, requiring the client to connect to the-->
+<!--    * server's data port to initiate a transfer.-->
+<!--    ***/-->
+<!--   PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2-->
+<!---->
+<!--   /***-->
+<!--    * A constant indicating the FTP session is expecting all transfers-->
+<!--    * to occur between two remote servers and that the server-->
+<!--    * the client is connected to is in passive mode, requiring the other-->
+<!--    * server to connect to the first server's data port to initiate a data-->
+<!--    * transfer.-->
+<!--    ***/-->
+<!--   PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3-->
+<!---->
+<!--                           ]]></xsd:documentation>-->
+<!--			</xsd:annotation>-->
+<!--			<xsd:simpleType>-->
+<!--				<xsd:restriction base="xsd:NMTOKEN">-->
+<!--					<xsd:enumeration value="active-local-data-connection-mode"/>-->
+<!--					<xsd:enumeration value="active-remote-data-connection-mode"/>-->
+<!--					<xsd:enumeration value="passive-local-data-connection-mode"/>-->
+<!--					<xsd:enumeration value="passive-remote-data-connection-mode"/>-->
+<!--				</xsd:restriction>-->
+<!--			</xsd:simpleType>-->
+<!--		</xsd:attribute>-->
+<!--		<xsd:attribute name="file-type" default="binary-file-type" use="optional">-->
+<!--			<xsd:annotation>-->
+<!--				<xsd:documentation><![CDATA[-->
+<!--			Binary, ASCII, or EBDIC. Binary's a good default-->
+<!--                   ]]></xsd:documentation>-->
+<!--			</xsd:annotation>-->
+<!--			<xsd:simpleType>-->
+<!--				<xsd:restriction base="xsd:NMTOKEN">-->
+<!--					<xsd:enumeration value="ebcdic-file-type"/>-->
+<!--					<xsd:enumeration value="ascii-file-type"/>-->
+<!--					<xsd:enumeration value="binary-file-type"/>-->
+<!--				</xsd:restriction>-->
+<!--			</xsd:simpleType>-->
+<!--		</xsd:attribute>-->
 	</xsd:complexType>
 
 </xsd:schema>

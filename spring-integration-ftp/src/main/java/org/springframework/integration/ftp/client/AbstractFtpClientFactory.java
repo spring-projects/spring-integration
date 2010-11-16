@@ -40,7 +40,7 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 
 	private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
 
-	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
+	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 
 
 	protected FTPClientConfig config;
@@ -55,11 +55,23 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 
 	protected String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
+
+  
 	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
 	protected int fileType = FTP.BINARY_FILE_TYPE;
 
 
+	/**
+	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants.
+	 * <br>
+	 * ASCII_FILE_TYPE=0; <br> 
+	 * EBCDIC_FILE_TYPE=1; <br>
+	 * BINARY_FILE_TYPE=3 (DEFAULT);<br>
+	 * LOCAL_FILE_TYPE=4;
+	 *  
+	 * @param fileType
+	 */
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
 	}
@@ -94,11 +106,33 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
-	/**
-	 * Set client mode, for example
-	 * <code>FTPClient.ACTIVE_LOCAL_CONNECTION_MODE</code> (default)
-	 * Only local modes are supported.
-	 */
+	 /**
+	    * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0 <br>
+	    * A constant indicating the FTP session is expecting all transfers
+	    * to occur between the client (local) and server and that the server
+	    * should connect to the client's data port to initiate a data transfer.
+	    * This is the default data connection mode when and FTPClient instance
+	    * is created.
+	    * <br>
+	    * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1 <br>
+	    * A constant indicating the FTP session is expecting all transfers
+	    * to occur between two remote servers and that the server
+	    * the client is connected to should connect to the other server's
+	    * data port to initiate a data transfer.
+	    * <br>
+	  	* PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2 <br>
+	    * A constant indicating the FTP session is expecting all transfers
+	    * to occur between the client (local) and server and that the server
+	    * is in passive mode, requiring the client to connect to the
+	    * server's data port to initiate a transfer.
+	    * <br>
+	    * PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3 <br>
+	    * A constant indicating the FTP session is expecting all transfers
+	    * to occur between two remote servers and that the server
+	    * the client is connected to is in passive mode, requiring the other
+	    * server to connect to the first server's data port to initiate a data
+	    * transfer.
+	    **/
 	public void setClientMode(int clientMode) {
 		this.clientMode = clientMode;
 	}

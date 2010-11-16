@@ -21,6 +21,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,6 +39,7 @@ import org.springframework.integration.test.util.TestUtils;
 public class FtpParserOutboundTests {
 	
 	@Test
+	@Ignore
 	public void testFtpOutboundWithFileGenerator() throws Exception{
 		ClassPathXmlApplicationContext context =  
 				new ClassPathXmlApplicationContext("FtpParserOutboundTests-context.xml", this.getClass());

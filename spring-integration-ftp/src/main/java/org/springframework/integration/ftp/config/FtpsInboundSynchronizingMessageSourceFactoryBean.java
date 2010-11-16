@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean {
+class FtpsInboundSynchronizingMessageSourceFactoryBean extends FtpInboundSynchronizingMessageSourceFactoryBean {
 
 	/**
 	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
@@ -66,9 +66,9 @@ class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 	private String[] cipherSuites;
 
 
-	public FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
+	public FtpsInboundSynchronizingMessageSourceFactoryBean() {
 		this.defaultFtpInboundFolderName = "ftpsInbound";
-		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
+		//this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
 	}
 
 
@@ -117,7 +117,7 @@ class FtpsInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean extends F
 	}
 
 	protected AbstractFtpClientFactory<?> initializeFactory(AbstractFtpClientFactory<?> factory) throws Exception {
-		super.initializeFactory(factory);
+		//super.initializeFactory(factory);
 		DefaultFtpsClientFactory ftpsFactory = (DefaultFtpsClientFactory) factory;
 		ftpsFactory.setCipherSuites(this.cipherSuites);
 		ftpsFactory.setAuthValue(this.authValue);

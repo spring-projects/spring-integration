@@ -7,19 +7,21 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="foo/bar"/>
+	</bean>
 
-	<int-ftp:outbound-channel-adapter 
-				id="ftpOutbound"
-				username="user" 
-				password="password"
+	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
-				remote-directory="foo/bar" 
-				host="localhost"
+				client-factory="ftpClientFactory"
 				charset="UTF-8"
-				client-mode="active-local-data-connection-mode"
-				file-type="binary-file-type"
-				filename-generator="fileNameGenerator"
-				port="22"/>
+				filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>
 	

@@ -35,24 +35,29 @@ import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
  */
 class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> {
 
-	protected volatile int port;
-
-	protected volatile String username;
-
-	protected volatile String password;
-
-	protected volatile String host;
-
-	protected volatile String remoteDirectory;
+//	protected volatile int port;
+//
+//	protected volatile String username;
+//
+//	protected volatile String password;
+//
+//	protected volatile String host;
+//
+//	protected volatile String remoteDirectory;
 
 	private  volatile String charset;
 
-	protected volatile int clientMode;
-
-	private volatile int fileType;
+//	protected volatile int clientMode;
+//
+//	private volatile int fileType;
 
 	private FileNameGenerator fileNameGenerator;
+	
+	private volatile AbstractFtpClientFactory<?> clientFactory;
 
+	public void setClientFactory(AbstractFtpClientFactory<?> clientFactory) {
+		this.clientFactory = clientFactory;
+	}
 
 	public void setCharset(String charset) {
 		this.charset = charset;
@@ -62,49 +67,49 @@ class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSending
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
-	public void setFileType(int fileType) {
-		this.fileType = fileType;
-	}
+//	public void setFileType(int fileType) {
+//		this.fileType = fileType;
+//	}
+//
+//	public void setClientMode(int clientMode) {
+//		this.clientMode = clientMode;
+//	}
+//
+//	public void setPort(int port) {
+//		this.port = port;
+//	}
+//
+//	public void setUsername(String username) {
+//		this.username = username;
+//	}
+//
+//	public void setPassword(String password) {
+//		this.password = password;
+//	}
 
-	public void setClientMode(int clientMode) {
-		this.clientMode = clientMode;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setRemoteDirectory(String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
-	}
+//	public void setHost(String host) {
+//		this.host = host;
+//	}
+//
+//	public void setRemoteDirectory(String remoteDirectory) {
+//		this.remoteDirectory = remoteDirectory;
+//	}
 
 	@Override
 	public Class<? extends FtpSendingMessageHandler> getObjectType() {
 		return FtpSendingMessageHandler.class;
 	}
 
-	protected AbstractFtpClientFactory<?> initializeClientFactory(AbstractFtpClientFactory<?> factory) {
-		factory.setHost(this.host);
-		factory.setPort(this.port);
-		factory.setUsername(this.username);
-		factory.setPassword(this.password);
-		factory.setRemoteWorkingDirectory(this.remoteDirectory);
-		factory.setClientMode(this.clientMode);
-		factory.setFileType(this.fileType);
-		return factory;
-	}
+//	protected AbstractFtpClientFactory<?> initializeClientFactory(AbstractFtpClientFactory<?> factory) {
+//		factory.setHost(this.host);
+//		factory.setPort(this.port);
+//		factory.setUsername(this.username);
+//		factory.setPassword(this.password);
+//		factory.setRemoteWorkingDirectory(this.remoteDirectory);
+//		factory.setClientMode(this.clientMode);
+//		factory.setFileType(this.fileType);
+//		return factory;
+//	}
 	
 	protected AbstractFtpClientFactory<?> createClientFactory(){
 		return new DefaultFtpClientFactory();
@@ -112,8 +117,8 @@ class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSending
 
 	@Override
 	protected FtpSendingMessageHandler createInstance() throws Exception {
-		AbstractFtpClientFactory<?> defaultFtpClientFactory = this.initializeClientFactory(this.createClientFactory());
-		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultFtpClientFactory);
+		//AbstractFtpClientFactory<?> defaultFtpClientFactory = this.initializeClientFactory(this.createClientFactory());
+		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.clientFactory);
 		FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(
 				queuedFtpClientPool);
 		ftpSendingMessageHandler.setFileNameGenerator(this.fileNameGenerator);

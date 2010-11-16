@@ -109,7 +109,7 @@ class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFacto
 	}
 
 	protected AbstractFtpClientFactory<?> initializeClientFactory(AbstractFtpClientFactory<?> factory) {
-		super.initializeClientFactory(factory);
+		//super.initializeClientFactory(factory);
 		DefaultFtpsClientFactory ftpsFactory = (DefaultFtpsClientFactory) factory;
 		
 		ftpsFactory.setCipherSuites(this.cipherSuites);

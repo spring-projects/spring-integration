@@ -2,48 +2,44 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-ftps="http://www.springframework.org/schema/integration/ftps"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps-2.0.xsd">
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="foo/bar"/>
+	</bean>
 
-	<int-ftps:inbound-channel-adapter 
-				id="ftpInbound"
-				username="user" 
-				password="password"
+	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
-				remote-directory="foo/bar" 
-				host="localhost"
+				client-factory="ftpClientFactory"
 				charset="UTF-8"
-				client-mode="active-local-data-connection-mode"
-				file-type="binary-file-type"
-				port="22"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
 				filename-pattern=".?txt"
-				filter="entryListFilter"
-				local-working-directory=".">
+				local-working-directory="."
+				filter="entryListFilter">
 			<int:poller fixed-rate="1000"/>
-	</int-ftps:inbound-channel-adapter>
+	</int-ftp:inbound-channel-adapter>
 	
-	<int-ftps:inbound-channel-adapter 
-				username="user" 
-				password="password"
+	<int-ftp:inbound-channel-adapter 
 				channel="ftpChannel" 
-				remote-directory="foo/bar" 
-				host="localhost"
+				client-factory="ftpClientFactory"
 				charset="UTF-8"
-				client-mode="active-local-data-connection-mode"
-				file-type="binary-file-type"
-				port="22"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
 				filename-pattern=".?txt"
-				filter="entryListFilter"
-				local-working-directory=".">
+				local-working-directory="."
+				filter="entryListFilter">
 			<int:poller fixed-rate="1000"/>
-	</int-ftps:inbound-channel-adapter>
+	</int-ftp:inbound-channel-adapter>
 				
 	<int:channel id="ftpChannel"/>
 	
