@@ -305,28 +305,38 @@
 
     <para>Spring Integration supports the configuration of an aggregator via
     XML through the &lt;aggregator/&gt; element. Below you can see an example
-    of an aggregator with all optional parameters defined.</para>
+    of an aggregator.</para>
 
     <programlisting lang="xml"><![CDATA[<channel id="inputChannel"/>
 
-<aggregator id="completelyDefinedAggregator" ]]><co id="aggxml1" /><![CDATA[
-    input-channel="inputChannel" ]]><co id="aggxml2" /><![CDATA[
-    output-channel="outputChannel"  ]]><co id="aggxml3" /><![CDATA[
-    discard-channel="discardChannel"  ]]><co id="aggxml4" /><![CDATA[
-    ref="aggregatorBean" ]]><co id="aggxml5" /><![CDATA[
-    method="add" ]]><co id="aggxml6" /><![CDATA[
-    release-strategy="releaseStrategyBean"  ]]><co id="aggxml7" /><![CDATA[
-    release-strategy-method="canRelease" ]]><co id="aggxml8" /><![CDATA[
-    correlation-strategy="correlationStrategyBean" ]]><co
-        id="aggxmlCorrelationStrategy" /><![CDATA[
-    correlation-strategy-method="groupNumbersByLastDigit" ]]><co
-        id="aggxmlCorrelationStrategyMethod" /><![CDATA[
-    message-store="messageStore" ]]><co id="aggxml11-co" linkends="aggxml11" /><![CDATA[
-    send-partial-result-on-expiry="true" ]]><co id="aggxml9" /><![CDATA[
-    send-timeout="86420000" ]]><co id="aggxml10" /><![CDATA[ 
-    expression="#this.toArray()" ]]><co id="aggxml12" /><![CDATA[/> 
 
-<channel id="outputChannel"/>
+<int:aggregator id="myAggregator" ]]><co id="aggxml01" /><![CDATA[
+		auto-startup="true" ]]><co id="aggxml02" /><![CDATA[
+		input-channel="inputChannel" ]]><co id="aggxml03" /><![CDATA[
+		output-channel="outputChannel" ]]><co id="aggxml04" /><![CDATA[
+		discard-channel="throwAwayChannel" ]]><co id="aggxml05" /><![CDATA[
+		message-store="persistentMessageStore" ]]><co id="aggxml06" /><![CDATA[
+		order="1" ]]><co id="aggxml07" /><![CDATA[
+		send-partial-result-on-expiry="false" ]]><co id="aggxml08" /><![CDATA[
+		send-timeout="1000" ]]><co id="aggxml09" /><![CDATA[
+		
+		correlation-strategy="correlationStrategyBean" ]]><co id="aggxml10" /><![CDATA[
+		correlation-strategy-method="correlate" ]]><co id="aggxml11" /><![CDATA[
+		
+		ref="aggregatorBean" ]]><co id="aggxml12" /><![CDATA[
+		method="aggregate" ]]><co id="aggxml13" /><![CDATA[
+			
+		release-strategy="releaseStrategyBean" ]]><co id="aggxml14" /><![CDATA[
+		release-strategy-method="release"/> ]]><co id="aggxml15" /><![CDATA[
+
+
+<int:channel id="outputChannel"/>
+
+<int:channel id="throwAwayChannel"/>
+
+<bean id="nessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+	<constructor-arg ref="dataSource"/>
+</bean>
 
 <bean id="aggregatorBean" class="sample.PojoAggregator"/>
 
@@ -335,96 +345,103 @@
 <bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/>]]></programlisting>
 
     <calloutlist>
-      <callout arearefs="aggxml1">
+      <callout arearefs="aggxml01">
         <para>The id of the aggregator is
         <emphasis>optional</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml2">
-        <para>The input channel of the aggregator.
+      <callout arearefs="aggxml02">
+        <para>Lifecycle attribute signaling if aggregator should be started during Application Context startup.
+        <emphasis>Optional (default is 'true')</emphasis>.</para>
+      </callout>
+      
+      <callout arearefs="aggxml03">
+        <para>The channel where aggregator will receive messages from
         <emphasis>Required</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml3">
+      <callout arearefs="aggxml04">
         <para>The channel where the aggregator will send the aggregation
         results. <emphasis>Optional (because incoming messages can specify a
-        reply channel themselves)</emphasis>.</para>
+        reply channel themselves via 'replyChannel' Message Header)</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml4">
+      <callout arearefs="aggxml05">
         <para>The channel where the aggregator will send the messages that
-        timed out (if <code>send-partial-results-on-timeout</code> is
+        timed out (if <code>send-partial-results-on-expiry</code> is
         <emphasis>false</emphasis>). <emphasis>Optional</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml5">
-        <para>A reference to a bean defined in the application context. The
-        bean must implement the aggregation logic as described above.
-        <emphasis>Required</emphasis>.</para>
-      </callout>
-
-      <callout arearefs="aggxml6">
-        <para>A method defined on the bean referenced by <code>ref</code>,
-        <emphasis>that implements the message aggregation
-        algorithm.</emphasis> <emphasis>Optional, with restrictions (see
-        above).</emphasis></para>
-      </callout>
-
-      <callout arearefs="aggxml7">
-        <para>A reference to a bean that implements the decision algorithm as
-        to whether a given message group is complete. The bean can be an
-        implementation of the CompletionStrategy interface or a POJO. In the
-        latter case the completion-strategy-method attribute must be defined
-        as well. <emphasis>Optional (by default, the aggregator will use
-        sequence size) </emphasis>.</para>
-      </callout>
-
-      <callout arearefs="aggxml8">
-        <para>A method defined on the bean referenced by
-        <code>release-strategy</code>, <emphasis>that implements the
-        completion decision algorithm.</emphasis> <emphasis>Optional, with
-        restrictions (requires <code>completion-strategy</code> to be
-        present).</emphasis></para>
-      </callout>
-
-      <callout arearefs="aggxmlCorrelationStrategy">
-        <para>A reference to a bean that implements the correlation strategy.
-        The bean can be an implementation of the CorrelationStrategy interface
-        or a POJO. In the latter case the correlation-strategy-method
-        attribute must be defined as well. <emphasis>Optional (by default, the
-        aggregator will use the correlation id header attribute)
-        </emphasis>.</para>
-      </callout>
-
-      <callout arearefs="aggxmlCorrelationStrategyMethod">
-        <para>A method defined on the bean referenced by
-        <code>correlation-strategy</code>, <emphasis>that implements the
-        correlation key algorithm.</emphasis> <emphasis>Optional, with
-        restrictions (requires <code>correlation-strategy</code> to be
-        present).</emphasis></para>
-      </callout>
-
-      <callout arearefs="aggxml11-co" id="aggxml11">
+      <callout arearefs="aggxml06">
         <para>A reference to a <code>MessageGroupStore</code> that can be used
         to store groups of messages under their correlation key until they are
         complete. <emphasis>Optional</emphasis> with default a volatile
         in-memory store.</para>
       </callout>
-
-      <callout arch="" arearefs="aggxml9">
-        <para>Whether upon the expiration of the message group, the aggregator
-        will try to aggregate the messages that have already arrived.
-        <emphasis>Optional (false by default)</emphasis>.</para>
+      
+       <callout arearefs="aggxml07">
+        <para>Order of this aggregator in when more then one aggregator is subscribig to the same DirectChannel
+        (use for load balancing purposes) 
+        <emphasis>Optional</emphasis>.</para>
       </callout>
-
-      <callout arearefs="aggxml10">
+      
+      <callout arearefs="aggxml08">
+        <para>Tells if partially aggregated messages should be released when their storage time had expired
+        (see MessageGroupStore.expireMessageGroups(long))
+        <emphasis>Optional</emphasis>.</para>
+      </callout>
+      
+       <callout arearefs="aggxml09">
         <para>The timeout for sending the aggregated messages to the output or
         reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
       
-      <callout arearefs="aggxml12">
-        <para>SpEL expression to handle release strategy <emphasis>Optional</emphasis>.</para>
+      <callout arearefs="aggxml10">
+        <para>A reference to a bean that implements the decision algorithm as
+        to whether a given message group is complete. The bean can be an
+        implementation of the CorrelationStrategy interface or a POJO. In the
+        latter case the correlation-strategy-method attribute must be defined
+        as well. <emphasis>Optional (by default, the aggregator will use
+        sequence size) </emphasis>.</para>
       </callout>
+      
+      <callout arearefs="aggxml11">
+        <para>A method defined on the bean referenced by
+        <code>correlation-strategy</code>, <emphasis>that implements the
+        correlation decision algorithm.</emphasis> <emphasis>Optional, with
+        restrictions (requires <code>correlation-strategy</code> to be
+        present).</emphasis></para>
+      </callout>
+      
+      <callout arearefs="aggxml12">
+        <para>A reference to a bean defined in the application context. The bean must implement the aggregation logic
+		as described above.<emphasis>Optional (by default the list of aggregated Messages will become a 
+		payload of the output message).</emphasis></para>
+      </callout>
+    
+      <callout arearefs="aggxml13">
+        <para>A method defined on the bean referenced by <code>ref</code>,
+        <emphasis>that implements the message aggregation
+        algorithm.</emphasis> <emphasis>Optional, depends on <code>ref</code> attribute being defined.</emphasis></para>
+      </callout>
+      
+      <callout arearefs="aggxml14">
+        <para>A reference to a bean that implements the release strategy.
+        The bean can be an implementation of the <classname>ReleaseStrategy</classname> interface
+        or a POJO. In the latter case the release-strategy-method
+        attribute must be defined as well. <emphasis>Optional (by default, the
+        aggregator will use the correlation id header attribute)
+        </emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml15">
+        <para>A method defined on the bean referenced by
+        <code>release-strategy</code>, <emphasis>that implements the
+        completion decision algorithm.</emphasis> <emphasis>Optional, with
+        restrictions (requires <code>release-strategy</code> to be
+        present).</emphasis></para>
+      </callout>
+
     </calloutlist>
 
     <para>Using a "ref" attribute is generally recommended if a custom
@@ -528,6 +545,34 @@
 	(http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113) to 
 	assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus 
 	achieving the same result as the java code above.
+    </para>
+    
+    <para>
+    The same expression-based approach could be applied when dealing with custom <emphasis>Release</emphasis> and 
+    <emphasis>Correlation</emphasis> strategies.
+	Instead of defining a bean for custom <classname>CorrelationStrategy</classname> via <code>correlation-strategy</code> 
+	attribute you can implement your simple correlation logic via SpEL expression and configure it via
+	<code>correlation-strategy-ecpression</code> attribute.
+	</para>
+	<para>
+	For example:
+	
+	<programlisting language="xml"><![CDATA[correlation-strategy-expression="payload.getPerson().getId()"]]></programlisting>
+	
+	In the above example it is assumed that the payload has an attribute <code>person</code> with an <code>id</code> 
+	which is going to be used to correlate messages.
+	</para>
+	<para>
+	And when it comes to <classname>ReleaseStrategy</classname> you can implement your release logic via 
+	SpEL expression as well and configure it via <code>release-strategy-expression</code> attribute.
+	</para>
+	<para>
+	For example:
+
+	<programlisting language="xml"><![CDATA[release-strategy-expression="payload.size() > 5"]]></programlisting>
+	
+	In this example the root of SpEL Evaluation Context is <classname>MessageGroup</classname> and you simply stating 
+	that as soon as there are more then 5 messages in this group release the group.
     </para>
   </section>
 
