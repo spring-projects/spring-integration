@@ -83,6 +83,18 @@
       be passed along to the <interfacename>MessageChannel</interfacename> as soon as they are received from the underlying
       JMS consumer.
     </para>
+    <para>Finally, the &lt;message-driven-channel-adapter&gt; also accepts the 'error-channel' attribute. This
+      provides the same basic functionality as described in <xref linkend="gateway-proxy"/>.
+<programlisting language="xml"><![CDATA[ <jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" 
+         channel="exampleChannel"
+         error-channel="exampleErrorChannel"/>
+]]></programlisting>
+	      When comparing this to the generic gateway configuration, or the JMS 'inbound-gateway' that will
+          be discussed below, the key difference here is that we are in a one-way flow
+          since this is a 'channel-adapter', not a gateway. Therefore, the flow downstream from the
+          'error-channel' should also be one-way. For example, it could simply send to a logging handler,
+          or it could be connected to a different JMS &lt;outbound-channel-adapter&gt; element.
+	  </section>
   </section>
 
   <section id="jms-outbound-channel-adapter">
