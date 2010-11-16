@@ -100,12 +100,19 @@
 								</xsd:annotation>
 							</xsd:element>
 							<xsd:element name="rendezvous-queue" type="rendezvousQueueType" />
-							<xsd:element name="dispatcher" type="dispatcherType" />
+							<xsd:element name="dispatcher" type="dispatcherType" >
+								<xsd:annotation>
+									<xsd:documentation>Provides MessageDispatcher configuration 
+									(i.e., failover, load-balancing, task-executor)</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
 						</xsd:choice>
 						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1">
 							<xsd:annotation>
 								<xsd:documentation><![CDATA[
-	A list of ChannelInterceptor instances to be applied to this channel.
+	A list of ChannelInterceptor instances whose preSend and postSend methods
+	will be applied to this channel. Note that the preReceive and postReceive
+	methods have no effect for a SubscribableChannel instance.
 								]]></xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
@@ -216,14 +223,14 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="load-balancer">
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a load-balancing strategy for the channel's dispatcher.
+					The default is a round-robin load
+					balancer.
+				</xsd:documentation>
+			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:annotation>
-					<xsd:documentation>
-						Defines a load-balancing strategy for the channel's dispatcher.
-						The default is a round-robin load
-						balancer.
-					</xsd:documentation>
-				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="round-robin">
 						<xsd:annotation>
@@ -391,13 +398,13 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="dispatcher">
-			<xsd:simpleType>
-				<xsd:annotation>
+			<xsd:annotation>
 					<xsd:documentation>
 						This attribute is DEPRECATED. Please use the dispatcher sub-element
 						instead.
 					</xsd:documentation>
 				</xsd:annotation>
+			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="failover">
 						<xsd:annotation>
@@ -696,8 +703,9 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Specifies the order for invocation when this endpoint is connected as a
-								subscriber to a
-								SubscribableChannel.
+subscriber to a channel. This is particularly relevant when that channel
+is using a "failover" dispatching strategy. It has no effect when this
+endpoint itself is a Polling Consumer for a channel with a queue.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -772,10 +780,10 @@
 					<tool:annotation>
 						<tool:expected-method type-ref="@ref" />
 					</tool:annotation>
-					<xsd:documentation>
-					A method defined on the bean referenced by 'ref' attribute
-					</xsd:documentation>
 				</xsd:appinfo>
+				<xsd:documentation>
+					A method defined on the bean referenced by 'ref' attribute
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="expression" type="xsd:string">
@@ -2256,13 +2264,13 @@ Name of the header whose value to use.
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
 								<tool:expected-type type="java.lang.Object" />
-								<xsd:documentation>
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
 							A reference to a bean that implements the decision algorithm as to whether a given 
 							message group is complete. The bean can be an implementation of the 
 							CorrelationStrategy interface or a POJO.
 							</xsd:documentation>
-							</tool:annotation>
-						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy-method" type="xsd:string">
@@ -2280,7 +2288,9 @@ Name of the header whose value to use.
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>A SpEL expression to apply to the Message</xsd:documentation>
+						<xsd:documentation>A SpEL expression which implements correlation decision 
+						algorithm to apply to the Message (e.g., payload.getPerson().getId() - correlate
+						 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="discard-channel" type="xsd:string">
@@ -2382,19 +2392,34 @@ Name of the header whose value to use.
 		<xsd:sequence>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
 				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+							Reference to a bean in this Application Context that implements ChannelInterceptor
+						</xsd:documentation>
+					</xsd:annotation>  
 					<xsd:complexType>
 						<xsd:attribute name="bean" use="required">
 							<xsd:annotation>
 								<xsd:appinfo>
 									<tool:annotation kind="ref">
-										<tool:expected-type type="java.lang.Object" />
+										<tool:expected-type type="org.springframework.integration.channel.ChannelInterceptor" />
 									</tool:annotation>
 								</xsd:appinfo>
+								<xsd:documentation>
+							Reference to a bean in this Application Context that implements ChannelInterceptor
+						</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>
+						Alows you to configure a Wire Tap interceptor that will send a copy of the message to a 
+						channel identified by 'ref' attribute.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:choice>
 		</xsd:sequence>
@@ -2709,6 +2734,9 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				Identifies the Message channel where Message will be sent after it's being processed by this endpoint
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="send-timeout" type="xsd:string">
@@ -2727,6 +2755,9 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				The receiving Message channel of this endpoint
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="order" type="xsd:string">
@@ -2739,6 +2770,12 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" />
+		<xsd:attribute name="auto-startup" type="xsd:string" >
+			<xsd:annotation>
+			<xsd:documentation>
+					Lifecycle attribute signaling if this component should be started during Application Context startup.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:attributeGroup>
 </xsd:schema>
