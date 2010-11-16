@@ -43,7 +43,7 @@ public class OutboundPresenceTests {
 	@Qualifier("outboundPresenceChannel")
 	private DirectChannel input;
 	@Test
-	//@Ignore
+	@Ignore
 	public void testOutbound() throws Throwable {
 		Presence presence = new Presence(Presence.Type.available);
 		input.send(new GenericMessage<Presence>(presence));
