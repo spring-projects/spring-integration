@@ -16,17 +16,14 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.io.InputStream;
+
+import org.apache.commons.lang.StringUtils;
+
 import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.Identity;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
-import org.apache.commons.lang.StringUtils;
-
-import org.springframework.core.io.Resource;
-
-import java.io.File;
-import java.io.InputStream;
 
 /**
  * There are many ways to create a {@link SftpSession} just as there are many ways to SSH into a remote system.

@@ -49,7 +49,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		if (file.exists()){
 			file.delete();
 		}
-		SftpInboundRemoteFileSystemSynchronizer syncronizer = new SftpInboundRemoteFileSystemSynchronizer();
+		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer();
 		syncronizer.setLocalDirectory(new FileSystemResource(System.getProperty("java.io.tmpdir")));
 		syncronizer.setRemotePath("foo/bar");
 		

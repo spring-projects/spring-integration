@@ -28,8 +28,8 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
-import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizer;
-import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.sftp.inbound.SftpInboundSynchronizer;
+import org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.StringUtils;
@@ -44,7 +44,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @since 2.0
  */
 class SftpInboundSynchronizingMessageSourceFactoryBean
-		extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
+		extends AbstractFactoryBean<SftpInboundSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile ResourceLoader resourceLoader;
 
@@ -126,10 +126,10 @@ class SftpInboundSynchronizingMessageSourceFactoryBean
 	 * @return Fully configured SftpInboundRemoteFileSystemSynchronizingMessageSource
 	 */
 	@Override
-	protected SftpInboundRemoteFileSystemSynchronizingMessageSource createInstance() throws Exception {
+	protected SftpInboundSynchronizingMessageSource createInstance() throws Exception {
 		boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
 		boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
-		SftpInboundRemoteFileSystemSynchronizingMessageSource sftpMsgSrc = new SftpInboundRemoteFileSystemSynchronizingMessageSource();
+		SftpInboundSynchronizingMessageSource sftpMsgSrc = new SftpInboundSynchronizingMessageSource();
 		sftpMsgSrc.setAutoCreateDirectories(autoCreatDirs);
 
 		// local directories
@@ -156,7 +156,7 @@ class SftpInboundSynchronizingMessageSourceFactoryBean
 		QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sftpSessionFactory);
 		pool.afterPropertiesSet();
 
-		SftpInboundRemoteFileSystemSynchronizer sftpSync = new SftpInboundRemoteFileSystemSynchronizer();
+		SftpInboundSynchronizer sftpSync = new SftpInboundSynchronizer();
 		sftpSync.setClientPool(pool);
 		sftpSync.setLocalDirectory(this.localDirectoryResource);
 		sftpSync.setShouldDeleteSourceFile(ackRemoteDir);

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import java.io.File;
@@ -25,7 +26,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -38,11 +44,18 @@ public class InboundChannelAdapaterParserTests {
 	}
 
 	@Test
-	public void testLocalFilesAutoCreationTrue() throws Exception{
-		assertTrue(!new File("target/foo").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
-		assertTrue(new File("target/foo").exists());
-		assertTrue(!new File("target/bar").exists());
+	public void testWithLocalFiles() throws Exception{
+		ApplicationContext context =
+			new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
+		assertTrue(new File("src/main/resources").exists());
+	
+		Object adapter = context.getBean("sftpAdapterAutoCreate");
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		SftpInboundSynchronizingMessageSource source = 
+			(SftpInboundSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		assertNotNull(source);
+		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
+		assertNotNull(requestChannel.receive(2000));
 	}
 
 	@Test(expected=BeanCreationException.class)

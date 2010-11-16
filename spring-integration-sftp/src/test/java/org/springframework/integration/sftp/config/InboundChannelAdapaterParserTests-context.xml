@@ -18,7 +18,9 @@
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
 
-	<channel id="requestChannel"/>
+	<channel id="requestChannel">
+		<queue/>
+	</channel>
 	
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
@@ -34,10 +36,10 @@
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
 			filter="filter"
-			filename-pattern="foo*.txt"
+			filename-pattern="foo.txt"
 			remote-directory="ftp://foo"
-			local-directory-path="file:target/foo"
-			auto-create-directories="true"
+			local-directory-path="file:src/main/resources"
+			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
@@ -46,7 +48,7 @@
 			channel="requestChannel"
 			session-factory="sftpSessionFactory"
 			filter="filter"
-			filename-pattern="foo*.txt"
+			filename-pattern="foo.txt"
 			remote-directory="ftp://foo"
 			local-directory-path="file:target"
 			auto-create-directories="true"
@@ -55,8 +57,8 @@
 	</sftp:inbound-channel-adapter>
 	
 	
-	<beans:bean id="filter" class="org.mockito.Mockito" factory-method="mock">
-		<beans:constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
+	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
+		<beans:constructor-arg value="."/>
 	</beans:bean>
 
 </beans:beans>

@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy;
-import org.springframework.integration.sftp.inbound.SftpInboundRemoteFileSystemSynchronizer;
+import org.springframework.integration.sftp.inbound.SftpInboundSynchronizer;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.util.ReflectionUtils;
 
@@ -62,7 +62,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 */
 	@Test
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
-		SftpInboundRemoteFileSystemSynchronizer synchronizer = new SftpInboundRemoteFileSystemSynchronizer();
+		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer();
 		Method method = 
 			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);
 		method.setAccessible(true);
@@ -84,7 +84,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@org.junit.Ignore
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {
-		SftpInboundRemoteFileSystemSynchronizer synchronizer = new SftpInboundRemoteFileSystemSynchronizer();
+		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer();
 		synchronizer.setEntryAcknowledgmentStrategy(mock(EntryAcknowledgmentStrategy.class));
 		Method method = 
 			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);

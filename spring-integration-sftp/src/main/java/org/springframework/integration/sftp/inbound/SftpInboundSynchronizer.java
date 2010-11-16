@@ -41,7 +41,7 @@ import java.util.Collection;
  * @author Josh Long
  * @since 2.0
  */
-public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
+public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
 
 	/**
 	 * the path on the remote mount

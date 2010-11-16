@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundRemoteFileSystemSynchronizer> {
+public class SftpInboundSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
 	/**
 	 * the pool of sessions
 	 */
