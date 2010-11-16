@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 
-	private static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of {\"headers\":{...},\"payload\":{...}} but was ";
+	private static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either {\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
 
 	private static Map<String, Class<?>> DEFAULT_HEADER_TYPES;
 
@@ -72,7 +72,6 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 		this.payloadType = TypeFactory.type(typeReference);
 	}
 
-
 	public void setHeaderTypes(Map<String, Class<?>> headerTypes) {
 		this.headerTypes.putAll(headerTypes);
 	}
@@ -85,8 +84,7 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 		JsonParser parser = new JsonFactory().createJsonParser(jsonMessage);
 		if (this.mapToPayload) {
 			try {
-				Object payload = objectMapper.readValue(parser, payloadType);
-				return MessageBuilder.withPayload(payload).build();
+				return MessageBuilder.withPayload(readPayload(parser, jsonMessage)).build();
 			}
 			catch (JsonMappingException ex) {
 				throw new IllegalArgumentException("Mapping of JSON message "+jsonMessage+" directly to payload of type "+payloadType.getRawClass().getName()+" failed.", ex);
@@ -95,33 +93,48 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 		else {
 			String error = MESSAGE_FORMAT_ERROR + jsonMessage;
 			Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
-			Assert.isTrue(parser.nextToken() == JsonToken.FIELD_NAME, error);
-			Assert.isTrue(parser.getCurrentName().equals("headers"), error);
-			Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
-			Map<String, Object> headers = new LinkedHashMap<String, Object>();
-			while (parser.nextToken() != JsonToken.END_OBJECT) {
-				String headerName = parser.getCurrentName();
-				parser.nextToken();
-				Class<?> headerType = this.headerTypes.containsKey(headerName) ?
-						this.headerTypes.get(headerName) : Object.class;
-				try {
-					headers.put(headerName, this.objectMapper.readValue(parser, headerType));
+			
+			Map<String, Object> headers = null;
+			Object payload = null;
+			while(parser.nextToken() != JsonToken.END_OBJECT) {
+				Assert.isTrue(parser.getCurrentToken() == JsonToken.FIELD_NAME, error);
+				Assert.isTrue(parser.getCurrentName().equals("headers") || parser.getCurrentName().equals("payload"), error);
+				if (parser.getCurrentName().equals("headers")) {
+					Assert.isTrue(parser.nextToken() == JsonToken.START_OBJECT, error);
+					headers = readHeaders(parser, jsonMessage);
+				} else if (parser.getCurrentName().equals("payload")) {
+					parser.nextToken();
+					try {
+						payload = readPayload(parser, jsonMessage);
+					}
+					catch (JsonMappingException ex) {
+						throw new IllegalArgumentException("Mapping payload of JSON message "+jsonMessage+" to payload type "+payloadType.getRawClass().getName()+" failed.", ex);
+					}
 				}
-				catch (JsonMappingException ex) {
-					throw new IllegalArgumentException("Mapping header \""+headerName+"\" of JSON message "+jsonMessage+" to header type "+payloadType.getRawClass().getName()+" failed.", ex);
-				}
 			}
-			Assert.isTrue(parser.nextToken() == JsonToken.FIELD_NAME, error);
-			Assert.isTrue(parser.getCurrentName().equals("payload"), error);
-			parser.nextToken();
-			try {
-				Object payload = this.objectMapper.readValue(parser, this.payloadType);
-				return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
-			}
-			catch (JsonMappingException ex) {
-				throw new IllegalArgumentException("Mapping payload of JSON message "+jsonMessage+" to payload type "+payloadType.getRawClass().getName()+" failed.", ex);
-			}
+			Assert.notNull(headers, error);
+			return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		}
 	}
-
+	
+	protected Object readPayload(JsonParser parser, String jsonMessage) throws Exception {
+		return objectMapper.readValue(parser, payloadType);
+	}
+	
+	protected Map<String, Object> readHeaders(JsonParser parser, String jsonMessage) throws Exception{
+		Map<String, Object> headers = new LinkedHashMap<String, Object>();
+		while (parser.nextToken() != JsonToken.END_OBJECT) {
+			String headerName = parser.getCurrentName();
+			parser.nextToken();
+			Class<?> headerType = this.headerTypes.containsKey(headerName) ?
+					this.headerTypes.get(headerName) : Object.class;
+			try {
+				headers.put(headerName, this.objectMapper.readValue(parser, headerType));
+			}
+			catch (JsonMappingException ex) {
+				throw new IllegalArgumentException("Mapping header \""+headerName+"\" of JSON message "+jsonMessage+" to header type "+payloadType.getRawClass().getName()+" failed.", ex);
+			}
+		}
+		return headers;
+	}
 }

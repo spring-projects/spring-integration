@@ -135,17 +135,13 @@ public class JsonInboundMessageMapperTests {
 	}
 
 	@Test
-	public void testToMessageInvalidFormatPayloadAndHeadersReversed() throws Exception {
+	public void testToMessageWithPayloadAndHeadersReversed() throws Exception {
 		UUID id = UUID.randomUUID();
-		String jsonMessage = "{\"payload\":\"myPayloadStuff\",\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"}}";
+		String jsonMessage = "{\"payload\":\"myPayloadStuff\",\"headers\":{\"timestamp\":1,\"id\":\"" + id + "\",\"foo\":123,\"bar\":\"abc\"}}";
+		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader("foo", 123).setHeader("bar", "abc").build();
 		JsonInboundMessageMapper mapper = new JsonInboundMessageMapper(String.class);
-		try {
-			mapper.toMessage(jsonMessage);
-			fail();
-		}
-		catch(IllegalArgumentException ex) {
-			//Expected
-		}
+		Message<?> result = mapper.toMessage(jsonMessage);
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 
 	@Test
