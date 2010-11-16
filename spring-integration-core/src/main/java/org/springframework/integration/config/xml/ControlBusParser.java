@@ -31,7 +31,7 @@ public class ControlBusParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.config.ExpressionControlBusFactoryBean");
 		builder.addConstructorArgValue(new RootBeanDefinition(
-				"org.springframework.integration.handler.ExpressionPayloadMessageProcessor"));
+				"org.springframework.integration.handler.ExpressionCommandMessageProcessor"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "bean-resolver");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");

@@ -24,10 +24,10 @@ import org.springframework.integration.Message;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionPayloadMessageProcessor extends AbstractMessageProcessor<Object> {
+public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
 
 	/**
-	 * Evaluates the Message payload expression.
+	 * Evaluates the Message payload expression as a command.
 	 * @throws IllegalArgumentException if the payload is not an Exception or String
 	 */
 	public Object processMessage(Message<?> message) {
