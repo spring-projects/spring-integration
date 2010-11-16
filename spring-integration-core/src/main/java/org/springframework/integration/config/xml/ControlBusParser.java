@@ -13,18 +13,18 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ExpressionControlBusFactoryBean;
-import org.springframework.integration.control.ControlBusMessageProcessor;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ControlBusParser extends AbstractConsumerEndpointParser {
@@ -32,8 +32,8 @@ public class ControlBusParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(ExpressionControlBusFactoryBean.class);
-		builder.addConstructorArgValue(new RootBeanDefinition(ControlBusMessageProcessor.class));
+				.genericBeanDefinition("org.springframework.integration.config.ExpressionControlBusFactoryBean");
+		builder.addConstructorArgValue(new RootBeanDefinition("org.springframework.integration.control.ControlBusMessageProcessor"));
 		BeanMetadataElement beanResolver = getBeanResolver(element, parserContext);
 		if (beanResolver!=null) {
 			builder.addPropertyValue("beanResolver", beanResolver);

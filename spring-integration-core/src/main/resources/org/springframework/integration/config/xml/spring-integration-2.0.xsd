@@ -421,12 +421,12 @@
 	</xsd:complexType>
 
 	<xsd:element name="gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Messaging Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines a Messaging Gateway.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
@@ -1335,11 +1335,40 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:complexType name="header-enricher-type">
 		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:element name="reply-channel" type="referenceHeaderType" />
-			<xsd:element name="error-channel" type="referenceHeaderType" />
-			<xsd:element name="correlation-id" type="referenceOrValueHeaderType" />
-			<xsd:element name="expiration-date" type="referenceOrValueHeaderType" />
+			<xsd:element name="reply-channel" type="referenceHeaderType">
+				<xsd:annotation>
+					<xsd:documentation>
+					Shortcut to specify value for 'replyChannel' header
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="error-channel" type="referenceHeaderType">
+				<xsd:annotation>
+					<xsd:documentation>
+					Shortcut to specify value for 'errorChannel' header
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="correlation-id" type="referenceOrValueHeaderType">
+				<xsd:annotation>
+					<xsd:documentation>
+					Shortcut to specify value for 'correlationId' header
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expiration-date" type="referenceOrValueHeaderType">
+				<xsd:annotation>
+					<xsd:documentation>
+					Shortcut to specify value for 'expirationDate' header (java.lang.Long)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="priority">
+				<xsd:annotation>
+					<xsd:documentation>
+						Shortcut to specify value for 'priority' header when using PriotityChannel
+					</xsd:documentation>
+				</xsd:annotation>
 				<xsd:complexType>
 					<xsd:attribute name="value">
 						<xsd:simpleType>
@@ -1368,7 +1397,13 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" >
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to configure Message Poller if this endpoint is a Polling Consumer
+						</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:choice>
 		<xsd:attribute name="default-overwrite">
 			<xsd:annotation>
@@ -1855,7 +1890,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Filter.
+				Defines a Message Filters that is used to decide whether a Message should be passed 
+				along or dropped based on some criteria
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1877,6 +1913,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
+						<xsd:documentation>
+						The channel where the filter will send the messages that were dropped
+						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false" />
@@ -1908,7 +1947,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:attribute name="header-name" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
-Name of the header whose value to use.
+Name of the header whose value will be used to route messages
 						]]></xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -2069,10 +2108,28 @@ Name of the header whose value to use.
 			<xsd:extension base="channelResolvingRouterType">
 				<xsd:sequence>
 					<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+							<![CDATA[
+	Defines mapping rules for this router 
+	(e.g., mapping value='foo' channel='myChannel')]]>	
+							</xsd:documentation>
+						</xsd:annotation>
 						<xsd:complexType>
-							<xsd:attribute name="value" type="xsd:string" />
+							<xsd:attribute name="value" type="xsd:string">
+								<xsd:annotation>
+									<xsd:documentation>
+									A value of the evaluation token that will be mapped to a channel reference 
+									(e.g., mapping value='foo' channel='myChannel')
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:attribute>
 							<xsd:attribute name="channel" type="xsd:string">
 								<xsd:annotation>
+									<xsd:documentation>
+										A reference to a bean that defines a Message Channel
+										(e.g., mapping value='foo' channel='myChannel')
+									</xsd:documentation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
 											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -2440,8 +2497,22 @@ Name of the header whose value to use.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="selector" type="xsd:string" />
-		<xsd:attribute name="timeout" type="xsd:string" />
+		<xsd:attribute name="selector" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				A reference to a bean in the Application Context
+				which implements  MessageSelector that must accept a message for it to be
+	 			sent to the intercepting channel
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				The timeout for sending the message to the intercepting channel
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="transactionalType">
@@ -2657,6 +2728,14 @@ Name of the header whose value to use.
 	</xsd:element>
 
 	<xsd:element name="converter">
+		<xsd:annotation>
+			<xsd:documentation>
+			Allows you to register Converters (implementation of the Converter interface) that will
+be automatically registered with the ConversionService. ConversionService itself does not have to be 
+explicitly defined since the default ConversionService will be registered under the name 'integrationConversionService'
+unless bean with this name is already registered.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all minOccurs="0" maxOccurs="1">
 				<xsd:element ref="beans:bean" />
@@ -2719,6 +2798,11 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 							<tool:expected-type type="org.springframework.expression.BeanResolver" />
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+					A refeerence to a bean in this Application Context that 
+					impements BeanResolver that can be registered with SpEL evaluation context
+ 					to resolve <code>@myBeanName</code> still expressions[OPTIONAL].
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
