@@ -23,7 +23,7 @@
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
-		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/sftpTest"/>
+		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftpTest"/>
 		<beans:property name="privateKeyPassphrase" value="ghj"/>
 		<beans:property name="password" value="hello"/>
 		<beans:property name="port" value="2222"/>

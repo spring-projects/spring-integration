@@ -61,13 +61,19 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 	private volatile FileListFilter<ChannelSftp.LsEntry> filter;
 	
 	private volatile SftpSessionFactory sftpSessionFactory;
+	
+	private volatile boolean autoStartup;
+	
+	private String remoteDirectory;
 
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
 
 	public void setSftpSessionFactory(SftpSessionFactory sftpSessionFactory) {
 		this.sftpSessionFactory = sftpSessionFactory;
 	}
-
-	private String remoteDirectory;
 
 	public void setLocalDirectoryResource(Resource localDirectoryResource) {
 		this.localDirectoryResource = localDirectoryResource;
@@ -158,17 +164,22 @@ class SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean
 		sftpSync.setBeanFactory(this.getBeanFactory());
 		sftpSync.setRemotePath(this.remoteDirectory);
 		sftpSync.afterPropertiesSet();
-		sftpSync.start();
-
+		sftpSync.setAutoStartup(this.autoStartup);
+		if (this.autoStartup){
+			sftpSync.start();
+		}
 		sftpMsgSrc.setRemotePredicate(compositeFtpFileListFilter);
 		sftpMsgSrc.setSynchronizer(sftpSync);
 		sftpMsgSrc.setClientPool(pool);
 		sftpMsgSrc.setRemotePath(this.remoteDirectory);
 		sftpMsgSrc.setLocalDirectory(this.localDirectoryResource);
 		sftpMsgSrc.setBeanFactory(this.getBeanFactory());
-		sftpMsgSrc.setAutoStartup(true);
 		sftpMsgSrc.afterPropertiesSet();
-		sftpMsgSrc.start();
+		sftpMsgSrc.setAutoStartup(this.autoStartup);
+		if (this.autoStartup){
+			sftpMsgSrc.start();
+		}
+		
 		return sftpMsgSrc;
 	}
 

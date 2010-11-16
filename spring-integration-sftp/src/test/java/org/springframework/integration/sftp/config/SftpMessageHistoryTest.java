@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.config;
 
 import static junit.framework.Assert.assertEquals;
 

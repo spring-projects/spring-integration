@@ -77,6 +77,7 @@ public class SftpInboundRemoteFileSystemSynchronizingMessageSource extends Abstr
 		try {
 			session = this.clientPool.getSession();
 			Assert.state(session != null, "session as returned from the pool should not be null. " + "If it is, it is most likely an error in the pool implementation.  ");
+			
 			session.start();
 			channelSftp = session.getChannel();
 

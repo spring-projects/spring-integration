@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp;
+package org.springframework.integration.sftp.config;
 
 import static junit.framework.Assert.assertTrue;
 

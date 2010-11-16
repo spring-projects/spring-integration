@@ -53,7 +53,7 @@ public class SftpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpInboundRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
-			for (String p : "filename-pattern,auto-create-directories,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
+			for (String p : "auto-startup,filename-pattern,auto-create-directories,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "session-factory", "sftpSessionFactory");

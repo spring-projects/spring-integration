@@ -58,6 +58,7 @@
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="session-factory" type="xsd:string" use="required"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
