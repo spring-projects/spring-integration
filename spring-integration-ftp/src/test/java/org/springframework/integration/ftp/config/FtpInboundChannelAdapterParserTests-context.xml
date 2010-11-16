@@ -35,7 +35,9 @@
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
 				
-	<int:channel id="ftpChannel"/>
+	<int:channel id="ftpChannel">
+		<int:queue/>
+	</int:channel>
 	
 	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
