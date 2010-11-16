@@ -18,11 +18,13 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +37,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private volatile MessageChannel outputChannel;
 
+	private volatile MessageChannel errorChannel;
+
 	private volatile boolean shouldTrack = false;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
@@ -42,6 +46,10 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -80,7 +88,20 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		if (this.shouldTrack) {
 			message = MessageHistory.write(message, this);
 		}
-		this.messagingTemplate.send(this.outputChannel, message);
+		try {
+			this.messagingTemplate.send(this.outputChannel, message);
+		}
+		catch (Exception e) {
+			if (this.errorChannel != null) {
+				this.messagingTemplate.send(this.errorChannel, new ErrorMessage(e));
+			}
+			else if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			else {
+				throw new MessageDeliveryException(message, "failed to send message", e);
+			}
+		}
 	}
 
 }
