@@ -49,6 +49,7 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !attributeName.equals("name") && !attributeName.equals("request-channel")
+				&& !attributeName.equals("error-channel")
 				&& !attributeName.equals("reply-channel") && super.isEligibleAttribute(attributeName);
 	}
 
@@ -60,6 +61,10 @@ public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDef
 		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("replyChannel", replyChannel);
+		}
+		String errorChannel = element.getAttribute("error-channel");
+		if (StringUtils.hasText(errorChannel)) {
+			builder.addPropertyReference("errorChannel", errorChannel);
 		}
 		String autoStartup = element.getAttribute("auto-startup");
 		if (StringUtils.hasText(autoStartup)) {

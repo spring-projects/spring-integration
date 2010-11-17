@@ -19,6 +19,7 @@ package org.springframework.integration.ip.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -32,6 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -85,8 +87,12 @@ public class ParserUnitTests {
 	TcpSendingMessageHandler tcpOut;
 
 	@Autowired
-	@Qualifier(value="inGateway")
-	TcpInboundGateway tcpInboundGateway;
+	@Qualifier(value="inGateway1")
+	TcpInboundGateway tcpInboundGateway1;
+
+	@Autowired
+	@Qualifier(value="inGateway2")
+	TcpInboundGateway tcpInboundGateway2;
 
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
@@ -135,6 +141,10 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfS2;
 
 	@Autowired
+	@Qualifier(value="cfS3")
+	AbstractConnectionFactory cfS3;
+
+	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#1")
 	TcpSendingMessageHandler tcpNewOut1;
 
@@ -150,6 +160,10 @@ public class ParserUnitTests {
 	@Qualifier(value="tcpNewIn2")
 	TcpReceivingChannelAdapter tcpNewIn2;
 
+	@Autowired
+	@Qualifier("errorChannel")
+	private MessageChannel errorChannel;
+
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
@@ -163,6 +177,7 @@ public class ParserUnitTests {
 		assertEquals("ip:udp-inbound-channel-adapter", udpIn.getComponentType());
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
 	}
 	
 	@Test
@@ -177,6 +192,7 @@ public class ParserUnitTests {
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));		
+		assertNull(dfa.getPropertyValue("errorChannel"));
 	}
 	
 	@Test
@@ -185,6 +201,7 @@ public class ParserUnitTests {
 		assertSame(cfS1, dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals("testInTcp",tcpIn.getComponentName());
 		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
+		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
 	}
 	
 	@Test
@@ -239,12 +256,23 @@ public class ParserUnitTests {
 	}
 
 	@Test
-	public void testInGateway() {
-		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway);
+	public void testInGateway1() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway1);
 		assertSame(cfS2, dfa.getPropertyValue("connectionFactory"));
 		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
-		assertEquals("inGateway",tcpInboundGateway.getComponentName());
-		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway.getComponentType());
+		assertEquals("inGateway1",tcpInboundGateway1.getComponentName());
+		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
+		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+	}
+
+	@Test
+	public void testInGateway2() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway2);
+		assertSame(cfS3, dfa.getPropertyValue("connectionFactory"));
+		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
+		assertEquals("inGateway2",tcpInboundGateway2.getComponentName());
+		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway2.getComponentType());
+		assertNull(dfa.getPropertyValue("errorChannel"));
 	}
 
 	@Test
@@ -353,6 +381,7 @@ public class ParserUnitTests {
 	public void testNewIn1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn1);
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
+		assertNull(dfa.getPropertyValue("errorChannel"));
 	}
 	
 	@Test

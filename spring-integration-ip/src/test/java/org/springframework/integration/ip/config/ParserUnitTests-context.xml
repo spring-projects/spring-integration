@@ -29,6 +29,7 @@
 		so-timeout="32"
 		local-address="127.0.0.1"
 		task-executor="externalTE"
+		error-channel="errorChannel"
 	/>
 
 	<ip:udp-inbound-channel-adapter id="testInUdpMulticast"
@@ -52,6 +53,7 @@
 		
 	<ip:tcp-inbound-channel-adapter id="testInTcp"
 		channel="tcpChannel"
+		error-channel="errorChannel"
 		connection-factory="cfS1"
 	/>
 
@@ -105,10 +107,23 @@
 		port="#{tcpIpUtils.findAvailableServerSocket(5800)}"
 		/>
 		
-	<ip:tcp-inbound-gateway id="inGateway"
+	<ip:tcp-inbound-gateway id="inGateway1"
 		request-channel="tcpChannel"
 		reply-channel="replyChannel"
+		error-channel="errorChannel"
 		connection-factory="cfS2"
+		reply-timeout="456"
+		/>	
+
+	<ip:tcp-connection-factory id="cfS3"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(5850)}"
+		/>
+		
+	<ip:tcp-inbound-gateway id="inGateway2"
+		request-channel="tcpChannel"
+		reply-channel="replyChannel"
+		connection-factory="cfS3"
 		reply-timeout="456"
 		/>	
 

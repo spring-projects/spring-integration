@@ -12,7 +12,10 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.util.SocketTestUtils;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -128,6 +131,41 @@ public class UdpChannelAdapterTests {
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
 		assertNotNull(receivedMessage);
 		assertEquals(new String(message.getPayload()), new String(receivedMessage.getPayload()));
+	}
+
+	@Test
+	public void testUnicastReceiverException() throws Exception {
+		SubscribableChannel channel = new DirectChannel();
+		int port = SocketTestUtils.findAvailableUdpSocket();
+		UnicastReceivingChannelAdapter adapter = new UnicastReceivingChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+//		SocketUtils.setLocalNicIfPossible(adapter);
+		adapter.setOutputChannel(channel);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
+		channel.subscribe(handler);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.start();
+		SocketTestUtils.waitListening(adapter);
+		
+		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
+		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+		DatagramPacket packet = mapper.fromMessage(message);
+		packet.setSocketAddress(new InetSocketAddress("localhost", port));
+		new DatagramSocket(SocketTestUtils.findAvailableUdpSocket()).send(packet);
+		Message<?> receivedMessage = errorChannel.receive(2000);
+		assertNotNull(receivedMessage);
+		assertEquals("Failed", ((Exception) receivedMessage.getPayload()).getCause().getMessage());
+	}
+	
+	private class FailingService {
+		@SuppressWarnings("unused")
+		public String serviceMethod(byte[] bytes) {
+			throw new RuntimeException("Failed");
+		}
 	}
 
 

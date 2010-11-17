@@ -43,6 +43,8 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 				IpAdapterParserUtils.POOL_SIZE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
+				element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TASK_EXECUTOR);
 		return builder.getBeanDefinition();

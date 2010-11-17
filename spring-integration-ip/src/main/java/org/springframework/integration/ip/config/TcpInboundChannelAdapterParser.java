@@ -40,6 +40,8 @@ public class TcpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
+				element, "error-channel", "errorChannel");
 		return builder.getBeanDefinition();
 	}
 

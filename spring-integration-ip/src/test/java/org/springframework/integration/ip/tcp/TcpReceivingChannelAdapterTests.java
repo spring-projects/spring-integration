@@ -36,11 +36,13 @@ import java.util.concurrent.Executors;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
-
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
@@ -584,5 +586,47 @@ public class TcpReceivingChannelAdapterTests {
 		assertEquals("Test1", new ObjectInputStream(socket1.getInputStream()).readObject());
 		assertEquals("Test2", new ObjectInputStream(socket2.getInputStream()).readObject());
 	}
+
+	@Test
+	public void testException() throws Exception {
+		final int port = SocketTestUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		scf.start();
+		int n = 0;
+		while (!scf.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				fail("Failed to start listening");
+			}
+		}
+		SubscribableChannel channel = new DirectChannel();
+		adapter.setOutputChannel(channel);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
+		channel.subscribe(handler);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.getOutputStream().write("Test1\r\n".getBytes());
+		socket.getOutputStream().write("Test2\r\n".getBytes());
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		Message<?> message = errorChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+		message = errorChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+	}
+
+	private class FailingService {
+		@SuppressWarnings("unused")
+		public String serviceMethod(byte[] bytes) {
+			throw new RuntimeException("Failed");
+		}
+	}
+
 
 }
