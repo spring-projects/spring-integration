@@ -15,8 +15,8 @@
  */
 package org.springframework.integration.mail;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -39,7 +39,10 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
 import org.springframework.integration.test.util.TestUtils;
@@ -48,6 +51,7 @@ import com.sun.mail.imap.IMAPFolder;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class ImapMailReceiverTests {
@@ -284,5 +288,60 @@ public class ImapMailReceiverTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("mail:imap-idle-channel-adapter", componentHistoryRecord.get("type"));
+	}
+
+	@Test
+	public void testIdleChannelAdapterException() throws Exception{
+		ApplicationContext context = 
+			new ClassPathXmlApplicationContext("ImapIdleChannelAdapterParserTests-context.xml", ImapIdleChannelAdapterParserTests.class);
+		ImapIdleChannelAdapter adapter = context.getBean("simpleAdapter", ImapIdleChannelAdapter.class);
+
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+			protected Object handleRequestMessage(org.springframework.integration.Message<?> requestMessage) {
+				throw new RuntimeException("Failed");
+			}
+		});
+		adapter.setOutputChannel(channel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver = spy(receiver);
+		receiver.afterPropertiesSet();
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		adapterAccessor.setPropertyValue("mailReceiver", receiver);
+	
+		MimeMessage mailMessage = mock(MimeMessage.class);
+		Flags flags = mock(Flags.class);
+		when(mailMessage.getFlags()).thenReturn(flags);
+		final Message[] messages = new Message[]{mailMessage};
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				DirectFieldAccessor accesor = new DirectFieldAccessor((invocation.getMock()));
+                IMAPFolder folder = mock(IMAPFolder.class);
+				accesor.setPropertyValue("folder", folder);
+				when(folder.hasNewMessages()).thenReturn(true);
+				return null;
+			}
+		}).when(receiver).openFolder();
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return messages;
+			}
+		}).when(receiver).searchForNewMessages();
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(receiver).fetchMessages(messages);
+		
+		adapter.start();
+		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
+		assertNotNull(replMessage);
+		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
 	}
 }

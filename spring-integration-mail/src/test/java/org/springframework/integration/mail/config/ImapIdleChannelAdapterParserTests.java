@@ -64,6 +64,27 @@ public class ImapIdleChannelAdapterParserTests {
 		assertEquals(0, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
+	}
+	@Test
+	public void simpleAdapterWithErrorChannel() {
+		Object adapter = context.getBean("simpleAdapterWithErrorChannel");
+		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Object channel = context.getBean("channel");
+		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
+		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Object url = receiverAccessor.getPropertyValue("url");
+		assertEquals(new URLName("imap:foo"), url);
+		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
+		assertEquals(0, properties.size());
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+		assertSame(context.getBean("errorChannel"), adapterAccessor.getPropertyValue("errorChannel"));
 	}
 	@Test
 	public void simpleAdapterWithMarkeMessagesAsRead() {

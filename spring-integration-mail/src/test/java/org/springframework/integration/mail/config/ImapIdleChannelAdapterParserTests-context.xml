@@ -37,6 +37,13 @@
 			auto-startup="false"
 			should-delete-messages="true"/>
 			
+	<mail:imap-idle-channel-adapter id="simpleAdapterWithErrorChannel"
+			store-uri="imap:foo"
+			channel="channel"
+			error-channel="errorChannel"
+			auto-startup="false"
+			should-delete-messages="true"/>
+			
 	<mail:imap-idle-channel-adapter id="simpleAdapterMarkAsRead"
 			store-uri="imap:foo"
 			channel="channel"
