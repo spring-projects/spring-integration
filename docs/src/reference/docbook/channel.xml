@@ -236,15 +236,23 @@
       </para>
     </section>
     <section id="channel-implementations-threadlocalchannel">
-      <title>ThreadLocalChannel</title>
+      <title>Thread-Scoped Channel</title>
       <para>
-        The final channel implementation type is <classname>ThreadLocalChannel</classname>. This channel also delegates
-        to a queue internally, but the queue is bound to the current thread. That way the thread that sends to the
-        channel will later be able to receive those same Messages, but no other thread would be able to access them.
-        While probably the least common type of channel, this is useful for situations where
-        <classname>DirectChannels</classname> are being used to enforce a single thread of operation but any reply
-        Messages should be sent to a "terminal" channel. If that terminal channel is a
-        <classname>ThreadLocalChannel</classname>, the original sending thread can collect its replies from it.
+        Spring Integration 1.0 provided a <classname>ThreadLocalChannel</classname> implementation, but that has been removed as of 2.0. Now, there is a more general way for handling the same requirement by simply adding a "scope" attribute to a channel. The value of the attribute can be any name of a Scope that is available within the context. For example, in a web environment, certain Scopes are available, and any custom Scope implementations can be registered with the context. Here's an example of a ThreadLocal-based scope being applied to a channel, including the registration of the Scope itself.</para>
+    <programlisting language="xml"><![CDATA[ <int:channel id="threadScopedChannel" scope="thread">
+     <int:queue />
+ </int:channel>
+	
+ <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+    <property name="scopes">
+         <map>
+             <entry key="thread" value="org.springframework.context.support.SimpleThreadScope" />
+         </map>
+     </property>
+ </bean>
+]]></programlisting>
+    <para>
+      The channel above also delegates to a queue internally, but the channel is bound to the current thread, so the contents of the queue are as well. That way the thread that sends to the channel will later be able to receive those same Messages, but no other thread would be able to access them. While thread-scoped channels are rarely needed, they can be useful in situations where <classname>DirectChannels</classname> are being used to enforce a single thread of operation but any reply Messages should be sent to a "terminal" channel. If that terminal channel is thread-scoped, the original sending thread can collect its replies from it.
       </para>
     </section>
   </section>
