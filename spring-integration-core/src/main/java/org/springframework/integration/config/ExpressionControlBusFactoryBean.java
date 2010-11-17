@@ -30,27 +30,23 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 
 	private volatile BeanResolver beanResolver;
 
-	private final ExpressionCommandMessageProcessor processor;
+	private final ExpressionCommandMessageProcessor processor = new ExpressionCommandMessageProcessor();
 
-
-	public ExpressionControlBusFactoryBean(ExpressionCommandMessageProcessor processor) {
-		this.processor = processor;	
-	}
-
-
-	public void setBeanResolver(BeanResolver beanResolver) {
-		this.beanResolver = beanResolver;
-	}
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}
 
+	public void setBeanResolver(BeanResolver beanResolver) {
+		this.beanResolver = beanResolver;
+	}
+
 	protected MessageHandler createHandler() {
-		if (beanResolver != null) {
-			processor.setBeanResolver(beanResolver);
+		this.processor.setBeanFactory(this.getBeanFactory());
+		if (this.beanResolver != null) {
+			this.processor.setBeanResolver(this.beanResolver);
 		}
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(this.processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}

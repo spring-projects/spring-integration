@@ -18,6 +18,6 @@
 		<poller fixed-rate="100" />
 	</control-bus>
 
-	<beans:bean id="service" class="org.springframework.integration.config.xml.ControlBusTests$Service" />
+	<beans:bean id="service" class="org.springframework.integration.config.xml.ControlBusExplicitPollerTests$Service" />
 
 </beans:beans>
