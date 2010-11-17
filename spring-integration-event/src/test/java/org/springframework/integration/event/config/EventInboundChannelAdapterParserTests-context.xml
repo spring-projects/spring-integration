@@ -11,7 +11,8 @@
 
 	<int:message-history/>
 
-	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"/>
+	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"
+	                                   error-channel="errorChannel"/>
 
 	<int:channel id="input">
 		<int:queue/>

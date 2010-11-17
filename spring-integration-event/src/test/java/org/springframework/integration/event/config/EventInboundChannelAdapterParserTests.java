@@ -18,6 +18,7 @@ package org.springframework.integration.event.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
@@ -35,6 +36,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.history.MessageHistory;
@@ -54,6 +56,8 @@ public class EventInboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	MessageChannel errorChannel;
 
 	@Test
 	public void validateEventParser() {
@@ -62,6 +66,7 @@ public class EventInboundChannelAdapterParserTests {
 		Assert.assertTrue(adapter instanceof ApplicationEventListeningMessageProducer);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("outputChannel"));
+		Assert.assertSame(errorChannel, adapterAccessor.getPropertyValue("errorChannel"));
 	}
 
 	@Test
@@ -77,6 +82,7 @@ public class EventInboundChannelAdapterParserTests {
 		assertTrue(eventTypes.size() == 2);	
 		assertTrue(eventTypes.contains(SampleEvent.class));
 		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+		assertNull(adapterAccessor.getPropertyValue("errorChannel"));
 	}
 
 	@Test

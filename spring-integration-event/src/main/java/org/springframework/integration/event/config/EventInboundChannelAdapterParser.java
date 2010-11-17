@@ -36,6 +36,7 @@ public class EventInboundChannelAdapterParser extends AbstractChannelAdapterPars
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression");
 		return adapterBuilder.getBeanDefinition();

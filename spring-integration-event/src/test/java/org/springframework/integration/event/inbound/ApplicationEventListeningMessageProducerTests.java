@@ -19,9 +19,9 @@ package org.springframework.integration.event.inbound;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
-
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -29,10 +29,14 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.core.MessagingEvent;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.test.annotation.ExpectedException;
 
 /**
  * @author Mark Fisher
@@ -143,6 +147,30 @@ public class ApplicationEventListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(20);
 		assertNotNull(message2);
 		assertEquals("test", message2.getPayload());
+	}
+
+	@Test @ExpectedException(value=MessageHandlingException.class)
+	public void anyApplicationEventCausesExceptionWithErrorHandling() {
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new AbstractReplyProducingMessageHandler() {
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				throw new RuntimeException("Failed");
+			}
+		});
+		ApplicationEventListeningMessageProducer adapter = new ApplicationEventListeningMessageProducer();
+		adapter.setOutputChannel(channel);
+		QueueChannel errorChannel = new QueueChannel();
+		adapter.setErrorChannel(errorChannel);
+		adapter.start();
+		adapter.onApplicationEvent(new TestApplicationEvent1());
+		Message<?> message = errorChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Failed", ((Exception) message.getPayload()).getCause().getMessage());
+		adapter.setErrorChannel(null);
+		try {
+			adapter.onApplicationEvent(new TestApplicationEvent1());
+			fail("Expected MessageHandlingException");
+		} catch (MessageHandlingException e) { }
 	}
 
 
