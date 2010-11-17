@@ -40,6 +40,7 @@ import org.springframework.test.annotation.ExpectedException;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ApplicationEventListeningMessageProducerTests {
 
