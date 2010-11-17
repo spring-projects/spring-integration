@@ -27,6 +27,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class EventInboundChannelAdapterParser extends AbstractChannelAdapterParser {

@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
  * Base class for inbound gateway parsers.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractInboundGatewayParser extends AbstractSimpleBeanDefinitionParser {
 

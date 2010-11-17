@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
