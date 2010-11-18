@@ -9,14 +9,26 @@
       Working with Objects instead of Messages is an improvement. However, it would be even better to have no
       dependency on the Spring Integration API at all - including the gateway class. For that reason, Spring
       Integration also provides a <classname>GatewayProxyFactoryBean</classname> that generates a proxy for
-      any interface and internally invokes the gateway methods shown above. Namespace support is also
+      any interface and internally invokes the gateway methods shown below. 
+      <programlisting language="java"><![CDATA[
+package org.cafeteria;
+
+public interface Cafe {
+
+	void placeOrder(Order order);
+	
+}
+]]></programlisting>
+     
+      Namespace support is also
       provided as demonstrated by the following example.
-      <programlisting language="xml"><![CDATA[<gateway id="fooService"
-         service-interface="org.example.FooService"
+      <programlisting language="xml"><![CDATA[<gateway id="cafeService"
+         service-interface="org.cafeteria.Cafe"
          default-request-channel="requestChannel"
          default-reply-channel="replyChannel"/>]]></programlisting>
-      Then, the "fooService" can be injected into other beans, and the code that invokes the methods on that
-      proxied instance of the FooService interface has no awareness of the Spring Integration API. The general
+         
+      Then, the "cafeService" can be injected into other beans, and the code that invokes the methods on that
+      proxied instance of the Cafe interface has no awareness of the Spring Integration API. The general
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
       an example that uses this "gateway" element (in the Cafe demo).
   </para>

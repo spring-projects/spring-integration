@@ -304,8 +304,9 @@
   <section id="jms-samples">
     <title>JMS Samples</title>
     <para>
-      To experiment with these JMS adapters, check out the samples available within the "samples/jms" directory in
-      the distribution. There are two samples included. One provides inbound and outbound Channel Adapters, and the
+      To experiment with these JMS adapters, check out JMS samples available in our new Samples Git repository
+      available here: http://git.springsource.org/+spring-integration/spring-integration/samples . 
+      There are two samples included. One provides inbound and outbound Channel Adapters, and the
       other provides inbound and outbound Gateways. They are configured to run with an embedded ActiveMQ process, but
       the "common.xml" file can easily be modified to support either a different JMS provider or a standalone
       ActiveMQ process. In other words, you can split the configuration so that the inbound and outbound adapters are
