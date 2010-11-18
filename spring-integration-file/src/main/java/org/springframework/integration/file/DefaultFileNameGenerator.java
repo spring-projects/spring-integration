@@ -18,25 +18,39 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
+import org.springframework.expression.EvaluationException;
 import org.springframework.integration.Message;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Default implementation of the filename generator strategy. It first checks
- * for a message header whose name matches its 'headerName' property. The
- * default header name is defined by the constant {@link FileHeaders#FILENAME}.
- * A custom header name can be provided via {@link #setHeaderName(String)}. If
- * no String-typed value is associated with that header it checks if the
- * Message payload is a File instance, and if so, it uses the same name.
+ * Default implementation of the filename generator strategy. It evaluates an
+ * expression against the Message in order to generate the file name. Either
+ * the 'expression' property can be set directly, or for a simple header name
+ * to be used as the filename, there is also a {@link #setHeaderName(String)}
+ * method for convenience. If neither a header name nor custom expression is set,
+ * the default header name is defined by the constant {@link FileHeaders#FILENAME}.
+ * If no String-typed value is returned from the expression evaluation (or
+ * associated with the header if no expression has been provided), it checks if
+ * the Message payload is a File instance, and if so, it uses the same name.
  * Finally, it falls back to the Message ID and adds the suffix '.msg'.
  * 
  * @author Mark Fisher
  */
-public class DefaultFileNameGenerator implements FileNameGenerator {
+public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
-	private volatile String headerName = FileHeaders.FILENAME;
+	private volatile String expression = "headers." + FileHeaders.FILENAME;
 
+
+	/**
+	 * Specify an expression to be evaluated against the Message
+	 * in order to generate a file name.
+	 */
+	public void setExpression(String expression) {
+		Assert.hasText(expression, "expression must not be empty");
+		this.expression = expression;
+	}
 
 	/**
 	 * Specify a custom header name to check for the file name.
@@ -44,11 +58,17 @@ public class DefaultFileNameGenerator implements FileNameGenerator {
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
-		this.headerName = headerName;
+		this.expression = "headers." + headerName;
 	}
 
 	public String generateFileName(Message<?> message) {
-		Object filenameProperty = message.getHeaders().get(this.headerName);
+		Object filenameProperty = null;
+		try {
+			filenameProperty = this.evaluateExpression(this.expression, message);
+		}
+		catch (EvaluationException e) {
+			// will fall through to the payload or id.msg format
+		}
 		if (filenameProperty instanceof String && StringUtils.hasText((String) filenameProperty)) {
 			return (String) filenameProperty;
 		}
