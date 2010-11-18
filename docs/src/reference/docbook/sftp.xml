@@ -103,7 +103,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory="foo/bar"
-				remote-file-expression="payload.getName() + '-foo'"/>]]></programlisting>
+				remote-filename-expression="payload.getName() + '-foo'"/>]]></programlisting>
 			
 	As you can see form the configuration above you can configure <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
 	<code>outbound-channel-adapter</code>. 
@@ -115,9 +115,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	<para>
   		As with many other components in Spring Integration, you can benefit from Spring Expression Language (SpEL) when configuring 
   		<emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and 
-  		<code>remote-file-expression</code> (see above). Expression evaluation context will have Message as its root object, thus allowing 
-  		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the <emphasis>directory path</emphasis> 
-  		based on the data in the Message. In the example above we are defining <code>remote-file-expression</code> attribute with expression 
+  		<code>remote-filename-expression</code> (see above). Expression evaluation context will have Message as its root object, thus allowing 
+  		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the existing <emphasis>directory path</emphasis> 
+  		based on the data in the Message. In the example above we are defining <code>remote-filename-expression</code> attribute with expression 
   		value which computes the <emphasis>file name</emphasis> based on its original name while also appending suffix '-foo'.
   	</para>
   </section>

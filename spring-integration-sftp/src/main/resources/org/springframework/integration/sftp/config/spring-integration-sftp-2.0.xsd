@@ -55,7 +55,7 @@
 	        </xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string"/>
 			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
-			<xsd:attribute name="remote-file-expression" type="xsd:string"/>
+			<xsd:attribute name="remote-filename-expression" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -101,7 +101,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.file.entries.EntryListFilter"/>
+							<tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

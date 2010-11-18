@@ -68,13 +68,13 @@ public class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		}
 		handlerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
 		
-		String remoteFileExpression = element.getAttribute("remote-file-expression");
+		String remoteFileExpression = element.getAttribute("remote-filename-expression");
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		boolean hasRemoteFileExp = StringUtils.hasText(remoteFileExpression);
 		boolean hasFileNameGener = StringUtils.hasText(fileNameGenerator);
 		if (hasRemoteFileExp | hasFileNameGener){
 			if (!(hasRemoteFileExp ^ hasFileNameGener)) {
-				throw new BeanDefinitionStoreException("exactly one of 'remote-file-expression' or 'filename-generator' " +
+				throw new BeanDefinitionStoreException("exactly one of 'remote-filename-expression' or 'filename-generator' " +
 						"is allowed on SFTP outbound adapter");
 			}
 			if (StringUtils.hasText(remoteFileExpression)){

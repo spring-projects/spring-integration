@@ -32,7 +32,7 @@
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory-expression="'foo' + '/' + 'bar'"
-				remote-file-expression="payload.getName() + '-foo'"/>
+				remote-filename-expression="payload.getName() + '-foo'"/>
 							
 	<int-sftp:outbound-channel-adapter 
 				session-factory="sftpSessionFactory" 

@@ -26,7 +26,7 @@
 				charset="UTF-8"
 				filename-generator="fileNameGenerator"
 				remote-directory-expression="'foo' + '/' + 'bar'"
-				remote-file-expression="payload.getName() + '-foo'"/>
+				remote-filename-expression="payload.getName() + '-foo'"/>
 				
 	
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
