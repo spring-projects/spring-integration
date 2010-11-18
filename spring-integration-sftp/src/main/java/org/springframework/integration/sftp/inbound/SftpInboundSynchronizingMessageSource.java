@@ -24,11 +24,8 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
-import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
 
 import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpATTRS;
 
 
 /**
@@ -40,31 +37,13 @@ import com.jcraft.jsch.SftpATTRS;
  */
 public class SftpInboundSynchronizingMessageSource extends 
 		AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
-	
-	/**
-	 * the pool of sessions
-	 */
-	private final SftpSessionPool sessionPool;
-
-	/**
-	 * the remote path on the server
-	 */
-	private volatile String remoteDirectory;
 
 	private volatile Pattern filenamePattern;
-
-	public SftpInboundSynchronizingMessageSource(SftpSessionPool sessionPool){
-		this.sessionPool = sessionPool;
-	}
 
 	public void setFilenamePattern(Pattern filenamePattern) {
 		this.filenamePattern = filenamePattern;
 	}
-	
-	public void setRemoteDirectory(String remoteDirectory) {
-		this.remoteDirectory = remoteDirectory;
-	}
-	
+
 	public String getComponentType(){
 		return "sftp:inbound-channel-adapter";
 	}
@@ -77,67 +56,10 @@ public class SftpInboundSynchronizingMessageSource extends
 		 */
 		Message<File> message = this.fileSource.receive();
 		if (message == null){
-			this.checkThatRemotePathExists(this.remoteDirectory);
 			this.synchronizer.syncRemoteToLocalFileSystem();
 			message = this.fileSource.receive();
 		}
 		return message;
-	}
-
-	/**
-	 * This method will check to ensure that the remote directory exists. If the directory
-	 * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
-	 * to create it. Otherwise, it fails fast.
-	 *
-	 * @param remotePath the path on the remote SSH / SFTP server to create.
-	 * @return whether or not the directory is there (regardless of whether we created it in this method or it already
-	 *         existed.)
-	 */
-	private boolean checkThatRemotePathExists(String remotePath) {
-		SftpSession session = null;
-		ChannelSftp channelSftp = null;
-		try {
-			session = this.sessionPool.getSession();
-			session.start();
-			channelSftp = session.getChannel();
-		} 
-		catch (RuntimeException re) {
-			throw re;
-		}
-		catch (Exception e){
-			throw new MessagingException("Failed to get SftpSession while checking for existance of the remote directory", e);
-		}
-		
-		try {
-			SftpATTRS attrs = channelSftp.stat(remotePath);
-			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
-			return true;
-		} 
-		catch (Throwable th) {
-			if (this.autoCreateDirectories && (this.sessionPool != null) && (session != null)) {
-				try {
-					if (channelSftp != null) {
-						channelSftp.mkdir(remotePath);
-
-						if (channelSftp.stat(remotePath).isDir()) {
-							return true;
-						}
-					}
-				} 
-				catch (RuntimeException re) {
-					throw re;
-				}
-				catch (Exception e){
-					throw new MessagingException("Failed to auto-create remote directory", e);
-				}
-
-			}
-		} 
-		finally {
-			this.sessionPool.release(session);
-		}
-
-		return false;
 	}
 
 	@Override
@@ -172,7 +94,9 @@ public class SftpInboundSynchronizingMessageSource extends
 		if (filenamePattern != null) {
 			SftpPatternMatchingFileListFilter sftpFilePatternMatchingEntryListFilter =
 					new SftpPatternMatchingFileListFilter(filenamePattern);
+			//TODO refactor the design so values don't need to be duplicated 
 			this.synchronizer.setFilter(sftpFilePatternMatchingEntryListFilter);
+			this.synchronizer.setAutoCreateDirectories(this.autoCreateDirectories);
 		}
 	}
 }

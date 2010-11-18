@@ -29,22 +29,10 @@ public class SftpInboundReceiveSample {
 	@Test
 	@Ignore
 	public void testInbound() throws Exception{
-		ClassPathXmlApplicationContext ac = 
-			new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored.xml", SftpInboundReceiveSample.class);
+		new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored-context.xml", SftpInboundReceiveSample.class);
 	
 		System.out.println("Done");
-		System.in.read();
-		ac.stop();
-//		File file = new File("/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/foo.txt");
-//		if (file.exists()){
-//			Message<File> message = MessageBuilder.withPayload(file).build();
-//			MessageChannel inputChannel = ac.getBean("inputChannel", MessageChannel.class);
-//			inputChannel.send(message);
-//			Thread.sleep(2000);
-//		}
-//		System.out.println("Done");
-//		ac.stop();
-		
+		Thread.sleep(3000 * 300);
 	}
 
 }

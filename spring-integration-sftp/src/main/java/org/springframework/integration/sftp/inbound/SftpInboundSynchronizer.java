@@ -33,6 +33,7 @@ import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.SftpATTRS;
 
 /**
  * Gandles the synchronization between a remote SFTP endpoint and a local mount.
@@ -47,6 +48,8 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	 * the path on the remote mount
 	 */
 	private volatile String remotePath;
+	
+	private volatile boolean autoCreateDirectories;
 
 	/**
 	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
@@ -58,6 +61,9 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		this.sessionPool = sessionPool;
 	}
 
+	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
+		this.autoCreateDirectories = autoCreateDirectories;
+	}
 
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
@@ -66,7 +72,6 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	@Override
 	protected Trigger getTrigger() {
 		throw new UnsupportedOperationException("This method curently is not implemented");
-		//return new PeriodicTrigger(10 * 1000);
 	}
 
 	@Override
@@ -75,6 +80,48 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		if (this.shouldDeleteSourceFile) {
 			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
 		}
+	}
+	
+	/**
+	 * This method will check to ensure that the remote directory exists. If the directory
+	 * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
+	 * to create it. Otherwise, it fails fast.
+	 *
+	 * @param remotePath the path on the remote SSH / SFTP server to create.
+	 * @return whether or not the directory is there (regardless of whether we created it in this method or it already
+	 *         existed.)
+	 */
+	private boolean checkThatRemotePathExists(String remotePath, SftpSession session) {
+		
+		ChannelSftp channelSftp = session.getChannel();
+	
+		try {
+			SftpATTRS attrs = channelSftp.stat(remotePath);
+			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
+			return true;
+		} 
+		catch (Throwable th) {
+			if (this.autoCreateDirectories && (this.sessionPool != null) && (session != null)) {
+				try {
+					if (channelSftp != null) {
+						channelSftp.mkdir(remotePath);
+
+						if (channelSftp.stat(remotePath).isDir()) {
+							return true;
+						}
+					}
+				} 
+				catch (RuntimeException re) {
+					throw re;
+				}
+				catch (Exception e){
+					throw new MessagingException("Failed to auto-create remote directory", e);
+				}
+
+			}
+		} 
+
+		return false;
 	}
 
 	private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir) throws Exception {
@@ -116,7 +163,9 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		SftpSession session = null;
 		try {
 			session = sessionPool.getSession();
+			logger.trace("Pooled SftpSession " + this.sessionPool + " from the pool");
 			session.start();
+			this.checkThatRemotePathExists(remotePath, session);
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
@@ -133,6 +182,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		}
 		finally {
 			this.sessionPool.release(session);
+			logger.trace("Putting SftpSession " + this.sessionPool + " back into the pool");
 		}
 	}
 

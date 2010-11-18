@@ -3,8 +3,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
 
@@ -29,7 +31,7 @@
 			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false"
 			filename-pattern=".*\.txt$">
-		<int:poller fixed-rate="10000" max-messages-per-poll="10"/>
+		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 	</int-sftp:inbound-channel-adapter>
 	
 	
@@ -40,5 +42,7 @@
 	<bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
 		<constructor-arg value=".*\.txt$"/>
 	</bean>
+	
+	<task:executor id="executor" pool-size="15"/>
 
 </beans>

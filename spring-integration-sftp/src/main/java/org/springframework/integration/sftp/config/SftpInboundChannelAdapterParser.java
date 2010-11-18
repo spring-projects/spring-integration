@@ -69,7 +69,6 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 		BeanDefinitionBuilder messageSourceBuilder = 
 			BeanDefinitionBuilder.rootBeanDefinition("org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource");
-		messageSourceBuilder.addConstructorArgReference(sessionPollName);
 		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
 
 		if (hasFileNamePattern){

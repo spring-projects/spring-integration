@@ -74,9 +74,6 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 			SftpSession session = this.queue.poll();
 			if (null == session) {
 				session = this.sftpSessionFactory.getSession();
-				if (this.queue.size() < this.maxPoolSize) {
-					this.queue.add(session);
-				}
 			}
 			return session;
 		} 
