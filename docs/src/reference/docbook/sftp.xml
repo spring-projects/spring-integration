@@ -13,8 +13,7 @@
     </para>
     
     <para>
-    Similar to FTP, SFTP requires two actors - <emphasis>client</emphasis> and <emphasis>server</emphasis>. The protocol also requires 
-    secure channel, such as SSH, as well as visibility to client's identity throughout SFTP session.
+    SFTP protocol requires secure channel, such as SSH, as well as visibility to client's identity throughout SFTP session.
     </para>
     
     <para>
@@ -29,6 +28,32 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
     </para>
   </section>
   
+   <section id="sftp-session-factory">
+  	<title>SFTP Session Factory</title>
+  	<para>
+  	Before configuring SFTP adapters you must configure <emphasis>Sftp Session Factory</emphasis>. You configure 
+  	<emphasis>Sftp Session Factory</emphasis> via regular bean configuration:
+	Below is a basic configuration:
+	
+	<programlisting language="xml"><![CDATA[<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
+		<beans:property name="host" value="loclahost"/>
+		<beans:property name="privateKey" value="classpath:META-INF/keys/sftpTest"/>
+		<beans:property name="privateKeyPassphrase" value="springIntegration"/>
+		<beans:property name="port" value="22"/>
+		<beans:property name="user" value="kermit"/>
+</beans:bean>]]></programlisting>
+
+
+	Now all you need to do is inject this <emphasis>Sftp Session Factory</emphasis> into your adapters.
+  	</para>
+  	<para>
+  	<note>
+  	A more practical way to provide values for <emphasis>Sftp Session Factory</emphasis> would be via Spring's property 
+  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
+  	</note>
+  </para>
+  </section>
+  
    <section id="sftp-inbound">
   	<title>SFTP Inbound Channel Adapter</title>
   	<para>
@@ -36,33 +61,28 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
   	
   	<programlisting language="xml"><![CDATA[<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
+  			session-factory="sftpSessionFactory"
 			channel="requestChannel"
-			filter="filter"
 			filename-pattern="foo*.txt"
-			username="oleg"
-			remote-directory="ftp://foo"
+			remote-directory="/foo/bar"
 			local-directory-path="file:target/foo"
-			host="localhost"
-			password="hello"
-			port="1234"
-			key-file="ker.txt"
-			key-file-password="hello"
 			auto-create-directories="true"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>
 </sftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see form the configuration above you can configure <emphasis>SFTP Inbound Channel Adapter</emphasis> via 
-	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> and 
-	<code>password</code> to connect to an FTP server, <code>key-file</code> attributes as well as other attributes. 
+	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory-path</code> 
+	- where files are going to be transfered TO and <code>remote-directory</code> - the remote source directory 
+	as well as other attributes including <code>session-factory</code> which we configured earlier. 
 	Please refer to the schema for more details on these attributes. 
   	</para>
   	
   	<para>
   	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a polling consumer and therefore 
   	you must configure a poller (global or local)
-	Once the file has been transferred a Message with <classname>java.io.File</classname> being a payload will be generated and sent to the channel 
-	identified with <code>channel</code> attribute.
+	Once the file has been transferred to a local directory a Message with <classname>java.io.File</classname> being a 
+	payload will be generated and sent to the channel identified with <code>channel</code> attribute.
   	
   	</para>
   </section>
@@ -72,38 +92,33 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	
   	<para>
   	<emphasis>SFTP Outbound Channel Adapter </emphasis>is a special <classname>MessageHandler</classname> that will connect to the 
-  	FTP server and will initiate an FTP transfer for every file it will receive as a payload of the <classname>Message</classname>. 
+  	remote directory and will initiate a file transfer for every file it will receive as a payload of the <classname>Message</classname>. 
   	It also supports several representation of the File so you are not limited to the File object. 
   	Similar to FTP outbound adapter <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads: 
   	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents 
-  	the file contents; 3) <classname>java.lang.String</classname> - represents the file path.
+  	the file contents; 3) <classname>java.lang.String</classname> - represents the file contents.
   	
-  	<programlisting language="xml"><![CDATA[<sftp:outbound-channel-adapter id="sftpAdapterAutoCreate"
-			channel="requestChannel"
-			filter="filter"
-			filename-pattern="foo*.txt"
-			username="oleg"
-			remote-directory="ftp://foo"
-			local-directory-path="file:target/foo"
-			host="localhost"
-			password="hello"
-			port="1234"
-			key-file="ker.txt"
-			key-file-password="hello"
-			auto-create-directories="true"
-			auto-delete-remote-files-on-sync="false"/>]]></programlisting>
+  	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
+				session-factory="sftpSessionFactory"
+				channel="inputChannel"
+				charset="UTF-8"
+				remote-directory="foo/bar"
+				remote-file-expression="payload.getName() + '-foo'"/>]]></programlisting>
 			
 	As you can see form the configuration above you can configure <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
-	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> and 
-	<code>password</code> to connect to an FTP server, <code>key-file</code> attributes as well as other attributes. 
+	<code>outbound-channel-adapter</code>. 
 	Please refer to the schema for more details on these attributes. 
   	</para>
+  	<para>
+  		<emphasis>SpEL and SFTP Outbound Adapter</emphasis>
+  	</para>
+  	<para>
+  		As with many other components in Spring Integration, you can benefit from Spring Expression Language (SpEL) when configuring 
+  		<emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and 
+  		<code>remote-file-expression</code> (see above). Expression evaluation context will have Message as its root object, thus allowing 
+  		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the <emphasis>directory path</emphasis> 
+  		based on the data in the Message. In the example above we are defining <code>remote-file-expression</code> attribute with expression 
+  		value which computes the <emphasis>file name</emphasis> based on its original name while also appending suffix '-foo'.
+  	</para>
   </section>
-  
-   <para>
-  	<note>
-  	A more practical way to configure these types of adapters would be via Spring's property 
-  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
-  	</note>
-  </para>
 </chapter>

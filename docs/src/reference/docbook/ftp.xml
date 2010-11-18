@@ -39,54 +39,90 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
     </para>
   </section>
   
+  
+  <section id="ftp-client-factory">
+  	<title>FTP Client Factory</title>
+  	<para>
+  	Before configuring FTP adapters you must configure <emphasis>Ftp Client Factory</emphasis>. You configure 
+  	<emphasis>Ftp Client Factory</emphasis> via regular bean configuration by configuring <classname>org.springframework.integration.ftp.client.DefaultFtpClientFactory</classname>:
+	Below is a basic configuration:
+	
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="kermit"/>
+		<property name="password" value="frog"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="foo/bar"/>
+</bean>]]></programlisting>
+	</para>
+	<para>
+	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.client.DefaultFtpsClientFactory</classname>.
+	Below is the complete configuration sample:
+	
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="port" value="22"/>
+		<property name="username" value="oleg"/>
+		<property name="password" value="password"/>
+		<property name="clientMode" value="1"/>
+		<property name="fileType" value="2"/>
+		<property name="remoteWorkingDirectory" value="foo/bar"/>
+		<property name="useClientMode" value="true"/>
+		<property name="cipherSuites" value="a,b.c"/>
+		<property name="keyManager" ref="keyManager"/>
+		<property name="protocol" value="SSL"/>
+		<property name="trustManager" ref="trustManager"/>
+		<property name="prot" value="P"/>
+		<property name="needClientAuth" value="true"/>
+		<property name="authValue" value="oleg"/>
+		<property name="sessionCreation" value="true"/>
+		<property name="protocols" value="SSL, TLS"/>
+		<property name="implicit" value="true"/>
+</bean>]]></programlisting>
+	</para>
+
+	<para>
+	Now all you need to do is inject these client factories into your adapters. Obviously the protocol (FTP or FTPS) adapter will use depends
+	on the type of client factory you are using.
+  	</para>
+  	<para>
+  	<note>
+  	A more practical way to provide values for <emphasis>Ftp/Ftps Client Factory</emphasis> would be via Spring's property 
+  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
+  	</note>
+  </para>
+  </section>
+  
   <section id="ftp-inbound">
   	<title>FTP Inbound Channel Adapter</title>
   	<para>
   	<emphasis>FTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen 
   	for the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
   	
-  	<programlisting language="xml"><![CDATA[<ftp:inbound-channel-adapter 
-		remote-directory="/foo/bar/ftp/files" 
-		channel="ftpIn" 
-		host="localhost" 
-		auto-delete-remote-files-on-sync="false"
-		username="user" 
-		password="password" 
-		port="21"	 
-		filename-pattern=".*?txt">
-	<int:poller fixed-rate="1000"/>
-</ftp:inbound-channel-adapter>]]></programlisting>
+  	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter id="ftpInbound"
+				channel="ftpChannel" 
+				client-factory="ftpClientFactory"
+				charset="UTF-8"
+				auto-create-directories="true"
+				auto-delete-remote-files-on-sync="true"
+				filename-pattern=".?txt"
+				local-working-directory=".">
+			<int:poller fixed-rate="1000"/>
+</int-ftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see form the configuration above you can configure <emphasis>FTP Inbound Channel Adapter</emphasis> via <code>inbound-channel-adapter</code> 
-	element while also providing values for various attributes such as <code>username</code> and <code>password</code> to connect to an FTP server, 
-	as well as other attributes. Please refer to the schema for more details on these attributes. 
+	element while also providing values for various attributes such as <code>local-working-directory</code>, <code>filename-pattern</code> (Regular expression)
+	and of course the reference to a <code>client-factory</code>.
+	Please refer to the schema for more details on these attributes. 
   	</para>
+  	
   	<para>
   	It is also important to understand that <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>polling consumer</emphasis> and 
   	therefore you must configure a poller (global or local).
     Once the file has been transferred a Message with <classname>java.io.File</classname> being a payload will be generated and sent to the channel 
     identified with <code>channel</code> attribute.
-  	</para>
-  </section>
-  
-  <section id="ftps-inbound">
-  	<title>FTPS Inbound Channel Adapter</title>
-  	<para>
-  	<emphasis>FTPS Inbound Channel Adapter</emphasis> adds support for secured file <emphasis>receive operations</emphasis> with 
-  	FTP servers that support Transport Layer Security (TLS). Configuration of the adapter itself is very similar to the 
-  	FTP Inbound Channel Adapter and is use the same <code>inbound-channel-adapter</code> element but from the FTPS namespace.
-  	
-  	  	<programlisting language="xml"><![CDATA[<ftps:inbound-channel-adapter 
-		remote-directory="/foo/bar/ftp/files" 
-		channel="ftpIn" 
-		host="localhost" 
-		auto-delete-remote-files-on-sync="false"
-		username="user" 
-		password="password" 
-		port="2222"	 
-		filename-pattern=".*?txt">
-	<int:poller fixed-rate="1000"/>
-</ftps:inbound-channel-adapter>]]></programlisting>	
   	</para>
   </section>
   
@@ -99,39 +135,25 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
   	representation of the <emphasis>File</emphasis> so you are not limited only to the File object. <emphasis>FTP Outbound Channel Adapter</emphasis> 
   	supports the following payloads: 1) <classname>java.io.File</classname> - the actual file object; 
   	2) <classname>byte[]</classname> - byte array that represents the file contents; 3) <classname>java.lang.String</classname> - 
-  	represents the file path.
+  	represents the file contents.
   	
-  	<programlisting language="xml"><![CDATA[<ftp:outbound-channel-adapter
-			remote-directory="${ftp.remotedir}"
-			channel="ftpOutbound"
-			host="${ftp.host}"
-			file-type="binary-file-type"
-			username="${ftp.username}"
-			password="${ftp.password}" 
-			port="2222"
-			client-mode="passive-local-data-connection-mode"/>]]></programlisting>	
+  	<programlisting language="xml"><![CDATA[<int-ftp:outbound-channel-adapter id="ftpOutbound"
+				channel="ftpChannel" 
+				client-factory="ftpClientFactory"
+				charset="UTF-8"
+				filename-generator="fileNameGenerator"/>]]></programlisting>	
+				
 			
 	As you can see form the configuration above you can configure <emphasis>FTP Outbound Channel Adapter</emphasis> via 
-	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>username</code> 
-	and <code>password</code> to connect to an FTP server, as well as other attributes. Please refer to the schema for
-	 more details on these attributes. 
+	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code> 
+	(implementation of <classname>org.springframework.integration.file.FileNameGenerator</classname>), reference to a <code>client-factory</code>
+	 as well as other attributes. Please refer to the schema for more details on these attributes. 
+	 <note>
+	 By default Spring Integration will use <classname>org.springframework.integration.file.DefaultFileNameGenerator</classname> (if non specified).
+	 <classname>DefaultFileNameGenerator</classname> will determine the file name based on the value of the <code>file_name</code> header (if exists) in your 
+	 MessageHeaders or if the payload of the Message is <classname>java.io.File</classname>, then it will use the original name of the file.
+	 </note>
   	</para>
+  	
   </section>
-  
-  <section id="ftps-outbound">
-  	<title>FTPS Outbound Channel Adapter</title>
-  	<para>
-  	<emphasis>FTPS Outbound Channel Adapter</emphasis> adds support for secured file send operations with FTP servers that support 
-  	Transport Layer Security (TLS). Configuration of the adapter itself is very similar to the
-  	 <emphasis>FTP Outbound Channel Adapter</emphasis> and is use the same <code>outbound-channel-adapter</code> element but 
-  	 from the FTPS namespace:
-  	</para>
-  </section>
-  
-  <para>
-  	<note>
-  	A more practical way to configure these types of adapters would be via Spring's property 
-  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
-  	</note>
-  </para>
 </chapter>
