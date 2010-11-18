@@ -20,10 +20,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
@@ -56,8 +54,6 @@ import org.springframework.util.StringUtils;
 abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
 	
 	private volatile long lastPollForTweet;
-	
-	private final CountDownLatch latch = new CountDownLatch(1);
 	
 	private final TwitterPollingTask twitterPoller = new TwitterPollingTask();
 
@@ -135,18 +131,15 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 		if (tweet == null){
 			long currentTime = System.currentTimeMillis();
 			long diff = currentTime - lastPollForTweet;
-			lastPollForTweet = currentTime;
+			
 			if (diff < 15000){
-				try {
-					long waitTime = 15000-diff;
-					this.latch.await(waitTime, TimeUnit.MILLISECONDS);
-				} catch (Exception e) {
-					//ignore
-				}
+				return null;
 			}
 			twitterPoller.run();
+			tweet = this.tweets.poll();
+			lastPollForTweet = currentTime;
 		}
-		tweet = this.tweets.poll();
+		
 		if (tweet != null) {
 			this.lastProcessedId = tweet.getId();
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));

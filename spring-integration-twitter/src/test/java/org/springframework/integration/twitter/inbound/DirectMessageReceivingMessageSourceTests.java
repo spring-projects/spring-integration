@@ -167,6 +167,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
 		assertTrue(!CollectionUtils.isEmpty(msg));	
 		assertEquals(1, msg.size()); 
+		//Thread.sleep(15000);
 		Message message = source.receive();
 		Tweet tweet = (Tweet) message.getPayload();
 		assertEquals(2000, tweet.getId());
