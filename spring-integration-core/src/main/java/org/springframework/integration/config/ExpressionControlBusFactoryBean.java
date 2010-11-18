@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.expression.BeanResolver;
 import org.springframework.expression.MethodFilter;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
@@ -40,8 +39,6 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 
 	private volatile Long sendTimeout;
 
-	private volatile BeanResolver beanResolver;
-
 	private final MethodFilter methodFilter = new ControlBusMethodFilter();
 
 
@@ -49,16 +46,9 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 		this.sendTimeout = sendTimeout;
 	}
 
-	public void setBeanResolver(BeanResolver beanResolver) {
-		this.beanResolver = beanResolver;
-	}
-
 	protected MessageHandler createHandler() {
 		ExpressionCommandMessageProcessor processor = new ExpressionCommandMessageProcessor(this.methodFilter);
 		processor.setBeanFactory(this.getBeanFactory());
-		if (this.beanResolver != null) {
-			processor.setBeanResolver(this.beanResolver);
-		}
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);

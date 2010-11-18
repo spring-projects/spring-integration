@@ -2781,30 +2781,20 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 
 	<xsd:element name="control-bus">
 		<xsd:annotation>
-			<xsd:documentation>
+			<xsd:documentation><![CDATA[
 				Control bus that accepts messages in the form of SpEL expressions. The expressions should be provided
-				either as Expression or String payloads (that can be parsed into valid Expressions). in incoming messages.
-				The expressions can refer to beans in the context using the standard @beanName convention.
-			</xsd:documentation>
+				either as Expression or String payloads (that can be parsed into valid Expressions) in incoming messages.
+				The expressions can refer to beans in the context using the standard @beanName convention. The methods
+				that will be available include:
+				   1) any that are annotated with @ManagedAttribute or @ManagedOperation
+				   2) Lifecycle methods
+				   3) get/set or shutdown methods on configurable TaskExecutors or TaskSchedulers 
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all minOccurs="0" maxOccurs="1">
 				<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
-			<xsd:attribute name="bean-resolver" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.expression.BeanResolver" />
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-					A refeerence to a bean in this Application Context that 
-					impements BeanResolver that can be registered with SpEL evaluation context
- 					to resolve <code>@myBeanName</code> still expressions[OPTIONAL].
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
 		</xsd:complexType>
 	</xsd:element>
