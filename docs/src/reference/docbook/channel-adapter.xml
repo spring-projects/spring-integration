@@ -12,7 +12,7 @@
   </para>
 
   <section id="channel-adapter-namespace-inbound">
-    <title>The &lt;inbound-channel-adapter&gt; element</title>
+    <title>Configuring Inbound Channel Adapter</title>
     <para>
       An "inbound-channel-adapter" element can invoke any method on a Spring-managed Object and send a non-null return
       value to a <interfacename>MessageChannel</interfacename> after converting it to a <classname>Message</classname>.
@@ -38,7 +38,7 @@
   </section>
 
   <section id="channel-adapter-namespace-outbound">
-    <title>The &lt;outbound-channel-adapter/&gt; element</title>
+    <title>Configuring Outbound Channel Adapter</title>
     <para>
       An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any POJO consumer
       method that should be invoked with the payload of Messages sent to that channel.

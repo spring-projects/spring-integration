@@ -27,7 +27,7 @@
   </section>
 
   <section id="bridge-namespace">
-    <title>The &lt;bridge&gt; Element</title>
+    <title>Configuring Bridge</title>
     <para>
       The &lt;bridge&gt; element is used to create a Messaging Bridge between two Message Channels or Channel Adapters.
       Simply provide the "input-channel" and "output-channel" attributes:

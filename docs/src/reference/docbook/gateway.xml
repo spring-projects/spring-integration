@@ -15,13 +15,13 @@ package org.cafeteria;
 
 public interface Cafe {
 
-	void placeOrder(Order order);
+		void placeOrder(Order order);
 	
 }
 ]]></programlisting>
      
       Namespace support is also
-      provided as demonstrated by the following example.
+      provided which allows you to configure such interface as a service and is demonstrated by the following example.
       <programlisting language="xml"><![CDATA[<gateway id="cafeService"
          service-interface="org.cafeteria.Cafe"
          default-request-channel="requestChannel"

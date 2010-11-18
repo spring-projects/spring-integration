@@ -150,7 +150,9 @@
   </section>
 
   <section id="router-namespace">
-    <title>Namespace support for Router - &lt;router&gt; element</title>
+  	<title>Configuring Router</title>
+  	<section>
+    <title>Configuring Router with XML</title>
     <para>
     The "router" element provides a simple way to connect a router to an input channel, and also accepts the
       optional default output channel. The "ref" may provide the bean name of a custom Router implementation
@@ -211,7 +213,7 @@
   </section>
 
   <section id="router-annotation">
-    <title>The @Router Annotation</title>
+    <title>Configuring Router with Annotations</title>
     <para>
       When using the <interfacename>@Router</interfacename> annotation, the annotated method can return either the
       <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the case of the latter,
@@ -239,6 +241,10 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
 public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
     </para>
   </section>
+  	
+  </section>
+  
+  
   <note>
     For routing of XML-based Messages, including XPath support, see <xref linkend="xml"/>.
   </note>
