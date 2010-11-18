@@ -22,6 +22,10 @@
 		<queue/>
 	</channel>
 	
+	<beans:bean id="pattern" class="java.util.regex.Pattern" factory-method="compile">
+		<beans:constructor-arg value="."/>
+	</beans:bean>
+	
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
@@ -54,9 +58,21 @@
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
+	<sftp:inbound-channel-adapter id="sftpAdapterWithPattern"
+			session-factory="sftpSessionFactory"
+			channel="requestChannel"
+			filename-pattern="pattern"
+			remote-directory="/foo"
+			local-directory="file:local-test-dir"
+			auto-create-directories="false"
+			auto-delete-remote-files-on-sync="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+	
 	
 	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
 		<beans:constructor-arg value="."/>
 	</beans:bean>
 
+	
 </beans:beans>

@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.PollableChannel;
@@ -58,7 +59,8 @@ public class InboundChannelAdapaterParserTests {
 		assertNotNull(requestChannel.receive(2000));
 	}
 
-	@Test(expected=BeanCreationException.class)
+	@Test(expected=BeanDefinitionStoreException.class)
+	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
 	public void testLocalFilesAutoCreationFalse() throws Exception{
 		assertTrue(!new File("target/bar").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail.xml", this.getClass());

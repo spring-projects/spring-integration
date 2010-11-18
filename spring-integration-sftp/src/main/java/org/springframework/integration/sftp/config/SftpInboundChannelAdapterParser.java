@@ -72,7 +72,14 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 		messageSourceBuilder.addConstructorArgReference(sessionPollName);
 		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "filename-pattern");
+		if (hasFileNamePattern){
+			if (parserContext.getRegistry().containsBeanDefinition(fileNamePattern)){
+				messageSourceBuilder.addPropertyReference("filenamePattern", fileNamePattern);
+			}
+			else {
+				messageSourceBuilder.addPropertyValue("filenamePattern", fileNamePattern);
+			}
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 

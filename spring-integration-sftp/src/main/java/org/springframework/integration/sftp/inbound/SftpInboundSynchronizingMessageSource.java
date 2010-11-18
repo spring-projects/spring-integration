@@ -17,6 +17,7 @@ package org.springframework.integration.sftp.inbound;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.regex.Pattern;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -51,14 +52,13 @@ public class SftpInboundSynchronizingMessageSource extends
 	 */
 	private volatile String remoteDirectory;
 
-	private volatile String filenamePattern;
+	private volatile Pattern filenamePattern;
 
 	public SftpInboundSynchronizingMessageSource(SftpSessionPool sessionPool){
 		this.sessionPool = sessionPool;
-		System.out.println("###### Constructing");
 	}
 
-	public void setFilenamePattern(String filenamePattern) {
+	public void setFilenamePattern(Pattern filenamePattern) {
 		this.filenamePattern = filenamePattern;
 	}
 	
@@ -170,7 +170,7 @@ public class SftpInboundSynchronizingMessageSource extends
 					+ this.getComponentType(), e);
 		}
 
-		if (StringUtils.hasText(this.filenamePattern)) {
+		if (filenamePattern != null) {
 			SftpPatternMatchingFileListFilter sftpFilePatternMatchingEntryListFilter =
 					new SftpPatternMatchingFileListFilter(filenamePattern);
 			this.synchronizer.setFilter(sftpFilePatternMatchingEntryListFilter);

@@ -21,6 +21,7 @@ import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
@@ -76,6 +77,11 @@ public class OutboundChannelAdapaterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
+		
+	}
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testFailWithRemoteDirAndExpression(){
+		new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
 		
 	}
 }
