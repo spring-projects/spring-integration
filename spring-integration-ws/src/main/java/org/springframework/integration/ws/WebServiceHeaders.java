@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ws;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Pre-defined header names to be used when storing or retrieving
  * Web Service properties to/from integration Message Headers.
@@ -26,7 +24,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public abstract class WebServiceHeaders {
 
-	public static final String PREFIX = MessageHeaders.PREFIX + "ws_";
+	public static final String PREFIX = "ws_";
 
 	public static final String SOAP_ACTION = PREFIX + "soapAction";
 

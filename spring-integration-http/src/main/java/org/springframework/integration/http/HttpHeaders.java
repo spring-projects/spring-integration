@@ -16,15 +16,13 @@
 
 package org.springframework.integration.http;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * @author Mark Fisher
  * @since 1.0.2
  */
 public abstract class HttpHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX + "http_";
+	private static final String PREFIX = "http_";
 
 	public static final String REQUEST_URL = PREFIX + "requestUrl";
 

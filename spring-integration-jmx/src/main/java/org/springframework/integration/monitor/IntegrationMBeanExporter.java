@@ -48,6 +48,7 @@ import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
@@ -356,6 +357,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return -1;
 	}
 
+	@ManagedOperation
 	public Statistics getChannelSendRate(String name) {
 		if (channelsByName.containsKey(name)) {
 			return channelsByName.get(name).getSendRate();

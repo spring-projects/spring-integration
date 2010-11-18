@@ -26,7 +26,6 @@ import java.util.ListIterator;
 import java.util.Properties;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -39,7 +38,7 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public class MessageHistory implements List<Properties>, Serializable {
 
-	public static final String HEADER_NAME = MessageHeaders.PREFIX + "history";
+	public static final String HEADER_NAME = "history";
 
 	public static final String NAME_PROPERTY = "name";
 

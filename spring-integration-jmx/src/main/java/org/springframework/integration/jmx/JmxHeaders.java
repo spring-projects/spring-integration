@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jmx;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Constants for JMX related Message Header keys.
  * 
@@ -26,7 +24,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public abstract class JmxHeaders {
 
-	public static final String PREFIX = MessageHeaders.PREFIX + "jmx_";
+	public static final String PREFIX = "jmx_";
 
 	public static final String OBJECT_NAME = PREFIX + "objectName";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Pre-defined header names to be used for setting and/or retrieving Mail
  * Message attributes from/to integration Message Headers.
@@ -26,7 +24,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public abstract class MailHeaders {
 
-	public static final String PREFIX = MessageHeaders.PREFIX + "mail_";
+	public static final String PREFIX = "mail_";
 
 	public static final String SUBJECT = PREFIX + "subject";
 

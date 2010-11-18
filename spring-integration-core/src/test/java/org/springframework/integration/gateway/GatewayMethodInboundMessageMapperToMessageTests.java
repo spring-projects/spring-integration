@@ -29,7 +29,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.gateway.GatewayMethodInboundMessageMapper;
@@ -200,7 +199,7 @@ public class GatewayMethodInboundMessageMapperToMessageTests {
 		Map<String, Expression> headers = new HashMap<String, Expression>();
 		headers.put("foo", new LiteralExpression("foo"));
 		headers.put("bar", new SpelExpressionParser().parseExpression("6 * 7"));
-		headers.put(MessageHeaders.PREFIX + "baz", new LiteralExpression("hello"));
+		headers.put("baz", new LiteralExpression("hello"));
 		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method, headers);
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());

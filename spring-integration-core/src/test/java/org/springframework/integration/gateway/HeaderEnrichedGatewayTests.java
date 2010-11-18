@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +58,7 @@ public class HeaderEnrichedGatewayTests {
 		assertEquals(testPayload, message1.getPayload());
 		assertEquals("foo", message1.getHeaders().get("foo"));
 		assertEquals("bar", message1.getHeaders().get("bar"));
-		assertNull(message1.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+		assertNull(message1.getHeaders().get("baz"));
 
 		testPayload = 123;
 		gatewayWithHeaderValues.sendInteger((Integer) testPayload);
@@ -67,7 +66,7 @@ public class HeaderEnrichedGatewayTests {
 		assertEquals(testPayload, message2.getPayload());
 		assertEquals("foo", message2.getHeaders().get("foo"));
 		assertEquals("bar", message2.getHeaders().get("bar"));
-		assertNull(message2.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+		assertNull(message2.getHeaders().get("baz"));
 
 		testPayload = "withAnnotatedHeaders";
 		gatewayWithHeaderValues.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
@@ -86,7 +85,7 @@ public class HeaderEnrichedGatewayTests {
 		assertEquals(testPayload, message1.getPayload());
 		assertEquals(42, message1.getHeaders().get("foo"));
 		assertEquals("foobar", message1.getHeaders().get("bar"));
-		assertNull(message1.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+		assertNull(message1.getHeaders().get("baz"));
 
 		testPayload = 123;
 		gatewayWithHeaderExpressions.sendInteger((Integer) testPayload);
@@ -94,7 +93,7 @@ public class HeaderEnrichedGatewayTests {
 		assertEquals(testPayload, message2.getPayload());
 		assertEquals(42, message2.getHeaders().get("foo"));
 		assertEquals("foobar", message2.getHeaders().get("bar"));
-		assertNull(message2.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+		assertNull(message2.getHeaders().get("baz"));
 
 		testPayload = "withAnnotatedHeaders";
 		gatewayWithHeaderExpressions.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");

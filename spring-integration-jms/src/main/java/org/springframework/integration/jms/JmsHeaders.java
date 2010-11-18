@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Pre-defined names and prefixes to be used for setting and/or retrieving JMS
  * attributes from/to integration Message Headers.
@@ -31,7 +29,7 @@ public abstract class JmsHeaders {
 	 * user-defined headers and other internal headers (e.g. correlationId).
 	 * @see DefaultJmsHeaderMapper
 	 */
-	public static final String PREFIX = MessageHeaders.PREFIX + "jms_";
+	public static final String PREFIX = "jms_";
 
 	public static final String MESSAGE_ID = PREFIX + "messageId";
 

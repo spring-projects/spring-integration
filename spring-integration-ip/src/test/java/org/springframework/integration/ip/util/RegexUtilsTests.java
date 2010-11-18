@@ -18,10 +18,7 @@ package org.springframework.integration.ip.util;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
 import org.junit.Test;
-
-import org.springframework.integration.MessageHeaders;
 
 /**
  * @author Gary Russell
@@ -35,18 +32,6 @@ public class RegexUtilsTests {
 	public void testRegex () {
 		String s = "xxx$^[]{()}+*\\?|.xxx";
 		assertEquals("xxx\\$\\^\\[\\]\\{\\(\\)\\}\\+\\*\\\\\\?\\|\\.xxx", RegexUtils.escapeRegexSpecials(s));
-	}
-
-	/**
-	 * And one of the ones we are actually using
-	 */
-	@Test
-	@Ignore // no longer relevant due to INT-1568
-	public void testSiPrefix () {
-		// protect the test in case we ever change the prefix
-		if ("$^[]{()}+*\\?|.".contains(MessageHeaders.PREFIX)) {
-			assertEquals(RegexUtils.escapeRegexSpecials(MessageHeaders.PREFIX), "\\" + MessageHeaders.PREFIX);
-		}
 	}
 
 }

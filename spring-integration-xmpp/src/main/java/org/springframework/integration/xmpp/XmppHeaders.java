@@ -16,7 +16,6 @@
 
 package org.springframework.integration.xmpp;
 
-import org.springframework.integration.MessageHeaders;
 /**
  * Used as keys for {@link org.springframework.integration.Message} objects
  * that handle XMPP events.
@@ -28,7 +27,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public class XmppHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX + "xmpp_";
+	private static final String PREFIX = "xmpp_";
 
 	public static final String CHAT = PREFIX + "chatKey";
 

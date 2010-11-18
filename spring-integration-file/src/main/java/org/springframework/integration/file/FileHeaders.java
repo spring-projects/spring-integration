@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Pre-defined header names to be used when storing or retrieving
  * File-related values to/from integration Message Headers.
@@ -26,7 +24,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public abstract class FileHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX + "file_";
+	private static final String PREFIX = "file_";
 
 	public static final String FILENAME = PREFIX + "name";
 

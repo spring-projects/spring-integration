@@ -57,33 +57,31 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
-	public static final String PREFIX = "";
-
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
 	 * should never be explicitly set in the header map <b>except</b> in the
 	 * case of Message deserialization where the serialized Message's generated
 	 * UUID is being restored.
 	 */
-	public static final String ID = PREFIX + "id";
+	public static final String ID = "id";
 
-	public static final String TIMESTAMP = PREFIX + "timestamp";
+	public static final String TIMESTAMP = "timestamp";
 
-	public static final String CORRELATION_ID = PREFIX + "correlationId";
+	public static final String CORRELATION_ID = "correlationId";
 
-	public static final String REPLY_CHANNEL = PREFIX + "replyChannel";
+	public static final String REPLY_CHANNEL = "replyChannel";
 
-	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
+	public static final String ERROR_CHANNEL = "errorChannel";
 
-	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
+	public static final String EXPIRATION_DATE = "expirationDate";
 
-	public static final String PRIORITY = PREFIX + "priority";
+	public static final String PRIORITY = "priority";
 
-	public static final String SEQUENCE_NUMBER = PREFIX + "sequenceNumber";
+	public static final String SEQUENCE_NUMBER = "sequenceNumber";
 
-	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
+	public static final String SEQUENCE_SIZE = "sequenceSize";
 
-	public static final String SEQUENCE_DETAILS = PREFIX + "sequenceDetails";
+	public static final String SEQUENCE_DETAILS = "sequenceDetails";
 
 
 	private final Map<String, Object> headers;

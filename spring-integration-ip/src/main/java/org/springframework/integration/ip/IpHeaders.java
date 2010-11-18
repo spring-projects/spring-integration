@@ -16,8 +16,6 @@
 
 package org.springframework.integration.ip;
 
-import org.springframework.integration.MessageHeaders;
-
 /**
  * Headers for Messages mapped from IP datagram packets.
  * 
@@ -28,9 +26,7 @@ import org.springframework.integration.MessageHeaders;
  */
 public abstract class IpHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX;
-
-	private static final String IP = PREFIX + "ip_";
+	private static final String IP = "ip_";
 
 	private static final String TCP = IP + "tcp_";
 
