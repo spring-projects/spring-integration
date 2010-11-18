@@ -18,7 +18,6 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
-import org.springframework.expression.EvaluationException;
 import org.springframework.integration.Message;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
@@ -62,13 +61,7 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	}
 
 	public String generateFileName(Message<?> message) {
-		Object filenameProperty = null;
-		try {
-			filenameProperty = this.evaluateExpression(this.expression, message);
-		}
-		catch (EvaluationException e) {
-			// will fall through to the payload or id.msg format
-		}
+		Object filenameProperty = this.evaluateExpression(this.expression, message);
 		if (filenameProperty instanceof String && StringUtils.hasText((String) filenameProperty)) {
 			return (String) filenameProperty;
 		}
