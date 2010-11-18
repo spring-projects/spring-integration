@@ -31,7 +31,7 @@
   </section>
 
   <section id="filter-namespace">
-    <title>Namespace support for Filter - &lt;filter&gt; Element</title>
+    <title>Configuring Filter</title>
     <para>
     The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "input-channel"
       and "output-channel" attributes, it requires a "ref". The "ref" may point to a MessageSelector implementation:

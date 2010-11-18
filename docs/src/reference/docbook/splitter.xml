@@ -74,7 +74,10 @@
     to test, it is the recommended approach.</para>
   </section>
 
-  <section>
+
+	<section id="splitter-config">
+		<title>Configuring Splitter</title>
+		 <section>
     <title>Configuring a Splitter using XML</title>
 
     <para>A splitter can be configured through XML as follows:<programlisting>&lt;channel id="inputChannel"/&gt;
@@ -153,5 +156,9 @@ List&lt;LineItem&gt; extractItems(Order order) {
     return order.getItems()
 }</programlisting></para>
   </section>
+	</section>
+
+
+ 
 
 </section>

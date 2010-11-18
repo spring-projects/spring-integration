@@ -300,7 +300,10 @@
     </section>
   </section>
 
-  <section id="aggregator-xml">
+	<section id="aggregator-config">
+		<title>Configuring Aggregator</title>
+		
+		<section id="aggregator-xml">
     <title>Configuring an Aggregator with XML</title>
 
     <para>Spring Integration supports the configuration of an aggregator via
@@ -577,6 +580,66 @@
 	that as soon as there are more then 5 messages in this group release the group.
     </para>
   </section>
+  
+  <section id="aggregator-annotations">
+    <title>Configuring an Aggregator with Annotations</title>
+
+    <para>An aggregator configured using annotations can look like
+    this.</para>
+
+    <programlisting language="java"><![CDATA[public class Waiter {
+  ... 
+
+  @Aggregator ]]><co id="aggann" /><![CDATA[ 
+  public Delivery aggregatingMethod(List<OrderItem> items) {
+    ...
+  }
+
+  @ReleaseStrategy ]]><co id="agganncs" /><![CDATA[
+  public boolean releaseChecker(List<Message<?>> messages) {
+    ...
+  }
+
+  @CorrelationStrategy ]]><co id="agganncorrs" /><![CDATA[
+  public String correlateBy(OrderItem item) {
+    ...
+  }
+
+}]]></programlisting>
+
+    <calloutlist>
+      <callout arearefs="aggann">
+        <para>An annotation indicating that this method shall be used as an
+        aggregator. Must be specified if this class will be used as an
+        aggregator.</para>
+      </callout>
+
+      <callout arearefs="agganncs">
+        <para id="aggann2">An annotation indicating that this method shall be
+        used as the release strategy of an aggregator. If not present on any
+        method, the aggregator will use the
+        SequenceSizeCompletionStrategy.</para>
+      </callout>
+
+      <callout arearefs="agganncorrs">
+        <para id="agann3">An annotation indicating that this method shall be
+        used as the correlation strategy of an aggregator. If no correlation
+        strategy is indicated, the aggregator will use the
+        HeaderAttributeCorrelationStrategy based on CORRELATION_ID.</para>
+      </callout>
+    </calloutlist>
+
+    <para>All of the configuration options provided by the xml element are
+    also available for the @Aggregator annotation.</para>
+
+    <para>The aggregator can be either referenced explicitly from XML or, if
+    the @MessageEndpoint is defined on the class, detected automatically
+    through classpath scanning.</para>
+  </section>
+		
+	</section>
+
+  
 
   <section>
     <title id="reaper">Managing State in an Aggregator:
@@ -649,61 +712,5 @@
     aggregator. If the flag is set to true, then when the expiry callback is
     invoked then any unmarked messages in groups that are not yet released can
     be sent on to the downstream channel.</para>
-  </section>
-
-  <section id="aggregator-annotations">
-    <title>Configuring an Aggregator with Annotations</title>
-
-    <para>An aggregator configured using annotations can look like
-    this.</para>
-
-    <programlisting language="java"><![CDATA[public class Waiter {
-  ... 
-
-  @Aggregator ]]><co id="aggann" /><![CDATA[ 
-  public Delivery aggregatingMethod(List<OrderItem> items) {
-    ...
-  }
-
-  @ReleaseStrategy ]]><co id="agganncs" /><![CDATA[
-  public boolean releaseChecker(List<Message<?>> messages) {
-    ...
-  }
-
-  @CorrelationStrategy ]]><co id="agganncorrs" /><![CDATA[
-  public String correlateBy(OrderItem item) {
-    ...
-  }
-
-}]]></programlisting>
-
-    <calloutlist>
-      <callout arearefs="aggann">
-        <para>An annotation indicating that this method shall be used as an
-        aggregator. Must be specified if this class will be used as an
-        aggregator.</para>
-      </callout>
-
-      <callout arearefs="agganncs">
-        <para id="aggann2">An annotation indicating that this method shall be
-        used as the release strategy of an aggregator. If not present on any
-        method, the aggregator will use the
-        SequenceSizeCompletionStrategy.</para>
-      </callout>
-
-      <callout arearefs="agganncorrs">
-        <para id="agann3">An annotation indicating that this method shall be
-        used as the correlation strategy of an aggregator. If no correlation
-        strategy is indicated, the aggregator will use the
-        HeaderAttributeCorrelationStrategy based on CORRELATION_ID.</para>
-      </callout>
-    </calloutlist>
-
-    <para>All of the configuration options provided by the xml element are
-    also available for the @Aggregator annotation.</para>
-
-    <para>The aggregator can be either referenced explicitly from XML or, if
-    the @MessageEndpoint is defined on the class, detected automatically
-    through classpath scanning.</para>
   </section>
 </section>
