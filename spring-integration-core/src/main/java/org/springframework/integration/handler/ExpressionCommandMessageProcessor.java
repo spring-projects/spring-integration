@@ -13,7 +13,20 @@
 
 package org.springframework.integration.handler;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.expression.AccessException;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.MethodExecutor;
+import org.springframework.expression.MethodFilter;
+import org.springframework.expression.MethodResolver;
+import org.springframework.expression.spel.support.ReflectiveMethodResolver;
 import org.springframework.integration.Message;
 
 /**
@@ -25,6 +38,17 @@ import org.springframework.integration.Message;
  * @since 2.0
  */
 public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<Object> {
+
+	public ExpressionCommandMessageProcessor() {
+	}
+
+	public ExpressionCommandMessageProcessor(MethodFilter methodFilter) {
+		if (methodFilter != null) {
+			MethodResolver methodResolver = new ExpressionCommandMethodResolver(methodFilter);
+			this.getEvaluationContext().setMethodResolvers(Collections.singletonList(methodResolver));
+		}
+	}
+
 
 	/**
 	 * Evaluates the Message payload expression as a command.
@@ -39,6 +63,44 @@ public class ExpressionCommandMessageProcessor extends AbstractMessageProcessor<
 			return evaluateExpression((String) expression, message);
 		}
 		throw new IllegalArgumentException("Message payload must be an Expression instance or an expression String.");
+	}
+
+
+	private static class ExpressionCommandMethodResolver extends ReflectiveMethodResolver {
+
+		private final MethodFilter methodFilter;
+
+
+		private ExpressionCommandMethodResolver(MethodFilter methodFilter) {
+			this.methodFilter = methodFilter; 
+		}
+
+
+		public MethodExecutor resolve(EvaluationContext context,
+				Object targetObject, String name, List<TypeDescriptor> argumentTypes) throws AccessException {
+			this.validateMethod(targetObject, name, (argumentTypes != null ? argumentTypes.size() : 0));
+			return super.resolve(context, targetObject, name, argumentTypes);
+		}
+
+		private void validateMethod(Object targetObject, String name, int argumentCount) {
+			if (this.methodFilter == null) {
+				return;
+			}
+			Class<?> type = (targetObject instanceof Class ? (Class<?>) targetObject : targetObject.getClass());
+			Method[] methods = type.getMethods();
+			List<Method> candidates = new ArrayList<Method>();
+			for (Method method : methods) {
+				if (method.getName().equals(name) && method.getParameterTypes().length == argumentCount) {
+					candidates.add(method);
+				}
+			}
+			List<Method> supportedMethods = this.methodFilter.filter(candidates);
+			if (supportedMethods.size() == 0) {
+				String methodDescription = (candidates.size() > 0) ? candidates.get(0).toString() : name; 
+				throw new EvaluationException("The method '" + methodDescription + "' is not supported by this command processor. " +
+						"If using the Control Bus, consider adding @ManagedOperation or @ManagedAttribute.");
+			}
+		}
 	}
 
 }

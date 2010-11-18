@@ -13,15 +13,27 @@
 
 package org.springframework.integration.config;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.context.Lifecycle;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.expression.BeanResolver;
+import org.springframework.expression.MethodFilter;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ExpressionCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.util.CustomizableThreadCreator;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a SpEL expression.
  * 
  * @author Dave Syer
+ * @author Mark Fisher
  * @since 2.0
  */
 public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
@@ -30,7 +42,7 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 
 	private volatile BeanResolver beanResolver;
 
-	private final ExpressionCommandMessageProcessor processor = new ExpressionCommandMessageProcessor();
+	private final MethodFilter methodFilter = new ControlBusMethodFilter();
 
 
 	public void setSendTimeout(Long sendTimeout) {
@@ -42,15 +54,50 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 	}
 
 	protected MessageHandler createHandler() {
-		this.processor.setBeanFactory(this.getBeanFactory());
+		ExpressionCommandMessageProcessor processor = new ExpressionCommandMessageProcessor(this.methodFilter);
+		processor.setBeanFactory(this.getBeanFactory());
 		if (this.beanResolver != null) {
-			this.processor.setBeanResolver(this.beanResolver);
+			processor.setBeanResolver(this.beanResolver);
 		}
-		ServiceActivatingHandler handler = new ServiceActivatingHandler(this.processor);
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(processor);
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		return handler;
+	}
+
+
+	private static class ControlBusMethodFilter implements MethodFilter {
+
+		public List<Method> filter(List<Method> methods) {
+			List<Method> supportedMethods = new ArrayList<Method>();
+			for (Method method : methods) {
+				if (this.accept(method)) {
+					supportedMethods.add(method);
+				}
+			}
+			return supportedMethods;
+		}
+
+		private boolean accept(Method method) {
+			if (method.getDeclaringClass().equals(Lifecycle.class)) {
+				return true;
+			}
+			if (CustomizableThreadCreator.class.isAssignableFrom(method.getDeclaringClass())
+					&& (method.getName().startsWith("get")
+							|| method.getName().startsWith("set")
+							|| method.getName().startsWith("shutdown"))) {
+				return true;
+			}
+			if (this.hasAnnotation(method, ManagedAttribute.class) || this.hasAnnotation(method, ManagedOperation.class)) {
+				return true;
+			}
+			return false;
+		}
+
+		private boolean hasAnnotation(Method method, Class<? extends Annotation> annotationType) {
+			return AnnotationUtils.findAnnotation(method, annotationType) != null;
+		}
 	}
 
 }

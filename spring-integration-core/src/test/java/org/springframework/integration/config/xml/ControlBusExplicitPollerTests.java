@@ -26,6 +26,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -51,9 +52,13 @@ public class ControlBusExplicitPollerTests {
 		assertNull(output.receive(0));
 	}
 
+
 	public static class Service {
+
+		@ManagedOperation
 		public String convert(String input) {
 			return "cat";
 		}
 	}
+
 }
