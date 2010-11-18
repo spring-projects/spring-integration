@@ -66,7 +66,10 @@ class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSending
 		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.clientFactory);
 		FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(
 				queuedFtpClientPool);
-		ftpSendingMessageHandler.setFileNameGenerator(this.fileNameGenerator);
+		if (this.fileNameGenerator != null){
+			ftpSendingMessageHandler.setFileNameGenerator(this.fileNameGenerator);
+		}
+	
 		if (this.charset != null) {
 			ftpSendingMessageHandler.setCharset(this.charset);
 		}

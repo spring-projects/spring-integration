@@ -93,9 +93,6 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 	}
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
-		if (sourceFile.renameTo(resultFile)) {
-			return resultFile;
-		}
 		FileCopyUtils.copy(sourceFile, tempFile);
 		tempFile.renameTo(resultFile);
 		return resultFile;
