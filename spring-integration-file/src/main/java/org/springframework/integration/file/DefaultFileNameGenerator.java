@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implements FileNameGenerator {
 
-	private volatile String expression = "headers." + FileHeaders.FILENAME;
+	private volatile String expression = "headers['" + FileHeaders.FILENAME + "']";
 
 
 	/**
@@ -58,7 +58,7 @@ public class DefaultFileNameGenerator extends AbstractExpressionEvaluator implem
 	 */
 	public void setHeaderName(String headerName) {
 		Assert.notNull(headerName, "'headerName' must not be null");
-		this.expression = "headers." + headerName;
+		this.expression = "headers['" + headerName + "']";
 	}
 
 	public String generateFileName(Message<?> message) {
