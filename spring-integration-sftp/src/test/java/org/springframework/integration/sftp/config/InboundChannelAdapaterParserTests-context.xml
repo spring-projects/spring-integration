@@ -69,6 +69,17 @@
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
+	<sftp:inbound-channel-adapter id="sftpAdapterNoLocalDir"
+			session-factory="sftpSessionFactory"
+			channel="requestChannel"
+			filename-pattern="pattern"
+			remote-directory="/foo"
+			local-directory="file:foo"
+			auto-create-directories="true"
+			auto-delete-remote-files-on-sync="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+	
 	
 	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
 		<beans:constructor-arg value="."/>

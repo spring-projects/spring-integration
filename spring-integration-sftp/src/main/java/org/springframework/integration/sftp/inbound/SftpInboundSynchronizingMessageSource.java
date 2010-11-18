@@ -26,7 +26,6 @@ import org.springframework.integration.file.synchronization.AbstractInboundRemot
 import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
-import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;

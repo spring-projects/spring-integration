@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -41,7 +42,7 @@ public class InboundChannelAdapaterParserTests {
 	
 	@Before
 	public void prepare(){
-		new File("target/foo").delete();
+		new File("foo").delete();
 	}
 
 	@Test
@@ -73,9 +74,16 @@ public class InboundChannelAdapaterParserTests {
 		assertTrue(new File("target").exists());
 	}
 	
+	@Test
+	public void testLocalDirAutoCreated() throws Exception{
+		assertFalse(new File("foo").exists());
+		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
+		assertTrue(new File("foo").exists());
+	}
+	
 	@After
 	public void cleanUp() throws Exception{
-		new File("target/foo").delete();
+		new File("foo").delete();
 	}
 
 }
