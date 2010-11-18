@@ -43,7 +43,8 @@ import org.springframework.util.Assert;
  */
 public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 
-	private static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either {\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
+	private static final String MESSAGE_FORMAT_ERROR = "JSON message is invalid.  Expected a message in the format of either " +
+			"{\"headers\":{...},\"payload\":{...}} or {\"payload\":{...}.\"headers\":{...}} but was ";
 
 	private static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
 
@@ -54,23 +55,30 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 	}
 
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
 	private final JavaType payloadType;
 
 	private final Map<String, Class<?>> headerTypes = DEFAULT_HEADER_TYPES;
+
+	private volatile ObjectMapper objectMapper = new ObjectMapper();
 
 	private volatile boolean mapToPayload = false;
 
 
 	public JsonInboundMessageMapper(Class<?> payloadType) {
+		Assert.notNull(payloadType, "payloadType must not be null");
 		this.payloadType = TypeFactory.type(payloadType);
 	}
 
 	public JsonInboundMessageMapper(TypeReference<?> typeReference) {
+		Assert.notNull(typeReference, "typeReference must not be null");
 		this.payloadType = TypeFactory.type(typeReference);
 	}
 
+
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "objectMapper must not be null");
+		this.objectMapper = objectMapper;
+	}
 
 	public void setHeaderTypes(Map<String, Class<?>> headerTypes) {
 		this.headerTypes.putAll(headerTypes);
@@ -88,7 +96,7 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 			}
 			catch (JsonMappingException ex) {
 				throw new IllegalArgumentException("Mapping of JSON message " + jsonMessage +
-						" directly to payload of type " + payloadType.getRawClass().getName() + " failed.", ex);
+						" directly to payload of type " + this.payloadType.getRawClass().getName() + " failed.", ex);
 			}
 		}
 		else {

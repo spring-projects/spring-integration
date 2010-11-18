@@ -22,19 +22,26 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.util.Assert;
 
 /**
  * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON string representation.
  * 
  * @author Jeremy Grelle
+ * @author Mark Fisher
  * @since 2.0
  */
 public class JsonOutboundMessageMapper implements OutboundMessageMapper<String> {
 
 	private volatile boolean shouldExtractPayload = false;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private volatile ObjectMapper objectMapper = new ObjectMapper();
 
+
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "objectMapper must not be null");
+		this.objectMapper = objectMapper;
+	}
 
 	public void setShouldExtractPayload(boolean shouldExtractPayload) {
 		this.shouldExtractPayload = shouldExtractPayload;
