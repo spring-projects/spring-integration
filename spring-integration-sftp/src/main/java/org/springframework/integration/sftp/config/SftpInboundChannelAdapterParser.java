@@ -44,11 +44,14 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String filter = element.getAttribute("filter");
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
 		boolean hasFilter = StringUtils.hasText(filter);
-		if (!(hasFileNamePattern ^ hasFilter)) {
-			throw new BeanDefinitionStoreException("exactly one of 'filename-pattern' or 'filter' " +
-					"is allowed on SFTP inbound adapter");
-		}
 		
+		if (hasFileNamePattern | hasFilter){
+			if (!(hasFileNamePattern ^ hasFilter)) {
+				throw new BeanDefinitionStoreException("exactly one of 'filename-pattern' or 'filter' " +
+						"is allowed on SFTP inbound adapter");
+			}
+		}
+			
 		BeanDefinitionBuilder sessionPollBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.session.QueuedSftpSessionPool");
 		sessionPollBuilder.addConstructorArgReference(sessionFactoryName);

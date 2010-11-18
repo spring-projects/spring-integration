@@ -21,6 +21,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
@@ -39,10 +40,13 @@ public class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		BeanDefinitionBuilder sessionPollBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.session.QueuedSftpSessionPool");
 		sessionPollBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+		String sessionPollName = 
+			BeanDefinitionReaderUtils.registerWithGeneratedName(sessionPollBuilder.getBeanDefinition(), parserContext.getRegistry());
+		
 		
 		BeanDefinitionBuilder handlerBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.outbound.SftpSendingMessageHandler");
-		handlerBuilder.addConstructorArgValue(sessionPollBuilder.getBeanDefinition());
+		handlerBuilder.addConstructorArgReference(sessionPollName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
 		
 		String remoteDirectory = element.getAttribute("remote-directory");
@@ -63,7 +67,25 @@ public class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
 		}
 		handlerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
-	
+		
+		String remoteFileExpression = element.getAttribute("remote-file-expression");
+		String fileNameGenerator = element.getAttribute("filename-generator");
+		boolean hasRemoteFileExp = StringUtils.hasText(remoteFileExpression);
+		boolean hasFileNameGener = StringUtils.hasText(fileNameGenerator);
+		if (hasRemoteFileExp | hasFileNameGener){
+			if (!(hasRemoteFileExp ^ hasFileNameGener)) {
+				throw new BeanDefinitionStoreException("exactly one of 'remote-file-expression' or 'filename-generator' " +
+						"is allowed on SFTP outbound adapter");
+			}
+			if (StringUtils.hasText(remoteFileExpression)){
+				BeanDefinitionBuilder fNameGenerBuilder = 
+					BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.file.DefaultFileNameGenerator");
+				fNameGenerBuilder.addPropertyValue("expression", remoteFileExpression);
+				handlerBuilder.addPropertyValue("filenameGenerator", fNameGenerBuilder.getBeanDefinition());
+			}
+		}
+		
+		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "filename-generator");
 		return handlerBuilder.getBeanDefinition();
 	}

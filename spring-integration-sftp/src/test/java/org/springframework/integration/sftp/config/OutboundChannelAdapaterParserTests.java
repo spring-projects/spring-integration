@@ -28,6 +28,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
@@ -62,7 +63,7 @@ public class OutboundChannelAdapaterParserTests {
 	}
 	
 	@Test
-	public void testOutboundChannelAdapaterWithWithRemoteDirectoryExopression(){
+	public void testOutboundChannelAdapaterWithWithRemoteDirectoryAndFileExpression(){
 		ApplicationContext context = 
 			new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithExpression");
@@ -73,15 +74,24 @@ public class OutboundChannelAdapaterParserTests {
 		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
-		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "filenameGenerator"));
+		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "filenameGenerator");
+		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
+		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
 		
 	}
+	
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithRemoteDirAndExpression(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
+		
+	}
+	
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testFailWithFileExpressionAndFileGenerator(){
+		new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context-fail-fileFileGen.xml", this.getClass());
 		
 	}
 }

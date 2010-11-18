@@ -23,12 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
@@ -55,11 +53,9 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpSendingMessageHandler extends AbstractMessageHandler implements SmartLifecycle{
+public class SftpSendingMessageHandler extends AbstractMessageHandler{
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
-	
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private final SftpSessionPool sessionPool;
 	
@@ -75,16 +71,10 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile String charset = Charset.defaultCharset().name();
 	
-	private volatile boolean started;
-
-	private volatile boolean autoStartup = true;
-
-
 	public SftpSendingMessageHandler(SftpSessionPool sessionPool) {
 		Assert.notNull(sessionPool, "'sessionPool' must not be null");
 		this.sessionPool = sessionPool;
 	}
-
 
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
 		this.temporaryBufferFolder = temporaryBufferFolder;
@@ -109,42 +99,6 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler implements
 				new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 		}
 	}
-	
-// Lifecycle
-	
-	public void start() {
-		sessionPool.start();
-		started = true;
-	}
-
-	public void stop() {
-		sessionPool.stop();
-		started = false;
-	}
-
-	public boolean isRunning() {
-		return started;
-	}
-
-	public int getPhase() {
-		return 0;
-	}
-
-	public boolean isAutoStartup() {
-		return autoStartup;
-	}
-
-	public void stop(Runnable callback) {
-		this.lifecycleLock.lock();
-		try {
-			this.stop();
-			callback.run();
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
@@ -215,7 +169,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler implements
 		}
 		InputStream fileInputStream = null;
 		try {
-			//session.start();
+			session.start();
 			ChannelSftp sftp = session.getChannel();	
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";

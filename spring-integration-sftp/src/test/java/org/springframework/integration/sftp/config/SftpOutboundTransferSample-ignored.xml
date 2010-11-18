@@ -24,6 +24,7 @@
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
+				remote-file-expression="payload.getName() + '_foo'"
 				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"/>
 				
 <!--	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"-->
