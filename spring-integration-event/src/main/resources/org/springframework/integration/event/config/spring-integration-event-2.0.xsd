@@ -48,8 +48,8 @@
 					</xsd:appinfo>
 					<xsd:documentation>
 						If a (synchronous) downstream exception is thrown and an error-channel is specified,
-						the MessageHandlingException will be sent to this channel. Otherwise, any such exception
-						will be propagated to the calling thread.
+						the MessagingException will be sent to this channel. Otherwise, any such exception
+						will be propagated to the caller.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

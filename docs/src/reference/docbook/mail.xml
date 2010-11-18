@@ -156,6 +156,12 @@
                      reply-to="replyTo@example.org"
                      overwrite="false"/>]]></programlisting>
     </para>
+    <para>
+      Finally, the &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute. 
+      If a synchronous downstream exception is thrown and an 'error-channel' is specified,
+      the MessagingException containing the failed message and exception, will be sent to this channel. 
+      Otherwise, any such exception will simply be logged as a warning by the channel adapter.
+    </para>
   </section>
 
 </chapter>

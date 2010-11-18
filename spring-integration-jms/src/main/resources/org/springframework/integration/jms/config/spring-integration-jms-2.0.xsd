@@ -398,7 +398,7 @@
 							</xsd:appinfo>
 							<xsd:documentation>
 								If a (synchronous) downstream exception is thrown and an error-channel is specified,
-								the MessageHandlingException will be sent to this channel. Otherwise, any such exception
+								the MessagingException will be sent to this channel. Otherwise, any such exception
 								will be propagated to the listener container and any JMS transaction will be
 								rolled back. Any synchronous downstream exceptions in the error flow will
 								also cause any JMS transaction to be rolled back.
@@ -559,7 +559,7 @@
 							</xsd:appinfo>
 							<xsd:documentation>
 								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-								the MessageHandlingException will be sent to this channel; any response from
+								the MessagingException will be sent to this channel; any response from
 								which will be returned as a reply by the gateway. If an "error-channel" is not 
 								supplied, any such exception
 								will be propagated to the listener container and any JMS transaction will be

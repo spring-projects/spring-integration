@@ -26,11 +26,15 @@
     <para>
       For convenience namespace support is provided to configure an <classname>ApplicationEventListeningMessageProducer</classname>
       via the <emphasis>inbound-channel-adapter</emphasis> element.
-      <programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="eventChannel" event-types="example.FooEvent, example.BarEvent"/>
+      <programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="eventChannel" 
+                                   error-channel="eventErrorChannel"
+                                   event-types="example.FooEvent, example.BarEvent"/>
 
 <int:publish-subscribe-channel id="eventChannel"/>]]></programlisting>
 In the above example, all Application Context events that match one of the types specified by the 'event-types' (optional) attribute will be
-delivered as Spring Integration Messages to the Message Channel named 'eventChannel'.
+delivered as Spring Integration Messages to the Message Channel named 'eventChannel'. If a downstream component throws
+an exception, a MessagingException containing the failed message and exception will be sent to the channel named
+'eventErrorChannel'.  If no "error-channel" is specified, the exception will be propagated to the caller.
     </para>
   </section>
 

@@ -57,7 +57,7 @@ its configuration specifies the number of threads.
 							</xsd:appinfo>
 							<xsd:documentation>
 								If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-								the MessageHandlingException will be sent to this channel. Otherwise, any such exception
+								the MessagingException will be sent to this channel. Otherwise, any such exception
 								will simply be logged by the channel adapter.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -133,7 +133,7 @@ adapter.
 					</xsd:appinfo>
 					<xsd:documentation>
 						If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-						the MessageHandlingException will be sent to this channel. Otherwise, any such exception
+						the MessagingException will be sent to this channel. Otherwise, any such exception
 						will simply be logged by the channel adapter.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -214,7 +214,7 @@ A connection factory is needed by an inbound adapter. The connection factory mus
 					</xsd:appinfo>
 					<xsd:documentation>
 						If a (synchronous) downstream exception is thrown and an "error-channel" is specified,
-						the MessageHandlingException will be sent to this channel and the ultimate response
+						the MessagingException will be sent to this channel and the ultimate response
 						of the error flow will be returned as a response by the gateway. If no  
 						"error-channel" is specified, any such exception
 						will simply be logged by the gateway. In such a situation, no response is sent

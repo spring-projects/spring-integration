@@ -118,7 +118,7 @@
 							</xsd:appinfo>
 							<xsd:documentation>
 								If a (synchronous) downstream exception is thrown and an error-channel is specified,
-								the MessageHandlingException will be sent to this channel. Otherwise, any such exception
+								the MessagingException will be sent to this channel. Otherwise, any such exception
 								will simply be logged as a warning by the channel adapter.
 							</xsd:documentation>
 						</xsd:annotation>
