@@ -564,7 +564,7 @@ That includes Samples, so if you can't find what you are looking for let us know
       else {
           context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
       }
-      Cafe cafe = (Cafe) context.getBean("cafe");
+      Cafe cafe = context.getBean("cafe", Cafe.class);
       for (int i = 1; i <= 100; i++) {
           Order order = new Order(i);
           order.addItem(DrinkType.LATTE, 2, false);

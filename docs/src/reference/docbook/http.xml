@@ -105,7 +105,8 @@ By default the HTTP request will be generated using an instance of <classname>Si
     <para>
     To configure an inbound http channel adapter which is an instance of <classname>HttpInboundEndpoint</classname> configured
     not to expect a response.
-    <programlisting language="xml"><![CDATA[ <http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" supported-methods="PUT, DELETE"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" 
+    supported-methods="PUT, DELETE"/>]]></programlisting>
     </para>
     <para>
     To configure an inbound http gateway which expects a response.

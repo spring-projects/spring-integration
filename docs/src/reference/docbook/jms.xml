@@ -155,7 +155,7 @@
     </para>
     <para>
     As with anything else, Gateway invocation might result in error.
-    By default Producer will not be notified of the errors thta might have occurredon ythe consumer side and will time out waiting for 
+    By default Producer will not be notified of the errors that might have occurred on the consumer side and will time out waiting for 
     the reply. However there might be times when you want to communicate an error condition back to the consumer, 
     in other words treat the Exception as a valid reply by mapping it to a Message. To accomplish this 
     JMS Inbound Gateway provides support for a Message Channel to which errors

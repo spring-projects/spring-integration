@@ -9,7 +9,7 @@
       Spring Integration provides support for outbound email with the
       <classname>MailSendingMessageHandler</classname>. It delegates to a configured instance of Spring's
       <interfacename>JavaMailSender</interfacename>:
-      <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
+      <programlisting language="java"> JavaMailSender mailSender = context.getBean("mailSender", JavaMailSender.class);
 
  MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
       <classname>MailSendingMessageHandler</classname> has various mapping strategies that use Spring's

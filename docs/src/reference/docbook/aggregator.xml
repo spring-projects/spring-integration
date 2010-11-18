@@ -260,7 +260,7 @@
 
       <para>Spring Integration provides an out-of-the box implementation for
       <code>ReleaseStrategy</code>, the
-      <code>SequenceSizerReleaseStrategy</code>. This implementation uses the
+      <code>SequenceSizeReleaseStrategy</code>. This implementation uses the
       SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for deciding
       when a message group is complete and ready to be aggregated. As shown
       above, it is also the default strategy.</para>
@@ -683,7 +683,7 @@
 }]]></programlisting>
 
     <para>The expireMessageGroups method can be called with a timeout value:
-    any message older than the current time minus this value wiull be expired,
+    any message older than the current time minus this value will be expired,
     and have the callbacks applied. Thus it is the user of the store that
     defines what is meant by message group "expiry".</para>
 

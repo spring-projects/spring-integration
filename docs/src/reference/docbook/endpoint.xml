@@ -65,7 +65,7 @@ subscribableChannel.subscribe(messageHandler);
       Since a handler that is subscribed to a channel does not have to actively poll that channel, this is an
       Event Driven Consumer, and the implementation provided by Spring Integration accepts a
       a <interfacename>SubscribableChannel</interfacename> and a <interfacename>MessageHandler</interfacename>:
-      <programlisting language="java">SubscribableChannel channel = (SubscribableChannel) context.getBean("subscribableChannel");
+      <programlisting language="java">SubscribableChannel channel = context.getBean("subscribableChannel", SubscribableChannel.class);
 
 EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);</programlisting>
     </para>
@@ -76,7 +76,7 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
     <para>
       Spring Integration also provides a <classname>PollingConsumer</classname>, and it can be instantiated in
       the same way except that the channel must implement <interfacename>PollableChannel</interfacename>:
-      <programlisting language="java">PollableChannel channel = (PollableChannel) context.getBean("pollableChannel");
+      <programlisting language="java">PollableChannel channel = context.getBean("pollableChannel", PollableChannel.class);
 
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
     </para>
@@ -131,10 +131,10 @@ consumer.setReceiveTimeout(5000);</programlisting>
       <programlisting language="java">
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-TaskExecutor taskExecutor = (TaskExecutor) context.getBean("exampleExecutor");
+TaskExecutor taskExecutor = context.getBean("exampleExecutor", TaskExecutor.class);
 consumer.setTaskExecutor(taskExecutor);
 
-PlatformTransactionManager txManager = (PlatformTransationManager) context.getBean("exampleTxManager");
+PlatformTransactionManager txManager = context.getBean("exampleTxManager", PlatformTransationManager.class);
 consumer.setTransactionManager(txManager);</programlisting>
       The examples above show dependency lookups, but keep in mind that these consumers will most often be configured
       as Spring <emphasis>bean definitions</emphasis>. In fact, Spring Integration also provides a
