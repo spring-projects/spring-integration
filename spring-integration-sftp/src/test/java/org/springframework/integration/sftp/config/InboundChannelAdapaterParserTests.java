@@ -62,7 +62,7 @@ public class InboundChannelAdapaterParserTests {
 
 	@Test(expected=BeanDefinitionStoreException.class)
 	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
-	public void testLocalFilesAutoCreationFalse() throws Exception{
+	public void testFailWithFilePatternAndFilter() throws Exception{
 		assertTrue(!new File("target/bar").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
 	}
@@ -79,6 +79,11 @@ public class InboundChannelAdapaterParserTests {
 		assertFalse(new File("foo").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
 		assertTrue(new File("foo").exists());
+	}
+	
+	@Test(expected=BeanCreationException.class)
+	public void testLocalDirAutoCreateFailed() throws Exception{
+		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail-autocreate.xml", this.getClass());
 	}
 	
 	@After
