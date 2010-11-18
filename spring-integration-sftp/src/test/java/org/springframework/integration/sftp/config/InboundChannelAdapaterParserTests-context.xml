@@ -35,10 +35,9 @@
 	<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
-			filter="filter"
 			filename-pattern="foo.txt"
-			remote-directory="ftp://foo"
-			local-directory-path="file:src/main/resources"
+			remote-directory="/foo"
+			local-directory="file:local-test-dir"
 			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>
@@ -48,9 +47,8 @@
 			channel="requestChannel"
 			session-factory="sftpSessionFactory"
 			filter="filter"
-			filename-pattern="foo.txt"
-			remote-directory="ftp://foo"
-			local-directory-path="file:target"
+			remote-directory="/foo"
+			local-directory="file:local-test-dir"
 			auto-create-directories="true"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>

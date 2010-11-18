@@ -107,7 +107,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="local-directory-path" type="xsd:string"/>
+			<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
 			<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
 		</xsd:complexType>

@@ -49,7 +49,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		if (file.exists()){
 			file.delete();
 		}
-		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer();
+		SftpSessionPool sessionPool = mock(SftpSessionPool.class);
+		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer(sessionPool);
 		syncronizer.setLocalDirectory(new FileSystemResource(System.getProperty("java.io.tmpdir")));
 		syncronizer.setRemotePath("foo/bar");
 		
@@ -57,10 +58,10 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		
 		syncronizer.setFilter(filter);
 		
-		SftpSessionPool sessionPoll = mock(SftpSessionPool.class);
+		
 		SftpSession sftpSession = mock(SftpSession.class);
 		
-		when(sessionPoll.getSession()).thenReturn(sftpSession);
+		when(sessionPool.getSession()).thenReturn(sftpSession);
 		ChannelSftp channel = mock(ChannelSftp.class);
 		when(channel.get((String) Mockito.any())).thenReturn(new FileInputStream(new File("template.mf")));
 		when(sftpSession.getChannel()).thenReturn(channel);
@@ -75,13 +76,12 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		when(channel.ls("foo/bar")).thenReturn(entries);
 		when(filter.filterFiles((Object[]) Mockito.any())).thenReturn(entries);
 
-		syncronizer.setClientPool(sessionPoll);
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
 		
 		syncronizer.syncRemoteToLocalFileSystem();
 		
-		verify(sessionPoll, times(1)).getSession();
+		verify(sessionPool, times(1)).getSession();
 		verify(sftpSession, atLeast(1)).getChannel();
 		// will add more validation, but for now this test is mainly to get the test coverage up
 	}

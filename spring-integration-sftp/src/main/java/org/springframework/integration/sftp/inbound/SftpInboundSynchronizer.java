@@ -16,9 +16,13 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import com.jcraft.jsch.ChannelSftp;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Collection;
+
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Required;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
@@ -26,19 +30,15 @@ import org.springframework.integration.file.synchronization.AbstractInboundRemot
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
 import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
+import com.jcraft.jsch.ChannelSftp;
 
 /**
  * Gandles the synchronization between a remote SFTP endpoint and a local mount.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
@@ -51,26 +51,26 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	/**
 	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
 	 */
-	private volatile SftpSessionPool clientPool;
+	private final SftpSessionPool sessionPool;
+	
+	public SftpInboundSynchronizer(SftpSessionPool sessionPool){
+		Assert.notNull(sessionPool, "'sessionPool' must not be null");
+		this.sessionPool = sessionPool;
+	}
 
 
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
 	}
 
-	@Required
-	public void setClientPool(SftpSessionPool clientPool) {
-		this.clientPool = clientPool;
-	}
-
 	@Override
 	protected Trigger getTrigger() {
-		return new PeriodicTrigger(10 * 1000);
+		throw new UnsupportedOperationException("This method curently is not implemented");
+		//return new PeriodicTrigger(10 * 1000);
 	}
 
 	@Override
 	protected void onInit() throws Exception {
-		Assert.notNull(this.clientPool, "'clientPool' must not be null");
 		Assert.notNull(this.remotePath, "'remotePath' must not be null");
 		if (this.shouldDeleteSourceFile) {
 			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
@@ -96,7 +96,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 					IOUtils.closeQuietly(in);
 					IOUtils.closeQuietly(fileOutputStream);
 				}
-				if (tmpLocalTarget.renameTo(localFile)) {
+				if (tmpLocalTarget.renameTo(localFile) && this.entryAcknowledgmentStrategy != null) {
 					this.acknowledge(sftpSession, entry);
 				}
 				return true;
@@ -112,10 +112,10 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void syncRemoteToLocalFileSystem() throws Exception {
+	protected void syncRemoteToLocalFileSystem() {
 		SftpSession session = null;
 		try {
-			session = clientPool.getSession();
+			session = sessionPool.getSession();
 			session.start();
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
@@ -128,13 +128,11 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 				}
 			}
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			throw new MessagingException("couldn't synchronize remote to local directory", e);
 		}
 		finally {
-			if ((session != null) && (clientPool != null)) {
-				clientPool.release(session);
-			}
+			this.sessionPool.release(session);
 		}
 	}
 

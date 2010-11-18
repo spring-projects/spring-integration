@@ -23,26 +23,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
-import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -51,28 +52,37 @@ import com.jcraft.jsch.ChannelSftp;
  * Assumes that the payload of the inbound message is of type {@link java.io.File}.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpSendingMessageHandler extends AbstractExpressionEvaluator implements MessageHandler, InitializingBean {
+public class SftpSendingMessageHandler extends AbstractMessageHandler implements SmartLifecycle{
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
+	
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
-
-	private volatile SftpSessionPool pool;
+	private final SftpSessionPool sessionPool;
+	
+	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcesor;
 
 	private volatile Expression remoteDirectoryExpression;
 
-	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+	private volatile FileNameGenerator filenameGenerator = new DefaultFileNameGenerator();
 
 	private volatile File temporaryBufferFolderFile;
 
 	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
 
 	private volatile String charset = Charset.defaultCharset().name();
+	
+	private volatile boolean started;
+
+	private volatile boolean autoStartup = true;
 
 
-	public SftpSendingMessageHandler(SftpSessionPool pool) {
-		this.pool = pool;
+	public SftpSendingMessageHandler(SftpSessionPool sessionPool) {
+		Assert.notNull(sessionPool, "'sessionPool' must not be null");
+		this.sessionPool = sessionPool;
 	}
 
 
@@ -80,8 +90,8 @@ public class SftpSendingMessageHandler extends AbstractExpressionEvaluator imple
 		this.temporaryBufferFolder = temporaryBufferFolder;
 	}
 
-	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
-		this.fileNameGenerator = fileNameGenerator;
+	public void setFilenameGenerator(FileNameGenerator filenameGenerator) {
+		this.filenameGenerator = filenameGenerator;
 	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
@@ -92,15 +102,71 @@ public class SftpSendingMessageHandler extends AbstractExpressionEvaluator imple
 		this.charset = charset;
 	}
 
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.pool, "the pool must not be null");
+	protected void onInit() throws Exception {
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
+		if (remoteDirectoryExpression != null){
+			directoryExpressionProcesor = 
+				new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
+		}
+	}
+	
+// Lifecycle
+	
+	public void start() {
+		sessionPool.start();
+		started = true;
 	}
 
-	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
-		if (sourceFile.renameTo(resultFile)) {
-			return resultFile;
+	public void stop() {
+		sessionPool.stop();
+		started = false;
+	}
+
+	public boolean isRunning() {
+		return started;
+	}
+
+	public int getPhase() {
+		return 0;
+	}
+
+	public boolean isAutoStartup() {
+		return autoStartup;
+	}
+
+	public void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
 		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		File inboundFilePayload = this.redeemForStorableFile(message);
+		try {
+			if ((inboundFilePayload != null) && inboundFilePayload.exists()) {
+				sendFileToRemoteEndpoint(message, inboundFilePayload);
+			}
+		}
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "Failed to transfer '" + message.getPayload() + "' to" +
+					" " + this.remoteDirectoryExpression.getExpressionString(), e);
+		}
+		finally {
+			if (inboundFilePayload != null && inboundFilePayload.exists()) {
+				inboundFilePayload.delete();
+			}		
+		}
+	}
+
+
+	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
 		FileCopyUtils.copy(sourceFile, tempFile);
 		tempFile.renameTo(resultFile);
 		return resultFile;
@@ -122,7 +188,7 @@ public class SftpSendingMessageHandler extends AbstractExpressionEvaluator imple
 	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
-			String generateFileName = this.fileNameGenerator.generateFileName(message);
+			String generateFileName = this.filenameGenerator.generateFileName(message);
 			File tempFile = new File(this.temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
 			File resultFile = new File(this.temporaryBufferFolderFile, generateFileName);
 			File sendableFile = null;
@@ -138,46 +204,29 @@ public class SftpSendingMessageHandler extends AbstractExpressionEvaluator imple
 			return sendableFile;
 		}
 		catch (Throwable th) {
-			throw new MessageDeliveryException(message);
-		}
-	}
-
-	public void handleMessage(final Message<?> message) {
-		Assert.notNull(this.pool, "the pool must not be null");
-		File inboundFilePayload = this.redeemForStorableFile(message);
-		try {
-			if ((inboundFilePayload != null) && inboundFilePayload.exists()) {
-				sendFileToRemoteEndpoint(message, inboundFilePayload);
-			}
-		}
-		catch (Exception e) {
-			throw new MessageDeliveryException(message, "failed to deliver the message", e);
-		}
-		finally {
-			if (inboundFilePayload != null && inboundFilePayload.exists())
-				inboundFilePayload.delete();
+			throw new MessageDeliveryException(message, "Failed to create sendable file.", th);
 		}
 	}
 
 	private boolean sendFileToRemoteEndpoint(Message<?> message, File file) throws Exception {
-		Assert.notNull(this.pool, "pool must not be null");
-		SftpSession session = this.pool.getSession();
+		SftpSession session = this.sessionPool.getSession();
 		if (session == null) {
 			throw new MessagingException("The session returned from the pool is null, cannot proceed.");
 		}
-		session.start();
-		ChannelSftp sftp = session.getChannel();
 		InputStream fileInputStream = null;
 		try {
+			//session.start();
+			ChannelSftp sftp = session.getChannel();	
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";
-			if (this.remoteDirectoryExpression != null) {
-				String result = this.evaluateExpression(this.remoteDirectoryExpression, message, String.class);
-				if (result != null) {
+			if (directoryExpressionProcesor != null){
+				String result = directoryExpressionProcesor.processMessage(message);
+				if (StringUtils.hasText(result)){
 					baseOfRemotePath = result;
 				}
 			}
-			if (!StringUtils.defaultString(baseOfRemotePath).endsWith("/")) {
+			
+			if (!StringUtils.endsWithIgnoreCase(baseOfRemotePath, "/")) {
 				baseOfRemotePath += "/";
 			}
 			sftp.put(fileInputStream, baseOfRemotePath + file.getName());
@@ -185,10 +234,7 @@ public class SftpSendingMessageHandler extends AbstractExpressionEvaluator imple
 		}
 		finally {
 			IOUtils.closeQuietly(fileInputStream);
-			if (this.pool != null) {
-				this.pool.release(session);
-			}
+			this.sessionPool.release(session);
 		}
 	}
-
 }

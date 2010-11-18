@@ -34,9 +34,8 @@
 			channel="requestChannel"
 			session-factory="sftpSessionFactory"
 			filter="filter"
-			filename-pattern="foo*.txt"
 			remote-directory="ftp://foo"
-			local-directory-path="file:target/bar"
+			local-directory="file:local-test-dir"
 			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false">
 		<poller fixed-rate="1000"/>

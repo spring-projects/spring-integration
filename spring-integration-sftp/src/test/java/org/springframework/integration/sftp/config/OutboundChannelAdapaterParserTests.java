@@ -50,11 +50,11 @@ public class OutboundChannelAdapaterParserTests {
 		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
-		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
+		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "filenameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
-		QueuedSftpSessionPool clientPoll = (QueuedSftpSessionPool) TestUtils.getPropertyValue(handler, "pool");
+		QueuedSftpSessionPool clientPoll = (QueuedSftpSessionPool) TestUtils.getPropertyValue(handler, "sessionPool");
 		SftpSessionFactory clientFactory = (SftpSessionFactory) TestUtils.getPropertyValue(clientPoll, "sftpSessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
@@ -72,7 +72,7 @@ public class OutboundChannelAdapaterParserTests {
 		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
-		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
+		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "filenameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));

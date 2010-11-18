@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Josh Long
  * @author Mario Gray
+ * @since 2.0
  */
 public class SftpSessionFactory {
 

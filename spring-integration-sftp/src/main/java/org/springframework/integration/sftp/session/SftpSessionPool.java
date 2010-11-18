@@ -16,13 +16,17 @@
 
 package org.springframework.integration.sftp.session;
 
+import org.springframework.context.Lifecycle;
+
 /**
  * Holds instances of {@link SftpSession} since they are stateful
  * and might be in use while another operation runs.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public interface SftpSessionPool {
+public interface SftpSessionPool extends Lifecycle{
 
 	/**
 	 * Returns a session that can be used to connect to an sftp instance and perform operations
@@ -38,5 +42,5 @@ public interface SftpSessionPool {
 	 * @param session the session to relinquish / renew
 	 */
 	void release(SftpSession session);
-
+	
 }

@@ -15,13 +15,20 @@
  */
 package org.springframework.integration.sftp.inbound;
 
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpATTRS;
+import java.io.File;
+import java.io.FileNotFoundException;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.SftpATTRS;
 
 
 /**
@@ -31,38 +38,55 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
+public class SftpInboundSynchronizingMessageSource extends 
+		AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
+	
 	/**
 	 * the pool of sessions
 	 */
-	private volatile SftpSessionPool clientPool;
-
+	private final SftpSessionPool sessionPool;
 
 	/**
-	 * the remote path on teh server
+	 * the remote path on the server
 	 */
-	private volatile String remotePath;
+	private volatile String remoteDirectory;
 
-	public void setClientPool(SftpSessionPool clientPool) {
-		this.clientPool = clientPool;
+	private volatile String filenamePattern;
+
+	public SftpInboundSynchronizingMessageSource(SftpSessionPool sessionPool){
+		this.sessionPool = sessionPool;
+		System.out.println("###### Constructing");
 	}
 
-	public void setRemotePath(String remotePath) {
-		this.remotePath = remotePath;
+	public void setFilenamePattern(String filenamePattern) {
+		this.filenamePattern = filenamePattern;
 	}
-
-	@Override
-	protected void doStart() {
-		this.synchronizer.start();
+	
+	public void setRemoteDirectory(String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
 	}
-
-	@Override
-	protected void doStop() {
-		this.synchronizer.stop();
+	
+	public String getComponentType(){
+		return "sftp:inbound-channel-adapter";
+	}
+	
+	public Message<File> receive() {
+		/*
+		 * Basically keep polling from the file source untill null,
+		 * then attempt to sync up with remote directory which should populate the file source
+		 * if anything is there  and poll on file source again and if its still null then return it.
+		 */
+		Message<File> message = this.fileSource.receive();
+		if (message == null){
+			this.checkThatRemotePathExists(this.remoteDirectory);
+			this.synchronizer.syncRemoteToLocalFileSystem();
+			message = this.fileSource.receive();
+		}
+		return message;
 	}
 
 	/**
-	 * there be dragons this way ... This method will check to ensure that the remote directory exists. If the directory
+	 * This method will check to ensure that the remote directory exists. If the directory
 	 * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
 	 * to create it. Otherwise, it fails fast.
 	 *
@@ -73,20 +97,25 @@ public class SftpInboundSynchronizingMessageSource extends AbstractInboundRemote
 	private boolean checkThatRemotePathExists(String remotePath) {
 		SftpSession session = null;
 		ChannelSftp channelSftp = null;
-
 		try {
-			session = this.clientPool.getSession();
-			Assert.state(session != null, "session as returned from the pool should not be null. " + "If it is, it is most likely an error in the pool implementation.  ");
-			
+			session = this.sessionPool.getSession();
 			session.start();
 			channelSftp = session.getChannel();
-
+		} 
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e){
+			throw new MessagingException("Failed to get SftpSession while checking for existance of the remote directory", e);
+		}
+		
+		try {
 			SftpATTRS attrs = channelSftp.stat(remotePath);
 			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
-
 			return true;
-		} catch (Throwable th) {
-			if (this.autoCreateDirectories && (this.clientPool != null) && (session != null)) {
+		} 
+		catch (Throwable th) {
+			if (this.autoCreateDirectories && (this.sessionPool != null) && (session != null)) {
 				try {
 					if (channelSftp != null) {
 						channelSftp.mkdir(remotePath);
@@ -95,14 +124,18 @@ public class SftpInboundSynchronizingMessageSource extends AbstractInboundRemote
 							return true;
 						}
 					}
-				} catch (Throwable t) {
-					return false;
+				} 
+				catch (RuntimeException re) {
+					throw re;
 				}
+				catch (Exception e){
+					throw new MessagingException("Failed to auto-create remote directory", e);
+				}
+
 			}
-		} finally {
-			if ((clientPool != null) && (session != null)) {
-				clientPool.release(session);
-			}
+		} 
+		finally {
+			this.sessionPool.release(session);
 		}
 
 		return false;
@@ -110,12 +143,37 @@ public class SftpInboundSynchronizingMessageSource extends AbstractInboundRemote
 
 	@Override
 	protected void onInit() {
-		super.onInit();
+		try {
+			if (this.localDirectory != null && !this.localDirectory.exists()) {
+				if (this.autoCreateDirectories) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
+					}
+					this.localDirectory.getFile().mkdirs();
+				}
+				else {
+					throw new FileNotFoundException(this.localDirectory.getFilename());
+				}
+			}
+			/**
+			 * Forwards files once they ultimately appear in the {@link #localDirectory}.
+			 */
+			this.fileSource = new FileReadingMessageSource();
+			this.fileSource.setDirectory(this.localDirectory.getFile());
+			this.fileSource.afterPropertiesSet();
+		}
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new MessagingException("Failure during initialization of MessageSource for: "
+					+ this.getComponentType(), e);
+		}
 
-		this.checkThatRemotePathExists(this.remotePath);
-		this.synchronizer.setClientPool(this.clientPool);
-	}
-	public String getComponentType(){
-		return "sftp:inbound-channel-adapter";
+		if (StringUtils.hasText(this.filenamePattern)) {
+			SftpPatternMatchingFileListFilter sftpFilePatternMatchingEntryListFilter =
+					new SftpPatternMatchingFileListFilter(filenamePattern);
+			this.synchronizer.setFilter(sftpFilePatternMatchingEntryListFilter);
+		}
 	}
 }

@@ -34,6 +34,7 @@ import com.jcraft.jsch.UserInfo;
  *
  * @author Josh Long
  * @author Mario Gray
+ * @since 2.0
  */
 public class SftpSession {
 
@@ -104,7 +105,6 @@ public class SftpSession {
 		this.session.connect();
 		this.channel = (ChannelSftp) this.session.openChannel("sftp");
 	}
-
 
 	public ChannelSftp getChannel() {
 		return channel;
