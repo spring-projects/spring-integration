@@ -13,14 +13,14 @@
   <section id="ip-intro">
     <title>Introduction</title>
     <para>
-      Two flavors each of UDP inbound and outbound adapters are provided <classname>UnicastSendingMessageHandler</classname>
+      Two flavors each of UDP inbound and outbound channel adapters are provided <classname>UnicastSendingMessageHandler</classname>
       sends a datagram packet to a single destination. <classname>UnicastReceivingChannelAdapter</classname> receives
       incoming datagram packets. <classname>MulticastSendingMessageHandler</classname> sends (broadcasts) datagram packets to
       a multicast address. <classname>MulticastReceivingChannelAdapter</classname> receives incoming datagram packets
       by joining to a multicast address.
     </para>
     <para>
-      TCP inbound and outbound adapters are provided <classname>TcpSendingMessageHandler</classname>
+      TCP inbound and outbound channel adapters are provided <classname>TcpSendingMessageHandler</classname>
       sends messages over TCP.  <classname>TcpReceivingChannelAdapter</classname> receives messages over TCP.
     </para>
     <para>
@@ -35,6 +35,10 @@
      immediately created  for each new request. Otherwise, if the connection is in use,
      the calling thread blocks on the connection until either a response is received or a timeout
      or I/O error occurs.
+    </para>
+    <para>
+     The TCP and UDP inbound channel adapters, and the TCP inbound gateway, support the "error-channel" attribute. 
+     This provides the same basic functionality as described in <xref linkend="gateway-proxy"/>.
     </para>
   </section>
   <section id="udp-adapters">
@@ -715,123 +719,6 @@
           </tbody>
         </tgroup>
       </table>
-      <table id="ip-ob-adapter-attributes">
-        <title>UDP Outbound Channel Adapter Attributes</title>
-        <tgroup cols="3">
-          <colspec align="left" />
-          <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col4" colwidth="1*"/>
-          <colspec colnum="3" colname="col5" colwidth="2*"/>
-          <thead>
-            <row>
-              <entry align="center">Attribute Name</entry>
-              <entry align="center">Allowed Values</entry>
-              <entry align="center">Attribute Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>host</entry>
-              <entry></entry>
-              <entry>The host name or ip address of the destination. For multicast udp
-                     adapters, the multicast address.</entry>
-            </row>
-            <row>
-              <entry>port</entry>
-              <entry></entry>
-              <entry>The port on the destination.</entry>
-            </row>
-            <row>
-              <entry>multicast</entry>
-              <entry>true, false</entry>
-              <entry>Whether or not the udp adapter uses multicast.</entry>
-            </row>
-            <row>
-              <entry>acknowledge</entry>
-              <entry>true, false</entry>
-              <entry>Whether or not a udp adapter requires an acknowledgment from the destination.
-                     when enabled, requires setting the following 4 attributes.</entry>
-            </row>
-            <row>
-              <entry>ack-host</entry>
-              <entry></entry>
-              <entry>When acknowledge is true, indicates the host or ip address to which the
-                     acknowledgment should be sent. Usually the current host, but may be
-                     different, for example when Network Address Transation (NAT) is
-                     being used.</entry>
-            </row>
-            <row>
-              <entry>ack-port</entry>
-              <entry></entry>
-              <entry>When acknowledge is true, indicates the port to which the
-                     acknowledgment should be sent. The adapter listens on this port for
-                     acknowledgments.</entry>
-            </row>
-            <row>
-              <entry>ack-timeout</entry>
-              <entry></entry>
-              <entry>When acknowledge is true, indicates the time in milliseconds that the
-                     adapter will wait for an acknowlegment. If an acknowlegment is not
-                     received in time, the adapter will throw an exception.</entry>
-            </row>
-            <row>
-              <entry>min-acks-for- success</entry>
-              <entry></entry>
-              <entry>Defaults to 1. For multicast adapters, you can set this to a larger
-                     value, requiring acknowlegments from multiple destinations.</entry>
-            </row>
-            <row>
-              <entry>check-length</entry>
-              <entry>true, false</entry>
-              <entry>Whether or not a udp adapter includes a data length field in the
-                     packet sent to the destination.</entry>
-            </row>
-            <row>
-              <entry>time-to-live</entry>
-              <entry></entry>
-              <entry>For multicast adapters, specifies the time to live attribute for
-         the <classname>MulticastSocket</classname>; controls the scope
-                     of the multicasts. Refer to the Java API
-                     documentation for more information.</entry>
-            </row>
-            <row>
-              <entry>so-timeout</entry>
-              <entry></entry>
-              <entry>See <classname>java.net.DatagramSocket</classname>
-                     setSoTimeout() methods for more information.</entry>
-            </row>
-            <row>
-              <entry>so-send-buffer-size</entry>
-              <entry></entry>
-              <entry>See <classname>java.net.DatagramSocket</classname>
-                     setSendBufferSize() methods for more information.</entry>
-            </row>
-            <row>
-              <entry>so-receive-buffer- size</entry>
-              <entry></entry>
-              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
-                     setReceiveBufferSize() methods for more information.</entry>
-            </row>
-            <row>
-              <entry>local-address</entry>
-              <entry></entry>
-              <entry>On a multi-homed system, for the UDP adapter, specifies an IP address
-                     for the interface to which the socket will be bound for reply messages.
-                     For a multicast adapter it is also used to determine which interface
-                     the multicast packets will be sent over.</entry>
-            </row>
-            <row>
-              <entry>task-executor</entry>
-              <entry></entry>
-              <entry>
-                     Specifies a specific Executor to be used for acknowledgment handling. If not supplied, an internal
-                     single threaded executor will be used. Needed on some platforms that require the use of specific
-                     task executors such as a WorkManagerTaskExecutor. One thread will be dedicated to handling
-                     acknowledgments (if the acknowledge option is true).</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
       <table id="ip-ib-adapter-attributes">
         <title>UDP Inbound Channel Adapter Attributes</title>
         <tgroup cols="3">
@@ -918,6 +805,130 @@
               <entry>On a multi-homed system, specifies an IP address
                      for the interface to which the socket will be bound.</entry>
             </row>
+            <row>
+              <entry>error-channel</entry>
+              <entry></entry>
+              <entry>If a synchronous Exception is thrown by a downstream 
+                     component, the MessagingException message containing the exception 
+                     and failed message is sent to this channel.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table id="ip-ob-adapter-attributes">
+        <title>UDP Outbound Channel Adapter Attributes</title>
+        <tgroup cols="3">
+          <colspec align="left" />
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col4" colwidth="1*"/>
+          <colspec colnum="3" colname="col5" colwidth="2*"/>
+          <thead>
+            <row>
+              <entry align="center">Attribute Name</entry>
+              <entry align="center">Allowed Values</entry>
+              <entry align="center">Attribute Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>host</entry>
+              <entry></entry>
+              <entry>The host name or ip address of the destination. For multicast udp
+                     adapters, the multicast address.</entry>
+            </row>
+            <row>
+              <entry>port</entry>
+              <entry></entry>
+              <entry>The port on the destination.</entry>
+            </row>
+            <row>
+              <entry>multicast</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not the udp adapter uses multicast.</entry>
+            </row>
+            <row>
+              <entry>acknowledge</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not a udp adapter requires an acknowledgment from the destination.
+                     when enabled, requires setting the following 4 attributes.</entry>
+            </row>
+            <row>
+              <entry>ack-host</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the host or ip address to which the
+                     acknowledgment should be sent. Usually the current host, but may be
+                     different, for example when Network Address Transation (NAT) is
+                     being used.</entry>
+            </row>
+            <row>
+              <entry>ack-port</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the port to which the
+                     acknowledgment should be sent. The adapter listens on this port for
+                     acknowledgments.</entry>
+            </row>
+            <row>
+              <entry>ack-timeout</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the time in milliseconds that the
+                     adapter will wait for an acknowlegment. If an acknowlegment is not
+                     received in time, the adapter will throw an exception.</entry>
+            </row>
+            <row>
+              <entry>min-acks-for- success</entry>
+              <entry></entry>
+              <entry>Defaults to 1. For multicast adapters, you can set this to a larger
+                     value, requiring acknowlegments from multiple destinations.</entry>
+            </row>
+            <row>
+              <entry>check-length</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not a udp adapter includes a data length field in the
+                     packet sent to the destination.</entry>
+            </row>
+            <row>
+              <entry>time-to-live</entry>
+              <entry></entry>
+              <entry>For multicast adapters, specifies the time to live attribute for
+                     the <classname>MulticastSocket</classname>; controls the scope
+                     of the multicasts. Refer to the Java API
+                     documentation for more information.</entry>
+            </row>
+            <row>
+              <entry>so-timeout</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.DatagramSocket</classname>
+                     setSoTimeout() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-send-buffer-size</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.DatagramSocket</classname>
+                     setSendBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-receive-buffer- size</entry>
+              <entry></entry>
+              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
+                     setReceiveBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>local-address</entry>
+              <entry></entry>
+              <entry>On a multi-homed system, for the UDP adapter, specifies an IP address
+                     for the interface to which the socket will be bound for reply messages.
+                     For a multicast adapter it is also used to determine which interface
+                     the multicast packets will be sent over.</entry>
+            </row>
+            <row>
+              <entry>task-executor</entry>
+              <entry></entry>
+              <entry>
+                     Specifies a specific Executor to be used for acknowledgment handling. If not supplied, an internal
+                     single threaded executor will be used. Needed on some platforms that require the use of specific
+                     task executors such as a WorkManagerTaskExecutor. One thread will be dedicated to handling
+                     acknowledgments (if the acknowledge option is true).</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -949,6 +960,13 @@
                      outbound channel adapter and this adapter will receive any 
                      incoming messages on the connection created by the 
                      outbound adapter.</entry>
+            </row>
+            <row>
+              <entry>error-channel</entry>
+              <entry></entry>
+              <entry>If a synchronous Exception is thrown by a downstream 
+                     component, the MessagingException message containing the exception 
+                     and failed message is sent to this channel.</entry>
             </row>
           </tbody>
         </tgroup>
@@ -1021,6 +1039,15 @@
               <entry>reply-timeout</entry>
               <entry></entry>
               <entry>The time in milliseconds for which the gateway will wait for a reply.</entry>
+            </row>
+            <row>
+              <entry>error-channel</entry>
+              <entry></entry>
+              <entry>If a synchronous Exception is thrown by a downstream 
+                     component, the MessagingException message containing the exception 
+                     and failed message is sent to this channel;
+                     any reply from that flow will then be returned as a response by
+                     the gateway.</entry>
             </row>
           </tbody>
         </tgroup>
