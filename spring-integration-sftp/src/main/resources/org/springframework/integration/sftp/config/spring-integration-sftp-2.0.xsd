@@ -40,7 +40,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="filename-generator" type="xsd:string">
+			<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            <xsd:annotation>
 	            	<xsd:documentation>
 	            	Allows you to specify a reference to  
@@ -55,7 +55,7 @@
 	        </xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string"/>
 			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
-			<xsd:attribute name="remote-filename-expression" type="xsd:string"/>
+			<xsd:attribute name="remote-filename-generator-expression" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>

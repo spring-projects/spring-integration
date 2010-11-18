@@ -10,10 +10,8 @@
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
 		<property name="host" value="localhost"/>
-<!--		<property name="knownHosts" value="local, foo.com, bar.foo"/>-->
 		<property name="privateKey" value="file:/Users/ozhurakousky/.ssh/sftp_rsa"/>
-		<property name="privateKeyPassphrase" value="seva@1994"/>
-<!--		<property name="password" value="hello"/>-->
+		<property name="privateKeyPassphrase" value="xxxx"/>
 		<property name="port" value="22"/>
 		<property name="user" value="ozhurakousky"/>
 	</bean>
@@ -24,18 +22,7 @@
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
-				remote-file-expression="payload.getName() + '_foo'"
+				remote-file-generator-expression="payload.getName() + '_foo'"
 				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"/>
-				
-<!--	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"-->
-<!--				session-factory="sftpSessionFactory"-->
-<!--				channel="inputChannel"-->
-<!--				charset="UTF-8"-->
-<!--				filename-generator="fileNameGenerator"-->
-<!--				remote-directory-expression="'foo' + '/' + 'bar'"/>-->
-							
-				
-	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
-	</bean>
+			
 </beans>

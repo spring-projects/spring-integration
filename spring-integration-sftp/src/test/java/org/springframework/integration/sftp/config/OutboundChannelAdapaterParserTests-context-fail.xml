@@ -24,7 +24,7 @@
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
-				filename-generator="fileNameGenerator"
+				remote-filename-generator="fileNameGenerator"
 				remote-directory="foo/bar"
 				remote-directory-expression="'foo'"/>
 				

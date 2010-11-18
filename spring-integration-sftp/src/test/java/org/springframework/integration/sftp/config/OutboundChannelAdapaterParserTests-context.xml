@@ -24,7 +24,7 @@
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
-				filename-generator="fileNameGenerator"
+				remote-filename-generator="fileNameGenerator"
 				remote-directory="foo/bar"/>
 				
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
@@ -32,7 +32,7 @@
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory-expression="'foo' + '/' + 'bar'"
-				remote-filename-expression="payload.getName() + '-foo'"/>
+				remote-filename-generator-expression="payload.getName() + '-foo'"/>
 							
 	<int-sftp:outbound-channel-adapter 
 				session-factory="sftpSessionFactory" 
