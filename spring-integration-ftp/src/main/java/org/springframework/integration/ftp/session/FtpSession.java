@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ftp.session;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -109,15 +111,29 @@ public class FtpSession implements Session {
 	}
 
 	public void put(InputStream inputStream, String destination) {
+		String originalWorkDir = null;
 		try {
-			// TODO:
-			// String originalDirectory = this.client.printWorkingDirectory()
-			//  tokenize destination into 'directory' and 'file'
-			//       then changeWorkingDirectory(directory)
-			this.client.storeFile(destination, inputStream);
+			String fileName = StringUtils.getFilename(destination);
+			int startOfFileName = destination.lastIndexOf(File.separatorChar);
+			
+			if (startOfFileName > 0) {
+				originalWorkDir = client.printWorkingDirectory();
+				String pathname = destination.substring(0, startOfFileName);
+				client.changeWorkingDirectory(pathname);
+			}	
+			this.client.storeFile(fileName, inputStream);
 		}
 		catch (IOException e) {
 			throw new IllegalStateException("failed to copy file", e);
+		}
+		finally {
+			if (originalWorkDir != null){
+				try {
+					this.client.changeWorkingDirectory(originalWorkDir);
+				} catch (IOException ioex) {
+					throw new IllegalStateException("failed to change working directories ", ioex);
+				}	
+			}	
 		}
 	}
 
