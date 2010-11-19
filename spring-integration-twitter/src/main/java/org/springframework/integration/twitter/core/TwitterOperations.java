@@ -79,15 +79,13 @@ public interface TwitterOperations {
 	 * 
 	 * @param query
 	 *            The search query string
-	 * @param page
-	 *            The page to return
 	 * @param sinceId
 	 *            The minimum {@link Tweet} ID to return in the results
 	 * 
 	 * @return a {@link SearchResults} containing {@link Tweet}s
 	 * 
 	 */
-	SearchResults search(String query, int page, long sinceId);
+	SearchResults search(String query, long sinceId);
 
 	List<Tweet> getDirectMessages();
 	
