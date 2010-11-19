@@ -225,7 +225,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 					tweets.add(this.buildTweetFromDm((DirectMessage) response));
 				}
 				else if (response instanceof twitter4j.Tweet) {
-					tweets.add(this.buildTweetFromTwitter4JTweet((twitter4j.Tweet) response));
+					tweets.add(this.buildTweetFromTwitter4jTweet((twitter4j.Tweet) response));
 				}
 				else {
 					throw new TwitterOperationException("Unsupported response type: " + response.getClass());
@@ -259,7 +259,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 		return tweet;
 	}
 
-	private Tweet buildTweetFromTwitter4JTweet(twitter4j.Tweet t4jTweet) {
+	private Tweet buildTweetFromTwitter4jTweet(twitter4j.Tweet t4jTweet) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(t4jTweet.getCreatedAt());
 		tweet.setFromUser(t4jTweet.getFromUser());
