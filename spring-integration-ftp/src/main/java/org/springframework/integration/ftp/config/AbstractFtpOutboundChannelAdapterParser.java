@@ -31,11 +31,17 @@ public abstract class AbstractFtpOutboundChannelAdapterParser extends AbstractOu
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,element,"charset");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,element,"filename-generator", "fileNameGenerator");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,element,"client-factory");
-		return builder.getBeanDefinition();
+		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
+		
+		BeanDefinitionBuilder poolBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.session.QueuedFtpClientPool");
+		poolBuilder.addConstructorArgReference(element.getAttribute("client-factory"));
+		
+		handlerBuilder.addConstructorArgValue(poolBuilder.getBeanDefinition());
+		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element,"filename-generator", "fileNameGenerator");
+		return handlerBuilder.getBeanDefinition();
 	}
 
 	protected abstract String getClassName();

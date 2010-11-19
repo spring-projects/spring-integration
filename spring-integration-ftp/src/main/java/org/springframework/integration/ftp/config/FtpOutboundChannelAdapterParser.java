@@ -28,7 +28,7 @@ public class FtpOutboundChannelAdapterParser extends AbstractFtpOutboundChannelA
 
 	@Override
 	protected String getClassName() {
-		return "org.springframework.integration.ftp.config.FtpSendingMessageHandlerFactoryBean";
+		return "org.springframework.integration.ftp.outbound.FtpSendingMessageHandler";
 	}
 
 }
