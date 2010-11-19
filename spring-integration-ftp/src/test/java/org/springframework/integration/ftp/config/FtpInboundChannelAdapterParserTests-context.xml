@@ -13,7 +13,7 @@
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpClientFactory"
 				charset="UTF-8"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
@@ -25,7 +25,7 @@
 	
 	<int-ftp:inbound-channel-adapter 
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpClientFactory"
 				charset="UTF-8"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"

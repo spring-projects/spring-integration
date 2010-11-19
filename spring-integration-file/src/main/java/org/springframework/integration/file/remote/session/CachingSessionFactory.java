@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class CachingSessionFactory implements SessionFactory, DisposableBean {
@@ -70,7 +71,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			if (null == session) {
 				session = sessionFactory.getSession();
 			}
-			return (session != null) ? new PooledSftpSession(session) : null;
+			return (session != null) ? new CachedSession(session) : null;
 		} 
 		finally {
 			this.lock.unlock();
@@ -99,11 +100,11 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	}
 
 
-	private class PooledSftpSession implements Session {
+	private class CachedSession implements Session {
 
 		private final Session targetSession;
 
-		private PooledSftpSession(Session targetSession) {
+		private CachedSession(Session targetSession) {
 			this.targetSession = targetSession;
 		}
 

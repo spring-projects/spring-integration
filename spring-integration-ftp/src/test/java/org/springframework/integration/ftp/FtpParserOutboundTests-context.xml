@@ -21,7 +21,8 @@
 	</bean>
 
 	<int-ftp:outbound-channel-adapter id="ftpOutboundAdapter" 
-						client-factory="ftpClientFactory"
+						session-factory="ftpClientFactory"
+						remote-directory="foo/bar"
 						channel="ftpOutbound" 
 						filename-generator="fileNameGenerator"/>
 						

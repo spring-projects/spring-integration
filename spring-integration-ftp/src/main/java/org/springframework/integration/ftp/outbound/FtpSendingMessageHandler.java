@@ -28,6 +28,7 @@ import org.apache.commons.lang.SystemUtils;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
@@ -35,6 +36,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -49,6 +51,10 @@ import org.springframework.util.FileCopyUtils;
 public class FtpSendingMessageHandler extends AbstractMessageHandler{
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
+
+	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcesor;
+
+	private volatile Expression remoteDirectoryExpression;
 
 	private volatile SessionFactory sessionFactory;
 
@@ -73,6 +79,10 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		this.sessionFactory = sessionFactory;
 	}
 
+	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		this.remoteDirectoryExpression = remoteDirectoryExpression;
+	}
+
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
 		this.temporaryBufferFolder = temporaryBufferFolder;
 	}
@@ -90,6 +100,10 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		Assert.notNull(this.temporaryBufferFolder,
 				"'temporaryBufferFolder' must not be null");
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
+		if (this.remoteDirectoryExpression != null) {
+			this.directoryExpressionProcesor =
+					new ExpressionEvaluatingMessageProcessor<String>(this.remoteDirectoryExpression, String.class);
+		}
 	}
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
@@ -147,7 +161,8 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 			Session session = this.sessionFactory.getSession();
 			boolean sentSuccesfully;
 			try {
-				sentSuccesfully = sendFile(file, session);
+				String targetDirectory = this.directoryExpressionProcesor.processMessage(message);
+				sentSuccesfully = sendFile(file, targetDirectory, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -180,9 +195,10 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		}
 	}
 
-	private boolean sendFile(File file, Session session) throws FileNotFoundException, IOException {
+	private boolean sendFile(File file, String targetDirectory, Session session) throws FileNotFoundException, IOException {
 		FileInputStream fileInputStream = new FileInputStream(file);
-		session.put(fileInputStream, file.getName());
+		String remoteFilePath = targetDirectory + File.separatorChar + file.getName();
+		session.put(fileInputStream, remoteFilePath);
 		fileInputStream.close();
 		return true;
 	}

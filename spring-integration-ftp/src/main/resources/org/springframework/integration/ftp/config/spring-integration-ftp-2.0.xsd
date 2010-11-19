@@ -22,6 +22,8 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-ftp-adapter-type">
+					<xsd:attribute name="remote-directory" type="xsd:string"/>
+					<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 					<xsd:attribute name="filename-generator" type="xsd:string">
 			            <xsd:annotation>
 			            	<xsd:documentation>
@@ -73,7 +75,7 @@
 	
 	<xsd:complexType name="base-ftp-adapter-type">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="client-factory" type="xsd:string" use="required">
+		<xsd:attribute name="session-factory" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">

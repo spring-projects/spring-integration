@@ -22,7 +22,7 @@
 	</bean>
 
 	<ftp:inbound-channel-adapter id="adapterFtp" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpClientFactory"
 				channel="ftpIn" 
 				auto-create-directories="true"
 				local-working-directory="file:target/foo"

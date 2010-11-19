@@ -22,7 +22,7 @@
 
 	<ftp:inbound-channel-adapter id="adapterFtpDontAutoCreate" 
 								 channel="ftpIn"
-								 client-factory="ftpClientFactory"
+								 session-factory="ftpClientFactory"
 								 filter="filter" 
 								 local-working-directory="file:target/bar"
 								 remote-directory="foo/bar"

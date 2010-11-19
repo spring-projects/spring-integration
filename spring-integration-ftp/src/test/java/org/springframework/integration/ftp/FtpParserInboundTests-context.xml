@@ -21,7 +21,7 @@
 	</bean>
 	
 	<ftp:inbound-channel-adapter id="adapterFtp" 
-								 client-factory="ftpClientFactory"
+								 session-factory="ftpClientFactory"
 								 channel="ftpIn"
 								 filename-pattern="foo"
 								 local-working-directory="file:target/foo"
@@ -33,7 +33,7 @@
 	
 	
 	<ftp:inbound-channel-adapter id="adapterFtp2" 
-		                         client-factory="ftpClientFactory"
+		                         session-factory="ftpClientFactory"
 								 channel="ftpIn"
 								 filter="filter" 
 								 local-working-directory="file:target"

@@ -37,8 +37,9 @@
 	
 	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpClientFactory"
 				charset="UTF-8"
+				remote-directory="foo/bar"
 				filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>

@@ -40,7 +40,7 @@ public abstract class AbstractFtpInboundChannelAdapterParser extends AbstractPol
 		
 		BeanDefinitionBuilder poolBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.file.remote.session.CachingSessionFactory");
-		poolBuilder.addConstructorArgReference(element.getAttribute("client-factory"));
+		poolBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		
 		BeanDefinitionBuilder synchronizerBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer");
