@@ -12,16 +12,12 @@
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
 		<property name="host" value="localhost"/>
-<!--		<property name="knownHosts" value="local, foo.com, bar.foo"/>-->
-		<property name="privateKey" value="file:/Users/ozhurakousky/.ssh/sftp_rsa"/>
-		<property name="privateKeyPassphrase" value="seva@1994"/>
-<!--		<property name="password" value="hello"/>-->
+		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
+		<property name="privateKeyPassphrase" value="springintegration"/>
 		<property name="port" value="22"/>
 		<property name="user" value="ozhurakousky"/>
 	</bean>
-	
-	
-	
+
 	<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
 			channel="receiveChannel" 
 			session-factory="sftpSessionFactory" 
@@ -30,18 +26,13 @@
 			auto-startup="true"
 			auto-create-directories="false"
 			auto-delete-remote-files-on-sync="false"
-			filename-pattern=".*\.txt$">
+			filename-pattern=".*\.test$">
 		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 	</int-sftp:inbound-channel-adapter>
-	
-	
+
 	<int:channel id="receiveChannel">
 		<int:queue/>
 	</int:channel>
-	
-	<bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
-		<constructor-arg value=".*\.txt$"/>
-	</bean>
 	
 	<task:executor id="executor" pool-size="15"/>
 

@@ -15,6 +15,10 @@
  */
 package org.springframework.integration.sftp.config;
 
+import static junit.framework.Assert.assertTrue;
+
+import java.io.File;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -30,9 +34,12 @@ public class SftpInboundReceiveSample {
 	@Ignore
 	public void testInbound() throws Exception{
 		new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored-context.xml", SftpInboundReceiveSample.class);
-	
+		Thread.sleep(3000);
+		File fileA = new File("local-test-dir/a.test");
+		File fileB = new File("local-test-dir/a.test");
+		assertTrue(new File("local-test-dir/a.test").exists());
+		assertTrue(new File("local-test-dir/b.test").exists());
 		System.out.println("Done");
-		Thread.sleep(3000 * 300);
 	}
 
 }
