@@ -23,14 +23,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Factory for creating {@link SftpSession} instances. There are lots of ways to construct a
- * {@link SftpSession} instance, and not all of them are obvious. This factory should help.
+ * Factory for creating {@link SftpSession} instances.
  *
  * @author Josh Long
  * @author Mario Gray
  * @since 2.0
  */
-public class SimpleSftpSessionFactory implements SessionFactory {
+public class DefaultSftpSessionFactory implements SessionFactory {
 
 	private volatile String host;
 
@@ -86,7 +85,7 @@ public class SimpleSftpSessionFactory implements SessionFactory {
 			if (privateKey != null){
 				privateKeyToPass = privateKey.getFile().getAbsolutePath();
 			}
-			DefaultSftpSession session = new DefaultSftpSession(
+			SftpSession session = new SftpSession(
 					this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
 			session.connect();
 			return session;

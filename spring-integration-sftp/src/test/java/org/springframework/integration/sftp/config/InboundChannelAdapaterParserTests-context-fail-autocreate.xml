@@ -20,7 +20,7 @@
 
 	<channel id="requestChannel"/>
 	
-	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SimpleSftpSessionFactory">
+	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<beans:property name="host" value="loclahost"/>
 		<beans:property name="knownHosts" value="local, foo.com, bar.foo"/>
 		<beans:property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftpTest"/>

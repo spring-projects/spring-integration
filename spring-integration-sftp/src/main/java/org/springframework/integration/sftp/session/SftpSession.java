@@ -40,7 +40,7 @@ import com.jcraft.jsch.UserInfo;
  * @author Mark Fisher
  * @since 2.0
  */
-public class DefaultSftpSession implements Session {
+public class SftpSession implements Session {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -78,7 +78,7 @@ public class DefaultSftpSession implements Session {
 	 *                              to surmount that, we need the private key passphrase. Specify that here.
 	 * @throws Exception thrown if any of a myriad of scenarios plays out
 	 */
-	public DefaultSftpSession(String userName, String hostName, String userPassword, int port, String knownHostsFile,
+	public SftpSession(String userName, String hostName, String userPassword, int port, String knownHostsFile,
 			InputStream knownHostsInputStream, String privateKey, String pvKeyPassPhrase) throws Exception {
 
 		JSch jSch = new JSch();
@@ -117,15 +117,6 @@ public class DefaultSftpSession implements Session {
 		}
 		catch (JSchException e) {
 			throw new IllegalStateException("failed to connect", e);
-		}
-	}
-
-	public void close() {
-		if (jschSession.isConnected()) {
-			jschSession.disconnect();
-			if (channel.isConnected()) {
-				channel.disconnect();
-			}
 		}
 	}
 
@@ -187,6 +178,15 @@ public class DefaultSftpSession implements Session {
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("put failed", e);
+			}
+		}
+	}
+
+	public void close() {
+		if (jschSession.isConnected()) {
+			jschSession.disconnect();
+			if (channel.isConnected()) {
+				channel.disconnect();
 			}
 		}
 	}
