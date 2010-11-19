@@ -34,7 +34,8 @@
 In the above example, all Application Context events that match one of the types specified by the 'event-types' (optional) attribute will be
 delivered as Spring Integration Messages to the Message Channel named 'eventChannel'. If a downstream component throws
 an exception, a MessagingException containing the failed message and exception will be sent to the channel named
-'eventErrorChannel'.  If no "error-channel" is specified, the exception will be propagated to the caller.
+'eventErrorChannel'.  If no "error-channel" is specified and the downstream channels are synchronous, the Exception 
+will be propagated to the caller.
     </para>
   </section>
 
