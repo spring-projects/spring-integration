@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.synchronizer;
+package org.springframework.integration.file.remote.synchronizer;
 
 import java.io.File;
 import java.io.FileNotFoundException;

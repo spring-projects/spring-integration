@@ -29,7 +29,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer.EntryAcknowledgmentStrategy;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer.EntryAcknowledgmentStrategy;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.util.ReflectionUtils;
 

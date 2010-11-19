@@ -32,8 +32,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
-import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 

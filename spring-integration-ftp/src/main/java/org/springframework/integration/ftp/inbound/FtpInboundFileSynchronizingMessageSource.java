@@ -18,7 +18,7 @@ package org.springframework.integration.ftp.inbound;
 
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 
 /**
  * A {@link org.springframework.integration.core.MessageSource} implementation for FTP.
