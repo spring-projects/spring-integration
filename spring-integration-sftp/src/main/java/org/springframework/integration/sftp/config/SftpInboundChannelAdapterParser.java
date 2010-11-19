@@ -38,7 +38,6 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		String sessionFactoryName = element.getAttribute("session-factory");
-		String autoStartup = element.getAttribute("auto-startup");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String filter = element.getAttribute("filter");
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
@@ -49,12 +48,11 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 						"is allowed on SFTP inbound adapter");
 			}
 		}
-		BeanDefinitionBuilder sessionPollBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.session.QueuedSftpSessionPool");
-		sessionPollBuilder.addConstructorArgReference(sessionFactoryName);
-		sessionPollBuilder.addPropertyValue("autoStartup", autoStartup);
+		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.sftp.session.CachingSftpSessionFactory");
+		sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
 		String sessionPollName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				sessionPollBuilder.getBeanDefinition(), parserContext.getRegistry());
+				sessionFactoryBuilder.getBeanDefinition(), parserContext.getRegistry());
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.sftp.inbound.SftpInboundSynchronizer");
 		synchronizerBuilder.addConstructorArgReference(sessionPollName);

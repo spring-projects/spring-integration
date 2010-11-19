@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -122,6 +123,9 @@ public class DefaultSftpSession implements SftpSession {
 	public void disconnect() {
 		if (targetSession.isConnected()) {
 			targetSession.disconnect();
+			if (channel.isConnected()) {
+				channel.disconnect();
+			}
 		}
 	}
 
