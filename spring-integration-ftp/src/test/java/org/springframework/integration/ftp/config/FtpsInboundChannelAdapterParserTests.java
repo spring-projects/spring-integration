@@ -29,8 +29,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
-import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizer;
-import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSystemSynchronizer;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSystemSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -48,11 +48,11 @@ public class FtpsInboundChannelAdapterParserTests {
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
 		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
 		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
-		FtpInboundRemoteFileSystemSynchronizingMessageSource inbound = 
-			(FtpInboundRemoteFileSystemSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		FtpInboundFileSystemSynchronizingMessageSource inbound = 
+			(FtpInboundFileSystemSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		
-		FtpInboundRemoteFileSystemSynchronizer fisync = 
-			(FtpInboundRemoteFileSystemSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
+		FtpInboundFileSystemSynchronizer fisync = 
+			(FtpInboundFileSystemSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
 		CompositeFileListFilter<?> filter = (CompositeFileListFilter<?>) TestUtils.getPropertyValue(fisync, "filter");
 		Set<?> filters = (Set<?>) TestUtils.getPropertyValue(filter, "fileFilters");
 		assertEquals(2, filters.size());

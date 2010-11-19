@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
+public class FtpInboundFileSystemSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
 	private volatile FtpClientPool clientPool;
 
