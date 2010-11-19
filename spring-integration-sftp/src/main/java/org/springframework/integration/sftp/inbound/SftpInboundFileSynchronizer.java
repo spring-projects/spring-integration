@@ -40,7 +40,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<ChannelSftp.LsEntry> {
+public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<ChannelSftp.LsEntry> {
 
 	/**
 	 * the path on the remote mount
@@ -53,7 +53,7 @@ public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<Cha
 	private final SftpSessionFactory sessionFactory;
 
 
-	public SftpInboundSynchronizer(SftpSessionFactory sessionFactory) {
+	public SftpInboundFileSynchronizer(SftpSessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}

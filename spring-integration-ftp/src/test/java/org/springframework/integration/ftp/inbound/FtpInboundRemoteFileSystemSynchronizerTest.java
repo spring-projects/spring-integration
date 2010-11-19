@@ -49,7 +49,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		if (file.exists()){
 			file.delete();
 		}
-		FtpInboundFileSystemSynchronizer syncronizer = new FtpInboundFileSystemSynchronizer();
+		FtpInboundFileSynchronizer syncronizer = new FtpInboundFileSynchronizer();
 		FileListFilter filter = new FtpPatternMatchingFileListFilter("foo.txt");
 		syncronizer.setFilter(filter);
 		
