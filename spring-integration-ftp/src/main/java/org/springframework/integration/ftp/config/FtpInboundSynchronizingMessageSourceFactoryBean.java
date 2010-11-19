@@ -132,7 +132,6 @@ class FtpInboundSynchronizingMessageSourceFactoryBean
 		synchronizer.setFilter(compositeFilter);
 		messageSource.setRemotePredicate(compositeFilter);
 		messageSource.setSynchronizer(synchronizer);
-		messageSource.setClientPool(queuedFtpClientPool);
 		messageSource.setLocalDirectory(this.localDirectoryResource);
 		messageSource.setBeanFactory(this.getBeanFactory());
 		messageSource.setAutoStartup(true);
