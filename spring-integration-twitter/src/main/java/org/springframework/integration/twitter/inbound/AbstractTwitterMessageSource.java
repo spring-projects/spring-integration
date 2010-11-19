@@ -54,8 +54,6 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile long lastPollForTweet;
 
-	private final TwitterPollingTask twitterPollingTask = new TwitterPollingTask();
-
 	private volatile MetadataStore metadataStore;
 
 	private volatile String metadataKey;
@@ -130,7 +128,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 				// need to wait longer
 				return null;
 			}
-			this.twitterPollingTask.run();
+			this.refreshTweetQueueIfNecessary();
 			tweet = this.tweets.poll();
 			this.lastPollForTweet = currentTime;
 		}
@@ -159,33 +157,28 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		}
 	}
 
+	private void refreshTweetQueueIfNecessary() {
+		try {
+			if (tweets.size() <= prefetchThreshold) {
+				List<Tweet> tweets = pollForTweets(lastEnqueuedId);
+				if (!CollectionUtils.isEmpty(tweets)) {
+					enqueueAll(tweets);
+				}
+			}	
+		}
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new MessagingException("failed while polling Twitter", e);
+		}
+	}
 
 	/**
 	 * Subclasses must implement this to return tweets.
 	 * The 'sinceId' value will be negative if no last id is known.
 	 */
 	protected abstract List<Tweet> pollForTweets(long sinceId);
-
-
-	private class TwitterPollingTask implements Runnable {
-
-		public void run() {
-			try {
-				if (tweets.size() <= prefetchThreshold) {
-					List<Tweet> tweets = pollForTweets(lastEnqueuedId);
-					if (!CollectionUtils.isEmpty(tweets)) {
-						enqueueAll(tweets);
-					}
-				}	
-			}
-			catch (RuntimeException e) {
-				throw e;
-			}
-			catch (Exception e) {
-				throw new MessagingException("failed while polling Twitter", e);
-			}
-		}
-	}
 
 
 	private static class TweetComparator implements Comparator<Tweet> {
