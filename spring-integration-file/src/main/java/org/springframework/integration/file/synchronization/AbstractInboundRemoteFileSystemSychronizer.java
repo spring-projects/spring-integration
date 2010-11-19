@@ -16,15 +16,13 @@
 
 package org.springframework.integration.file.synchronization;
 
-import java.util.concurrent.ScheduledFuture;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.scheduling.Trigger;
-import org.springframework.util.Assert;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -36,7 +34,10 @@ import org.springframework.util.Assert;
  * 
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends AbstractEndpoint {
+public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements InitializingBean {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 
 	/**
 	 * Should we <emphasis>delete</emphasis> the <b>source</b> file? For an FTP
@@ -53,11 +54,6 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
 	 */
 	protected volatile FileListFilter<F> filter = new AcceptAllFileListFilter<F>();
-
-	/**
-	 * The {@link ScheduledFuture} instance we get when we schedule our SynchronizeTask.
-	 */
-	protected ScheduledFuture<?> scheduledFuture;
 
 	/**
 	 * The {@link EntryAcknowledgmentStrategy} implementation.
@@ -96,63 +92,15 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
 	protected void acknowledge(Object usefulContextOrClientData, F file) throws Throwable {
-		Assert.notNull(this.entryAcknowledgmentStrategy != null,
-				"entryAcknowledgmentStrategy can't be null!");
-		this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	protected void doStart() {
-		if (this.entryAcknowledgmentStrategy == null) {
-			this.entryAcknowledgmentStrategy = new EntryAcknowledgmentStrategy<F>() {
-				public void acknowledge(Object o, F msg) {
-					// no-op
-				}
-			};
-		}
-		this.scheduledFuture = this.getTaskScheduler().schedule(new SynchronizeTask(), this.getTrigger());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	protected void doStop() {
-		if (this.scheduledFuture != null) {
-			this.scheduledFuture.cancel(true);
+		if (this.entryAcknowledgmentStrategy != null) {
+			this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
 		}
 	}
 
 	/**
-	 * Returns the {@link Trigger} that dictates how frequently the trigger should fire.
-	 */
-	protected abstract Trigger getTrigger();
-
-	/**
-	 * This is the callback where we need the implementation to do some specific  work
+	 * This is the callback where the subclasses must synchronize.
 	 */
 	protected abstract void syncRemoteToLocalFileSystem();
-
-
-	/**
-	 * This {@link Runnable} is launched as a background thread and is used to manage the
-	 * {@link AbstractInboundRemoteFileSystemSychronizer#localDirectory} by queueing and
-	 * delivering accumulated files as possible.
-	 */
-	class SynchronizeTask implements Runnable {
-		public void run() {
-			try {
-				syncRemoteToLocalFileSystem();
-			}
-			catch (RuntimeException e) {
-				throw e;
-			}
-			catch (Exception e) {
-				throw new MessagingException("failure occurred in synchronization task", e);
-			}
-		}
-	}
 
 
 	/**

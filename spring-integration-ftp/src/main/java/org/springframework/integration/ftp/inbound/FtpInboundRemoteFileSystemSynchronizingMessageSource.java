@@ -47,14 +47,4 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource
 		this.synchronizer.setClientPool(this.clientPool);
 	}
 
-	@Override
-	protected void doStart() {
-		//this.synchronizer.start();
-	}
-
-	@Override
-	protected void doStop() {
-		//this.synchronizer.stop();
-	}
-
 }

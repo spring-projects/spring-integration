@@ -65,19 +65,17 @@ public class SftpInboundSynchronizingMessageSource
 			this.fileSource = new FileReadingMessageSource();
 			this.fileSource.setDirectory(this.localDirectory.getFile());
 			this.fileSource.afterPropertiesSet();
+			if (this.filenamePattern != null) {
+				SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
+				this.synchronizer.setFilter(filter);
+				this.synchronizer.setAutoCreateDirectories(this.autoCreateDirectories);
+			}
 		}
 		catch (RuntimeException e) {
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessagingException("Failure during initialization of MessageSource for: "
-					+ this.getComponentType(), e);
-		}
-
-		if (this.filenamePattern != null) {
-			SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
-			this.synchronizer.setFilter(filter);
-			this.synchronizer.setAutoCreateDirectories(this.autoCreateDirectories);
+			throw new MessagingException("Failure during initialization of MessageSource for: " + this.getComponentType(), e);
 		}
 	}
 

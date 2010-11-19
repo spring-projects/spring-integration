@@ -31,6 +31,7 @@ import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.util.Assert;
 
 /**
  * Factors out the common logic between the FTP and SFTP adapters. Designed to
@@ -59,6 +60,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
 	public static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
+
 
 	/**
 	 * Should the endpoint attempt to create the local directory and/or the remote directory?
@@ -125,10 +127,10 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 			 * Make sure the remote files get here.
 			 */
 			this.synchronizer.setLocalDirectory(this.localDirectory);
-			this.synchronizer.setTaskScheduler(this.getTaskScheduler());
-			this.synchronizer.setBeanFactory(this.getBeanFactory());
-			this.synchronizer.setPhase(this.getPhase());
-			this.synchronizer.setBeanName(this.getComponentName());
+			//this.synchronizer.setTaskScheduler(this.getTaskScheduler());
+			//this.synchronizer.setBeanFactory(this.getBeanFactory());
+			//this.synchronizer.setPhase(this.getPhase());
+			//this.synchronizer.setBeanName(this.getComponentName());
 
 			/**
 			 * Forwards files once they ultimately appear in the {@link #localDirectory}.
@@ -137,7 +139,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 			this.fileSource.setFilter(this.buildFilter());
 			this.fileSource.setDirectory(this.localDirectory.getFile());
 			this.fileSource.afterPropertiesSet();
-			this.synchronizer.afterPropertiesSet();
+			//this.synchronizer.afterPropertiesSet();
 		}
 		catch (RuntimeException e) {
 			throw e;
@@ -154,6 +156,8 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	 * Then, it polls the file source again and returns the result, whether or not it is null.
 	 */
 	public final Message<File> receive() {
+		Assert.state(this.fileSource != null, "fileSource must not be null");
+		Assert.state(this.synchronizer != null, "synchronizer must not be null");
 		Message<File> message = this.fileSource.receive();
 		if (message == null) {
 			this.synchronizer.syncRemoteToLocalFileSystem();

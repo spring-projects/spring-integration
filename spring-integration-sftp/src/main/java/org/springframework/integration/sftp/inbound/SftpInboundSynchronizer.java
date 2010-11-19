@@ -29,7 +29,6 @@ import org.springframework.integration.file.synchronization.AbstractInboundRemot
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
-import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -71,13 +70,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		this.remotePath = remotePath;
 	}
 
-	@Override
-	protected Trigger getTrigger() {
-		throw new UnsupportedOperationException("This method curently is not implemented");
-	}
-
-	@Override
-	protected void onInit() throws Exception {
+	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.remotePath, "'remotePath' must not be null");
 		if (this.shouldDeleteSourceFile) {
 			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
@@ -94,9 +87,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	 *         existed.)
 	 */
 	private boolean checkThatRemotePathExists(String remotePath, SftpSession session) {
-		
 		ChannelSftp channelSftp = session.getChannel();
-	
 		try {
 			SftpATTRS attrs = channelSftp.stat(remotePath);
 			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
@@ -122,7 +113,6 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 
 			}
 		} 
-
 		return false;
 	}
 

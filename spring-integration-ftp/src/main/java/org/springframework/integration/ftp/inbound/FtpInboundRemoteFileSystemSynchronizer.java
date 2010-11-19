@@ -16,22 +16,21 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.core.io.Resource;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
-import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
-import org.springframework.integration.ftp.client.FtpClientPool;
-import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.support.PeriodicTrigger;
-import org.springframework.util.Assert;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+
+import org.springframework.core.io.Resource;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
+import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.ftp.client.FtpClientPool;
+import org.springframework.util.Assert;
 
 /**
  * An FTP-adapter implementation of {@link org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer}
@@ -41,15 +40,8 @@ import java.util.Collection;
  */
 public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
 
-	private volatile Trigger trigger = new PeriodicTrigger(10 * 1000);
-
 	protected volatile FtpClientPool clientPool;
 
-
-	@Override
-	protected Trigger getTrigger() {
-		return this.trigger;
-	}
 
 	/**
 	 * The {@link org.springframework.integration.ftp.client.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
@@ -60,8 +52,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		this.clientPool = clientPool;
 	}
 
-	@Override
-	protected void onInit() throws Exception {
+	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.clientPool, "clientPool must not be null");
 		if (this.shouldDeleteSourceFile) {
 			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
