@@ -32,8 +32,8 @@ import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
 import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.client.QueuedFtpClientPool;
 import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
-import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizer;
-import org.springframework.integration.ftp.inbound.FtpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSystemSynchronizer;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSystemSynchronizingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -44,8 +44,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class FtpInboundSynchronizingMessageSourceFactoryBean
-		extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
+class FtpInboundFileSynchronizingMessageSourceFactoryBean
+		extends AbstractFactoryBean<FtpInboundFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
 
 	private volatile String autoCreateDirectories;
 
@@ -95,7 +95,7 @@ class FtpInboundSynchronizingMessageSourceFactoryBean
 
 	@Override
 	public Class<?> getObjectType() {
-		return FtpInboundRemoteFileSystemSynchronizingMessageSource.class;
+		return FtpInboundFileSystemSynchronizingMessageSource.class;
 	}
 
 	private Resource resolveResource(String path) {
@@ -105,11 +105,11 @@ class FtpInboundSynchronizingMessageSourceFactoryBean
 	}
 
 	@Override
-	protected FtpInboundRemoteFileSystemSynchronizingMessageSource createInstance() throws Exception {
+	protected FtpInboundFileSystemSynchronizingMessageSource createInstance() throws Exception {
 		boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
 		boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
-		FtpInboundRemoteFileSystemSynchronizingMessageSource messageSource =
-				new FtpInboundRemoteFileSystemSynchronizingMessageSource();
+		FtpInboundFileSystemSynchronizingMessageSource messageSource =
+				new FtpInboundFileSystemSynchronizingMessageSource();
 		messageSource.setAutoCreateDirectories(autoCreatDirs);
 		if (!StringUtils.hasText(this.localWorkingDirectory)) {
 			File tmp = new File(SystemUtils.getJavaIoTmpDir(), this.defaultFtpInboundFolderName);
@@ -126,7 +126,7 @@ class FtpInboundSynchronizingMessageSourceFactoryBean
 			compositeFilter.addFilter(this.filter);
 		}
 		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.clientFactory);
-		FtpInboundRemoteFileSystemSynchronizer synchronizer = new FtpInboundRemoteFileSystemSynchronizer();
+		FtpInboundFileSystemSynchronizer synchronizer = new FtpInboundFileSystemSynchronizer();
 		synchronizer.setClientPool(queuedFtpClientPool);
 		synchronizer.setShouldDeleteSourceFile(ackRemoteDir);
 		synchronizer.setFilter(compositeFilter);

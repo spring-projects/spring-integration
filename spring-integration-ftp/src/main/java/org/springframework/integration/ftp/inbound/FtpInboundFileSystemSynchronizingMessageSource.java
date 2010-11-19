@@ -27,7 +27,7 @@ import org.springframework.integration.file.synchronizer.AbstractInboundFileSync
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
+public class FtpInboundFileSystemSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
 
 	public String getComponentType() {
 		return "ftp:inbound-channel-adapter";
