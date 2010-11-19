@@ -35,15 +35,6 @@ public interface TwitterOperations {
 	String getProfileId();
 	
 	/**
-	 * Retrieves a list of users that the given user follows.
-	 * 
-	 * @param screenName
-	 *            The user's Twitter screen name
-	 * @return a list of user screen names
-	 */
-	List<String> getFriends(String screenName);
-	
-	/**
 	 * Updates the user's status.
 	 * 
 	 * @param status
@@ -52,17 +43,6 @@ public interface TwitterOperations {
 	 */
 	void updateStatus(String status);
 	
-	/**
-	 * Posts a retweet of an existing tweet.
-	 * 
-	 * @param tweetId
-	 *            The ID of the tweet to be retweeted
-	 * 
-	 * @throws SocialException
-	 *             if an error response is received from Twitter
-	 */
-	void retweet(long tweetId);
-
 	/**
 	 * Searches Twitter, returning the first page of {@link Tweet}s
 	 * 

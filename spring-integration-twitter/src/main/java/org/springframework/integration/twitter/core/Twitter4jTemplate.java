@@ -19,7 +19,6 @@ package org.springframework.integration.twitter.core;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.util.Assert;
 
 import twitter4j.DirectMessage;
@@ -181,18 +180,6 @@ public class Twitter4jTemplate implements TwitterOperations {
 		}
 	}
 
-	public List<String> getFriends(String screenName) {
-		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
-				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface until " +
-				"migration to use Spring Social is complete in Spring Integration 2.1.0");
-	}
-
-	public void retweet(long tweetId) {
-		throw new NotImplementedException("This method is not implemented since it is not used by any of the " +
-				"Spring Integration adapters. It exists strictly for being compliant with Spring Social interface until " +
-				"migration to use Spring Social is complete in Spring Integration 2.1.0");
-	}
-
 	public SearchResults search(String query) {
 		Assert.hasText(query, "'query' must not be null");
 		Query q = new Query(query);	
@@ -238,7 +225,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 					tweets.add(this.buildTweetFromDm((DirectMessage) response));
 				}
 				else if (response instanceof twitter4j.Tweet) {
-					tweets.add(this.buildTweetFromT4jTweet((twitter4j.Tweet) response));
+					tweets.add(this.buildTweetFromTwitter4JTweet((twitter4j.Tweet) response));
 				}
 				else {
 					throw new TwitterOperationException("Unsupported response type: " + response.getClass());
@@ -272,7 +259,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 		return tweet;
 	}
 
-	private Tweet buildTweetFromT4jTweet(twitter4j.Tweet t4jTweet) {
+	private Tweet buildTweetFromTwitter4JTweet(twitter4j.Tweet t4jTweet) {
 		Tweet tweet = new Tweet();
 		tweet.setCreatedAt(t4jTweet.getCreatedAt());
 		tweet.setFromUser(t4jTweet.getFromUser());
