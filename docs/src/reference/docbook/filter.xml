@@ -7,17 +7,17 @@
     <title>Introduction</title>
     <para>
       Message Filters are used to decide whether a Message should be passed along or dropped based on some criteria
-      such as a Message Header value or even content within the Message itself. Therefore, a Message Filter is similar
+      such as a Message Header value or Message content itself. Therefore, a Message Filter is similar
       to a router, except that for each Message received from the filter's input channel, that same Message may or may
       not be sent to the filter's output channel. Unlike the router, it makes no decision regarding
-      <emphasis>which</emphasis> Message Channel to send to but only decides <emphasis>whether</emphasis> to send.
+      <emphasis>which</emphasis> Message Channel to send the Message to but only decides <emphasis>whether</emphasis> to send.
       <note>
-        As you will see momentarily, the Filter does also support a discard channel, so in certain cases it
+        As you will see momentarily, the Filter also supports a discard channel, so in certain cases it
         <emphasis>can</emphasis> play the role of a very simple router (or "switch") based on a boolean condition.
       </note>
     </para>
     <para>
-      In Spring Integration, a Message Filter may be configured as a Message Endpoint that delegates to some
+      In Spring Integration, a Message Filter may be configured as a Message Endpoint that delegates to an
       implementation of the <interfacename>MessageSelector</interfacename> interface. That interface is itself quite
       simple: <programlisting language="java"><![CDATA[ public interface MessageSelector {
 
@@ -27,23 +27,24 @@
       The <classname>MessageFilter</classname> constructor accepts a selector instance:
       <programlisting language="java"><![CDATA[ MessageFilter filter = new MessageFilter(someSelector);]]></programlisting>
     </para>
-      In combination with the namespace and SpEL very powerful filters can be configured with very little java code.
+      In combination with the namespace and SpEL, very powerful filters can be configured with very little java code.
   </section>
 
   <section id="filter-namespace">
     <title>Configuring Filter</title>
     <para>
-    The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "input-channel"
-      and "output-channel" attributes, it requires a "ref". The "ref" may point to a MessageSelector implementation:
+    The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "<code>input-channel</code>
+      and <code>output-channel</code> attributes, it requires a <code>ref</code>. The <code>ref</code> may point to a 
+      <interfacename>MessageSelector</interfacename> implementation:
       <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector" output-channel="output"/>
 
  <bean id="selector" class="example.MessageSelectorImpl"/>]]></programlisting>
     </para>
     <para>
-      Alternatively, the "method" attribute can be added at which point the "ref" may refer to any object.
+      Alternatively, the <code>method</code> attribute can be added at which point the <code>ref</code> may refer to any object.
       The referenced method may expect either the <interfacename>Message</interfacename> type or the payload type of
-      inbound Messages. The return value of the method must be a boolean value. Any time the method returns 'true',
-      the Message <emphasis>will</emphasis> be passed along to the output-channel.
+      inbound Messages. The method must return a boolean value. If the method returns 'true',
+      the Message <emphasis>will</emphasis> be sent to the output-channel.
       <programlisting language="xml"><![CDATA[ <filter input-channel="input" output-channel="output"
          ref="exampleObject" method="someBooleanReturningMethod"/>
 
@@ -51,25 +52,25 @@
     </para>
     <para>
       If the selector or adapted POJO method returns <code>false</code>, there are a few settings that control the
-      fate of the rejected Message. By default (if configured like the example above), the rejected Messages will
-      be silently dropped. If rejection should instead indicate an error condition, then set the
-      'throw-exception-on-rejection' flag to <code>true</code>:
+      handling of the rejected Message. By default (if configured like the example above), rejected Messages will
+      be silently dropped. If rejection should instead result in an error condition, then set the
+      <code>throw-exception-on-rejection</code> attribute to <code>true</code>:
       <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
       output-channel="output" throw-exception-on-rejection="true"/> ]]></programlisting>
-    If you want the rejected messages to go to a specific channel, provide that reference as the 'discard-channel':
+    If you want rejected messages to be routed to a specific channel, provide that reference as the <code>discard-channel</code>:
       <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
       output-channel="output" discard-channel="rejectedMessages"/> ]]></programlisting>
     </para>
     <note>
-      A common usage for Message Filters is in conjunction with a Publish Subscribe Channel. Many filter endpoints may
-      be subscribed to the same channel, and they decide whether or not to pass the Message for the next endpoint which
+      Message Filters are commonly used in conjunction with a Publish Subscribe Channel. Many filter endpoints may
+      be subscribed to the same channel, and they decide whether or not to pass the Message to the next endpoint which
       could be any of the supported types (e.g. Service Activator). This provides a <emphasis>reactive</emphasis>
       alternative to the more <emphasis>proactive</emphasis> approach of using a Message Router with a single
       Point-to-Point input channel and multiple output channels.
     </note>
   <para>
-      Using a "ref" attribute is generally recommended if the custom filter implementation can be reused in other
-      <code>&lt;filter&gt;</code> definitions. However if the custom filter implementation should be scoped to a
+      Using a <code>ref</code> attribute is generally recommended if the custom filter implementation is referenced in other
+      <code>&lt;filter&gt;</code> definitions. However if the custom filter implementation is scoped to a
       single <code>&lt;filter&gt;</code> element, provide an inner bean definition:
 <programlisting language="xml"><![CDATA[<filter method="someMethod" input-channel="inChannel" output-channel="outChannel">
   <beans:bean class="org.foo.MyCustomFilter"/>
@@ -77,15 +78,15 @@
     </para>
     <note>
       <para>
-        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;filter&gt;</code> configuration
-        is not allowed, as it creates an ambiguous condition, and it will therefore result in an Exception being thrown.
+        Using both the <code>ref</code> attribute and an inner handler definition in the same <code>&lt;filter&gt;</code> configuration
+        is not allowed, as it creates an ambiguous condition, and an Exception will be thrown.
       </para>
     </note>
     <para>
-      With the introduction of SpEL Spring Integration has added the <code>expression</code> attribute to the filter
+      With the introduction of SpEL, Spring Integration added the <code>expression</code> attribute to the filter
       element. It can be used to avoid Java entirely for simple filters.
       <programlisting language="xml">
-        <![CDATA[  <filter input-channel="input" expression="payload.equals(nonsense)"/>]]>
+        <![CDATA[<filter input-channel="input" expression="payload.equals(nonsense)"/>]]>
       </programlisting>
       The string passed as the expression attribute will be evaluated as a SpEL expression in the context of the message.
       If it is needed to include the result of an expression in the scope of the application context you can use the
@@ -94,7 +95,7 @@
         SpEL reference documentation
       </ulink>.
       <programlisting language="xml">
-        <![CDATA[  <filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
+        <![CDATA[<filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
       </programlisting>
       If the Expression itself needs to be dynamic, then an 'expression' sub-element may be used. That provides a level of
       indirection for resolving the Expression by its key from an ExpressionSource. That is a strategy interface that you
@@ -102,9 +103,10 @@
       a "resource bundle" and can check for modifications after a given number of seconds. All of this is demonstrated in
       the following configuration sample where the Expression could be reloaded within one minute if the underlying file
       had been modified. If the ExpressionSource bean is named "expressionSource", then it is not necessary to provide the
-      "source" attribute on the &lt;expression&gt; element, but in this case it's shown for completeness.
+      <code>source</code> attribute on the &lt;expression&gt; element, but in this case it's shown for completeness.
       <programlisting language="xml">
-        <![CDATA[  <filter input-channel="input" output-channel="output">
+        <![CDATA[
+  <filter input-channel="input" output-channel="output">
       <expression key="filterPatterns.example" source="myExpressions"/>
   </filter>
 
@@ -121,7 +123,7 @@
         <![CDATA[  filterPatterns.example=payload > 100
 ]]></programlisting>
 
-    <note>All of the examples that use "expression" as an attribute or sub-element can also be applied within
+    <note>All of the examples that use <code>expression</code> as an attribute or sub-element can also be applied within
       transformer, router, splitter, service-activator, and header-enricher elements. Of course, the semantics/role
       of the given component type would affect the interpretation of the evaluation result in the same way that the
       return or a method-invocation would be interpreted. For example, an expression can return Strings that are

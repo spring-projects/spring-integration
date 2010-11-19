@@ -13,11 +13,11 @@
       progression. For example, it is fairly common to provide a Transformer before other components. Similarly, when
       providing a <emphasis>Filter</emphasis> before some other component in a chain, you are essentially creating a
       <ulink url="http://www.eaipatterns.com/MessageSelector.html">Selective Consumer</ulink>. In either case, the
-      chain only requires a single input-channel and a single output-channel as opposed to the configuration of
-      channels for each individual component.
+      chain only requires a single <code>input-channel</code> and a single <code>output-channel</code> eliminating 
+      the need to define channels for each individual component.
       <tip>
-        Spring Integration's <emphasis>Filter</emphasis> provides a boolean property 'throwExceptionOnRejection'. When
-        providing multiple Selective Consumers on the same point-to-point channel with different acceptance criteria,
+        Spring Integration's <interfacename>Filter</interfacename> provides a boolean property <methodname>throwExceptionOnRejection</methodname>. 
+        When providing multiple Selective Consumers on the same point-to-point channel with different acceptance criteria,
         this value should be set to 'true' (the default is false) so that the dispatcher will know that the Message was
         rejected and as a result will attempt to pass the Message on to other subscribers. If the Exception were not
         thrown, then it would appear to the dispatcher as if the Message had been passed on successfully even though
@@ -36,7 +36,7 @@
     handler only needs an output channel if the outputChannel on the MessageHandlerChain is set.
     <note>
       <para>
-        As with other endpoints, the output-channel is optional. If there is a reply Message at the end of the
+        As with other endpoints, the <code>output-channel</code> is optional. If there is a reply Message at the end of the
         chain, the output-channel takes precedence, but if not available, the chain handler will check for a
         reply channel header on the inbound Message.
       </para>
@@ -52,8 +52,8 @@
   <section id="chain-namespace">
     <title>Configuring Chain</title>
     <para>
-      The &lt;chain&gt; element provides an 'input-channel' attribute, and if the last element in the chain is capable
-      of producing reply messages (optional), it also supports an 'output-channel' attribute. The sub-elements are then
+      The &lt;chain&gt; element provides an <code>input-channel</code> attribute, and if the last element in the chain is capable
+      of producing reply messages (optional), it also supports an <code>output-channel</code> attribute. The sub-elements are then
       filters, transformers, splitters, and service-activators. The last element may also be a router.
       <programlisting language="xml"><![CDATA[ <chain input-channel="input" output-channel="output">
      <filter ref="someSelector" throw-exception-on-rejection="true"/>
@@ -65,15 +65,15 @@
     </para>
   <para>
     The &lt;header-enricher&gt; element used in the above example will set a message header with name "foo" and
-    value "bar" on the message. A header enricher is a specialization of Transformer that touches only header
-    values. You could obtain the same result by implementing a MessageHandler that did the header modifications
+    value "bar" on the message. A header enricher is a specialization of <interfacename>Transformer</interfacename> 
+    that touches only header values. You could obtain the same result by implementing a MessageHandler that did the header modifications
     and wiring that as a bean.
   </para>
 
   <para>
-  Some time you need to make a nested call to another chain from within the chain and then come
+  Sometimes you need to make a nested call to another chain from within the chain and then come
   back and continue execution within the original chain.
-    To accomplish this you can utilize Messaging Gateway by including light-configuration via &lt;gateway&gt; element.
+    To accomplish this you can utilize Messaging Gateway by including a light configured &lt;gateway&gt; element.
     For example:
     <programlisting language="xml"><![CDATA[   <si:chain id="main-chain" input-channel="inputA" output-channel="inputB">
     <si:header-enricher>
@@ -105,9 +105,10 @@
 In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of <emphasis>main-chain</emphasis> processing by the 'gateway' element
 configured there. While in <emphasis>nested-chain-a</emphasis> a call to a <emphasis>nested-chain-b</emphasis> will be made after header enrichment and then it will
 come back to finish execution in <emphasis>nested-chain-b</emphasis> finally getting back to the <emphasis>main-chain</emphasis>.
-When light version of &lt;gateway&gt; element is defined in the chain SI will construct an instance <classname>SimpleMessagingGateway</classname>
- (no need to provide 'service-interface' configuration) which will take the message in its current state and will place it on the channel defined via 'request-channel' attribute.
- Upon processing <classname>Message</classname> will be returned to the gateway and continue its journey within the current chain.
+When the light version of &lt;gateway&gt; element is defined in the chain SI will construct an instance <classname>SimpleMessagingGateway</classname>
+ (no need to provide a <code>service-interface</code> attribute) which will take the message in its current state and will place it on the channel defined via
+ the <code>request-channel</code> attribute.
+ Upon processing <interfacename>Message</interfacename> will be returned to the gateway and continue its journey within the current chain.
   </para>
   </section>
 

@@ -59,12 +59,12 @@
         </callout>
 
         <callout arearefs="resxml3-co" id="resxml3">
-          <para>The channel where the resequencer will send the reordered
+          <para>The channel to which the resequencer will send the reordered
           messages. <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arearefs="resxml4-co" id="resxml4">
-          <para>The channel where the resequencer will send the messages that
+          <para>The channel to which the resequencer will send the messages that
           timed out (if <code>send-partial-result-on-timeout</code> is
           <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
         </callout>
@@ -76,9 +76,9 @@
           available, or only after the whole message group arrives.
           <emphasis>Optional (false by default)</emphasis>.</para>
 
-           If this flag is not specified (so a complete sequence is defined by the sequence headers) then it can make sense to provide a custom
+           If this flag is not specified (so a complete sequence is defined by the sequence headers) then it may make sense to provide a custom
 
-          <code>Comparator</code>
+          <interfacename>Comparator</interfacename>
 
            to be used to order the messages when sending (use the XML attribute
 
@@ -94,7 +94,7 @@
 
            (also a reference to another bean definition, either a POJO or a
 
-          <code>ReleaseStrategy</code>
+          <interfacename>ReleaseStrategy</interfacename>
 
           ).
         </callout>

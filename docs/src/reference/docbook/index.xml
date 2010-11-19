@@ -53,6 +53,10 @@
         <firstname>Josh</firstname>
         <surname>Long</surname>
       </author>
+        <author>
+        <firstname>David</firstname>
+        <surname>Turanski</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>© SpringSource Inc., 2010</para></legalnotice>

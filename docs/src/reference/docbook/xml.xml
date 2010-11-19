@@ -81,8 +81,8 @@
     </para>
     <para>
       By default, the <classname>MarshallingTransformer</classname> will pass the payload Object
-      to the <interfacename>Marshaller</interfacename>, but if its boolean "extractPayload" property
-      is set to "false", the entire <interfacename>Message</interfacename> instance will be passed
+      to the <interfacename>Marshaller</interfacename>, but if its boolean <code>extractPayload</code> property
+      is set to <code>false</code>, the entire <interfacename>Message</interfacename> instance will be passed
       to the <interfacename>Marshaller</interfacename> instead. That may be useful for certain custom
       implementations of the <interfacename>Marshaller</interfacename> interface, but typically the
       payload is the appropriate source Object for marshalling when delegating to any of the various
@@ -147,10 +147,10 @@
 
     <para>
     The namespace support for the marshalling transformer requires an input channel, output channel and a
-    reference to a marshaller.  The optional result-type attribute can be used to control the type of result created,
+    reference to a marshaller.  The optional <code>result-type</code> attribute can be used to control the type of result created,
     valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a
     reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
-    to setting the result-type attribute using the result-factory attribute.  An optional result-transformer can also be
+    to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
     specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
     <programlisting language="xml"><![CDATA[<si-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
@@ -172,7 +172,7 @@
     Namespace support for the <classname>XsltPayloadTransformer</classname> allows either a resource to be passed in in order to create the
     <interfacename>Templates</interfacename> instance or alternatively a precreated <interfacename>Templates</interfacename>
     instance can be passed in as a reference.  In common with the marshalling transformer the type of the result output can
-    be controlled by specifying either the result-factory or result-type attribute.  A result-transfomer attribute can also
+    be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
     be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
     is required before sending.
   <programlisting language="xml"><![CDATA[<si-xml:xslt-transformer id="xsltTransformerWithResource"
@@ -198,11 +198,11 @@
     <int-xml:xslt-param name="helloParameter" value="hello"/>
     <int-xml:xslt-param name="firstName" expression="headers.fname"/>
 </int-xml:xslt-transformer>]]></programlisting>
-        If message header names match 1:1 to parameter names, you can simply use <emphasis>xslt-param-headers attribute</emphasis>. There you can also use wildcards for
+        If message header names match 1:1 to parameter names, you can simply use <code>xslt-param-headers</code> attribute. There you can also use wildcards for
         simple pattern matching which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
     </para>
     <para>
-        You can also configure individual xslt parameters via <emphasis>xslt-param</emphasis> sub element. There you can use <code>expression</code> or <code>value</code> attribute.
+        You can also configure individual xslt parameters via &lt;xslt-param/&gt; sub element. There you can use <code>expression</code> or <code>value</code> attribute.
         The <code>expression</code> attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context.
         The <code>value</code> attribute just like any <code>value</code> in Spring beans allows you to specify simple scalar vallue. YOu can also use property placeholders (e.g., ${some.value})
         So as you can see, with the <code>expression</code> and <code>value</code> attribute xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.
@@ -332,7 +332,7 @@
     <title>Transforming xml messages using XPath</title>
     <para>
       When it comes to message transformation XPath is a great way to transform Messages that have XML
-      payloads by defining XPath transformers via <emphasis>xpath-transformer</emphasis> element.
+      payloads by defining XPath transformers via &lt;xpath-transformer/&gt; element.
     </para>
     <para>
     <emphasis>Simple XPath transformation</emphasis>
@@ -347,7 +347,7 @@
   MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();]]></programlisting>
     After sending this message to the 'inputChannel' the XPath transformer configured above will transform
     this XML Message to a simple Message with payload of 'John Doe' all based on
-    the simple XPath Expression specified in the <emphasis>xpath-expression</emphasis> attribute.
+    the simple XPath Expression specified in the <code>xpath-expression</code> attribute.
     </para>
     <para>
     XPath also has capability to perform simple conversion of extracted elements
@@ -358,8 +358,8 @@
     The following constants are defined by the <classname>XPathConstants</classname>: <emphasis>BOOLEAN, DOM_OBJECT_MODEL, NODE, NODESET, NUMBER, STRING</emphasis>
     </para>
     <para>
-    You can configure the desired type by simply using <emphasis>evaluation-type</emphasis>
-    attribute of the <emphasis>xpath-transformer</emphasis> element.
+    You can configure the desired type by simply using <code>evaluation-type</code>
+    attribute of the &lt;xpath-transformer/&gt; element.
     <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
     evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
@@ -374,7 +374,7 @@
     If you need to provide custom mapping for the node extracted by the XPath expression simply provide a reference to the
     implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by
     <classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a
-    reference to a <classname>NodeMapper</classname> simply use <emphasis>node-mapper</emphasis> attribute:
+    reference to a <classname>NodeMapper</classname> simply use <code>node-mapper</code> attribute:
     <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
     node-mapper="testNodeMapper" output-channel="output"/>
 ]]></programlisting>
@@ -420,7 +420,7 @@
     </para>
     <para>
     You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure
-    them using <emphasis>expression</emphasis> attribute:
+    them using <code>expression</code> attribute:
     <programlisting language="xml"><![CDATA[xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
     In the above case the overall result of the expression will be the result of the XPathe expression multiplied by 2.
     </para>
@@ -432,7 +432,7 @@
     <para>All XPath based components have namespace support allowing them to be configured as
     Message Endpoints with the exception of the XPath selectors which are not designed to act as
     endpoints.  Each component allows the XPath to either be referenced at the top level or configured via a nested
-    xpath-expression element.  So the following configurations of an xpath-selector are all valid and represent the general
+    &lt;xpath-expression/&gt; element.  So the following configurations of an xpath-selector are all valid and represent the general
     form of XPath namespace support.  All forms of XPath expression result in the creation of an
     <interfacename>XPathExpression</interfacename> using the Spring <classname>XPathExpressionFactory</classname>
     <programlisting language="xml"><![CDATA[<si-xml:xpath-selector id="xpathRefSelector"
@@ -487,7 +487,7 @@
     </para>
     <para>
       XPath router namespace support allows for the creation of a Message Endpoint with an input channel but no output channel
-      since the output channel is determined dynamically.  The multi-channel attribute causes the creation of a multi channel router capable of
+      since the output channel is determined dynamically.  The <code>multi-channel</code> attribute causes the creation of a multi channel router capable of
       routing a single message to many channels when true and a single channel router when false.
       <programlisting language="xml"><![CDATA[<!-- route the message according to exactly one order type channel -->
 <si-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel" multi-channel="false">

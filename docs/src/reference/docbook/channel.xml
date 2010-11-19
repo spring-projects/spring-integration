@@ -373,12 +373,12 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
   <section id="channel-configuration">
     <title>Configuring Message Channels</title>
     <para>
-      To create a Message Channel instance, you can use the 'channel' element:
+      To create a Message Channel instance, you can use the &lt;channel/&gt; element:
       <programlisting language="xml">&lt;channel id="exampleChannel"/&gt;</programlisting>
     </para>
     <para>
       The default channel type is <emphasis>Point to Point</emphasis>. To create a
-      <emphasis>Publish Subscribe</emphasis> channel, use the "publish-subscribe-channel" element:
+      <emphasis>Publish Subscribe</emphasis> channel, use the &lt;publish-subscribe-channel/&gt; element:
       <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
     </para>
     <para>
@@ -393,11 +393,11 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting>
     </para>
     <para>
-      When using the "channel" element without any sub-elements, it will create a <classname>DirectChannel</classname>
+      When using the &lt;channel/&gt; element without any sub-elements, it will create a <classname>DirectChannel</classname>
       instance (a <interfacename>SubscribableChannel</interfacename>).
     </para>
     <para>
-      However, you can alternatively provide a variety of "queue" sub-elements to create any of
+      However, you can alternatively provide a variety of &lt;queue/&gt; sub-elements to create any of
       the pollable channel types (as described in
       <xref linkend="channel-implementations"/>). Examples of each are shown below.
     </para>
@@ -425,7 +425,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-configuration-queuechannel">
       <title>QueueChannel Configuration</title>
       <para>
-        To create a <classname>QueueChannel</classname>, use the "queue" sub-element.
+        To create a <classname>QueueChannel</classname>, use the &lt;queue/&gt; sub-element.
         You may specify the channel's capacity:
         <programlisting language="xml">&lt;channel id="queueChannel"&gt;
     &lt;queue capacity="25"/&gt;
@@ -440,8 +440,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-configuration-pubsubchannel">
       <title>PublishSubscribeChannel Configuration</title>
       <para>
-        To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
-        When using this element, you can also specify the "task-executor" used for publishing
+        To create a <classname>PublishSubscribeChannel</classname>, use the &lt;publish-subscribe-channel/&gt; element.
+        When using this element, you can also specify the <code>task-executor</code> used for publishing
         Messages (if none is specified it simply publishes in the sender's thread):
         <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/&gt;</programlisting>
         If you are providing a <emphasis>Resequencer</emphasis> or <emphasis>Aggregator</emphasis> downstream
@@ -452,7 +452,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         have sequence-number header values ranging from 1 to 5.
         <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" apply-sequence="true"/&gt;</programlisting>
         <note>
-          The 'apply-sequence' value is <code>false</code> by default so that a Publish Subscribe Channel
+          The <code>apply-sequence</code> value is <code>false</code> by default so that a Publish Subscribe Channel
           can send the exact same Message instances to multiple outbound channels. Since Spring Integration
           enforces immutability of the payload and header references, the channel creates new Message
           instances with the same payload reference but different header values when the flag is set to
@@ -464,7 +464,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <title>ExecutorChannel</title>
       <para>
         To create an <classname>ExecutorChannel</classname>, add the &lt;dispatcher&gt; sub-element along
-        with a 'task-executor' attribute. Its value can reference any <interfacename>TaskExecutor</interfacename>
+        with a <code>task-executor</code> attribute. Its value can reference any <interfacename>TaskExecutor</interfacename>
         within the context. For example, this enables configuration of a thread-pool for dispatching messages
         to subscribed handlers. As mentioned above, this does break the "single-threaded" execution context
         between sender and receiver so that any active transaction context will not be shared by the invocation
@@ -475,7 +475,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 </channel>]]></programlisting>
       </para>
       <note>
-        The "load-balancer" and "failover" options are also both available on the dispatcher sub-element
+        The <code>load-balancer</code> and <code>failover</code> options are also both available on the &lt;dispatcher/&gt; sub-element
         as described above in <xref linkend="channel-configuration-directchannel"/>. The same defaults
         apply as well. So, the channel will have a round-robin load-balancing strategy with failover
         enabled unless explicit configuration is provided for one or both of those attributes.
@@ -487,14 +487,14 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-configuration-prioritychannel">
       <title>PriorityChannel Configuration</title>
       <para>
-        To create a <classname>PriorityChannel</classname>, use the "priority-queue" sub-element:
+        To create a <classname>PriorityChannel</classname>, use the &lt;priority-queue/&gt; sub-element:
         <programlisting language="xml"><![CDATA[<channel id="priorityChannel">
     <priority-queue capacity="20"/>
 </channel>]]></programlisting>
         By default, the channel will consult the <classname>MessagePriority</classname> header of the
         message. However, a custom <interfacename>Comparator</interfacename> reference may be
         provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
-        does support the "datatype" attribute. As with the QueueChannel, it also supports a "capacity" attribute.
+        does support the <code>datatype</code> attribute. As with the QueueChannel, it also supports a <code>capacity</code> attribute.
         The following example demonstrates all of these:
         <programlisting language="xml"><![CDATA[<channel id="priorityChannel" datatype="example.Widget">
     <priority-queue comparator="widgetComparator"
@@ -528,8 +528,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <title>Channel Interceptor Configuration</title>
       <para>
         Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. The
-        &lt;interceptors&gt; sub-element can be added within &lt;channel&gt; (or the more specific element
-        types). Provide the "ref" attribute to reference any Spring-managed object that implements the
+        &lt;interceptors/&gt; sub-element can be added within &lt;channel/&gt; (or the more specific element
+        types). Provide the <code>ref</code> attribute to reference any Spring-managed object that implements the
         <interfacename>ChannelInterceptor</interfacename> interface:
         <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
     ]]><emphasis><![CDATA[<interceptors>
@@ -544,11 +544,11 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="global-channel-configuration-interceptors">
     <title>Global Channel Interceptor Configuration</title>
       <para>
-        Channel Interceptors allow you for a clean and concise way of applying cross-cutting behavior per individual channel.
-        But what if the same behavior should be applied on multiple channels, configuring the same set of interceptors for
-        each channel <emphasis>would not be</emphasis> the most efficient way. The better way would be to configure interceptors globally and apply
-        them on multiple channels in one shot. Spring Integration provides capabilities to configure <emphasis>Global Interceptors</emphasis>
-        and apply them on multiple channels.
+        Channel Interceptors provide a clean and concise way of applying cross-cutting behavior per individual channel.
+        If the same behavior should be applied on multiple channels, configuring the same set of interceptors for
+        each channel <emphasis>would not be</emphasis> the most efficient way. To avoid repeated configuration, use global interceptors and apply
+        them to multiple channels. Spring Integration provides <emphasis>Global Interceptors</emphasis> to accomplish this.
+       
     Look at the example below:
         <programlisting language="xml"><![CDATA[<int:channel-interceptor pattern="input*, bar*, foo" order="3">
     <bean class="foo.barSampleInterceptor"/>
@@ -557,8 +557,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <programlisting language="xml"><![CDATA[<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo" order="3"/>
 
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>]]></programlisting>
-        &lt;channel-interceptor&gt; element allows you to define a global interceptor which will be applied on all
-        channels that match patterns defined via <emphasis>pattern</emphasis> attribute. In the above case the global interceptor will be applied on
+        &lt;channel-interceptor/&gt; element allows you to define a global interceptor which will be applied on all
+        channels that match patterns defined via <code>pattern</code> attribute. In the above case the global interceptor will be applied on
         'foo' channel and all other channels that begin with 'bar' and 'input'.
         The <emphasis>order</emphasis> attribute allows you to manage the place where this interceptor will be injected.
         For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
@@ -567,18 +567,19 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <int:wire-tap channel="logger"/> 
   </int:interceptors>
 </int:channel>]]></programlisting>
-  The reasonable question would be how global interceptor will be injected in relation to other interceptors
-  configured locally or through other global interceptor definitions? Current implementation provides
-  a very simple and clever mechanism of handling this. Positive number in the <emphasis>order</emphasis> attribute will ensure interceptor injection
-  after existing interceptors and negative number will ensure that such interceptors injected before.
-  This means that in the above example global interceptor will be injected <emphasis>AFTER</emphasis> (since its order is greater then 0)
-  'wire-tap' interceptor configured locally. If there was another global interceptor with matching <emphasis>pattern</emphasis> their
-  order would be determined based on who's got the higher or lower value in <emphasis>order</emphasis> attribute.
-  To inject global interceptor <emphasis>BEFORE</emphasis> the existing interceptors use negative value for the <emphasis>order</emphasis> attribute.
+  A reasonable question is how will a global interceptor be injected in relation to other interceptors
+  configured locally or through other global interceptor definitions? The current implementation provides
+  a very simple and clever mechanism for defining the order of interceptor execution. 
+  A positive number in the <code>order</code> attribute will ensure interceptor injection
+  after any existing interceptors and negative number will ensure that interceptor is injected before.
+  This means that in the above example global interceptor will be injected <emphasis>AFTER</emphasis> (since its order is greater then 0) 
+  the 'wire-tap' interceptor configured locally. If there was another global interceptor with matching <code>pattern</code> its
+  order would be determined by comparing the values of the <code>order</code> attribute.
+  To inject global interceptor <emphasis>BEFORE</emphasis> the existing interceptors use a negative value for the <code>order</code> attribute.
       </para>
       <note>
-      Note that <emphasis>order</emphasis> and <emphasis>pattern</emphasis> attributes are optional. The default value for <emphasis>order</emphasis>
-      will be 0 and for <emphasis>pattern</emphasis> is '*'
+      Note that <code>order</code> and <code>pattern</code> attributes are optional. The default value for <code>order</code>
+      will be 0 and for <code>pattern</code> is '*'
       </note>
     </section>
 
@@ -586,8 +587,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <title>Wire Tap</title>
       <para>
     As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
-    the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an 'interceptors' element.
-        This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
+    the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an &lt;interceptors/&gt; element. 
+    This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
     Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <channel id="in">
      <interceptors>
          <wire-tap channel="logger"/>
@@ -596,9 +597,9 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 
  <logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
         <tip>
-      The 'logging-channel-adapter' also accepts a boolean attribute: <emphasis>'log-full-message'</emphasis>.
-      That is <emphasis>false</emphasis> by default so that only the payload is logged. Setting that to
-      <emphasis>true</emphasis> enables logging of all headers in addition to the payload.
+      The 'logging-channel-adapter' also accepts a boolean attribute: <code>log-full-message</code>.
+      That is <code>false</code> by default so that only the payload is logged. Setting that to
+      <code>true</code> enables logging of all headers in addition to the payload.
       </tip>
       </para>
       
