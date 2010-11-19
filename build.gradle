@@ -145,8 +145,8 @@ configure(javaprojects) {
         testCompile "org.springframework:spring-test:$springVersion"
     }
 
-    // enable all compiler warnings (GRADLE-1077)
-    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all']
+    // enable all compiler warnings (GRADLE-1077); eliminate path warnings
+    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all,-path']
 
     // generate .classpath files without GRADLE_CACHE variable (GRADLE-1079)
     eclipseClasspath.variables = [:]
