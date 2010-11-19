@@ -148,8 +148,18 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 		}
 	}
 
-	public Message<File> receive() {
-		return this.fileSource.receive();
+	/**
+	 * Polls from the file source. If the result is not null, it will be returned.
+	 * If the result is null, it attempts to sync up with the remote directory to populate the file source.
+	 * Then, it polls the file source again and returns the result, whether or not it is null.
+	 */
+	public final Message<File> receive() {
+		Message<File> message = this.fileSource.receive();
+		if (message == null) {
+			this.synchronizer.syncRemoteToLocalFileSystem();
+			message = this.fileSource.receive();
+		}
+		return message;
 	}
 
 	@SuppressWarnings("unchecked")

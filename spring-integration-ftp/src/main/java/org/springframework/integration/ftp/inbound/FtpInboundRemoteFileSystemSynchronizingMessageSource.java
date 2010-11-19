@@ -49,12 +49,12 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource
 
 	@Override
 	protected void doStart() {
-		this.synchronizer.start();
+		//this.synchronizer.start();
 	}
 
 	@Override
 	protected void doStop() {
-		this.synchronizer.stop();
+		//this.synchronizer.stop();
 	}
 
 }

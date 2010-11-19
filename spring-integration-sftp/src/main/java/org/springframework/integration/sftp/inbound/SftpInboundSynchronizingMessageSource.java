@@ -16,11 +16,9 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
@@ -47,20 +45,6 @@ public class SftpInboundSynchronizingMessageSource
 
 	public String getComponentType() {
 		return "sftp:inbound-channel-adapter";
-	}
-
-	public Message<File> receive() {
-		/*
-		 * Poll from the file source. If the result is not null, return it.
-		 * If the result is null, attempt to sync up with remote directory to populate the file source.
-		 * Then, poll on the file source again and return the result, whether or not it is null.
-		 */
-		Message<File> message = this.fileSource.receive();
-		if (message == null) {
-			this.synchronizer.syncRemoteToLocalFileSystem();
-			message = this.fileSource.receive();
-		}
-		return message;
 	}
 
 	@Override

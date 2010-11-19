@@ -132,7 +132,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> extends Abst
 	/**
 	 * This is the callback where we need the implementation to do some specific  work
 	 */
-	protected abstract void syncRemoteToLocalFileSystem() throws Exception;
+	protected abstract void syncRemoteToLocalFileSystem();
 
 
 	/**

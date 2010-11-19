@@ -89,7 +89,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 					throw (RuntimeException)th;
 				}
 				else {
-					throw new MessagingException("Failed to compy file", th);
+					throw new MessagingException("Failed to copy file", th);
 				}
 			}
 			finally {
