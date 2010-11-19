@@ -37,9 +37,7 @@ public interface SftpSession {
 
 	void disconnect();
 
-	boolean directoryExists(String path);
-
-	boolean mkdir(String path);
+	boolean exists(String path);
 
 	boolean rm(String path);
 

@@ -120,12 +120,8 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 			}
 		}
 
-		public boolean directoryExists(String path) {
-			return this.targetSession.directoryExists(path);
-		}
-
-		public boolean mkdir(String path) {
-			return this.targetSession.mkdir(path);
+		public boolean exists(String path) {
+			return this.targetSession.exists(path);
 		}
 
 		public boolean rm(String path) {

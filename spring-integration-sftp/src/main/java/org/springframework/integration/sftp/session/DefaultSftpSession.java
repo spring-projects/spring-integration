@@ -135,7 +135,7 @@ public class DefaultSftpSession implements SftpSession {
 		}
 	}
 
-	public boolean directoryExists(String path) {
+	public boolean exists(String path) {
 		try {
 			SftpATTRS attrs = channel.stat(path);
 			return (attrs != null) && attrs.isDir();
