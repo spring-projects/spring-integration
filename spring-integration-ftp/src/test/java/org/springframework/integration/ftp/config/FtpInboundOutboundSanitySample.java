@@ -20,7 +20,6 @@ import static junit.framework.Assert.assertTrue;
 
 import java.io.File;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 

@@ -20,12 +20,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.io.CopyStreamEvent;
+import org.apache.commons.net.io.Util;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
@@ -33,6 +37,7 @@ import org.springframework.integration.file.synchronizer.AbstractInboundFileSync
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * An FTP-adapter implementation of {@link org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer}
@@ -96,8 +101,10 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 			File file = new File(tempFileName);
 			FileOutputStream fos = new FileOutputStream(file);
 			try {
-				client.retrieveFile(remoteFileName, fos);
-				// Perhaps we have some dispatch of the source file to do?
+				InputStream i = client.retrieveFileStream(remoteFileName);
+				if (i != null){
+					FileCopyUtils.copy(i, fos);
+				}
 				acknowledge(client, ftpFile);
 			}
 			catch (Exception e) {
