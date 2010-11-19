@@ -118,7 +118,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void syncRemoteToLocalFileSystem() {
+	protected void syncRemoteToLocalFileSystem(Resource localDirectory) {
 		SftpSession session = null;
 		try {
 			session = sessionPool.getSession();
@@ -132,7 +132,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
 			for (ChannelSftp.LsEntry lsEntry : files) {
 				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
-					copyFromRemoteToLocalDirectory(session, lsEntry, this.getLocalDirectory());
+					copyFromRemoteToLocalDirectory(session, lsEntry, localDirectory);
 				}
 			}
 		}

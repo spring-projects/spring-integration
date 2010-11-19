@@ -62,7 +62,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 	}
 
 	@Override
-	protected void syncRemoteToLocalFileSystem() {
+	protected void syncRemoteToLocalFileSystem(Resource localDirectory) {
 		try {
 			FTPClient client = this.clientPool.getClient();
 			Assert.state(client != null,
@@ -73,7 +73,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(client, ftpFile, this.getLocalDirectory());
+						copyFileToLocalDirectory(client, ftpFile, localDirectory);
 					}
 				}
 			}

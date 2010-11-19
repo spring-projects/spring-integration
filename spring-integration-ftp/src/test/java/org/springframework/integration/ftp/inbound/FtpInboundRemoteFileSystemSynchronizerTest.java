@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.client.QueuedFtpClientPool;
@@ -48,9 +49,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 			file.delete();
 		}
 		FtpInboundRemoteFileSystemSynchronizer syncronizer = new FtpInboundRemoteFileSystemSynchronizer();
-		syncronizer.setLocalDirectory(new FileSystemResource(System.getProperty("java.io.tmpdir")));
 		FileListFilter filter = new FtpPatternMatchingFileListFilter("foo.txt");
-		//
 		syncronizer.setFilter(filter);
 		
 		DefaultFtpClientFactory factory = mock(DefaultFtpClientFactory.class);
@@ -71,7 +70,8 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
 		
-		syncronizer.syncRemoteToLocalFileSystem();
+		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
+		syncronizer.syncRemoteToLocalFileSystem(localDirectory);
 		
 		verify(ftpClient, times(1)).retrieveFile(Mockito.anyString(), Mockito.any(OutputStream.class));
 		verify(ftpClient, times(1)).deleteFile(Mockito.anyString());

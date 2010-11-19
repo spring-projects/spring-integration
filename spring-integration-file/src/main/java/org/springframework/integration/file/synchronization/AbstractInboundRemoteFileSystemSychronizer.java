@@ -48,11 +48,6 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	protected boolean shouldDeleteSourceFile;
 
 	/**
-	 * The directory to which we write our synchronizations.
-	 */
-	private volatile Resource localDirectory;
-
-	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
 	 */
 	private volatile FileListFilter<F> filter;
@@ -62,14 +57,6 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	 */
 	private EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
 
-
-	public void setLocalDirectory(Resource localDirectory) {
-		this.localDirectory = localDirectory;
-	}
-
-	protected Resource getLocalDirectory() {
-		return this.localDirectory;
-	}
 
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
@@ -110,7 +97,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	/**
 	 * This is the callback where the subclasses must synchronize.
 	 */
-	protected abstract void syncRemoteToLocalFileSystem();
+	protected abstract void syncRemoteToLocalFileSystem(Resource localDirectory);
 
 
 	/**

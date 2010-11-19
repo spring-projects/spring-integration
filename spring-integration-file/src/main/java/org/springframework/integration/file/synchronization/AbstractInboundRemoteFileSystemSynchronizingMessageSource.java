@@ -124,22 +124,13 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 			}
 
 			/**
-			 * Make sure the remote files get here.
-			 */
-			this.synchronizer.setLocalDirectory(this.localDirectory);
-			//this.synchronizer.setTaskScheduler(this.getTaskScheduler());
-			//this.synchronizer.setBeanFactory(this.getBeanFactory());
-			//this.synchronizer.setPhase(this.getPhase());
-			//this.synchronizer.setBeanName(this.getComponentName());
-
-			/**
 			 * Forwards files once they ultimately appear in the {@link #localDirectory}.
 			 */
 			this.fileSource = new FileReadingMessageSource();
 			this.fileSource.setFilter(this.buildFilter());
 			this.fileSource.setDirectory(this.localDirectory.getFile());
 			this.fileSource.afterPropertiesSet();
-			//this.synchronizer.afterPropertiesSet();
+			this.synchronizer.afterPropertiesSet();
 		}
 		catch (RuntimeException e) {
 			throw e;
@@ -160,7 +151,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 		Assert.state(this.synchronizer != null, "synchronizer must not be null");
 		Message<File> message = this.fileSource.receive();
 		if (message == null) {
-			this.synchronizer.syncRemoteToLocalFileSystem();
+			this.synchronizer.syncRemoteToLocalFileSystem(this.localDirectory);
 			message = this.fileSource.receive();
 		}
 		return message;

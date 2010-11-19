@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionPool;
@@ -51,7 +52,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		}
 		SftpSessionPool sessionPool = mock(SftpSessionPool.class);
 		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer(sessionPool);
-		syncronizer.setLocalDirectory(new FileSystemResource(System.getProperty("java.io.tmpdir")));
 		syncronizer.setRemotePath("foo/bar");
 		
 		FileListFilter filter = mock(FileListFilter.class);
@@ -79,7 +79,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
 		
-		syncronizer.syncRemoteToLocalFileSystem();
+		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
+		syncronizer.syncRemoteToLocalFileSystem(localDirectory);
 		
 		verify(sessionPool, times(1)).getSession();
 		verify(sftpSession, atLeast(1)).getChannel();

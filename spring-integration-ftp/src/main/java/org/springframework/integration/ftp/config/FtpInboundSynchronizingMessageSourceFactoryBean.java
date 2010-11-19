@@ -128,7 +128,6 @@ class FtpInboundSynchronizingMessageSourceFactoryBean
 		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, this.clientFactory);
 		FtpInboundRemoteFileSystemSynchronizer synchronizer = new FtpInboundRemoteFileSystemSynchronizer();
 		synchronizer.setClientPool(queuedFtpClientPool);
-		synchronizer.setLocalDirectory(this.localDirectoryResource);
 		synchronizer.setShouldDeleteSourceFile(ackRemoteDir);
 		synchronizer.setFilter(compositeFilter);
 		messageSource.setRemotePredicate(compositeFilter);
