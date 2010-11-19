@@ -10,7 +10,7 @@
         http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
        http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>
@@ -22,7 +22,7 @@
 
 	<ftp:inbound-channel-adapter id="adapterFtpDontAutoCreate" 
 								 channel="ftpIn"
-								 session-factory="ftpClientFactory"
+								 session-factory="ftpSessionFactory"
 								 filter="filter" 
 								 local-working-directory="file:target/bar"
 								 remote-directory="foo/bar"

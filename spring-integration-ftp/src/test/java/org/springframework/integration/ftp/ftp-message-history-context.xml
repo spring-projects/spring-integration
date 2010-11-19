@@ -11,7 +11,7 @@
 
 	<int:message-history/>
 	
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>
@@ -22,7 +22,7 @@
 	</bean>
 
 	<ftp:inbound-channel-adapter id="adapterFtp" 
-				session-factory="ftpClientFactory"
+				session-factory="ftpSessionFactory"
 				channel="ftpIn" 
 				auto-create-directories="true"
 				local-working-directory="file:target/foo"

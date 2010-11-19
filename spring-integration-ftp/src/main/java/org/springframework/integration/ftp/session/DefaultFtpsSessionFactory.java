@@ -27,12 +27,12 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.util.StringUtils;
 
 /**
- * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.session.DefaultFtpClientFactory}
+ * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.session.DefaultFtpSessionFactory}
  * 
  * @author Josh Long
  * @author Iwein Fuld
  */
-public class DefaultFtpsClientFactory extends AbstractFtpSessionFactory<FTPSClient> {
+public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSClient> {
 
 	private Boolean useClientMode;
 

@@ -65,4 +65,5 @@ public abstract class AbstractFtpOutboundChannelAdapterParser extends AbstractOu
 	}
 
 	protected abstract String getClassName();
+
 }

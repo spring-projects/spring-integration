@@ -14,7 +14,7 @@
 		<constructor-arg value="javax.net.ssl.TrustManager"/>
 	</bean>
 
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpsClientFactory">
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>
@@ -37,7 +37,7 @@
 	
 	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
-				session-factory="ftpClientFactory"
+				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				remote-directory="foo/bar"
 				filename-generator="fileNameGenerator"/>

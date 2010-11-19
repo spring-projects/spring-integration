@@ -25,7 +25,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.ftp.session.DefaultFtpClientFactory;
+import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 
 /**
  * @author Oleg Zhurakousky
@@ -68,17 +68,17 @@ public class FtpInboundChannelAdapterParserTests {
 //		assertNotNull(adapter);
 	}
 
-	public static class TestClientFactoryBean implements FactoryBean<DefaultFtpClientFactory>{
+	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory>{
 
-		public DefaultFtpClientFactory getObject() throws Exception {
-			DefaultFtpClientFactory factory = mock(DefaultFtpClientFactory.class);
+		public DefaultFtpSessionFactory getObject() throws Exception {
+			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
 			Session session = mock(Session.class);
 			when(factory.getSession()).thenReturn(session);
 			return factory;
 		}
 
 		public Class<?> getObjectType() {
-			return DefaultFtpClientFactory.class;
+			return DefaultFtpSessionFactory.class;
 		}
 
 		public boolean isSingleton() {

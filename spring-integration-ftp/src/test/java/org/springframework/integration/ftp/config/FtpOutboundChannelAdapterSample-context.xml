@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
+	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="username" value="ozhurakousky"/>
 		<property name="password" value="seva@1994"/>
@@ -17,7 +17,7 @@
 	<int:channel id="ftpChannel"/>
 
 	<int-ftp:outbound-channel-adapter 
-				client-factory="ftpClientFactory" 
+				session-factory="ftpSessionFactory" 
 				channel="ftpChannel"/>
 	
 	
