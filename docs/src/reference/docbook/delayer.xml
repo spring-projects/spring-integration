@@ -17,7 +17,7 @@
   </section>
 
   <section id="delayer-namespace">
-    <title>The &lt;delayer&gt; Element</title>
+    <title>Configuring Delayer</title>
     <para>
       The &lt;delayer&gt; element is used to delay the Message flow between two Message Channels.
       As with the other endpoints, you can provide the "input-channel" and "output-channel" attributes,

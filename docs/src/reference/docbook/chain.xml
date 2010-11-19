@@ -50,7 +50,7 @@
   </section>
 
   <section id="chain-namespace">
-    <title>The &lt;chain&gt; Element</title>
+    <title>Configuring Chain</title>
     <para>
       The &lt;chain&gt; element provides an 'input-channel' attribute, and if the last element in the chain is capable
       of producing reply messages (optional), it also supports an 'output-channel' attribute. The sub-elements are then

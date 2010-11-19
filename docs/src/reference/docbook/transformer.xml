@@ -26,9 +26,13 @@
       </note>
     </para>
   </section>
-
-  <section id="transformer-namespace">
-    <title>Namespace support for Transformer - &lt;transformer&gt; Element</title>
+  
+  <section id="transformer-config">
+  	<title>Configuring Transformer</title>
+  	
+  	
+  	 <section id="transformer-namespace">
+    <title>Configuring Transformer with XML</title>
     <para>
     The &lt;transformer&gt; element is used to create a Message-transforming endpoint. In addition to "input-channel"
       and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
@@ -178,7 +182,7 @@ public class Kid{
   </section>
 
   <section id="transformer-annotation">
-    <title>Annotation support for Transformer -  @Transformer</title>
+    <title>Configuring Transformer with Annotations</title>
     <para>
       The <interfacename>@Transformer</interfacename> annotation can also be added to methods that expect either the
       <interfacename>Message</interfacename> type or the message payload type. The return value will be handled in the
@@ -196,6 +200,10 @@ Order generateOrder(String productId, @Header("customerName") String customer) {
 }</programlisting>
     </para>
   </section>
+  	
+  </section>
+
+ 
   
   <section id="header-filter">
   	<title>Header Filter</title>

@@ -16,7 +16,7 @@
   </section>
 
   <section id="service-activator-namespace">
-    <title>The &lt;service-activator/&gt; Element</title>
+    <title>Configuring Service Activator</title>
     <para>
       To create a Service Activator, use the 'service-activator' element with the 'input-channel' and 'ref' attributes:
       <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>

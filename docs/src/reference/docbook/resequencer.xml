@@ -25,7 +25,7 @@
   </section>
 
   <section>
-    <title>Configuring a Resequencer with XML</title>
+    <title>Configuring a Resequencer</title>
 
     <para>Configuring a resequencer requires only including the appropriate
     element in XML.</para>
