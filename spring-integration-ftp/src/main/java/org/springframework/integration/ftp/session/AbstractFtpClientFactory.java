@@ -27,6 +27,8 @@ import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPReply;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -36,12 +38,12 @@ import org.springframework.util.StringUtils;
  *
  * @author Iwein Fuld
  */
-abstract public class AbstractFtpClientFactory<T extends FTPClient> implements FtpClientFactory<T> {
-
-	private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
+public abstract class AbstractFtpClientFactory<T extends FTPClient> implements SessionFactory {
 
 	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	protected FTPClientConfig config;
 
@@ -151,7 +153,20 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		// NOOP
 	}
 
-	public T getClient() throws SocketException, IOException {
+	public Session getSession() {
+		try {
+			T client = this.createClient();
+			if (client == null) {
+				return null;
+			}
+			return new FtpSession(client);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("failed to create FTPClient", e);
+		}
+	}
+
+	protected T createClient() throws SocketException, IOException { 
 		T client = createSingleInstanceOfClient();
 		client.configure(config);
 

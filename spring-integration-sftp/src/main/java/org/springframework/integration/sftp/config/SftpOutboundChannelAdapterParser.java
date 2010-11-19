@@ -40,7 +40,7 @@ public class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder sessionPoolBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.session.CachingSftpSessionFactory");
+				"org.springframework.integration.file.remote.session.CachingSessionFactory");
 		sessionPoolBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
 		String sessionPoolName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				sessionPoolBuilder.getBeanDefinition(), parserContext.getRegistry());

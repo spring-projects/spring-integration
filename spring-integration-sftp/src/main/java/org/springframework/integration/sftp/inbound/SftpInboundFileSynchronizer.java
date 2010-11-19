@@ -78,7 +78,6 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 				logger.trace("Pooled SftpSession " + session + " from the pool");
 			}
 			session.connect();
-			Assert.isTrue(session.exists(remotePath), "remote path '" + remotePath + "' does not exist");
 			Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);

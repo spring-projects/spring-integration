@@ -17,7 +17,6 @@
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.KeyManager;
@@ -115,8 +114,8 @@ public class DefaultFtpsClientFactory extends AbstractFtpClientFactory<FTPSClien
 	}
 
 	@Override
-	public FTPSClient getClient() throws SocketException, IOException {
-		FTPSClient ftpsClient = super.getClient();
+	protected FTPSClient createClient() throws IOException {
+		FTPSClient ftpsClient = super.createClient();
 		if (StringUtils.hasText(this.authValue)) {
 			ftpsClient.setAuthValue(authValue);
 		}

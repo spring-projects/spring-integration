@@ -25,6 +25,7 @@
 								 channel="ftpIn"
 								 filename-pattern="foo"
 								 local-working-directory="file:target/foo"
+								 remote-directory="foo/bar"
 								 auto-create-directories="true"
 								 auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>
@@ -36,6 +37,7 @@
 								 channel="ftpIn"
 								 filter="filter" 
 								 local-working-directory="file:target"
+								 remote-directory="foo/bar"
 								 auto-create-directories="true"
 								 auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>

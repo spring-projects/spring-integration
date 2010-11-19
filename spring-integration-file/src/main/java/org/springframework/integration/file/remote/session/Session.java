@@ -33,8 +33,6 @@ public interface Session {
 
 	void disconnect();
 
-	boolean exists(String path);
-
 	boolean rm(String path);
 
 	<F> Collection<F> ls(String path);

@@ -49,7 +49,7 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 		}
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.session.CachingSftpSessionFactory");
+				"org.springframework.integration.file.remote.session.CachingSessionFactory");
 		sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
 		String sessionPollName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				sessionFactoryBuilder.getBeanDefinition(), parserContext.getRegistry());

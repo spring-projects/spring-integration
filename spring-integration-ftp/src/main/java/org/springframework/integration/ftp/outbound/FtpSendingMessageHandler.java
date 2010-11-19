@@ -22,18 +22,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.SocketException;
 import java.nio.charset.Charset;
 
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.net.ftp.FTPClient;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.ftp.session.FtpClientPool;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -50,7 +50,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
-	private volatile FtpClientPool ftpClientPool;
+	private volatile SessionFactory sessionFactory;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -64,13 +64,13 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 	public FtpSendingMessageHandler() {
 	}
 
-	public FtpSendingMessageHandler(FtpClientPool ftpClientPool) {
-		this.ftpClientPool = ftpClientPool;
+	public FtpSendingMessageHandler(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 
 
-	public void setFtpClientPool(FtpClientPool ftpClientPool) {
-		this.ftpClientPool = ftpClientPool;
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
 	}
 
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
@@ -86,7 +86,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 	}
 
 	protected void onInit() throws Exception {
-		Assert.notNull(this.ftpClientPool, "'ftpClientPool' must not be null");
+		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
 		Assert.notNull(this.temporaryBufferFolder,
 				"'temporaryBufferFolder' must not be null");
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
@@ -137,21 +137,6 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		}
 	}
 
-	private boolean sendFile(File file, FTPClient client) throws FileNotFoundException, IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
-		boolean sent = client.storeFile(file.getName(), fileInputStream);
-		fileInputStream.close();
-		return sent;
-	}
-
-	private FTPClient getFtpClient() throws SocketException, IOException {
-		FTPClient client;
-		client = this.ftpClientPool.getClient();
-		Assert.state(client != null, FtpClientPool.class.getSimpleName() +
-				" returned 'null' client this most likely a bug in the pool implementation.");
-		return client;
-	}
-
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.notNull(message, "'message' must not be null");
@@ -159,11 +144,10 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 		Assert.notNull(payload, "Message payload must not be null");
 		File file = this.redeemForStorableFile(message);
 		if ((file != null) && file.exists()) {
-			FTPClient client = null;
+			Session session = this.sessionFactory.getSession();
 			boolean sentSuccesfully;
 			try {
-				client = getFtpClient();
-				sentSuccesfully = sendFile(file, client);
+				sentSuccesfully = sendFile(file, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -186,14 +170,21 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 						// ignore
 					}
 				}
-				if (client != null) {
-					ftpClientPool.releaseClient(client);
+				if (session != null) {
+					session.disconnect();
 				}
 			}
 			if (!sentSuccesfully) {
 				throw new MessageDeliveryException(message, "Failed to store file '" + file + "'");
 			}
 		}
+	}
+
+	private boolean sendFile(File file, Session session) throws FileNotFoundException, IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+		session.put(fileInputStream, file.getName());
+		fileInputStream.close();
+		return true;
 	}
 
 }

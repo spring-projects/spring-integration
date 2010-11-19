@@ -39,13 +39,14 @@ public abstract class AbstractFtpInboundChannelAdapterParser extends AbstractPol
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
 		
 		BeanDefinitionBuilder poolBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.session.QueuedFtpClientPool");
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.file.remote.session.CachingSessionFactory");
 		poolBuilder.addConstructorArgReference(element.getAttribute("client-factory"));
 		
 		BeanDefinitionBuilder synchronizerBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer");
 		
-		synchronizerBuilder.addPropertyValue("clientPool", poolBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory", "remotePath");
+		synchronizerBuilder.addPropertyValue("sessionFactory", poolBuilder.getBeanDefinition());
 //		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "auto-delete-remote-files-on-sync", "shouldDeleteSourceFile");
 //		
 //		

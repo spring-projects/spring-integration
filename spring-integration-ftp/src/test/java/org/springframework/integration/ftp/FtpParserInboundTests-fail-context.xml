@@ -25,6 +25,7 @@
 								 client-factory="ftpClientFactory"
 								 filter="filter" 
 								 local-working-directory="file:target/bar"
+								 remote-directory="foo/bar"
 								 auto-create-directories="false"
 								 auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>

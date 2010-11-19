@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.session;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -184,7 +185,7 @@ public class DefaultSftpSession implements Session {
 			if (logger.isWarnEnabled()) {
 				logger.warn("ls failed", e);
 			}
-			return null;
+			return Collections.EMPTY_LIST;
 		}
 	}
 

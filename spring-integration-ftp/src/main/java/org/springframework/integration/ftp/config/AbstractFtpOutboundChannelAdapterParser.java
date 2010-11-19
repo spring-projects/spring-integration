@@ -34,7 +34,7 @@ public abstract class AbstractFtpOutboundChannelAdapterParser extends AbstractOu
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
 		
 		BeanDefinitionBuilder poolBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.session.QueuedFtpClientPool");
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.file.remote.session.CachingSessionFactory");
 		poolBuilder.addConstructorArgReference(element.getAttribute("client-factory"));
 		
 		handlerBuilder.addConstructorArgValue(poolBuilder.getBeanDefinition());

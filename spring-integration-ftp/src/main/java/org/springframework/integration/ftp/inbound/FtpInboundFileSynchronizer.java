@@ -30,9 +30,10 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -44,7 +45,9 @@ import org.springframework.util.FileCopyUtils;
  */
 public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
-	private volatile FtpClientPool clientPool;
+	private volatile String remotePath;
+
+	private volatile SessionFactory sessionFactory;
 
 
 	/**
@@ -52,12 +55,16 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	 *
 	 * @param clientPool the {@link org.springframework.integration.ftp.session.FtpClientPool}
 	 */
-	public void setClientPool(FtpClientPool clientPool) {
-		this.clientPool = clientPool;
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	public void setRemotePath(String remotePath) {
+		this.remotePath = remotePath;
 	}
 
 	public void afterPropertiesSet() {
-		Assert.notNull(this.clientPool, "clientPool must not be null");
+		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
 		if (this.shouldDeleteSourceFile) {
 			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
 		}
@@ -65,21 +72,21 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	public void synchronizeToLocalDirectory(Resource localDirectory) {
 		try {
-			FTPClient client = this.clientPool.getClient();
-			Assert.state(client != null,
-					FtpClientPool.class.getSimpleName() +
-							" returned a 'null' client. " +
-							"This is most likely a bug in the pool implementation.");
-			Collection<FTPFile> fileList = this.filterFiles(client.listFiles());
+			Session session = this.sessionFactory.getSession();
+			Assert.state(session != null, "failed to acquire an FTP Session");
+			Collection<FTPFile> beforeFilter = session.ls(this.remotePath);
+			FTPFile[] entries = (beforeFilter == null) ? new FTPFile[0] : 
+					beforeFilter.toArray(new FTPFile[beforeFilter.size()]);
+			Collection<FTPFile> fileList = this.filterFiles(entries);
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(client, ftpFile, localDirectory);
+						copyFileToLocalDirectory(session, ftpFile, localDirectory);
 					}
 				}
 			}
 			finally {
-				this.clientPool.releaseClient(client);
+				session.disconnect();
 			}
 		}
 		catch (IOException e) {
@@ -87,7 +94,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		}
 	}
 
-	private boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
+	private boolean copyFileToLocalDirectory(Session session, FTPFile ftpFile, Resource localDirectory)
 			throws IOException, FileNotFoundException {
 
 		String remoteFileName = ftpFile.getName();
@@ -98,12 +105,13 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 			File file = new File(tempFileName);
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			try {
-				InputStream inputStream = client.retrieveFileStream(remoteFileName);
+				//InputStream inputStream = client.retrieveFileStream(remoteFileName);
+				InputStream inputStream = session.get(remoteFileName);
 				if (inputStream == null) {
 					return false;
 				}
 				FileCopyUtils.copy(inputStream, fileOutputStream);
-				acknowledge(client, ftpFile);
+				acknowledge(session, ftpFile);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){

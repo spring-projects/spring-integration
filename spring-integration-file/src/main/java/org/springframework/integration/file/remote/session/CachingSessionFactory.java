@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.session;
+package org.springframework.integration.file.remote.session;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -24,41 +24,39 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 
 /**
  * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
- * implementation of a queued SessionPool ({@link CachingSftpSessionFactory}) - was
+ * implementation of a queued SessionPool ({@link CachingSessionFactory}) - was
  * taken almost directly from the Spring Integration FTP adapter.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class CachingSftpSessionFactory implements SessionFactory, DisposableBean {
+public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
-	private static Logger logger = Logger.getLogger(CachingSftpSessionFactory.class.getName());
+	private static Logger logger = Logger.getLogger(CachingSessionFactory.class.getName());
 
 	public static final int DEFAULT_POOL_SIZE = 10;
 
 
 	private final Queue<Session> queue;
 
-	private final SimpleSftpSessionFactory sftpSessionFactory;
+	private final SessionFactory sessionFactory;
 
 	private final int maxPoolSize;
 
 	private final ReentrantLock lock = new ReentrantLock();
 
 
-	public CachingSftpSessionFactory(SimpleSftpSessionFactory sessionFactory) {
+	public CachingSessionFactory(SessionFactory sessionFactory) {
 		this(sessionFactory, DEFAULT_POOL_SIZE);
 	}
 
-	public CachingSftpSessionFactory(SimpleSftpSessionFactory sessionFactory, int maxPoolSize) {
-		this.sftpSessionFactory = sessionFactory;
+	public CachingSessionFactory(SessionFactory sessionFactory, int maxPoolSize) {
+		this.sessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
 		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
 	}
@@ -70,7 +68,7 @@ public class CachingSftpSessionFactory implements SessionFactory, DisposableBean
 		try {
 			Session session = this.queue.poll();
 			if (null == session) {
-				session = sftpSessionFactory.getSession();
+				session = sessionFactory.getSession();
 			}
 			return (session != null) ? new PooledSftpSession(session) : null;
 		} 
@@ -120,10 +118,6 @@ public class CachingSftpSessionFactory implements SessionFactory, DisposableBean
 			else {
 				targetSession.disconnect();
 			}
-		}
-
-		public boolean exists(String path) {
-			return this.targetSession.exists(path);
 		}
 
 		public boolean rm(String path) {
