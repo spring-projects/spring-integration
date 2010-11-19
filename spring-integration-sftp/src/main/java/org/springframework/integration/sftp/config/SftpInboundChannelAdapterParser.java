@@ -54,13 +54,13 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String sessionPollName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				sessionFactoryBuilder.getBeanDefinition(), parserContext.getRegistry());
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.inbound.SftpInboundSynchronizer");
+				"org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer");
 		synchronizerBuilder.addConstructorArgReference(sessionPollName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory", "remotePath");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "auto-delete-remote-files-on-sync", "shouldDeleteSourceFile");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(synchronizerBuilder, element, "filter");
 		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(
-				"org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource");
+				"org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource");
 		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
 		if (hasFileNamePattern) {
 			if (parserContext.getRegistry().containsBeanDefinition(fileNamePattern)) {

@@ -33,7 +33,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<ChannelSftp.LsEntry> {
+public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<ChannelSftp.LsEntry> {
 
 	private volatile Pattern filenamePattern;
 

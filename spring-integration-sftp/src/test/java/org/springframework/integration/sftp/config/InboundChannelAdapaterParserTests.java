@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource;
+import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -53,8 +53,8 @@ public class InboundChannelAdapaterParserTests {
 	
 		Object adapter = context.getBean("sftpAdapterAutoCreate");
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
-		SftpInboundSynchronizingMessageSource source = 
-			(SftpInboundSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		SftpInboundFileSynchronizingMessageSource source = 
+			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
