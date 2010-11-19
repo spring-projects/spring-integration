@@ -52,7 +52,7 @@ public class OutboundChannelAdapaterParserTests {
 		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
-		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "filenameGenerator"));
+		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
@@ -74,7 +74,7 @@ public class OutboundChannelAdapaterParserTests {
 		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
-		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "filenameGenerator");
+		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "fileNameGenerator");
 		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
 		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));

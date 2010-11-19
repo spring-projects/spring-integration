@@ -29,7 +29,7 @@ import com.jcraft.jsch.Session;
 
 /**
  * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
- * implementation of Queued*SessionPool ({@link QueuedSftpSessionPool}) - was
+ * implementation of a queued SessionPool ({@link QueuedSftpSessionPool}) - was
  * taken almost directly from the Spring Integration FTP adapter.
  *
  * @author Josh Long
@@ -37,12 +37,11 @@ import com.jcraft.jsch.Session;
  * @since 2.0
  */
 public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
-	
-	private final ReentrantLock atomicOperationLock = new ReentrantLock();
-	
+
 	private static Logger logger = Logger.getLogger(QueuedSftpSessionPool.class.getName());
 
 	public static final int DEFAULT_POOL_SIZE = 10;
+
 
 	private volatile Queue<SftpSession> queue;
 
@@ -50,9 +49,14 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 
 	private final int maxPoolSize;
 	
-	private volatile boolean started;
+	private volatile boolean running;
 
 	private volatile boolean autoStartup;
+
+	private volatile int phase = 0;
+
+	private final ReentrantLock lock = new ReentrantLock();
+
 
 	public QueuedSftpSessionPool(SftpSessionFactory factory) {
 		this(DEFAULT_POOL_SIZE, factory);
@@ -62,14 +66,19 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 		this.sftpSessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
 	}
-	
+
+
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
 	public SftpSession getSession() throws Exception {
-		Assert.notNull(this.queue, "SftpSession is unavailable since component is not started");
-		this.atomicOperationLock.lock();
+		Assert.notNull(this.queue, "SftpSession is unavailable since the pool component is not started");
+		this.lock.lock();
 		try {
 			SftpSession session = this.queue.poll();
 			if (null == session) {
@@ -78,14 +87,14 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 			return session;
 		} 
 		finally {
-			this.atomicOperationLock.unlock();
+			this.lock.unlock();
 		}
 		
 	}
 
 	public void release(SftpSession sftpSession) {
-		if (this.started){
-			this.atomicOperationLock.lock();
+		if (this.running) {
+			this.lock.lock();
 			try {
 				if (queue.size() < maxPoolSize && sftpSession != null) {
 					queue.add(sftpSession); 
@@ -95,72 +104,79 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 				}
 			}
 			finally {
-				this.atomicOperationLock.unlock();
+				this.lock.unlock();
 			}
 		}
 		else {
 			this.destroySftpSession(sftpSession);
 		}
 	}
-	
-	public void start() {
-		Assert.isTrue(this.maxPoolSize > 0, "poolSize must be greater than 0");
-		this.atomicOperationLock.lock();
+
+
+	private void destroySftpSession(SftpSession sftpSession) {
 		try {
-			this.queue = new ArrayBlockingQueue<SftpSession>(this.maxPoolSize, true); 
+			if (sftpSession != null) {
+				Channel channel = sftpSession.getChannel();
+				if (channel.isConnected()) {
+					channel.disconnect();
+				}
+				Session session = sftpSession.getSession();
+				if (session.isConnected()) {
+					session.disconnect();
+				}
+			}	
 		}
-		finally {
-			this.atomicOperationLock.unlock();
+		catch (Throwable e) {
+			// log and ignore
+			logger.warning("Exception was thrown while destroying SftpSession. " + e);
 		}
-		this.started = true;
 	}
 
-	public void stop() {
-		for (SftpSession sftpSession : queue) {
-			this.destroySftpSession(sftpSession);
-		}
-	}
 
-	public boolean isRunning() {
-		return this.started;
-	}
-	public int getPhase() {
-		return 0;
-	}
+	// SmartLifeycle implementation
 
 	public boolean isAutoStartup() {
 		return this.autoStartup;
 	}
 
+	public int getPhase() {
+		return this.phase;
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		Assert.isTrue(this.maxPoolSize > 0, "poolSize must be greater than 0");
+		this.lock.lock();
+		try {
+			this.queue = new ArrayBlockingQueue<SftpSession>(this.maxPoolSize, true);
+			this.running = true;
+		}
+		finally {
+			this.lock.unlock();
+		}
+	}
+
+	public void stop() {
+		if (this.queue != null) {
+			for (SftpSession sftpSession : this.queue) {
+				this.destroySftpSession(sftpSession);
+			}
+		}
+	}
+
 	public void stop(Runnable callback) {
-		this.atomicOperationLock.lock();
+		this.lock.lock();
 		try {
 			this.stop();
 			callback.run();
 		}
 		finally {
-			this.started = false;
-			this.atomicOperationLock.unlock();
+			this.running = false;
+			this.lock.unlock();
 		}
 	}
 
-	private void destroySftpSession(SftpSession sftpSession){
-		try {
-			if (sftpSession != null){
-				Channel channel = sftpSession.getChannel();
-				if (channel.isConnected()){
-					channel.disconnect();
-				}
-				Session session = sftpSession.getSession();
-				if (session.isConnected()){
-					session.disconnect();
-				}
-			}	
-		} catch (Throwable e) {
-			// log and ignore
-			logger.warning("Exception was thrown during while destroying SftpSession. " + e);
-		}
-	}
-
-	
 }

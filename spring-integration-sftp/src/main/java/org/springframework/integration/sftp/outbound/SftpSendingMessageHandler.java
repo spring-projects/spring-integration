@@ -53,7 +53,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpSendingMessageHandler extends AbstractMessageHandler{
+public class SftpSendingMessageHandler extends AbstractMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
@@ -63,25 +63,27 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 
 	private volatile Expression remoteDirectoryExpression;
 
-	private volatile FileNameGenerator filenameGenerator = new DefaultFileNameGenerator();
+	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
 	private volatile File temporaryBufferFolderFile;
 
 	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
 
 	private volatile String charset = Charset.defaultCharset().name();
-	
+
+
 	public SftpSendingMessageHandler(SftpSessionPool sessionPool) {
 		Assert.notNull(sessionPool, "'sessionPool' must not be null");
 		this.sessionPool = sessionPool;
 	}
 
+
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
 		this.temporaryBufferFolder = temporaryBufferFolder;
 	}
 
-	public void setFilenameGenerator(FileNameGenerator filenameGenerator) {
-		this.filenameGenerator = filenameGenerator;
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		this.fileNameGenerator = fileNameGenerator;
 	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
@@ -92,11 +94,12 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 		this.charset = charset;
 	}
 
+	@Override
 	protected void onInit() throws Exception {
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
-		if (remoteDirectoryExpression != null){
-			directoryExpressionProcesor = 
-				new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
+		if (this.remoteDirectoryExpression != null) {
+			this.directoryExpressionProcesor =
+					new ExpressionEvaluatingMessageProcessor<String>(this.remoteDirectoryExpression, String.class);
 		}
 	}
 
@@ -105,12 +108,12 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 		File inboundFilePayload = this.redeemForStorableFile(message);
 		try {
 			if ((inboundFilePayload != null) && inboundFilePayload.exists()) {
-				sendFileToRemoteEndpoint(message, inboundFilePayload);
+				this.sendFileToRemoteEndpoint(message, inboundFilePayload);
 			}
 		}
 		catch (Exception e) {
-			throw new MessageDeliveryException(message, "Failed to transfer '" + message.getPayload() + "' to" +
-					" " + this.remoteDirectoryExpression.getExpressionString(), e);
+			throw new MessageDeliveryException(message, "Failed to transfer '" + message.getPayload() + "' to " +
+					this.remoteDirectoryExpression.getExpressionString(), e);
 		}
 		finally {
 			if (inboundFilePayload != null && inboundFilePayload.exists()) {
@@ -118,7 +121,6 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 			}		
 		}
 	}
-
 
 	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
 		FileCopyUtils.copy(sourceFile, tempFile);
@@ -142,7 +144,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
-			String generateFileName = this.filenameGenerator.generateFileName(message);
+			String generateFileName = this.fileNameGenerator.generateFileName(message);
 			File tempFile = new File(this.temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
 			File resultFile = new File(this.temporaryBufferFolderFile, generateFileName);
 			File sendableFile = null;
@@ -157,8 +159,8 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 			}
 			return sendableFile;
 		}
-		catch (Throwable th) {
-			throw new MessageDeliveryException(message, "Failed to create sendable file.", th);
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "Failed to create sendable file.", e);
 		}
 	}
 
@@ -173,13 +175,12 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 			ChannelSftp sftp = session.getChannel();	
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";
-			if (directoryExpressionProcesor != null){
-				String result = directoryExpressionProcesor.processMessage(message);
-				if (StringUtils.hasText(result)){
+			if (this.directoryExpressionProcesor != null) {
+				String result = this.directoryExpressionProcesor.processMessage(message);
+				if (StringUtils.hasText(result)) {
 					baseOfRemotePath = result;
 				}
 			}
-			
 			if (!StringUtils.endsWithIgnoreCase(baseOfRemotePath, "/")) {
 				baseOfRemotePath += "/";
 			}
@@ -191,4 +192,5 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler{
 			this.sessionPool.release(session);
 		}
 	}
+
 }

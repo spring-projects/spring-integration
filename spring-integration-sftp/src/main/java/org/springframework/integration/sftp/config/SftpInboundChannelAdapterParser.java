@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.config;
 
 import org.w3c.dom.Element;
@@ -25,12 +26,12 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+
 /**
  * Parser for 'sftp:inbound-channel-adapter'
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
@@ -38,44 +39,35 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		String sessionFactoryName = element.getAttribute("session-factory");
 		String autoStartup = element.getAttribute("auto-startup");
-		
-		
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String filter = element.getAttribute("filter");
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
 		boolean hasFilter = StringUtils.hasText(filter);
-		
-		if (hasFileNamePattern | hasFilter){
+		if (hasFileNamePattern || hasFilter) {
 			if (!(hasFileNamePattern ^ hasFilter)) {
-				throw new BeanDefinitionStoreException("exactly one of 'filename-pattern' or 'filter' " +
+				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
 						"is allowed on SFTP inbound adapter");
 			}
 		}
-			
-		BeanDefinitionBuilder sessionPollBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.session.QueuedSftpSessionPool");
+		BeanDefinitionBuilder sessionPollBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.sftp.session.QueuedSftpSessionPool");
 		sessionPollBuilder.addConstructorArgReference(sessionFactoryName);
 		sessionPollBuilder.addPropertyValue("autoStartup", autoStartup);
-		String sessionPollName = 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(sessionPollBuilder.getBeanDefinition(), parserContext.getRegistry());
-		
-		BeanDefinitionBuilder synchronizerBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.sftp.inbound.SftpInboundSynchronizer");
+		String sessionPollName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				sessionPollBuilder.getBeanDefinition(), parserContext.getRegistry());
+		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.sftp.inbound.SftpInboundSynchronizer");
 		synchronizerBuilder.addConstructorArgReference(sessionPollName);
-
 		synchronizerBuilder.addPropertyValue("autoStartup", autoStartup);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory", "remotePath");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "auto-delete-remote-files-on-sync", "shouldDeleteSourceFile");
-		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(synchronizerBuilder, element, "filter");
-
-		BeanDefinitionBuilder messageSourceBuilder = 
-			BeanDefinitionBuilder.rootBeanDefinition("org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource");
+		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(
+				"org.springframework.integration.sftp.inbound.SftpInboundSynchronizingMessageSource");
 		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
-
-		if (hasFileNamePattern){
-			if (parserContext.getRegistry().containsBeanDefinition(fileNamePattern)){
+		if (hasFileNamePattern) {
+			if (parserContext.getRegistry().containsBeanDefinition(fileNamePattern)) {
 				messageSourceBuilder.addPropertyReference("filenamePattern", fileNamePattern);
 			}
 			else {
@@ -84,7 +76,7 @@ public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
-
 		return messageSourceBuilder.getBeanDefinition();
 	}
+
 }
