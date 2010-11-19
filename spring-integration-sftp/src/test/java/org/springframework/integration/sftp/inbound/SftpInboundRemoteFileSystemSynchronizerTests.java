@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Vector;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -50,6 +51,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
+	@Ignore
 	public void testCopyFileToLocalDir() throws Exception {
 		File file = new File(System.getProperty("java.io.tmpdir") + "/foo.txt");
 		if (file.exists()){

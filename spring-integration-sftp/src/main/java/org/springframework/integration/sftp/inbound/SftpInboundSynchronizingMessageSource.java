@@ -67,9 +67,6 @@ public class SftpInboundSynchronizingMessageSource extends AbstractInboundFileSy
 			if (this.filenamePattern != null) {
 				SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
 				this.synchronizer.setFilter(filter);
-				if (this.synchronizer instanceof SftpInboundSynchronizer) {
-					((SftpInboundSynchronizer) this.synchronizer).setAutoCreateDirectories(this.autoCreateDirectories);
-				}
 			}
 		}
 		catch (RuntimeException e) {

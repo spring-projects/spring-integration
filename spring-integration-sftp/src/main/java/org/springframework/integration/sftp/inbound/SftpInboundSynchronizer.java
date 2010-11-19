@@ -47,8 +47,6 @@ public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<Cha
 	 */
 	private volatile String remotePath;
 
-	private volatile boolean autoCreateDirectories;
-
 	/**
 	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
 	 */
@@ -61,10 +59,6 @@ public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<Cha
 	}
 
 
-	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
-		this.autoCreateDirectories = autoCreateDirectories;
-	}
-
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
 	}
@@ -74,37 +68,6 @@ public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<Cha
 		if (this.shouldDeleteSourceFile) {
 			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
 		}
-	}
-	
-	/**
-	 * This method will check to ensure that the remote directory exists. If the directory
-	 * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
-	 * to create it. Otherwise, it fails fast.
-	 *
-	 * @param remotePath the path on the remote SSH / SFTP server to create.
-	 * @return whether or not the directory is there (regardless of whether we created it in this method or it already
-	 *         existed.)
-	 */
-	private boolean checkThatRemotePathExists(String remotePath, SftpSession session) {
-		try {
-			if (session.directoryExists(remotePath)) {
-				return true;
-			}
-		} 
-		catch (Throwable th) {
-			if (this.autoCreateDirectories && (this.sessionFactory != null) && (session != null)) {
-				try {
-					return session.mkdir(remotePath);
-				} 
-				catch (RuntimeException re) {
-					throw re;
-				}
-				catch (Exception e){
-					throw new MessagingException("Failed to auto-create remote directory", e);
-				}
-			}
-		} 
-		return false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -116,7 +79,7 @@ public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<Cha
 				logger.trace("Pooled SftpSession " + session + " from the pool");
 			}
 			session.connect();
-			this.checkThatRemotePathExists(remotePath, session);
+			Assert.isTrue(session.directoryExists(remotePath), "remote path '" + remotePath + "' does not exist");
 			Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);

@@ -20,7 +20,6 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.integration.ftp.client.FtpClientPool;
 
 /**
  * A {@link org.springframework.integration.core.MessageSource} implementation for FTP.
@@ -29,13 +28,6 @@ import org.springframework.integration.ftp.client.FtpClientPool;
  * @author Josh Long
  */
 public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
-
-	private volatile FtpClientPool clientPool;
-
-
-	public void setClientPool(FtpClientPool clientPool) {
-		this.clientPool = clientPool;
-	}
 
 	public String getComponentType() {
 		return "ftp:inbound-channel-adapter";
@@ -49,9 +41,6 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends Abstra
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (this.synchronizer instanceof FtpInboundRemoteFileSystemSynchronizer) {
-			((FtpInboundRemoteFileSystemSynchronizer) this.synchronizer).setClientPool(this.clientPool);
-		}
 	}
 
 }
