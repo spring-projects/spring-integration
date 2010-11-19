@@ -96,12 +96,13 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		if (!localFile.exists()) {
 			String tempFileName = localFileName + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;
 			File file = new File(tempFileName);
-			FileOutputStream fos = new FileOutputStream(file);
+			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			try {
-				InputStream i = client.retrieveFileStream(remoteFileName);
-				if (i != null){
-					FileCopyUtils.copy(i, fos);
+				InputStream inputStream = client.retrieveFileStream(remoteFileName);
+				if (inputStream == null) {
+					return false;
 				}
+				FileCopyUtils.copy(inputStream, fileOutputStream);
 				acknowledge(client, ftpFile);
 			}
 			catch (Exception e) {
@@ -113,7 +114,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 				}
 			}
 			finally {
-				fos.close();
+				fileOutputStream.close();
 			}
 			file.renameTo(localFile);
 			return true;
