@@ -32,9 +32,9 @@ import org.mockito.Mockito;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
-import org.springframework.integration.ftp.client.QueuedFtpClientPool;
 import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
+import org.springframework.integration.ftp.session.DefaultFtpClientFactory;
+import org.springframework.integration.ftp.session.QueuedFtpClientPool;
 
 /**
  * @author Oleg Zhurakousky

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.client;
+package org.springframework.integration.ftp.session;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

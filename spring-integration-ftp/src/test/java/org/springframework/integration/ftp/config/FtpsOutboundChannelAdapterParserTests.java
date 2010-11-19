@@ -24,9 +24,9 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.ftp.client.FtpClientFactory;
-import org.springframework.integration.ftp.client.FtpClientPool;
 import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
+import org.springframework.integration.ftp.session.FtpClientFactory;
+import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

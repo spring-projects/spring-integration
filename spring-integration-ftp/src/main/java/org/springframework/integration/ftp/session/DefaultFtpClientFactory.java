@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.client;
+package org.springframework.integration.ftp.session;
 
 import org.apache.commons.net.ftp.FTPClient;
 
-import java.io.IOException;
 
 /**
- * Factory for {@link FTPClient}.
+ * Default implementation of FtpClientFactory.
  *
  * @author Iwein Fuld
+ * @author Josh Long
  */
-public interface FtpClientFactory<T extends FTPClient> {
+public class DefaultFtpClientFactory extends AbstractFtpClientFactory<FTPClient> {
 
-	/**
-	 * @return Fully configured and connected FTPClient. Never <code>null</code>.
-	 * @throws IOException thrown when a networking IO subsystem error occurs
-	 */
-	T getClient() throws IOException;
+	@Override
+	protected FTPClient createSingleInstanceOfClient() {
+		return new FTPClient();
+	}
 
 }

@@ -14,7 +14,7 @@
 		<constructor-arg value="javax.net.ssl.TrustManager"/>
 	</bean>
 
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpsClientFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>

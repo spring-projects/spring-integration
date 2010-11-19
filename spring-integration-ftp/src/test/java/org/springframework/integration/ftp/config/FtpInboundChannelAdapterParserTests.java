@@ -33,9 +33,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
-import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
+import org.springframework.integration.ftp.session.DefaultFtpClientFactory;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

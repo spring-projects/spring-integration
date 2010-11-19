@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.client;
+package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -28,7 +28,7 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.util.StringUtils;
 
 /**
- * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.client.DefaultFtpClientFactory}
+ * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.session.DefaultFtpClientFactory}
  * 
  * @author Josh Long
  * @author Iwein Fuld

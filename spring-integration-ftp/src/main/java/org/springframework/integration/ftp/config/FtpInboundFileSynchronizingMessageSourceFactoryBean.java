@@ -28,12 +28,12 @@ import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.ftp.client.AbstractFtpClientFactory;
-import org.springframework.integration.ftp.client.DefaultFtpClientFactory;
-import org.springframework.integration.ftp.client.QueuedFtpClientPool;
 import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
+import org.springframework.integration.ftp.session.AbstractFtpClientFactory;
+import org.springframework.integration.ftp.session.DefaultFtpClientFactory;
+import org.springframework.integration.ftp.session.QueuedFtpClientPool;
 import org.springframework.util.StringUtils;
 
 /**

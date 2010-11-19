@@ -12,7 +12,7 @@
 	<int:message-history/>
 	
 	
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>

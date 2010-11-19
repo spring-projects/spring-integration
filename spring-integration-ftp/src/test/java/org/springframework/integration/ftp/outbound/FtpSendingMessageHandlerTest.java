@@ -27,7 +27,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.integration.ftp.client.FtpClientPool;
+import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.integration.message.GenericMessage;
 
 /**

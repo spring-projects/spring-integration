@@ -31,7 +31,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.integration.ftp.client.FtpClientPool;
+import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.util.Assert;
 
 /**
@@ -46,9 +46,9 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 
 	/**
-	 * The {@link org.springframework.integration.ftp.client.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
+	 * The {@link org.springframework.integration.ftp.session.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
 	 *
-	 * @param clientPool the {@link org.springframework.integration.ftp.client.FtpClientPool}
+	 * @param clientPool the {@link org.springframework.integration.ftp.session.FtpClientPool}
 	 */
 	public void setClientPool(FtpClientPool clientPool) {
 		this.clientPool = clientPool;

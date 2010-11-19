@@ -33,7 +33,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.ftp.client.FtpClientPool;
+import org.springframework.integration.ftp.session.FtpClientPool;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
