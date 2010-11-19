@@ -57,7 +57,7 @@ public class FtpInboundOutboundSanitySample {
 		new ClassPathXmlApplicationContext("FtpInboundChannelAdapterSample-context.xml", this.getClass());
 		Thread.sleep(3000);
 		fileA = new File("local-test-dir/b.test");
-		fileB = new File("local-test-dir/b.test");
+		fileB = new File("local-test-dir/b.test");	
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
 	}

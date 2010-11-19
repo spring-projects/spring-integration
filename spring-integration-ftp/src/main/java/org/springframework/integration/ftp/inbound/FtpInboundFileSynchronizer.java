@@ -23,13 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.io.CopyStreamEvent;
-import org.apache.commons.net.io.Util;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
