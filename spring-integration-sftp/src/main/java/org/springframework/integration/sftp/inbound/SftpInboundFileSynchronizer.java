@@ -70,7 +70,6 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public void synchronizeToLocalDirectory(Resource localDirectory) {
 		SftpSession session = null;
 		try {
