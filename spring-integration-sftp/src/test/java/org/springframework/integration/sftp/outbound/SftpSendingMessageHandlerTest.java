@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -42,43 +42,43 @@ public class SftpSendingMessageHandlerTest {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileNameMessage() throws Exception {
-		SftpSessionPool sessionPoll = mock(SftpSessionPool.class);
+		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
 		ChannelSftp channel = mock(ChannelSftp.class);
 		when(session.getChannel()).thenReturn(channel);
-		when(sessionPoll.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionPoll);
+		when(sessionFactory.getSession()).thenReturn(session);
+		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello"));
 		verify(session, atLeast(1)).getChannel();
-		verify(sessionPoll, times(1)).getSession();
+		verify(sessionFactory, times(1)).getSession();
 	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileAsByte() throws Exception {
-		SftpSessionPool sessionPoll = mock(SftpSessionPool.class);
+		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
 		ChannelSftp channel = mock(ChannelSftp.class);
 		when(session.getChannel()).thenReturn(channel);
-		when(sessionPoll.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionPoll);
+		when(sessionFactory.getSession()).thenReturn(session);
+		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
 		verify(session, atLeast(1)).getChannel();
-		verify(sessionPoll, times(1)).getSession();
+		verify(sessionFactory, times(1)).getSession();
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileMessage() throws Exception {
-		SftpSessionPool sessionPoll = mock(SftpSessionPool.class);
+		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
 		ChannelSftp channel = mock(ChannelSftp.class);
 		when(session.getChannel()).thenReturn(channel);
-		when(sessionPoll.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionPoll);
+		when(sessionFactory.getSession()).thenReturn(session);
+		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
@@ -87,6 +87,6 @@ public class SftpSendingMessageHandlerTest {
 		File file = File.createTempFile("foo", ".txt");
 		handler.handleMessage(new GenericMessage(file));
 		verify(session, atLeast(1)).getChannel();
-		verify(sessionPoll, atLeast(1)).getSession();
+		verify(sessionFactory, atLeast(1)).getSession();
 	}
 }

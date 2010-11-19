@@ -35,7 +35,7 @@ import com.jcraft.jsch.Channel;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
+public class QueuedSftpSessionPool implements SftpSessionFactory, SmartLifecycle {
 
 	private static Logger logger = Logger.getLogger(QueuedSftpSessionPool.class.getName());
 

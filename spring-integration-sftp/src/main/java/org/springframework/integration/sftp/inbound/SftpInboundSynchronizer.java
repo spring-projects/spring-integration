@@ -28,7 +28,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -53,12 +53,12 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	/**
 	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
 	 */
-	private final SftpSessionPool sessionPool;
+	private final SftpSessionFactory sessionFactory;
 
 
-	public SftpInboundSynchronizer(SftpSessionPool sessionPool) {
-		Assert.notNull(sessionPool, "'sessionPool' must not be null");
-		this.sessionPool = sessionPool;
+	public SftpInboundSynchronizer(SftpSessionFactory sessionFactory) {
+		Assert.notNull(sessionFactory, "sessionFactory must not be null");
+		this.sessionFactory = sessionFactory;
 	}
 
 
@@ -94,7 +94,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			return true;
 		} 
 		catch (Throwable th) {
-			if (this.autoCreateDirectories && (this.sessionPool != null) && (session != null)) {
+			if (this.autoCreateDirectories && (this.sessionFactory != null) && (session != null)) {
 				try {
 					if (channelSftp != null) {
 						channelSftp.mkdir(remotePath);
@@ -110,7 +110,6 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 				catch (Exception e){
 					throw new MessagingException("Failed to auto-create remote directory", e);
 				}
-
 			}
 		} 
 		return false;
@@ -121,8 +120,10 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	protected void syncRemoteToLocalFileSystem(Resource localDirectory) {
 		SftpSession session = null;
 		try {
-			session = sessionPool.getSession();
-			logger.trace("Pooled SftpSession " + this.sessionPool + " from the pool");
+			session = this.sessionFactory.getSession();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Pooled SftpSession " + session + " from the pool");
+			}
 			session.connect();
 			this.checkThatRemotePathExists(remotePath, session);
 			ChannelSftp channelSftp = session.getChannel();
@@ -140,8 +141,10 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			throw new MessagingException("couldn't synchronize remote to local directory", e);
 		}
 		finally {
-			this.sessionPool.release(session);
-			logger.trace("Putting SftpSession " + this.sessionPool + " back into the pool");
+			session.disconnect();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Putting SftpSession " + session + " back into the pool");
+			}
 		}
 	}
 

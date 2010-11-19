@@ -38,7 +38,7 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
@@ -57,7 +57,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
-	private final SftpSessionPool sessionPool;
+	private final SftpSessionFactory sessionFactory;
 	
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcesor;
 
@@ -72,9 +72,9 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 	private volatile String charset = Charset.defaultCharset().name();
 
 
-	public SftpSendingMessageHandler(SftpSessionPool sessionPool) {
-		Assert.notNull(sessionPool, "'sessionPool' must not be null");
-		this.sessionPool = sessionPool;
+	public SftpSendingMessageHandler(SftpSessionFactory sessionFactory) {
+		Assert.notNull(sessionFactory, "sessionFactory must not be null");
+		this.sessionFactory = sessionFactory;
 	}
 
 
@@ -165,7 +165,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	private boolean sendFileToRemoteEndpoint(Message<?> message, File file) throws Exception {
-		SftpSession session = this.sessionPool.getSession();
+		SftpSession session = this.sessionFactory.getSession();
 		if (session == null) {
 			throw new MessagingException("The session returned from the pool is null, cannot proceed.");
 		}
@@ -189,7 +189,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 		}
 		finally {
 			IOUtils.closeQuietly(fileInputStream);
-			this.sessionPool.release(session);
+			session.disconnect();
 		}
 	}
 

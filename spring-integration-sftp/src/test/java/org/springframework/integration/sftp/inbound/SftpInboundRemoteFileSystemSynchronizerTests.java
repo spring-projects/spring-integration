@@ -32,7 +32,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -50,8 +50,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		if (file.exists()){
 			file.delete();
 		}
-		SftpSessionPool sessionPool = mock(SftpSessionPool.class);
-		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer(sessionPool);
+		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
+		SftpInboundSynchronizer syncronizer = new SftpInboundSynchronizer(sessionFactory);
 		syncronizer.setRemotePath("foo/bar");
 		
 		FileListFilter filter = mock(FileListFilter.class);
@@ -61,7 +61,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		
 		SftpSession sftpSession = mock(SftpSession.class);
 		
-		when(sessionPool.getSession()).thenReturn(sftpSession);
+		when(sessionFactory.getSession()).thenReturn(sftpSession);
 		ChannelSftp channel = mock(ChannelSftp.class);
 		when(channel.get((String) Mockito.any())).thenReturn(new FileInputStream(new File("template.mf")));
 		when(sftpSession.getChannel()).thenReturn(channel);
@@ -82,7 +82,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
 		syncronizer.syncRemoteToLocalFileSystem(localDirectory);
 		
-		verify(sessionPool, times(1)).getSession();
+		verify(sessionFactory, times(1)).getSession();
 		verify(sftpSession, atLeast(1)).getChannel();
 		// will add more validation, but for now this test is mainly to get the test coverage up
 	}

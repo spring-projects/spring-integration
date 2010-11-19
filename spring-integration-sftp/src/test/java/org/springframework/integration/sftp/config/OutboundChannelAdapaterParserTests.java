@@ -56,8 +56,8 @@ public class OutboundChannelAdapaterParserTests {
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
-		QueuedSftpSessionPool clientPoll = (QueuedSftpSessionPool) TestUtils.getPropertyValue(handler, "sessionPool");
-		SimpleSftpSessionFactory clientFactory = (SimpleSftpSessionFactory) TestUtils.getPropertyValue(clientPoll, "sftpSessionFactory");
+		QueuedSftpSessionPool sessionFactory = (QueuedSftpSessionPool) TestUtils.getPropertyValue(handler, "sessionFactory");
+		SimpleSftpSessionFactory clientFactory = (SimpleSftpSessionFactory) TestUtils.getPropertyValue(sessionFactory, "sftpSessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
 	}

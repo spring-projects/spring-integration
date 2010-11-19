@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.sftp.impl;
 
 import static junit.framework.Assert.assertTrue;
@@ -23,12 +24,13 @@ import java.lang.reflect.Method;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy;
 import org.springframework.integration.sftp.inbound.SftpInboundSynchronizer;
 import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionPool;
+import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.ReflectionUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -36,7 +38,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@Before
@@ -63,7 +65,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 */
 	@Test
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
-		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer(mock(SftpSessionPool.class));
+		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer(mock(SftpSessionFactory.class));
 		Method method = 
 			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);
 		method.setAccessible(true);
@@ -85,7 +87,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@org.junit.Ignore
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {
-		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer(mock(SftpSessionPool.class));
+		SftpInboundSynchronizer synchronizer = new SftpInboundSynchronizer(mock(SftpSessionFactory.class));
 		synchronizer.setEntryAcknowledgmentStrategy(mock(EntryAcknowledgmentStrategy.class));
 		Method method = 
 			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);
