@@ -73,7 +73,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.remotePath, "'remotePath' must not be null");
 		if (this.shouldDeleteSourceFile) {
-			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
+			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
 		}
 	}
 	
@@ -129,10 +129,10 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
-			Collection<ChannelSftp.LsEntry> files = this.filter.filterFiles(entries);
+			Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
 			for (ChannelSftp.LsEntry lsEntry : files) {
 				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
-					copyFromRemoteToLocalDirectory(session, lsEntry, this.localDirectory);
+					copyFromRemoteToLocalDirectory(session, lsEntry, this.getLocalDirectory());
 				}
 			}
 		}
@@ -164,7 +164,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 					IOUtils.closeQuietly(in);
 					IOUtils.closeQuietly(fileOutputStream);
 				}
-				if (tmpLocalTarget.renameTo(localFile) && this.entryAcknowledgmentStrategy != null) {
+				if (tmpLocalTarget.renameTo(localFile)) {
 					this.acknowledge(sftpSession, entry);
 				}
 				return true;

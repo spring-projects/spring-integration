@@ -16,12 +16,14 @@
 
 package org.springframework.integration.file.synchronization;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.file.filters.AcceptAllFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
 
 /**
@@ -48,21 +50,25 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	/**
 	 * The directory to which we write our synchronizations.
 	 */
-	protected volatile Resource localDirectory;
+	private volatile Resource localDirectory;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
 	 */
-	protected volatile FileListFilter<F> filter = new AcceptAllFileListFilter<F>();
+	private volatile FileListFilter<F> filter;
 
 	/**
 	 * The {@link EntryAcknowledgmentStrategy} implementation.
 	 */
-	protected EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
+	private EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
 
 
 	public void setLocalDirectory(Resource localDirectory) {
 		this.localDirectory = localDirectory;
+	}
+
+	protected Resource getLocalDirectory() {
+		return this.localDirectory;
 	}
 
 	public void setFilter(FileListFilter<F> filter) {
@@ -91,10 +97,14 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	 * @throws Exception
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
-	protected void acknowledge(Object usefulContextOrClientData, F file) throws Exception {
+	protected final void acknowledge(Object usefulContextOrClientData, F file) throws Exception {
 		if (this.entryAcknowledgmentStrategy != null) {
 			this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
 		}
+	}
+
+	protected final List<F> filterFiles(F[] files) {
+		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 
 	/**

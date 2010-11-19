@@ -57,7 +57,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.clientPool, "clientPool must not be null");
 		if (this.shouldDeleteSourceFile) {
-			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
+			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
 		}
 	}
 
@@ -69,11 +69,11 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 					FtpClientPool.class.getSimpleName() +
 							" returned a 'null' client. " +
 							"This is most likely a bug in the pool implementation.");
-			Collection<FTPFile> fileList = this.filter.filterFiles(client.listFiles());
+			Collection<FTPFile> fileList = this.filterFiles(client.listFiles());
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(client, ftpFile, this.localDirectory);
+						copyFileToLocalDirectory(client, ftpFile, this.getLocalDirectory());
 					}
 				}
 			}
