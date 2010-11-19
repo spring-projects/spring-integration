@@ -18,8 +18,7 @@
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
 				filename-pattern=".?txt"
-				local-working-directory="."
-				filter="entryListFilter">
+				local-working-directory=".">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
 	
@@ -29,7 +28,6 @@
 				charset="UTF-8"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
-				filename-pattern=".?txt"
 				filter="entryListFilter"
 				local-working-directory=".">
 			<int:poller fixed-rate="1000"/>

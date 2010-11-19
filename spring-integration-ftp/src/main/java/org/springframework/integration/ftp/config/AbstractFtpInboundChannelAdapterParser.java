@@ -15,19 +15,15 @@
  */
 package org.springframework.integration.ftp.config;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -36,21 +32,49 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  */
 public abstract class AbstractFtpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList(
-			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory,auto-create-directories".split(",")));
-
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "client-factory");
-		for (String a : receiveAttrs) {
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, a);
+		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getClassName());
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
+		
+		BeanDefinitionBuilder poolBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.session.QueuedFtpClientPool");
+		poolBuilder.addConstructorArgReference(element.getAttribute("client-factory"));
+		
+		BeanDefinitionBuilder synchronizerBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer");
+		
+		synchronizerBuilder.addPropertyValue("clientPool", poolBuilder.getBeanDefinition());
+//		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "auto-delete-remote-files-on-sync", "shouldDeleteSourceFile");
+//		
+//		
+		String fileNamePattern = element.getAttribute("filename-pattern");
+		String filter = element.getAttribute("filter");
+		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
+		boolean hasFilter = StringUtils.hasText(filter);
+		if (hasFileNamePattern || hasFilter) {
+			if (!(hasFileNamePattern ^ hasFilter)) {
+				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
+						"is allowed on FTP inbound adapter");
+			}
 		}
-		//FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
-		return new RuntimeBeanReference(beanName);
+		
+		if (hasFileNamePattern){
+			BeanDefinitionBuilder filterBuilder = 
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter");
+			filterBuilder.addConstructorArgValue(fileNamePattern);
+			synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+		} 
+		else if (hasFilter) {
+			synchronizerBuilder.addPropertyReference("filter", filter);
+		}
+//		
+		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
+		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-working-directory", "localDirectory");
+		
+		return messageSourceBuilder.getBeanDefinition();
 	}
 	
 	protected abstract String getClassName();

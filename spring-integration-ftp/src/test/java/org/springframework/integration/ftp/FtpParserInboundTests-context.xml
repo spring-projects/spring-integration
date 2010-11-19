@@ -23,7 +23,6 @@
 	<ftp:inbound-channel-adapter id="adapterFtp" 
 								 client-factory="ftpClientFactory"
 								 channel="ftpIn"
-								 filter="filter" 
 								 filename-pattern="foo"
 								 local-working-directory="file:target/foo"
 								 auto-create-directories="true"
@@ -36,7 +35,6 @@
 		                         client-factory="ftpClientFactory"
 								 channel="ftpIn"
 								 filter="filter" 
-								 filename-pattern="foo"
 								 local-working-directory="file:target"
 								 auto-create-directories="true"
 								 auto-delete-remote-files-on-sync="false">

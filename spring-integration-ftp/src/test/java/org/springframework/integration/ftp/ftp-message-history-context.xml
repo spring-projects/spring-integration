@@ -11,7 +11,6 @@
 
 	<int:message-history/>
 	
-	
 	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
@@ -26,6 +25,7 @@
 				client-factory="ftpClientFactory"
 				channel="ftpIn" 
 				auto-create-directories="true"
+				local-working-directory="file:target/foo"
 				auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>

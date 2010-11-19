@@ -24,7 +24,6 @@
 								 channel="ftpIn"
 								 client-factory="ftpClientFactory"
 								 filter="filter" 
-								 filename-pattern="foo"
 								 local-working-directory="file:target/bar"
 								 auto-create-directories="false"
 								 auto-delete-remote-files-on-sync="false">
