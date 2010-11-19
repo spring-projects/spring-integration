@@ -146,6 +146,29 @@ By default the HTTP request will be generated using an instance of <classname>Si
       order="3"
       auto-startup="false"/>]]></programlisting>
   </para>
+  <para>
+  	<emphasis>Mapping URI variables</emphasis>	
+  </para>
+  <para>
+  If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in 
+  <emphasis>Http Outbound Gateway</emphasis> configuration.
+  
+  <programlisting language="xml"><![CDATA[<http:outbound-gateway id="trafficGateway" 
+	                  url="http://local.yahooapis.com/MapsService/V1/trafficData?appid=YdnDemo&amp;zip={zipCode}" 
+		              request-channel="trafficChannel" 
+		              http-method="GET" 
+		              expected-response-type="java.lang.String">
+		<http:uri-variable name="zipCode" expression="payload.getZip()"/>
+</http:outbound-gateway>]]></programlisting>
+  
+  The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use 
+  the <code>value</code> attribute for literal values, but if the value you are trying t o inject is dynamic and requires 
+  access to Message data you can use  SpEL expression via <code>expression</code> attribute. In the above configuration 
+  the <code>getZip()</code> method will be invoked on the payload object of the Message and the result of that 
+  method will be used as the value for URI variable named 'zipCode'.
+  </para>
+
+  
   </section>
   <section id="http-samples">
     <title>HTTP Samples</title>
