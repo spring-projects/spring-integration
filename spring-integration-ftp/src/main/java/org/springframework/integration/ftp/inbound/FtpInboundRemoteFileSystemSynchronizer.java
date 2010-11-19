@@ -29,8 +29,8 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSychronizer;
-import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.client.FtpClientPool;
 import org.springframework.util.Assert;
 
@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
+public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
 	private volatile FtpClientPool clientPool;
 
@@ -54,15 +54,14 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		this.clientPool = clientPool;
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		Assert.notNull(this.clientPool, "clientPool must not be null");
 		if (this.shouldDeleteSourceFile) {
 			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
 		}
 	}
 
-	@Override
-	protected void syncRemoteToLocalFileSystem(Resource localDirectory) {
+	public void synchronizeToLocalDirectory(Resource localDirectory) {
 		try {
 			FTPClient client = this.clientPool.getClient();
 			Assert.state(client != null,
@@ -93,7 +92,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
 		File localFile = new File(localFileName);
 		if (!localFile.exists()) {
-			String tempFileName = localFileName + AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
+			String tempFileName = localFileName + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;
 			File file = new File(tempFileName);
 			FileOutputStream fos = new FileOutputStream(file);
 			try {
@@ -122,7 +121,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 	/**
 	 * An acknowledgment strategy that deletes the file.
 	 */
-	private static class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
+	private static class DeletionEntryAcknowledgmentStrategy implements EntryAcknowledgmentStrategy<FTPFile> {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 

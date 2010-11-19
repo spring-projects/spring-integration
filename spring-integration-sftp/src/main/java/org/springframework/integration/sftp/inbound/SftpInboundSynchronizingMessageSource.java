@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -33,8 +33,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizingMessageSource
-		extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
+public class SftpInboundSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<ChannelSftp.LsEntry> {
 
 	private volatile Pattern filenamePattern;
 
@@ -68,7 +67,9 @@ public class SftpInboundSynchronizingMessageSource
 			if (this.filenamePattern != null) {
 				SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
 				this.synchronizer.setFilter(filter);
-				this.synchronizer.setAutoCreateDirectories(this.autoCreateDirectories);
+				if (this.synchronizer instanceof SftpInboundSynchronizer) {
+					((SftpInboundSynchronizer) this.synchronizer).setAutoCreateDirectories(this.autoCreateDirectories);
+				}
 			}
 		}
 		catch (RuntimeException e) {

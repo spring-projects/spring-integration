@@ -25,8 +25,8 @@ import org.apache.commons.io.IOUtils;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSychronizer;
-import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer;
+import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.Assert;
@@ -40,7 +40,7 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
+public class SftpInboundSynchronizer extends AbstractInboundFileSynchronizer<ChannelSftp.LsEntry> {
 
 	/**
 	 * the path on the remote mount
@@ -107,9 +107,8 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		return false;
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
-	protected void syncRemoteToLocalFileSystem(Resource localDirectory) {
+	public void synchronizeToLocalDirectory(Resource localDirectory) {
 		SftpSession session = null;
 		try {
 			session = this.sessionFactory.getSession();
@@ -147,7 +146,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			FileOutputStream fileOutputStream = null;
 			try {
 				File tmpLocalTarget = new File(localFile.getAbsolutePath() +
-						AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
+						AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION);
 				fileOutputStream = new FileOutputStream(tmpLocalTarget);
 				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
 				in = sftpSession.get(remoteFqPath);
@@ -178,7 +177,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	}
 
 
-	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
+	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundFileSynchronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
 
 		public void acknowledge(Object useful, ChannelSftp.LsEntry msg) throws Exception {
 			SftpSession sftpSession = (SftpSession) useful;

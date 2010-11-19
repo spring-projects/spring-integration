@@ -47,14 +47,13 @@ import org.springframework.util.Assert;
  * specific).
  * <p/>
  * This class is to be used as a pair with an implementation of
- * {@link AbstractInboundRemoteFileSystemSychronizer}. The synchronizer must
+ * {@link AbstractInboundFileSynchronizer}. The synchronizer must
  * handle the work of actually connecting to the remote file system and
  * delivering new {@link File}s.
  * 
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<F, S extends AbstractInboundRemoteFileSystemSychronizer<F>>
-		extends MessageProducerSupport implements MessageSource<File> {
+public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
 
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
@@ -71,7 +70,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 	 * An implementation that will handle the chores of actually connecting to and synching up
 	 * the remote file system with the local one, in an inbound direction.
 	 */
-	protected volatile S synchronizer;
+	protected volatile AbstractInboundFileSynchronizer<F> synchronizer;
 
 	/**
 	 * Directory to which things should be synched locally.
@@ -93,7 +92,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 		this.autoCreateDirectories = autoCreateDirectories;
 	}
 
-	public void setSynchronizer(S synchronizer) {
+	public void setSynchronizer(AbstractInboundFileSynchronizer<F> synchronizer) {
 		this.synchronizer = synchronizer;
 	}
 
@@ -151,7 +150,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 		Assert.state(this.synchronizer != null, "synchronizer must not be null");
 		Message<File> message = this.fileSource.receive();
 		if (message == null) {
-			this.synchronizer.syncRemoteToLocalFileSystem(this.localDirectory);
+			this.synchronizer.synchronizeToLocalDirectory(this.localDirectory);
 			message = this.fileSource.receive();
 		}
 		return message;

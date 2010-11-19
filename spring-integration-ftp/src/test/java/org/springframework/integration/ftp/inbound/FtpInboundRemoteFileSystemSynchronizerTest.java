@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp.inbound;
 
 import static org.mockito.Mockito.mock;
@@ -71,7 +72,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		syncronizer.afterPropertiesSet();
 		
 		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
-		syncronizer.syncRemoteToLocalFileSystem(localDirectory);
+		syncronizer.synchronizeToLocalDirectory(localDirectory);
 		
 		verify(ftpClient, times(1)).retrieveFile(Mockito.anyString(), Mockito.any(OutputStream.class));
 		verify(ftpClient, times(1)).deleteFile(Mockito.anyString());
