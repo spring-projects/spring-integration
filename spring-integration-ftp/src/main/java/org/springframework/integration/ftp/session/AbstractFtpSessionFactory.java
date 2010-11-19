@@ -33,12 +33,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * base class for the other {@link org.springframework.integration.ftp.session.FtpClientFactory} implementations.
- * Most of this came out of the {@link DefaultFtpClientFactory} and was refactored into a base class
+ * Base class for FTP SessionFactory implementations.
  *
  * @author Iwein Fuld
  */
-public abstract class AbstractFtpClientFactory<T extends FTPClient> implements SessionFactory {
+public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory {
 
 	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 

@@ -25,7 +25,7 @@ import org.apache.commons.net.ftp.FTPClient;
  * @author Iwein Fuld
  * @author Josh Long
  */
-public class DefaultFtpClientFactory extends AbstractFtpClientFactory<FTPClient> {
+public class DefaultFtpClientFactory extends AbstractFtpSessionFactory<FTPClient> {
 
 	@Override
 	protected FTPClient createSingleInstanceOfClient() {

@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  * @author Iwein Fuld
  */
-public class DefaultFtpsClientFactory extends AbstractFtpClientFactory<FTPSClient> {
+public class DefaultFtpsClientFactory extends AbstractFtpSessionFactory<FTPSClient> {
 
 	private Boolean useClientMode;
 
