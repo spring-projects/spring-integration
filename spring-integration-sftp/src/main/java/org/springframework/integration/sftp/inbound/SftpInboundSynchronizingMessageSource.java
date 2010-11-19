@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.inbound;
 
 import java.io.File;
@@ -27,7 +28,6 @@ import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListF
 
 import com.jcraft.jsch.ChannelSftp;
 
-
 /**
  * a {@link org.springframework.integration.core.MessageSource} implementation for SFTP
  *
@@ -35,27 +35,28 @@ import com.jcraft.jsch.ChannelSftp;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SftpInboundSynchronizingMessageSource extends 
-		AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
+public class SftpInboundSynchronizingMessageSource
+		extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundSynchronizer> {
 
 	private volatile Pattern filenamePattern;
+
 
 	public void setFilenamePattern(Pattern filenamePattern) {
 		this.filenamePattern = filenamePattern;
 	}
 
-	public String getComponentType(){
+	public String getComponentType() {
 		return "sftp:inbound-channel-adapter";
 	}
-	
+
 	public Message<File> receive() {
 		/*
-		 * Basically keep polling from the file source untill null,
-		 * then attempt to sync up with remote directory which should populate the file source
-		 * if anything is there  and poll on file source again and if its still null then return it.
+		 * Poll from the file source. If the result is not null, return it.
+		 * If the result is null, attempt to sync up with remote directory to populate the file source.
+		 * Then, poll on the file source again and return the result, whether or not it is null.
 		 */
 		Message<File> message = this.fileSource.receive();
-		if (message == null){
+		if (message == null) {
 			this.synchronizer.syncRemoteToLocalFileSystem();
 			message = this.fileSource.receive();
 		}
@@ -76,9 +77,7 @@ public class SftpInboundSynchronizingMessageSource extends
 					throw new FileNotFoundException(this.localDirectory.getFilename());
 				}
 			}
-			/**
-			 * Forwards files once they ultimately appear in the {@link #localDirectory}.
-			 */
+			// Forwards files once they appear in the {@link #localDirectory}.
 			this.fileSource = new FileReadingMessageSource();
 			this.fileSource.setDirectory(this.localDirectory.getFile());
 			this.fileSource.afterPropertiesSet();
@@ -91,12 +90,11 @@ public class SftpInboundSynchronizingMessageSource extends
 					+ this.getComponentType(), e);
 		}
 
-		if (filenamePattern != null) {
-			SftpPatternMatchingFileListFilter sftpFilePatternMatchingEntryListFilter =
-					new SftpPatternMatchingFileListFilter(filenamePattern);
-			//TODO refactor the design so values don't need to be duplicated 
-			this.synchronizer.setFilter(sftpFilePatternMatchingEntryListFilter);
+		if (this.filenamePattern != null) {
+			SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
+			this.synchronizer.setFilter(filter);
 			this.synchronizer.setAutoCreateDirectories(this.autoCreateDirectories);
 		}
 	}
+
 }

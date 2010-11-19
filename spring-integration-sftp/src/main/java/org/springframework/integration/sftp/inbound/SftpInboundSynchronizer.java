@@ -36,7 +36,7 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 
 /**
- * Gandles the synchronization between a remote SFTP endpoint and a local mount.
+ * Handles the synchronization between a remote SFTP directory and a local mount.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -55,11 +55,13 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	 * the pool of {@link org.springframework.integration.sftp.session.SftpSessionPool} SFTP sessions
 	 */
 	private final SftpSessionPool sessionPool;
-	
-	public SftpInboundSynchronizer(SftpSessionPool sessionPool){
+
+
+	public SftpInboundSynchronizer(SftpSessionPool sessionPool) {
 		Assert.notNull(sessionPool, "'sessionPool' must not be null");
 		this.sessionPool = sessionPool;
 	}
+
 
 	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
