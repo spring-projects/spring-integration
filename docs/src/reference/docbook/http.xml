@@ -18,7 +18,8 @@
   support the HTTP inbound adapters need to be deployed within a servlet container.  The easiest way to do this is to provide a servlet
   definition in <emphasis>web.xml</emphasis>, see
   <xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
-    <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
+    <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
+    class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
 </bean>]]></programlisting>
@@ -51,7 +52,8 @@
   configured to serve as a Spring MVC Controller with a view name. Because of the constructor arg value of TRUE, it wait for a reply.  This also shows
   how to customize the HTTP methods accepted by the gateway, which
   are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.
-  <programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
+  <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
+	class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
   <constructor-arg value="true" /> <!-- indicates that a reply is expected -->
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
@@ -75,14 +77,16 @@
 
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
+    class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
     This bean definition will execute HTTP requests by delegating to a <classname>RestTemplate</classname>. That template in turn delegates
     to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
     as the ClientHttpRequestFactory instance to use:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
+    class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
   <property name="messageConverters" ref="messageConverterList" />
