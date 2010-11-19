@@ -16,18 +16,10 @@
 
 package org.springframework.integration.twitter.config;
 
-import static junit.framework.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.junit.Test;
-
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
 /**
@@ -35,21 +27,23 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class TestReceivingMessageSourceParserTests {
 
-	@Test
-	public void testRecievingAdapterConfigurationAutoStartup(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("TestReceivingMessageSourceParser-context.xml", this.getClass());
-		SourcePollingChannelAdapter spca = ac.getBean("mentionAdapter", SourcePollingChannelAdapter.class);
-		SmartLifecycle ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
-		assertFalse(ms.isAutoStartup());
-
-		spca = ac.getBean("dmAdapter", SourcePollingChannelAdapter.class);
-		ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
-		assertFalse(ms.isAutoStartup());
-		
-		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
-		ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
-		assertFalse(ms.isAutoStartup());
-	}
+	
+// NO LONGER RELEVANT...
+//	@Test
+//	public void testRecievingAdapterConfigurationAutoStartup(){
+//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestReceivingMessageSourceParser-context.xml", this.getClass());
+//		SourcePollingChannelAdapter spca = ac.getBean("mentionAdapter", SourcePollingChannelAdapter.class);
+//		SmartLifecycle ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
+//		assertFalse(ms.isAutoStartup());
+//
+//		spca = ac.getBean("dmAdapter", SourcePollingChannelAdapter.class);
+//		ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
+//		assertFalse(ms.isAutoStartup());
+//		
+//		spca = ac.getBean("updateAdapter", SourcePollingChannelAdapter.class);
+//		ms = TestUtils.getPropertyValue(spca, "source", SmartLifecycle.class);
+//		assertFalse(ms.isAutoStartup());
+//	}
 
 
 	public static class TwitterTemplateFactoryBean implements FactoryBean<TwitterOperations>{

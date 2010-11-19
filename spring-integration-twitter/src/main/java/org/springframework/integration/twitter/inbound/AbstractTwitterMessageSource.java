@@ -21,14 +21,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -51,11 +50,11 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
-abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implements MessageSource {
-	
+abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport implements MessageSource {
+
 	private volatile long lastPollForTweet;
-	
-	private final TwitterPollingTask twitterPoller = new TwitterPollingTask();
+
+	private final TwitterPollingTask twitterPollingTask = new TwitterPollingTask();
 
 	private volatile MetadataStore metadataStore;
 
@@ -73,8 +72,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 
 	private final TweetComparator tweetComparator = new TweetComparator();
 
-	private volatile ScheduledFuture<?> twitterPollingTask;
-
 	private final Object markerGuard = new Object();
 
 
@@ -91,8 +88,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 	@Override
 	protected void onInit() throws Exception{
 		super.onInit();
-		Assert.notNull(this.getTaskScheduler(), 
-				"Unable to locate TaskScheduler. You must inject one explicitly or define a bean by the name 'taskScheduler'.");
 		if (this.metadataStore == null) {
 			// first try to look for a 'metadataStore' in the context
 			BeanFactory beanFactory = this.getBeanFactory();
@@ -128,18 +123,17 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 
 	public Message<?> receive() {   
 		Tweet tweet = this.tweets.poll();
-		if (tweet == null){
+		if (tweet == null) {
 			long currentTime = System.currentTimeMillis();
-			long diff = currentTime - lastPollForTweet;
-			
-			if (diff < 15000){
+			long elapsedTime = currentTime - this.lastPollForTweet;
+			if (elapsedTime < 15000) {
+				// need to wait longer
 				return null;
 			}
-			twitterPoller.run();
+			this.twitterPollingTask.run();
 			tweet = this.tweets.poll();
-			lastPollForTweet = currentTime;
+			this.lastPollForTweet = currentTime;
 		}
-		
 		if (tweet != null) {
 			this.lastProcessedId = tweet.getId();
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));
@@ -171,24 +165,6 @@ abstract class AbstractTwitterMessageSource<T> extends AbstractEndpoint implemen
 	 * The 'sinceId' value will be negative if no last id is known.
 	 */
 	protected abstract List<Tweet> pollForTweets(long sinceId);
-
-
-	// Lifecycle methods
-
-	@Override
-	protected void doStart() {
-		// temporarily injecting Twitter into a trigger so it can deal with Rate Limits.
-		// This will likely change once we switch to Spring Social.
-		RateLimitStatusTrigger trigger = new RateLimitStatusTrigger(this.twitterOperations.getUnderlyingTwitter());
-		this.twitterPollingTask = this.getTaskScheduler().schedule(new TwitterPollingTask(), trigger);
-	}
-
-	@Override
-	protected void doStop() {
-		if (this.twitterPollingTask != null) {
-			this.twitterPollingTask.cancel(true);
-		}
-	}
 
 
 	private class TwitterPollingTask implements Runnable {

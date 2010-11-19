@@ -48,7 +48,6 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 					BASE_PACKAGE + ".core.Twitter4jTemplate");
 			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
 		return builder.getBeanDefinition();
 	}

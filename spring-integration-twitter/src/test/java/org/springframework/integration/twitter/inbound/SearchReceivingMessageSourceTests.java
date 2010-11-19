@@ -56,9 +56,9 @@ public class SearchReceivingMessageSourceTests {
 		adapter.start();
 		ms.setBeanFactory(bf);
 		ms.setQuery("#springintegration");
-		ms.setTaskScheduler(scheduler);
+		//ms.setTaskScheduler(scheduler);
 		ms.afterPropertiesSet();
-		ms.start();
+		//ms.start();
 		System.in.read();
 	}
 
