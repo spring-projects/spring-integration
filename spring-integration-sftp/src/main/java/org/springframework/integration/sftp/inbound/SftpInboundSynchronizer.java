@@ -25,8 +25,8 @@ import org.apache.commons.io.IOUtils;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer;
-import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSychronizer;
+import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.Assert;

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.file.synchronizer.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.synchronization;
+package org.springframework.integration.file.synchronizer;
 
 import java.util.Arrays;
 import java.util.List;
