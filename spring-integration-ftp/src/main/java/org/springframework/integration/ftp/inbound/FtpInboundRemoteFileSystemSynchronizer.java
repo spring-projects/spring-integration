@@ -22,6 +22,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
@@ -40,7 +42,7 @@ import org.springframework.util.Assert;
  */
 public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
 
-	protected volatile FtpClientPool clientPool;
+	private volatile FtpClientPool clientPool;
 
 
 	/**
@@ -57,39 +59,6 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		if (this.shouldDeleteSourceFile) {
 			this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
 		}
-	}
-
-	private boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
-			throws IOException, FileNotFoundException {
-
-		String remoteFileName = ftpFile.getName();
-		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
-		File localFile = new File(localFileName);
-		if (!localFile.exists()) {
-			String tempFileName = localFileName +
-					AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
-			File file = new File(tempFileName);
-			FileOutputStream fos = new FileOutputStream(file);
-			try {
-				client.retrieveFile(remoteFileName, fos);
-				//  Perhaps we have some dispatch of the source file to do?
-				acknowledge(client, ftpFile);
-			}
-			catch (Throwable th) {
-				if (th instanceof RuntimeException){
-					throw (RuntimeException)th;
-				}
-				else {
-					throw new MessagingException("Failed to copy file", th);
-				}
-			}
-			finally {
-				fos.close();
-			}
-			file.renameTo(localFile);
-			return true;
-		}
-		return false;
 	}
 
 	@Override
@@ -117,11 +86,45 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		}
 	}
 
+	private boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
+			throws IOException, FileNotFoundException {
+
+		String remoteFileName = ftpFile.getName();
+		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
+		File localFile = new File(localFileName);
+		if (!localFile.exists()) {
+			String tempFileName = localFileName + AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
+			File file = new File(tempFileName);
+			FileOutputStream fos = new FileOutputStream(file);
+			try {
+				client.retrieveFile(remoteFileName, fos);
+				// Perhaps we have some dispatch of the source file to do?
+				acknowledge(client, ftpFile);
+			}
+			catch (Exception e) {
+				if (e instanceof RuntimeException){
+					throw (RuntimeException) e;
+				}
+				else {
+					throw new MessagingException("Failed to copy file", e);
+				}
+			}
+			finally {
+				fos.close();
+			}
+			file.renameTo(localFile);
+			return true;
+		}
+		return false;
+	}
+
 
 	/**
 	 * An acknowledgment strategy that deletes the file.
 	 */
-	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
+	private static class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
+
+		private final Log logger = LogFactory.getLog(this.getClass());
 
 		public void acknowledge(Object useful, FTPFile fptFile) throws Exception {
 			FTPClient ftpClient = (FTPClient) useful;

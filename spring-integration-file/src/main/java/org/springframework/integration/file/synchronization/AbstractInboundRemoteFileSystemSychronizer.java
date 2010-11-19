@@ -61,20 +61,20 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	protected EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
 
 
-	public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy) {
-		this.entryAcknowledgmentStrategy = entryAcknowledgmentStrategy;
-	}
-
-	public void setShouldDeleteSourceFile(boolean shouldDeleteSourceFile) {
-		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
-	}
-
 	public void setLocalDirectory(Resource localDirectory) {
 		this.localDirectory = localDirectory;
 	}
 
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
+	}
+
+	public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy) {
+		this.entryAcknowledgmentStrategy = entryAcknowledgmentStrategy;
+	}
+
+	public void setShouldDeleteSourceFile(boolean shouldDeleteSourceFile) {
+		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
 	}
 
 	/**
@@ -88,10 +88,10 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	 *            behavior. It's a hook to the file entry after it's been
 	 *            successfully downloaded. Conceptually, you might delete the
 	 *            remote one or rename it, etc.   
-	 * @throws Throwable
+	 * @throws Exception
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
-	protected void acknowledge(Object usefulContextOrClientData, F file) throws Throwable {
+	protected void acknowledge(Object usefulContextOrClientData, F file) throws Exception {
 		if (this.entryAcknowledgmentStrategy != null) {
 			this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
 		}

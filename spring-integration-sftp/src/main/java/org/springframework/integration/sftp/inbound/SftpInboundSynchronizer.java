@@ -47,7 +47,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	 * the path on the remote mount
 	 */
 	private volatile String remotePath;
-	
+
 	private volatile boolean autoCreateDirectories;
 
 	/**
@@ -116,39 +116,6 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		return false;
 	}
 
-	private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir) throws Exception {
-		File fileForLocalDir = localDir.getFile();
-		File localFile = new File(fileForLocalDir, entry.getFilename());
-		if (!localFile.exists()) {
-			InputStream in = null;
-			FileOutputStream fileOutputStream = null;
-			try {
-				File tmpLocalTarget = new File(localFile.getAbsolutePath() +
-						AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
-				fileOutputStream = new FileOutputStream(tmpLocalTarget);
-				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
-				in = sftpSession.getChannel().get(remoteFqPath);
-				try {
-					IOUtils.copy(in, fileOutputStream);
-				}
-				finally {
-					IOUtils.closeQuietly(in);
-					IOUtils.closeQuietly(fileOutputStream);
-				}
-				if (tmpLocalTarget.renameTo(localFile) && this.entryAcknowledgmentStrategy != null) {
-					this.acknowledge(sftpSession, entry);
-				}
-				return true;
-			}
-			catch (Throwable th) {
-				throw new MessagingException("Failure occurred while copying from remote to local directory", th);
-			}
-		}
-		else {
-			return true;
-		}
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void syncRemoteToLocalFileSystem() {
@@ -178,8 +145,47 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		}
 	}
 
+	private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir) throws Exception {
+		File fileForLocalDir = localDir.getFile();
+		File localFile = new File(fileForLocalDir, entry.getFilename());
+		if (!localFile.exists()) {
+			InputStream in = null;
+			FileOutputStream fileOutputStream = null;
+			try {
+				File tmpLocalTarget = new File(localFile.getAbsolutePath() +
+						AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
+				fileOutputStream = new FileOutputStream(tmpLocalTarget);
+				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
+				in = sftpSession.getChannel().get(remoteFqPath);
+				try {
+					IOUtils.copy(in, fileOutputStream);
+				}
+				finally {
+					IOUtils.closeQuietly(in);
+					IOUtils.closeQuietly(fileOutputStream);
+				}
+				if (tmpLocalTarget.renameTo(localFile) && this.entryAcknowledgmentStrategy != null) {
+					this.acknowledge(sftpSession, entry);
+				}
+				return true;
+			}
+			catch (Exception e) {
+				if (e instanceof RuntimeException){
+					throw (RuntimeException) e;
+				}
+				else {
+					throw new MessagingException("Failure occurred while copying from remote to local directory", e);
+				}
+			}
+		}
+		else {
+			return true;
+		}
+	}
+
+
 	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
-	
+
 		public void acknowledge(Object useful, ChannelSftp.LsEntry msg) throws Exception {
 			SftpSession sftpSession = (SftpSession) useful;
 			String remoteFqPath = remotePath + "/" + msg.getFilename();
