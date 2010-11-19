@@ -16,6 +16,8 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.io.InputStream;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,8 +25,6 @@ import java.util.logging.Logger;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
-
-import com.jcraft.jsch.ChannelSftp;
 
 /**
  * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
@@ -107,10 +107,6 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 			this.targetSession = targetSession;
 		}
 
-		public ChannelSftp getChannel() {
-			return targetSession.getChannel();
-		}
-
 		public void connect() {
 			targetSession.connect();
 		}
@@ -122,6 +118,30 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 			else {
 				targetSession.disconnect();
 			}
+		}
+
+		public boolean directoryExists(String path) {
+			return this.targetSession.directoryExists(path);
+		}
+
+		public boolean mkdir(String path) {
+			return this.targetSession.mkdir(path);
+		}
+
+		public boolean rm(String path) {
+			return this.targetSession.rm(path);
+		}
+
+		public <F> Collection<F> ls(String path) {
+			return this.targetSession.ls(path);
+		}
+
+		public InputStream get(String source) {
+			return this.targetSession.get(source);
+		}
+
+		public void put(InputStream inputStream, String destination) {
+			this.targetSession.put(inputStream, destination);
 		}
 	}
 

@@ -32,7 +32,6 @@ import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.SftpATTRS;
 
 /**
  * Handles the synchronization between a remote SFTP directory and a local mount.
@@ -87,22 +86,15 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 	 *         existed.)
 	 */
 	private boolean checkThatRemotePathExists(String remotePath, SftpSession session) {
-		ChannelSftp channelSftp = session.getChannel();
 		try {
-			SftpATTRS attrs = channelSftp.stat(remotePath);
-			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
-			return true;
+			if (session.directoryExists(remotePath)) {
+				return true;
+			}
 		} 
 		catch (Throwable th) {
 			if (this.autoCreateDirectories && (this.sessionFactory != null) && (session != null)) {
 				try {
-					if (channelSftp != null) {
-						channelSftp.mkdir(remotePath);
-
-						if (channelSftp.stat(remotePath).isDir()) {
-							return true;
-						}
-					}
+					return session.mkdir(remotePath);
 				} 
 				catch (RuntimeException re) {
 					throw re;
@@ -126,8 +118,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 			}
 			session.connect();
 			this.checkThatRemotePathExists(remotePath, session);
-			ChannelSftp channelSftp = session.getChannel();
-			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
+			Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
 			Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
@@ -159,7 +150,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 						AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
 				fileOutputStream = new FileOutputStream(tmpLocalTarget);
 				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
-				in = sftpSession.getChannel().get(remoteFqPath);
+				in = sftpSession.get(remoteFqPath);
 				try {
 					IOUtils.copy(in, fileOutputStream);
 				}
@@ -192,7 +183,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		public void acknowledge(Object useful, ChannelSftp.LsEntry msg) throws Exception {
 			SftpSession sftpSession = (SftpSession) useful;
 			String remoteFqPath = remotePath + "/" + msg.getFilename();
-			sftpSession.getChannel().rm(remoteFqPath);
+			sftpSession.rm(remoteFqPath);
 			if (logger.isDebugEnabled()) {
 				logger.debug("deleted " + msg.getFilename());
 			}

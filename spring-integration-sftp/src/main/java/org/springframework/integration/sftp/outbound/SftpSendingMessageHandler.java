@@ -43,8 +43,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
-import com.jcraft.jsch.ChannelSftp;
-
 /**
  * Sends message payloads to a remote SFTP endpoint.
  * Assumes that the payload of the inbound message is of type {@link java.io.File}.
@@ -172,7 +170,6 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 		InputStream fileInputStream = null;
 		try {
 			session.connect();
-			ChannelSftp sftp = session.getChannel();	
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";
 			if (this.directoryExpressionProcesor != null) {
@@ -184,7 +181,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 			if (!StringUtils.endsWithIgnoreCase(baseOfRemotePath, "/")) {
 				baseOfRemotePath += "/";
 			}
-			sftp.put(fileInputStream, baseOfRemotePath + file.getName());
+			session.put(fileInputStream, baseOfRemotePath + file.getName());
 			return true;
 		}
 		finally {

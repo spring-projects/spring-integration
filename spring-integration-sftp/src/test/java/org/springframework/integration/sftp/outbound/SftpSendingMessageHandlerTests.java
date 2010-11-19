@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.outbound;
 
 import static org.mockito.Mockito.atLeast;
@@ -30,43 +31,35 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.integration.sftp.session.SftpSessionFactory;
 
-import com.jcraft.jsch.ChannelSftp;
-
 /**
- * 
  * @author Oleg Zhurakousky
- *
  */
 // there are few validations in this tests, but it is mainly to increase code coverage during CI
-public class SftpSendingMessageHandlerTest {
+public class SftpSendingMessageHandlerTests {
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileNameMessage() throws Exception {
 		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
-		ChannelSftp channel = mock(ChannelSftp.class);
-		when(session.getChannel()).thenReturn(channel);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello"));
-		verify(session, atLeast(1)).getChannel();
 		verify(sessionFactory, times(1)).getSession();
 	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileAsByte() throws Exception {
 		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
-		ChannelSftp channel = mock(ChannelSftp.class);
-		when(session.getChannel()).thenReturn(channel);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
-		verify(session, atLeast(1)).getChannel();
 		verify(sessionFactory, times(1)).getSession();
 	}
 	
@@ -75,18 +68,15 @@ public class SftpSendingMessageHandlerTest {
 	public void testHandleFileMessage() throws Exception {
 		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
 		SftpSession session = mock(SftpSession.class);
-		ChannelSftp channel = mock(ChannelSftp.class);
-		when(session.getChannel()).thenReturn(channel);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
 		
-		
 		File file = File.createTempFile("foo", ".txt");
 		handler.handleMessage(new GenericMessage(file));
-		verify(session, atLeast(1)).getChannel();
 		verify(sessionFactory, atLeast(1)).getSession();
 	}
+
 }

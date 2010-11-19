@@ -16,7 +16,8 @@
 
 package org.springframework.integration.sftp.session;
 
-import com.jcraft.jsch.ChannelSftp;
+import java.io.InputStream;
+import java.util.Collection;
 
 /**
  * There are many ways to create a {@link SftpSession} just as there are many ways to SSH into a remote system.
@@ -27,14 +28,25 @@ import com.jcraft.jsch.ChannelSftp;
  *
  * @author Josh Long
  * @author Mario Gray
+ * @author Mark Fisher
  * @since 2.0
  */
 public interface SftpSession {
 
-	ChannelSftp getChannel();
-
 	void connect();
 
 	void disconnect();
+
+	boolean directoryExists(String path);
+
+	boolean mkdir(String path);
+
+	boolean rm(String path);
+
+	<F> Collection<F> ls(String path);
+
+	InputStream get(String source);
+
+	void put(InputStream inputStream, String destination);
 
 }

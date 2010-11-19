@@ -17,14 +17,18 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.InputStream;
+import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.UserInfo;
 
 /**
@@ -36,6 +40,8 @@ import com.jcraft.jsch.UserInfo;
  * @since 2.0
  */
 public class DefaultSftpSession implements SftpSession {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ChannelSftp channel;
 
@@ -125,6 +131,81 @@ public class DefaultSftpSession implements SftpSession {
 			targetSession.disconnect();
 			if (channel.isConnected()) {
 				channel.disconnect();
+			}
+		}
+	}
+
+	public boolean directoryExists(String path) {
+		try {
+			SftpATTRS attrs = channel.stat(path);
+			return (attrs != null) && attrs.isDir();
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("directoryExists failed", e);
+			}
+			return false;
+		}
+	}
+
+	public boolean mkdir(String path) {
+		try {
+			channel.mkdir(path);
+			return true;
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("mkdir failed", e);
+			}
+			return false;
+		}
+	}
+
+	public boolean rm(String path) {
+		try {
+			channel.rm(path);
+			return true;
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("rm failed", e);
+			}
+			return false;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <F> Collection<F> ls(String path) {
+		try {
+			return channel.ls(path);
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("ls failed", e);
+			}
+			return null;
+		}
+	}
+
+	public InputStream get(String source) {
+		try {
+			return channel.get(source);
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("get failed", e);
+			}
+			return null;
+		}
+	}
+
+	public void put(InputStream inputStream, String destination) {
+		try {
+			channel.put(inputStream, destination);
+		}
+		catch (SftpException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("put failed", e);
 			}
 		}
 	}

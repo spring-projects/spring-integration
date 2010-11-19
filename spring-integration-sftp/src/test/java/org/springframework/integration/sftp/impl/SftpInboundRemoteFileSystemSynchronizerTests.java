@@ -94,7 +94,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		method.setAccessible(true);
 		SftpSession session = mock(SftpSession.class);
 		ChannelSftp channelSftp = mock(ChannelSftp.class);
-		when(session.getChannel()).thenReturn(channelSftp);
 		File originalFile = new File("pom.xml");
 		when(channelSftp.get("null/bar.txt")).thenReturn(new FileInputStream(originalFile));
 		LsEntry entry = mock(LsEntry.class);
