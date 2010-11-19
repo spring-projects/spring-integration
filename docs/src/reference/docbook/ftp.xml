@@ -124,6 +124,36 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
     Once the file has been transferred a Message with <classname>java.io.File</classname> being a payload will be generated and sent to the channel 
     identified with <code>channel</code> attribute.
   	</para>
+  	<para>
+  		<emphasis>File Filtering and Large Files</emphasis>
+  	</para>
+  	<para>
+  	Some times the file that just  appeared in the monitored (remote) directory is not complete. Typically such file 
+  	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished. 
+  	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
+  	To handle these scenarios Spring Integration FTP support allows you to configure custom filters that will filter out only 
+  	the files that you need. The filter is based on <classname>org.springframework.integration.file.filters.FileListFilter</classname> interface. 
+  	We also provide a convenient Regex-based implementation <classname>org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter</classname>.
+	Once configured all you need is include such filter in your adapter via 'filter' attribute.
+	
+	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter 
+			channel="ftpChannel" 
+			client-factory="ftpClientFactory"
+			filter="fileNameFilter"
+			local-working-directory="file:/my_transfers">
+	<int:poller fixed-rate="1000"/>
+</int-ftp:inbound-channel-adapter>
+	
+<bean id="fileNameFilter" 
+	class="org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilt"">
+	<constructor-arg value=".*\.txt$"/>
+</bean>]]></programlisting>
+
+As an added convenience you may also use <code>filename-pattern</code> attribute instead of the explicit filter 
+	configuration where you'll provide the filtering expression (Regex)
+
+<programlisting language="xml"><![CDATA[filename-pattern=".*\.txt$"]]></programlisting>
+  	</para>
   </section>
   
   <section id="ftp-outbound">
