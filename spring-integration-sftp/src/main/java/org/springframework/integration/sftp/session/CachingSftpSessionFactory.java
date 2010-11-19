@@ -24,6 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -35,14 +37,14 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class CachingSftpSessionFactory implements SftpSessionFactory, DisposableBean {
+public class CachingSftpSessionFactory implements SessionFactory, DisposableBean {
 
 	private static Logger logger = Logger.getLogger(CachingSftpSessionFactory.class.getName());
 
 	public static final int DEFAULT_POOL_SIZE = 10;
 
 
-	private final Queue<SftpSession> queue;
+	private final Queue<Session> queue;
 
 	private final SimpleSftpSessionFactory sftpSessionFactory;
 
@@ -58,15 +60,15 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 	public CachingSftpSessionFactory(SimpleSftpSessionFactory sessionFactory, int maxPoolSize) {
 		this.sftpSessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
-		this.queue = new ArrayBlockingQueue<SftpSession>(this.maxPoolSize, true);
+		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
 	}
 
 
-	public SftpSession getSession() {
+	public Session getSession() {
 		Assert.notNull(this.queue, "SftpSession is unavailable since the pool component is not started");
 		this.lock.lock();
 		try {
-			SftpSession session = this.queue.poll();
+			Session session = this.queue.poll();
 			if (null == session) {
 				session = sftpSessionFactory.getSession();
 			}
@@ -80,16 +82,16 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 
 	public void destroy() {
 		if (this.queue != null) {
-			for (SftpSession sftpSession : this.queue) {
-				this.destroySftpSession(sftpSession);
+			for (Session session : this.queue) {
+				this.destroySession(session);
 			}
 		}
 	}
 
-	private void destroySftpSession(SftpSession sftpSession) {
+	private void destroySession(Session session) {
 		try {
-			if (sftpSession != null) {
-				sftpSession.disconnect();
+			if (session != null) {
+				session.disconnect();
 			}	
 		}
 		catch (Throwable e) {
@@ -99,11 +101,11 @@ public class CachingSftpSessionFactory implements SftpSessionFactory, Disposable
 	}
 
 
-	private class PooledSftpSession implements SftpSession {
+	private class PooledSftpSession implements Session {
 
-		private final SftpSession targetSession;
+		private final Session targetSession;
 
-		private PooledSftpSession(SftpSession targetSession) {
+		private PooledSftpSession(Session targetSession) {
 			this.targetSession = targetSession;
 		}
 

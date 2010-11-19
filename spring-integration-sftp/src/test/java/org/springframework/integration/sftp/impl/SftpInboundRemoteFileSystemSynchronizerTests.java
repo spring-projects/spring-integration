@@ -27,10 +27,10 @@ import org.junit.Test;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.synchronizer.AbstractInboundFileSynchronizer.EntryAcknowledgmentStrategy;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
-import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
 import org.springframework.util.ReflectionUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -65,11 +65,11 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 */
 	@Test
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
-		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SftpSessionFactory.class));
+		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
 		Method method = 
-			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);
+			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", Session.class, LsEntry.class, Resource.class);
 		method.setAccessible(true);
-		SftpSession session = mock(SftpSession.class);
+		Session session = mock(Session.class);
 		LsEntry entry = mock(LsEntry.class);
 		when(entry.getFilename()).thenReturn("foo.txt");
 		Resource localDir = new FileSystemResource(new File("target"));
@@ -87,12 +87,12 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@org.junit.Ignore
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {
-		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SftpSessionFactory.class));
+		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
 		synchronizer.setEntryAcknowledgmentStrategy(mock(EntryAcknowledgmentStrategy.class));
 		Method method = 
-			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", SftpSession.class, LsEntry.class, Resource.class);
+			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", Session.class, LsEntry.class, Resource.class);
 		method.setAccessible(true);
-		SftpSession session = mock(SftpSession.class);
+		Session session = mock(Session.class);
 		ChannelSftp channelSftp = mock(ChannelSftp.class);
 		File originalFile = new File("pom.xml");
 		when(channelSftp.get("null/bar.txt")).thenReturn(new FileInputStream(originalFile));

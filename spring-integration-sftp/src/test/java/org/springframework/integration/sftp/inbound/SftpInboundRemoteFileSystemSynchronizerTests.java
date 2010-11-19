@@ -36,8 +36,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -45,7 +45,7 @@ import com.jcraft.jsch.SftpATTRS;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0
  */
 public class SftpInboundRemoteFileSystemSynchronizerTests {
 
@@ -57,7 +57,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		if (file.exists()){
 			file.delete();
 		}
-		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
+		SessionFactory sessionFactory = mock(SessionFactory.class);
 		SftpInboundFileSynchronizer syncronizer = new SftpInboundFileSynchronizer(sessionFactory);
 		syncronizer.setRemotePath("foo/bar");
 		
@@ -66,7 +66,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		syncronizer.setFilter(filter);
 		
 		
-		SftpSession sftpSession = mock(SftpSession.class);
+		Session sftpSession = mock(Session.class);
 		
 		when(sessionFactory.getSession()).thenReturn(sftpSession);
 		final ChannelSftp channel = mock(ChannelSftp.class);

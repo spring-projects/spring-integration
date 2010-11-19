@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.session;
+package org.springframework.integration.file.remote.session;
 
 /**
+ * Factory for acquiring {@link Session} instances.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
-public interface SftpSessionFactory {
+public interface SessionFactory {
 
-	SftpSession getSession();
+	Session getSession();
 
 }

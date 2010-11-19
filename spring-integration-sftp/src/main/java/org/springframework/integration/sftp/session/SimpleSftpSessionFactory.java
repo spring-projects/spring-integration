@@ -17,6 +17,8 @@
 package org.springframework.integration.sftp.session;
 
 import org.springframework.core.io.Resource;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -28,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mario Gray
  * @since 2.0
  */
-public class SimpleSftpSessionFactory implements SftpSessionFactory {
+public class SimpleSftpSessionFactory implements SessionFactory {
 
 	private volatile String host;
 
@@ -73,7 +75,7 @@ public class SimpleSftpSessionFactory implements SftpSessionFactory {
 		this.privateKeyPassphrase = privateKeyPassphrase;
 	}
 
-	public SftpSession getSession() {
+	public Session getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");

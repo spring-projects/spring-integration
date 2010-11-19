@@ -23,10 +23,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.file.remote.session.Session;
+
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.UserInfo;
@@ -39,13 +40,13 @@ import com.jcraft.jsch.UserInfo;
  * @author Mark Fisher
  * @since 2.0
  */
-public class DefaultSftpSession implements SftpSession {
+public class DefaultSftpSession implements Session {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ChannelSftp channel;
 
-	private volatile Session targetSession;
+	private volatile com.jcraft.jsch.Session jschSession;
 
 	private String privateKey;
 
@@ -101,14 +102,14 @@ public class DefaultSftpSession implements SftpSession {
 				jSch.addIdentity(this.privateKey);
 			}
 		}
-		this.targetSession = jSch.getSession(userName, hostName, port);
+		this.jschSession = jSch.getSession(userName, hostName, port);
 		if (!StringUtils.isEmpty(userPassword)) {
-			this.targetSession.setPassword(userPassword);
+			this.jschSession.setPassword(userPassword);
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
-		this.targetSession.setUserInfo(userInfo);
-		this.targetSession.connect();
-		this.channel = (ChannelSftp) this.targetSession.openChannel("sftp");
+		this.jschSession.setUserInfo(userInfo);
+		this.jschSession.connect();
+		this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 	}
 
 	public ChannelSftp getChannel() {
@@ -127,8 +128,8 @@ public class DefaultSftpSession implements SftpSession {
 	}
 
 	public void disconnect() {
-		if (targetSession.isConnected()) {
-			targetSession.disconnect();
+		if (jschSession.isConnected()) {
+			jschSession.disconnect();
 			if (channel.isConnected()) {
 				channel.disconnect();
 			}

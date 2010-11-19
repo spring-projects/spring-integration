@@ -27,9 +27,9 @@ import java.io.File;
 import org.junit.Test;
 
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.sftp.session.SftpSession;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
 
 /**
  * @author Oleg Zhurakousky
@@ -40,8 +40,8 @@ public class SftpSendingMessageHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileNameMessage() throws Exception {
-		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
-		SftpSession session = mock(SftpSession.class);
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
@@ -53,8 +53,8 @@ public class SftpSendingMessageHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileAsByte() throws Exception {
-		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
-		SftpSession session = mock(SftpSession.class);
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
@@ -66,8 +66,8 @@ public class SftpSendingMessageHandlerTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileMessage() throws Exception {
-		SftpSessionFactory sessionFactory = mock(SftpSessionFactory.class);
-		SftpSession session = mock(SftpSession.class);
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
 		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));

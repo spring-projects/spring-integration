@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.sftp.session;
+package org.springframework.integration.file.remote.session;
 
 import java.io.InputStream;
 import java.util.Collection;
 
 /**
- * There are many ways to create a {@link SftpSession} just as there are many ways to SSH into a remote system.
- * You may use a username and password, you may use a username and private key, you may use a username and a private key with a password, etc.
- * <p/>
- * This object represents the connection to the remote server, and to use it you must provide it with all the components you'd normally provide an
- * incantation of the <code>ssh</code> command.
+ * Common abstraction for a Session with a remote File system.
  *
  * @author Josh Long
  * @author Mario Gray
  * @author Mark Fisher
  * @since 2.0
  */
-public interface SftpSession {
+public interface Session {
 
 	void connect();
 
