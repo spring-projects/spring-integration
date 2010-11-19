@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
@@ -25,9 +26,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
  * be used to stop and start polling endpoints, for instance, in a live system.
  * 
  * @author Dave Syer
- * 
  * @since 2.0
- * 
  */
 @ManagedResource
 public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Lifecycle {
@@ -36,68 +35,70 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 
 	private final MessageHandlerMetrics delegate;
 
+
 	public LifecycleMessageHandlerMetrics(Lifecycle lifecycle, MessageHandlerMetrics delegate) {
 		this.lifecycle = lifecycle;
 		this.delegate = delegate;
 	}
 
+
 	@ManagedAttribute
 	public boolean isRunning() {
-		return lifecycle.isRunning();
+		return this.lifecycle.isRunning();
 	}
 
 	@ManagedOperation
 	public void start() {
-		lifecycle.start();
+		this.lifecycle.start();
 	}
 
 	@ManagedOperation
 	public void stop() {
-		lifecycle.stop();
+		this.lifecycle.stop();
 	}
 
 	public void reset() {
-		delegate.reset();
+		this.delegate.reset();
 	}
 
 	public int getErrorCount() {
-		return delegate.getErrorCount();
+		return this.delegate.getErrorCount();
 	}
 
 	public int getHandleCount() {
-		return delegate.getHandleCount();
+		return this.delegate.getHandleCount();
 	}
 
 	public double getMaxDuration() {
-		return delegate.getMaxDuration();
+		return this.delegate.getMaxDuration();
 	}
 
 	public double getMeanDuration() {
-		return delegate.getMeanDuration();
+		return this.delegate.getMeanDuration();
 	}
 
 	public double getMinDuration() {
-		return delegate.getMinDuration();
+		return this.delegate.getMinDuration();
 	}
 
 	public double getStandardDeviationDuration() {
-		return delegate.getStandardDeviationDuration();
+		return this.delegate.getStandardDeviationDuration();
 	}
 
 	public Statistics getDuration() {
-		return delegate.getDuration();
+		return this.delegate.getDuration();
 	}
 
 	public String getName() {
-		return delegate.getName();
+		return this.delegate.getName();
 	}
 
 	public String getSource() {
-		return delegate.getSource();
+		return this.delegate.getSource();
 	}
 
 	public int getActiveCount() {
-		return delegate.getActiveCount();
+		return this.delegate.getActiveCount();
 	}
 
 }

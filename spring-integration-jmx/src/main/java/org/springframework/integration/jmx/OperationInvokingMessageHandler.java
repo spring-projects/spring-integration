@@ -208,7 +208,6 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		return map;
 	}
 
-	
 	@SuppressWarnings("rawtypes")
 	private Map<String, Object> createParameterMapFromList(List parameters) {
 		Map<String, Object> map = new HashMap<String, Object>();

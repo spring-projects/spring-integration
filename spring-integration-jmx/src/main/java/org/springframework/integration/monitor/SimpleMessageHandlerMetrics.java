@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,19 +22,16 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.StopWatch;
 
 /**
  * @author Dave Syer
- * 
  * @since 2.0
- *
  */
 @ManagedResource
 public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHandlerMetrics {
@@ -41,6 +39,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 	private static final Log logger = LogFactory.getLog(SimpleMessageHandlerMetrics.class);
 
 	private static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
+
 
 	private final MessageHandler handler;
 
@@ -50,23 +49,24 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 
 	private final AtomicInteger errorCount = new AtomicInteger();
 
-	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(
-			DEFAULT_MOVING_AVERAGE_WINDOW);
+	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private String name;
+	private volatile String name;
 
-	private String source;
+	private volatile String source;
+
 
 	public SimpleMessageHandlerMetrics(MessageHandler handler) {
 		this.handler = handler;
 	}
+
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setSource(String source) {
@@ -78,7 +78,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 	}
 
 	public MessageHandler getMessageHandler() {
-		return handler;
+		return this.handler;
 	}
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
@@ -91,77 +91,77 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return invocation.proceed();
 	}
 
-	private void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
-			MessageDeliveryException {
+	private void handleMessage(Message<?> message) throws MessagingException {
 		if (logger.isTraceEnabled()) {
-			logger.trace("messageHandler(" + handler + ") message(" + message + ") :");
+			logger.trace("messageHandler(" + this.handler + ") message(" + message + ") :");
 		}
-
 		String name = this.name;
 		if (name == null) {
-			name = handler.toString();
+			name = this.handler.toString();
 		}
 		StopWatch timer = new StopWatch(name + ".handle:execution");
-
 		try {
 			timer.start();
-			handleCount.incrementAndGet();
-			activeCount.incrementAndGet();
+			this.handleCount.incrementAndGet();
+			this.activeCount.incrementAndGet();
 
-			handler.handleMessage(message);
+			this.handler.handleMessage(message);
 
 			timer.stop();
-			duration.append(timer.getTotalTimeMillis());
-		} catch (RuntimeException e) {
-			errorCount.incrementAndGet();
+			this.duration.append(timer.getTotalTimeMillis());
+		}
+		catch (RuntimeException e) {
+			this.errorCount.incrementAndGet();
 			throw e;
-		} catch (Error e) {
-			errorCount.incrementAndGet();
+		}
+		catch (Error e) {
+			this.errorCount.incrementAndGet();
 			throw e;
-		} finally {
-			activeCount.decrementAndGet();
+		}
+		finally {
+			this.activeCount.decrementAndGet();
 		}
 	}
 
 	public synchronized void reset() {
-		duration.reset();
-		errorCount.set(0);
-		handleCount.set(0);
+		this.duration.reset();
+		this.errorCount.set(0);
+		this.handleCount.set(0);
 	}
 
 	public int getHandleCount() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
 		}
-		return handleCount.get();
+		return this.handleCount.get();
 	}
 
 	public int getErrorCount() {
-		return errorCount.get();
+		return this.errorCount.get();
 	}
 
 	public double getMeanDuration() {
-		return duration.getMean();
+		return this.duration.getMean();
 	}
 
 	public double getMinDuration() {
-		return duration.getMin();
+		return this.duration.getMin();
 	}
 
 	public double getMaxDuration() {
-		return duration.getMax();
+		return this.duration.getMax();
 	}
 
 	public double getStandardDeviationDuration() {
-		return duration.getStandardDeviation();
+		return this.duration.getStandardDeviation();
 	}
-	
+
 	public int getActiveCount() {
-		return activeCount.get();
+		return this.activeCount.get();
 	}
-	
+
 	public Statistics getDuration() {
-		return duration.getStatistics();
+		return this.duration.getStatistics();
 	}
 
 	@Override

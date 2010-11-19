@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import org.springframework.context.Lifecycle;
@@ -22,12 +23,10 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * A {@link MessageSourceMetrics} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
- * be used to stop and start polling endpoints, for instance, in a live system.
+ * be used to start and stop polling endpoints, for instance, in a live system.
  * 
  * @author Dave Syer
- * 
  * @since 2.0
- * 
  */
 @ManagedResource
 public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Lifecycle {
@@ -36,37 +35,39 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 
 	private final MessageSourceMetrics delegate;
 
+
 	public LifecycleMessageSourceMetrics(Lifecycle lifecycle, MessageSourceMetrics delegate) {
 		this.lifecycle = lifecycle;
 		this.delegate = delegate;
 	}
 
+
 	@ManagedOperation
 	public void reset() {
-		delegate.reset();
+		this.delegate.reset();
 	}
 
 	@ManagedAttribute
 	public boolean isRunning() {
-		return lifecycle.isRunning();
+		return this.lifecycle.isRunning();
 	}
 
 	@ManagedOperation
 	public void start() {
-		lifecycle.start();
+		this.lifecycle.start();
 	}
 
 	@ManagedOperation
 	public void stop() {
-		lifecycle.stop();
+		this.lifecycle.stop();
 	}
 
 	public String getName() {
-		return delegate.getName();
+		return this.delegate.getName();
 	}
 
 	public String getSource() {
-		return delegate.getSource();
+		return this.delegate.getSource();
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 	 * @see org.springframework.integration.monitor.MessageSourceMetrics#getMessageCount()
 	 */
 	public int getMessageCount() {
-		return delegate.getMessageCount();
+		return this.delegate.getMessageCount();
 	}
 
 }

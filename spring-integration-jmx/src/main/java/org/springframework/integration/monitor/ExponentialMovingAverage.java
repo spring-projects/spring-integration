@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 /**
@@ -21,7 +22,7 @@ package org.springframework.integration.monitor;
  * those trends can be approximately reflected.
  * 
  * @author Dave Syer
- * 
+ * @since 2.0
  */
 public class ExponentialMovingAverage {
 
@@ -39,6 +40,7 @@ public class ExponentialMovingAverage {
 
 	private final double decay;
 
+
 	/**
 	 * Create a moving average accumulator with decay lapse window provided. Measurements older than this will have
 	 * smaller weight than <code>1/e</code>.
@@ -48,6 +50,7 @@ public class ExponentialMovingAverage {
 	public ExponentialMovingAverage(int window) {
 		this.decay = 1 - 1. / window;
 	}
+
 
 	public synchronized void reset() {
 		weight = 0;
@@ -64,10 +67,12 @@ public class ExponentialMovingAverage {
 	 * @param value the measurement to append
 	 */
 	public synchronized void append(double value) {
-		if (value > max || count == 0)
+		if (value > max || count == 0) {
 			max = value;
-		if (value < min || count == 0)
+		}
+		if (value < min || count == 0) {
 			min = value;
+		}
 		sum = decay * sum + value;
 		sumSquares = decay * sumSquares + value * value;
 		weight = decay * weight + 1;

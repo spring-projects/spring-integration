@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import java.lang.reflect.Field;
@@ -82,12 +83,13 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  */
 @ManagedResource
-public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
-		BeanClassLoaderAware, SmartLifecycle {
+public class IntegrationMBeanExporter extends MBeanExporter
+		implements BeanPostProcessor, BeanFactoryAware, BeanClassLoaderAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
+
 
 	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
 
@@ -123,6 +125,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final Map<String, String> objectNameStaticProperties = new HashMap<String, String>();
 
+
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -130,6 +133,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		setNamingStrategy(new MetadataNamingStrategy(attributeSource));
 		setAssembler(new MetadataMBeanInfoAssembler(attributeSource));
 	}
+
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -163,7 +167,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-
 		if (bean instanceof Advised) {
 			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
 				Advice advice = advisor.getAdvice();
@@ -194,19 +197,19 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
 					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
-				} else {
+				}
+				else {
 					monitor = new PollableChannelMetrics(beanName);
 				}
-			} else {
+			}
+			else {
 				monitor = new DirectChannelMetrics(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
 			return advised;
 		}
-
 		return bean;
-
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -215,7 +218,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	@Override
 	protected void registerBeans() {
-		// Completely disable sup class registration to avoid duplicates
+		// Completely disable super class registration to avoid duplicates
 	}
 
 	public final boolean isAutoStartup() {
@@ -230,7 +233,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -245,7 +249,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("started " + this);
 				}
 			}
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -260,7 +265,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("stopped " + this);
 				}
 			}
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -270,7 +276,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		try {
 			this.stop();
 			callback.run();
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -450,7 +457,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.error("Could not extract target", e);
 			return null;
 		}
@@ -462,7 +470,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(advisor);
 				return bean;
-			} else {
+			}
+			else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
 				return proxyFactory.getProxy(beanClassLoader);
@@ -522,7 +531,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "handler"));
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				logger.trace("Could not get handler from bean = " + beanName);
 			}
 			if (field == monitor.getMessageHandler()) {
@@ -541,7 +551,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
@@ -659,7 +670,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		monitor.setName(name);
 
 		return result;
-
 	}
 
 	private static Object getField(Object target, String name) {

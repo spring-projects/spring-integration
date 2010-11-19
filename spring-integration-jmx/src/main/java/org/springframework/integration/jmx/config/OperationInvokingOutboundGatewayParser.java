@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jmx.config;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -33,10 +35,9 @@ public class OperationInvokingOutboundGatewayParser extends AbstractConsumerEndp
 	}
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element,
-			ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
-							"org.springframework.integration.jmx.OperationInvokingMessageHandler");
+				"org.springframework.integration.jmx.OperationInvokingMessageHandler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "operation-name");

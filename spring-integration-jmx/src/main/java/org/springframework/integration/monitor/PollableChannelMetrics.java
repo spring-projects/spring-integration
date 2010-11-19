@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -25,9 +27,7 @@ import org.springframework.jmx.support.MetricType;
 
 /**
  * @author Dave Syer
- * 
  * @since 2.0
- * 
  */
 public class PollableChannelMetrics extends DirectChannelMetrics {
 
@@ -35,12 +35,14 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 
 	private final AtomicInteger receiveErrorCount = new AtomicInteger();
 
+
 	/**
 	 * @param name
 	 */
 	public PollableChannelMetrics(String name) {
 		super(name);
 	}
+
 
 	@Override
 	protected Object doInvoke(MethodInvocation invocation, String method, MessageChannel channel) throws Throwable {
@@ -56,14 +58,13 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 		}
 		try {
 			Object object = invocation.proceed();
-			if (object!=null) {
-				receiveCount.incrementAndGet();
+			if (object != null) {
+				this.receiveCount.incrementAndGet();
 			}
 			return object;
-
 		}
 		catch (Throwable e) {
-			receiveErrorCount.incrementAndGet();
+			this.receiveErrorCount.incrementAndGet();
 			throw e;
 		}
 	}
@@ -71,24 +72,24 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 	@ManagedOperation
 	public synchronized void reset() {
 		super.reset();
-		receiveErrorCount.set(0);
-		receiveCount.set(0);
+		this.receiveErrorCount.set(0);
+		this.receiveCount.set(0);
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Count")
 	public int getReceiveCount() {
-		return receiveCount.get();
+		return this.receiveCount.get();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Error Count")
 	public int getReceiveErrorCount() {
-		return receiveErrorCount.get();
+		return this.receiveErrorCount.get();
 	}
 
 	@Override
 	public String toString() {
-		return String.format("MessageChannelMonitor: [name=%s, sends=%d, receives=%d]", getName(), getSendCount(),
-				receiveCount.get());
+		return String.format("MessageChannelMonitor: [name=%s, sends=%d, receives=%d]",
+				getName(), getSendCount(), this.receiveCount.get());
 	}
 
 }

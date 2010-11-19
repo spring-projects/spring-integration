@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -21,7 +22,6 @@ import org.springframework.jmx.support.MetricType;
 
 /**
  * @author Dave Syer
- *
  * @since 2.0
  */
 public interface MessageHandlerMetrics {
@@ -42,7 +42,7 @@ public interface MessageHandlerMetrics {
 	int getErrorCount();
 
 	/**
-	 * @return the maximum handler duration (milliseconds)
+	 * @return the mean handler duration (milliseconds)
 	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration in Milliseconds")
 	double getMeanDuration();
@@ -54,11 +54,14 @@ public interface MessageHandlerMetrics {
 	double getMinDuration();
 
 	/**
-	 * @return the standard deviation handler duration (milliseconds)
+	 * @return the maximum handler duration (milliseconds)
 	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration in Milliseconds")
 	double getMaxDuration();
 
+	/**
+	 * @return the standard deviation handler duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration in Milliseconds")
 	double getStandardDeviationDuration();
 	

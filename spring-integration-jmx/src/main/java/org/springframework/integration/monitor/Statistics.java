@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 /**
  * @author Dave Syer
- * 
  * @since 2.0
- *
  */
 public class Statistics {
-	
+
 	private final int count;
+
 	private final double min;
+
 	private final double max;
+
 	private final double mean;
+
 	private final double standardDeviation;
 
-	/**
-	 * 
-	 */
+
 	public Statistics(int count, double min, double max, double mean, double standardDeviation) {
 		this.count = count;
 		this.min = min;
@@ -39,6 +40,7 @@ public class Statistics {
 		this.mean = mean;
 		this.standardDeviation = standardDeviation;
 	}
+
 
 	public int getCount() {
 		return count;
@@ -62,8 +64,8 @@ public class Statistics {
 
 	@Override
 	public String toString() {
-		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", count, min, max, getMean(),
-				getStandardDeviation());
+		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]",
+				count, min, max, getMean(), getStandardDeviation());
 	}
 
 }

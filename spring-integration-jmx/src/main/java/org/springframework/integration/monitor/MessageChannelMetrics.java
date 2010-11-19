@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -24,9 +25,7 @@ import org.springframework.jmx.support.MetricType;
  * channel types.
  * 
  * @author Dave Syer
- * 
  * @since 2.0
- * 
  */
 public interface MessageChannelMetrics {
 

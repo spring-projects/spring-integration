@@ -21,7 +21,6 @@ import org.springframework.integration.core.MessageSource;
 
 /**
  * @author Dave Syer
- *
  * @since 2.0
  */
 public class SimpleMessageSourceMetrics implements MethodInterceptor, MessageSourceMetrics {
@@ -30,21 +29,22 @@ public class SimpleMessageSourceMetrics implements MethodInterceptor, MessageSou
 
 	private final MessageSource<?> messageSource;
 
-	private String source;
+	private volatile String source;
 
-	private String name;
+	private volatile String name;
+
 
 	public SimpleMessageSourceMetrics(MessageSource<?> messageSource) {
 		this.messageSource = messageSource;	
 	}
-	
+
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setSource(String source) {
@@ -56,22 +56,22 @@ public class SimpleMessageSourceMetrics implements MethodInterceptor, MessageSou
 	}
 
 	public MessageSource<?> getMessageSource() {
-		return messageSource;
+		return this.messageSource;
 	}
 
 	public void reset() {
-		messageCount.set(0);
+		this.messageCount.set(0);
 	}
 
 	public int getMessageCount() {
-		return messageCount.get();
+		return this.messageCount.get();
 	}
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		String method = invocation.getMethod().getName();
 		Object result = invocation.proceed();
 		if ("receive".equals(method) && result!=null) {
-			messageCount.incrementAndGet();
+			this.messageCount.incrementAndGet();
 		}
 		return result;
 	}

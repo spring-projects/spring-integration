@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 /**
@@ -24,7 +25,7 @@ package org.springframework.integration.monitor;
  * the lapse window and <code>i</code> is the sequence number of the measurement.</li>
  * 
  * @author Dave Syer
- * 
+ * @since 2.0
  */
 public class ExponentialMovingAverageRatio {
 
@@ -38,6 +39,7 @@ public class ExponentialMovingAverageRatio {
 
 	private final ExponentialMovingAverage cumulative;
 
+
 	/**
 	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
 	 * @param window the exponential lapse window (number of measurements)
@@ -46,6 +48,7 @@ public class ExponentialMovingAverageRatio {
 		this.cumulative = new ExponentialMovingAverage(window);
 		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to millisecs
 	}
+
 
 	/**
 	 * Add a new event with successful outcome.
@@ -69,14 +72,12 @@ public class ExponentialMovingAverageRatio {
 	}
 
 	private synchronized void append(int value) {
-
 		long t = System.currentTimeMillis();
 		double alpha = Math.exp((t0 - t) * lapse);
 		t0 = t;
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
 		cumulative.append(sum / weight);
-
 	}
 
 	/**

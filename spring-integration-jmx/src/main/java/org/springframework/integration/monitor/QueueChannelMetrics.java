@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import org.springframework.integration.channel.QueueChannel;
@@ -21,21 +22,22 @@ import org.springframework.jmx.support.MetricType;
 
 /**
  * @author Dave Syer
- * 
  * @since 2.0
- * 
  */
 public class QueueChannelMetrics extends PollableChannelMetrics {
 
 	private final QueueChannel channel;
 
+
 	/**
+	 * @param channel
 	 * @param name
 	 */
 	public QueueChannelMetrics(QueueChannel channel, String name) {
 		super(name);
 		this.channel = channel;
 	}
+
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "QueueChannel Queue Size")
 	public int getQueueSize() {

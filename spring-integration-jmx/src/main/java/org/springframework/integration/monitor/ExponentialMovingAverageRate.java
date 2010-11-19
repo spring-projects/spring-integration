@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 /**
@@ -46,6 +47,7 @@ public class ExponentialMovingAverageRate {
 
 	private final double period;
 
+
 	/**
 	 * @param period the period to base the rate measurement (in seconds)
 	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
@@ -53,9 +55,10 @@ public class ExponentialMovingAverageRate {
 	 */
 	public ExponentialMovingAverageRate(double period, double lapsePeriod, int window) {
 		rates = new ExponentialMovingAverage(10);
-		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to millisecs
-		this.period = period * 1000; // convert to millisecs
+		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to milliseconds
+		this.period = period * 1000; // convert to milliseconds
 	}
+
 
 	public synchronized void reset() {
 		min = 0;
@@ -70,7 +73,6 @@ public class ExponentialMovingAverageRate {
 	 * Add a new event to the series.
 	 */
 	public synchronized void increment() {
-
 		long t = System.currentTimeMillis();
 		double value = t > t0 ? (t - t0) / period : 0;
 		if (value > max || getCount() == 0) {
@@ -84,7 +86,6 @@ public class ExponentialMovingAverageRate {
 		sum = alpha * sum + value;
 		weight = alpha * weight + 1;
 		rates.append(sum > 0 ? weight / sum : 0);
-
 	}
 
 	/**

@@ -104,8 +104,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	@Override
 	public String getComponentType() {
-		// TODO: provide header: ("transport", "jmx");
-		return "notification-listener";
+		return "jmx:notification-listening-channel-adapter";
 	}
 
 	/**

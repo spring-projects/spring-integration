@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.monitor;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +19,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -29,6 +31,7 @@ import org.springframework.util.StopWatch;
  * 
  * @author Dave Syer
  * @author Helena Edelson
+ * @since 2.0
  */
 @ManagedResource
 public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMetrics {
@@ -40,6 +43,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	public static final long ONE_MINUTE_SECONDS = 60;
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
+
 
 	private ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
 			DEFAULT_MOVING_AVERAGE_WINDOW);
@@ -59,9 +63,11 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 
 	private final String name;
 
+
 	public DirectChannelMetrics(String name) {
 		this.name = name;
 	}
+
 
 	public void destroy() {
 		if (logger.isDebugEnabled()) {
@@ -87,15 +93,11 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		return invocation.proceed();
 	}
 
-	private Object monitorSend(MethodInvocation invocation, MessageChannel channel, Message<?> message)
-			throws Throwable {
-
+	private Object monitorSend(MethodInvocation invocation, MessageChannel channel, Message<?> message) throws Throwable {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Recording send on channel(" + channel + ") : message(" + message + ")");
 		}
-
 		final StopWatch timer = new StopWatch(channel + ".send:execution");
-
 		try {
 			timer.start();
 
@@ -108,13 +110,13 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 			if ((Boolean)result) {
 				sendSuccessRatio.success();
 				sendDuration.append(timer.getTotalTimeMillis());
-			} else {
+			}
+			else {
 				sendSuccessRatio.failure();
 				sendErrorCount.incrementAndGet();
 				sendErrorRate.increment();
 			}
 			return result;
-
 		}
 		catch (Throwable e) {
 			sendSuccessRatio.failure();

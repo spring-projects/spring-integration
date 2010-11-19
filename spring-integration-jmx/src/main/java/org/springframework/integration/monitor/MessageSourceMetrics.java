@@ -19,7 +19,6 @@ import org.springframework.jmx.support.MetricType;
 
 /**
  * @author Dave Syer
- *
  * @since 2.0
  */
 public interface MessageSourceMetrics {
