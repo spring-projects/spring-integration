@@ -186,7 +186,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler{
 					}
 				}
 				if (session != null) {
-					session.disconnect();
+					session.close();
 				}
 			}
 			if (!sentSuccesfully) {

@@ -29,10 +29,6 @@ import java.util.Collection;
  */
 public interface Session {
 
-	void connect();
-
-	void disconnect();
-
 	boolean rm(String path);
 
 	<F> Collection<F> ls(String path);
@@ -40,5 +36,7 @@ public interface Session {
 	InputStream get(String source);
 
 	void put(InputStream inputStream, String destination);
+
+	void close();
 
 }

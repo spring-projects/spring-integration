@@ -86,7 +86,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 				}
 			}
 			finally {
-				session.disconnect();
+				session.close();
 			}
 		}
 		catch (IOException e) {

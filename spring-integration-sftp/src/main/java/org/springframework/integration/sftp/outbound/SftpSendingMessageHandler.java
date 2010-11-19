@@ -169,7 +169,6 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 		}
 		InputStream fileInputStream = null;
 		try {
-			session.connect();
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";
 			if (this.directoryExpressionProcesor != null) {
@@ -186,7 +185,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 		}
 		finally {
 			IOUtils.closeQuietly(fileInputStream);
-			session.disconnect();
+			session.close();
 		}
 	}
 

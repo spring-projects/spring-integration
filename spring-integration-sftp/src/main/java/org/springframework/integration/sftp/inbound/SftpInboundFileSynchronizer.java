@@ -77,7 +77,6 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 			if (logger.isTraceEnabled()) {
 				logger.trace("Pooled SftpSession " + session + " from the pool");
 			}
-			session.connect();
 			Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
 			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
@@ -92,7 +91,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 			throw new MessagingException("couldn't synchronize remote to local directory", e);
 		}
 		finally {
-			session.disconnect();
+			session.close();
 			if (logger.isTraceEnabled()) {
 				logger.trace("Putting SftpSession " + session + " back into the pool");
 			}

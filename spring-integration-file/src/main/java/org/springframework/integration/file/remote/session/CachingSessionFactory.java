@@ -82,15 +82,15 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	public void destroy() {
 		if (this.queue != null) {
 			for (Session session : this.queue) {
-				this.destroySession(session);
+				this.closeSession(session);
 			}
 		}
 	}
 
-	private void destroySession(Session session) {
+	private void closeSession(Session session) {
 		try {
 			if (session != null) {
-				session.disconnect();
+				session.close();
 			}	
 		}
 		catch (Throwable e) {
@@ -108,16 +108,12 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			this.targetSession = targetSession;
 		}
 
-		public void connect() {
-			targetSession.connect();
-		}
-
-		public void disconnect() {
+		public void close() {
 			if (queue.size() < maxPoolSize) {
 				queue.add(targetSession);
 			}
 			else {
-				targetSession.disconnect();
+				targetSession.close();
 			}
 		}
 

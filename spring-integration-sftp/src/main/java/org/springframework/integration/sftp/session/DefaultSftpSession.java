@@ -29,7 +29,6 @@ import org.springframework.integration.file.remote.session.Session;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.UserInfo;
 
@@ -109,44 +108,24 @@ public class DefaultSftpSession implements Session {
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
 		this.jschSession.setUserInfo(userInfo);
-		this.jschSession.connect();
 		this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 	}
 
-	public ChannelSftp getChannel() {
-		return channel;
-	}
-
-	public void connect() {
-		if (!channel.isConnected()) {
-			try {
-				channel.connect();
-			}
-			catch (JSchException e) {
-				throw new IllegalStateException("failed to connect", e);
-			}
+	void connect() {
+		try {
+			this.jschSession.connect();
+		}
+		catch (JSchException e) {
+			throw new IllegalStateException("failed to connect", e);
 		}
 	}
 
-	public void disconnect() {
+	public void close() {
 		if (jschSession.isConnected()) {
 			jschSession.disconnect();
 			if (channel.isConnected()) {
 				channel.disconnect();
 			}
-		}
-	}
-
-	public boolean exists(String path) {
-		try {
-			SftpATTRS attrs = channel.stat(path);
-			return (attrs != null) && attrs.isDir();
-		}
-		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("directoryExists failed", e);
-			}
-			return false;
 		}
 	}
 

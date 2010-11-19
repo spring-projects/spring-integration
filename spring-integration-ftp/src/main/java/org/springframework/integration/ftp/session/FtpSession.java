@@ -49,24 +49,6 @@ public class FtpSession implements Session {
 	}
 
 
-	public void connect() {
-	}
-
-	public void disconnect() {
-		try {
-			this.client.disconnect();
-		}
-		catch (IOException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to disconnect FTPClient", e);
-			}
-		}
-	}
-
-	public boolean exists(String path) {
-		return false;
-	}
-
 	public boolean rm(String path) {
 		try {
 			this.client.deleteFile(path);
@@ -134,6 +116,17 @@ public class FtpSession implements Session {
 					throw new IllegalStateException("failed to change working directories ", ioex);
 				}	
 			}	
+		}
+	}
+
+	public void close() {
+		try {
+			this.client.disconnect();
+		}
+		catch (IOException e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("failed to disconnect FTPClient", e);
+			}
 		}
 	}
 
