@@ -8,21 +8,21 @@
 		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
 
-	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
+	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SimpleSftpSessionFactory">
 		<property name="host" value="localhost"/>
-		<property name="privateKey" value="file:/Users/ozhurakousky/.ssh/sftp_rsa"/>
-		<property name="privateKeyPassphrase" value="xxxx"/>
+		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
+		<property name="privateKeyPassphrase" value="springintegration"/>
 		<property name="port" value="22"/>
 		<property name="user" value="ozhurakousky"/>
 	</bean>
 	
-	<int:channel id="inputChannel"/>
+	<int:channel id="ftpChannel"/>
 	
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
-				channel="inputChannel"
+				channel="ftpChannel"
 				charset="UTF-8"
-				remote-file-generator-expression="payload.getName() + '_foo'"
-				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"/>
+				remote-filename-generator-expression="payload.getName() + '-foo'"
+				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-target-dir"/>
 			
 </beans>

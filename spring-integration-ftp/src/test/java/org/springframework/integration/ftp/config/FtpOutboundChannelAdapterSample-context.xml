@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
+
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+		<property name="host" value="localhost"/>
+		<property name="username" value="ozhurakousky"/>
+		<property name="password" value="seva@1994"/>
+		<property name="remoteWorkingDirectory" value="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-target-dir"/>
+	</bean>
+	
+	<int:channel id="ftpChannel"/>
+
+	<int-ftp:outbound-channel-adapter 
+				client-factory="ftpClientFactory" 
+				channel="ftpChannel"/>
+	
+	
+	
+</beans>
