@@ -26,7 +26,7 @@ import org.springframework.context.Lifecycle;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public interface SftpSessionPool extends Lifecycle{
+public interface SftpSessionPool extends SftpSessionFactory, Lifecycle {
 
 	/**
 	 * Returns a session that can be used to connect to an sftp instance and perform operations
@@ -34,7 +34,7 @@ public interface SftpSessionPool extends Lifecycle{
 	 * @return the session from the pool ready to be connected to.
 	 * @throws Exception if any fault occurs when trying to connect to the remote server
 	 */
-	SftpSession getSession() throws Exception;
+	SftpSession getSession();
 
 	/**
 	 * Releases the session.
@@ -42,5 +42,5 @@ public interface SftpSessionPool extends Lifecycle{
 	 * @param session the session to relinquish / renew
 	 */
 	void release(SftpSession session);
-	
+
 }

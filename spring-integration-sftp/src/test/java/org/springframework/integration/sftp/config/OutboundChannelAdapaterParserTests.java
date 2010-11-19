@@ -31,7 +31,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.QueuedSftpSessionPool;
-import org.springframework.integration.sftp.session.SftpSessionFactory;
+import org.springframework.integration.sftp.session.SimpleSftpSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -57,7 +57,7 @@ public class OutboundChannelAdapaterParserTests {
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
 		QueuedSftpSessionPool clientPoll = (QueuedSftpSessionPool) TestUtils.getPropertyValue(handler, "sessionPool");
-		SftpSessionFactory clientFactory = (SftpSessionFactory) TestUtils.getPropertyValue(clientPoll, "sftpSessionFactory");
+		SimpleSftpSessionFactory clientFactory = (SimpleSftpSessionFactory) TestUtils.getPropertyValue(clientPoll, "sftpSessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
 	}

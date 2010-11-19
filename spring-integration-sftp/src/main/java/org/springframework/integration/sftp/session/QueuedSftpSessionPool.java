@@ -45,7 +45,7 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 
 	private volatile Queue<SftpSession> queue;
 
-	private final SftpSessionFactory sftpSessionFactory;
+	private final SimpleSftpSessionFactory sftpSessionFactory;
 
 	private final int maxPoolSize;
 	
@@ -58,11 +58,11 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 	private final ReentrantLock lock = new ReentrantLock();
 
 
-	public QueuedSftpSessionPool(SftpSessionFactory factory) {
+	public QueuedSftpSessionPool(SimpleSftpSessionFactory factory) {
 		this(DEFAULT_POOL_SIZE, factory);
 	}
 
-	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
+	public QueuedSftpSessionPool(int maxPoolSize, SimpleSftpSessionFactory sessionFactory) {
 		this.sftpSessionFactory = sessionFactory;
 		this.maxPoolSize = maxPoolSize;
 	}
@@ -76,7 +76,7 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 		this.phase = phase;
 	}
 
-	public SftpSession getSession() throws Exception {
+	public SftpSession getSession() {
 		Assert.notNull(this.queue, "SftpSession is unavailable since the pool component is not started");
 		this.lock.lock();
 		try {

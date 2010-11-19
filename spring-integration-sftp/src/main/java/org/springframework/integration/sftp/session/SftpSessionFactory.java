@@ -16,74 +16,12 @@
 
 package org.springframework.integration.sftp.session;
 
-import org.springframework.core.io.Resource;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-
 /**
- * Factory for creating {@link SftpSession} instances. There are lots of ways to construct a
- * {@link SftpSession} instance, and not all of them are obvious. This factory should help.
- *
- * @author Josh Long
- * @author Mario Gray
+ * @author Mark Fisher
  * @since 2.0
  */
-public class SftpSessionFactory {
+public interface SftpSessionFactory {
 
-	private volatile String host;
-
-	private volatile int port = 22; // the default
-
-	private volatile String user;
-
-	private volatile String password;
-
-	private volatile String knownHosts;
-
-	private volatile Resource privateKey;
-
-	private volatile String privateKeyPassphrase;
-
-
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	public void setUser(String user) {
-		this.user = user;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public void setKnownHosts(String knownHosts) {
-		this.knownHosts = knownHosts;
-	}
-
-	public void setPrivateKey(Resource privateKey) {
-		this.privateKey = privateKey;
-	}
-
-	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
-		this.privateKeyPassphrase = privateKeyPassphrase;
-	}
-
-	protected SftpSession getSession() throws Exception {
-		Assert.hasText(this.host, "host must not be empty");
-		Assert.hasText(this.user, "user must not be empty");
-		Assert.isTrue(this.port >= 0, "port must be a positive number");
-		Assert.isTrue(StringUtils.hasText(this.password) || privateKey != null || StringUtils.hasText(this.privateKeyPassphrase),
-				"either a password or a private key and/or a private key passphrase is required");
-		String privateKeyToPass = null;
-		if (privateKey != null){
-			privateKeyToPass = privateKey.getFile().getAbsolutePath();
-		}
-		return new SftpSession(this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
-	}
+	SftpSession getSession();
 
 }
