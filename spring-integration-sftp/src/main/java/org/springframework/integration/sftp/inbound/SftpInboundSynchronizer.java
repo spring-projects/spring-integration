@@ -123,7 +123,7 @@ public class SftpInboundSynchronizer extends AbstractInboundRemoteFileSystemSych
 		try {
 			session = sessionPool.getSession();
 			logger.trace("Pooled SftpSession " + this.sessionPool + " from the pool");
-			session.start();
+			session.connect();
 			this.checkThatRemotePathExists(remotePath, session);
 			ChannelSftp channelSftp = session.getChannel();
 			Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);

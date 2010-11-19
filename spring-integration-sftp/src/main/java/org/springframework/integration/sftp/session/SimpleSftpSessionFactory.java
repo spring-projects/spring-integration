@@ -84,7 +84,7 @@ public class SimpleSftpSessionFactory implements SftpSessionFactory {
 			if (privateKey != null){
 				privateKeyToPass = privateKey.getFile().getAbsolutePath();
 			}
-			return new SftpSession(this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
+			return new DefaultSftpSession(this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to create SFTP Session", e);

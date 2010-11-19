@@ -171,7 +171,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 		}
 		InputStream fileInputStream = null;
 		try {
-			session.start();
+			session.connect();
 			ChannelSftp sftp = session.getChannel();	
 			fileInputStream = new FileInputStream(file);
 			String baseOfRemotePath = "";

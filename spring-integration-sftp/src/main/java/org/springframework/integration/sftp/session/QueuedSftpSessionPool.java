@@ -25,7 +25,6 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.util.Assert;
 
 import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.Session;
 
 /**
  * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
@@ -120,10 +119,7 @@ public class QueuedSftpSessionPool implements SftpSessionPool, SmartLifecycle {
 				if (channel.isConnected()) {
 					channel.disconnect();
 				}
-				Session session = sftpSession.getSession();
-				if (session.isConnected()) {
-					session.disconnect();
-				}
+				sftpSession.disconnect();
 			}	
 		}
 		catch (Throwable e) {
