@@ -808,7 +808,7 @@
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If a synchronous Exception is thrown by a downstream 
+              <entry>If an Exception is thrown by a downstream 
                      component, the MessagingException message containing the exception 
                      and failed message is sent to this channel.</entry>
             </row>
@@ -964,7 +964,7 @@
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If a synchronous Exception is thrown by a downstream 
+              <entry>If an Exception is thrown by a downstream 
                      component, the MessagingException message containing the exception 
                      and failed message is sent to this channel.</entry>
             </row>
@@ -1043,7 +1043,7 @@
             <row>
               <entry>error-channel</entry>
               <entry></entry>
-              <entry>If a synchronous Exception is thrown by a downstream 
+              <entry>If an Exception is thrown by a downstream 
                      component, the MessagingException message containing the exception 
                      and failed message is sent to this channel;
                      any reply from that flow will then be returned as a response by

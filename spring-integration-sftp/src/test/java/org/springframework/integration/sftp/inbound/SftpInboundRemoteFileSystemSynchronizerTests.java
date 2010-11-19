@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,11 +24,13 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Vector;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -47,7 +50,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Test
-	@Ignore
 	public void testCopyFileToLocalDir() throws Exception {
 		File file = new File(System.getProperty("java.io.tmpdir") + "/foo.txt");
 		if (file.exists()){
@@ -65,7 +67,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		SftpSession sftpSession = mock(SftpSession.class);
 		
 		when(sessionFactory.getSession()).thenReturn(sftpSession);
-		ChannelSftp channel = mock(ChannelSftp.class);
+		final ChannelSftp channel = mock(ChannelSftp.class);
 		when(channel.get((String) Mockito.any())).thenReturn(new FileInputStream(new File("template.mf")));
 		Vector<LsEntry> entries = new Vector<ChannelSftp.LsEntry>();
 		LsEntry entry = mock(LsEntry.class);
@@ -77,14 +79,24 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		entries.add(entry);
 		when(channel.ls("foo/bar")).thenReturn(entries);
 		when(filter.filterFiles((Object[]) Mockito.any())).thenReturn(entries);
+		
+		when(sftpSession.get(Mockito.anyString())).thenAnswer(new Answer<InputStream>() {
+			public InputStream answer(InvocationOnMock invocation)
+					throws Throwable {
+				String filePath = (String) invocation.getArguments()[0];
+				return channel.get(filePath);
+			}
+		});
 
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
 		
 		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
-		syncronizer.syncRemoteToLocalFileSystem(localDirectory);
+		syncronizer.synchronizeToLocalDirectory(localDirectory);
 		
 		verify(sessionFactory, times(1)).getSession();
+		verify(attr, atLeast(1)).isDir();
 		// will add more validation, but for now this test is mainly to get the test coverage up
 	}
+
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.synchronization;
+package org.springframework.integration.file.synchronizer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
 
 /**
@@ -36,7 +35,7 @@ import org.springframework.integration.file.filters.FileListFilter;
  * 
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements InitializingBean {
+public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -93,11 +92,6 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<F> implements I
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
-
-	/**
-	 * This is the callback where the subclasses must synchronize.
-	 */
-	protected abstract void syncRemoteToLocalFileSystem(Resource localDirectory);
 
 
 	/**
