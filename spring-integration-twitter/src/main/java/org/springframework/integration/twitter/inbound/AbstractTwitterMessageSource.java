@@ -70,7 +70,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private final TweetComparator tweetComparator = new TweetComparator();
 
-	private final Object markerGuard = new Object();
+	private final Object lastEnqueuedIdMonitor = new Object();
 
 
 	public AbstractTwitterMessageSource(TwitterOperations twitterOperations) {
@@ -148,11 +148,11 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	}
 
 	private void enqueue(Tweet tweet) {
-		synchronized (this.markerGuard) {
+		synchronized (this.lastEnqueuedIdMonitor) {
 			long id = tweet.getId();
 			if (id > this.lastEnqueuedId) {
-				this.lastEnqueuedId = id;
 				this.tweets.add(tweet);
+				this.lastEnqueuedId = id;
 			}
 		}
 	}

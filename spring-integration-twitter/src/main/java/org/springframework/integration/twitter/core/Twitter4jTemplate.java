@@ -204,7 +204,7 @@ public class Twitter4jTemplate implements TwitterOperations {
 			if (result != null) {
 				List<twitter4j.Tweet> t4jTweets = result.getTweets();
 				List<Tweet> tweets = this.buildTweetsFromTwitterResponses(t4jTweets);
-				SearchResults results = new SearchResults(tweets, result.getMaxId(), result.getSinceId(), false);
+				SearchResults results = new SearchResults(tweets, result.getMaxId(), result.getSinceId());
 				return results;
 			}
 		}

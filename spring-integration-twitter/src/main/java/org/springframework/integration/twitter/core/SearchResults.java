@@ -32,14 +32,11 @@ public class SearchResults {
 
 	private long sinceId;
 
-	private boolean lastPage;
 
-
-	public SearchResults(List<Tweet> tweets, long maxId, long sinceId, boolean lastPage) {
+	public SearchResults(List<Tweet> tweets, long maxId, long sinceId) {
 		this.tweets = tweets;
 		this.maxId = maxId;
 		this.sinceId = sinceId;
-		this.lastPage = lastPage;
 	}
 
 
@@ -62,14 +59,6 @@ public class SearchResults {
 	 */
 	public long getSinceId() {
 		return sinceId;
-	}
-
-	/**
-	 * Returns <code>true</code> if this is the last page of matching {@link Tweet}s,
-	 * <code>false</code> if there are more pages that follow this one.
-	 */
-	public boolean isLastPage() {
-		return lastPage;
 	}
 
 }
