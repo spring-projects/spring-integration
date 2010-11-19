@@ -32,7 +32,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.Twitter4jTemplate;
-import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
 
 import twitter4j.StatusUpdate;
@@ -69,11 +68,9 @@ public class StatusUpdatingMessageHandlerTests {
 	}
 
 	@Test
-	public void testSendingStatusUpdateWithHeaders() throws Exception{
+	public void testSendingStatusUpdateWithStringPayload() throws Exception{
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
-		Message<?> message = MessageBuilder.withPayload("writing twitter tests")
-		.setHeader(TwitterHeaders.IN_REPLY_TO_STATUS_ID, new Long(123))
-		.build();
+		Message<?> message = MessageBuilder.withPayload("writing twitter tests").build();
 		handler.handleMessage(message);
 		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
 		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));

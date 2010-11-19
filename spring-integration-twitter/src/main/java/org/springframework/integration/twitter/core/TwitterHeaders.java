@@ -27,8 +27,6 @@ public abstract class TwitterHeaders {
 
 	private static final String PREFIX = "twitter_";
 
-	public static final String IN_REPLY_TO_STATUS_ID = PREFIX + "inReplyToStatusId";
-
 	public static final String DM_TARGET_USER_ID = PREFIX + "dmTargetUserId";
 
 }
