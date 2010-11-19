@@ -42,7 +42,7 @@ public class TestSendingUpdatesUsingNamespace extends AbstractJUnit4SpringContex
 	@Test
 	@Ignore
 	public void testSendingATweet() throws Throwable {
-		MessageBuilder<String> mb = MessageBuilder.withPayload("Aligning #springintegration Twitter adapter with #SpringSocial API - " 
+		MessageBuilder<String> mb = MessageBuilder.withPayload("Early start today" 
 				+ new Date(System.currentTimeMillis()));
 		Message<String> m = mb.build();
 		this.messagingTemplate.send(this.channel, m);

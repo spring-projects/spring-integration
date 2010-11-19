@@ -34,6 +34,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 public class SearchReceivingMessageSourceTests {
 
+	/**
+	 * THis test is a sample test and wil require connecting to a real Twitter
+	 * however no OAuth is required sincxe uts a search, so simply uncomment and run
+	 * @throws Exception
+	 */
 	@Test
 	@Ignore
 	public void testSearchReceiving() throws Exception{

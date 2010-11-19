@@ -17,7 +17,7 @@
 package org.springframework.integration.twitter.inbound;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -28,10 +28,8 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Queue;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -44,7 +42,6 @@ import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.CollectionUtils;
 
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -106,39 +103,28 @@ public class DirectMessageReceivingMessageSourceTests {
 		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
 		assertEquals("twitter:dm-inbound-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
-		//assertTrue(source.isRunning());
-		//source.stop();
 	}
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "unchecked" })
 	@Test
-	@Ignore
 	public void testSuccessfullInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
 		
 		DirectMessageReceivingMessageSource source = new DirectMessageReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); 
-		Tweet message = (Tweet) msg.poll();
+		Message<Tweet> msg = (Message<Tweet>) source.receive();
+		assertNotNull(msg);
+		
+		Tweet message = (Tweet) msg.getPayload();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
 		verify(twitter, times(1)).getDirectMessages();
-		// based on the Mock, the Queue should now have 2 more messages third and fourth
-		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
-		//source.stop();
 	}
 	/**
 	 * This test will validate that last status is initialized from the metadatastore
@@ -146,7 +132,6 @@ public class DirectMessageReceivingMessageSourceTests {
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
-	@Ignore
 	public void testSuccessfullInitializationWithMessagesWithPersistentMetadata() throws Exception{
 		String fileName = System.getProperty("java.io.tmpdir") + "/spring-integration/metadata-store.properties";
 		File file = new File(fileName);
@@ -162,21 +147,12 @@ public class DirectMessageReceivingMessageSourceTests {
 		source.setBeanFactory(bf);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); 
-		//Thread.sleep(15000);
-		Message message = source.receive();
-		Tweet tweet = (Tweet) message.getPayload();
-		assertEquals(2000, tweet.getId());
-		//source.stop();
-		Thread.sleep(3000);
-		
+		Message msg = source.receive();
+		assertNotNull(msg);
+		Tweet tweet = (Tweet) msg.getPayload();
+
 		
 		// Resuming
 		this.prepare();
@@ -190,18 +166,13 @@ public class DirectMessageReceivingMessageSourceTests {
 		source.setBeanFactory(bf);
 		scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
-		message = source.receive();
-		tweet = (Tweet) message.getPayload();
+		msg = source.receive();
+		tweet = (Tweet) msg.getPayload();
 		assertEquals(3000, tweet.getId());
-		message = source.receive();
-		tweet = (Tweet) message.getPayload();
+		msg = source.receive();
+		tweet = (Tweet) msg.getPayload();
 		assertEquals(4000, tweet.getId());
 		file.delete();
 	}

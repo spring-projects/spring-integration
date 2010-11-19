@@ -17,6 +17,7 @@
 package org.springframework.integration.twitter.inbound;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -105,39 +106,26 @@ public class TimelineReceivingMessageSourceTests {
 		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
 		assertEquals("twitter:inbound-channel-adapter.twitterEndpoint.kermit", TestUtils.getPropertyValue(source, "metadataKey"));
-		//assertTrue(source.isRunning());
-		//source.stop();
 	}
 	
 	@SuppressWarnings("rawtypes")
 	@Test
-	@Ignore
 	public void testSuccessfulInitializationWithMessages() throws Exception{
 		this.setUpMockScenarioForMessagePolling();
 		
 		TimelineReceivingMessageSource source = new TimelineReceivingMessageSource(twitter);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
-		Tweet message = (Tweet) msg.poll();
+		Message msg = source.receive();
+		assertNotNull(msg);
+		Tweet message = (Tweet) msg.getPayload();
 		assertEquals(2000, message.getId());
-		Thread.sleep(1000);
-		verify(twitter, times(1)).getTimeline(2000);
-		// based on the Mock, the Queue shoud now have 2 mopre messages third and fourth
-		assertTrue(((Queue)TestUtils.getPropertyValue(source, "tweets")).size() == 2);
-		//source.stop();
+		verify(twitter, times(1)).getTimeline();
 	}
 	/**
 	 * This test will validate that last status is initilaized from the metadatastore
@@ -145,7 +133,6 @@ public class TimelineReceivingMessageSourceTests {
 	 */
 	@SuppressWarnings("rawtypes")
 	@Test
-	@Ignore
 	public void testSuccessfulInitializationWithMessagesWithPersistentMetadata() throws Exception{
 		String fileName = System.getProperty("java.io.tmpdir") + "/spring-integration/metadata-store.properties";
 		File file = new File(fileName);
@@ -161,19 +148,12 @@ public class TimelineReceivingMessageSourceTests {
 		source.setBeanFactory(bf);
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		Queue msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
-		assertEquals(1, msg.size()); // because the other message has a older timestamp and is assumed to be read by
+
 		Message message = source.receive();
 		Tweet tweet = (Tweet) message.getPayload();
 		assertEquals(2000, tweet.getId());
-		//source.stop();
-		Thread.sleep(2000);
 		
 		
 		// Resuming
@@ -188,13 +168,9 @@ public class TimelineReceivingMessageSourceTests {
 		source.setBeanFactory(bf);
 		scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		//source.setTaskScheduler(scheduler);
 		source.setBeanName("twitterEndpoint");
 		source.afterPropertiesSet();
-		//source.start();
-		Thread.sleep(1000);
-		msg = (Queue) TestUtils.getPropertyValue(source, "tweets");
-		assertTrue(!CollectionUtils.isEmpty(msg));	
+		
 		message = source.receive();
 		tweet = (Tweet) message.getPayload();
 		assertEquals(3000, tweet.getId());
