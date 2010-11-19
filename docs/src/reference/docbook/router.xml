@@ -54,8 +54,7 @@
       If arbitrary then additional mapping of these header values to channel names is required, otherwise no additional configuration is needed.
       </para>
       <para>
-      Similar to the <classname>PayloadTypeRouter</classname>, configuration of <classname>HeaderValueRouter</classname> is 
-      also supported with the simple namespace-based XML configuration.
+      Spring Integration provides a simple namespace-based XML configuration to configure <classname>HeaderValueRouter</classname>.
       The example below demonstrates two types of namespace-based configuration of <classname>HeaderValueRouter</classname>.
       </para>
       <para><emphasis>1. Configuration where mapping of header values to channels is required</emphasis> </para>

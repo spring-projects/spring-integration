@@ -69,7 +69,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
 
   	<para>
   	Spring Integration uses the same familiar template pattern to interact with Twitter. Since current Twitter support 
-  	is based on Twitter4J API and we provide Twiter4JTemplate. 
+  	is based on Twitter4J API we provide Twiter4JTemplate. 
 	For anonymous operation (e.g., search) you don't have to define <classname>Twitter4JTemplate</classname> explicitly, since the default 
 	instance of it will be created and injected into the endpoint. However, for authenticated operation 
 	(e.g., update status, send direct message etc.) you must configure <classname>Twitter4JTemplate</classname> as a bean and 
@@ -77,10 +77,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	
   	
   	<programlisting language="xml"><![CDATA[<bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
-	<constructor-arg value="21691649-4XYZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE6AMv4""/>
-	<constructor-arg value="AbRxUAvyNCtqQtvxFK8w5ZMtMj20KFhB6oEfTA0"/>
-	<constructor-arg value="4XzBPabcJQxyBzzzH3TrRQ"/>
-	<constructor-arg value="ab2piKdMfPu8bVa3ab6DAIvIWEVZyMDL0RSEN2I8"/>
+	<constructor-arg value="4XzBPacJQxyBzzzH""/>
+	<constructor-arg value="AbRxUAvyCtqQtvxFK8w5ZMtMj20KFhB6o"/>
+	<constructor-arg value="21691649-4YZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE"/>
+	<constructor-arg value="AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o"/>
 </bean>]]></programlisting>
     <note>The values above are not real</note>
     
@@ -94,10 +94,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   	However a more practical way to manage OAuth connection attributes would be via Spring's placeholder support by simply 
   	creating a property file (e.g., oauth.properties):
   	
-  	<programlisting language="java"><![CDATA[twitter.oauth.consumerKey=4XzBPabcJQxyBzzzH3TrRQ
-twitter.oauth.consumerSecret=ab2piKdMfPu8bVa3ab6DAIvIWEVZyMDL0RSEN2I8
-twitter.oauth.accessToken=21691649-4XYZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE6AMv4
-twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtvxFK8w5ZMtMj20KFhB6oEfTA0]]></programlisting>
+  	<programlisting language="java"><![CDATA[twitter.oauth.consumerKey=4XzBPacJQxyBzzzH
+twitter.oauth.consumerSecret=AbRxUAvyCtqQtvxFK8w5ZMtMj20KFhB6o
+twitter.oauth.accessToken=21691649-4YZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE
+twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlisting>
 
 and configuring a <code>property-placeholder</code> pointing to he above property file:
 
@@ -129,9 +129,15 @@ and configuring a <code>property-placeholder</code> pointing to he above propert
   	different then any other poling consumer. Twitter defines a concept of Rate Limiting. You can read more about 
   	it here: <link linkend="http://dev.twitter.com/pages/rate-limiting">Rate Limiting</link> . In the nutshell Rate Limiting 
   	is the way Twitter manages how often an application can poll for updates. Luckily for you you don't have to worry about it 
-  	since the special Rate limit aware polling thread is created when any Twitter adapter is started. This thread will 
-  	poll Messages (Tweets) from the Twitter account at the rate allowed by Twitter at the time (it may change after every poll). The latest Tweet timestamp 
-  	will be stored in the instance of the <classname>org.springframework.integration.store.MetadataStore</classname> which is a 
+  	since we are handling it internally polling for Messages (Tweets) from the Twitter account at the rate allowed by Twitter. 
+  	</para>
+  	<para>
+  	Another issue that we need to worry about is handling of the duplicates. The same adapter (e.g., Search or Timeline Update) 
+  	while polling on Twitter may receive the same values back. For example if you keep searching on Twitter with the same search 
+  	criteria you'll end up with the same set of tweets unless some other new tweet that matches your search criteria was posted 
+  	in between your searches. In that situation you'll get all the tweets you had before plus the new one. But what you really 
+  	want is only the new tweet. Spring Integration provides an elegant mechanism for handling these situations.
+  	The latest Tweet timestamp will be stored in the instance of the <classname>org.springframework.integration.store.MetadataStore</classname> which is a 
   	strategy interface designed for storing various types of metadata (e.g., last retrieved tweet) to help components such as Twitter 
   	to deal with duplicates. By default, Spring Integration will look for a bean of type <classname>org.springframework.integration.store.MetadataStore</classname> 
   	in the ApplicationContext. If one found then it will be used, otherwise it will create a new instance of <classname>SimpleMetadataStore</classname> 
