@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.remote.session.Session;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -70,9 +71,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 	/**
-	 * @param usefulContextOrClientData
-	 *            this is context information to be passed to the individual {@link EntryAcknowledgmentStrategy}.
-	 *            {@link EntryAcknowledgmentStrategy#acknowledge(Object, Object)} will be called in line with the
+	 * @param session
+	 *            session that was used to retrieve the file. Will be passed to the {@link EntryAcknowledgmentStrategy}.
+	 *            The {@link EntryAcknowledgmentStrategy#acknowledge(Object, Object)} will be called in line with the
 	 *            {@link org.springframework.integration.core.MessageSource#receive()} call so this could conceivably
 	 *            be a 'live' stateful client (a connection?) that is inappropriate to cache as it has per-request state.
 	 * @param file
@@ -83,9 +84,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * @throws Exception
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
-	protected final void acknowledge(Object usefulContextOrClientData, F file) throws Exception {
+	protected final void acknowledge(Session session, F file) throws Exception {
 		if (this.entryAcknowledgmentStrategy != null) {
-			this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, file);
+			this.entryAcknowledgmentStrategy.acknowledge(session, file);
 		}
 	}
 
@@ -96,32 +97,26 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	/**
 	 * Strategy interface to expose a hook for dispatching, moving, or deleting
-	 * the file once it has been delivered. This will typically be a NOOP for the
-	 * implementation. Adapters should (for consistency) expose an attribute
-	 * dictating whether the adapter will delete the <emphasis>source</emphasis>
-	 * entry on the remote file system. This is the file-system version of an
-	 * <code>ack-mode</code>. Future implementations should consider exposing a
-	 * custom attribute that plugs a custom {@link EntryAcknowledgmentStrategy}
-	 * into the pipeline and also some more advanced scenarios (i.e., 'move file
-	 * to another folder on delete ', or 'rename on delete')
+	 * the file once it has been delivered. Adapters should (for consistency)
+	 * expose an attribute dictating whether the adapter will delete the
+	 * <emphasis>source</emphasis> entry on the remote file system. This is the
+	 * file-system version of an <code>ack-mode</code>.
 	 * 
 	 * @param <F> the file entry type (file, sftp, ftp, ...)
 	 */
 	public static interface EntryAcknowledgmentStrategy<F> {
 
 		/**
-		 * Semantics are simple. You get a pointer to the entry just processed
-		 * and any kind of helper data you could ask for. Since the strategy is
-		 * a singleton and the clients you might ask for as context data are
-		 * pooled, it's not recommended that you try to cache them.
+		 * Semantics are simple. You get a pointer to the file just processed
+		 * and the FTP Session that processed it.
 		 * 
-		 * @param useful
-		 *            any context data
-		 * @param msg
-		 *            the data / file / entry you want to process -- specific to subclasses
+		 * @param session
+		 *            the FTP session
+		 * @param file
+		 *            the file that has been processed
 		 * @throws Exception in case of an error while acknowledging
 		 */
-		void acknowledge(Object useful, F msg) throws Exception;
+		void acknowledge(Session session, F file) throws Exception;
 
 	}
 

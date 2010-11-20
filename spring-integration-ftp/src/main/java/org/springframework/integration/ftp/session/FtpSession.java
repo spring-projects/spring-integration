@@ -82,7 +82,9 @@ public class FtpSession implements Session {
 
 	public InputStream get(String source) {
 		try {
-			return this.client.retrieveFileStream(source);
+			InputStream inputStream = this.client.retrieveFileStream(source);
+			this.client.completePendingCommand();
+			return inputStream;
 		}
 		catch (IOException e) {
 			if (logger.isWarnEnabled()) {

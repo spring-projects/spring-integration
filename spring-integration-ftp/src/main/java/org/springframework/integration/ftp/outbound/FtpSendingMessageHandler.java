@@ -48,7 +48,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Josh Long
  * @author Oleg Zhurakousky
  */
-public class FtpSendingMessageHandler extends AbstractMessageHandler{
+public class FtpSendingMessageHandler extends AbstractMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 

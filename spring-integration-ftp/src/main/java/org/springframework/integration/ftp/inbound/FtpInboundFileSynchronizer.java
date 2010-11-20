@@ -25,7 +25,6 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.core.io.Resource;
@@ -105,7 +104,6 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 			File file = new File(tempFileName);
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			try {
-				//InputStream inputStream = client.retrieveFileStream(remoteFileName);
 				InputStream inputStream = session.get(remoteFileName);
 				if (inputStream == null) {
 					return false;
@@ -138,11 +136,10 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 
-		public void acknowledge(Object useful, FTPFile fptFile) throws Exception {
-			FTPClient ftpClient = (FTPClient) useful;
-			if ((fptFile != null) && ftpClient.deleteFile(fptFile.getName())) {
+		public void acknowledge(Session session, FTPFile ftpFile) throws Exception {
+			if ((ftpFile != null) && session.rm(ftpFile.getName())) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("deleted " + fptFile.getName());
+					logger.debug("deleted " + ftpFile.getName());
 				}
 			}
 		}

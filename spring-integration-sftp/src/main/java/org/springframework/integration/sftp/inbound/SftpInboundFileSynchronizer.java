@@ -139,10 +139,9 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	private class DeletionEntryAcknowledgmentStrategy implements AbstractInboundFileSynchronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
 
-		public void acknowledge(Object useful, ChannelSftp.LsEntry msg) throws Exception {
-			Session sftpSession = (Session) useful;
+		public void acknowledge(Session session, ChannelSftp.LsEntry msg) throws Exception {
 			String remoteFqPath = remotePath + "/" + msg.getFilename();
-			sftpSession.rm(remoteFqPath);
+			session.rm(remoteFqPath);
 			if (logger.isDebugEnabled()) {
 				logger.debug("deleted " + msg.getFilename());
 			}
