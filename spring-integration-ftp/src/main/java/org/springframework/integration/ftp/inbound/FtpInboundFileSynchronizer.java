@@ -33,6 +33,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -69,26 +70,31 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	}
 
 	public void synchronizeToLocalDirectory(File localDirectory) {
+		Session session = null;
 		try {
-			Session session = this.sessionFactory.getSession();
+			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire an FTP Session");
-			Collection<FTPFile> beforeFilter = session.ls(this.remotePath);
-			FTPFile[] entries = (beforeFilter == null) ? new FTPFile[0] : 
-					beforeFilter.toArray(new FTPFile[beforeFilter.size()]);
-			Collection<FTPFile> fileList = this.filterFiles(entries);
-			try {
-				for (FTPFile ftpFile : fileList) {
+			Collection<FTPFile> files = session.ls(this.remotePath);
+			if (!CollectionUtils.isEmpty(files)) {
+				Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
+				for (FTPFile ftpFile : filteredFiles) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
 						copyFileToLocalDirectory(session, ftpFile, localDirectory);
 					}
 				}
 			}
-			finally {
-				session.close();
-			}
 		}
 		catch (IOException e) {
 			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
+		}
+		finally {
+			if (session != null) {
+				try {
+					session.close();
+				}
+				catch (Exception ignored) {
+				}
+			}
 		}
 	}
 
