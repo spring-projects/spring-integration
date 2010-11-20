@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
 
-	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SimpleSftpSessionFactory">
+	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
 		<property name="privateKeyPassphrase" value="springintegration"/>

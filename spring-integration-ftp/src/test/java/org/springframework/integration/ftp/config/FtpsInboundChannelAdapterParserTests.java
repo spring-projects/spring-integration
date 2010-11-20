@@ -18,17 +18,15 @@ package org.springframework.integration.ftp.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
@@ -53,10 +51,7 @@ public class FtpsInboundChannelAdapterParserTests {
 		
 		FtpInboundFileSynchronizer fisync = 
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-//		CompositeFileListFilter<?> filter = (CompositeFileListFilter<?>) TestUtils.getPropertyValue(fisync, "filter");
-//		Set<?> filters = (Set<?>) TestUtils.getPropertyValue(filter, "fileFilters");
-//		assertEquals(2, filters.size());
-//		assertTrue(filters.contains(ac.getBean("entryListFilter")));
+		assertNotNull(TestUtils.getPropertyValue(fisync, "filter"));
 		
 	}
 	

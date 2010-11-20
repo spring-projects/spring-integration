@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
-	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpClientFactory">
+	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="username" value="ozhurakousky"/>
 		<property name="password" value="seva@1994"/>
@@ -16,11 +16,11 @@
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
-				charset="UTF-8"
+				session-factory="ftpClientFactory"
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="false"
 				filename-pattern=".*\.test$"
+				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-test-dir"
 				local-working-directory="file:local-test-dir">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>

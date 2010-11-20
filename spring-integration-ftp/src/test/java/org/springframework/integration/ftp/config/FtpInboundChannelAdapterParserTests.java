@@ -16,56 +16,62 @@
 
 package org.springframework.integration.ftp.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.Map;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
+import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
  */
 public class FtpInboundChannelAdapterParserTests {
 
-//	@Test
-//	public void testFtpInboundChannelAdapterComplete() throws Exception{
-//		ApplicationContext ac = 
-//			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-//		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
-//		assertEquals("ftpInbound", adapter.getComponentName());
-//		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
-//		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
-//		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
-//		FtpInboundFileSynchronizingMessageSource inbound = 
-//			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
-//		
-//		FtpInboundFileSynchronizer fisync = 
-//			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-////		CompositeFileListFilter<?> filter = (CompositeFileListFilter<?>) TestUtils.getPropertyValue(fisync, "filter");
-////		Set<?> filters = (Set<?>) TestUtils.getPropertyValue(filter, "fileFilters");
-////		assertEquals(2, filters.size());
-////		assertTrue(filters.contains(ac.getBean("entryListFilter")));
-//		
-//	}
+	@Test
+	public void testFtpInboundChannelAdapterComplete() throws Exception{
+		ApplicationContext ac = 
+			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
+		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
+		assertEquals("ftpInbound", adapter.getComponentName());
+		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
+		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));
+		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(adapter, "outputChannel"));
+		FtpInboundFileSynchronizingMessageSource inbound = 
+			(FtpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
+		
+		FtpInboundFileSynchronizer fisync = 
+			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
+		FtpPatternMatchingFileListFilter filter = (FtpPatternMatchingFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
+		assertNotNull(filter);		
+	}
 	
 	@Test
 	public void testFtpInboundChannelAdapterCompleteNoId() throws Exception{
 
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
-//		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
-//		SourcePollingChannelAdapter adapter = null;
-//		for (String key : spcas.keySet()) {
-//			if (!key.equals("ftpInbound")){
-//				adapter = spcas.get(key);
-//			}
-//		}
-//		assertNotNull(adapter);
+		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
+		SourcePollingChannelAdapter adapter = null;
+		for (String key : spcas.keySet()) {
+			if (!key.equals("ftpInbound")){
+				adapter = spcas.get(key);
+			}
+		}
+		assertNotNull(adapter);
 	}
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory>{

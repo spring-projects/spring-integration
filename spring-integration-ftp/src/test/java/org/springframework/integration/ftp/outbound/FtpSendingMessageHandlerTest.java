@@ -23,24 +23,21 @@ import org.junit.Test;
  */
 public class FtpSendingMessageHandlerTest {
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void placeholder() {
-	}
-
-//	@SuppressWarnings({ "unchecked", "rawtypes" })
-//	@Test
-//	public void testHandleFileNameMessage() throws Exception {
+	public void testHandleFileNameMessage() throws Exception {
 //		FtpSendingMessageHandler handler = new FtpSendingMessageHandler();
 //		//FtpClientPool clientPoll = mock(FtpClientPool.class);
-//		FTPClient client = mock(FTPClient.class);
-//		when(client.storeFile(Mockito.anyString(), Mockito.any(InputStream.class))).thenReturn(true);
+//		FtpSession session = mock(FtpSession.class);
+//		when(session.put(Mockito.any(InputStream.class), Mockito.anyString())).th
+//		//when(session.put(Mockito.any(InputStream.class), Mockito.anyString())).thenReturn(true);
 //		when(clientPoll.getClient()).thenReturn(client);
 //		
 //		handler.setFtpClientPool(clientPoll);
 //		handler.handleMessage(new GenericMessage("hello"));
 //		verify(clientPoll, times(1)).getClient();
 //		verify(client, times(1)).storeFile(Mockito.anyString(), Mockito.any(InputStream.class));
-//	}
+	}
 //	@SuppressWarnings({ "unchecked", "rawtypes" })
 //	@Test
 //	public void testHandleFileAsByte() throws Exception {

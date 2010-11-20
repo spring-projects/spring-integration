@@ -18,6 +18,7 @@
 
 	<int-ftp:outbound-channel-adapter 
 				session-factory="ftpSessionFactory" 
+				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-target-dir"
 				channel="ftpChannel"/>
 	
 	
