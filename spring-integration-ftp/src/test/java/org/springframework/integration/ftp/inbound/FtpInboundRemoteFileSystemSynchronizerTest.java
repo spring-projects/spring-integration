@@ -16,62 +16,117 @@
 
 package org.springframework.integration.ftp.inbound;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.Message;
 import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
-import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
-import org.springframework.integration.ftp.session.FtpSession;
+import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class FtpInboundRemoteFileSystemSynchronizerTest {
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Test
-	public void testCopyFileToLocalDir() throws Exception {
-		File file = new File(System.getProperty("java.io.tmpdir") + "/foo.txt");
+	
+	private static FTPClient ftpClient = mock(FTPClient.class);
+	
+	@After
+	public void cleanup(){
+		File file = new File("test");
 		if (file.exists()){
+			String[] files = file.list();
+			for (String fileName : files) {
+				new File(file, fileName).delete();
+			}
 			file.delete();
 		}
-		FtpInboundFileSynchronizer syncronizer = new FtpInboundFileSynchronizer();
-		FileListFilter filter = new FtpPatternMatchingFileListFilter("foo.txt");
-		syncronizer.setFilter(filter);
-		
-		DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
-		FtpSession ftpSession = mock(FtpSession.class);
-		//when(ftpSession.sendNoOp()).thenReturn(true);
-		when(factory.getSession()).thenReturn(ftpSession);
+	}
 
-//		Queue clientPoll = new QueuedFtpClientPool(factory);
-//		
-//		FTPFile f1 = mock(FTPFile.class);
-//		when(f1.isFile()).thenReturn(true);
-//		when(f1.getName()).thenReturn("foo.txt");
-//		
-//		FTPFile[] files = new FTPFile[]{f1};
-//		when(ftpClient.listFiles()).thenReturn(files);
+	@Test
+	public void testCopyFileToLocalDir() throws Exception {
+		File localDirectoy = new File("test");
+		assertFalse(localDirectoy.exists());
+		
+		TestFtpSessionFactory ftpSessionFactory = new TestFtpSessionFactory();
+		ftpSessionFactory.setUsername("kermit");
+		ftpSessionFactory.setPassword("frog");
+		ftpSessionFactory.setHost("foo.com");
+		ftpSessionFactory.setRemoteWorkingDirectory("remote-test-dir");
 
-		syncronizer.setSessionFactory(factory);
-		syncronizer.setShouldDeleteSourceFile(true);
-		syncronizer.afterPropertiesSet();
+		FtpInboundFileSynchronizingMessageSource ms = 
+			new FtpInboundFileSynchronizingMessageSource();
 		
-		File localDirectory = new File(System.getProperty("java.io.tmpdir"));
-		syncronizer.synchronizeToLocalDirectory(localDirectory);
+		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer());
+		synchronizer.setSessionFactory(ftpSessionFactory);
+		synchronizer.setShouldDeleteSourceFile(true);
+		synchronizer.setRemotePath("remote-test-dir");
+		synchronizer.setFilter(new FtpPatternMatchingFileListFilter(".*\\.test$"));
 		
-		//verify(ftpClient, times(1)).retrieveFile(Mockito.anyString(), Mockito.any(OutputStream.class));
-		//verify(ftpClient, times(1)).deleteFile(Mockito.anyString());
+		ms.setSynchronizer(synchronizer);
+		ms.setAutoCreateDirectories(true);
+
+		ms.setLocalDirectory(localDirectoy);
+		ms.afterPropertiesSet();
+		Message<File> atestFile =  ms.receive();
+		assertNotNull(atestFile);
+		assertEquals("a.test", atestFile.getPayload().getName());
+		Message<File> btestFile =  ms.receive();
+		assertNotNull(btestFile);
+		assertEquals("b.test", btestFile.getPayload().getName());
+		Message<File> nothing =  ms.receive();
+		assertNull(nothing);
+		
+		// two times becouse on teh third receive (above) the internal queue will be empty, so it will attempt
+		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
+
+		assertTrue(new File("test/a.test").exists());
+		assertTrue(new File("test/b.test").exists());
+	}
+	
+	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
+		
+		@Override
+		protected FTPClient createSingleInstanceOfClient() {
+			try {
+				when(ftpClient.getReplyCode()).thenReturn(250);
+				when(ftpClient.login("kermit", "frog")).thenReturn(true);
+				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
+				
+				String[] files = new File("remote-test-dir").list();
+				Collection<Object> ftpFiles = new ArrayList<Object>();
+				for (String fileName : files) {
+					FTPFile file = new FTPFile();
+					file.setName(fileName);
+					file.setType(FTPFile.FILE_TYPE);
+					ftpFiles.add(file);
+					when(ftpClient.retrieveFileStream(fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
+				}
+				when(ftpClient.listFiles("remote-test-dir")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
+						
+				return ftpClient;
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to create mock client", e);
+			}
+		}
 	}
 }
