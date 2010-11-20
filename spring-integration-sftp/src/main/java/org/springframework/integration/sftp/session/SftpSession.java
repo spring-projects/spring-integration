@@ -44,9 +44,9 @@ public class SftpSession implements Session {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ChannelSftp channel;
+	private final ChannelSftp channel;
 
-	private volatile com.jcraft.jsch.Session jschSession;
+	private final com.jcraft.jsch.Session jschSession;
 
 	private String privateKey;
 
@@ -185,9 +185,6 @@ public class SftpSession implements Session {
 	public void close() {
 		if (jschSession.isConnected()) {
 			jschSession.disconnect();
-			if (channel.isConnected()) {
-				channel.disconnect();
-			}
 		}
 	}
 
