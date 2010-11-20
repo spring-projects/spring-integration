@@ -118,6 +118,9 @@ public class SftpSession implements Session {
 				this.jschSession.connect();
 				this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 			}
+			if (this.channel != null && !this.channel.isConnected()) {
+				this.channel.connect();
+			}
 		}
 		catch (JSchException e) {
 			throw new IllegalStateException("failed to connect", e);
