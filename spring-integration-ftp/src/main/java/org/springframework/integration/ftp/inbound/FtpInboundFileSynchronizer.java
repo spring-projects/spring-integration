@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -69,7 +68,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		}
 	}
 
-	public void synchronizeToLocalDirectory(Resource localDirectory) {
+	public void synchronizeToLocalDirectory(File localDirectory) {
 		try {
 			Session session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire an FTP Session");
@@ -93,11 +92,11 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		}
 	}
 
-	private boolean copyFileToLocalDirectory(Session session, FTPFile ftpFile, Resource localDirectory)
+	private boolean copyFileToLocalDirectory(Session session, FTPFile ftpFile, File localDirectory)
 			throws IOException, FileNotFoundException {
 
 		String remoteFileName = ftpFile.getName();
-		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
+		String localFileName = localDirectory.getPath() + "/" + remoteFileName;
 		File localFile = new File(localFileName);
 		if (!localFile.exists()) {
 			String tempFileName = localFileName + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;

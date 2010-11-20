@@ -54,15 +54,15 @@ public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFi
 					if (logger.isDebugEnabled()) {
 						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
 					}
-					this.localDirectory.getFile().mkdirs();
+					this.localDirectory.mkdirs();
 				}
 				else {
-					throw new FileNotFoundException(this.localDirectory.getFilename());
+					throw new FileNotFoundException(this.localDirectory.getName());
 				}
 			}
 			// Forwards files once they appear in the {@link #localDirectory}.
 			this.fileSource = new FileReadingMessageSource();
-			this.fileSource.setDirectory(this.localDirectory.getFile());
+			this.fileSource.setDirectory(this.localDirectory);
 			this.fileSource.afterPropertiesSet();
 			if (this.filenamePattern != null) {
 				SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);

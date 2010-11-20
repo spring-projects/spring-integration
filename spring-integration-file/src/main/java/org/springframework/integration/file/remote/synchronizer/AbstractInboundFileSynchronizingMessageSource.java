@@ -21,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
@@ -75,7 +74,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	/**
 	 * Directory to which things should be synched locally.
 	 */
-	protected volatile Resource localDirectory;
+	protected volatile File localDirectory;
 
 	/**
 	 * The actual {@link FileReadingMessageSource} that monitors the local filesystem once files are synched.
@@ -96,7 +95,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		this.synchronizer = synchronizer;
 	}
 
-	public void setLocalDirectory(Resource localDirectory) {
+	public void setLocalDirectory(File localDirectory) {
 		this.localDirectory = localDirectory;
 	}
 
@@ -115,10 +114,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 					if (logger.isDebugEnabled()) {
 						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
 					}
-					this.localDirectory.getFile().mkdirs();
+					this.localDirectory.mkdirs();
 				}
 				else {
-					throw new FileNotFoundException(this.localDirectory.getFilename());
+					throw new FileNotFoundException(this.localDirectory.getName());
 				}
 			}
 
@@ -127,7 +126,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 			 */
 			this.fileSource = new FileReadingMessageSource();
 			this.fileSource.setFilter(this.buildFilter());
-			this.fileSource.setDirectory(this.localDirectory.getFile());
+			this.fileSource.setDirectory(this.localDirectory);
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
 		}

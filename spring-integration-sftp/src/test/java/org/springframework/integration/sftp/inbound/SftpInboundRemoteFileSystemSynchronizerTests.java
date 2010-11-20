@@ -33,8 +33,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -93,7 +91,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		syncronizer.setShouldDeleteSourceFile(true);
 		syncronizer.afterPropertiesSet();
 		
-		Resource localDirectory = new FileSystemResource(System.getProperty("java.io.tmpdir"));
+		File localDirectory = new File(System.getProperty("java.io.tmpdir"));
 		syncronizer.synchronizeToLocalDirectory(localDirectory);
 		
 		verify(sessionFactory, times(1)).getSession();

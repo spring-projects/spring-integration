@@ -67,12 +67,12 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
 		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
 		Method method = 
-			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", Session.class, LsEntry.class, Resource.class);
+			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", Session.class, LsEntry.class, File.class);
 		method.setAccessible(true);
 		Session session = mock(Session.class);
 		LsEntry entry = mock(LsEntry.class);
 		when(entry.getFilename()).thenReturn("foo.txt");
-		Resource localDir = new FileSystemResource(new File("target"));
+		File localDir = new File("target");
 		boolean success = (Boolean) method.invoke(synchronizer, session, entry, localDir);
 		assertTrue(success);
 	}

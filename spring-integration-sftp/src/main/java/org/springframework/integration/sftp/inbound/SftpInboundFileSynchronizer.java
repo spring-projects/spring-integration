@@ -23,7 +23,6 @@ import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
 
-import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -70,7 +69,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		}
 	}
 
-	public void synchronizeToLocalDirectory(Resource localDirectory) {
+	public void synchronizeToLocalDirectory(File localDirectory) {
 		Session session = null;
 		try {
 			session = this.sessionFactory.getSession();
@@ -105,9 +104,8 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		}
 	}
 
-	private boolean copyFromRemoteToLocalDirectory(Session session, ChannelSftp.LsEntry entry, Resource localDir) throws Exception {
-		File fileForLocalDir = localDir.getFile();
-		File localFile = new File(fileForLocalDir, entry.getFilename());
+	private boolean copyFromRemoteToLocalDirectory(Session session, ChannelSftp.LsEntry entry, File localDirectory) throws Exception {
+		File localFile = new File(localDirectory, entry.getFilename());
 		if (!localFile.exists()) {
 			InputStream in = null;
 			FileOutputStream fileOutputStream = null;

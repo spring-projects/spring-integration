@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
-import org.springframework.core.io.Resource;
+import java.io.File;
 
 /**
  * Strategy for synchronizing from a remote File system to a local directory.
@@ -26,6 +26,6 @@ import org.springframework.core.io.Resource;
  */
 public interface InboundFileSynchronizer {
 
-	void synchronizeToLocalDirectory(Resource localDirectory);
+	void synchronizeToLocalDirectory(File localDirectory);
 
 }
