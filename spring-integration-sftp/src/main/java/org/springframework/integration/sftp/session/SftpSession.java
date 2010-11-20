@@ -109,7 +109,6 @@ public class SftpSession implements Session {
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
 		this.jschSession.setUserInfo(userInfo);
-		this.connect();
 	}
 
 	void connect() {
