@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -44,7 +45,7 @@ public class SftpSession implements Session {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final ChannelSftp channel;
+	private volatile ChannelSftp channel;
 
 	private final com.jcraft.jsch.Session jschSession;
 
@@ -108,12 +109,12 @@ public class SftpSession implements Session {
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
 		this.jschSession.setUserInfo(userInfo);
-		this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 	}
 
 	void connect() {
 		try {
 			this.jschSession.connect();
+			this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
 		}
 		catch (JSchException e) {
 			throw new IllegalStateException("failed to connect", e);
@@ -121,6 +122,7 @@ public class SftpSession implements Session {
 	}
 
 	public boolean mkdir(String path) {
+		Assert.state(channel != null, "session is not connected");
 		try {
 			channel.mkdir(path);
 			return true;
@@ -134,6 +136,7 @@ public class SftpSession implements Session {
 	}
 
 	public boolean rm(String path) {
+		Assert.state(channel != null, "session is not connected");
 		try {
 			channel.rm(path);
 			return true;
@@ -148,6 +151,7 @@ public class SftpSession implements Session {
 
 	@SuppressWarnings("unchecked")
 	public <F> Collection<F> ls(String path) {
+		Assert.state(channel != null, "session is not connected");
 		try {
 			return channel.ls(path);
 		}
@@ -160,6 +164,7 @@ public class SftpSession implements Session {
 	}
 
 	public InputStream get(String source) {
+		Assert.state(channel != null, "session is not connected");
 		try {
 			return channel.get(source);
 		}
@@ -172,6 +177,7 @@ public class SftpSession implements Session {
 	}
 
 	public void put(InputStream inputStream, String destination) {
+		Assert.state(channel != null, "session is not connected");
 		try {
 			channel.put(inputStream, destination);
 		}
