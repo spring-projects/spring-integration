@@ -91,7 +91,14 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 			throw new MessagingException("couldn't synchronize remote to local directory", e);
 		}
 		finally {
-			session.close();
+			try {
+				session.close();
+			}
+			catch (Exception ignored) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("failed to close Session", ignored);
+				}
+			}
 			if (logger.isTraceEnabled()) {
 				logger.trace("Putting SftpSession " + session + " back into the pool");
 			}
