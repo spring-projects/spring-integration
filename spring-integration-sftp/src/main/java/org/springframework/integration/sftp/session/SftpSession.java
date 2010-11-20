@@ -109,12 +109,15 @@ public class SftpSession implements Session {
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
 		this.jschSession.setUserInfo(userInfo);
+		this.connect();
 	}
 
 	void connect() {
 		try {
-			this.jschSession.connect();
-			this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
+			if (!this.jschSession.isConnected()) {
+				this.jschSession.connect();
+				this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
+			}
 		}
 		catch (JSchException e) {
 			throw new IllegalStateException("failed to connect", e);
