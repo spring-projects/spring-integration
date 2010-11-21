@@ -20,7 +20,6 @@ import static junit.framework.Assert.fail;
 import java.lang.reflect.Field;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -30,7 +29,6 @@ import org.junit.Test;
 public class SessionFactoryTests {
 
 	@Test
-	@Ignore // until we fix the issue with clientMode validation in ASF
 	public void testClientModes() throws Exception{
 		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
 		Field[] fields = FTPClient.class.getDeclaredFields();
