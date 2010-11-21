@@ -50,11 +50,12 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
+
+	private final SessionFactory sessionFactory;
+
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcesor;
 
 	private volatile Expression remoteDirectoryExpression;
-
-	private volatile SessionFactory sessionFactory;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -66,17 +67,11 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 	private volatile String charset = Charset.defaultCharset().name();
 
 
-	public FtpSendingMessageHandler() {
-	}
-
 	public FtpSendingMessageHandler(SessionFactory sessionFactory) {
+		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
 
-
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		this.remoteDirectoryExpression = remoteDirectoryExpression;
@@ -95,9 +90,7 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	protected void onInit() throws Exception {
-		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
-		Assert.notNull(this.temporaryBufferFolder,
-				"'temporaryBufferFolder' must not be null");
+		Assert.notNull(this.temporaryBufferFolder, "'temporaryBufferFolder' must not be null");
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
 		if (this.remoteDirectoryExpression != null) {
 			this.directoryExpressionProcesor =

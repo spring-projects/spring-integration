@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -26,13 +27,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
-import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpsSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0
  */
 public class FtpsOutboundChannelAdapterParserTests {
 

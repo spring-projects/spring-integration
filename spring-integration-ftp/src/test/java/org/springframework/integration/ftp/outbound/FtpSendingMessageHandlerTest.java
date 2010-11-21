@@ -65,8 +65,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler();
-		handler.setSessionFactory(sessionFactory);
+		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -84,8 +83,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler();
-		handler.setSessionFactory(sessionFactory);
+		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -104,8 +102,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler();
-		handler.setSessionFactory(sessionFactory);
+		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
