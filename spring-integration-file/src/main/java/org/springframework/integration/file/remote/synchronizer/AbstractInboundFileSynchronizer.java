@@ -50,9 +50,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
-	 * the path on the remote mount
+	 * the path on the remote mount as a String.
 	 */
-	private volatile String remotePath;
+	private volatile String remoteDirectory;
 
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
@@ -80,8 +80,11 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 
-	public void setRemotePath(String remotePath) {
-		this.remotePath = remotePath;
+	/**
+	 * Specify the full path to the remote directory.
+	 */
+	public void setRemoteDirectory(String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
 	}
 
 	public void setFilter(FileListFilter<F> filter) {
@@ -93,7 +96,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 	public final void afterPropertiesSet() {
-		Assert.notNull(this.remotePath, "remotePath must not be null");
+		Assert.notNull(this.remoteDirectory, "remoteDirectory must not be null");
 	}
 
 	protected final List<F> filterFiles(F[] files) {
@@ -105,7 +108,15 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		try {
 			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire a Session");
-			this.synchronizeToLocalDirectory(this.remotePath, localDirectory, session);
+			F[] files = session.ls(this.remoteDirectory);
+			if (!ObjectUtils.isEmpty(files)) {
+				Collection<F> filteredFiles = this.filterFiles(files);
+				for (F file : filteredFiles) {
+					if (file != null) {
+						this.copyFileToLocalDirectory(this.remoteDirectory, file, localDirectory, session);
+					}
+				}
+			}
 		}
 		catch (IOException e) {
 			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
@@ -119,18 +130,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 					if (logger.isDebugEnabled()) {
 						logger.debug("failed to close Session", ignored);
 					}
-				}
-			}
-		}
-	}
-
-	private void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
-		F[] files = session.ls(remoteDirectoryPath);
-		if (!ObjectUtils.isEmpty(files)) {
-			Collection<F> filteredFiles = this.filterFiles(files);
-			for (F file : filteredFiles) {
-				if (file != null) {
-					this.copyFileToLocalDirectory(remoteDirectoryPath, file, localDirectory, session);
 				}
 			}
 		}

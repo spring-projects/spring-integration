@@ -57,7 +57,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		}
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		SftpInboundFileSynchronizer syncronizer = new SftpInboundFileSynchronizer(sessionFactory);
-		syncronizer.setRemotePath("foo/bar");
+		syncronizer.setRemoteDirectory("foo/bar");
 		
 		FileListFilter filter = mock(FileListFilter.class);
 		
