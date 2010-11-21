@@ -207,8 +207,6 @@ project('spring-integration-ftp') {
     description = 'Spring Integration FTP Support'
     dependencies {
         compile project(":spring-integration-file")
-        compile "commons-io:commons-io:$commonsIoVersion"
-        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "commons-net:commons-net:$commonsNetVersion"
         compile "org.springframework:spring-context-support:$springVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
@@ -339,8 +337,6 @@ project('spring-integration-sftp') {
         compile project(":spring-integration-file")
         compile project(":spring-integration-stream")
         compile "com.jcraft:jsch:0.1.42"
-        compile "commons-io:commons-io:$commonsIoVersion"
-        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "org.springframework:spring-context-support:$springVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")

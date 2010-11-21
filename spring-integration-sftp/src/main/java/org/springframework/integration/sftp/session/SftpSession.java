@@ -20,12 +20,12 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
@@ -88,15 +88,15 @@ public class SftpSession implements Session {
 		}
 		this.privateKey = privateKey;
 		this.privateKeyPassphrase = pvKeyPassPhrase;
-		if (!StringUtils.isEmpty(knownHostsFile)) {
+		if (StringUtils.hasText(knownHostsFile)) {
 			jSch.setKnownHosts(knownHostsFile);
 		}
-		else if (null != knownHostsInputStream) {
+		else if (knownHostsInputStream != null) {
 			jSch.setKnownHosts(knownHostsInputStream);
 		}
 		// private key
 		if (privateKey != null) {
-			if (!StringUtils.isEmpty(privateKeyPassphrase)) {
+			if (StringUtils.hasText(privateKeyPassphrase)) {
 				jSch.addIdentity(this.privateKey, privateKeyPassphrase);
 			}
 			else {
@@ -104,7 +104,7 @@ public class SftpSession implements Session {
 			}
 		}
 		this.jschSession = jSch.getSession(userName, hostName, port);
-		if (!StringUtils.isEmpty(userPassword)) {
+		if (StringUtils.hasText(userPassword)) {
 			this.jschSession.setPassword(userPassword);
 		}
 		this.userInfo = new OptimisticUserInfoImpl(userPassword);
