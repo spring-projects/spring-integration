@@ -65,7 +65,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	public void afterPropertiesSet() {
 		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
 		if (this.shouldDeleteSourceFile) {
-			this.setEntryAcknowledgmentStrategy(new DeletionEntryAcknowledgmentStrategy());
+			this.setAcknowledgmentStrategy(new DeletionAcknowledgmentStrategy());
 		}
 	}
 
@@ -137,7 +137,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	/**
 	 * An acknowledgment strategy that deletes the file.
 	 */
-	private static class DeletionEntryAcknowledgmentStrategy implements EntryAcknowledgmentStrategy<FTPFile> {
+	private static class DeletionAcknowledgmentStrategy implements AcknowledgmentStrategy<FTPFile> {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 

@@ -53,17 +53,17 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private volatile FileListFilter<F> filter;
 
 	/**
-	 * The {@link EntryAcknowledgmentStrategy} implementation.
+	 * The {@link AcknowledgmentStrategy} implementation.
 	 */
-	private EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy;
+	private AcknowledgmentStrategy<F> acknowledgmentStrategy;
 
 
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 
-	public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<F> entryAcknowledgmentStrategy) {
-		this.entryAcknowledgmentStrategy = entryAcknowledgmentStrategy;
+	public void setAcknowledgmentStrategy(AcknowledgmentStrategy<F> acknowledgmentStrategy) {
+		this.acknowledgmentStrategy = acknowledgmentStrategy;
 	}
 
 	public void setShouldDeleteSourceFile(boolean shouldDeleteSourceFile) {
@@ -85,8 +85,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 *             escape hatch exception, let the adapter deal with it.
 	 */
 	protected final void acknowledge(Session session, F file) throws Exception {
-		if (this.entryAcknowledgmentStrategy != null) {
-			this.entryAcknowledgmentStrategy.acknowledge(session, file);
+		if (this.acknowledgmentStrategy != null) {
+			this.acknowledgmentStrategy.acknowledge(session, file);
 		}
 	}
 
@@ -104,7 +104,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * 
 	 * @param <F> the file entry type (file, sftp, ftp, ...)
 	 */
-	public static interface EntryAcknowledgmentStrategy<F> {
+	public static interface AcknowledgmentStrategy<F> {
 
 		/**
 		 * Semantics are simple. You get a pointer to the file just processed
