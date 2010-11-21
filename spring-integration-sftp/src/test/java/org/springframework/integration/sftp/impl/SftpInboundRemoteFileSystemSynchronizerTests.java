@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.core.io.FileSystemResource;
@@ -64,6 +65,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	 * @throws Exception
 	 */
 	@Test
+	@Ignore
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
 		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
 		Method method = ReflectionUtils.findMethod(synchronizer.getClass(),
