@@ -24,7 +24,7 @@
 								 session-factory="ftpSessionFactory"
 								 channel="ftpIn"
 								 filename-pattern="foo"
-								 local-working-directory="file:target/foo"
+								 local-directory="target/foo"
 								 remote-directory="foo/bar"
 								 auto-create-directories="true"
 								 auto-delete-remote-files-on-sync="false">
@@ -36,7 +36,7 @@
 		                         session-factory="ftpSessionFactory"
 								 channel="ftpIn"
 								 filter="filter" 
-								 local-working-directory="file:target"
+								 local-directory="target"
 								 remote-directory="foo/bar"
 								 auto-create-directories="true"
 								 auto-delete-remote-files-on-sync="false">

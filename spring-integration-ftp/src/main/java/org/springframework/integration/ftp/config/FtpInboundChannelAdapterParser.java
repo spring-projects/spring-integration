@@ -68,7 +68,7 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 			synchronizerBuilder.addPropertyReference("filter", filter);
 		}
 		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-working-directory", "localDirectory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 		return messageSourceBuilder.getBeanDefinition();
 	}
 

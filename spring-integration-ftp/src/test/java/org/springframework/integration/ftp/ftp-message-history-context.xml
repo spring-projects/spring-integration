@@ -25,7 +25,7 @@
 				session-factory="ftpSessionFactory"
 				channel="ftpIn" 
 				auto-create-directories="true"
-				local-working-directory="file:target/foo"
+				local-directory="file:target/foo"
 				remote-directory="foo/bar"
 				auto-delete-remote-files-on-sync="false">
 		<int:poller fixed-rate="1000"/>

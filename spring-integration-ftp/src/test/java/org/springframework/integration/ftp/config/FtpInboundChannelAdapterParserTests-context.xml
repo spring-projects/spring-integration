@@ -17,7 +17,7 @@
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
 				filename-pattern=".?txt"
-				local-working-directory="."
+				local-directory="."
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
@@ -29,7 +29,7 @@
 				auto-create-directories="true"
 				auto-delete-remote-files-on-sync="true"
 				filter="entryListFilter"
-				local-working-directory="."
+				local-directory="."
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
@@ -41,4 +41,5 @@
 	<bean id="entryListFilter" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>
+
 </beans>

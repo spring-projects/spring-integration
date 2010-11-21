@@ -67,7 +67,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
-					<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
+					<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
