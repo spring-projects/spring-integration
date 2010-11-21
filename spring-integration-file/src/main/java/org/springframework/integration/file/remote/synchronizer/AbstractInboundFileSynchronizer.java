@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.remote.session.Session;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -35,17 +34,12 @@ import org.springframework.integration.file.remote.session.Session;
  * ensure the file entry is acceptable.
  * 
  * @author Josh Long
+ * @author Mark Fisher
+ * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
-
-
-	/**
-	 * Should we <emphasis>delete</emphasis> the <b>source</b> file? For an FTP
-	 * server, for example, this would delete the original FTPFile instance.
-	 */
-	protected boolean shouldDeleteSourceFile;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
@@ -53,71 +47,22 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private volatile FileListFilter<F> filter;
 
 	/**
-	 * The {@link AcknowledgmentStrategy} implementation.
+	 * Should we <emphasis>delete</emphasis> the <b>source</b> file? For an FTP
+	 * server, for example, this would delete the original FTPFile instance.
 	 */
-	private AcknowledgmentStrategy<F> acknowledgmentStrategy;
+	protected boolean shouldDeleteSourceFile;
 
 
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
 
-	public void setAcknowledgmentStrategy(AcknowledgmentStrategy<F> acknowledgmentStrategy) {
-		this.acknowledgmentStrategy = acknowledgmentStrategy;
-	}
-
 	public void setShouldDeleteSourceFile(boolean shouldDeleteSourceFile) {
 		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
 	}
 
-	/**
-	 * @param session
-	 *            session that was used to retrieve the file. Will be passed to the {@link EntryAcknowledgmentStrategy}.
-	 *            The {@link EntryAcknowledgmentStrategy#acknowledge(Object, Object)} will be called in line with the
-	 *            {@link org.springframework.integration.core.MessageSource#receive()} call so this could conceivably
-	 *            be a 'live' stateful client (a connection?) that is inappropriate to cache as it has per-request state.
-	 * @param file
-	 *            leverages strategy implementations to enable different
-	 *            behavior. It's a hook to the file entry after it's been
-	 *            successfully downloaded. Conceptually, you might delete the
-	 *            remote one or rename it, etc.   
-	 * @throws Exception
-	 *             escape hatch exception, let the adapter deal with it.
-	 */
-	protected final void acknowledge(Session session, F file) throws Exception {
-		if (this.acknowledgmentStrategy != null) {
-			this.acknowledgmentStrategy.acknowledge(session, file);
-		}
-	}
-
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
-	}
-
-
-	/**
-	 * Strategy interface to expose a hook for dispatching, moving, or deleting
-	 * the file once it has been delivered. Adapters should (for consistency)
-	 * expose an attribute dictating whether the adapter will delete the
-	 * <emphasis>source</emphasis> entry on the remote file system. This is the
-	 * file-system version of an <code>ack-mode</code>.
-	 * 
-	 * @param <F> the file entry type (file, sftp, ftp, ...)
-	 */
-	public static interface AcknowledgmentStrategy<F> {
-
-		/**
-		 * Semantics are simple. You get a pointer to the file just processed
-		 * and the FTP Session that processed it.
-		 * 
-		 * @param session
-		 *            the FTP session
-		 * @param file
-		 *            the file that has been processed
-		 * @throws Exception in case of an error while acknowledging
-		 */
-		void acknowledge(Session session, F file) throws Exception;
-
 	}
 
 }

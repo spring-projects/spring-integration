@@ -63,9 +63,6 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.remotePath, "'remotePath' must not be null");
-		if (this.shouldDeleteSourceFile) {
-			this.setAcknowledgmentStrategy(new DeletionAcknowledgmentStrategy());
-		}
 	}
 
 	public void synchronizeToLocalDirectory(File localDirectory) {
@@ -122,7 +119,9 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 					fileOutputStream.close();
 				}
 				if (tmpLocalTarget.renameTo(localFile)) {
-					this.acknowledge(session, entry);
+					if (this.shouldDeleteSourceFile) {
+						this.deleteRemoteFile(session, entry);
+					}
 				}
 				return true;
 			}
@@ -140,15 +139,11 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		}
 	}
 
-
-	private class DeletionAcknowledgmentStrategy implements AcknowledgmentStrategy<ChannelSftp.LsEntry> {
-
-		public void acknowledge(Session session, ChannelSftp.LsEntry msg) throws Exception {
-			String remoteFqPath = remotePath + "/" + msg.getFilename();
-			session.rm(remoteFqPath);
-			if (logger.isDebugEnabled()) {
-				logger.debug("deleted " + msg.getFilename());
-			}
+	private void deleteRemoteFile(Session session, ChannelSftp.LsEntry msg) {
+		String remoteFqPath = remotePath + "/" + msg.getFilename();
+		session.rm(remoteFqPath);
+		if (logger.isDebugEnabled()) {
+			logger.debug("deleted " + msg.getFilename());
 		}
 	}
 

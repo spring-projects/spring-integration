@@ -29,7 +29,6 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
-import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer.AcknowledgmentStrategy;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.util.ReflectionUtils;
 
@@ -88,7 +87,6 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@Test
 	public void testCopyAndRenameWhenLocalFileDoesntExist() throws Exception {
 		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
-		synchronizer.setAcknowledgmentStrategy(mock(AcknowledgmentStrategy.class));
 		Method method = 
 			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", Session.class, LsEntry.class, Resource.class);
 		method.setAccessible(true);

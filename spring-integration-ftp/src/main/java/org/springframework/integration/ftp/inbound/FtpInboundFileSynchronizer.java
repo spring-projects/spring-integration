@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.MessagingException;
@@ -64,9 +62,6 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
-		if (this.shouldDeleteSourceFile) {
-			this.setAcknowledgmentStrategy(new DeletionAcknowledgmentStrategy());
-		}
 	}
 
 	public void synchronizeToLocalDirectory(File localDirectory) {
@@ -114,7 +109,9 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 					return false;
 				}
 				FileCopyUtils.copy(inputStream, fileOutputStream);
-				acknowledge(session, ftpFile);
+				if (this.shouldDeleteSourceFile) {
+					this.deleteRemoteFile(session, ftpFile);
+				}
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
@@ -133,19 +130,11 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		return false;
 	}
 
-
-	/**
-	 * An acknowledgment strategy that deletes the file.
-	 */
-	private static class DeletionAcknowledgmentStrategy implements AcknowledgmentStrategy<FTPFile> {
-
-		private final Log logger = LogFactory.getLog(this.getClass());
-
-		public void acknowledge(Session session, FTPFile ftpFile) throws Exception {
-			if ((ftpFile != null) && session.rm(ftpFile.getName())) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("deleted " + ftpFile.getName());
-				}
+	// TODO: make this an abstract method in the base class once the code that calls this is refactored upward
+	private void deleteRemoteFile(Session session, FTPFile ftpFile) {
+		if ((ftpFile != null) && session.rm(ftpFile.getName())) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("deleted " + ftpFile.getName());
 			}
 		}
 	}
