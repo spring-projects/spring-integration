@@ -17,7 +17,9 @@
 package org.springframework.integration.file.remote.synchronizer;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +33,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -135,6 +138,62 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 	}
 
-	protected abstract boolean copyFileToLocalDirectory(String remoteDirectoryPath, F file, File localDirectory, Session session) throws IOException;
+	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session session) throws IOException {
+		String remoteFileName = this.getFilename(remoteFile);
+		String remoteFilePath = remoteDirectoryPath + File.separator + remoteFileName;
+		if (!this.isFile(remoteFile)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("cannot copy, not a file: " + remoteFilePath);
+			}
+			return;
+		}
+		File localFile = new File(localDirectory, remoteFileName);
+		if (!localFile.exists()) {
+			String tempFileName = localFile.getAbsolutePath() + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;
+			File tempFile = new File(tempFileName);
+			InputStream inputStream = null;
+			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
+			try {
+				inputStream = session.get(remoteFilePath);
+				if (inputStream != null) {
+					FileCopyUtils.copy(inputStream, fileOutputStream);
+				}
+			}
+			catch (Exception e) {
+				if (e instanceof RuntimeException){
+					throw (RuntimeException) e;
+				}
+				else {
+					throw new MessagingException("Failure occurred while copying from remote to local directory", e);
+				}
+			}
+			finally {
+				try {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				}
+				catch (Exception ignored1) {
+				}
+				try {
+					fileOutputStream.close();
+				}
+				catch (Exception ignored2) {
+				}
+			}
+			if (tempFile.renameTo(localFile)) {
+				if (this.shouldDeleteSourceFile) {
+					session.rm(remoteFilePath);
+					if (logger.isDebugEnabled()) {
+						logger.debug("deleted " + remoteFilePath);
+					}
+				}
+			}
+		}
+	}
+
+	protected abstract boolean isFile(F file);
+
+	protected abstract String getFilename(F file);
 
 }

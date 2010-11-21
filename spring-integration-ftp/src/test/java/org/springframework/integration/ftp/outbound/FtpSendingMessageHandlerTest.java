@@ -127,12 +127,10 @@ public class FtpSendingMessageHandlerTest {
 				when(ftpClient.changeWorkingDirectory(Mockito.anyString())).thenReturn(true);
 				when(ftpClient.printWorkingDirectory()).thenReturn("remote-target-dir");
 				when(ftpClient.storeFile(Mockito.anyString(), Mockito.any(InputStream.class))).thenAnswer(new Answer<Boolean>() {
-					public Boolean answer(InvocationOnMock invocation)
-							throws Throwable {
+					public Boolean answer(InvocationOnMock invocation) throws Throwable {
 						String fileName = (String) invocation.getArguments()[0];
 						InputStream fis = (InputStream) invocation.getArguments()[1];
-						String workingDirectory = ftpClient.printWorkingDirectory();
-						FileCopyUtils.copy(fis, new FileOutputStream(workingDirectory + File.separator + fileName));
+						FileCopyUtils.copy(fis, new FileOutputStream(fileName));
 						return true;
 					}
 				});
@@ -142,4 +140,5 @@ public class FtpSendingMessageHandlerTest {
 			}
 		}
 	}
+
 }

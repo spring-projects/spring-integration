@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ftp.session;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,7 +26,6 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -72,9 +70,9 @@ public class FtpSession implements Session {
 		}
 	}
 
-	public InputStream get(String source) {
+	public InputStream get(String path) {
 		try {
-			InputStream inputStream = this.client.retrieveFileStream(source);
+			InputStream inputStream = this.client.retrieveFileStream(path);
 			this.client.completePendingCommand();
 			return inputStream;
 		}
@@ -86,30 +84,14 @@ public class FtpSession implements Session {
 		}
 	}
 
-	public void put(InputStream inputStream, String destination) {
-		String originalWorkDir = null;
+	public void put(InputStream inputStream, String path) {
+		Assert.notNull(inputStream, "inputStream must not be null");
+		Assert.notNull(path, "path must not be null");
 		try {
-			String fileName = StringUtils.getFilename(destination);
-			int startOfFileName = destination.lastIndexOf(File.separatorChar);
-			
-			if (startOfFileName > 0) {
-				originalWorkDir = client.printWorkingDirectory();
-				String pathname = destination.substring(0, startOfFileName);
-				client.changeWorkingDirectory(pathname);
-			}	
-			this.client.storeFile(fileName, inputStream);
+			this.client.storeFile(path, inputStream);
 		}
 		catch (IOException e) {
 			throw new IllegalStateException("failed to copy file", e);
-		}
-		finally {
-			if (originalWorkDir != null){
-				try {
-					this.client.changeWorkingDirectory(originalWorkDir);
-				} catch (IOException ioex) {
-					throw new IllegalStateException("failed to change working directories ", ioex);
-				}	
-			}	
 		}
 	}
 

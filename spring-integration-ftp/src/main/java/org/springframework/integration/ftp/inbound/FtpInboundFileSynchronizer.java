@@ -16,19 +16,11 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
-import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.util.FileCopyUtils;
 
 /**
  * An FTP-adapter implementation of {@link org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer}
@@ -47,51 +39,13 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 
 	@Override
-	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, FTPFile ftpFile, File localDirectory, Session session) throws IOException {
-		if (!ftpFile.isFile()) {
-			return false;
-		}
-		String remoteFileName = ftpFile.getName();
-		String localFileName = localDirectory.getPath() + "/" + remoteFileName;
-		File localFile = new File(localFileName);
-		if (!localFile.exists()) {
-			String tempFileName = localFileName + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;
-			File file = new File(tempFileName);
-			FileOutputStream fileOutputStream = new FileOutputStream(file);
-			try {
-				InputStream inputStream = session.get(remoteFileName);
-				if (inputStream == null) {
-					return false;
-				}
-				FileCopyUtils.copy(inputStream, fileOutputStream);
-				if (this.shouldDeleteSourceFile) {
-					this.deleteRemoteFile(session, ftpFile);
-				}
-			}
-			catch (Exception e) {
-				if (e instanceof RuntimeException){
-					throw (RuntimeException) e;
-				}
-				else {
-					throw new MessagingException("Failed to copy file", e);
-				}
-			}
-			finally {
-				fileOutputStream.close();
-			}
-			file.renameTo(localFile);
-			return true;
-		}
-		return false;
+	protected boolean isFile(FTPFile file) {
+		return file.isFile();
 	}
 
-	// TODO: make this an abstract method in the base class once the code that calls this is refactored upward
-	private void deleteRemoteFile(Session session, FTPFile ftpFile) {
-		if ((ftpFile != null) && session.rm(ftpFile.getName())) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("deleted " + ftpFile.getName());
-			}
-		}
+	@Override
+	protected String getFilename(FTPFile file) {
+		return file.getName();
 	}
 
 }
