@@ -11,6 +11,6 @@ Import-Template:
  org.springframework.core.*;version="[3.0.5, 4.0.0)",
  org.springframework.scheduling.*;version="[3.0.5, 4.0.0)",
  org.springframework.util;version="[3.0.5, 4.0.0)",
- com.jcraft.jsch.*;version="[0.1.41, 0.1.5)",
+ com.jcraft.jsch.*;version="[0.1.41, 0.1.50)",
  javax.*;version="0",
  org.w3c.dom.*;version="0"
