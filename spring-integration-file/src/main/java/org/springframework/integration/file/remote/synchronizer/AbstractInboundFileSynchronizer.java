@@ -68,10 +68,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private volatile FileListFilter<F> filter;
 
 	/**
-	 * Should we <emphasis>delete</emphasis> the <b>source</b> file? For an FTP
-	 * server, for example, this would delete the original FTPFile instance.
+	 * Should we <emphasis>delete</emphasis> the remote <b>source</b> files
+	 * after copying to the local directory? By default this is false.
 	 */
-	protected boolean shouldDeleteSourceFile;
+	private boolean deleteRemoteFiles;
 
 
 	/**
@@ -94,8 +94,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.filter = filter;
 	}
 
-	public void setShouldDeleteSourceFile(boolean shouldDeleteSourceFile) {
-		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
+	public void setDeleteRemoteFiles(boolean deleteRemoteFiles) {
+		this.deleteRemoteFiles = deleteRemoteFiles;
 	}
 
 	public final void afterPropertiesSet() {
@@ -182,7 +182,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				}
 			}
 			if (tempFile.renameTo(localFile)) {
-				if (this.shouldDeleteSourceFile) {
+				if (this.deleteRemoteFiles) {
 					session.rm(remoteFilePath);
 					if (logger.isDebugEnabled()) {
 						logger.debug("deleted " + remoteFilePath);

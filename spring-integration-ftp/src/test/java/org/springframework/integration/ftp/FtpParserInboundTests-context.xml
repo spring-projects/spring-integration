@@ -27,7 +27,7 @@
 								 local-directory="target/foo"
 								 remote-directory="foo/bar"
 								 auto-create-directories="true"
-								 auto-delete-remote-files-on-sync="false">
+								 delete-remote-files="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
 	
@@ -39,7 +39,7 @@
 								 local-directory="target"
 								 remote-directory="foo/bar"
 								 auto-create-directories="true"
-								 auto-delete-remote-files-on-sync="false">
+								 delete-remote-files="false">
 		<int:poller fixed-rate="1000"/>
 	</ftp:inbound-channel-adapter>
 	

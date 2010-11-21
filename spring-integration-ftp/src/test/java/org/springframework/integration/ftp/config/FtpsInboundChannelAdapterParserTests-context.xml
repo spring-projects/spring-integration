@@ -22,7 +22,7 @@
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				auto-create-directories="true"
-				auto-delete-remote-files-on-sync="true"
+				delete-remote-files="true"
 				local-directory="."
 				remote-directory="foo/bar"
 				filter="entryListFilter">
@@ -34,7 +34,7 @@
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				auto-create-directories="true"
-				auto-delete-remote-files-on-sync="true"
+				delete-remote-files="true"
 				filename-pattern=".?txt"
 				local-directory="."
 				remote-directory="foo/bar">

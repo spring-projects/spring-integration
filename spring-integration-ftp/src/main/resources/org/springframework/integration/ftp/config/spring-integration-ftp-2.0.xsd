@@ -55,7 +55,14 @@
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 					<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
-					<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
+					<xsd:attribute name="delete-remote-files" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether to delete the remote source file after copying.
+								By default, the remote files will NOT be deleted.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="filename-pattern" type="xsd:string"/>
 					<xsd:attribute name="filter" type="xsd:string">
 						<xsd:annotation>
@@ -79,7 +86,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.ftp.client.AbstractFtpClientFactory"/>
+						<tool:expected-type type="org.springframework.integration.ftp.session.AbstractFtpSessionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

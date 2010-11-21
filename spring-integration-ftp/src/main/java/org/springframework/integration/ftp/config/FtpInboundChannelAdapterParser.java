@@ -47,7 +47,7 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 				"org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer");
 		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
-//		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "auto-delete-remote-files-on-sync", "shouldDeleteSourceFile");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		String fileNamePattern = element.getAttribute("filename-pattern");
 		String filter = element.getAttribute("filter");
 		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);

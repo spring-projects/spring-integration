@@ -88,7 +88,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 			}
 		});
 
-		syncronizer.setShouldDeleteSourceFile(true);
+		syncronizer.setDeleteRemoteFiles(true);
 		syncronizer.afterPropertiesSet();
 		
 		File localDirectory = new File(System.getProperty("java.io.tmpdir"));
