@@ -27,7 +27,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
@@ -41,40 +40,25 @@ import com.jcraft.jsch.ChannelSftp;
  */
 public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<ChannelSftp.LsEntry> {
 
-	/**
-	 * the path on the remote mount
-	 */
-	private volatile String remotePath;
-
-
 	public SftpInboundFileSynchronizer(SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}
 
 
-	public void setRemotePath(String remotePath) {
-		this.remotePath = remotePath;
-	}
-
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		Assert.notNull(this.remotePath, "'remotePath' must not be null");
-	}
-
 	@Override
-	protected void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException {
-		Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
+	protected void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
+		Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remoteDirectoryPath);
 		ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
 		Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
 		for (ChannelSftp.LsEntry lsEntry : files) {
 			if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
-				copyFromRemoteToLocalDirectory(session, lsEntry, localDirectory);
+				copyFromRemoteToLocalDirectory(remoteDirectoryPath, lsEntry, localDirectory, session);
 			}
 		}
 	}
 
-	private boolean copyFromRemoteToLocalDirectory(Session session, ChannelSftp.LsEntry entry, File localDirectory) throws IOException {
+	private boolean copyFromRemoteToLocalDirectory(String remoteDirectoryPath, ChannelSftp.LsEntry entry, File localDirectory, Session session) throws IOException {
 		File localFile = new File(localDirectory, entry.getFilename());
 		if (!localFile.exists()) {
 			InputStream in = null;
@@ -83,7 +67,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 				File tmpLocalTarget = new File(localFile.getAbsolutePath() +
 						AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION);
 				fileOutputStream = new FileOutputStream(tmpLocalTarget);
-				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
+				String remoteFqPath = remoteDirectoryPath + File.separator + entry.getFilename();
 				in = session.get(remoteFqPath);
 				try {
 					FileCopyUtils.copy(in, fileOutputStream);
@@ -94,7 +78,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 				}
 				if (tmpLocalTarget.renameTo(localFile)) {
 					if (this.shouldDeleteSourceFile) {
-						this.deleteRemoteFile(session, entry);
+						this.deleteRemoteFile(remoteDirectoryPath, session, entry);
 					}
 				}
 				return true;
@@ -113,7 +97,7 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		}
 	}
 
-	private void deleteRemoteFile(Session session, ChannelSftp.LsEntry msg) {
+	private void deleteRemoteFile(String remotePath, Session session, ChannelSftp.LsEntry msg) {
 		String remoteFqPath = remotePath + "/" + msg.getFilename();
 		session.rm(remoteFqPath);
 		if (logger.isDebugEnabled()) {

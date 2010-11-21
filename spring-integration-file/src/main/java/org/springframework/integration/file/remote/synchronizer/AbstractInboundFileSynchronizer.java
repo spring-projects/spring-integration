@@ -48,9 +48,14 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
+	 * the path on the remote mount
+	 */
+	private volatile String remotePath;
+
+	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	private volatile SessionFactory sessionFactory;
+	private final SessionFactory sessionFactory;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
@@ -73,6 +78,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 
+	public void setRemotePath(String remotePath) {
+		this.remotePath = remotePath;
+	}
+
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
@@ -81,8 +90,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
 	}
 
-	public void afterPropertiesSet() {
-		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
+	public final void afterPropertiesSet() {
+		Assert.notNull(this.remotePath, "remotePath must not be null");
 	}
 
 	protected final List<F> filterFiles(F[] files) {
@@ -94,7 +103,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		try {
 			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire a Session");
-			this.synchronizeToLocalDirectory(localDirectory, session);
+			this.synchronizeToLocalDirectory(this.remotePath, localDirectory, session);
 		}
 		catch (IOException e) {
 			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
@@ -113,6 +122,6 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 	}
 
-	protected abstract void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException;
+	protected abstract void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException;
 
 }

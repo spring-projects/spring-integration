@@ -41,9 +41,6 @@ import org.springframework.util.FileCopyUtils;
  */
 public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
-	private volatile String remotePath;
-
-
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
@@ -52,13 +49,9 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 	}
 
 
-	public void setRemotePath(String remotePath) {
-		this.remotePath = remotePath;
-	}
-
 	@Override
-	protected void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException {
-		Collection<FTPFile> files = session.ls(this.remotePath);
+	protected void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
+		Collection<FTPFile> files = session.ls(remoteDirectoryPath);
 		if (!CollectionUtils.isEmpty(files)) {
 			Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
 			for (FTPFile ftpFile : filteredFiles) {
