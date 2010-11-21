@@ -107,34 +107,23 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
-	 /**
-	    * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0 <br>
-	    * A constant indicating the FTP session is expecting all transfers
-	    * to occur between the client (local) and server and that the server
-	    * should connect to the client's data port to initiate a data transfer.
-	    * This is the default data connection mode when and FTPClient instance
-	    * is created.
-	    * <br>
-	    * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1 <br>
-	    * A constant indicating the FTP session is expecting all transfers
-	    * to occur between two remote servers and that the server
-	    * the client is connected to should connect to the other server's
-	    * data port to initiate a data transfer.
-	    * <br>
-	  	* PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2 <br>
-	    * A constant indicating the FTP session is expecting all transfers
-	    * to occur between the client (local) and server and that the server
-	    * is in passive mode, requiring the client to connect to the
-	    * server's data port to initiate a transfer.
-	    * <br>
-	    * PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3 <br>
-	    * A constant indicating the FTP session is expecting all transfers
-	    * to occur between two remote servers and that the server
-	    * the client is connected to is in passive mode, requiring the other
-	    * server to connect to the first server's data port to initiate a data
-	    * transfer.
-	    **/
+	/**
+	 * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0 <br>
+	 * A constant indicating the FTP session is expecting all transfers
+	 * to occur between the client (local) and server and that the server
+	 * should connect to the client's data port to initiate a data transfer.
+	 * This is the default data connection mode when and FTPClient instance
+	 * is created.
+	 * PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2 <br>
+	 * A constant indicating the FTP session is expecting all transfers
+	 * to occur between the client (local) and server and that the server
+	 * is in passive mode, requiring the client to connect to the
+	 * server's data port to initiate a transfer.
+	 */
 	public void setClientMode(int clientMode) {
+		Assert.isTrue(clientMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE || 
+				clientMode == FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE, 
+				"Only local modes are supported. Was: " + clientMode);
 		this.clientMode = clientMode;
 	}
 
@@ -190,7 +179,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 					"Login failed. Please check the username and password.");
 		}
 
-		setClientMode(client);
+		this.updateClientMode(client);
 		client.setFileType(this.fileType);
 
 		if (logger.isDebugEnabled()) {
@@ -213,7 +202,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	/**
 	 * Sets the mode of the connection. Only local modes are supported.
 	 */
-	protected void setClientMode(FTPClient client) {
+	private void updateClientMode(FTPClient client) {
 		switch (clientMode) {
 			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE:
 				client.enterLocalActiveMode();
