@@ -112,8 +112,6 @@ configure(javaprojects) {
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
-    commonsIoVersion = '1.4'
-    commonsLangVersion = '2.5'
     commonsNetVersion = '2.0'
     easymockVersion = '2.3'
     jacksonVersion = '1.4.3'
@@ -187,7 +185,6 @@ project('spring-integration-feed') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
-        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "net.java.dev.rome:rome-fetcher:1.0.0"
         compile "net.java.dev.rome:rome:1.0.0"
         testCompile project(":spring-integration-test")
@@ -365,8 +362,6 @@ project('spring-integration-twitter') {
     description = 'Spring Integration Twitter Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "commons-io:commons-io:$commonsIoVersion"
-        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile "org.springframework:spring-context-support:$springVersion"
         compile "org.twitter4j:twitter4j-core:2.1.3"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
@@ -408,8 +403,6 @@ project('spring-integration-xmpp') {
     description = 'Spring Integration XMPP Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "commons-io:commons-io:$commonsIoVersion"
-        compile "commons-lang:commons-lang:$commonsLangVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         compile "jivesoftware:smack:3.1.0"
         compile "jivesoftware:smackx:3.1.0"
