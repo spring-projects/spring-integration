@@ -30,7 +30,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 
@@ -44,15 +43,12 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	private volatile String remotePath;
 
-	private volatile SessionFactory sessionFactory;
-
 
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
 	public FtpInboundFileSynchronizer(SessionFactory sessionFactory) {
-		Assert.notNull(sessionFactory, "sessionFactory must not be null");
-		this.sessionFactory = sessionFactory;
+		super(sessionFactory);
 	}
 
 
@@ -60,34 +56,14 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		this.remotePath = remotePath;
 	}
 
-	public void afterPropertiesSet() {
-		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
-	}
-
-	public void synchronizeToLocalDirectory(File localDirectory) {
-		Session session = null;
-		try {
-			session = this.sessionFactory.getSession();
-			Assert.state(session != null, "failed to acquire an FTP Session");
-			Collection<FTPFile> files = session.ls(this.remotePath);
-			if (!CollectionUtils.isEmpty(files)) {
-				Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
-				for (FTPFile ftpFile : filteredFiles) {
-					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(session, ftpFile, localDirectory);
-					}
-				}
-			}
-		}
-		catch (IOException e) {
-			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
-		}
-		finally {
-			if (session != null) {
-				try {
-					session.close();
-				}
-				catch (Exception ignored) {
+	@Override
+	protected void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException {
+		Collection<FTPFile> files = session.ls(this.remotePath);
+		if (!CollectionUtils.isEmpty(files)) {
+			Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
+			for (FTPFile ftpFile : filteredFiles) {
+				if ((ftpFile != null) && ftpFile.isFile()) {
+					copyFileToLocalDirectory(session, ftpFile, localDirectory);
 				}
 			}
 		}

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.remote.synchronizer;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -23,7 +25,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.util.Assert;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -42,6 +48,11 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
+	 * the {@link SessionFactory} for acquiring remote file Sessions.
+	 */
+	private volatile SessionFactory sessionFactory;
+
+	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
 	 */
 	private volatile FileListFilter<F> filter;
@@ -53,6 +64,15 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	protected boolean shouldDeleteSourceFile;
 
 
+	/**
+	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
+	 */
+	public AbstractInboundFileSynchronizer(SessionFactory sessionFactory) {
+		Assert.notNull(sessionFactory, "sessionFactory must not be null");
+		this.sessionFactory = sessionFactory;
+	}
+
+
 	public void setFilter(FileListFilter<F> filter) {
 		this.filter = filter;
 	}
@@ -61,8 +81,38 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.shouldDeleteSourceFile = shouldDeleteSourceFile;
 	}
 
+	public void afterPropertiesSet() {
+		Assert.notNull(this.sessionFactory, "sessionFactory must not be null");
+	}
+
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
+
+	public void synchronizeToLocalDirectory(File localDirectory) {
+		Session session = null;
+		try {
+			session = this.sessionFactory.getSession();
+			Assert.state(session != null, "failed to acquire a Session");
+			this.synchronizeToLocalDirectory(localDirectory, session);
+		}
+		catch (IOException e) {
+			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
+		}
+		finally {
+			if (session != null) {
+				try {
+					session.close();
+				}
+				catch (Exception ignored) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("failed to close Session", ignored);
+					}
+				}
+			}
+		}
+	}
+
+	protected abstract void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException;
 
 }

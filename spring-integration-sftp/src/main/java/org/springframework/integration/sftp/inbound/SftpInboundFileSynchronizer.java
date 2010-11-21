@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.inbound;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 
@@ -45,15 +46,9 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 	 */
 	private volatile String remotePath;
 
-	/**
-	 * the {@link SessionFactory} for acquiring SFTP Sessions.
-	 */
-	private final SessionFactory sessionFactory;
-
 
 	public SftpInboundFileSynchronizer(SessionFactory sessionFactory) {
-		Assert.notNull(sessionFactory, "sessionFactory must not be null");
-		this.sessionFactory = sessionFactory;
+		super(sessionFactory);
 	}
 
 
@@ -61,46 +56,25 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 		this.remotePath = remotePath;
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
 		Assert.notNull(this.remotePath, "'remotePath' must not be null");
 	}
 
-	public void synchronizeToLocalDirectory(File localDirectory) {
-		Session session = null;
-		try {
-			session = this.sessionFactory.getSession();
-			if (logger.isTraceEnabled()) {
-				logger.trace("Pooled SftpSession " + session + " from the pool");
-			}
-			Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
-			ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
+	@Override
+	protected void synchronizeToLocalDirectory(File localDirectory, Session session) throws IOException {
+		Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remotePath);
+		ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
 				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
-			Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
-			for (ChannelSftp.LsEntry lsEntry : files) {
-				if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
-					copyFromRemoteToLocalDirectory(session, lsEntry, localDirectory);
-				}
-			}
-		}
-		catch (Exception e) {
-			throw new MessagingException("couldn't synchronize remote to local directory", e);
-		}
-		finally {
-			try {
-				session.close();
-			}
-			catch (Exception ignored) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("failed to close Session", ignored);
-				}
-			}
-			if (logger.isTraceEnabled()) {
-				logger.trace("Putting SftpSession " + session + " back into the pool");
+		Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
+		for (ChannelSftp.LsEntry lsEntry : files) {
+			if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
+				copyFromRemoteToLocalDirectory(session, lsEntry, localDirectory);
 			}
 		}
 	}
 
-	private boolean copyFromRemoteToLocalDirectory(Session session, ChannelSftp.LsEntry entry, File localDirectory) throws Exception {
+	private boolean copyFromRemoteToLocalDirectory(Session session, ChannelSftp.LsEntry entry, File localDirectory) throws IOException {
 		File localFile = new File(localDirectory, entry.getFilename());
 		if (!localFile.exists()) {
 			InputStream in = null;
