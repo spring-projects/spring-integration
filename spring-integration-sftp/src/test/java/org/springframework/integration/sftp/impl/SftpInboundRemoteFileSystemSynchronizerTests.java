@@ -34,6 +34,7 @@ import org.springframework.util.ReflectionUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import com.jcraft.jsch.SftpATTRS;
 
 /**
  * @author Oleg Zhurakousky
@@ -65,14 +66,18 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	@Test
 	public void testCopyAndRenameWhenLocalFileExists() throws Exception {
 		SftpInboundFileSynchronizer synchronizer = new SftpInboundFileSynchronizer(mock(SessionFactory.class));
-		Method method = 
-			ReflectionUtils.findMethod(synchronizer.getClass(), "copyFromRemoteToLocalDirectory", String.class, LsEntry.class, File.class, Session.class);
+		Method method = ReflectionUtils.findMethod(synchronizer.getClass(),
+				"copyFileToLocalDirectory", String.class, LsEntry.class, File.class, Session.class);
 		method.setAccessible(true);
 		Session session = mock(Session.class);
 		LsEntry entry = mock(LsEntry.class);
+		SftpATTRS attrs = mock(SftpATTRS.class);
+		when(attrs.isDir()).thenReturn(false);
+		when(attrs.isLink()).thenReturn(false);
+		when(entry.getAttrs()).thenReturn(attrs);
 		when(entry.getFilename()).thenReturn("foo.txt");
 		File localDir = new File("target");
-		boolean success = (Boolean) method.invoke(synchronizer, "remoteDir", entry, localDir, session);
+		Boolean success = (Boolean) method.invoke(synchronizer, "remoteDir", entry, localDir, session);
 		assertTrue(success);
 	}
 	/**

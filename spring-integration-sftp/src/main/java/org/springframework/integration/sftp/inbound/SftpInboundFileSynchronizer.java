@@ -27,9 +27,11 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * Handles the synchronization between a remote SFTP directory and a local mount.
@@ -47,18 +49,21 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 
 	@Override
 	protected void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
-		Collection<ChannelSftp.LsEntry> beforeFilter = session.ls(remoteDirectoryPath);
-		ChannelSftp.LsEntry[] entries = (beforeFilter == null) ? new ChannelSftp.LsEntry[0] : 
-				beforeFilter.toArray(new ChannelSftp.LsEntry[beforeFilter.size()]);
-		Collection<ChannelSftp.LsEntry> files = this.filterFiles(entries);
-		for (ChannelSftp.LsEntry lsEntry : files) {
-			if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
-				copyFromRemoteToLocalDirectory(remoteDirectoryPath, lsEntry, localDirectory, session);
+		Collection<LsEntry> files = session.ls(remoteDirectoryPath);
+		if (!CollectionUtils.isEmpty(files)) {
+			Collection<LsEntry> filteredFiles = this.filterFiles(files.toArray(new LsEntry[]{}));
+			for (LsEntry file : filteredFiles) {
+				if (file != null) {
+					copyFileToLocalDirectory(remoteDirectoryPath, file, localDirectory, session);
+				}
 			}
 		}
 	}
 
-	private boolean copyFromRemoteToLocalDirectory(String remoteDirectoryPath, ChannelSftp.LsEntry entry, File localDirectory, Session session) throws IOException {
+	private boolean copyFileToLocalDirectory(String remoteDirectoryPath, ChannelSftp.LsEntry entry, File localDirectory, Session session) throws IOException {
+		if (entry == null || entry.getAttrs() == null || entry.getAttrs().isDir() || entry.getAttrs().isLink()) {
+			return false;
+		}
 		File localFile = new File(localDirectory, entry.getFilename());
 		if (!localFile.exists()) {
 			InputStream in = null;

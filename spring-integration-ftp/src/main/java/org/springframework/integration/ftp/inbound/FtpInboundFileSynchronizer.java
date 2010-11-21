@@ -17,7 +17,6 @@
 package org.springframework.integration.ftp.inbound;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,17 +53,18 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 		Collection<FTPFile> files = session.ls(remoteDirectoryPath);
 		if (!CollectionUtils.isEmpty(files)) {
 			Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
-			for (FTPFile ftpFile : filteredFiles) {
-				if ((ftpFile != null) && ftpFile.isFile()) {
-					copyFileToLocalDirectory(session, ftpFile, localDirectory);
+			for (FTPFile file : filteredFiles) {
+				if (file != null) {
+					copyFileToLocalDirectory(remoteDirectoryPath, file, localDirectory, session);
 				}
 			}
 		}
 	}
 
-	private boolean copyFileToLocalDirectory(Session session, FTPFile ftpFile, File localDirectory)
-			throws IOException, FileNotFoundException {
-
+	private boolean copyFileToLocalDirectory(String remoteDirectoryPath, FTPFile ftpFile, File localDirectory, Session session) throws IOException {
+		if (!ftpFile.isFile()) {
+			return false;
+		}
 		String remoteFileName = ftpFile.getName();
 		String localFileName = localDirectory.getPath() + "/" + remoteFileName;
 		File localFile = new File(localFileName);
