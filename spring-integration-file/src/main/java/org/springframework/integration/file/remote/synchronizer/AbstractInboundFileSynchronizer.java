@@ -108,7 +108,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		try {
 			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire a Session");
-			F[] files = session.ls(this.remoteDirectory);
+			F[] files = session.<F>ls(this.remoteDirectory);
 			if (!ObjectUtils.isEmpty(files)) {
 				Collection<F> filteredFiles = this.filterFiles(files);
 				for (F file : filteredFiles) {

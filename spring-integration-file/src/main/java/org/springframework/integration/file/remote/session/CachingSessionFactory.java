@@ -121,7 +121,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 
 		public <F> F[] ls(String path) {
-			return this.targetSession.ls(path);
+			return this.targetSession.<F>ls(path);
 		}
 
 		public InputStream get(String source) {
