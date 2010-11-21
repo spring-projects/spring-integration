@@ -15,7 +15,7 @@
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>
 		<property name="password" value="password"/>
-		<property name="clientMode" value="1"/>
+		<property name="clientMode" value="2"/>
 		<property name="fileType" value="2"/>
 		<property name="remoteWorkingDirectory" value="foo/bar"/>
 	</bean>
