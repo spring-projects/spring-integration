@@ -45,7 +45,7 @@ public class SftpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		String sessionPoolName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				sessionPoolBuilder.getBeanDefinition(), parserContext.getRegistry());
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.outbound.SftpSendingMessageHandler");
+				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
 		handlerBuilder.addConstructorArgReference(sessionPoolName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
 		String remoteDirectory = element.getAttribute("remote-directory");

@@ -30,8 +30,8 @@ import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.sftp.outbound.SftpSendingMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -49,8 +49,8 @@ public class OutboundChannelAdapaterParserTests {
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer)consumer).getComponentName());
-		SftpSendingMessageHandler handler = (SftpSendingMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
-		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
+		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
+		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
 		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
@@ -71,8 +71,8 @@ public class OutboundChannelAdapaterParserTests {
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapterWithExpression", ((EventDrivenConsumer)consumer).getComponentName());
-		SftpSendingMessageHandler handler = (SftpSendingMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
-		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "remoteDirectoryExpression");
+		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
+		SpelExpression remoteDirectoryExpression = (SpelExpression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertEquals("'foo' + '/' + 'bar'", remoteDirectoryExpression.getExpressionString());
 		FileNameGenerator generator = (FileNameGenerator) TestUtils.getPropertyValue(handler, "fileNameGenerator");

@@ -35,6 +35,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.FileCopyUtils;
@@ -65,7 +66,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -83,7 +84,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -102,7 +103,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FtpSendingMessageHandler handler = new FtpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {

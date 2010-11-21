@@ -27,6 +27,7 @@ import java.io.File;
 import org.junit.Test;
 
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
@@ -43,9 +44,8 @@ public class SftpSendingMessageHandlerTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
-
 		handler.handleMessage(new GenericMessage("hello"));
 		verify(sessionFactory, times(1)).getSession();
 	}
@@ -56,7 +56,7 @@ public class SftpSendingMessageHandlerTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
@@ -69,7 +69,7 @@ public class SftpSendingMessageHandlerTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		Session session = mock(Session.class);
 		when(sessionFactory.getSession()).thenReturn(session);
-		SftpSendingMessageHandler handler = new SftpSendingMessageHandler(sessionFactory);
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));

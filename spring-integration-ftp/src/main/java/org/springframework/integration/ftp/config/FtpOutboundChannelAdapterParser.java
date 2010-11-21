@@ -38,7 +38,7 @@ public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.ftp.outbound.FtpSendingMessageHandler");
+				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.file.remote.session.CachingSessionFactory");
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));

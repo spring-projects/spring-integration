@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.outbound;
+package org.springframework.integration.file.remote.handler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,44 +37,43 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 /**
- * A {@link org.springframework.integration.core.MessageHandler} implementation that sends files to an FTP server.
+ * A {@link org.springframework.integration.core.MessageHandler} implementation that transfers files to a remote server.
  *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @since 2.0
  */
-public class FtpSendingMessageHandler extends AbstractMessageHandler {
+public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 
 
 	private final SessionFactory sessionFactory;
 
-	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcesor;
-
-	private volatile Expression remoteDirectoryExpression;
+	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
 	private volatile File temporaryBufferFolderFile;
 
-	private volatile Resource temporaryBufferFolder = 
-		new FileSystemResource(System.getProperty("java.io.tmpdir"));
+	private volatile Resource temporaryBufferFolder = new FileSystemResource(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = Charset.defaultCharset().name();
 
 
-	public FtpSendingMessageHandler(SessionFactory sessionFactory) {
+	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
 
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		this.remoteDirectoryExpression = remoteDirectoryExpression;
+		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression);
 	}
 
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
@@ -90,11 +89,49 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	protected void onInit() throws Exception {
-		Assert.notNull(this.temporaryBufferFolder, "'temporaryBufferFolder' must not be null");
+		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
+		Assert.notNull(this.temporaryBufferFolder, "temporaryBufferFolder must not be null");
 		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
-		if (this.remoteDirectoryExpression != null) {
-			this.directoryExpressionProcesor =
-					new ExpressionEvaluatingMessageProcessor<String>(this.remoteDirectoryExpression, String.class);
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		File file = this.redeemForStorableFile(message);
+		if (file != null && file.exists()) {
+			Session session = this.sessionFactory.getSession();
+			boolean sentSuccesfully = false;
+			try {
+				String targetDirectory = this.directoryExpressionProcessor.processMessage(message);
+				sentSuccesfully = this.sendFileToRemoteDirectory(file, targetDirectory, session);
+			}
+			catch (FileNotFoundException e) {
+				throw new MessageDeliveryException(message,
+						"File [" + file + "] not found in local working directory; it was moved or deleted unexpectedly.", e);
+			}
+			catch (IOException e) {
+				throw new MessageDeliveryException(message,
+						"Failed to transfer file [" + file + "] from local working directory to remote FTP directory.", e);
+			}
+			catch (Exception e) {
+				throw new MessageDeliveryException(message,
+						"Error handling message for file [" + file + "]", e);
+			}
+			finally {
+				if (file.exists()) {
+					try {
+						file.delete();
+					}
+					catch (Throwable th) {
+						// ignore
+					}
+				}
+				if (session != null) {
+					session.close();
+				}
+			}
+			if (!sentSuccesfully) {
+				throw new MessageDeliveryException(message, "Failed to transfer file '" + file + "'");
+			}
 		}
 	}
 
@@ -121,9 +158,9 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 		try {
 			Object payload = message.getPayload();
 			String generateFileName = this.fileNameGenerator.generateFileName(message);
-			File tempFile = new File(temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
-			File resultFile = new File(temporaryBufferFolderFile, generateFileName);
-			File sendableFile;
+			File tempFile = new File(this.temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
+			File resultFile = new File(this.temporaryBufferFolderFile, generateFileName);
+			File sendableFile = null;
 			if (payload instanceof String) {
 				sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);
 			}
@@ -133,63 +170,19 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 			else if (payload instanceof byte[]) {
 				sendableFile = this.handleByteArrayMessage((byte[]) payload, tempFile, resultFile);
 			}
-			else {
-				sendableFile = null;
-			}
 			return sendableFile;
 		}
-		catch (Throwable th) {
-			throw new MessageDeliveryException(message);
+		catch (Exception e) {
+			throw new MessageDeliveryException(message, "Failed to create sendable file.", e);
 		}
 	}
 
-	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.notNull(message, "'message' must not be null");
-		Object payload = message.getPayload();
-		Assert.notNull(payload, "Message payload must not be null");
-		File file = this.redeemForStorableFile(message);
-		if ((file != null) && file.exists()) {
-			Session session = this.sessionFactory.getSession();
-			boolean sentSuccesfully;
-			try {
-				String targetDirectory = this.directoryExpressionProcesor.processMessage(message);
-				sentSuccesfully = sendFile(file, targetDirectory, session);
-			}
-			catch (FileNotFoundException e) {
-				throw new MessageDeliveryException(message,
-						"File [" + file + "] not found in local working directory; it was moved or deleted unexpectedly", e);
-			}
-			catch (IOException e) {
-				throw new MessageDeliveryException(message,
-						"Error transferring file [" + file + "] from local working directory to remote FTP directory", e);
-			}
-			catch (Exception e) {
-				throw new MessageDeliveryException(message,
-						"Error handling message for file [" + file + "]", e);
-			}
-			finally {
-				if (file.exists()) {
-					try {
-						file.delete();
-					}
-					catch (Throwable th) {
-						// ignore
-					}
-				}
-				if (session != null) {
-					session.close();
-				}
-			}
-			if (!sentSuccesfully) {
-				throw new MessageDeliveryException(message, "Failed to store file '" + file + "'");
-			}
-		}
-	}
-
-	private boolean sendFile(File file, String targetDirectory, Session session) throws FileNotFoundException, IOException {
+	private boolean sendFileToRemoteDirectory(File file, String remoteDirectory, Session session) throws FileNotFoundException, IOException {
 		FileInputStream fileInputStream = new FileInputStream(file);
-		String remoteFilePath = targetDirectory + File.separatorChar + file.getName();
+		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, File.separator)) {
+			remoteDirectory += File.separatorChar;
+		}
+		String remoteFilePath = remoteDirectory + file.getName();
 		session.put(fileInputStream, remoteFilePath);
 		fileInputStream.close();
 		return true;

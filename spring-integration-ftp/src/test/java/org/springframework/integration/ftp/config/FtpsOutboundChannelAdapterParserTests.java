@@ -25,8 +25,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
-import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
 import org.springframework.integration.ftp.session.DefaultFtpsSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -38,13 +38,12 @@ public class FtpsOutboundChannelAdapterParserTests {
 
 	@Test
 	public void testFtpsOutboundChannelAdapterComplete() throws Exception{
-		ApplicationContext ac = 
-			new ClassPathXmlApplicationContext("FtpsOutboundChannelAdapterParserTests-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("FtpsOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = ac.getBean("ftpOutbound");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
-		FtpSendingMessageHandler handler = (FtpSendingMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
+		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));

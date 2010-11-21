@@ -28,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.ftp.outbound.FtpSendingMessageHandler;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -45,7 +45,7 @@ public class FtpParserOutboundTests {
 		assertNotNull(fileNameGenerator);
 		when(fileNameGenerator.generateFileName(Mockito.any(Message.class))).thenReturn("oleg-ftp-test.txt");
 		EventDrivenConsumer fileOutboundEndpoint = context.getBean("ftpOutboundAdapter", EventDrivenConsumer.class);
-		FtpSendingMessageHandler handler = (FtpSendingMessageHandler) TestUtils.getPropertyValue(fileOutboundEndpoint, "handler");
+		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(fileOutboundEndpoint, "handler");
 		Message<String> message = new GenericMessage<String>("ftp file generator test");
 		try {
 			handler.handleMessage(message);
