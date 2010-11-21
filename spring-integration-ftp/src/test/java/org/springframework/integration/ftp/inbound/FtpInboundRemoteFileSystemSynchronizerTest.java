@@ -76,8 +76,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		FtpInboundFileSynchronizingMessageSource ms = 
 			new FtpInboundFileSynchronizingMessageSource();
 		
-		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer());
-		synchronizer.setSessionFactory(ftpSessionFactory);
+		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setShouldDeleteSourceFile(true);
 		synchronizer.setRemotePath("remote-test-dir");
 		synchronizer.setFilter(new FtpPatternMatchingFileListFilter(".*\\.test$"));

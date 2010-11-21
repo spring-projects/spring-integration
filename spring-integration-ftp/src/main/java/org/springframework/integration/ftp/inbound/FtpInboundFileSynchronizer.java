@@ -48,13 +48,13 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 
 	/**
-	 * The {@link org.springframework.integration.ftp.session.FtpClientPool} that holds references to {@link org.apache.commons.net.ftp.FTPClient} instances
-	 *
-	 * @param clientPool the {@link org.springframework.integration.ftp.session.FtpClientPool}
+	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
-	public void setSessionFactory(SessionFactory sessionFactory) {
+	public FtpInboundFileSynchronizer(SessionFactory sessionFactory) {
+		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
+
 
 	public void setRemotePath(String remotePath) {
 		this.remotePath = remotePath;
