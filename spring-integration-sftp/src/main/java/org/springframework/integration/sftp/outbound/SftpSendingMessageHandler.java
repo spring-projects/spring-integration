@@ -24,9 +24,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
@@ -65,7 +62,8 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 
 	private volatile File temporaryBufferFolderFile;
 
-	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
+	private volatile Resource temporaryBufferFolder = 
+		new FileSystemResource(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = Charset.defaultCharset().name();
 
@@ -184,7 +182,7 @@ public class SftpSendingMessageHandler extends AbstractMessageHandler {
 			return true;
 		}
 		finally {
-			IOUtils.closeQuietly(fileInputStream);
+			fileInputStream.close();
 			session.close();
 		}
 	}

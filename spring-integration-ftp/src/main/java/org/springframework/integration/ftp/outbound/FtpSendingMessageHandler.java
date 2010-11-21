@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
-import org.apache.commons.lang.SystemUtils;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
@@ -62,7 +60,8 @@ public class FtpSendingMessageHandler extends AbstractMessageHandler {
 
 	private volatile File temporaryBufferFolderFile;
 
-	private volatile Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
+	private volatile Resource temporaryBufferFolder = 
+		new FileSystemResource(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = Charset.defaultCharset().name();
 

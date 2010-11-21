@@ -21,14 +21,13 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Collection;
 
-import org.apache.commons.io.IOUtils;
-
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -116,11 +115,11 @@ public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer
 				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
 				in = session.get(remoteFqPath);
 				try {
-					IOUtils.copy(in, fileOutputStream);
+					FileCopyUtils.copy(in, fileOutputStream);
 				}
 				finally {
-					IOUtils.closeQuietly(in);
-					IOUtils.closeQuietly(fileOutputStream);
+					in.close();
+					fileOutputStream.close();
 				}
 				if (tmpLocalTarget.renameTo(localFile)) {
 					this.acknowledge(session, entry);
