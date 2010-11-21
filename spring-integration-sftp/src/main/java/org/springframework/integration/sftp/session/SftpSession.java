@@ -17,8 +17,7 @@
 package org.springframework.integration.sftp.session;
 
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +27,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
@@ -155,17 +155,26 @@ public class SftpSession implements Session {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <F> Collection<F> ls(String path) {
+	public LsEntry[] ls(String path) {
 		Assert.state(channel != null, "session is not connected");
 		try {
-			return channel.ls(path);
+			Vector<?> lsEntries = channel.ls(path);
+			if (lsEntries != null) {
+				LsEntry[] entries = new LsEntry[lsEntries.size()];
+				for (int i = 0; i < lsEntries.size(); i++) {
+					Object next = lsEntries.get(i);
+					Assert.state(next instanceof LsEntry, "expected only LsEntry instances from channel.ls()");
+					entries[i] = (LsEntry) next;
+				}
+				return entries;
+			}
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("ls failed", e);
 			}
-			return Collections.EMPTY_LIST;
 		}
+		return new LsEntry[0];
 	}
 
 	public InputStream get(String source) {

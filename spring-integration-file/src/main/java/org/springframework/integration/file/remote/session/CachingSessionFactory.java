@@ -17,7 +17,6 @@
 package org.springframework.integration.file.remote.session;
 
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -121,7 +120,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			return this.targetSession.rm(path);
 		}
 
-		public <F> Collection<F> ls(String path) {
+		public <F> F[] ls(String path) {
 			return this.targetSession.ls(path);
 		}
 

@@ -17,7 +17,6 @@
 package org.springframework.integration.file.remote.session;
 
 import java.io.InputStream;
-import java.util.Collection;
 
 /**
  * Common abstraction for a Session with a remote File system.
@@ -31,7 +30,7 @@ public interface Session {
 
 	boolean rm(String path);
 
-	<F> Collection<F> ls(String path);
+	<F> F[] ls(String path);
 
 	InputStream get(String source);
 

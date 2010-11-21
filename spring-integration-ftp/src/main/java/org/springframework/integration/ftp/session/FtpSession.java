@@ -19,9 +19,6 @@ package org.springframework.integration.ftp.session;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -63,20 +60,15 @@ public class FtpSession implements Session {
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public <F> Collection<F> ls(String path) {
+	public FTPFile[] ls(String path) {
 		try {
-			FTPFile[] files = this.client.listFiles(path);
-			ArrayList list = new ArrayList();
-			for (FTPFile file : files) {
-				list.add(file);
-			}
-			return list;
+			return this.client.listFiles(path);
 		}
 		catch (IOException e) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("failed to list files", e);
 			}
-			return Collections.EMPTY_LIST;
+			return new FTPFile[0];
 		}
 	}
 

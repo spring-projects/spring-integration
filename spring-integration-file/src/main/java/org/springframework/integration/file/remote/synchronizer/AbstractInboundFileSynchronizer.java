@@ -19,6 +19,7 @@ package org.springframework.integration.file.remote.synchronizer;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +31,7 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base class charged with knowing how to connect to a remote file system,
@@ -122,6 +124,18 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 	}
 
-	protected abstract void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException;
+	private void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
+		F[] files = session.ls(remoteDirectoryPath);
+		if (!ObjectUtils.isEmpty(files)) {
+			Collection<F> filteredFiles = this.filterFiles(files);
+			for (F file : filteredFiles) {
+				if (file != null) {
+					this.copyFileToLocalDirectory(remoteDirectoryPath, file, localDirectory, session);
+				}
+			}
+		}
+	}
+
+	protected abstract boolean copyFileToLocalDirectory(String remoteDirectoryPath, F file, File localDirectory, Session session) throws IOException;
 
 }

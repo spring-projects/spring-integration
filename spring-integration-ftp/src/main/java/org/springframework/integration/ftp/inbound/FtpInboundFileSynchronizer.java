@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 
 import org.apache.commons.net.ftp.FTPFile;
 
@@ -29,7 +28,6 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -49,19 +47,7 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 
 	@Override
-	protected void synchronizeToLocalDirectory(String remoteDirectoryPath, File localDirectory, Session session) throws IOException {
-		Collection<FTPFile> files = session.ls(remoteDirectoryPath);
-		if (!CollectionUtils.isEmpty(files)) {
-			Collection<FTPFile> filteredFiles = this.filterFiles(files.toArray(new FTPFile[]{}));
-			for (FTPFile file : filteredFiles) {
-				if (file != null) {
-					copyFileToLocalDirectory(remoteDirectoryPath, file, localDirectory, session);
-				}
-			}
-		}
-	}
-
-	private boolean copyFileToLocalDirectory(String remoteDirectoryPath, FTPFile ftpFile, File localDirectory, Session session) throws IOException {
+	protected boolean copyFileToLocalDirectory(String remoteDirectoryPath, FTPFile ftpFile, File localDirectory, Session session) throws IOException {
 		if (!ftpFile.isFile()) {
 			return false;
 		}
