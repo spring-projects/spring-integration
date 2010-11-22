@@ -47,38 +47,10 @@ class SftpSession implements Session {
 	private final com.jcraft.jsch.Session jschSession;
 
 
-	public SftpSession(com.jcraft.jsch.Session jschSession){
+	public SftpSession(com.jcraft.jsch.Session jschSession) {
 		this.jschSession = jschSession;
 	}
 
-	void connect() {
-		try {
-			if (!this.jschSession.isConnected()) {
-				this.jschSession.connect();
-				this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
-			}
-			if (this.channel != null && !this.channel.isConnected()) {
-				this.channel.connect();
-			}
-		}
-		catch (JSchException e) {
-			throw new IllegalStateException("failed to connect", e);
-		}
-	}
-
-	public boolean mkdir(String path) {
-		Assert.state(channel != null, "session is not connected");
-		try {
-			channel.mkdir(path);
-			return true;
-		}
-		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("mkdir failed", e);
-			}
-			return false;
-		}
-	}
 
 	public boolean rm(String path) {
 		Assert.state(channel != null, "session is not connected");
@@ -147,4 +119,20 @@ class SftpSession implements Session {
 			jschSession.disconnect();
 		}
 	}
+
+	void connect() {
+		try {
+			if (!this.jschSession.isConnected()) {
+				this.jschSession.connect();
+				this.channel = (ChannelSftp) this.jschSession.openChannel("sftp");
+			}
+			if (this.channel != null && !this.channel.isConnected()) {
+				this.channel.connect();
+			}
+		}
+		catch (JSchException e) {
+			throw new IllegalStateException("failed to connect", e);
+		}
+	}
+
 }

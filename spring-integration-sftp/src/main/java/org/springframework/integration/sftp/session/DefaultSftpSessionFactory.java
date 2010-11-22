@@ -48,9 +48,9 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 
 	private volatile String privateKeyPassphrase;
 	
-	private final JSch jsch = new JSch();;
+	private final JSch jsch = new JSch();
 
-	
+
 	public void setHost(String host) {
 		this.host = host;
 	}
@@ -86,7 +86,6 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 		Assert.isTrue(StringUtils.hasText(this.password) || privateKey != null || StringUtils.hasText(this.privateKeyPassphrase),
 				"either a password or a private key and/or a private key passphrase is required");
 		try {
-			
 			com.jcraft.jsch.Session jschSession = this.initJschSession();
 			SftpSession sftpSession = new SftpSession(jschSession);
 			sftpSession.connect();
@@ -96,44 +95,41 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 			throw new IllegalStateException("failed to create SFTP Session", e);
 		}
 	}
-	
+
 	private com.jcraft.jsch.Session initJschSession() throws Exception { 
-		
-		if (port <= 0) {
-			port = 22;
+		if (this.port <= 0) {
+			this.port = 22;
 		}
-		
-		
 		if (StringUtils.hasText(this.knownHosts)) {
 			this.jsch.setKnownHosts(this.knownHosts);
 		}
-		
+
 		// private key
-		String privateKeyFilePath = this.privateKey.getFile().getAbsolutePath();
-		if (privateKey != null) {
-			if (StringUtils.hasText(privateKeyPassphrase)) {
-				this.jsch.addIdentity(privateKeyFilePath, privateKeyPassphrase);
+		if (this.privateKey != null) {
+			String privateKeyFilePath = this.privateKey.getFile().getAbsolutePath();
+			if (StringUtils.hasText(this.privateKeyPassphrase)) {
+				this.jsch.addIdentity(privateKeyFilePath, this.privateKeyPassphrase);
 			}
 			else {
 				this.jsch.addIdentity(privateKeyFilePath);
 			}
 		}
-		com.jcraft.jsch.Session jsSession = this.jsch.getSession(this.user, this.host, this.port);
+		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
 		if (StringUtils.hasText(this.password)) {
-			jsSession.setPassword(this.password);
+			jschSession.setPassword(this.password);
 		}
-		jsSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
-		return jsSession;
+		jschSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
+		return jschSession;
 	}
 
 
 	/**
 	 * this is a simple, optimistic implementation of this interface. It simply returns in the positive where possible
-	 * and handles interactive authentication (ie, 'Please enter your password: ' prompts are dispatched automatically using this)
+	 * and handles interactive authentication (i.e. 'Please enter your password: ' prompts are dispatched automatically using this)
 	 */
 	private static class OptimisticUserInfoImpl implements UserInfo {
 
-		private String password;
+		private final String password;
 
 		public OptimisticUserInfoImpl(String password) {
 			this.password = password;
@@ -144,7 +140,7 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 		}
 
 		public String getPassword() {
-			return password;
+			return this.password;
 		}
 
 		public boolean promptPassphrase(String string) {
@@ -162,4 +158,5 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 		public void showMessage(String string) {
 		}
 	}
+
 }
