@@ -29,36 +29,27 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd" 
 ]]></programlisting>
     </para>
-    
-    <para>
-    	<emphasis>FTPS</emphasis>
-    	<programlisting language="xml"><![CDATA[xmlns:ftps="http://www.springframework.org/schema/integration/ftps"
-xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps 
-	http://www.springframework.org/schema/integration/ftp/spring-integration-ftps-2.0.xsd" 
-]]></programlisting>
-    </para>
   </section>
   
   
-  <section id="ftp-client-factory">
-  	<title>FTP Client Factory</title>
+  <section id="ftp-session-factory">
+  	<title>FTP Session Factory</title>
   	<para>
-  	Before configuring FTP adapters you must configure <emphasis>Ftp Client Factory</emphasis>. You configure 
-  	<emphasis>Ftp Client Factory</emphasis> via regular bean configuration by configuring <classname>org.springframework.integration.ftp.client.DefaultFtpClientFactory</classname>:
+  	Before configuring FTP adapters you must configure <emphasis>Ftp Session Factory</emphasis>. You configure 
+  	<emphasis>Ftp Session Factory</emphasis> via regular bean configuration by configuring <classname>org.springframework.integration.ftp.session.DefaultFtpSessionFactory</classname>:
 	Below is a basic configuration:
 	
-	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpClientFactory">
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="kermit"/>
 		<property name="password" value="frog"/>
-		<property name="clientMode" value="1"/>
+		<property name="clientMode" value="0"/>
 		<property name="fileType" value="2"/>
-		<property name="remoteWorkingDirectory" value="foo/bar"/>
 </bean>]]></programlisting>
 	</para>
 	<para>
-	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.client.DefaultFtpsClientFactory</classname>.
+	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.session.DefaultFtpsSessionFactory</classname>.
 	Below is the complete configuration sample:
 	
 	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
@@ -68,7 +59,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
 		<property name="password" value="password"/>
 		<property name="clientMode" value="1"/>
 		<property name="fileType" value="2"/>
-		<property name="remoteWorkingDirectory" value="foo/bar"/>
 		<property name="useClientMode" value="true"/>
 		<property name="cipherSuites" value="a,b.c"/>
 		<property name="keyManager" ref="keyManager"/>
@@ -84,12 +74,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
 	</para>
 
 	<para>
-	Now all you need to do is inject these client factories into your adapters. Obviously the protocol (FTP or FTPS) adapter will use depends
-	on the type of client factory you are using.
+	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) adapter will 
+	use depends on the type of session factory that's been injected into the adapter.
   	</para>
   	<para>
   	<note>
-  	A more practical way to provide values for <emphasis>Ftp/Ftps Client Factory</emphasis> would be via Spring's property 
+  	A more practical way to provide values for <emphasis>Ftp/Ftps Session Factory</emphasis> would be via Spring's property 
   	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
   	</note>
   </para>
@@ -103,21 +93,29 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
   	
   	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpSessionFactory"
 				charset="UTF-8"
-				auto-create-directories="true"
-				auto-delete-remote-files-on-sync="true"
-				filename-pattern=".?txt"
+				auto-create-local-directory="true"
+				delete-remote-files="true"
+				filename-pattern="*.txt"
 				local-working-directory=".">
 			<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see form the configuration above you can configure <emphasis>FTP Inbound Channel Adapter</emphasis> via <code>inbound-channel-adapter</code> 
-	element while also providing values for various attributes such as <code>local-working-directory</code>, <code>filename-pattern</code> (Regular expression)
-	and of course the reference to a <code>client-factory</code>.
-	Please refer to the schema for more details on these attributes. 
+	element while also providing values for various attributes such as <code>local-working-directory</code>, <code>filename-pattern</code> 
+	(based on simple pattern matching - not regex) and of course the reference to a <code>session-factory</code>.
+	
+	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
+	sufficient enough. If this is the case, you can use <code>filename-regex</code> attribute to specify Regular expression 
+	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 
+	attribute and provide reference to a custom implementation of the 
+	<classname>org.springframework.integration.file.filters.FileListFilter</classname> - a strategy interface for filtering a 
+	group of files.
   	</para>
-  	
+  	<para>
+  	Please refer to the schema for more details on these attributes. 
+  	</para>
   	<para>
   	It is also important to understand that <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>polling consumer</emphasis> and 
   	therefore you must configure a poller (global or local).
@@ -125,20 +123,19 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
     identified with <code>channel</code> attribute.
   	</para>
   	<para>
-  		<emphasis>File Filtering and Large Files</emphasis>
+  		<emphasis>More on File Filtering and Large Files</emphasis>
   	</para>
   	<para>
   	Some times the file that just  appeared in the monitored (remote) directory is not complete. Typically such file 
   	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished. 
   	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
-  	To handle these scenarios Spring Integration FTP support allows you to configure custom filters that will filter out only 
-  	the files that you need. The filter is based on <classname>org.springframework.integration.file.filters.FileListFilter</classname> interface. 
-  	We also provide a convenient Regex-based implementation <classname>org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter</classname>.
-	Once configured all you need is include such filter in your adapter via 'filter' attribute.
+  	To handle these scenarios use filtering support provided via <code>filename-pattern</code>, <code>filename-regex</code> 
+  	and <code>filter</code> attributes. We also provide a convenient Regex-based implementation 
+  	<classname>org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter</classname>.
 	
 	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter 
 			channel="ftpChannel" 
-			client-factory="ftpClientFactory"
+			session-factory="ftpSessionFactory"
 			filter="fileNameFilter"
 			local-working-directory="file:/my_transfers">
 	<int:poller fixed-rate="1000"/>
@@ -148,11 +145,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftps
 	class="org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilt"">
 	<constructor-arg value=".*\.txt$"/>
 </bean>]]></programlisting>
-
-As an added convenience you may also use <code>filename-pattern</code> attribute instead of the explicit filter 
-	configuration where you'll provide the filtering expression (Regex)
-
-<programlisting language="xml"><![CDATA[filename-pattern=".*\.txt$"]]></programlisting>
   	</para>
   </section>
   
@@ -169,7 +161,7 @@ As an added convenience you may also use <code>filename-pattern</code> attribute
   	
   	<programlisting language="xml"><![CDATA[<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
-				client-factory="ftpClientFactory"
+				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				filename-generator="fileNameGenerator"/>]]></programlisting>	
 				

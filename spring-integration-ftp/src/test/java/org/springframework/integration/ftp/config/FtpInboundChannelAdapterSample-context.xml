@@ -10,16 +10,16 @@
 	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="username" value="ozhurakousky"/>
-		<property name="password" value="seva@1994"/>
+		<property name="password" value="xxxx"/>
 		<property name="remoteWorkingDirectory" value="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-test-dir"/>
 	</bean>
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"
 				channel="ftpChannel" 
 				session-factory="ftpClientFactory"
-				auto-create-directories="true"
+				auto-create-local-directory="true"
 				delete-remote-files="false"
-				filename-pattern=".*\.test$"
+				filename-regex=".*\.test$"
 				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-test-dir"
 				local-directory="file:local-test-dir">
 			<int:poller fixed-rate="1000"/>
