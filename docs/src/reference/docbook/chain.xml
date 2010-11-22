@@ -21,7 +21,9 @@
         this value should be set to 'true' (the default is false) so that the dispatcher will know that the Message was
         rejected and as a result will attempt to pass the Message on to other subscribers. If the Exception were not
         thrown, then it would appear to the dispatcher as if the Message had been passed on successfully even though
-        the Filter had <emphasis>dropped</emphasis> the Message to prevent further processing.
+        the Filter had <emphasis>dropped</emphasis> the Message to prevent further processing. If you do indeed want
+        to "drop" the Messages, then the Filter's 'discard-channel' might be useful since it does give you a chance
+        to perform some operation with the dropped message (e.g. send to a JMS queue or simply write to a log).
       </tip>
     </para>
     <para>
@@ -29,16 +31,17 @@
     components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required.
     </para>
     <para>
-    Internally, the chain will be expanded into a linear setup of the listed endpoints, separated by direct channels.
+    Internally, the chain will be expanded into a linear setup of the listed endpoints, separated by anonymous channels.
     The reply channel header will not be taken into account within the chain: only after the last handler is invoked
     will the resulting message be forwarded on to the reply channel or the chain's output channel. Because of this
-    setup all handlers except the last require a <methodname>setOutputChannel</methodname> implementation. The last
-    handler only needs an output channel if the outputChannel on the MessageHandlerChain is set.
+    setup all handlers except the last required to implement the MessageProducer interface (which provides a
+    'setOutputChannel()' method). The last handler only needs an output channel if the outputChannel on the
+    MessageHandlerChain is set.
     <note>
       <para>
         As with other endpoints, the <code>output-channel</code> is optional. If there is a reply Message at the end of the
         chain, the output-channel takes precedence, but if not available, the chain handler will check for a
-        reply channel header on the inbound Message.
+        reply channel header on the inbound Message as a fallback.
       </para>
     </note>
     </para>
@@ -57,43 +60,45 @@
       filters, transformers, splitters, and service-activators. The last element may also be a router.
       <programlisting language="xml"><![CDATA[ <chain input-channel="input" output-channel="output">
      <filter ref="someSelector" throw-exception-on-rejection="true"/>
-     <header-enricher error-channel="customErrorChannel">
+     <header-enricher>
          <header name="foo" value="bar"/>
      </header-enricher>
      <service-activator ref="someService" method="someMethod"/>
  </chain>]]></programlisting>
     </para>
   <para>
-    The &lt;header-enricher&gt; element used in the above example will set a message header with name "foo" and
-    value "bar" on the message. A header enricher is a specialization of <interfacename>Transformer</interfacename> 
-    that touches only header values. You could obtain the same result by implementing a MessageHandler that did the header modifications
-    and wiring that as a bean.
+    The &lt;header-enricher&gt; element used in the above example will set a message header named "foo" with a value
+    of "bar" on the message. A header enricher is a specialization of <interfacename>Transformer</interfacename> 
+    that touches only header values. You could obtain the same result by implementing a MessageHandler that did the
+    header modifications and wiring that as a bean, but the header-enricher is obviously a simpler option.
   </para>
 
   <para>
-  Sometimes you need to make a nested call to another chain from within the chain and then come
+  Sometimes you need to make a nested call to another chain from within a chain and then come
   back and continue execution within the original chain.
-    To accomplish this you can utilize Messaging Gateway by including a light configured &lt;gateway&gt; element.
+    To accomplish this you can utilize a Messaging Gateway by including a &lt;gateway&gt; element.
     For example:
-    <programlisting language="xml"><![CDATA[   <si:chain id="main-chain" input-channel="inputA" output-channel="inputB">
+    <programlisting language="xml"><![CDATA[  <si:chain id="main-chain" input-channel="in" output-channel="out">
     <si:header-enricher>
       <si:header name="name" value="Many" />
     </si:header-enricher>
     <si:service-activator>
       <bean class="org.foo.SampleService" />
     </si:service-activator>
-    <si:gateway request-channel="inputC"/>  
+    <si:gateway request-channel="inputA"/>  
   </si:chain>
-  <si:chain id="nested-chain-a" input-channel="inputC">
+
+  <si:chain id="nested-chain-a" input-channel="inputA">
     <si:header-enricher>
       <si:header name="name" value="Moe" />
     </si:header-enricher>
-    <si:gateway request-channel="inputD"/> 
+    <si:gateway request-channel="inputB"/> 
     <si:service-activator>
       <bean class="org.foo.SampleService" />
     </si:service-activator>
   </si:chain>
-  <si:chain id="nested-chain-b" input-channel="inputD">
+
+  <si:chain id="nested-chain-b" input-channel="inputB">
     <si:header-enricher>
       <si:header name="name" value="Jack" />
     </si:header-enricher>
@@ -102,13 +107,16 @@
     </si:service-activator>
   </si:chain>]]></programlisting>
 
-In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of <emphasis>main-chain</emphasis> processing by the 'gateway' element
-configured there. While in <emphasis>nested-chain-a</emphasis> a call to a <emphasis>nested-chain-b</emphasis> will be made after header enrichment and then it will
-come back to finish execution in <emphasis>nested-chain-b</emphasis> finally getting back to the <emphasis>main-chain</emphasis>.
-When the light version of &lt;gateway&gt; element is defined in the chain SI will construct an instance <classname>SimpleMessagingGateway</classname>
- (no need to provide a <code>service-interface</code> attribute) which will take the message in its current state and will place it on the channel defined via
- the <code>request-channel</code> attribute.
- Upon processing <interfacename>Message</interfacename> will be returned to the gateway and continue its journey within the current chain.
+    In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of
+    <emphasis>main-chain</emphasis> processing by the 'gateway' element configured there. While in
+    <emphasis>nested-chain-a</emphasis> a call to a <emphasis>nested-chain-b</emphasis> will be made
+    after header enrichment and then it will come back to finish execution in <emphasis>nested-chain-b</emphasis>.
+    Finally the flow returns to the <emphasis>main-chain</emphasis>. When the nested version of a &lt;gateway&gt;
+    element is defined in the chain, it does not require the <code>service-interface</code> attribute.
+    Instead, it simple takes the message in its current state and places it on the channel defined via
+    the <code>request-channel</code> attribute. When the downstream flow initiated by that gateway completes,
+    a <interfacename>Message</interfacename> will be returned to the gateway and continue its journey within
+    the current chain.
   </para>
   </section>
 
