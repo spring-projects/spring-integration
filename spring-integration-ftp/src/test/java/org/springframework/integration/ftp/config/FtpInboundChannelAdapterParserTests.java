@@ -30,7 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
+import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
@@ -55,7 +55,7 @@ public class FtpInboundChannelAdapterParserTests {
 		
 		FtpInboundFileSynchronizer fisync = 
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
-		FtpPatternMatchingFileListFilter filter = (FtpPatternMatchingFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
+		FtpSimplePatternFileListFilter filter = (FtpSimplePatternFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
 		assertNotNull(filter);		
 	}
 	

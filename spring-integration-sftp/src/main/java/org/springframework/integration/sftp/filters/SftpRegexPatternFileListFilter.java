@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.filters;
+package org.springframework.integration.sftp.filters;
 
 import java.util.regex.Pattern;
 
-import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter;
 
-import org.springframework.integration.file.filters.AbstractPatternMatchingFileListFilter;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public class FtpPatternMatchingFileListFilter extends AbstractPatternMatchingFileListFilter<FTPFile> {
+public class SftpRegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<ChannelSftp.LsEntry> {
 
-	public FtpPatternMatchingFileListFilter(String pattern) {
+	public SftpRegexPatternFileListFilter(String pattern) {
 		super(pattern);
 	}
 
-	public FtpPatternMatchingFileListFilter(Pattern pattern) {
+	public SftpRegexPatternFileListFilter(Pattern pattern) {
 		super(pattern);
 	}
 
 
 	@Override
-	protected String getFilename(FTPFile file) {
-		return (file != null) ? file.getName() : null;
+	protected String getFilename(LsEntry entry) {
+		return (entry != null) ? entry.getFilename() : null;
 	}
 
 }

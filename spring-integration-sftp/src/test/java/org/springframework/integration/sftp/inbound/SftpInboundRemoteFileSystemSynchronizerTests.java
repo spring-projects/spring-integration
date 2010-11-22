@@ -36,7 +36,7 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.file.remote.session.Session;
-import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
+import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 
@@ -81,7 +81,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
-		synchronizer.setFilter(new SftpPatternMatchingFileListFilter(".*\\.test$"));
+		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
 		
 		ms.setSynchronizer(synchronizer);
 		ms.setAutoCreateDirectories(true);

@@ -30,16 +30,16 @@ import org.springframework.util.Assert;
  * @param <F> the type of file entry
  * @since 2.0
  */
-public abstract class AbstractPatternMatchingFileListFilter<F> extends AbstractFileListFilter<F> implements InitializingBean {
+public abstract class AbstractRegexPatternFileListFilter<F> extends AbstractFileListFilter<F> implements InitializingBean {
 
 	private volatile Pattern pattern;
 
 
-	public AbstractPatternMatchingFileListFilter(String pattern) {
+	public AbstractRegexPatternFileListFilter(String pattern) {
 		this.pattern = Pattern.compile(pattern);
 	}
 
-	public AbstractPatternMatchingFileListFilter(Pattern pattern) {
+	public AbstractRegexPatternFileListFilter(Pattern pattern) {
 		this.pattern = pattern;
 	}
 

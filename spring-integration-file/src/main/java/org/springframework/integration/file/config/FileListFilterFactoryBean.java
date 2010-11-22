@@ -110,7 +110,7 @@ public class FileListFilterFactoryBean implements FactoryBean<FileListFilter<Fil
 				filtersNeeded.add(new SimplePatternFileListFilter(this.filenamePattern));
 			}
 			if (this.filenameRegex != null) {
-				filtersNeeded.add(new PatternMatchingFileListFilter(this.filenameRegex));
+				filtersNeeded.add(new RegexPatternFileListFilter(this.filenameRegex));
 			}
 			if (filtersNeeded.size() == 1) {
 				createdFilter = filtersNeeded.get(0);

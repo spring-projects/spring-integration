@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -63,7 +63,7 @@ public class FileInboundChannelAdapterWithRegexPatternParserTests {
 				extractedFilter).getPropertyValue("fileFilters");
         Pattern pattern = null;
         for (FileListFilter<?> filter : filters) {
-            if (filter instanceof PatternMatchingFileListFilter) {
+            if (filter instanceof RegexPatternFileListFilter) {
                 pattern = (Pattern) new DirectFieldAccessor(filter).getPropertyValue("pattern");
             }
         }

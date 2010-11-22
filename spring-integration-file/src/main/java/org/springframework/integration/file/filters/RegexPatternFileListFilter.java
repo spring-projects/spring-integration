@@ -20,19 +20,20 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 /**
- * Implementation of AbstractPatternMatchingFileListFilter for java.io.File entries.
+ * Implementation of AbstractRegexPatternMatchingFileListFilter for java.io.File instances.
  * 
  * @author Mark Fisher
  */
-public class PatternMatchingFileListFilter extends AbstractPatternMatchingFileListFilter<File> {
+public class RegexPatternFileListFilter extends AbstractRegexPatternFileListFilter<File> {
 
-	public PatternMatchingFileListFilter(String pattern) {
+	public RegexPatternFileListFilter(String pattern) {
 		super(pattern);
 	}
 
-	public PatternMatchingFileListFilter(Pattern pattern) {
+	public RegexPatternFileListFilter(Pattern pattern) {
 		super(pattern);
 	}
+
 
 	@Override
 	protected String getFilename(File file) {

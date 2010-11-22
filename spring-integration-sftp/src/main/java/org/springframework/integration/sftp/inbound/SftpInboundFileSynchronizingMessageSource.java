@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter;
+import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp;
 
@@ -65,7 +65,7 @@ public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFi
 			this.fileSource.setDirectory(this.localDirectory);
 			this.fileSource.afterPropertiesSet();
 			if (this.filenamePattern != null) {
-				SftpPatternMatchingFileListFilter filter = new SftpPatternMatchingFileListFilter(this.filenamePattern);
+				SftpRegexPatternFileListFilter filter = new SftpRegexPatternFileListFilter(this.filenamePattern);
 				this.synchronizer.setFilter(filter);
 			}
 		}

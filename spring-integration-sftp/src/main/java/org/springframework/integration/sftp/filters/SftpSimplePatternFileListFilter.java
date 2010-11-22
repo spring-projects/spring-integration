@@ -16,9 +16,7 @@
 
 package org.springframework.integration.sftp.filters;
 
-import java.util.regex.Pattern;
-
-import org.springframework.integration.file.filters.AbstractPatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -27,13 +25,9 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @author Mark Fisher
  * @since 2.0
  */
-public class SftpPatternMatchingFileListFilter extends AbstractPatternMatchingFileListFilter<ChannelSftp.LsEntry> {
+public class SftpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<ChannelSftp.LsEntry> {
 
-	public SftpPatternMatchingFileListFilter(String pattern) {
-		super(pattern);
-	}
-
-	public SftpPatternMatchingFileListFilter(Pattern pattern) {
+	public SftpSimplePatternFileListFilter(String pattern) {
 		super(pattern);
 	}
 

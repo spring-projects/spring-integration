@@ -29,7 +29,7 @@ import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
 import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 import org.springframework.util.Assert;
 
 /**
@@ -140,7 +140,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		Pattern completePattern = Pattern.compile("^.*(?<!" + AbstractInboundFileSynchronizer.INCOMPLETE_EXTENSION + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
 				new AcceptOnceFileListFilter<File>(),
-				new PatternMatchingFileListFilter(completePattern)));
+				new RegexPatternFileListFilter(completePattern)));
 	}
 
 }

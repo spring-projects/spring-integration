@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.RegexPatternFileListFilter;
 
 /**
  * @author Mark Fisher
@@ -39,7 +39,7 @@ public class PatternMatchingFileListFilterTests {
     public void matchSingleFile() {
         File[] files = new File[]{new File("/some/path/test.txt")};
         Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-        PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
+        RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
         List<File> accepted = filter.filterFiles(files);
         assertEquals(1, accepted.size());
     }
@@ -48,7 +48,7 @@ public class PatternMatchingFileListFilterTests {
     public void noMatchWithSingleFile() {
         File[] files = new File[]{new File("/some/path/Test.txt")};
         Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-        PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
+        RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
         List<File> accepted = filter.filterFiles(files);
         assertEquals(0, accepted.size());
     }
@@ -62,7 +62,7 @@ public class PatternMatchingFileListFilterTests {
                 new File("/some/path/bar.not")
         };
         Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-        PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
+        RegexPatternFileListFilter filter = new RegexPatternFileListFilter(pattern);
         List<File> accepted = filter.filterFiles(files);
         assertEquals(2, accepted.size());
         assertTrue(accepted.contains(new File("/some/path/foo.txt")));

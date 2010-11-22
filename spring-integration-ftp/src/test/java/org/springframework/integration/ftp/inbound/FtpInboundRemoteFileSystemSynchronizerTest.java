@@ -39,7 +39,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter;
+import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
 
 /**
@@ -79,7 +79,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
-		synchronizer.setFilter(new FtpPatternMatchingFileListFilter(".*\\.test$"));
+		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
 		
 		ms.setSynchronizer(synchronizer);
 		ms.setAutoCreateDirectories(true);

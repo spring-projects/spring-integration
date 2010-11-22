@@ -60,7 +60,7 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		}
 		if (hasFileNamePattern) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter");
+					"org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter");
 			filterBuilder.addConstructorArgValue(fileNamePattern);
 			synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
 		} 

@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.filters;
+package org.springframework.integration.ftp.filters;
 
-import java.io.File;
+import org.apache.commons.net.ftp.FTPFile;
+
+import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 
 /**
- * Filter that supports ant style path expressions, which are less powerful but more readable than regular expressions.
- * This filter only filters on the name of the file, the rest of the path is ignored.
- *
  * @author Mark Fisher
  * @since 2.0
  */
-public class SimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<File> {
+public class FtpSimplePatternFileListFilter extends AbstractSimplePatternFileListFilter<FTPFile> {
 
-	public SimplePatternFileListFilter(String path) {
-		super(path);
+	public FtpSimplePatternFileListFilter(String pattern) {
+		super(pattern);
 	}
 
 
 	@Override
-	protected String getFilename(File file) {
-		return file.getName();
+	protected String getFilename(FTPFile file) {
+		return (file != null) ? file.getName() : null;
 	}
 
 }
