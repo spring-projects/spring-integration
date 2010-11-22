@@ -16,13 +16,13 @@
 
 package org.springframework.integration.ftp.config;
 
-import org.springframework.integration.file.config.AbstractRemoteInboundChannelAdapterParser;
+import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public class FtpInboundChannelAdapterParser extends AbstractRemoteInboundChannelAdapterParser {
+public class FtpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
 
 	private static final String BASE_PACKAGE = "org.springframework.integration.ftp";
 

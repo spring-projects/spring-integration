@@ -17,6 +17,7 @@
 package org.springframework.integration.ftp.config;
 
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+import org.springframework.integration.file.config.RemoteFileOutboundChannelAdapterParser;
 
 /**
  * Provides namespace support for using FTP
@@ -31,7 +32,7 @@ public class FtpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FtpInboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new FtpOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new RemoteFileOutboundChannelAdapterParser());
 	}
 
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
-import org.springframework.integration.file.config.AbstractRemoteInboundChannelAdapterParser;
+import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
 
 /**
  * Parser for 'sftp:inbound-channel-adapter'
@@ -24,7 +24,7 @@ import org.springframework.integration.file.config.AbstractRemoteInboundChannelA
  * @author Mark Fisher
  * @since 2.0
  */
-public class SftpInboundChannelAdapterParser extends AbstractRemoteInboundChannelAdapterParser {
+public class SftpInboundChannelAdapterParser extends AbstractRemoteFileInboundChannelAdapterParser {
 
 	private static final String BASE_PACKAGE = "org.springframework.integration.sftp";
 

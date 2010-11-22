@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ftp.config;
+package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
@@ -33,51 +33,60 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
+		// build SessionFactory
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.file.remote.session.CachingSessionFactory");
 		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+
+		// build MessageHandler
+		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+
+		// configure remote directory expression
 		String remoteDirectory = element.getAttribute("remote-directory");
 		String remoteDirectoryExpression = element.getAttribute("remote-directory-expression");
-		boolean hasDirectory = StringUtils.hasText(remoteDirectory);
-		boolean hasDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
-		if (!(hasDirectory ^ hasDirectoryExpression)) {
+		boolean hasRemoteDirectory = StringUtils.hasText(remoteDirectory);
+		boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
+		if (!(hasRemoteDirectory ^ hasRemoteDirectoryExpression)) {
 			throw new BeanDefinitionStoreException("exactly one of 'remote-directory' or 'remote-directory-expression' " +
-					"is required on the FTP outbound adapter");
+					"is required on a remote file outbound adapter");
 		}
-		BeanDefinition expressionDef = null;
-		if (hasDirectory) {
-			expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
+		BeanDefinition remoteDirectoryExpressionDefinition = null;
+		if (hasRemoteDirectory) {
+			remoteDirectoryExpressionDefinition = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
 		}
-		else if (hasDirectoryExpression) {
-			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");	
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
+		else if (hasRemoteDirectoryExpression) {
+			remoteDirectoryExpressionDefinition = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");	
+			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
 		}
-		handlerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
-		String remoteFileExpression = element.getAttribute("remote-filename-generator-expression");
-		String fileNameGenerator = element.getAttribute("remote-filename-generator");
-		boolean hasRemoteFileExpression = StringUtils.hasText(remoteFileExpression);
-		boolean hasFileNameGenerator = StringUtils.hasText(fileNameGenerator);
-		if (hasRemoteFileExpression || hasFileNameGenerator) {
-			if (hasRemoteFileExpression && hasFileNameGenerator) {
+		handlerBuilder.addPropertyValue("remoteDirectoryExpression", remoteDirectoryExpressionDefinition);
+
+		// configure remote FileNameGenerator
+		String remoteFileNameGenerator = element.getAttribute("remote-filename-generator");
+		String remoteFileNameGeneratorExpression = element.getAttribute("remote-filename-generator-expression");
+		boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);
+		boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
+		if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
+			if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
 				throw new BeanDefinitionStoreException("at most one of 'remote-filename-generator-expression' or 'remote-filename-generator' " +
-						"is allowed on the FTP outbound adapter");
+						"is allowed on a remote file outbound adapter");
 			}
-			if (StringUtils.hasText(remoteFileExpression)) {
+			if (hasRemoteFileNameGenerator) {
+				handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
+			}
+			else {
 				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 						"org.springframework.integration.file.DefaultFileNameGenerator");
-				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileExpression);
+				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
 				handlerBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 			}
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "remote-filename-generator", "fileNameGenerator");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
 		return handlerBuilder.getBeanDefinition();
 	}
