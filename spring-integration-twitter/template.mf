@@ -14,7 +14,6 @@ Import-Template:
  org.springframework.core.*;version="[3.0.5, 4.0.0)",
  org.springframework.scheduling.*;version="[3.0.5, 4.0.0)",
  org.springframework.util;version="[3.0.5, 4.0.0)",
- org.jivesoftware.*;version="[3.1.0, 4.0.0)",
  twitter4j.*;version="[2.1.0, 2.3.0)",
  javax.*;version="0",
  org.w3c.dom.*;version="0"
