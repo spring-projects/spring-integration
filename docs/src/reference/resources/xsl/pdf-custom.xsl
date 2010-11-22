@@ -287,42 +287,19 @@
         <xsl:attribute name="space-after.minimum">0.1em</xsl:attribute>
         <xsl:attribute name="space-after.maximum">0.1em</xsl:attribute>
     </xsl:attribute-set>
+    <xsl:attribute-set name="section.title.level4.properties">
+        <xsl:attribute name="space-before.optimum">0.3em</xsl:attribute>
+        <xsl:attribute name="space-before.minimum">0.3em</xsl:attribute>
+        <xsl:attribute name="space-before.maximum">0.3em</xsl:attribute>
+        <xsl:attribute name="font-size">
+            <xsl:value-of select="$body.font.master * 0.9"/>
+            <xsl:text>pt</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="space-after.optimum">0.1em</xsl:attribute>
+        <xsl:attribute name="space-after.minimum">0.1em</xsl:attribute>
+        <xsl:attribute name="space-after.maximum">0.1em</xsl:attribute>
+    </xsl:attribute-set>
 
-<!-- Use code syntax highlighting -->
-    <xsl:param name="highlight.source" select="1"/>
-    <xsl:param name="highlight.default.language" select="xml" />
-
-    <xsl:template match='xslthl:keyword'>
-        <fo:inline font-weight="bold" color="#7F0055"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:comment'>
-        <fo:inline font-style="italic" color="#3F5F5F"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:oneline-comment'>
-        <fo:inline font-style="italic" color="#3F5F5F"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:multiline-comment'>
-        <fo:inline font-style="italic" color="#3F5FBF"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:tag'>
-        <fo:inline  color="#3F7F7F"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:attribute'>
-        <fo:inline color="#7F007F"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:value'>
-        <fo:inline color="#2A00FF"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
-
-    <xsl:template match='xslthl:string'>
-        <fo:inline color="#2A00FF"><xsl:apply-templates/></fo:inline>
-    </xsl:template>
 
 <!--###################################################
         Tables
