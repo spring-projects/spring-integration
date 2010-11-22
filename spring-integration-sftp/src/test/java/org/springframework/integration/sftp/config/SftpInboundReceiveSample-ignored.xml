@@ -21,10 +21,9 @@
 	<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
 			channel="receiveChannel" 
 			session-factory="sftpSessionFactory" 
-			local-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/bar"
+			local-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/local-test-dir"
 			remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"
 			auto-startup="true"
-			auto-create-directories="true"
 			auto-delete-remote-files-on-sync="false"
 			filename-pattern=".*\.test$">
 		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>

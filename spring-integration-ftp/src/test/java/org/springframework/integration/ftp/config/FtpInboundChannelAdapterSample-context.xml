@@ -18,10 +18,10 @@
 				channel="ftpChannel" 
 				session-factory="ftpClientFactory"
 				auto-create-directories="true"
-				auto-delete-remote-files-on-sync="false"
+				delete-remote-files="false"
 				filename-pattern=".*\.test$"
 				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-test-dir"
-				local-working-directory="file:local-test-dir">
+				local-directory="file:local-test-dir">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
 	
