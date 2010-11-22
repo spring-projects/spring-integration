@@ -21,11 +21,7 @@
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
-	
-	<int-ftp:inbound-channel-adapter local-directory="" channel="" session-factory="" remote-directory=""
-	
-	>
-	
+
 	</int-ftp:inbound-channel-adapter>
 	
 	<int-ftp:inbound-channel-adapter 
