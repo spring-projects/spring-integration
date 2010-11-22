@@ -28,8 +28,10 @@
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/highlight.xsl"/>
 
-    <!-- xsl:param name="draft.watermark.image" select="'images/draft.png'"/ -->
-    <xsl:param name="paper.type" select="'A4'"/>
+<!-- Use nice graphics for admonitions -->
+    <xsl:param name="admon.graphics">'1'</xsl:param>
+    <xsl:param name="admon.graphics.path">images/admon/</xsl:param>
+    <xsl:param name="admon.graphics.extension">.png</xsl:param>
 
 <!-- resize the admon graphics. they're width 36pt by default
      even though the graphics that ship with docbook are 24x24 -->
@@ -38,6 +40,7 @@
       <xsl:text>24pt</xsl:text>
     </xsl:template>
 
+    <xsl:param name="paper.type" select="'A4'"/>
     <xsl:param name="page.margin.top" select="'1cm'"/>
     <xsl:param name="region.before.extent" select="'1cm'"/>
     <xsl:param name="body.margin.top" select="'1.5cm'"/>
@@ -46,9 +49,6 @@
     <xsl:param name="region.after.extent" select="'1cm'"/>
     <xsl:param name="page.margin.bottom" select="'1cm'"/>
     <xsl:param name="title.margin.left" select="'0cm'"/>
-
-    <xsl:param name="page.margin.inner" select="'2cm'"/>
-    <xsl:param name="page.margin.outer" select="'2cm'"/>
 
 <!--###################################################
         Header
@@ -204,7 +204,6 @@
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="tablecolumns.extension">0</xsl:param>
     <xsl:param name="callout.extensions">1</xsl:param>
-    <xsl:param name="fop1.extensions">1</xsl:param>
 
 <!--###################################################
         Paper & Page Size
@@ -250,7 +249,6 @@
     </xsl:template>
 
 <!-- Sections 1, 2 and 3 titles have a small bump factor and padding -->
-
     <xsl:attribute-set name="section.title.level1.properties">
         <xsl:attribute name="space-before.optimum">0.8em</xsl:attribute>
         <xsl:attribute name="space-before.minimum">0.8em</xsl:attribute>
