@@ -55,8 +55,7 @@ public class OutboundChannelAdapaterParserTests {
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);
 		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		CachingSessionFactory sessionFactory = (CachingSessionFactory) TestUtils.getPropertyValue(handler, "sessionFactory");
 		DefaultSftpSessionFactory clientFactory = (DefaultSftpSessionFactory) TestUtils.getPropertyValue(sessionFactory, "sessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
@@ -79,8 +78,7 @@ public class OutboundChannelAdapaterParserTests {
 		String fileNameGeneratorExpression = (String) TestUtils.getPropertyValue(generator, "expression");
 		assertEquals("payload.getName() + '-foo'", fileNameGeneratorExpression);
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		
 	}
 	

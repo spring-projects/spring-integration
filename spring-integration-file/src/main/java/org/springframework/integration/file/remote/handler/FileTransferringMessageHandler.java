@@ -24,8 +24,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
@@ -59,9 +57,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
-	private volatile File temporaryBufferFolderFile;
-
-	private volatile Resource temporaryBufferFolder = new FileSystemResource(System.getProperty("java.io.tmpdir"));
+	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = Charset.defaultCharset().name();
 
@@ -76,8 +72,9 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression);
 	}
 
-	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
-		this.temporaryBufferFolder = temporaryBufferFolder;
+	public void setTemporaryDirectory(File temporaryDirectory) {
+		Assert.notNull(temporaryDirectory, "temporaryDirectory must not be null");
+		this.temporaryDirectory = temporaryDirectory;
 	}
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
@@ -90,8 +87,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
-		Assert.notNull(this.temporaryBufferFolder, "temporaryBufferFolder must not be null");
-		this.temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
 	}
 
 	@Override
@@ -158,8 +153,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		try {
 			Object payload = message.getPayload();
 			String generateFileName = this.fileNameGenerator.generateFileName(message);
-			File tempFile = new File(this.temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
-			File resultFile = new File(this.temporaryBufferFolderFile, generateFileName);
+			File tempFile = new File(this.temporaryDirectory, generateFileName + TEMPORARY_FILE_SUFFIX);
+			File resultFile = new File(this.temporaryDirectory, generateFileName);
 			File sendableFile = null;
 			if (payload instanceof String) {
 				sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);

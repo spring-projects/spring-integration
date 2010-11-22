@@ -46,8 +46,7 @@ public class FtpsOutboundChannelAdapterParserTests {
 		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolder"));
-		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryBufferFolderFile"));
+		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
 		CachingSessionFactory cacheSf = (CachingSessionFactory) TestUtils.getPropertyValue(handler, "sessionFactory");
 		DefaultFtpsSessionFactory sf = (DefaultFtpsSessionFactory) TestUtils.getPropertyValue(cacheSf, "sessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
