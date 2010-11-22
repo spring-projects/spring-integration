@@ -124,25 +124,24 @@
 
     <important>
     In both configurations <code>channel</code> and <code>should-delete-messages</code> are the <emphasis>REQUIRED</emphasis>
-    attributes. The important thing to understand is why <code>should-delete-messages</code> is required?
-    The issue is with POP3 protocol, which does NOT have any knowlege of messages that were READ. It can only know what's been read 
-    within a single session. This means that when your POP3 mail adapter is running emails are successfully consumed as as they become available during each poll
+    attributes. The important thing to understand is why <code>should-delete-messages</code> is required.
+    The issue is with the POP3 protocol, which does NOT have any knowledge of messages that were READ. It can only know what's been read 
+    within a single session. This means that when your POP3 mail adapter is running, emails are successfully consumed as as they become available during each poll
     and no single email message will be delivered more then once. However, as soon as you restart your adapter and begin a new session
-    all the email messages that might have been retreeved in the previous session will be retrieved again. That is the nature of POP3. Some might argue
-    that why not set <code>should-delete-messages</code> to TRUE by default? Becouse there are two valid amd mutually exclusive use cases 
-    which makes it very hard pick the right default. You may want to configure your adapter as the only email receiever in which
+    all the email messages that might have been retrieved in the previous session will be retrieved again. That is the nature of POP3. Some might argue
+    that <code>should-delete-messages</code> should be TRUE by default. In other words, there are two valid and mutually exclusive use cases 
+    which make it very hard to pick a single "best" default. You may want to configure your adapter as the only email receiver in which
     case you want to be able to restart such adapter without fear that messages that were delivered before will not be redelivered again. 
-    In this case setting <code>should-delete-messages</code> to TRUE would make most sence. However, you may have anoher use case where 
+    In this case setting <code>should-delete-messages</code> to TRUE would make most sense. However, you may have another use case where 
     you may want to have multiple adapters that simply monitor email servers and their content. In other words you just want to 'peek but not touch'. 
     Then setting <code>should-delete-messages</code> to FALSE would be much more appropriate. So since it is hard to choose what should be
-    the right default value for <code>should-delete-messages</code> attribute we simply made it required to be set - leaving it up to you
-    while also not letting you to forget that you must set it.
+    the right default value for the <code>should-delete-messages</code> attribute, we simply made it a required attribute, to be set by the user.
+    Leaving it up to the user also means, you will be less likely to end up with unintended behavior.
     </important>
 
-     <note>When configuring a polling adapter (e.g., inbound-channel-adapter) <emphasis>should-mark-messages-as-read</emphasis>
+     <note>When configuring a polling email adapter's <emphasis>should-mark-messages-as-read</emphasis> attribute,
     be aware of the protocol you are configuring to retrieve messages. For example POP3 does not support this flag
-    which means setting it to either value will have no effect as messages will NOT be marked as read</note>
-
+    which means setting it to either value will have no effect as messages will NOT be marked as read.</note>
 
     <para>
       When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
@@ -159,7 +158,7 @@
     <para>
       Finally, the &lt;imap-idle-channel-adapter/&gt; also accepts the 'error-channel' attribute. 
       If a downstream exception is thrown and an 'error-channel' is specified, 
-      a MessagingException message containing the failed message and exception, will be sent to this channel. 
+      a MessagingException message containing the failed message and original exception, will be sent to this channel. 
       Otherwise, if the downstream channels are synchronous, any such exception will simply be logged as a 
       warning by the channel adapter.
     </para>
