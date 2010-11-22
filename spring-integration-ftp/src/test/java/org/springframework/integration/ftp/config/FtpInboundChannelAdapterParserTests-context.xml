@@ -22,8 +22,6 @@
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
 
-	</int-ftp:inbound-channel-adapter>
-	
 	<int-ftp:inbound-channel-adapter 
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
