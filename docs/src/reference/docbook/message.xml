@@ -81,10 +81,6 @@
               <entry>java.lang.Long</entry>
             </row>
             <row>
-              <entry>EXPIRATION_DATE</entry>
-              <entry>java.lang.Long</entry>
-            </row>
-            <row>
               <entry>CORRELATION_ID</entry>
               <entry>java.lang.Object</entry>
             </row>
@@ -103,6 +99,10 @@
             <row>
               <entry>SEQUENCE_SIZE</entry>
               <entry>java.lang.Integer</entry>
+            </row>
+            <row>
+              <entry>EXPIRATION_DATE</entry>
+              <entry>java.lang.Long</entry>
             </row>
             <row>
               <entry>PRIORITY</entry>
