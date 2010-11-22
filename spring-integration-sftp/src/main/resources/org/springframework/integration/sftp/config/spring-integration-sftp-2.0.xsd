@@ -80,7 +80,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 					Allows you to provide SpEL expression which will compute file name of 
-					the remote file (e.g., assuming payload is java.io.File - payload.getName() + '.transfered');
+					the remote file (e.g., assuming payload is java.io.File "payload.getName() + '.transfered'");
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -170,14 +170,14 @@
 			</xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required">
 				<xsd:annotation>
-				<xsd:documentation>
+				    <xsd:documentation>
 					Identifies directory path (e.g., "/temp/mytransfers") where file will be transferred FROM.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="local-directory" type="xsd:string" use="required">
 				<xsd:annotation>
-				<xsd:documentation>
+					<xsd:documentation>
 					Identifies directory path (e.g., "/local/mytransfers") where file will be transferred TO.
 					</xsd:documentation>
 				</xsd:annotation>

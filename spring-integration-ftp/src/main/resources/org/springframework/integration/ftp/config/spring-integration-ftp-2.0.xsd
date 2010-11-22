@@ -22,12 +22,26 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="base-ftp-adapter-type">
-					<xsd:attribute name="remote-directory" type="xsd:string"/>
-					<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
+					<xsd:attribute name="remote-directory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Identifies directory path (e.g., "/temp/mytransfers") where file will be transferred TO
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="remote-directory-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide SpEL expression which will compute directory path 
+							where file will be transferred TO (e.g., "headers.['remote_dir'] + '/myTransfers'");
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            		<xsd:annotation>
 	            			<xsd:documentation>
-	            				A reference to an implementation of org.springframework.integration.file.FileNameGenerator.
+	            				Allows you to specify a reference to  
+	            	[org.springframework.integration.file.FileNameGenerator] bean.
 	            			</xsd:documentation>
 	                		<xsd:appinfo>
 	                    		<tool:annotation kind="ref">
@@ -36,7 +50,14 @@
 	                		</xsd:appinfo>
 	            		</xsd:annotation>
 	        		</xsd:attribute>
-					<xsd:attribute name="remote-filename-generator-expression" type="xsd:string"/>
+					<xsd:attribute name="remote-filename-generator-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide SpEL expression which will compute file name of 
+							the remote file (e.g., assuming payload is java.io.File "payload.getName() + '.transfered'");
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -54,8 +75,22 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="filename-pattern" type="xsd:string"/>
-					<xsd:attribute name="filename-regex" type="xsd:string"/>
+					<xsd:attribute name="filename-pattern" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			            	Allows you to provide file name pattern to determine the file names that needs to be scanned 
+			            	and is based on simple pattern matching algorithm (e.g., "*.txt, fo*.txt" etc.)
+			            	</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="filename-regex" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			            	Allows you to provide Regular Expression to determine the file names that needs to be scanned.
+			            	 (e.g., "f[o]+\.txt" etc.)
+			            	</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="filter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -63,11 +98,33 @@
 									<tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
 								</tool:annotation>
 							</xsd:appinfo>
+							<xsd:documentation>
+				            	Allows you to specify a reference to  
+				            	[org.springframework.integration.file.filters.FileListFilter] bean.
+				            </xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
-					<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
-					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean"/>
+					<xsd:attribute name="remote-directory" type="xsd:string" use="required">
+						<xsd:annotation>
+						    <xsd:documentation>
+							Identifies directory path (e.g., "/temp/mytransfers") where file will be transferred FROM.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="local-directory" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+							Identifies directory path (e.g., "/local/mytransfers") where file will be transferred TO.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation>
+							Tells this adapter if local directory must be auto-created if it doesn''t exist. Default is TRUE.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="delete-remote-files" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -90,6 +147,11 @@
 						<tool:expected-type type="org.springframework.integration.ftp.session.AbstractFtpSessionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation><![CDATA[
+                Reference to a [org.springframework.integration.ftp.session.AbstractFtpSessionFactory] bean.
+                Spring Integratioin provides DefaultFtpSessionFactory and DefaultFtpsSessionFactory implementations 
+                for your convenience.
+            ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="channel" use="required" type="xsd:string">
@@ -99,9 +161,20 @@
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+	            </xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-        <xsd:attribute name="charset" type="xsd:string" default="UTF-8"/>
+        <xsd:attribute name="charset" type="xsd:string" default="UTF-8">
+        	<xsd:annotation>
+				<xsd:documentation>
+					Allows you to specify Charset (e.g., US-ASCII, ISO-8859-1, UTF-8). [UTF-8] is default
+				</xsd:documentation>
+			</xsd:annotation>
+        </xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>
