@@ -18,7 +18,6 @@ package org.springframework.integration.twitter.inbound;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -29,12 +28,11 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Queue;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -44,7 +42,6 @@ import org.springframework.integration.twitter.core.Tweet;
 import org.springframework.integration.twitter.core.Twitter4jTemplate;
 import org.springframework.integration.twitter.core.TwitterOperations;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.util.CollectionUtils;
 
 import twitter4j.Paging;
 import twitter4j.RateLimitStatus;
