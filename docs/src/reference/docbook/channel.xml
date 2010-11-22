@@ -604,7 +604,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       </para>
       
       <para>
-      <emphasis>A little more on Wite Tap</emphasis>
+      <emphasis>A little more on Wire Tap</emphasis>
       </para>
       <para>
       One of the common misconception about the wire tap and some time other similar components (<xref linkend="message-publishing-config"/>) 

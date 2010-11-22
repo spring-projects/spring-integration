@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<section id="channel-adapter">
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="channel-adapter"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>Channel Adapter</title>
   <para>
     A Channel Adapter is a Message Endpoint that enables connecting a single sender or receiver to a Message Channel.
@@ -70,7 +69,7 @@
     <para>
       Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
       instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
-      of the &lt;inbound-channel-adapter/&gt; or &lt;outbound-channel-adapter&gtl; element. Therefore, if the "channel"
+      of the &lt;inbound-channel-adapter/&gt; or &lt;outbound-channel-adapter&gt; element. Therefore, if the "channel"
       is not provided, the "id" is required.
     </para>
   </section>

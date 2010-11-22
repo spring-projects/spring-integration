@@ -145,7 +145,6 @@ That includes Samples, so if you can't find what you are looking for let us know
      However, certain samples require a more detailed and some times graphical explanation. In these section you'll
      find details on samples that we believe require special attention.
      </para>
-     <!-- problem exists somewhere between here XXX -->
       <section id="samples-loan-broker">
         <title>Loan Broker</title>
         <para>
@@ -184,7 +183,6 @@ That includes Samples, so if you can't find what you are looking for let us know
             </listitem>
           </itemizedlist>
       </para>
-      <!-- works up until here XXX -->
       <para>
       The details and variations of this use case are very nicely described in Chapter 9 of the EIP Book, but here is the brief summary;
       A Consumer while shopping for the best Loan Quote(s) subscribes to the services of a Loan Broker, which handles details such as:
@@ -384,7 +382,6 @@ That includes Samples, so if you can't find what you are looking for let us know
       and should not require change in design, testing and deployment strategy if such applications need to integrate with one another.
       </para>
     </section>
-    <!-- and here XXX -->
 
     <section id="samples-cafe">
       <title>The Cafe Sample</title>
