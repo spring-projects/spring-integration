@@ -126,9 +126,21 @@
 						<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
+				Integration provides [Twitter4jTemplate] template for your convenience.
+				NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+			<xsd:annotation>
+					<xsd:documentation>
+					Lifecycle attribute signaling if this component should be started during Application Context startup.
+					Default is 'true'
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -136,6 +148,11 @@
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+	            	</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -149,6 +166,11 @@
 							<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+				Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
+				Integration provides [Twitter4jTemplate] template for your convenience.
+				NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+				</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
@@ -158,6 +180,11 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+	            	</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 	</xsd:complexType>
