@@ -116,7 +116,7 @@ configure(javaprojects) {
     easymockVersion = '2.3'
     jacksonVersion = '1.4.3'
     javaxActivationVersion = '1.1.1'
-    junitVersion = '4.7'
+    junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
     springVersion = '3.0.5.RELEASE'
@@ -134,7 +134,7 @@ configure(javaprojects) {
     // dependencies that are common across all java projects
     dependencies {
         testCompile "cglib:cglib-nodep:$cglibVersion"
-        testCompile "junit:junit:$junitVersion"
+        testCompile "junit:junit-dep:$junitVersion"
         testCompile "log4j:log4j:$log4jVersion"
         testCompile "org.easymock:easymock:$easymockVersion"
         testCompile "org.easymock:easymockclassextension:$easymockVersion"
@@ -185,7 +185,9 @@ project('spring-integration-feed') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
-        compile "net.java.dev.rome:rome-fetcher:1.0.0"
+        compile("net.java.dev.rome:rome-fetcher:1.0.0") {
+            exclude group: 'junit', module: 'junit'
+        }
         compile "net.java.dev.rome:rome:1.0.0"
         testCompile project(":spring-integration-test")
     }
@@ -226,7 +228,10 @@ project('spring-integration-http') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-webmvc:$springVersion"
         compile("javax.servlet:servlet-api:2.4") { provided = true }
-        compile("commons-httpclient:commons-httpclient:3.1") { optional = true }
+        compile("commons-httpclient:commons-httpclient:3.1") {
+            optional = true
+            exclude group: 'junit', module: 'junit'
+        }
         testCompile project(":spring-integration-test")
     }
 }
@@ -352,7 +357,7 @@ project('spring-integration-test') {
     description = 'Spring Integration Test Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "junit:junit:$junitVersion"
+        compile "junit:junit-dep:$junitVersion"
         compile "org.mockito:mockito-all:$mockitoVersion"
         compile "org.springframework:spring-context:$springVersion"
     }
