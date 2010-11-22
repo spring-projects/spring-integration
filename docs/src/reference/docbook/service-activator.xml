@@ -33,28 +33,30 @@
       "output-channel" was provided in the endpoint configuration:
       <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
                    ref="somePojo" method="someMethod"/&gt;</programlisting>
-      If no "output-channel" is available, it will then check the Message's <literal>REPLY_CHANNEL</literal> header
+      If no "output-channel" is available, it will then check the Message's <literal>replyChannel</literal> header
       value. If that value is available, it will then check its type. If it is a
       <interfacename>MessageChannel</interfacename>, the reply message will be sent to that channel. If it is a
       <classname>String</classname>, then the endpoint will attempt to resolve the channel name to a channel instance.
       If the channel cannot be resolved, then a <classname>ChannelResolutionException</classname> will be thrown.
+      It it can be resolved, the Message will be sent there. This is the technique used for Request Reply messaging
+      in Spring Integration, and it is also an example of the Return Address pattern.
     </para>
     <para>
       The argument in the service method could be either a Message or an arbitrary type. If the latter, then it will
       be assumed that it is a Message payload, which will be extracted from the message and injected into such service
       method. This is generally the recommended approach as it follows and promotes a POJO model when working with Spring
-      Integration. Arguments may also have @Header, @Headers annotations as described in <xref linkend="annotations"/>
+      Integration. Arguments may also have @Header or @Headers annotations as described in <xref linkend="annotations"/>
     </para>
     <note>
-       Since v1.0.3 of Spring Integration, the service method is not required to have an argument at all, which means you
-       can now implement event-style Service Activators, where all you care about is an invocation of the service method,
+       The service method is not required to have any arguments at all, which means you
+       can implement event-style Service Activators, where all you care about is an invocation of the service method,
        not worrying about the contents of the message. Think of it as a NULL JMS message. An example use-case for such an
        implementation could be a simple counter/monitor of messages deposited on the input channel.
     </note>
     <para>
       Using a "ref" attribute is generally recommended if the custom Service Activator handler implementation can be reused
       in other <code>&lt;service-activator&gt;</code> definitions. However if the custom Service Activator handler implementation
-      should be scoped to a single definition of the <code>&lt;service-activator&gt;</code>, you can use an inner bean definition:
+      is only used within a single definition of the <code>&lt;service-activator&gt;</code>, you can provide an inner bean definition:
 <programlisting language="xml"><![CDATA[<service-activator id="exampleServiceActivator" input-channel="inChannel"
             output-channel = "outChannel" method="foo">
     <beans:bean class="org.foo.ExampleServiceActivator"/>
@@ -68,30 +70,30 @@
     </note>
     
     <para>
-    	<emphasis>Service Activators and Spring Expression Language (SpEL)</emphasis>
+    	<emphasis>Service Activators and the Spring Expression Language (SpEL)</emphasis>
     </para>
     
     <para>
-    Since Spring Integration 2.0 Service Activators can also benefit from SpEL ()http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html
-    in several ways.
+    Since Spring Integration 2.0, Service Activators can also benefit from SpEL   
+    (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html).
 	</para>
 	<para>
-	First, you may now invoke any bean method without pointing to this bean via <code>ref</code> attribute or including it as an 
-	inner definition. For example:
+	For example, you may now invoke any bean method without pointing to the bean via a <code>ref</code> attribute or including it as an 
+	inner bean definition. For example:
 	
 	<programlisting language="xml"><![CDATA[<int:service-activator input-channel="in" output-channel="out" 
-	expression="@accountService.processAccount(payload)"/>
+	expression="@accountService.processAccount(payload, headers.accountId)"/>
 	
 	<bean id="accountService" class="foo.bar.Account"/>]]></programlisting>
 	
-	In the above configuration instead of injecting 'accountService' using <code>ref</code> or as inner bean we are simply using <code>@beanId</code> 
-	notation and invoking a method which takes the type compatible with Message payload.
-
+	In the above configuration instead of injecting 'accountService' using a <code>ref</code> or as an inner bean,
+	we are simply using SpEL's <code>@beanId</code> notation and invoking a method which takes a type compatible with Message payload. We
+	are also passing a header value. As you can see, any valid SpEL expression can be evaluated against any content in the Message.
     For simple scenarios your <emphasis>Service Activators</emphasis> do not even have to reference a bean if all logic can be encapsulated 
-    by such expression.
+    by such an expression.
     
     <programlisting language="xml"><![CDATA[<int:service-activator input-channel="in" output-channel="out" expression="payload * 2"/>]]></programlisting>
-    In the above configuration our service logic is to simply multiply the payload value by 2 and SpEL lets us handle it relatively easy.
+    In the above configuration our service logic is to simply multiply the payload value by 2, and SpEL lets us handle it relatively easy.
     
     </para>
     
