@@ -28,8 +28,8 @@
     </para>
     <para>
     Spring integration provides support for XMPP via XMPP adapters which support sending and receiving both XMPP chat messages and 
-    presence changes from other entries in your roster. As many other adapters, XMPP adapters come with a convenient namespace-based 
-    configuration. 
+    presence changes from other entries in your roster. As with other adapters, the XMPP adapters come with support for a
+    convenient namespace-based configuration. 
     To configure XMPP namespace include the following elements into the headers of your XML configuration file:
     
     <programlisting language="xml"><![CDATA[xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
@@ -42,9 +42,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
   <section id="xmpp-connection">
     <title>XMPP Connection</title>
     <para>
-    Before using inbound or outbound XMPP adapters to participate in the XMPP network actor must establish XMPP connection. This
+    Before using inbound or outbound XMPP adapters to participate in the XMPP network, an actor must establish its XMPP connection. This
 	connection object could be shared by all XMPP adapters connected to a particular account. Typically this requires - at a minimum - 
-      <code>user</code>, <code>password</code>, <code>host</code>.
+      <code>user</code>, <code>password</code>, and <code>host</code>.
 
       To create a basic XMPP connection, you can utilize the convenience of the namespace.
 
@@ -123,15 +123,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     <title>XMPP Presence</title>
 
         <para>
-
         XMPP also supports broadcasting state. You can use this capability to
         let people who have you on their roster see your state changes. This happens all the time with your IM clients -  you
-        change your away status, and then set an away message, and everybody who has you on their roster sees your icon or username change to reflect this new state, and
-          additionally might see your new "away" message.
-
-
-        If you would like to receive notification, or notify others, of state changes,   you can use Spring Integration's "presence" adapters.
-
+        change your away status, and then set an away message, and everybody who has you on their roster sees your icon or username
+        change to reflect this new state, and additionally might see your new "away" message.
+        If you would like to receive notification, or notify others, of state changes, you can use Spring Integration's "presence" adapters.
        </para>                 
       
     <section id="xmpp-roster-inbound-channel-adapter">
@@ -194,8 +190,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     	to know a few details related to more complex configuration of XMPP Connection object.
     	</para>
     	<para>
-    	As it was said earlier the <code>xmpp-connection</code> namespace support is designed to simplify basic connection configuration and 
-    	only supports few configuration attributes. However, <classname>org.jivesoftware.smack.ConnectionConfiguration</classname> object defines about 20 
+    	As stated earlier the <code>xmpp-connection</code> namespace support is designed to simplify basic connection configuration and 
+    	only supports a few common configuration attributes. However, the <classname>org.jivesoftware.smack.ConnectionConfiguration</classname>
+        object defines about 20 
     	attributes, and there is no real value of adding namespace support for all of them. So, for more complex connection configurations, 
     	simply configure <classname>XmppConnectionFactoryBean</classname> as a regular bean injecting 
     	<classname>org.jivesoftware.smack.ConnectionConfiguration</classname> as a constructor argument and configuring every property 
@@ -219,7 +216,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     <para>
     Another important aspect of Smack API is static initializers. For more complex cases (e.g., registering SASL Mechanism) you may need 
     to execute certain static initializers. One of those static initializers is <classname>SASLAuthentication</classname> which allows 
-    you to register supported SASL mechanisms. For that level of complexity we would recommend Spring Javaconfig-style of XMPP Connection 
+    you to register supported SASL mechanisms. For that level of complexity we would recommend Spring JavaConfig-style of XMPP Connection 
     configuration where you can configure the entire component through Java code and execute all other necessary Java code including 
     static initializers.
     
@@ -236,7 +233,7 @@ public class CustomConnectionConfiguration {
 	conn = new XMPPConnection(config);
   }
 }]]></programlisting>
-	For more information on Javaconfig style of Application Context configuration refere to the following section in Spring Reference Manual
+	For more information on the JavaConfig style of Application Context configuration refer to the following section in Spring Reference Manual
 	http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-java
     </para>
     </section>
