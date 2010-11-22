@@ -24,11 +24,19 @@
                 xmlns:xslthl="http://xslthl.sf.net"
                 exclude-result-prefixes="xslthl"
                 version='1.0'>
+
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/docbook.xsl"/>
     <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/fo/highlight.xsl"/>
 
     <!-- xsl:param name="draft.watermark.image" select="'images/draft.png'"/ -->
     <xsl:param name="paper.type" select="'A4'"/>
+
+<!-- resize the admon graphics. they're width 36pt by default
+     even though the graphics that ship with docbook are 24x24 -->
+    <xsl:template match="*" mode="admon.graphic.width">
+      <xsl:param name="node" select="."/>
+      <xsl:text>24pt</xsl:text>
+    </xsl:template>
 
     <xsl:param name="page.margin.top" select="'1cm'"/>
     <xsl:param name="region.before.extent" select="'1cm'"/>
