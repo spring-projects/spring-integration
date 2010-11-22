@@ -54,15 +54,6 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
-					<xsd:attribute name="delete-remote-files" type="xsd:boolean">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify whether to delete the remote source file after copying.
-								By default, the remote files will NOT be deleted.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="filename-pattern" type="xsd:string"/>
 					<xsd:attribute name="filter" type="xsd:string">
 						<xsd:annotation>
@@ -75,6 +66,15 @@
 					</xsd:attribute>
 					<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 					<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
+					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean"/>
+					<xsd:attribute name="delete-remote-files" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify whether to delete the remote source file after copying.
+								By default, the remote files will NOT be deleted.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

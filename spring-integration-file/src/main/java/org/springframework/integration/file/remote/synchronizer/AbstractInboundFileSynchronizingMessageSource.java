@@ -55,9 +55,9 @@ import org.springframework.util.Assert;
 public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
 
 	/**
-	 * Should the endpoint attempt to create the local directory?
+	 * Should the endpoint attempt to create the local directory? True by default.
 	 */
-	private volatile boolean autoCreateDirectories = true;
+	private volatile boolean autoCreateLocalDirectory = true;
 
 	/**
 	 * An implementation that will handle the chores of actually connecting to and synchronizing
@@ -82,8 +82,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	}
 
 
-	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
-		this.autoCreateDirectories = autoCreateDirectories;
+	public void setAutoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
+		this.autoCreateLocalDirectory = autoCreateLocalDirectory;
 	}
 
 	public void setLocalDirectory(File localDirectory) {
@@ -92,9 +92,10 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 
 	@Override
 	protected void onInit() {
+		Assert.notNull(this.localDirectory, "localDirectory must not be null");
 		try {
-			if (this.localDirectory != null && !this.localDirectory.exists()) {
-				if (this.autoCreateDirectories) {
+			if (!this.localDirectory.exists()) {
+				if (this.autoCreateLocalDirectory) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
 					}

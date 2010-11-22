@@ -24,7 +24,7 @@
 	<ftp:inbound-channel-adapter id="adapterFtp" 
 				session-factory="ftpSessionFactory"
 				channel="ftpIn" 
-				auto-create-directories="true"
+				auto-create-local-directory="true"
 				local-directory="file:target/foo"
 				remote-directory="foo/bar"
 				delete-remote-files="false">

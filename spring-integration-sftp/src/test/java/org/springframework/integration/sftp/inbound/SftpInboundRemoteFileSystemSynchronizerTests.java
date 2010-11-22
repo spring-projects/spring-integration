@@ -81,8 +81,8 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
 
 		SftpInboundFileSynchronizingMessageSource ms = 
-			new SftpInboundFileSynchronizingMessageSource(synchronizer);
-		ms.setAutoCreateDirectories(true);
+				new SftpInboundFileSynchronizingMessageSource(synchronizer);
+		ms.setAutoCreateLocalDirectory(true);
 		ms.setLocalDirectory(localDirectoy);
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();

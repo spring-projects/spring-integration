@@ -79,8 +79,8 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
 
 		FtpInboundFileSynchronizingMessageSource ms = 
-			new FtpInboundFileSynchronizingMessageSource(synchronizer);
-		ms.setAutoCreateDirectories(true);
+				new FtpInboundFileSynchronizingMessageSource(synchronizer);
+		ms.setAutoCreateLocalDirectory(true);
 
 		ms.setLocalDirectory(localDirectoy);
 		ms.afterPropertiesSet();
