@@ -75,11 +75,6 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	 */
 	protected volatile FileReadingMessageSource fileSource;
 
-	/**
-	 * The predicate to use in scanning the remote File system for downloads.
-	 */
-	protected FileListFilter<F> remotePredicate;
-
 
 	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
@@ -93,16 +88,9 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 		this.localDirectory = localDirectory;
 	}
 
-	public void setRemotePredicate(FileListFilter<F> remotePredicate) {
-		this.remotePredicate = remotePredicate;
-	}
-
 	@Override
 	protected void onInit() {
 		try {
-			if (this.remotePredicate != null) {
-				this.synchronizer.setFilter(this.remotePredicate);
-			}
 			if (this.localDirectory != null && !this.localDirectory.exists()) {
 				if (this.autoCreateDirectories) {
 					if (logger.isDebugEnabled()) {
@@ -115,9 +103,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 				}
 			}
 
-			/**
-			 * Forwards files once they ultimately appear in the {@link #localDirectory}.
-			 */
+			// Forwards files once they ultimately appear in the {@link #localDirectory}.
 			this.fileSource = new FileReadingMessageSource();
 			this.fileSource.setFilter(this.buildFilter());
 			this.fileSource.setDirectory(this.localDirectory);
