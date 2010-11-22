@@ -43,7 +43,7 @@
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"
 			auto-create-directories="false"
-			auto-delete-remote-files-on-sync="false">
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
@@ -54,7 +54,7 @@
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"
 			auto-create-directories="true"
-			auto-delete-remote-files-on-sync="false">
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
@@ -65,7 +65,7 @@
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"
 			auto-create-directories="false"
-			auto-delete-remote-files-on-sync="false">
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
@@ -76,10 +76,9 @@
 			remote-directory="/foo"
 			local-directory="file:foo"
 			auto-create-directories="true"
-			auto-delete-remote-files-on-sync="false">
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
-	
 	
 	<beans:bean id="filter" class="org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter">
 		<beans:constructor-arg value="."/>

@@ -40,6 +40,8 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="remote-directory" type="xsd:string"/>
+			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 			<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            <xsd:annotation>
 	            	<xsd:documentation>
@@ -53,8 +55,6 @@
 	                </xsd:appinfo>
 	            </xsd:annotation>
 	        </xsd:attribute>
-			<xsd:attribute name="remote-directory" type="xsd:string"/>
-			<xsd:attribute name="remote-directory-expression" type="xsd:string"/>
 			<xsd:attribute name="remote-filename-generator-expression" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
 		</xsd:complexType>
@@ -110,7 +110,7 @@
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
-			<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
+			<xsd:attribute name="delete-remote-files" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
 

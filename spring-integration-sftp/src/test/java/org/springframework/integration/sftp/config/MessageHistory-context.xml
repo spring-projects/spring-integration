@@ -17,7 +17,6 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
-
 	<channel id="inboundFilesChannel"/>
 	
 	<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
@@ -38,7 +37,7 @@
 			channel="inboundFilesChannel"
 			filename-pattern=".*?jpg"
 			auto-create-directories="true"
-			auto-delete-remote-files-on-sync="true">
+			delete-remote-files="true">
 		<poller fixed-rate="1000" />
 	</sftp:inbound-channel-adapter>
 

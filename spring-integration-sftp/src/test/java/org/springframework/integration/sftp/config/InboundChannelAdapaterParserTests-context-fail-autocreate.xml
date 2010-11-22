@@ -37,7 +37,7 @@
 			remote-directory="/foo"
 			local-directory="file:foo"
 			auto-create-directories="false"
-			auto-delete-remote-files-on-sync="false">
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
