@@ -39,7 +39,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  * properties can be referred to by name in the query string E.g.
  * 
  * <pre>
- * INSERT INTO FOOS (MESSAGE_ID, PAYLOAD) VALUES (:headers[$id], :payload)
+ * INSERT INTO FOOS (MESSAGE_ID, PAYLOAD) VALUES (:headers[id], :payload)
  * </pre>
  * 
  * N.B. do not use quotes to escape the header keys. The default SQL parameter source (from Spring JDBC) can also handle
