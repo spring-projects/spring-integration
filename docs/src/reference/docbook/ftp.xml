@@ -3,27 +3,27 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>FTP/FTPS Adapters</title>
   <para>
-    Spring Integration provides support for file transfer operations via FTP and FTPS
+    Spring Integration provides support for file transfer operations via FTP and FTPS.
   </para>
   <section id="ftp-intro">
     <title>Introduction</title>
     <para>
-      File Transfer Protocol (FTP) is a simple network protocol which allows you to transfer files between two computers on the Internet.
+      The File Transfer Protocol (FTP) is a simple network protocol which allows you to transfer files between two computers on the Internet.
     </para>
     <para>
-    There are two actors when it comes to FTP communication - <emphasis>client</emphasis> and <emphasis>server</emphasis>. 
-    To transfer files with FTP/FTPS, you use <emphasis>client</emphasis> which initiates a connection to a remote computer 
-    running an FTP <emphasis>server</emphasis> software. After the connection is established, the <emphasis>client</emphasis> can choose 
+    There are two actors when it comes to FTP communication: <emphasis>client</emphasis> and <emphasis>server</emphasis>. 
+    To transfer files with FTP/FTPS, you use a <emphasis>client</emphasis> which initiates a connection to a remote computer 
+    that is running an FTP <emphasis>server</emphasis>. After the connection is established, the <emphasis>client</emphasis> can choose 
     to send and/or receive copies of files. 
     </para>
     
      <para>
-    Spring Integration supports sending and receiving files over FTP/FTPS by providing two types of <emphasis>client</emphasis>s - 
-    <emphasis>Inbound Channel Adapters</emphasis> and <emphasis>Outbound Channel Adapters</emphasis> as well as convenient 
-    namespace configuration to define these <emphasis>client</emphasis>s.
+    Spring Integration supports sending and receiving files over FTP/FTPS by providing two types of <emphasis>client</emphasis>
+    side adapters: <emphasis>Inbound Channel Adapter</emphasis> and <emphasis>Outbound Channel Adapter</emphasis>. It also provides
+    convenient namespace-based configuration options for defining these <emphasis>client</emphasis> components.
     </para>
     <para>
-    	<emphasis>FTP</emphasis>
+    	To use the <emphasis>FTP</emphasis> namespace, add the following to the header of your XML file:
     	<programlisting language="xml"><![CDATA[xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp 
 	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd" 
@@ -35,8 +35,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   <section id="ftp-session-factory">
   	<title>FTP Session Factory</title>
   	<para>
-  	Before configuring FTP adapters you must configure <emphasis>Ftp Session Factory</emphasis>. You configure 
-  	<emphasis>Ftp Session Factory</emphasis> via regular bean configuration by configuring <classname>org.springframework.integration.ftp.session.DefaultFtpSessionFactory</classname>:
+  	Before configuring FTP adapters you must configure an <emphasis>FTP Session Factory</emphasis>. You can configure 
+  	the <emphasis>FTP Session Factory</emphasis> with a regular bean definition where the implementation class is <classname>org.springframework.integration.ftp.session.DefaultFtpSessionFactory</classname>:
 	Below is a basic configuration:
 	
 	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
@@ -49,7 +49,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 </bean>]]></programlisting>
 	</para>
 	<para>
-	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.session.DefaultFtpsSessionFactory</classname>.
+	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.session.DefaultFtpsSessionFactory</classname> instead.
 	Below is the complete configuration sample:
 	
 	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
@@ -74,13 +74,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	</para>
 
 	<para>
-	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) adapter will 
-	use depends on the type of session factory that's been injected into the adapter.
+	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) that an adapter will 
+	use depends on the type of session factory that has been injected into the adapter.
   	</para>
   	<para>
   	<note>
-  	A more practical way to provide values for <emphasis>Ftp/Ftps Session Factory</emphasis> would be via Spring's property 
-  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
+  	A more practical way to provide values for <emphasis>FTP/FTPS Session Factories</emphasis> is by using Spring's property 
+  	placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
   	</note>
   </para>
   </section>
@@ -88,7 +88,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   <section id="ftp-inbound">
   	<title>FTP Inbound Channel Adapter</title>
   	<para>
-  	<emphasis>FTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen 
+  	The <emphasis>FTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen 
   	for the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
   	
   	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter id="ftpInbound"
@@ -98,54 +98,53 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				auto-create-local-directory="true"
 				delete-remote-files="true"
 				filename-pattern="*.txt"
-				local-working-directory=".">
+				remote-directory="some/remote/path"
+				local-directory=".">
 			<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
 
-	As you can see form the configuration above you can configure <emphasis>FTP Inbound Channel Adapter</emphasis> via <code>inbound-channel-adapter</code> 
-	element while also providing values for various attributes such as <code>local-working-directory</code>, <code>filename-pattern</code> 
-	(based on simple pattern matching - not regex) and of course the reference to a <code>session-factory</code>.
+	As you can see from the configuration above you can configure an <emphasis>FTP Inbound Channel Adapter</emphasis> via the <code>inbound-channel-adapter</code> 
+	element while also providing values for various attributes such as <code>local-directory</code>, <code>filename-pattern</code> 
+	(which is based on simple pattern matching, not regular expressions), and of course the reference to a <code>session-factory</code>.
 	</para>
   	<para>
 	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
-	sufficient enough. If this is the case, you can use <code>filename-regex</code> attribute to specify Regular expression 
+	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression 
 	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 
-	attribute and provide reference to a custom implementation of the 
-	<classname>org.springframework.integration.file.filters.FileListFilter</classname> - a strategy interface for filtering a 
-	group of files.
+	attribute and provide a reference to any custom implementation of the 
+	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a 
+	list of files.
   	</para>
   	<para>
   	Please refer to the schema for more details on these attributes. 
   	</para>
   	<para>
-  	It is also important to understand that <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>polling consumer</emphasis> and 
-  	therefore you must configure a poller (global or local).
-    Once the file has been transferred a Message with <classname>java.io.File</classname> being a payload will be generated and sent to the channel 
-    identified with <code>channel</code> attribute.
+  	It is also important to understand that the <emphasis>FTP Inbound Channel Adapter</emphasis> is a <emphasis>Polling Consumer</emphasis> and 
+  	therefore you must configure a poller (either via a global default or a local sub-element).
+    Once a file has been transferred, a Message with a <classname>java.io.File</classname> as its payload will be generated and sent to the channel 
+    identified by the <code>channel</code> attribute.
   	</para>
   	<para>
   		<emphasis>More on File Filtering and Large Files</emphasis>
   	</para>
   	<para>
-  	Some times the file that just  appeared in the monitored (remote) directory is not complete. Typically such file 
-  	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished. 
+  	Some times the file that just appeared in the monitored (remote) directory is not complete. Typically such a file 
+  	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished.
   	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
-  	To handle these scenarios use filtering support provided via <code>filename-pattern</code>, <code>filename-regex</code> 
-  	and <code>filter</code> attributes. We also provide a convenient Regex-based implementation 
-  	<classname>org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilter</classname>.
+  	To handle these scenarios you can use the filtering support provided by the <code>filename-pattern</code>, <code>filename-regex</code>
+  	and <code>filter</code> attributes. Here is an example that uses a custom Filter implementation.
 	
 	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter 
 			channel="ftpChannel" 
 			session-factory="ftpSessionFactory"
-			filter="fileNameFilter"
-			local-working-directory="file:/my_transfers">
+			filter="customFilter"
+			local-directory="file:/my_transfers">
+			remote-directory="some/remote/path"
 	<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>
 	
-<bean id="fileNameFilter" 
-	class="org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilt"">
-	<constructor-arg value=".*\.txt$"/>
-</bean>]]></programlisting>
+<bean id="customFilter" class="org.example.CustomFilter"/>
+]]></programlisting>
   	</para>
   </section>
   
@@ -153,28 +152,29 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	<title>FTP Outbound Channel Adapter</title>
   	
   	<para>
-  	<emphasis>FTP Outbound Channel Adapter</emphasis> is a special <classname>MessageHandler</classname> that will connect to the 
-  	FTP server and will initiate an FTP transfer for every file it will receive in the payload of the Message. It also supports several 
-  	representation of the <emphasis>File</emphasis> so you are not limited only to the File object. <emphasis>FTP Outbound Channel Adapter</emphasis> 
+  	The <emphasis>FTP Outbound Channel Adapter</emphasis> relies upon a <classname>MessageHandler</classname> implementation that will connect to the 
+  	FTP server and initiate an FTP transfer for every file it receives in the payload of incoming Messages. It also supports several 
+  	representations of the <emphasis>File</emphasis> so you are not limited only to java.io.File typed payloads.
+    The <emphasis>FTP Outbound Channel Adapter</emphasis> 
   	supports the following payloads: 1) <classname>java.io.File</classname> - the actual file object; 
-  	2) <classname>byte[]</classname> - byte array that represents the file contents; 3) <classname>java.lang.String</classname> - 
-  	represents the file contents.
+  	2) <classname>byte[]</classname> - a byte array that represents the file contents; and 3) <classname>java.lang.String</classname> - 
+  	text that represents the file contents.
   	
   	<programlisting language="xml"><![CDATA[<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				filename-generator="fileNameGenerator"/>]]></programlisting>	
-				
-			
-	As you can see form the configuration above you can configure <emphasis>FTP Outbound Channel Adapter</emphasis> via 
+
+	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
 	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code> 
-	(implementation of <classname>org.springframework.integration.file.FileNameGenerator</classname>), reference to a <code>client-factory</code>
-	 as well as other attributes. Please refer to the schema for more details on these attributes. 
+	(an implementation of the <classname>org.springframework.integration.file.FileNameGenerator</classname> strategy interface),
+	a reference to a <code>client-factory</code>, as well as other attributes. Please refer to the schema for more details on
+    the available attributes.
 	 <note>
-	 By default Spring Integration will use <classname>org.springframework.integration.file.DefaultFileNameGenerator</classname> (if non specified).
-	 <classname>DefaultFileNameGenerator</classname> will determine the file name based on the value of the <code>file_name</code> header (if exists) in your 
-	 MessageHeaders or if the payload of the Message is <classname>java.io.File</classname>, then it will use the original name of the file.
+	 By default Spring Integration will use <classname>org.springframework.integration.file.DefaultFileNameGenerator</classname> if none is specified.
+	 <classname>DefaultFileNameGenerator</classname> will determine the file name based on the value of the <code>file_name</code> header (if it exists)
+     in the MessageHeaders, or if the payload of the Message is already a <classname>java.io.File</classname>, then it will use the original name of that file.
 	 </note>
   	</para>
   	
