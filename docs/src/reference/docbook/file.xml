@@ -28,7 +28,7 @@
       This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from
       a file system directory. <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
       class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="file:${input.directory}"/>]]></programlisting>
+        p:inputDirectory="${input.directory}"/>]]></programlisting>
     </para>
     <para>
       To prevent creating messages for certain files, you may supply a
@@ -37,7 +37,7 @@
       ensures files are picked up only once from the directory.
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
       class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="file:${input.directory}"
+        p:inputDirectory="${input.directory}"
         p:filter-ref="customFilterBean"/>]]></programlisting>
     </para>
     <para>
@@ -45,7 +45,7 @@
       it is ready. The default <classname>AcceptOnceFileListFilter</classname>
       does not prevent this. In most cases, this can be prevented if the
       file-writing process renames each file as soon as it is ready for
-      reading. A pattern-matching filter that accepts only files that are
+      reading. A filename-pattern or filename-regex filter that accepts only files that are
       ready (e.g. based on a known suffix), composed with the default
       <classname>AcceptOnceFileListFilter</classname> allows for this.
       The <classname>CompositeFileListFilter</classname> enables the
@@ -58,7 +58,7 @@
     <constructor-arg>
         <list>
             <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
-            <bean class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
+            <bean class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
                 <constructor-arg value="^test.*$"/>
             </bean>
         </list>
@@ -157,14 +157,14 @@
     <para>
       To make things easier you can configure the FileWritingMessageHandler as
       part of an outbound channel adapter using the namespace.
-      <programlisting language="xml"><![CDATA[ <file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
     </para>
     <para>
     The namespace based configuration also supports a <code>delete-source-files</code> attribute.
     If set to <code>true</code>, it will trigger deletion of the original source files after writing
     to a destination. The default value for that flag is <code>false</code>.
     <programlisting language="xml"><![CDATA[ <file:outbound-channel-adapter id="filesOut"
-             directory="file:${output.directory}"
+             directory="${output.directory}"
              delete-source-files="true"/>]]></programlisting>
     <note>
       <para>
