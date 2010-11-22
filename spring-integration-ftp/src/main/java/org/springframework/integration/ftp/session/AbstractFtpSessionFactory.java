@@ -154,7 +154,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
-	protected T createClient() throws SocketException, IOException { 
+	T createClient() throws SocketException, IOException { 
 		T client = createSingleInstanceOfClient();
 		client.configure(config);
 
