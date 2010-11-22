@@ -10,29 +10,27 @@
     <title>Inbound Channel Adapter</title>
 
     <para>The main function of an inbound Channel Adapter is to execute a SQL
-    <code>SELECT</code> query and turn the result set into a message. The
+    <code>SELECT</code> query and turn the result set as a message. The
     message payload is the whole result set, expressed as a
     <classname>List</classname>, and the types of the items in the list
-    depends on the row-mapping strategy that is used. The default strategy is
+    depend on the row-mapping strategy that is used. The default strategy is
     a generic mapper that just returns a <classname>Map</classname> for each
-    row i nthe query. Optionally this can be changed by adding a reference to
-    requires a reference to a <classname>RowMapper</classname> instance (see
-    the <ulink
-    url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html">Spring
-    JDBC</ulink> documentation for more detailed information about row
-    mapping).<note>
+    row in the query result. Optionally, this can be changed by adding a reference to
+    a <classname>RowMapper</classname> instance (see the
+    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html">Spring
+    JDBC</ulink> documentation for more detailed information about row mapping).<note>
         <para>If you want to convert rows in the SELECT query result to
         individual messages you can use a downstream splitter.</para>
       </note></para>
 
     <para>The inbound adapter also requires a reference to either
-    <classname>JdbcTemplate</classname> instance or
-    <interfacename>DataSource</interfacename>.</para>
+    a <classname>JdbcTemplate</classname> instance or
+    a <interfacename>DataSource</interfacename>.</para>
 
     <para>As well as the <code>SELECT</code> statement to generate the
     messages, the adapter above also has an <code>UPDATE</code> statement that
-    is being used to mark the records as processed, so they don't show up in
-    the next poll. The update can be parameterised by the list of ids from the
+    is being used to mark the records as processed so that they don't show up in
+    the next poll. The update can be parameterized by the list of ids from the
     original select. This is done through a naming convention by default (a
     column in the input result set called "id" is translated into a list in
     the parameter map for the update called "id"). The following example
@@ -45,7 +43,7 @@
          The parameters in the update query are specified with a colon (:) prefix to the name of a parameter (which in this case is an expression to be applied to each of the rows in the polled result set). This is a standard feature of the named parameter JDBC support in Spring JDBC combined with a convention (projection onto the polled result list) adopted in Spring Integration. The underlying Spring JDBC features limit the available expressions (e.g. most special characters other than period are disallowed), but since the target is usually a list of or an individual object addressable by simple bean paths this isn't unduly restrictive.
       </note> To change the parameter generation strategy you can inject a
     <classname>SqlParameterSourceFactory</classname> into the adapter to
-    override the default behaviour (the adapter has a
+    override the default behavior (the adapter has a
     <code>sql-parameter-source-factory</code> attribute).</para>
 
     <section>
@@ -65,15 +63,15 @@
 &lt;/jdbc:inbound-channel-adapter&gt;</programlisting>
 
       <para><note>
-           If a poller is not explicitly specified a default value will be used (and as per normal with Spring Integration can be defined as a top level bean)
+           If a poller is not explicitly specified, a default value will be used (and as per normal with Spring Integration can be defined as a top level bean).
         </note> In this example the database is polled every 1000
       milliseconds, and the update and select queries are both executed in the
       same transaction. The transaction manager configuration is not shown,
       but as long as it is aware of the data source then the poll is
       transactional. A common use case is for the downstream channels to be
       direct channels (the default), so that the endpoints are invoked in the
-      same thread, and hence the same transaction. then if any of them fails,
-      the transaction rolls back and the input data are reverted to their
+      same thread, and hence the same transaction. Then if any of them fail,
+      the transaction rolls back and the input data is reverted to its
       original state.</para>
     </section>
   </section>
@@ -85,20 +83,15 @@
     is to handle a message and use it to execute a SQL query. The message
     payload and headers are available by default as input parameters to the
     query, for instance: <programlisting language="xml">&lt;jdbc:outbound-channel-adapter
-  query="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
+  query="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
   channel="input" data-source="dataSource"/&gt;</programlisting> In the
     example above, messages arriving on the channel "input" have a payload of
     a map with key "foo", so the <code>[]</code> operator dereferences that
     value from the map. The headers are also accessed as a map. <note>
-         The parameters in the query above are bean property expressions on the incoming message (not Spring EL expressions). This behaviour is part of the
-
+         The parameters in the query above are bean property expressions on the incoming message (not Spring EL expressions). This behavior is part of the
         <classname>SqlParameterSource</classname>
-
-         which is the default source created by the outbound adapter. Other behaviour is possible in the adapter, and requires the user to inject a different
-
-        <classname>SqlParameterSourceFactory</classname>
-
-        .
+         which is the default source created by the outbound adapter. Other behavior is possible in the adapter, and requires the user to inject a different
+        <classname>SqlParameterSourceFactory</classname>.
       </note></para>
 
     <para>The outbound adapter requires a reference to either a DataSource or
@@ -107,7 +100,7 @@
     binding of incoming message to the query.</para>
 
     <para>If the input channel is a direct channel then the outbound adapter
-    runs its query in the same thread, and therefor ethe same transaction (if
+    runs its query in the same thread, and therefore the same transaction (if
     there is one) as the sender of the message.</para>
   </section>
 
@@ -119,12 +112,12 @@
     SQL query and then respond with the result sending it to a reply channel.
     The message payload and headers are available by default as input
     parameters to the query, for instance: <programlisting language="xml">&lt;jdbc:outbound-gateway
-  update="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
+  update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
   request-channel="input" reply-channel="output" data-source="dataSource" /&gt;</programlisting></para>
 
     <para>The result of the above would be to insert a record into the "foos"
     table and return a message to the output channel indicating the number of
-    rows affected (the payload is a map <literal>{UPDATED=1}</literal>.</para>
+    rows affected (the payload is a map: <literal>{UPDATED=1}</literal>).</para>
 
     <para>If the update query is an insert with auto-generated keys, the reply
     message can be populated with the generated keys by adding
@@ -138,15 +131,15 @@
   keys-generated="true"/&gt;</programlisting>
 
     <para>Instead of the update count or the generated keys, you can also
-    provide a select query to execute and generate a reply message that way
+    provide a select query to execute and generate a reply message from the result
     (like the inbound adapter), e.g:</para>
 
     <programlisting>&lt;jdbc:outbound-gateway
-  update="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
+  update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
   query="select * from foos where id=:headers[$id]"
   request-channel="input" reply-channel="output" data-source="dataSource" /&gt;</programlisting>
 
-    <para>Like with the adapters there is also the option to provide
+    <para>As with the channel adapters, there is also the option to provide
     <classname>SqlParameterSourceFactory</classname> instances for request and
     reply. The default is the same as for the outbound adapter, so the request
     message is available as the root of an expression. If
@@ -157,7 +150,7 @@
     <para>The outbound gateway requires a reference to either a DataSource or
     a JdbcTemplate. It can also have a
     <classname>SqlParameterSourceFactory</classname> injected to control the
-    binding of incoming message to the query.</para>
+    binding of the incoming message to the query.</para>
   </section>
 
   <section>
@@ -167,7 +160,7 @@
     <classname>MessageStore</classname> (important in the Claim Check pattern)
     and <classname>MessageGroupStore</classname> (important in stateful
     patterns like Aggregator) backed by a database. Both interfaces are
-    implemented by the JdbcMessageStore and there is also support for
+    implemented by the JdbcMessageStore, and there is also support for
     configuring store instances in XML. For example:</para>
 
     <programlisting>&lt;jdbc:message-store id="messageStore" data-source="dataSource"/&gt;</programlisting>
@@ -206,17 +199,17 @@
 
       <para>It is common to use a <classname>JdbcMessageStore</classname> as a
       global store for a group of applications, or nodes in the same
-      application. To provide some portection against name clashes, and to
+      application. To provide some protection against name clashes, and to
       give control over the database meta-data configuration, the message
       store allows the tables to be partitioned in two ways. One is to use
       separate table names, by changing the prefix as described above, and the
       other is to specify a "region" name for partitioning data within a
-      single table. An important use case for this is using the store to
-      manage persistent queues backing a Spring Integration channel. The
+      single table. An important use case for this is when the MessageStore is
+      managing persistent queues backing a Spring Integration Message Channel. The
       message data for a persistent channel is keyed in the store on the
       channel name, so if the channel names are not globally unique then there
       is the danger of channels picking up data that was not intended for
-      them. To avoid this the message store region can be used to keep data
+      them. To avoid this, the message store region can be used to keep data
       separate for different physical channels that happen to have the same
       logical name.</para>
     </section>
