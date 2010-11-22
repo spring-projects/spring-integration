@@ -180,7 +180,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 		else {
 			throw new MessageDeliveryException(message,
-					"a non-null reply channel value of type MesssageChannel or String is required");
+					"a non-null reply channel value of type MessageChannel or String is required");
 		}
 	}
 

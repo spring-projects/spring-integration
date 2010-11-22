@@ -58,7 +58,7 @@ public class MailSendingMessageHandlerContextTests {
 	}
 
 	@Test
-	public void stringMesssagesWithConfiguration() {
+	public void stringMessagesWithConfiguration() {
 		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",

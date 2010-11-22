@@ -20,7 +20,7 @@
 
 	<int-mail:imap-idle-channel-adapter id="customAdapter"
 			store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
-			channel="recieveChannel"
+			channel="receiveChannel"
 			auto-startup="true"
 			should-delete-messages="false"
 			java-mail-properties="javaMailProperties"/>
@@ -28,7 +28,7 @@
 	<int-mail:inbound-channel-adapter id="imapAdapter"
 			store-uri="imaps://[username]:[password]@imap.gmail.com/INBOX"
 			java-mail-properties="javaMailProperties" 
-			channel="recieveChannel" 
+			channel="receiveChannel" 
 			should-delete-messages="true" 
 			auto-startup="true">
 			<int:poller max-messages-per-poll="1">
@@ -36,10 +36,10 @@
 			</int:poller>
 	</int-mail:inbound-channel-adapter>
 		
-	<int:channel id="recieveChannel"/>
+	<int:channel id="receiveChannel"/>
 	
-	<int:service-activator  input-channel="recieveChannel">
-		<bean class="org.springframework.integration.mail.config.GoogleTest.SampleReciever"/>
+	<int:service-activator  input-channel="receiveChannel">
+		<bean class="org.springframework.integration.mail.config.GoogleTest.SampleReceiver"/>
 	</int:service-activator>
 	
 	<util:properties id="javaMailProperties">

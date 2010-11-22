@@ -48,8 +48,8 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 	@SuppressWarnings("unchecked")
 	public DefaultChannelAccessPolicy(String sendAccess, String receiveAccess) {
 		boolean sendAccessDefined = StringUtils.hasText(sendAccess);
-		boolean recieveAccessDefined = StringUtils.hasText(receiveAccess);
-		Assert.isTrue(sendAccessDefined || recieveAccessDefined,
+		boolean receiveAccessDefined = StringUtils.hasText(receiveAccess);
+		Assert.isTrue(sendAccessDefined || receiveAccessDefined,
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
 		if (sendAccessDefined) {
 			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
@@ -61,7 +61,7 @@ public class DefaultChannelAccessPolicy implements ChannelAccessPolicy {
 		else {
 			configAttributeDefinitionForSend = Collections.EMPTY_SET;
 		}
-		if (recieveAccessDefined) {
+		if (receiveAccessDefined) {
 			String[] receiveAccessValues = StringUtils.commaDelimitedListToStringArray(receiveAccess);
 			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
 			for (String receiveAccessValue : receiveAccessValues) {

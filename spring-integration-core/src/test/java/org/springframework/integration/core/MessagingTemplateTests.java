@@ -470,7 +470,7 @@ public class MessagingTemplateTests {
 	}
 
 	@Test
-	public void recieveAndConvertFromDefaultChannel() {
+	public void receiveAndConvertFromDefaultChannel() {
 		QueueChannel channel = new QueueChannel();
 		channel.send(new GenericMessage<String>("test"));
 		MessagingTemplate template = new MessagingTemplate();

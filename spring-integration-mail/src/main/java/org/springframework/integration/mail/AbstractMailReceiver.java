@@ -289,7 +289,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 	/**
 	 * Optional method allowing you to set additional flags. 
-	 * Currently only implemented in IMapMailReceiever.
+	 * Currently only implemented in IMapMailReceiver.
 	 * 
 	 * @param message
 	 * @throws MessagingException
