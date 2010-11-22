@@ -376,23 +376,24 @@ public class FooService {
       based mapping throughout this manual, however here are couple of examples:
       </para>
 
-      <programlisting language="java">public String foo(@Payload String s,  @Header("foo") String b) </programlisting>
-      <para>Very simple and explicite way of mapping Messages to method. As you'll see later on without annotation this signature
-      would result in the ambiguous condition, however by explicitly mapping first argument to a Message Payload and second argument to
-      a value of the 'foo' Message Header we have avoided ambiguity.</para>
+      <programlisting language="java">public String foo(@Payload String s, @Header("foo") String b) </programlisting>
+      <para>Very simple and explicit way of mapping Messages to method. As you'll see later on, without an annotation this signature
+      would result in an ambiguous condition. However by explicitly mapping the first argument to a Message Payload and the second argument to
+      a value of the 'foo' Message Header, we have avoided any ambiguity.</para>
 
-      <programlisting language="java">public String foo(@Payload String s,  @RequestParam("foo") String b) </programlisting>
-      <para>Looks almost identical to the previous example, however @RequestMapping or any other non-SI mapping annotation
-      is irrelevant  and therefore will be ignored leaving the second parameter unmapped. And although the second parameters could
-      easily be mapped to a Payload, there can only be one Payload, therefore this method becomes ambiguous. </para>
+      <programlisting language="java">public String foo(@Payload String s, @RequestParam("foo") String b) </programlisting>
+      <para>Looks almost identical to the previous example, however @RequestMapping or any other non-Spring Integration mapping annotation
+      is irrelevant and therefore will be ignored leaving the second parameter unmapped. Although the second parameter could
+      easily be mapped to a Payload, there can only be one Payload. Therefore this method mapping is ambiguous.</para>
 
-      <programlisting language="java">public String foo(String s,  @Header("foo") String b) </programlisting>
-      <para>The same as above. The only difference is that the first argument will be mapped to Message Payload implicitly.</para>
+      <programlisting language="java">public String foo(String s, @Header("foo") String b) </programlisting>
+      <para>The same as above. The only difference is that the first argument will be mapped to the Message Payload implicitly.</para>
 
-      <programlisting language="java">public String foo(@Headers Map m,  @Header("foo")Map f, @Header("bar") String bar)</programlisting>
-      <para>Yet another signature that would definitely be treated as ambiguous because it has more then 2 arguments,
-      plus two of them are Maps, however with annotation-based mapping ambiguity is easily avoided. In this example
-      the first argument is mapped to all the Message Headers, while second and third argument map to the values of Message Headers 'foo' and 'bar'.</para>
+      <programlisting language="java">public String foo(@Headers Map m, @Header("foo")Map f, @Header("bar") String bar)</programlisting>
+      <para>Yet another signature that would definitely be treated as ambiguous without annotations because it has more than 2 arguments.
+      Furthermore, two of them are Maps. However, with annotation-based mapping, the ambiguity is easily avoided. In this example
+      the first argument is mapped to all the Message Headers, while the second and third argument map to the values of Message Headers
+      'foo' and 'bar'. The payload is not being mapped to any argument.</para>
   </section>
 
   <section id="complex-scenarios">
@@ -400,19 +401,19 @@ public class FooService {
 
       <para><emphasis>Multiple parameters:</emphasis> </para>
       <para>Multiple parameters could create a lot of ambiguity with regards to determining the appropriate mappings. The general advice is to annotate your method parameters with @Payload and/or @Header/@Headers
-Below are some of the examples of ambiguous conditions which result in exception being raised.
+Below are some of the examples of ambiguous conditions which result in an Exception being raised.
       </para>
       <programlisting language="java">public String foo(String s, int i)</programlisting>
-      <para> - the two parameters are equal in weight, therefore no way to determine which one is a payload and what to do with another.</para>
+      <para> - the two parameters are equal in weight, therefore there is no way to determine which one is a payload.</para>
 
       <programlisting language="java">public String foo(String s, Map m, String b) </programlisting>
-      <para> - almost the same as above. Although Map could be easily mapped to Message Headers, there is no way to determine what to do with two Strings.</para>
+      <para> - almost the same as above. Although the Map could be easily mapped to Message Headers, there is no way to determine what to do with the two Strings.</para>
 
       <programlisting language="java">public String foo(Map m, Map f)</programlisting>
       <para> - although one might argue that one Map could be mapped to Message Payload and another one to Message Headers, it would be unreasonable to rely on the order (e.g., first is Payload, second Headers)</para>
 
       <para>
-        <tip>Basically any method signature with more then one method argument which is not (Map, &lt;T&gt;) and those parameters are not annotated will result in the ambiguous condition thus triggering an exception.</tip>
+        <tip>Basically any method signature with more than one method argument which is not (Map, &lt;T&gt;), and those parameters are not annotated, will result in an ambiguous condition thus triggering an Exception.</tip>
       </para>
       <para>
       <emphasis>Multiple methods:</emphasis>
@@ -421,10 +422,10 @@ Below are some of the examples of ambiguous conditions which result in exception
 
       <para><emphasis>Multiple methods (same or different name) with legal (mappable) signatures:</emphasis> </para>
 
-      <programlisting language="java">public class Foo{
+      <programlisting language="java">public class Foo {
   public String foo(String str, Map m);
 
-  public String foo(Map m)
+  public String foo(Map m);
 }</programlisting>
       <para>As you can see, the Message could be mapped to either method. The first method would be invoked where Message Payload
       could be mapped to 'str'  and Message Headers could be mapped to 'm'. The second method could easily also be a candidate where
@@ -438,25 +439,25 @@ Below are some of the examples of ambiguous conditions which result in exception
       to a Payload will take precedence over all other methods.</para>
 
       <para>On the other hand let's look at slightly different example:</para>
-      <programlisting language="java">public class Foo{
+      <programlisting language="java">public class Foo {
   public String foo(String str, Map m);
 
-  public String foo(String str)
+  public String foo(String str);
 }</programlisting>
 
-      <para>If you look at it you can probably see a truly an ambiguous condition. In this example since both methods have signatures that
-      could be mapped to a Message Payload. They also have the same name. Such handler will trigger an exception.
-However if method names were different you could influence the mapping with 'method' attribute (see below):</para>
-      <programlisting language="java">public class Foo{
+      <para>If you look at it you can probably see a truly ambiguous condition. In this example since both methods have signatures that
+      could be mapped to a Message Payload. They also have the same name. Such handler methods will trigger an Exception.
+However if the method names were different you could influence the mapping with a 'method' attribute (see below):</para>
+      <programlisting language="java">public class Foo {
   public String foo(String str, Map m);
 
-  public String bar(String str)
+  public String bar(String str);
 }</programlisting>
       <programlisting language="xml"><![CDATA[<si:service-activator input-channel="input" output-channel="output" method="bar">
   <bean class="org.bar.Foo"/>
 </si:service-activator>]]></programlisting>
 
-      <para>Now there is no ambiguity since the configuration explicitly maps to 'bar' method which has no name conflicts.</para>
+      <para>Now there is no ambiguity since the configuration explicitly maps to the 'bar' method which has no name conflicts.</para>
   </section>
   </section>
 
