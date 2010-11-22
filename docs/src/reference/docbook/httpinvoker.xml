@@ -2,9 +2,13 @@
 <chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="httpinvoker"
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>HttpInvoker Support</title>
-
+  
   <section id="httpinvoker-intro">
     <title>Introduction</title>
+    <important>
+    This module is DEPRECATED and will be removed in future releases of Spring Integration. Please use HTTP support (<xref linkend="http"/>) which should
+    provide all the functionality that was available with Http Invoker plus more.
+    </important>
     <para>
       HttpInvoker is a Spring-specific remoting option that essentially enables Remote Procedure Calls (RPC) over HTTP.
       In order to accomplish this, an outbound representation of a method invocation is serialized using standard Java

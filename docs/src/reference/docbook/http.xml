@@ -19,7 +19,7 @@
   definition in <emphasis>web.xml</emphasis>, see
   <xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
     <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
-    class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
+  class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
 </bean>]]></programlisting>
@@ -78,7 +78,7 @@
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
-  class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
+  class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
@@ -86,7 +86,7 @@
     to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
     as the ClientHttpRequestFactory instance to use:
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
-    class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
+  class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
   <property name="messageConverters" ref="messageConverterList" />
