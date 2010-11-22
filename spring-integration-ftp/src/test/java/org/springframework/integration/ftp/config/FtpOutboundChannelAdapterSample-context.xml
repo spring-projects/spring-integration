@@ -10,7 +10,7 @@
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="username" value="ozhurakousky"/>
-		<property name="password" value="seva@1994"/>
+		<property name="password" value="xxxx"/>
 		<property name="remoteWorkingDirectory" value="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-target-dir"/>
 	</bean>
 	
