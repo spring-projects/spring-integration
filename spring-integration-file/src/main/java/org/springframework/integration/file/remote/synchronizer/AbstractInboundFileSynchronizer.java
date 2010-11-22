@@ -50,6 +50,12 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
 
+	/**
+	 * Extension used when downloading files. We change it right after we know it's downloaded.
+	 */
+	static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
+
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
@@ -149,7 +155,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 		File localFile = new File(localDirectory, remoteFileName);
 		if (!localFile.exists()) {
-			String tempFileName = localFile.getAbsolutePath() + AbstractInboundFileSynchronizingMessageSource.INCOMPLETE_EXTENSION;
+			String tempFileName = localFile.getAbsolutePath() + INCOMPLETE_EXTENSION;
 			File tempFile = new File(tempFileName);
 			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);

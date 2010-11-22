@@ -55,12 +55,6 @@ import org.springframework.util.Assert;
 public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
 
 	/**
-	 * Extension used when downloading files. We change it right after we know it's downloaded.
-	 */
-	public static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
-
-
-	/**
 	 * Should the endpoint attempt to create the local directory and/or the remote directory?
 	 */
 	protected volatile boolean autoCreateDirectories = true;
@@ -157,7 +151,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 
 	@SuppressWarnings("unchecked")
 	private FileListFilter<File> buildFilter() {
-		Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
+		Pattern completePattern = Pattern.compile("^.*(?<!" + AbstractInboundFileSynchronizer.INCOMPLETE_EXTENSION + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
 				new AcceptOnceFileListFilter<File>(),
 				new PatternMatchingFileListFilter(completePattern)));
