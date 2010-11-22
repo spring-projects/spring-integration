@@ -63,11 +63,25 @@
   </bookinfo>
 
   <toc></toc>
+ 
+  <part id="whats-new-in-2-part">
+    <title>What's new in Spring Integration 2.0</title>
+    <partintro id="spring-integration-intro">
+    	 <para>
+    	 For those of you who already familiar with Spring Integration, this chapter provides a brief overview of 
+    	 what is new and what has changed in Spring Integration 2.0
+		</para>
+    </partintro>
+    <xi:include href="./whats-new-in-2.xml"/>
+  </part>
   
   <part id="spring-integration-introduction">
     <title>Overview of Spring Integration Framework</title>
     <partintro id="spring-integration-intro">
-    	 <para>The Spring Integration Framework is a lightweight solution TODO</para>
+    	 <para>Spring Integration is a POJO-based light weight, embedded messaging framework with a loosely 
+    	 coupled programming model aimed to simplify integration of heterogeneous systems based on 
+    	 <ulink url="http://www.eaipatterns.com/">Enterprise Integration Patterns</ulink> 
+    	 and is an alternative to ESB-like approach.</para>
     </partintro>
     <xi:include href="./overview.xml"/>
   </part>

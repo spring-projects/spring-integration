@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="whats-new-in-2"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>What's new in Spring Integration 2.0</title>
+ 
+	<section id="spring-30-support">
+		<title>Spring 3 support</title>
+		<para>
+		Spring Integration 2.0 is built on top of Spring 3.0.5 and uses many new features of Spring 3
+		</para>
+		
+		<section id="spel-support">
+			<title>Support for Spring Expression Language (SpEL)</title>
+			<para>
+			You can now use SpEL expressions within the <emphasis> transformer, router, filter,
+			 splitter, aggregator, service-activator</emphasis>, and many more elements of the 
+			Spring Integration core namespace as well as various adapters. 
+			There are many samples provided throughout this document.
+			</para>
+		</section>
+		
+		<section id="conversion-support">
+			<title>ConversionService and Converter</title>
+			<para>
+			You can now benefit from <emphasis>Conversion Service</emphasis> support provided with Spring while configuring 
+			many Spring Integration components such as <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink>. 
+			See <xref linkend="channel-implementations"/> as well <xref linkend="service-activator-introduction"/>
+			</para>
+		</section>
+			
+		<section id="task-scheduler-poller-support">
+			<title>TaskScheduler, Trigger and Poller</title>
+			<para>
+			<emphasis>TaskScheduler, Trigger and Executor</emphasis> support that was provided with Spring Integration 1.0 was 
+			moved to Spring 3 core API and you can now benefit from reusing the same components within the entire 
+			Application Context (not just Spring Integration configuration). Configuration of Poller was greatly simplified 
+			as well by providing attributes for to directly configure rates, triggers and delays. See 
+			<xref linkend="channel-adapter"/> for sample configuration.
+			</para>
+		</section>
+		
+		<section id="rest-support">
+			<title>RestTemplate and HttpMessageConverter</title>
+			<para>
+			Our outbound HTTP adapters now delegate to Spring's RestTemplate for executing the HTTP request and handling its response.
+			See <xref linkend="http-outbound"/> for more details.
+			</para>
+		</section>	
+	</section>
+	
+	<section id="new-eip">
+		<title>Enterprise Integration Pattern Additions</title>
+		<para>
+		Also in 2.0 we have added support for even more of the patterns described in Hohpe and Woolf's 
+		<ulink url="http://www.eaipatterns.com/">Enterprise Integration Patterns</ulink> book.
+		</para>
+		
+		<section id="new-message-history">
+			<title>Message History</title>
+			<para>
+			We've provided implementation for the <ulink url="http://www.eaipatterns.com/MessageHistory.html">Message History</ulink> pattern
+			 allowing us 
+			to keep track of all traversed components, including the name of each channel and endpoint as well as the timestamp
+			 of that traversal. See <xref linkend="message-history"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-message-store">
+			<title>Message Store</title>
+			<para>
+			We've provided implementation for the <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> pattern. 
+			The Message Store 
+			provides a way to persist messages for any process that might take too long to happen in a single 
+			transaction. Many sections of this document provide samples on how to use Message Store as it 
+			affects several areas of Spring Integration. See <xref linkend="claim-check"/>, 
+			<xref linkend="channel"/>, <xref linkend="aggregator"/>, <xref linkend="jdbc"/>, <xref linkend="resequencer"/> for more details
+			</para>
+		</section>
+		
+		<section id="new-claim-check">
+			<title>Claim Check</title>
+			<para>
+			We've provided implementation for the <ulink url="http://www.eaipatterns.com/StoreInLibrary.html">Claim Check</ulink> pattern. 
+			
+			The idea behind the Claim Check pattern is that you can exchange a Message payload for a "claim ticket" and vice-versa. 
+			This allows you to reduce bandwidth and/or avoid potential security issues when sending Messages across channels. 
+			See <xref linkend="claim-check"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-control-bus">
+			<title>Control Bus</title>
+			<para>
+			We've provided implementation for the <ulink url="http://www.eaipatterns.com/ControlBus.html">Control Bus</ulink> pattern which 
+			
+			allows you to use messaging to manage and monitor endpoints and channels.
+			See <xref linkend="control-bus"/> for more details.
+			</para>
+		</section>
+		
+	</section>
+	
+	<section id="new-adapters">
+		<title>New Channel Adapters and Gateways</title>
+		<para>
+		We have added several new Channel Adapters and Messaging Gateways in Spring Integration 2.0
+		</para>
+		
+		<section id="new-twitter">
+			<title>Twitter Adapters</title>
+			<para>
+			Twitter adapters provides support for sending and receiving Twitter Status 
+			updates as well as Direct Twitter Messages and perform Twitter Searches. See  <xref linkend="twitter"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-xmpp">
+			<title>XMPP Adapters</title>
+			<para>
+			We've also added support for XMPP Messaging and Presence. See <xref linkend="xmpp"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-ftp">
+			<title>FTP/FTPS Adapters</title>
+			<para>
+			File transfer support over FTP/FTPS has been added through FTP/FTPS adapters. See <xref linkend="ftp"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-sftp">
+			<title>SFTP Adapters</title>
+			<para>
+			File transfer support over SFTP has been added through SFTP adapters. See <xref linkend="sftp"/> for more details.
+			</para>
+		</section>
+			
+		<section id="new-ip">
+			<title>TCP/UDP Adapters</title>
+			<para>
+			We've added Channel Adapters for receiving and sending messages over internet protocols (TCP/UDP). See <xref linkend="ip"/>
+			for more details.
+			More information provided in the following blog: 
+			<ulink url="http://blog.springsource.com/2010/03/29/using-udp-and-tcp-adapters-in-spring-integration-2-0-m3/">TCP/UDP support</ulink> 
+
+			</para>
+		</section>	
+		
+		<section id="new-feed">
+			<title>Feed Adapters</title>
+			<para>
+			We've added Channel Adapters for receiving news feeds (ATOM/RSS). See <xref linkend="feed"/> for more details.
+			</para>
+		</section>	
+	</section>
+	
+	<section id="new-other">
+		<title>Other Additions</title>
+		
+		<section id="new-groovy">
+			<title>Groovy Support</title>
+			<para>
+			With Spring Integration 2.0 we've added Groovy support allowing you to
+	  use Groovy scripting language to provide integration and business logic. See <xref linkend="groovy"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-map-xfmr">
+			<title>Map Transformers</title>
+			<para>
+			These symmetrical transformers convert payload objects to/from a Map. See <xref linkend="transformer"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-json-xfmr">
+			<title>JSON Transformers</title>
+			<para>
+			These symmetrical transformers convert payload objects to/from JSON. See <xref linkend="transformer"/> for more details.
+			</para>
+		</section>
+		
+		<section id="new-serialize-xfmr">
+			<title>Serialization Transformers</title>
+			<para>
+			These symmetrical transformers convert payload objects to/from byte arrays. See <xref linkend="transformer"/> for more details.
+			</para>
+		</section>
+		
+	</section>
+
+	<section id="new-refactoring">
+		<title>Framework Refactoring</title>
+		<para>
+		ore API went through a major refactoring to make it simpler and more usable and although we anticipate 
+		that the impact to the end user should be minimal please read through this document to find what was 
+		changed especially. See <xref linkend="dynamic-routers"/> , <xref linkend="gateway"/>, <xref linkend="http-outbound"/>, 
+		<xref linkend="message"/>, <xref linkend="aggregator"/> for more details.
+		</para>
+	</section>
+	
+	<section id="new-infrustructure">
+		<title>New SCM and Build Infrustructure</title>
+		<para>
+		With Spring Integration 2.0 we've switched our build environment to use Git as SCM. To access our repository simply follow this URL: 
+		<ulink url="http://git.springsource.org/+spring-integration">http://git.springsource.org/+spring-integration</ulink>. 
+		Our build system was switched to <ulink url="http://gradle.org/">Gradle</ulink>.	
+		</para>
+	</section>
+	
+	<section id="new-samples">
+		<title>New Spring Integration Samples</title>
+		<para>
+		With Spring Integration 2.0 we've changed the distribution of our samples. Please read this blog to get more info
+		<ulink url="http://blog.springsource.com/2010/09/29/new-spring-integration-samples/">New Spring Integration Samples</ulink>
+		We alos created many new samples, including samples for every new Adapter.
+		</para>
+	</section>
+	
+	<section id="new-sts">
+		<title>SpringSource Tool Suite Visual Editor for Spring Integration</title>
+		<para>
+		There is an amazing new visual editor for Spring Integration included within the latest version of SpringSource Tool Suite. 
+		If you are not already using STS 2.5.1 please download it here 
+		<ulink url="http://www.springsource.com/landing/best-development-tool-enterprise-java">STS</ulink>
+		</para>
+	</section>
+	
+	<section id="new-si-roo">
+		<title>Upcomming Spring Integration ROO support</title>
+		<para>
+		We've began working on Spring Integration ROO support which will be available with Spring Integration 2.0.1. 
+		You can follow its development here: <ulink url="https://jira.springframework.org/browse/INTROO">Spring Integration Roo Add-on</ulink>.
+		</para>
+	</section>
+	
+</chapter>
