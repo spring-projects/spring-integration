@@ -40,11 +40,12 @@
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				remote-directory="foo/bar"
-				filename-generator="fileNameGenerator"/>
+				remote-filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>
 	
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>
+
 </beans>

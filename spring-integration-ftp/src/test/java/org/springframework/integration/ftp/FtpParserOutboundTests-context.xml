@@ -9,7 +9,6 @@
 
 	<int:channel id="ftpOutbound"/>
 	
-	
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpsSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
@@ -24,7 +23,7 @@
 						session-factory="ftpSessionFactory"
 						remote-directory="foo/bar"
 						channel="ftpOutbound" 
-						filename-generator="fileNameGenerator"/>
+						remote-filename-generator="fileNameGenerator"/>
 						
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>

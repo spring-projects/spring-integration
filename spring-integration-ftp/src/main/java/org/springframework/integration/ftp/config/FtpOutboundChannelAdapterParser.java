@@ -49,7 +49,7 @@ public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		boolean hasDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
 		if (!(hasDirectory ^ hasDirectoryExpression)) {
 			throw new BeanDefinitionStoreException("exactly one of 'remote-directory' or 'remote-directory-expression' " +
-					"is required on the SFTP outbound adapter");
+					"is required on the FTP outbound adapter");
 		}
 		BeanDefinition expressionDef = null;
 		if (hasDirectory) {
@@ -61,8 +61,24 @@ public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
 		}
 		handlerBuilder.addPropertyValue("remoteDirectoryExpression", expressionDef);
+		String remoteFileExpression = element.getAttribute("remote-filename-generator-expression");
+		String fileNameGenerator = element.getAttribute("remote-filename-generator");
+		boolean hasRemoteFileExpression = StringUtils.hasText(remoteFileExpression);
+		boolean hasFileNameGenerator = StringUtils.hasText(fileNameGenerator);
+		if (hasRemoteFileExpression || hasFileNameGenerator) {
+			if (hasRemoteFileExpression && hasFileNameGenerator) {
+				throw new BeanDefinitionStoreException("at most one of 'remote-filename-generator-expression' or 'remote-filename-generator' " +
+						"is allowed on the FTP outbound adapter");
+			}
+			if (StringUtils.hasText(remoteFileExpression)) {
+				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						"org.springframework.integration.file.DefaultFileNameGenerator");
+				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileExpression);
+				handlerBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
+			}
+		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "remote-filename-generator", "fileNameGenerator");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element,"filename-generator", "fileNameGenerator");
 		return handlerBuilder.getBeanDefinition();
 	}
 

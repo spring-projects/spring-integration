@@ -22,7 +22,7 @@
 				session-factory="ftpSessionFactory"
 				remote-directory="foo/bar"
 				charset="UTF-8"
-				filename-generator="fileNameGenerator"/>
+				remote-filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>
 	
