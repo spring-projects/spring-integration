@@ -22,7 +22,7 @@
       simultaneously increasing the level of testability and portability. 
     </para>
     <para>
-      Spring Integration is a new member of the Spring portfolio motivated by these same goals and principles. It
+      Spring Integration is motivated by these same goals and principles. It
       extends the Spring programming model into the messaging domain and builds upon Spring's existing enterprise
       integration support to provide an even higher level of abstraction. It supports message-driven architectures
       where inversion of control applies to runtime concerns, such as <emphasis>when</emphasis> certain business logic
@@ -98,7 +98,7 @@
       <para>
         In Spring Integration, a Message is a generic wrapper for any Java object combined with metadata used by the
         framework while handling that object. It consists of a payload and headers. The payload can be of any type and
-        the headers hold commonly required information such as id, timestamp, expiration, and return address. Headers
+        the headers hold commonly required information such as id, timestamp, correlation id, and return address. Headers
         are also used for passing values to and from connected transports. For example, when creating a Message from a
         received File, the file name may be stored in a header to be accessed by downstream components. Likewise, if a
         Message's content is ultimately going to be sent by an outbound Mail adapter, the various properties (to, from,
