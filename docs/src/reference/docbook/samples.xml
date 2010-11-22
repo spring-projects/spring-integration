@@ -156,8 +156,7 @@ That includes Samples, so if you can't find what you are looking for let us know
         <para>
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/loan-broker-eip.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/loan-broker-eip.png" format="PNG" align="center" scalefit="1" width="100%" contentdepth="100%" />
           </imageobject>
           <imageobject role="html">
               <imagedata fileref="images/loan-broker-eip.png" format="PNG" align="center"/>
@@ -235,11 +234,10 @@ That includes Samples, so if you can't find what you are looking for let us know
       <para><emphasis>Messaging Gateway</emphasis>
       <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/gateway.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/gateway.jpg" format="JPG" align="center"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/gateway.png" format="PNG" align="center"/>
+              <imagedata fileref="images/gateway.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
       </para>
@@ -285,8 +283,7 @@ That includes Samples, so if you can't find what you are looking for let us know
       <emphasis>&lt;chain&gt;</emphasis> element.
       <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/chain.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/chain.png" format="PNG" align="center"/>
           </imageobject>
           <imageobject role="html">
               <imagedata fileref="images/chain.png" format="PNG" align="center"/>
@@ -301,11 +298,10 @@ That includes Samples, so if you can't find what you are looking for let us know
       <para><emphasis>Message Router</emphasis>
       <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/bank-router.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/bank-router.jpg" format="JPG" align="center"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/bank-router.png" format="PNG" align="center"/>
+              <imagedata fileref="images/bank-router.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
       </para>
@@ -324,11 +320,10 @@ That includes Samples, so if you can't find what you are looking for let us know
       <para><emphasis>Message Aggregator</emphasis>
       <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/quotes-aggregator.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/quotes-aggregator.jpg" format="JPG" align="center"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/quotes-aggregator.png" format="PNG" align="center"/>
+              <imagedata fileref="images/quotes-aggregator.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
       </para>
@@ -396,8 +391,7 @@ That includes Samples, so if you can't find what you are looking for let us know
       <para>
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/cafe-eip.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/cafe-eip.png" format="PNG" align="center" scalefit="1" width="100%" contentdepth="100%" />
           </imageobject>
           <imageobject role="html">
               <imagedata fileref="images/cafe-eip.png" format="PNG" align="center"/>

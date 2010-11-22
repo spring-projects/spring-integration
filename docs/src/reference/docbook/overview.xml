@@ -106,11 +106,10 @@
         store any arbitrary key-value pairs in the headers.
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/message.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/message.jpg" format="JPG" align="center"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/message.png" format="PNG" align="center"/>
+              <imagedata fileref="images/message.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
       </para>
@@ -124,11 +123,10 @@
         messaging components, and also provides a convenient point for interception and monitoring of Messages.
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/channel.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/channel.jpg" format="JPG" align="center" scalefit="1" width="100%" contentdepth="100%" />
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/channel.png" format="PNG" align="center"/>
+              <imagedata fileref="images/channel.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
         A Message Channel may follow either Point-to-Point or Publish/Subscribe semantics. With a Point-to-Point
@@ -225,11 +223,10 @@
         proactive alternative to the reactive Message Filters used by multiple subscribers as described above.
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/router.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/router.jpg" format="JPG" align="center"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/router.png" format="PNG" align="center"/>
+              <imagedata fileref="images/router.jpg" format="JPG" align="center"/>
           </imageobject>
         </mediaobject>
       </para>
@@ -277,11 +274,10 @@
         Message's "return address" if available.
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/handler-endpoint.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/handler-endpoint.jpg" format="JPG" align="center" scalefit="1" width="100%"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/handler-endpoint.png" format="PNG" align="center"/>
+              <imagedata fileref="images/handler-endpoint.jpg" format="JPG" align="center"/>
           </imageobject>
           <caption>
             A request-reply "Service Activator" endpoint connects a target object's method to input and output
@@ -302,21 +298,19 @@
         chapters.
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/source-endpoint.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/source-endpoint.jpg" format="JPG" align="center" scalefit="1" width="100%"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/source-endpoint.png" format="PNG" align="center"/>
+              <imagedata fileref="images/source-endpoint.jpg" format="JPG" align="center"/>
           </imageobject>
           <caption>An inbound "Channel Adapter" endpoint connects a source system to a MessageChannel.</caption>
         </mediaobject>
         <mediaobject>
           <imageobject role="fo">
-              <imagedata fileref="images/target-endpoint.png"
-                format="PNG" align="center"/>
+              <imagedata fileref="images/target-endpoint.jpg" format="JPG" align="center" scalefit="1" width="100%"/>
           </imageobject>
           <imageobject role="html">
-              <imagedata fileref="images/target-endpoint.png" format="PNG" align="center"/>
+              <imagedata fileref="images/target-endpoint.jpg" format="JPG" align="center"/>
           </imageobject>
           <caption>An outbound "Channel Adapter" endpoint connects a MessageChannel to a target system.</caption>
         </mediaobject>
