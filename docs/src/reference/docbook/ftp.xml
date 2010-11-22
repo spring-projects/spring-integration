@@ -39,7 +39,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	the <emphasis>FTP Session Factory</emphasis> with a regular bean definition where the implementation class is <classname>org.springframework.integration.ftp.session.DefaultFtpSessionFactory</classname>:
 	Below is a basic configuration:
 	
-	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" 
+	class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="kermit"/>
@@ -52,7 +53,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	For FTPS connections all you need to do is use <classname>org.springframework.integration.ftp.session.DefaultFtpsSessionFactory</classname> instead.
 	Below is the complete configuration sample:
 	
-	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
+	<programlisting language="xml"><![CDATA[<bean id="ftpClientFactory" 
+	class="org.springframework.integration.ftp.client.DefaultFtpsClientFactory">
 		<property name="host" value="localhost"/>
 		<property name="port" value="22"/>
 		<property name="username" value="oleg"/>

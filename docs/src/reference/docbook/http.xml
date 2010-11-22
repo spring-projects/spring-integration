@@ -53,7 +53,7 @@
   how to customize the HTTP methods accepted by the gateway, which
   are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.
   <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
-	class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
+  class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
   <constructor-arg value="true" /> <!-- indicates that a reply is expected -->
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
@@ -78,7 +78,7 @@
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
     <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
-    class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
+  class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler" >
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
@@ -114,7 +114,9 @@ By default the HTTP request will be generated using an instance of <classname>Si
     </para>
     <para>
     To configure an inbound http gateway which expects a response.
-    <programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" 
+    request-channel="requests" 
+    reply-channel="responses"/>]]></programlisting>
     </para>
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
@@ -153,8 +155,8 @@ By default the HTTP request will be generated using an instance of <classname>Si
   If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in 
   <emphasis>Http Outbound Gateway</emphasis> configuration.
   
-  <programlisting language="xml"><![CDATA[<http:outbound-gateway id="trafficGateway" 
-	                  url="http://local.yahooapis.com/MapsService/V1/trafficData?appid=YdnDemo&amp;zip={zipCode}" 
+  <programlisting language="xml"><![CDATA[<http:outbound-gateway id="trafficGateway"
+    url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}" 
 		              request-channel="trafficChannel" 
 		              http-method="GET" 
 		              expected-response-type="java.lang.String">
@@ -182,7 +184,7 @@ THis particular client will send a multipart Http Request which contains the nam
     <programlisting language="java"><![CDATA[RestTemplate template = new RestTemplate();
 String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
 Resource s2logo = 
-   new ClassPathResource("org/springframework/integration/samples/multipart/spring09_logo.png");
+   new ClassPathResource("org/springframework/samples/multipart/spring09_logo.png");
 MultiValueMap map = new LinkedMultiValueMap();
 map.add("company", "SpringSource");
 map.add("company-logo", s2logo);
@@ -222,7 +224,8 @@ we are parsing in the 'multipartReceiver' service-activator;
         ((String[]) multipartRequest.getFirst("company"))[0]);
     } else if (elementName.equals("company-logo")){
       System.out.println("\t" + elementName + " - as UploadedMultipartFile: " +
-        ((UploadedMultipartFile) multipartRequest.getFirst("company-logo")).getOriginalFilename());
+        ((UploadedMultipartFile) multipartRequest.getFirst("company-logo")).
+        											getOriginalFilename());
     }
   }
 }
