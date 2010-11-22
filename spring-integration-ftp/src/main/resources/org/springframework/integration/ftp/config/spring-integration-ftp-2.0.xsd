@@ -55,6 +55,7 @@
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 					<xsd:attribute name="filename-pattern" type="xsd:string"/>
+					<xsd:attribute name="filename-regex" type="xsd:string"/>
 					<xsd:attribute name="filter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

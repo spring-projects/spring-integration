@@ -107,6 +107,7 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
+			<xsd:attribute name="filename-regex" type="xsd:string"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="local-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="auto-create-local-directory" type="xsd:boolean"/>

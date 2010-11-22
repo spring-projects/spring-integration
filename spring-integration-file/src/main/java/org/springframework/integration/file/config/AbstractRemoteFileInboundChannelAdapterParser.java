@@ -19,7 +19,6 @@ package org.springframework.integration.file.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
@@ -27,7 +26,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for 'sftp:inbound-channel-adapter'
+ * Abstract base class for parsing remote file inbound channel adapters.
  * 
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -36,7 +35,7 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractRemoteFileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+	protected final BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		// build the SessionFactory
 		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.file.remote.session.CachingSessionFactory");
@@ -48,27 +47,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
-
-		// configure the FileListFilter if relevant attributes are present
-		String fileNamePattern = element.getAttribute("filename-pattern");
-		String filter = element.getAttribute("filter");
-		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
-		boolean hasFilter = StringUtils.hasText(filter);
-		if (hasFileNamePattern || hasFilter) {
-			if (!(hasFileNamePattern ^ hasFilter)) {
-				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
-						"is allowed on remote file inbound adapter");
-			}
-		}
-		if (hasFileNamePattern) {
-			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					this.getSimplePatternFileListFilterClassname());
-			filterBuilder.addConstructorArgValue(fileNamePattern);
-			synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
-		} 
-		else if (hasFilter) {
-			synchronizerBuilder.addPropertyReference("filter", filter);
-		}
+		this.configureFilter(synchronizerBuilder, element, parserContext);
 
 		// build the MessageSource
 		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getMessageSourceClassname());
@@ -78,10 +57,52 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		return messageSourceBuilder.getBeanDefinition();
 	}
 
+	private void configureFilter(BeanDefinitionBuilder synchronizerBuilder, Element element, ParserContext parserContext) {
+		String filter = element.getAttribute("filter");
+		String fileNamePattern = element.getAttribute("filename-pattern");
+		String fileNameRegex = element.getAttribute("filename-regex");
+		boolean hasFilter = StringUtils.hasText(filter);
+		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
+		boolean hasFileNameRegex = StringUtils.hasText(fileNameRegex);
+		if (hasFilter || hasFileNamePattern || hasFileNameRegex) {
+			int count = 0;
+			if (hasFilter) {
+				count++;
+			}
+			if (hasFileNamePattern) {
+				count++;
+			}
+			if (hasFileNameRegex) {
+				count++;
+			}
+			if (count != 1) {
+				parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
+						"'filename-regex', or 'filter' is allowed on remote file inbound adapter", element);
+			}
+			if (hasFilter) {
+				synchronizerBuilder.addPropertyReference("filter", filter);
+			}
+			else if (hasFileNamePattern) {
+				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						this.getSimplePatternFileListFilterClassname());
+				filterBuilder.addConstructorArgValue(fileNamePattern);
+				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			}
+			else if (hasFileNameRegex) {
+				BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						this.getRegexPatternFileListFilterClassname());
+				filterBuilder.addConstructorArgValue(fileNameRegex);
+				synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+			}
+		}
+	}
+
 	protected abstract String getMessageSourceClassname();
 
 	protected abstract String getInboundFileSynchronizerClassname();
 
 	protected abstract String getSimplePatternFileListFilterClassname();
+
+	protected abstract String getRegexPatternFileListFilterClassname();
 
 }

@@ -42,4 +42,9 @@ public class FtpInboundChannelAdapterParser extends AbstractRemoteFileInboundCha
 		return BASE_PACKAGE + ".filters.FtpSimplePatternFileListFilter";
 	}
 
+	@Override
+	protected String getRegexPatternFileListFilterClassname() {
+		return BASE_PACKAGE + ".filters.FtpRegexPatternFileListFilter";
+	}
+
 }

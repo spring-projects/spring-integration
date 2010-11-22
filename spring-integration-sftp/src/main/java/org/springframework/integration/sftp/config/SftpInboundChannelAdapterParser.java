@@ -44,4 +44,9 @@ public class SftpInboundChannelAdapterParser extends AbstractRemoteFileInboundCh
 		return BASE_PACKAGE + ".filters.SftpSimplePatternFileListFilter";
 	}
 
+	@Override
+	protected String getRegexPatternFileListFilterClassname() {
+		return BASE_PACKAGE + ".filters.SftpRegexPatternFileListFilter";
+	}
+
 }
