@@ -164,8 +164,8 @@ By default the HTTP request will be generated using an instance of <classname>Si
 </http:outbound-gateway>]]></programlisting>
   
   The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use 
-  the <code>value</code> attribute for literal values, but if the value you are trying t o inject is dynamic and requires 
-  access to Message data you can use  SpEL expression via <code>expression</code> attribute. In the above configuration 
+  the <code>value</code> attribute for literal values, but if the value you are trying to inject is dynamic and requires 
+  access to Message data you can use a SpEL expression via the <code>expression</code> attribute. In the above configuration 
   the <code>getZip()</code> method will be invoked on the payload object of the Message and the result of that 
   method will be used as the value for URI variable named 'zipCode'.
   </para>
@@ -177,10 +177,11 @@ By default the HTTP request will be generated using an instance of <classname>Si
   <section id="multipart-rest-inbound">
     <title>Multipart HTTP request - RestTemplate (client) and Http Inbound Gateway (server)</title>
     <para>
-      This example demonstrates how simple it is to send a Multipart HTTP request via Spring's RestTemplate and receive it by Spring Integration HTTP Inbound Adapter.
-All we are doing is creating <classname>MultiValueMap</classname> and populating it with multi-part data. <classname>RestTemplate</classname> will take care of the rest
-by converting it to <classname>MultipartHttpServletRequest</classname>  
-THis particular client will send a multipart Http Request which contains the name of the company as well as the image file with company logo.
+      This example demonstrates how simple it is to send a Multipart HTTP request via Spring's RestTemplate and receive
+      it with a Spring Integration HTTP Inbound Adapter. All we are doing is creating a <classname>MultiValueMap</classname> and
+      populating it with multi-part data. The <classname>RestTemplate</classname> will take care of the rest (no pun intended) by
+      converting it to a <classname>MultipartHttpServletRequest</classname> . This particular client will send a multipart HTTP Request
+      which contains the name of the company as well as an image file with the company logo.
     <programlisting language="java"><![CDATA[RestTemplate template = new RestTemplate();
 String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
 Resource s2logo = 
@@ -214,15 +215,16 @@ On the server side we have the following configuration:
 ]]></programlisting>
 </para>
 <para>
-The 'httpInboundAdapter' will receive the request, convert it to a <classname>Message</classname> with a payload as <classname>LinkedMultiValueMap</classname> which
-we are parsing in the 'multipartReceiver' service-activator;
+The 'httpInboundAdapter' will receive the request, convert it to a <classname>Message</classname> with a payload
+that is a <classname>LinkedMultiValueMap</classname>. We then are parsing that in the 'multipartReceiver' service-activator;
 <programlisting language="java"><![CDATA[public void receive(LinkedMultiValueMap<String, Object> multipartRequest){
   System.out.println("### Successfully received multipart request ###");
   for (String elementName : multipartRequest.keySet()) {
     if (elementName.equals("company")){
       System.out.println("\t" + elementName + " - " +
         ((String[]) multipartRequest.getFirst("company"))[0]);
-    } else if (elementName.equals("company-logo")){
+    }
+    else if (elementName.equals("company-logo")){
       System.out.println("\t" + elementName + " - as UploadedMultipartFile: " +
         ((UploadedMultipartFile) multipartRequest.getFirst("company-logo")).
         											getOriginalFilename());
