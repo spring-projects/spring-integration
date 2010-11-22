@@ -23,7 +23,8 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
- * a {@link org.springframework.integration.core.MessageSource} implementation for SFTP
+ * A {@link org.springframework.integration.core.MessageSource} implementation for SFTP
+ * that delegates to an InboundFileSynchronizer.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky

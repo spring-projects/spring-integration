@@ -47,7 +47,7 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	private volatile Resource privateKey;
 
 	private volatile String privateKeyPassphrase;
-	
+
 	private final JSch jsch = new JSch();
 
 
@@ -83,8 +83,8 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
-		Assert.isTrue(StringUtils.hasText(this.password) || privateKey != null || StringUtils.hasText(this.privateKeyPassphrase),
-				"either a password or a private key and/or a private key passphrase is required");
+		Assert.isTrue(StringUtils.hasText(this.password) || this.privateKey != null,
+				"either a password or a private key is required");
 		try {
 			com.jcraft.jsch.Session jschSession = this.initJschSession();
 			SftpSession sftpSession = new SftpSession(jschSession);
@@ -124,8 +124,9 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 
 
 	/**
-	 * this is a simple, optimistic implementation of this interface. It simply returns in the positive where possible
-	 * and handles interactive authentication (i.e. 'Please enter your password: ' prompts are dispatched automatically using this)
+	 * this is a simple, optimistic implementation of the UserInfo interface.
+	 * It returns in the positive where possible and handles interactive authentication
+	 * (i.e. 'Please enter your password: ' prompts are dispatched automatically).
 	 */
 	private static class OptimisticUserInfoImpl implements UserInfo {
 

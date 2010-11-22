@@ -31,7 +31,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
 
 /**
- * Default SftpSession implementation.
+ * Default SFTP {@link Session} implementation. Wraps a JSCH session instance.
  *
  * @author Josh Long
  * @author Mario Gray
@@ -48,14 +48,15 @@ class SftpSession implements Session {
 
 
 	public SftpSession(com.jcraft.jsch.Session jschSession) {
+		Assert.notNull(jschSession, "jschSession must not be null");
 		this.jschSession = jschSession;
 	}
 
 
 	public boolean rm(String path) {
-		Assert.state(channel != null, "session is not connected");
+		Assert.state(this.channel != null, "session is not connected");
 		try {
-			channel.rm(path);
+			this.channel.rm(path);
 			return true;
 		}
 		catch (SftpException e) {
@@ -68,9 +69,9 @@ class SftpSession implements Session {
 
 	@SuppressWarnings("unchecked")
 	public LsEntry[] ls(String path) {
-		Assert.state(channel != null, "session is not connected");
+		Assert.state(this.channel != null, "session is not connected");
 		try {
-			Vector<?> lsEntries = channel.ls(path);
+			Vector<?> lsEntries = this.channel.ls(path);
 			if (lsEntries != null) {
 				LsEntry[] entries = new LsEntry[lsEntries.size()];
 				for (int i = 0; i < lsEntries.size(); i++) {
@@ -90,9 +91,9 @@ class SftpSession implements Session {
 	}
 
 	public InputStream get(String source) {
-		Assert.state(channel != null, "session is not connected");
+		Assert.state(this.channel != null, "session is not connected");
 		try {
-			return channel.get(source);
+			return this.channel.get(source);
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
@@ -103,9 +104,9 @@ class SftpSession implements Session {
 	}
 
 	public void put(InputStream inputStream, String destination) {
-		Assert.state(channel != null, "session is not connected");
+		Assert.state(this.channel != null, "session is not connected");
 		try {
-			channel.put(inputStream, destination);
+			this.channel.put(inputStream, destination);
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
@@ -115,8 +116,8 @@ class SftpSession implements Session {
 	}
 
 	public void close() {
-		if (jschSession.isConnected()) {
-			jschSession.disconnect();
+		if (this.jschSession.isConnected()) {
+			this.jschSession.disconnect();
 		}
 	}
 
