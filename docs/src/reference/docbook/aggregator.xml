@@ -28,7 +28,7 @@
     <para>Implementing an Aggregator requires providing the logic 
     to perform the aggregation (i.e., the creation of a single message
     from many). Two related concepts are correlation and
-    release</para>
+    release.</para>
 
     <para>Correlation determines how messages are grouped for aggregation.
     In Spring Integration correlation is done by default based on the CORRELATION_ID message
@@ -37,10 +37,12 @@
     other ways of specifying how the messages should be grouped together by
     implementing a <interfacename>CorrelationStrategy</interfacename> (see below).</para>
 
-    <para>To determine the state in which a group of messages may be processed, a
+    <para>To determine the point at which a group of messages is ready to be processed, a
     <interfacename>ReleaseStrategy</interfacename> is consulted. 
-    The default release strategy for Aggregator will release groups when all 
-    messages included in the sequence are present but this may be customized.</para>
+    The default release strategy for the Aggregator will release a group when all 
+    messages included in a sequence are present, based on the SEQUENCE_SIZE header.
+    This default strategy may be overridden by providing a reference to a
+    custom <interfacename>ReleaseStrategy</interfacename> implementation.</para>
   </section>
 
   <section id="aggregator-api">
@@ -50,10 +52,10 @@
 
     <itemizedlist>
       <listitem>
-        <para>The interface <interfacename>MessageGroupProcessor</interfacename> and related
-        base class <classname>AbstractAggregatingMessageGroupProcessor</classname> and
-        its subclass
-        <classname>MethodInvokingAggregatingMessageGroupProcessor</classname></para>
+        <para>The interface <interfacename>MessageGroupProcessor</interfacename>, and
+        its subclasses:
+        <classname>MethodInvokingAggregatingMessageGroupProcessor</classname> and
+        <classname>ExpressionEvaluatingMessageGroupProcessor</classname></para>
       </listitem>
 
       <listitem>
@@ -68,11 +70,7 @@
     </itemizedlist>
 
     <section>
-       
-
       <title>CorrelatingMessageHandler</title>
-
-       
 
       <para>The <classname>CorrelatingMessageHandler</classname> is a
       <interfacename>MessageHandler</interfacename> implementation, encapsulating the common
@@ -104,23 +102,19 @@
       be released is delegated to a <interfacename>ReleaseStrategy</interfacename>
       instance.</para>
 
-       
-
       <para>Here is a brief highlight of the base
       <classname>AbstractAggregatingMessageGroupProcessor</classname> (the
-      responsibility of implementing the <code>aggregateMessages</code> method is left to
+      responsibility of implementing the <code>aggregatePayloads</code> method is left to
       the developer):</para>
-
-       
 
       <programlisting language="java"><![CDATA[public abstract class AbstractAggregatingMessageGroupProcessor
               implements MessageGroupProcessor {
 
     protected Map<String, Object> aggregateHeaders(MessageGroup group) {
-  ....
+        // default implementation exists
     }
 
-  	protected abstract Object aggregatePayloads(MessageGroup group);
+  	protected abstract Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders);
 
 }]]></programlisting>
 
@@ -141,9 +135,7 @@
   }
 ]]></programlisting>
 
-       
-
-      <para>When appropriate, the simplest option is the
+      <para>As for actual processing of the message group, the default implementation is the
       <classname>DefaultAggregatingMessageGroupProcessor</classname>. It creates a
       single Message whose payload is a List of the payloads received for a
       given group. This works well for simple Scatter Gather implementations with either a Splitter, Publish
@@ -160,9 +152,7 @@
         contexts in which these headers are not necessary.</para>
       </note>
 
-       
-
-      <para>When implementing a specific aggregator object for an application,
+      <para>When implementing a specific aggregator strategy for an application,
       a developer can extend
       <classname>AbstractAggregatingMessageGroupProcessor</classname> and implement the
       <code>aggregatePayloads</code> method. However, there are better solutions, less 
@@ -170,9 +160,9 @@
       either through XML or through annotations.</para>
  
       <para>In general, any POJO can implement the
-      aggregation algorithm if it provide a method that
+      aggregation algorithm if it provides a method that
       accepts a single <interfacename>java.util.List</interfacename> as an argument 
-      (parametrized lists are supported as well). This method will be invoked for aggregating
+      (parameterized lists are supported as well). This method will be invoked for aggregating
       messages as follows:</para>
 
       <itemizedlist>
@@ -183,7 +173,7 @@
         </listitem>
 
         <listitem>
-          <para>if the argument is a non-parametrized <interfacename>java.util.List</interfacename> or the
+          <para>if the argument is a non-parameterized <interfacename>java.util.List</interfacename> or the
           parameter type is not assignable to <interfacename>Message</interfacename>, then the method will
           receive the payloads of the accumulated messages</para>
         </listitem>
@@ -195,15 +185,12 @@
         </listitem>
       </itemizedlist>
 
-       
-
       <note>
         <para>In the interest of code simplicity, and promoting best practices
         such as low coupling, testability, etc., the preferred way of
         implementing the aggregation logic is through a POJO, and using the
         XML or annotation support for configuring it in the application.</para>
       </note>
-
        
     </section>
 
@@ -215,15 +202,15 @@
 
       <programlisting language="java"><![CDATA[public interface ReleaseStrategy {
 
-  boolean canRelease(MessageGroup messages);
+  boolean canRelease(MessageGroup group);
 
 }]]></programlisting>
 
       <para>In general, any POJO can implement the
-      completion decision logic if provide a method
-      that a single <interfacename>java.util.List</interfacename> as an argument (parametrized lists
+      completion decision logic if it provides a method that accepts a single
+      <interfacename>java.util.List</interfacename> as an argument (parameterized lists
       are supported as well), and returns a boolean value. This method will be
-      invoked after the arrival of a new message, to decide whether the group
+      invoked after the arrival of each new message, to decide whether the group
       is complete or not, as follows:</para>
 
       <itemizedlist>
@@ -248,17 +235,17 @@
       <para>When the group is released for aggregation, all its unmarked
       messages are processed and then marked so they will not be processed
       again. If the group is also complete (i.e. if all messages from a
-      sequence have arrived or if there is no sequence defined) then the group
+      sequence have arrived or if there is no sequence defined), then the group
       is removed from the message store. Partial sequences can be released, in
       which case the next time the <interfacename>ReleaseStrategy</interfacename> is called it
       will be presented with a group containing marked messages (already
-      processed) and unmarked messages (a potential new partial
-      sequence)</para>
+      processed) and unmarked messages (potentially a new partial
+      sequence).</para>
 
       <para>Spring Integration provides an out-of-the box implementation for
       <interfacename>ReleaseStrategy</interfacename>, the
-      <classname>SequenceSizeReleaseStrategy</classname>. This implementation uses the
-      SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for deciding
+      <classname>SequenceSizeReleaseStrategy</classname>. This implementation consults the
+      SEQUENCE_NUMBER and SEQUENCE_SIZE headers of each arriving message to decide
       when a message group is complete and ready to be aggregated. As shown
       above, it is also the default strategy.</para>
     </section>
@@ -275,8 +262,8 @@
 
 }]]></programlisting>
 
-      <para>The method returns an Object which represents the correlation
-      key used for grouping messages together. The key must satisfy the
+      <para>The method returns an Object which represents the correlation key
+      used for associating the message with a message group. The key must satisfy the
       criteria used for a key in a Map with respect to the implementation of
       equals() and hashCode().</para>
 
@@ -293,7 +280,10 @@
       returns the value of one of the message headers (whose name is specified
       by a constructor argument) as the correlation key. By default, the
       correlation strategy is a <classname>HeaderAttributeCorrelationStrategy</classname> returning
-      the value of the CORRELATION_ID header attribute.</para>
+      the value of the CORRELATION_ID header attribute. If you have a custom header name
+      you would like to use for correlation, then simply configure that on an instance of
+      <classname>HeaderAttributeCorrelationStrategy</classname> and provide that as a
+      reference for the Aggregator's correlation-strategy.</para>
     </section>
   </section>
 
@@ -334,7 +324,7 @@
 
 <int:channel id="throwAwayChannel"/>
 
-<bean id="nessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
+<bean id="persistentMessageStore" class="org.springframework.integration.jdbc.JdbcMessageStore">
 	<constructor-arg ref="dataSource"/>
 </bean>
 
@@ -368,7 +358,7 @@
 
       <callout arearefs="aggxml05">
         <para>The channel to which the aggregator will send the messages that
-        timed out (if <code>send-partial-results-on-expiry</code> is
+        timed out (if <code>send-partial-result-on-expiry</code> is
         <emphasis>false</emphasis>). <emphasis>Optional</emphasis>.</para>
       </callout>
 
@@ -380,7 +370,7 @@
       </callout>
       
        <callout arearefs="aggxml07">
-        <para>Order of this aggregator in when more then one aggregator is subscribing to the same DirectChannel
+        <para>Order of this aggregator when more than one handle is subscribed to the same DirectChannel
         (use for load balancing purposes). 
         <emphasis>Optional</emphasis>.</para>
       </callout>
@@ -401,7 +391,7 @@
         algorithm. The bean can be an implementation of the <interfacename>CorrelationStrategy</interfacename> 
         interface or a POJO. In the latter case the correlation-strategy-method attribute must be defined
         as well. <emphasis>Optional (by default, the aggregator will use
-        sequence size) </emphasis>.</para>
+        the CORRELATION_ID header) </emphasis>.</para>
       </callout>
       
       <callout arearefs="aggxml11">
@@ -414,7 +404,7 @@
     
       <callout arearefs="aggxml12">
         <para>A reference to a bean defined in the application context. The bean must implement the aggregation logic
-    as described above.<emphasis>Optional (by default the list of aggregated Messages will become a 
+    as described above. <emphasis>Optional (by default the list of aggregated Messages will become a 
     payload of the output message).</emphasis></para>
       </callout>
       <callout arearefs="aggxml13">
@@ -428,8 +418,7 @@
         The bean can be an implementation of the <interfacename>ReleaseStrategy</interfacename> interface
         or a POJO. In the latter case the release-strategy-method
         attribute must be defined as well. <emphasis>Optional (by default, the
-        aggregator will use the correlation id header attribute)
-        </emphasis>.</para>
+        aggregator will use the SEQUENCE_SIZE header attribute)</emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml15">
@@ -443,14 +432,14 @@
     </calloutlist>
 
     <para>Using a <code>ref</code> attribute is generally recommended if a custom
-    aggregator handler implementation my be referenced in other
+    aggregator handler implementation may be referenced in other
     <code>&lt;aggregator&gt;</code> definitions. However if a custom
-    aggregator implementation should be scoped to a single
-    definition of the <code>&lt;aggregator&gt;</code>, use an inner
-    bean definition (starting with version 1.0.3) for custom aggregator
-    handlers within the <code>&lt;aggregator&gt;</code> element:
+    aggregator implementation is only being used by a single
+    definition of the <code>&lt;aggregator&gt;</code>, you can use an inner
+    bean definition (starting with version 1.0.3) to configure the aggregation
+    POJO within the <code>&lt;aggregator&gt;</code> element:
     <programlisting language="xml"><![CDATA[<aggregator input-channel="input" method="sum" output-channel="output">
-    <beans:bean class="org.foo.ExampleAggregator"/>
+    <beans:bean class="org.foo.PojoAggregator"/>
 </aggregator>]]></programlisting></para>
 
     <note>
@@ -504,7 +493,7 @@
 
     <para>For example, this aggregator would group numbers by some criterion
     (in our case the remainder after dividing by 10) and will hold the group
-    until the sum of the numbers which represents the payload exceeds a
+    until the sum of the numbers provided by the payloads exceeds a
     certain value.</para>
 
     <note>
@@ -518,28 +507,29 @@
     </para>
     
     <para>
-    Since Spring Integration 2.0, the <emphasis>release strategy</emphasis> may be handled with 
+    Since Spring Integration 2.0, the various strategies (correlation, release, and aggregation) may be handled with 
     <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">SpEL</ulink> 
     which is recommended if the logic behind such <emphasis>release strategy</emphasis> is relatively simple.
-	Let's say you have a legacy component which was designed to receive an array of objects. We know that default release 
-	strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract individual 
-	messages form such list, extract payload of each message and assemble them into the array of objects (see code below)
-	
-	<programlisting language="java"><![CDATA[public String[] processRelease(List<Message<String>> mesages){
-		List<String> strList = new ArrayList<String>();
-		for (Message<String> message : mesages) {
-			strList.add(message.getPayload());
+    Let's say you have a legacy component that was designed to receive an array of objects. We know that the default release 
+    strategy will assemble all aggregated messages in the List. So now we have two problems. First we need to extract
+    individual messages from the list, and then we need to extract the payload of each message and assemble
+    the array of objects (see code below).
+
+	<programlisting language="java"><![CDATA[public String[] processRelease(List<Message<String>> messages){
+		List<String> stringList = new ArrayList<String>();
+		for (Message<String> message : messages) {
+			stringList.add(message.getPayload());
 		}
-		return strList.toArray(new String[]{});
+		return stringList.toArray(new String[]{});
 }]]></programlisting>
 
-	However, with SpEL such requirement could actually be handled relatively easy with a simple 
+	However, with SpEL such a requirement could actually be handled relatively easily with a
 	one-line expression, thus sparing you from writing a custom class and configuring it as a bean.
 
-	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggrChannel" 
+	<programlisting language="xml"><![CDATA[<int:aggregator input-channel="aggChannel" 
 	output-channel="replyChannel" 
 	expression="#this.![payload].toArray()"/>]]></programlisting>
-	
+
 	In the above configuration we are using a <ulink 
 	url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12113">Collection Projection</ulink> expression 
 	to assemble a new collection from the payloads of all messages in the list and then transforming it to an Array, thus 
@@ -547,41 +537,41 @@
     </para>
     
     <para>
-    The same expression-based approach could be applied when dealing with custom <emphasis>Release</emphasis> and 
+    The same expression-based approach can be applied when dealing with custom <emphasis>Release</emphasis> and 
     <emphasis>Correlation</emphasis> strategies.
     </para>
     <para>
-	Instead of defining a bean for custom <classname>CorrelationStrategy</classname> via <code>correlation-strategy</code> 
-	attribute you can implement your simple correlation logic via SpEL expression and configure it via
-	<code>correlation-strategy-expression</code> attribute.
+	Instead of defining a bean for a custom <classname>CorrelationStrategy</classname> via 
+    the <code>correlation-strategy</code> attribute, you can implement your simple correlation logic
+    via a SpEL expression and configure it via the <code>correlation-strategy-expression</code> attribute.
 	</para>
 	<para>
 	For example:
-	
-	<programlisting language="xml"><![CDATA[correlation-strategy-expression="payload.getPerson().getId()"]]></programlisting>
+
+	<programlisting language="xml"><![CDATA[correlation-strategy-expression="payload.person.id"]]></programlisting>
 	
 	In the above example it is assumed that the payload has an attribute <code>person</code> with an <code>id</code> 
 	which is going to be used to correlate messages.
 	</para>
 	<para>
-	And when it comes to <interfacename>ReleaseStrategy</interfacename> you can implement your release logic via 
-	SpEL expression as well and configure it via <code>release-strategy-expression</code> attribute.
+    Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic via 
+    a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute.
 	</para>
 	<para>
 	For example:
 
-	<programlisting language="xml"><![CDATA[release-strategy-expression="payload.size() > 5"]]></programlisting>
+	<programlisting language="xml"><![CDATA[release-strategy-expression="payload.size() gt 5"]]></programlisting>
 	
-	In this example the root of SpEL Evaluation Context is <interfacename>MessageGroup</interfacename> and you simply stating 
-	that as soon as there are more then 5 messages in this group release the group.
+	In this example the root object of the SpEL Evaluation Context is the
+    <interfacename>MessageGroup</interfacename> itself, and you are simply stating 
+    that as soon as there are more than 5 messages in this group, it should be released.
     </para>
   </section>
-  
+
   <section id="aggregator-annotations">
     <title>Configuring an Aggregator with Annotations</title>
 
-    <para>An aggregator configured using annotations can look like
-    this.</para>
+    <para>An aggregator configured using annotations would look like this.</para>
 
     <programlisting language="java"><![CDATA[public class Waiter {
   ... 
@@ -635,8 +625,6 @@
 		
 	</section>
 
-  
-
   <section>
     <title id="reaper">Managing State in an Aggregator:
     MessageGroupStore</title>
@@ -646,18 +634,19 @@
     messages that have arrived over a period of time, all with the same
     correlation key. The design of the interfaces in the stateful patterns
     (e.g. <interfacename>ReleaseStrategy</interfacename>) is driven by the principle
-    that the components (framework and user) should be to remain stateless.
+    that the components (whether defined by the framework or a user) should be able to remain stateless.
     All state is carried by the <interfacename>MessageGroup</interfacename> and its
     management is delegated to the
     <interfacename>MessageGroupStore</interfacename>.</para>
 
     <para>The <interfacename>MessageGroupStore</interfacename> accumulates state
-    information in <interfacename>MessageGroups</interfacename>, potentially forever.
+    information in <interfacename>MessageGroups</interfacename> while waiting for
+    a release strategy to be triggered, and that event might not ever happen.
     So to prevent stale messages from lingering, and for volatile stores to
     provide a hook for cleaning up when the application shuts down, the
     <interfacename>MessageGroupStore</interfacename> allows the user to register
     callbacks to apply to its <interfacename>MessageGroups</interfacename> when they
-    expire. The interface is very straighforward:</para>
+    expire. The interface is very straightforward:</para>
 
     <programlisting><![CDATA[public interface MessageGroupCallback {
 
@@ -665,12 +654,12 @@
 
 }]]></programlisting>
 
-    <para>The callback has access directly to the store and the message group
+    <para>The callback has direct access to the store and the message group
     so it can manage the persistent state (e.g. by removing the group from the
     store entirely).</para>
 
     <para>The  <interfacename>MessageGroupStore</interfacename> maintains a list of these callbacks which it
-    applies when asked to all messages whose timestamp is earlier than a time
+    applies, on demand, to all messages whose timestamp is earlier than a time
     supplied as a parameter:</para>
 
     <programlisting><![CDATA[public interface MessageGroupStore {
@@ -689,24 +678,26 @@
 
     <programlisting><![CDATA[<bean id="reaper" class="org...MessageGroupStoreReaper">
   <property name="messageGroupStore" ref="messageStore"/>
-  <property name="timeout" value="10"/>
+  <property name="timeout" value="30000"/>
 </bean>
 
 <task:scheduled-tasks scheduler="scheduler">	
   <task:scheduled ref="reaper" method="run" fixed-rate="10000"/>
 </task:scheduled-tasks>]]></programlisting>
 
-    <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening is that the
-    message group store's expire method is being called in the sample above
-    once every 10 seconds. In addition to the reaper, the expiry callbacks are
-    invoked when the application shuts down via a lifecycle callback in the
-    <classname>CorrelatingMessageHandler</classname>.</para>
+    <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
+    in the sample above is that the message group store's expire method is being called
+    once every 10 seconds. The timeout itself is 30 seconds.</para>
+
+    <para>In addition to the reaper, the expiry callbacks are invoked when the application
+    shuts down via a lifecycle callback in the <classname>CorrelatingMessageHandler</classname>.
+    </para>
 
     <para>The <classname>CorrelatingMessageHandler</classname> registers its
     own expiry callback, and this is the link with the boolean flag
     <code>send-partial-result-on-expiry</code> in the XML configuration of the
     aggregator. If the flag is set to true, then when the expiry callback is
-    invoked then any unmarked messages in groups that are not yet released can
-    be sent on to the downstream channel.</para>
+    invoked, any unmarked messages in groups that are not yet released can
+    be sent on to the output channel.</para>
   </section>
 </section>
