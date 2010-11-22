@@ -22,6 +22,9 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.UserInfo;
+
 /**
  * Factory for creating {@link SftpSession} instances.
  *
@@ -44,8 +47,10 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	private volatile Resource privateKey;
 
 	private volatile String privateKeyPassphrase;
+	
+	private final JSch jsch = new JSch();;
 
-
+	
 	public void setHost(String host) {
 		this.host = host;
 	}
@@ -80,19 +85,81 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 		Assert.isTrue(this.port >= 0, "port must be a positive number");
 		Assert.isTrue(StringUtils.hasText(this.password) || privateKey != null || StringUtils.hasText(this.privateKeyPassphrase),
 				"either a password or a private key and/or a private key passphrase is required");
-		String privateKeyToPass = null;
 		try {
-			if (privateKey != null){
-				privateKeyToPass = privateKey.getFile().getAbsolutePath();
-			}
-			SftpSession session = new SftpSession(
-					this.user, this.host, this.password, this.port, this.knownHosts, null, privateKeyToPass, this.privateKeyPassphrase);
-			session.connect();
-			return session;
+			
+			com.jcraft.jsch.Session jschSession = this.initJschSession();
+			SftpSession sftpSession = new SftpSession(jschSession);
+			sftpSession.connect();
+			return sftpSession;
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to create SFTP Session", e);
 		}
 	}
+	
+	private com.jcraft.jsch.Session initJschSession() throws Exception { 
+		
+		if (port <= 0) {
+			port = 22;
+		}
+		
+		
+		if (StringUtils.hasText(this.knownHosts)) {
+			this.jsch.setKnownHosts(this.knownHosts);
+		}
+		
+		// private key
+		String privateKeyFilePath = this.privateKey.getFile().getAbsolutePath();
+		if (privateKey != null) {
+			if (StringUtils.hasText(privateKeyPassphrase)) {
+				this.jsch.addIdentity(privateKeyFilePath, privateKeyPassphrase);
+			}
+			else {
+				this.jsch.addIdentity(privateKeyFilePath);
+			}
+		}
+		com.jcraft.jsch.Session jsSession = this.jsch.getSession(this.user, this.host, this.port);
+		if (StringUtils.hasText(this.password)) {
+			jsSession.setPassword(this.password);
+		}
+		jsSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
+		return jsSession;
+	}
 
+
+	/**
+	 * this is a simple, optimistic implementation of this interface. It simply returns in the positive where possible
+	 * and handles interactive authentication (ie, 'Please enter your password: ' prompts are dispatched automatically using this)
+	 */
+	private static class OptimisticUserInfoImpl implements UserInfo {
+
+		private String password;
+
+		public OptimisticUserInfoImpl(String password) {
+			this.password = password;
+		}
+
+		public String getPassphrase() {
+			return null; // pass
+		}
+
+		public String getPassword() {
+			return password;
+		}
+
+		public boolean promptPassphrase(String string) {
+			return true;
+		}
+
+		public boolean promptPassword(String string) {
+			return true;
+		}
+
+		public boolean promptYesNo(String string) {
+			return true;
+		}
+
+		public void showMessage(String string) {
+		}
+	}
 }
