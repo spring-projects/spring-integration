@@ -13,8 +13,6 @@
       Spring Integration's top-level <interfacename>MessageChannel</interfacename> interface is defined as follows.
       <programlisting language="java"><![CDATA[public interface MessageChannel {
 
-    String getName();
-
     boolean send(Message message);
 
     boolean send(Message message, long timeout);
@@ -34,10 +32,6 @@
     Message&lt;?&gt; receive();
 
     Message&lt;?&gt; receive(long timeout);
-
-    List&lt;Message&lt;?&gt;&gt; clear();
-
-    List&lt;Message&lt;?&gt;&gt; purge(MessageSelector selector);
 
 }</programlisting>
         Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
@@ -130,9 +124,11 @@
       </para>
       <tip>
         <para>
-          Keep in mind that all of these queue-based channels are storing messages in-memory only. When persistence
-          is required, you can either invoke a database operation within a handler or use Spring Integration's
-          support for JMS-based Channel Adapters. The latter option allows you to take advantage of any JMS provider's
+          Keep in mind that all of these queue-based channels are storing messages in-memory only by default.
+          When persistence is required, you can either provide a 'message-store' attribute within the 'queue'
+          element to reference a persistent MessageStore implementation, or you can replace the local channel
+          with one that is backed by a persistent broker, such as a JMS-backed channel or Channel Adapter.
+          The latter option allows you to take advantage of any JMS provider's
           implementation for message persistence, and it will be discussed in <xref linkend="jms"/>. However, when
           buffering in a queue is not necessary, the simplest approach is to rely upon the
           <classname>DirectChannel</classname> discussed next.
@@ -261,7 +257,7 @@
        If that terminal channel is thread-scoped, the original sending thread can collect its replies from it.
       </para>
       <para>
-      Now, since channel can be scoped, aside from Thread Local you can define yoru own scopes.
+        Now, since any channel can be scoped, you can define your own scopes in addition to Thread Local.
       </para>
     </section>
   </section>
@@ -352,13 +348,13 @@
       and wait for a reply.
       <programlisting language="java">MessagingTemplate template = new MessagingTemplate();
 
-Message reply = template.sendAndReceive(new GenericMessage("test"), someChannel);</programlisting>
+Message reply = template.sendAndReceive(someChannel, new GenericMessage("test"));</programlisting>
       In that example, a temporary anonymous channel would be created internally by the template. The
       'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange
       types are also supported.
-      <programlisting language="java"><![CDATA[public boolean send(final Message<?> message, final MessageChannel channel) { ... }
+      <programlisting language="java"><![CDATA[public boolean send(final MessageChannel channel, final Message<?> message) { ... }
 
-public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) { .. }
+public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> request) { .. }
 
 public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programlisting>
     </para>
@@ -517,10 +513,10 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       </para>
     </section>
     <section id="channel-configuration-threadlocalchannel">
-      <title>ThreadLocalChannel Configuration</title>
+      <title>Scoped Channel Configuration</title>
       <para>
-        The <classname>ThreadLocalChannel</classname> does not provide any additional configuration options.
-        <programlisting language="xml"><![CDATA[<thread-local-channel id="threadLocalChannel"/>]]></programlisting>
+        Any channel can be configured with a "scope" attribute.
+        <programlisting language="xml"><![CDATA[<channel id="threadLocalChannel" scope="thread"/>]]></programlisting>
       </para>
     </section>
 
@@ -546,8 +542,9 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <para>
         Channel Interceptors provide a clean and concise way of applying cross-cutting behavior per individual channel.
         If the same behavior should be applied on multiple channels, configuring the same set of interceptors for
-        each channel <emphasis>would not be</emphasis> the most efficient way. To avoid repeated configuration, use global interceptors and apply
-        them to multiple channels. Spring Integration provides <emphasis>Global Interceptors</emphasis> to accomplish this.
+        each channel <emphasis>would not be</emphasis> the most efficient way. To avoid repeated configuration while
+        also enabling interceptors to apply to multiple channels, Spring Integration provides
+        <emphasis>Global Interceptors</emphasis>.
        
     Look at the example below:
         <programlisting language="xml"><![CDATA[<int:channel-interceptor pattern="input*, bar*, foo" order="3">
@@ -557,10 +554,12 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <programlisting language="xml"><![CDATA[<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo" order="3"/>
 
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>]]></programlisting>
-        &lt;channel-interceptor/&gt; element allows you to define a global interceptor which will be applied on all
-        channels that match patterns defined via <code>pattern</code> attribute. In the above case the global interceptor will be applied on
-        'foo' channel and all other channels that begin with 'bar' and 'input'.
-        The <emphasis>order</emphasis> attribute allows you to manage the place where this interceptor will be injected.
+        Each &lt;channel-interceptor/&gt; element allows you to define a global interceptor which will be applied on all
+        channels that match any patterns defined via the <code>pattern</code> attribute. In the above case the
+        global interceptor will be applied on the
+        'foo' channel and all other channels that begin with 'bar' or 'input'.
+        The <emphasis>order</emphasis> attribute allows you to manage where this interceptor will be injected if there
+        are multiple interceptors on a given channel.
         For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
         <programlisting language="xml"><![CDATA[<int:channel id="inputChannel"> 
   <int:interceptors>
@@ -569,17 +568,19 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 </int:channel>]]></programlisting>
   A reasonable question is how will a global interceptor be injected in relation to other interceptors
   configured locally or through other global interceptor definitions? The current implementation provides
-  a very simple and clever mechanism for defining the order of interceptor execution. 
+  a very simple mechanism for defining the order of interceptor execution. 
   A positive number in the <code>order</code> attribute will ensure interceptor injection
-  after any existing interceptors and negative number will ensure that interceptor is injected before.
-  This means that in the above example global interceptor will be injected <emphasis>AFTER</emphasis> (since its order is greater then 0) 
-  the 'wire-tap' interceptor configured locally. If there was another global interceptor with matching <code>pattern</code> its
-  order would be determined by comparing the values of the <code>order</code> attribute.
-  To inject global interceptor <emphasis>BEFORE</emphasis> the existing interceptors use a negative value for the <code>order</code> attribute.
+  after any existing interceptors and a negative number will ensure that the interceptor is injected before
+  existing interceptors.
+  This means that in the above example, the global interceptor will be injected <emphasis>AFTER</emphasis>
+  (since its order is greater than 0) 
+  the 'wire-tap' interceptor configured locally. If there were another global interceptor with a matching
+  <code>pattern</code>, its order would be determined by comparing the values of the <code>order</code> attribute.
+  To inject a global interceptor <emphasis>BEFORE</emphasis> the existing interceptors, use a negative value for the <code>order</code> attribute.
       </para>
       <note>
-      Note that <code>order</code> and <code>pattern</code> attributes are optional. The default value for <code>order</code>
-      will be 0 and for <code>pattern</code> is '*'
+      Note that both the <code>order</code> and <code>pattern</code> attributes are optional. The default value
+      for <code>order</code> will be 0 and for <code>pattern</code>, the default is '*' (to match all channels).
       </note>
     </section>
 
@@ -597,9 +598,12 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 
  <logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
         <tip>
-      The 'logging-channel-adapter' also accepts a boolean attribute: <code>log-full-message</code>.
+      The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate           
+      a SpEL expression against 'payload' and/or 'headers' variables. Alternatively, to simply log   
+      the full Message toString() result, provide a value of "true" for the 'log-full-message' attribute.
       That is <code>false</code> by default so that only the payload is logged. Setting that to
-      <code>true</code> enables logging of all headers in addition to the payload.
+      <code>true</code> enables logging of all headers in addition to the payload. The 'expression'
+      option does provide the most flexibility, however (e.g. expression="payload.user.name").
       </tip>
       </para>
       
@@ -607,43 +611,60 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <emphasis>A little more on Wire Tap</emphasis>
       </para>
       <para>
-      One of the common misconception about the wire tap and some time other similar components (<xref linkend="message-publishing-config"/>) 
-      that they are asynchronous in nature. Wire-tap as a component is neither <emphasis>sync</emphasis> nor <emphasis>async</emphasis>. 
-      In fact non of the components in SI are <emphasis>sync</emphasis> or <emphasis>async</emphasis> except for. . . well read on. 
+      One of the common misconceptions about the wire tap and other similar components (<xref linkend="message-publishing-config"/>) 
+      is that they are automatically asynchronous in nature. Wire-tap as a component is not
+      invoked asynchronously be default. Instead, Spring Integration focuses on a single unified
+      approach to configuring asynchronous behavior: the Message Channel. 
 
-	  What makes certain parts of the message flow <emphasis>sync</emphasis> or <emphasis>async</emphasis> is the <emphasis>Message Channel</emphasis> 
-	  abstraction. That is why from the inception of the framework we always emphasize the need and the value of the <emphasis>Message Channel</emphasis> 
-	  and that is why Spring Integration is the only framework at the time of writing where <emphasis>Message Channel</emphasis> 
-	  is a "first class citizen" of the framework (not an internal realization of EIP pattern) fulle exposed to you - the end user.
+	  What makes certain parts of the message flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>
+	  is the type of <emphasis>Message Channel</emphasis> that has been configured within that flow. That
+      is one of the primary benefits of the Message Channel abstraction.
+	  From the inception of the framework, we have always emphasized the need and the value of the
+      <emphasis>Message Channel</emphasis> as a first-class citizen of the framework. It is not
+      just an internal, implicit realization of the EIP pattern, it is fully exposed as a configurable
+      component to the end user.
 
-	  So, Wire-tap component is ONLY responsible to perform the following 3 tasks: 
+	  So, the Wire-tap component is ONLY responsible for performing the following 3 tasks: 
 <itemizedlist>
            <listitem>
-             <para>wire-tap into a message flow by tapping into a channel (e.g., channelA)</para>
+             <para>intercept a message flow by tapping into a channel (e.g., channelA)</para>
            </listitem>
            <listitem>
-             <para>grab a copy of a message</para>
+             <para>grab each message</para>
            </listitem>
            <listitem>
-             <para>send it to another channel (e.g., channelB)</para>
+             <para>send the message to another channel (e.g., channelB)</para>
            </listitem>
        </itemizedlist>
 
+	   It is essentially a variation of the Bridge, but it is encapsulated within a channel definition
+       (and hence easier to enable and disable without disrupting a flow). Also, unlike the bridge, it
+       basically forks another message flow. Is that flow <emphasis>synchronous</emphasis> or    
+       <emphasis>asynchronous</emphasis>? The answer simply depends on the type of <emphasis>Message Channel</emphasis>
+       that 'channelB' is. And, now you know that we have: <emphasis>Direct Channel</emphasis>,
+       <emphasis>Pollable Channel</emphasis>, and <emphasis>Executor Channel</emphasis> as options.
+	   The last two do break the thread boundary making communication via such channels
+	   <emphasis>asynchronous</emphasis> simply because the dispatching of the message from that channel
+       to its subscribed handlers happens on a different thread than the one used to send the message to that
+       channel. That is what is going to make your wire-tap flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>. 
+	   It is consistent with other components within the framework (e.g., Message Publisher) and actually 
+       brings a level of consistency and simplicity by sparing you from worrying in advance (other than writing
+       thread safe code) whether a particular piece of code should be implemented as <emphasis>sync</emphasis> or  
+       <emphasis>async</emphasis>. The actual wiring of two pieces of code (component A and component B) via 
+       <emphasis>Message Channel</emphasis> is what makes their collaboration <emphasis>sync</emphasis> or 
+       <emphasis>async</emphasis>. You may even want to change from <emphasis>sync</emphasis> to
+       <emphasis>async</emphasis> in the future and <emphasis>Message Channel</emphasis> is what's going 
+	   to allow you to do it swiftly without ever touching the code.</para>
 
-	   Look at it as a variation of the Bridge (nothing more). But by bridging one channel with another wire-tap is essentially 
-	   initiates (forks) another message flow. Is this flow <emphasis>synchronous</emphasis> or <emphasis>asynchronous</emphasis>? 
-	   That is the ultimate question and the answer simply depends on the type of <emphasis>Message Channel</emphasis> 'channelB' is.
-	   And as you know we have: <emphasis>Direct Channel</emphasis>, <emphasis>Pollable Channel</emphasis> and <emphasis>Executor Channel</emphasis>.
-	   The last two do break the thread boundary making communication via such channels <emphasis>asynchronous</emphasis> simply because 
-	   the dispatching of the message from the channel happens on the different thread then the one that sent the message to that channel 
-	   and that is what is going to make your wire-tap flow <emphasis>sync</emphasis> or <emphasis>async</emphasis>. 
-	   It is consistent with other components within the framework (e.g., Message Publisher) and if you think about it its in a way 
-	   brings a level of simplicity by sparing you form worrying in advance (other then writing thread safe code) wether a 
-	   particular piece of code should be implemented as <emphasis>sync</emphasis> or <emphasis>async</emphasis>. In fact its always neither, 
-	   the code is just a function. The actual wiring of two pieces of code (component A and component B) via <emphasis>Message Channel</emphasis> 
-	   is what's going to make their collaboration <emphasis>sync</emphasis> or <emphasis>async</emphasis>. You may even want to change 
-	   from <emphasis>sync</emphasis> to <emphasis>async</emphasis> in the future and <emphasis>Message Channel</emphasis> is what's going 
-	   to allow you to do it swiftly without ever touching the code
+       <para>One final point regarding the Wire Tap is that, despite the rationale provided above for not
+       being async be default, one should keep in mind it is usually desirable to hand off the Message as
+       soon as possible. Therefore, it would be quite common to use an asynchronous channel option as the
+       wire-tap's outbound channel. Nonetheless, another reason that we do not enforce asynchronous behavior
+       by default is that you might not want to break a transactional boundary. Perhaps you are using the Wire Tap
+       for auditing purposes, and you DO want the audit Messages to be sent within the original transaction.
+       As an example, you might connect the wire-tap to a JMS outbound-channel-adapter. That way, you get the
+       best of both worlds: 1) the sending of a JMS Message can occur within the transaction while
+       2) it is still a "fire-and-forget" action thereby preventing any noticeable delay in the main message flow.
       </para>
   </section>
 
