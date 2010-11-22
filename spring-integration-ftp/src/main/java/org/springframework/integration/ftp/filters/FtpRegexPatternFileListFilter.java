@@ -23,6 +23,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.filters.AbstractRegexPatternFileListFilter;
 
 /**
+ * Implementation of {@link AbstractRegexPatternFileListFilter} for FTP.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */

@@ -99,11 +99,12 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		assertTrue(new File("test/a.test").exists());
 		assertTrue(new File("test/b.test").exists());
 	}
-	
+
+
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 		
 		@Override
-		protected FTPClient createSingleInstanceOfClient() {
+		protected FTPClient createClientInstance() {
 			try {
 				when(ftpClient.getReplyCode()).thenReturn(250);
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);

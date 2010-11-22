@@ -21,6 +21,8 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 
 /**
+ * Implementation of {@link AbstractSimplePatternFileListFilter} for FTP.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */

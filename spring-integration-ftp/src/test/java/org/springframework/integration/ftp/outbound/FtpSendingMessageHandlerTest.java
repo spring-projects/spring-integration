@@ -114,11 +114,12 @@ public class FtpSendingMessageHandlerTest {
 		handler.handleMessage(new GenericMessage<File>(new File("template.mf")));
 		assertTrue(file.exists());
 	}
-	
-	
+
+
 	public static class TestFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
+
 		@Override
-		protected FTPClient createSingleInstanceOfClient() {
+		protected FTPClient createClientInstance() {
 			try {
 				when(ftpClient.getReplyCode()).thenReturn(250);
 				when(ftpClient.login("kermit", "frog")).thenReturn(true);

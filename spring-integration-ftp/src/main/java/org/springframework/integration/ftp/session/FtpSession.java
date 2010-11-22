@@ -28,6 +28,8 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 
 /**
+ * Implementation of {@link Session} for FTP.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -78,7 +80,7 @@ class FtpSession implements Session {
 		}
 		catch (IOException e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("failed to disconnect FTPClient", e);
+				logger.warn("failed to retrieve file", e);
 			}
 			return null;
 		}
@@ -99,7 +101,7 @@ class FtpSession implements Session {
 		try {
 			this.client.disconnect();
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("failed to disconnect FTPClient", e);
 			}

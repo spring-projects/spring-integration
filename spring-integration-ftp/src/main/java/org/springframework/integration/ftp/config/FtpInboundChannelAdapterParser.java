@@ -19,6 +19,8 @@ package org.springframework.integration.ftp.config;
 import org.springframework.integration.file.config.AbstractRemoteFileInboundChannelAdapterParser;
 
 /**
+ * Parser for the FTP 'inbound-channel-adapter' element.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */

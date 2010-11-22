@@ -23,10 +23,12 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 
 /**
- * An FTP-adapter implementation of {@link org.springframework.integration.file.synchronization.AbstractInboundRemoteFileSystemSychronizer}
+ * An implementation of {@link AbstractInboundFileSynchronizer} for FTP.
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<FTPFile> {
 
@@ -40,12 +42,12 @@ public class FtpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<
 
 	@Override
 	protected boolean isFile(FTPFile file) {
-		return file.isFile();
+		return file != null && file.isFile();
 	}
 
 	@Override
 	protected String getFilename(FTPFile file) {
-		return file.getName();
+		return (file != null ? file.getName() : null);
 	}
 
 }

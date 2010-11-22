@@ -26,11 +26,12 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @author Mark Fisher
  * @since 2.0
  */
 public class FtpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
 
-	public FtpInboundFileSynchronizingMessageSource( AbstractInboundFileSynchronizer<FTPFile> synchronizer) {
+	public FtpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<FTPFile> synchronizer) {
 		super(synchronizer);
 	}
 

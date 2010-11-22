@@ -30,12 +30,13 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for FTP SessionFactory implementations.
  *
  * @author Iwein Fuld
+ * @author Mark Fisher
+ * @since 2.0
  */
 public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory {
 
@@ -56,8 +57,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	protected String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
-
-  
 	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
 	protected int fileType = FTP.BINARY_FILE_TYPE;
@@ -127,20 +126,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.clientMode = clientMode;
 	}
 
-	protected abstract T createSingleInstanceOfClient();
-
-	/**
-	 * this is a hook to setup the state of the {@link org.apache.commons.net.ftp.FTPClient} impl *after* the
-	 * implementation's {@link org.apache.commons.net.ftp.FTPClient#connect(String)} method's been called but before any
-	 * action's been taken.
-	 *
-	 * @param t the ftp client instance on which to act
-	 * @throws IOException if anything should go wrong
-	 */
-	protected void onAfterConnect(T t) throws IOException {
-		// NOOP
-	}
-
 	public Session getSession() {
 		try {
 			T client = this.createClient();
@@ -154,47 +139,39 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
-	T createClient() throws SocketException, IOException { 
-		T client = createSingleInstanceOfClient();
-		client.configure(config);
-
-		if (!StringUtils.hasText(username)) {
-			throw new MessagingException("username is required");
-		}
-
-		client.connect(host);
-		onAfterConnect(client);
-
+	private T createClient() throws SocketException, IOException { 
+		T client = this.createClientInstance();
+		Assert.notNull(client, "client must not be null");
+		client.configure(this.config);
+		Assert.hasText(this.username, "username is required");
+		client.connect(this.host);
+		this.afterConnect(client);
 		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
-			throw new MessagingException("Connecting to server [" + host + ":" +
-					port + "] failed, please check the connection");
+			throw new MessagingException("Connecting to server [" +
+					this.host + ":" + this.port + "] failed. Please check the connection.");
 		}
-
 		if (logger.isDebugEnabled()) {
-			logger.debug("Connected to server [" + host + ":" + port + "]");
+			logger.debug("Connected to server [" + this.host + ":" + this.port + "]");
 		}
-
 		if (!client.login(username, password)) {
 			throw new MessagingException(
 					"Login failed. Please check the username and password.");
 		}
-
 		this.updateClientMode(client);
 		client.setFileType(this.fileType);
-
 		if (logger.isDebugEnabled()) {
 			logger.debug("login successful");
 		}
-
-		if (!remoteWorkingDirectory.equals(client.printWorkingDirectory()) &&
-				!client.changeWorkingDirectory(remoteWorkingDirectory)) {
+		if (!this.remoteWorkingDirectory.equals(client.printWorkingDirectory()) &&
+				!client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
 			throw new MessagingException("Could not change directory to '" +
 					remoteWorkingDirectory + "'. Please check the path.");
 		}
-
 		if (logger.isDebugEnabled()) {
-			logger.debug("working directory is: " +
-					client.printWorkingDirectory());
+			logger.debug("working directory is: " + client.printWorkingDirectory());
+		}
+		if (client != null) {
+			this.postProcessClient(client);
 		}
 		return client;
 	}
@@ -203,7 +180,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 * Sets the mode of the connection. Only local modes are supported.
 	 */
 	private void updateClientMode(FTPClient client) {
-		switch (clientMode) {
+		switch (this.clientMode) {
 			case FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE:
 				client.enterLocalActiveMode();
 				break;
@@ -213,6 +190,24 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 			default:
 				break;
 		}
+	}
+
+	protected abstract T createClientInstance();
+
+	/**
+	 * this is a hook to setup the state of the {@link org.apache.commons.net.ftp.FTPClient} impl *after* the
+	 * implementation's {@link org.apache.commons.net.ftp.FTPClient#connect(String)} method's been called but before any
+	 * action's been taken.
+	 *
+	 * @param t the ftp client instance on which to act
+	 * @throws IOException if anything should go wrong
+	 */
+	protected void afterConnect(T t) throws IOException {
+		// NOOP
+	}
+
+	protected void postProcessClient(T t) throws IOException {
+		// NOOP
 	}
 
 }

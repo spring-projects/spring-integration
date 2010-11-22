@@ -29,7 +29,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  * @author Mark Fisher
  * @since 2.0
  */
-class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntry> {
+public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntry> {
 
 	public SftpInboundFileSynchronizer(SessionFactory sessionFactory) {
 		super(sessionFactory);
@@ -43,7 +43,7 @@ class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntr
 
 	@Override
 	protected String getFilename(LsEntry file) {
-		return file.getFilename();
+		return (file != null ? file.getFilename() : null);
 	}
 
 }

@@ -61,7 +61,7 @@ class SftpSession implements Session {
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("rm failed", e);
+				logger.warn("failed to remove file", e);
 			}
 			return false;
 		}
@@ -84,7 +84,7 @@ class SftpSession implements Session {
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("ls failed", e);
+				logger.warn("failed to list files", e);
 			}
 		}
 		return new LsEntry[0];
@@ -97,7 +97,7 @@ class SftpSession implements Session {
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("get failed", e);
+				logger.warn("failed to retrieve file", e);
 			}
 			return null;
 		}
@@ -110,7 +110,7 @@ class SftpSession implements Session {
 		}
 		catch (SftpException e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("put failed", e);
+				logger.warn("failed to copy file", e);
 			}
 		}
 	}

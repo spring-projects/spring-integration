@@ -27,10 +27,12 @@ import org.apache.commons.net.ftp.FTPSClient;
 import org.springframework.util.StringUtils;
 
 /**
- * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.session.DefaultFtpSessionFactory}
+ * SessionFactory for FTPS.
  * 
  * @author Josh Long
  * @author Iwein Fuld
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSClient> {
 
@@ -108,14 +110,26 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 	}
 
 	@Override
-	protected void onAfterConnect(FTPSClient ftpsClient) throws IOException {
+	protected FTPSClient createClientInstance() {
+		try {
+			if (StringUtils.hasText(this.protocol)) {
+				return new FTPSClient(this.protocol, this.implicit);
+			}
+			return new FTPSClient(this.implicit);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	protected void afterConnect(FTPSClient ftpsClient) throws IOException {
 		ftpsClient.execPBSZ(0);
 		ftpsClient.execPROT(this.prot);
 	}
 
 	@Override
-	protected FTPSClient createClient() throws IOException {
-		FTPSClient ftpsClient = super.createClient();
+	protected void postProcessClient(FTPSClient ftpsClient) throws IOException {
 		if (StringUtils.hasText(this.authValue)) {
 			ftpsClient.setAuthValue(authValue);
 		}
@@ -145,20 +159,6 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 		}
 		if (this.wantsClientAuth != null) {
 			ftpsClient.setWantClientAuth(this.wantsClientAuth);
-		}
-		return ftpsClient;
-	}
-
-	@Override
-	protected FTPSClient createSingleInstanceOfClient() {
-		try {
-			if (StringUtils.hasText(this.protocol)) {
-				return new FTPSClient(this.protocol, this.implicit);
-			}
-			return new FTPSClient(this.implicit);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
 		}
 	}
 

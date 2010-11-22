@@ -18,17 +18,17 @@ package org.springframework.integration.ftp.session;
 
 import org.apache.commons.net.ftp.FTPClient;
 
-
 /**
- * Default implementation of FtpClientFactory.
+ * Default implementation of FTP SessionFactory.
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @since 2.0
  */
 public class DefaultFtpSessionFactory extends AbstractFtpSessionFactory<FTPClient> {
 
 	@Override
-	protected FTPClient createSingleInstanceOfClient() {
+	protected FTPClient createClientInstance() {
 		return new FTPClient();
 	}
 
