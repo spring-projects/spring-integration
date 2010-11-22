@@ -121,7 +121,7 @@ public class DirectMessageReceivingMessageSourceTests {
 		Message<Tweet> msg = (Message<Tweet>) source.receive();
 		assertNotNull(msg);
 		
-		Tweet message = (Tweet) msg.getPayload();
+		Tweet message = msg.getPayload();
 		assertEquals(2000, message.getId());
 		Thread.sleep(1000);
 		verify(twitter, times(1)).getDirectMessages();
