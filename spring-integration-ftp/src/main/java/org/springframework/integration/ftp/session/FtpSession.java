@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FtpSession implements Session {
+class FtpSession implements Session {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -57,7 +57,7 @@ public class FtpSession implements Session {
 		}
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
+	@SuppressWarnings({"unchecked"})
 	public FTPFile[] ls(String path) {
 		try {
 			return this.client.listFiles(path);
