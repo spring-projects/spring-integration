@@ -63,21 +63,31 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	<programlisting language="xml"><![CDATA[<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
   			session-factory="sftpSessionFactory"
 			channel="requestChannel"
-			filename-pattern="foo*.txt"
+			filename-pattern="*.txt"
 			remote-directory="/foo/bar"
-			local-directory-path="file:target/foo"
-			auto-create-directories="true"
-			auto-delete-remote-files-on-sync="false">
+			local-directory="file:target/foo"
+			auto-create-local-directory="true"
+			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 </sftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see form the configuration above you can configure <emphasis>SFTP Inbound Channel Adapter</emphasis> via 
-	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory-path</code> 
+	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory</code> 
 	- where files are going to be transfered TO and <code>remote-directory</code> - the remote source directory 
 	as well as other attributes including <code>session-factory</code> which we configured earlier. 
-	Please refer to the schema for more details on these attributes. 
+	</para>
+  	<para>
+	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
+	sufficient enough. If this is the case, you can use <code>filename-regex</code> attribute to specify Regular expression 
+	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 
+	attribute and provide reference to a custom implementation of the 
+	<classname>org.springframework.integration.file.filters.FileListFilter</classname> - a strategy interface for filtering a 
+	group of files.
   	</para>
-  	
+  	<para>
+  	Please refer to the schema for more details on these attributes. 
+  	</para>
+	
   	<para>
   	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a polling consumer and therefore 
   	you must configure a poller (global or local)
@@ -85,16 +95,16 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	payload will be generated and sent to the channel identified with <code>channel</code> attribute.	
   	</para>
   	<para>
-  		<emphasis>File Filtering and Large Files</emphasis>
+  		<emphasis>More on File Filtering and Large Files</emphasis>
   	</para>
   	 <para>
   	Some times the file that just  appeared in the monitored (remote) directory is not complete. Typically such file 
   	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished. 
   	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
-  	To handle these scenarios Spring Integration SFTP support allows you to configure custom filters that will filter out only 
-  	the files that you need. The filter is based on <classname>org.springframework.integration.file.filters.FileListFilter</classname> interface. 
-  	We also provide a convenient Regex-based implementation <classname>org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter</classname>.
-	Once configured all you need is include such filter in your adapter via 'filter' attribute.
+  	To handle these scenarios use filtering support provided via <code>filename-pattern</code>, <code>filename-regex</code> 
+  	and <code>filter</code> attributes. We also provide a convenient Regex-based implementation 
+  	<classname>org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter</classname>.
+	Once configured all you need is include such filter in your adapter via <code>filter</code> attribute.
 	
 	<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
 			channel="receiveChannel" 
@@ -108,11 +118,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	class="org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilt"">
 	<constructor-arg value=".*\.txt$"/>
 </bean>]]></programlisting>
-
-	As an added convenience you may also use <code>filename-pattern</code> attribute instead of the explicit filter 
-	configuration where you'll provide the filtering expression (Regex)
-
-<programlisting language="xml"><![CDATA[filename-pattern=".*\.txt$"]]></programlisting>
   	</para>
   </section>
   
@@ -127,7 +132,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents 
   	the file contents; 3) <classname>java.lang.String</classname> - represents the file contents.
   	
-  	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
+  	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"

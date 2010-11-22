@@ -105,7 +105,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	As you can see form the configuration above you can configure <emphasis>FTP Inbound Channel Adapter</emphasis> via <code>inbound-channel-adapter</code> 
 	element while also providing values for various attributes such as <code>local-working-directory</code>, <code>filename-pattern</code> 
 	(based on simple pattern matching - not regex) and of course the reference to a <code>session-factory</code>.
-	
+	</para>
+  	<para>
 	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
 	sufficient enough. If this is the case, you can use <code>filename-regex</code> attribute to specify Regular expression 
 	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 

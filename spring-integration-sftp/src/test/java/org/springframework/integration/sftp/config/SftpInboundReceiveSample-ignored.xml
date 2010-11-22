@@ -24,8 +24,8 @@
 			local-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/local-test-dir"
 			remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"
 			auto-startup="true"
-			auto-delete-remote-files-on-sync="false"
-			filename-pattern=".*\.test$">
+			delete-remote-files="false"
+			filename-regex=".*\.test$">
 		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 	</int-sftp:inbound-channel-adapter>
 
