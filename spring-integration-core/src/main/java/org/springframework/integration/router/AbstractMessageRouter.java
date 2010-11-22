@@ -36,6 +36,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -46,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
+@ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile MessageChannel defaultOutputChannel;
@@ -102,7 +105,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		this.channelIdentifierMap.putAll(channelIdentifierMap);
 	}
 
-	public void setChannelMapping(String channelIdentifier, String channelName){
+	@ManagedOperation
+	public void setChannelMapping(String channelIdentifier, String channelName) {
 		this.channelIdentifierMap.put(channelIdentifier, channelName);
 	}
 
@@ -110,7 +114,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * Removes channel mapping for a give channel identifier
 	 * @param channelIdentifier
 	 */
-	public void removeChannelMapping(String channelIdentifier){
+	@ManagedOperation
+	public void removeChannelMapping(String channelIdentifier) {
 		this.channelIdentifierMap.remove(channelIdentifier);
 	}
 
