@@ -26,9 +26,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.Assert;
 
 /**
- * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
- * implementation of a queued SessionPool ({@link CachingSessionFactory}) - was
- * taken almost directly from the Spring Integration FTP adapter.
+ * A {@link SessionFactory} implementation that caches Sessions for reuse without
+ * requiring reconnection each time the Session is retrieved from the factory.
+ * This implementation wraps and delegates to a target SessionFactory instance.
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
