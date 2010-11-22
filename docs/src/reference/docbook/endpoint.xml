@@ -171,7 +171,7 @@ consumer.setTransactionManager(txManager);</programlisting>
               output-channel="output">
      <poller fixed-rate="1000"/>
 </transformer>]]></programlisting>
-	  As an alternative to 'fixed-rate' you cna also use 'fixed-delay' attribute.
+	  As an alternative to 'fixed-rate' you can also use the 'fixed-delay' attribute.
 	  </para>
 	  <para>
       For a poller based on a Cron expression, use the "cron" attribute instead:
@@ -290,40 +290,42 @@ any transaction configuration essentially allowing you to enhance the behavior o
     <title>Payload Type Conversion</title>
     <para>
       Throughout the reference manual, you will also see specific configuration and implementation examples of various endpoints 
-      which can accept a Message or any arbitrary Object as an input parameter. In the case of an Object, such parameter will 
-      be mapped to a Message payload or part of the payload or header (when using Spring Expression Language). However there 
+      which can accept a Message or any arbitrary Object as an input parameter. In the case of an Object, such a parameter will 
+      be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language). However there 
       are times when the type of input parameter of the endpoint method does not match the type of the payload or its part. 
       In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type 
-      converters (using Spring 3.x ConversionService) within its own instance of the conversion service bean named <emphasis>integrationConversionService</emphasis>
-      which is automatically created as soon as the first converter is defined.
+      converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named <emphasis>integrationConversionService</emphasis>.
+      That bean is automatically created as soon as the first converter is defined using the Spring Integration namespace support.
 
-      To register such converter all you need is to implement <interfacename> org.springframework.core.convert.converter.Converter</interfacename> and register via 
-      cionvinient namespace support:
+      To register a Converter all you need is to implement
+      <interfacename>org.springframework.core.convert.converter.Converter</interfacename> and define it via 
+      convenient namespace support:
       <programlisting language="xml"><![CDATA[ <int:converter ref="sampleConverter"/>
 
 	<bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
       
-      or
+      or as an inner bean:
       <programlisting language="xml"><![CDATA[ <int:converter>
 		<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
 	</int:converter>]]></programlisting>
      </para>
   </section>
+
   <section id="async-polling">
     <title>Asynchronous polling</title>
      <para>
-     If you want the polling to be asynchronous, Poller can optionaly specify 'task-executor' attribute 
-     pointing to an existing instance of <classname>TaskExecutor</classname> bean 
-     (Spring 3.0 provides a convinient namespaces configuration via the <code>task</code> namespace). However, there are certain things 
-     you must understand when configuring Poller with TaskExecutor. 
+     If you want the polling to be asynchronous, a Poller can optionally specify a 'task-executor' attribute 
+     pointing to an existing instance of any <classname>TaskExecutor</classname> bean 
+     (Spring 3.0 provides a convenient namespace configuration via the <code>task</code> namespace). However, there are certain things 
+     you must understand when configuring a Poller with a TaskExecutor. 
      </para>
      <para>
-     The problem is that there are two configurations in place. The <emphasis>Poller</emphasis> and the <emphasis>TaskExecutor</emphasis> 
-     and they both have to be in tune with each other otherwise you might end up creating an artificial memory leak. 
+     The problem is that there are two configurations in place. The <emphasis>Poller</emphasis> and the <emphasis>TaskExecutor</emphasis>,
+     and they both have to be in tune with each other otherwise you might end up creating an artificial memory leak.
      </para>
      <para>
-     Let's look at the following configuration provided by one of the users on the Spring's 
-     forums (http://forum.springsource.org/showthread.php?t=94519):
+     Let's look at the following configuration provided by one of the users on the Spring Integration 
+     forum (http://forum.springsource.org/showthread.php?t=94519):
 
       <programlisting language="xml"><![CDATA[<int:service-activator input-channel="publishChannel" ref="myService">
 		<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
@@ -340,10 +342,11 @@ any transaction configuration essentially allowing you to enhance the behavior o
      queue in the task executor will grow at a rate of 16 per second (while the process is idle), so we essentially have a memory leak.
      </para>
      <para>
-     One of the ways to handle this is to set <code>queue-capacity</code> attribute of Task Executor to 0. You can also manage it by specifying what to do 
-     with messages that can not be queued up by setting <code>rejection-policy</code> attribute of Task Executor (e.g., DISCARD). In other 
-     words there are certain details you must understand with regard to configuring the TaskExecutor. Please refer 
-     to - <emphasis>Section 25 - Task Execution and Scheduling</emphasis> of Spring reference manual.
+     One of the ways to handle this is to set the <code>queue-capacity</code> attribute of the Task Executor to 0. You can also
+     manage it by specifying what to do with messages that can not be queued by setting the <code>rejection-policy</code> attribute
+     of the Task Executor (e.g., DISCARD). In other words there are certain details you must understand with regard to configuring
+     the TaskExecutor. Please refer to - <emphasis>Section 25 - Task Execution and Scheduling</emphasis> of the Spring reference manual
+     for more detail on the subject.
      </para>
   </section>
 </section>
