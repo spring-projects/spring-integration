@@ -16,15 +16,11 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import java.io.FileNotFoundException;
-import java.util.regex.Pattern;
-
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
-import org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * a {@link org.springframework.integration.core.MessageSource} implementation for SFTP
@@ -35,46 +31,13 @@ import com.jcraft.jsch.ChannelSftp;
  */
 public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<ChannelSftp.LsEntry> {
 
-	private volatile Pattern filenamePattern;
-
-
-	public void setFilenamePattern(Pattern filenamePattern) {
-		this.filenamePattern = filenamePattern;
+	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer) {
+		super(synchronizer);
 	}
+
 
 	public String getComponentType() {
 		return "sftp:inbound-channel-adapter";
-	}
-
-	@Override
-	protected void onInit() {
-		try {
-			if (this.localDirectory != null && !this.localDirectory.exists()) {
-				if (this.autoCreateDirectories) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("The '" + this.localDirectory + "' directory doesn't exist; Will create.");
-					}
-					this.localDirectory.mkdirs();
-				}
-				else {
-					throw new FileNotFoundException(this.localDirectory.getName());
-				}
-			}
-			// Forwards files once they appear in the {@link #localDirectory}.
-			this.fileSource = new FileReadingMessageSource();
-			this.fileSource.setDirectory(this.localDirectory);
-			this.fileSource.afterPropertiesSet();
-			if (this.filenamePattern != null) {
-				SftpRegexPatternFileListFilter filter = new SftpRegexPatternFileListFilter(this.filenamePattern);
-				this.synchronizer.setFilter(filter);
-			}
-		}
-		catch (RuntimeException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new MessagingException("Failure during initialization of MessageSource for: " + this.getComponentType(), e);
-		}
 	}
 
 }

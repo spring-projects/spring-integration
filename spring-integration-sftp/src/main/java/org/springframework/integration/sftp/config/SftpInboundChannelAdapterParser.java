@@ -16,63 +16,32 @@
 
 package org.springframework.integration.sftp.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.file.config.AbstractRemoteInboundChannelAdapterParser;
 
 /**
  * Parser for 'sftp:inbound-channel-adapter'
  * 
- * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class SftpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class SftpInboundChannelAdapterParser extends AbstractRemoteInboundChannelAdapterParser {
+
+	private static final String BASE_PACKAGE = "org.springframework.integration.sftp";
+
 
 	@Override
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		String sessionFactoryName = element.getAttribute("session-factory");
-		String fileNamePattern = element.getAttribute("filename-pattern");
-		String filter = element.getAttribute("filter");
-		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
-		boolean hasFilter = StringUtils.hasText(filter);
-		if (hasFileNamePattern || hasFilter) {
-			if (!(hasFileNamePattern ^ hasFilter)) {
-				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
-						"is allowed on SFTP inbound adapter");
-			}
-		}
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.session.CachingSessionFactory");
-		sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
-		String sessionPollName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				sessionFactoryBuilder.getBeanDefinition(), parserContext.getRegistry());
-		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer");
-		synchronizerBuilder.addConstructorArgReference(sessionPollName);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(synchronizerBuilder, element, "filter");
-		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.rootBeanDefinition(
-				"org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource");
-		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
-		if (hasFileNamePattern) {
-			if (parserContext.getRegistry().containsBeanDefinition(fileNamePattern)) {
-				messageSourceBuilder.addPropertyReference("filenamePattern", fileNamePattern);
-			}
-			else {
-				messageSourceBuilder.addPropertyValue("filenamePattern", fileNamePattern);
-			}
-		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
-		return messageSourceBuilder.getBeanDefinition();
+	protected String getMessageSourceClassname() {
+		return BASE_PACKAGE + ".inbound.SftpInboundFileSynchronizingMessageSource";
+	}
+
+	@Override
+	protected String getInboundFileSynchronizerClassname() {
+		return BASE_PACKAGE + ".inbound.SftpInboundFileSynchronizer";
+	}
+
+	@Override
+	protected String getSimplePatternFileListFilterClassname() {
+		return BASE_PACKAGE + ".filters.SftpSimplePatternFileListFilter";
 	}
 
 }

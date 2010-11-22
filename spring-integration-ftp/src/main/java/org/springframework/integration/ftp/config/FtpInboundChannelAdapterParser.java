@@ -16,60 +16,30 @@
 
 package org.springframework.integration.ftp.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.BeanMetadataElement;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.file.config.AbstractRemoteInboundChannelAdapterParser;
 
 /**
- * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.0
  */
-public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class FtpInboundChannelAdapterParser extends AbstractRemoteInboundChannelAdapterParser {
+
+	private static final String BASE_PACKAGE = "org.springframework.integration.ftp";
+
 
 	@Override
-	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizingMessageSource");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
+	protected String getMessageSourceClassname() {
+		return BASE_PACKAGE + ".inbound.FtpInboundFileSynchronizingMessageSource";
+	}
 
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.session.CachingSessionFactory");
-		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+	@Override
+	protected String getInboundFileSynchronizerClassname() {
+		return BASE_PACKAGE + ".inbound.FtpInboundFileSynchronizer";
+	}
 
-		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer");
-		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
-		String fileNamePattern = element.getAttribute("filename-pattern");
-		String filter = element.getAttribute("filter");
-		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
-		boolean hasFilter = StringUtils.hasText(filter);
-		if (hasFileNamePattern || hasFilter) {
-			if (!(hasFileNamePattern ^ hasFilter)) {
-				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
-						"is allowed on FTP inbound adapter");
-			}
-		}
-		if (hasFileNamePattern) {
-			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter");
-			filterBuilder.addConstructorArgValue(fileNamePattern);
-			synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
-		} 
-		else if (hasFilter) {
-			synchronizerBuilder.addPropertyReference("filter", filter);
-		}
-		messageSourceBuilder.addPropertyValue("synchronizer", synchronizerBuilder.getBeanDefinition());
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
-		return messageSourceBuilder.getBeanDefinition();
+	@Override
+	protected String getSimplePatternFileListFilterClassname() {
+		return BASE_PACKAGE + ".filters.FtpSimplePatternFileListFilter";
 	}
 
 }

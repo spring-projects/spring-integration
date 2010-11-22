@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.inbound;
 
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 
 /**
@@ -25,10 +26,17 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  *
  * @author Iwein Fuld
  * @author Josh Long
+ * @since 2.0
  */
 public class FtpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
+
+	public FtpInboundFileSynchronizingMessageSource( AbstractInboundFileSynchronizer<FTPFile> synchronizer) {
+		super(synchronizer);
+	}
+
 
 	public String getComponentType() {
 		return "ftp:inbound-channel-adapter";
 	}
+
 }

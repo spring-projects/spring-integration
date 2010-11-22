@@ -55,33 +55,35 @@ import org.springframework.util.Assert;
 public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
 
 	/**
-	 * Should the endpoint attempt to create the local directory and/or the remote directory?
+	 * Should the endpoint attempt to create the local directory?
 	 */
-	protected volatile boolean autoCreateDirectories = true;
+	private volatile boolean autoCreateDirectories = true;
 
 	/**
-	 * An implementation that will handle the chores of actually connecting to and synching up
+	 * An implementation that will handle the chores of actually connecting to and synchronizing
 	 * the remote file system with the local one, in an inbound direction.
 	 */
-	protected volatile AbstractInboundFileSynchronizer<F> synchronizer;
+	private final AbstractInboundFileSynchronizer<F> synchronizer;
 
 	/**
-	 * Directory to which things should be synched locally.
+	 * Directory to which things should be synchronized locally.
 	 */
-	protected volatile File localDirectory;
+	private volatile File localDirectory;
 
 	/**
-	 * The actual {@link FileReadingMessageSource} that monitors the local filesystem once files are synched.
+	 * The actual {@link FileReadingMessageSource} that monitors the local file system once files are synchronized.
 	 */
-	protected volatile FileReadingMessageSource fileSource;
+	private final FileReadingMessageSource fileSource = new FileReadingMessageSource();;
+
+
+	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
+		Assert.notNull(synchronizer, "synchronizer must not be null");
+		this.synchronizer = synchronizer;
+	}
 
 
 	public void setAutoCreateDirectories(boolean autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
-	}
-
-	public void setSynchronizer(AbstractInboundFileSynchronizer<F> synchronizer) {
-		this.synchronizer = synchronizer;
 	}
 
 	public void setLocalDirectory(File localDirectory) {
@@ -102,11 +104,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 					throw new FileNotFoundException(this.localDirectory.getName());
 				}
 			}
-
-			// Forwards files once they ultimately appear in the {@link #localDirectory}.
-			this.fileSource = new FileReadingMessageSource();
-			this.fileSource.setFilter(this.buildFilter());
 			this.fileSource.setDirectory(this.localDirectory);
+			this.fileSource.setFilter(this.buildFilter());
 			this.fileSource.afterPropertiesSet();
 			this.synchronizer.afterPropertiesSet();
 		}
@@ -114,8 +113,8 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessagingException("Failure during initialization of MessageSource for: "
-					+ this.getComponentType(), e);
+			throw new MessagingException(
+					"Failure during initialization of MessageSource for: " + this.getComponentType(), e);
 		}
 	}
 

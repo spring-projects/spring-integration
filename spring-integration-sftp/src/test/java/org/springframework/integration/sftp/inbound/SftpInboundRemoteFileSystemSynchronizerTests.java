@@ -75,17 +75,14 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
 
-		SftpInboundFileSynchronizingMessageSource ms = 
-			new SftpInboundFileSynchronizingMessageSource();
-		
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new SftpRegexPatternFileListFilter(".*\\.test$"));
-		
-		ms.setSynchronizer(synchronizer);
-		ms.setAutoCreateDirectories(true);
 
+		SftpInboundFileSynchronizingMessageSource ms = 
+			new SftpInboundFileSynchronizingMessageSource(synchronizer);
+		ms.setAutoCreateDirectories(true);
 		ms.setLocalDirectory(localDirectoy);
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
@@ -97,7 +94,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
 		
-		// two times becouse on teh third receive (above) the internal queue will be empty, so it will attempt
+		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
 
 		assertTrue(new File("test/a.test").exists());

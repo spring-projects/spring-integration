@@ -1,0 +1,87 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.file.config;
+
+import org.w3c.dom.Element;
+
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.StringUtils;
+
+/**
+ * Parser for 'sftp:inbound-channel-adapter'
+ * 
+ * @author Oleg Zhurakousky
+ * @author Mark Fisher
+ * @since 2.0
+ */
+public abstract class AbstractRemoteInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+
+	@Override
+	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
+		// build the SessionFactory
+		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.file.remote.session.CachingSessionFactory");
+		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+
+		// build the InboundFileSynchronizer
+		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				this.getInboundFileSynchronizerClassname());
+		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
+
+		// configure the FileListFilter if relevant attributes are present
+		String fileNamePattern = element.getAttribute("filename-pattern");
+		String filter = element.getAttribute("filter");
+		boolean hasFileNamePattern = StringUtils.hasText(fileNamePattern);
+		boolean hasFilter = StringUtils.hasText(filter);
+		if (hasFileNamePattern || hasFilter) {
+			if (!(hasFileNamePattern ^ hasFilter)) {
+				throw new BeanDefinitionStoreException("at most one of 'filename-pattern' or 'filter' " +
+						"is allowed on remote file inbound adapter");
+			}
+		}
+		if (hasFileNamePattern) {
+			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					this.getSimplePatternFileListFilterClassname());
+			filterBuilder.addConstructorArgValue(fileNamePattern);
+			synchronizerBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+		} 
+		else if (hasFilter) {
+			synchronizerBuilder.addPropertyReference("filter", filter);
+		}
+
+		// build the MessageSource
+		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getMessageSourceClassname());
+		messageSourceBuilder.addConstructorArgValue(synchronizerBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-directories");
+		return messageSourceBuilder.getBeanDefinition();
+	}
+
+	protected abstract String getMessageSourceClassname();
+
+	protected abstract String getInboundFileSynchronizerClassname();
+
+	protected abstract String getSimplePatternFileListFilterClassname();
+
+}
