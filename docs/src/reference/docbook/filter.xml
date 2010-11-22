@@ -83,14 +83,15 @@
       </para>
     </note>
     <para>
-      With the introduction of SpEL, Spring Integration added the <code>expression</code> attribute to the filter
+      With the introduction of SpEL support, Spring Integration added the <code>expression</code> attribute to the filter
       element. It can be used to avoid Java entirely for simple filters.
       <programlisting language="xml">
-        <![CDATA[<filter input-channel="input" expression="payload.equals(nonsense)"/>]]>
+        <![CDATA[<filter input-channel="input" expression="payload.equals('nonsense')"/>]]>
       </programlisting>
-      The string passed as the expression attribute will be evaluated as a SpEL expression in the context of the message.
-      If it is needed to include the result of an expression in the scope of the application context you can use the
-      #{} notation as defined in the SpEL reference documentation
+      The string passed as the expression attribute will be evaluated as a SpEL expression with the Message available in
+      the evaluation context.
+      If it is necessary to include the result of an expression in the scope of the application context you can use the
+      #{} notation as defined in the 
       <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
         SpEL reference documentation
       </ulink>.
@@ -123,11 +124,13 @@
         <![CDATA[  filterPatterns.example=payload > 100
 ]]></programlisting>
 
-    <note>All of the examples that use <code>expression</code> as an attribute or sub-element can also be applied within
+    <note>All of these examples that use <code>expression</code> as an attribute or sub-element can also be applied within
       transformer, router, splitter, service-activator, and header-enricher elements. Of course, the semantics/role
       of the given component type would affect the interpretation of the evaluation result in the same way that the
-      return or a method-invocation would be interpreted. For example, an expression can return Strings that are
-      to be treated as Message Channel names by a router component.</note>
+      return value of a method-invocation would be interpreted. For example, an expression can return Strings that are
+      to be treated as Message Channel names by a router component. However, the underlying functionality of evaluating
+      the expression against the Message as the root object, and resolving bean names if prefixed with '@' is consistent
+      across all of the core EIP components within Spring Integration.</note>
     </para>
   </section>
 </section>
