@@ -6,9 +6,9 @@
   <section id="security-intro">
     <title>Introduction</title>
     <para>
-      Spring Integration provides integration with the
+      Spring Integration builds upon the
       <ulink url="http://static.springframework.org/spring-security/site/">Spring Security project</ulink>
-      to allow role based security checks to be applied to channel send and receive invocations.
+      to enable role based security checks to be applied to channel send and receive invocations.
     </para>
   </section>
 
@@ -17,9 +17,9 @@
        <para>
       Spring Integration provides the interceptor <classname>ChannelSecurityInterceptor</classname>, which extends
       <classname>AbstractSecurityInterceptor</classname> and intercepts send and receive calls on the channel.  Access decisions
-      are then made with reference to <classname>ChannelInvocationDefinitionSource</classname> which provides the definition of
-      the send and receive security constraints.  The interceptor requires that a valid <interfacename>SecurityContext</interfacename>
-      has been established by authenticating with Spring Security, see the Spring Security reference documentation for details.
+      are then made with reference to a <classname>ChannelSecurityMetadataSource</classname> which provides the metadata describing
+      the send and receive access policies for certain channels.  The interceptor requires that a valid <interfacename>SecurityContext</interfacename>
+      has been established by authenticating with Spring Security. See the Spring Security reference documentation for details.
   </para>
   <para>
     Namespace support is provided to allow easy configuration of security constraints.  This consists of the secured channels tag which allows
