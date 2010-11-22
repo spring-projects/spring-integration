@@ -15,13 +15,10 @@ package org.springframework.integration.groovy.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Dave Syer
@@ -29,29 +26,12 @@ import org.springframework.util.StringUtils;
  */
 public class GroovyControlBusParser extends AbstractConsumerEndpointParser {
 
-	private static final String CUSTOMIZER_ATTRIBUTE = "customizer";
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(GroovyControlBusFactoryBean.class);
-		builder.addConstructorArgValue(getMessageProcessorBeanDefinition(element, parserContext));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "order");
 		return builder;
-	}
-
-	protected BeanMetadataElement getMessageProcessorBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.groovy.GroovyScriptPayloadMessageProcessor");
-		String customizerAttr = element.getAttribute(CUSTOMIZER_ATTRIBUTE);
-		if (StringUtils.hasText(customizerAttr)) {
-			builder.addConstructorArgReference(customizerAttr.trim());
-		}
-		else {
-			builder.addConstructorArgValue(new RootBeanDefinition(
-					"org.springframework.integration.groovy.BeanFactoryContextBindingCustomizer"));
-		}
-		return builder.getBeanDefinition();
 	}
 
 }

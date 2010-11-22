@@ -36,7 +36,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 
 	private AtomicInteger countHolder = new AtomicInteger();
 
-	private GroovyScriptPayloadMessageProcessor processor = new GroovyScriptPayloadMessageProcessor();
+	private GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor();
 
 	@Test
 	@Repeat(20)
@@ -61,7 +61,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		MessageProcessor<Object> processor = new GroovyScriptPayloadMessageProcessor(Collections.singletonMap("spam",
+		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(Collections.singletonMap("spam",
 				"bucket"));
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());

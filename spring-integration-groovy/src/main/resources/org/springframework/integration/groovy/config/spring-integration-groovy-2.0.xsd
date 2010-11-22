@@ -41,31 +41,17 @@
 
 	<xsd:element name="control-bus">
 		<xsd:annotation>
-			<xsd:documentation>
+			<xsd:documentation><![CDATA[
 				Control bus that accepts messages in the form of Groovy scripts. The scripts should be provided as
-				String payloads
-				in incoming messages
-			</xsd:documentation>
+				String payload in incoming messages. The variable bindings will include any @ManagedResource, Lifecycle,
+				or CustomizableThreadCreator instances from within the ApplicationContext.
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all minOccurs="0" maxOccurs="1">
 				<xsd:element name="poller" type="integration:innerPollerType" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
-			<xsd:attribute name="customizer" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-						A reference to a static GroovyObjectCustomizer that will be used to modify the Groovy scripts
-						sent to the control channel. By default a customizer is used that simply exposes all beans in the application
-						context by name in the scripts.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation>
-							<tool:expected-type type="org.springframework.scripting.groovy.GroovyObjectCustomizer" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
