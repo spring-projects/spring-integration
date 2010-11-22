@@ -21,13 +21,57 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="user" type="xsd:string" use="required"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
-			<xsd:attribute name="password" type="xsd:string" use="required"/>
-			<xsd:attribute name="host" type="xsd:string"/>
-			<xsd:attribute name="service-name" type="xsd:string"/>
-			<xsd:attribute name="resource" type="xsd:string"/>
-			<xsd:attribute name="port" type="xsd:string" default="5222"/>
+			<xsd:attribute name="user" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The user name (e.g., somuser@gmail.com) that will be used by this connection object
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Lifecycle attribute signaling if this component should be started during Application Context startup.
+						Default is TRUE
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="password" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The user's password
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="host" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The host name to connect TO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="service-name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						The XMPP service name for this connection
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="resource" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					The resource field specifies the XMPP resource you are using. The use of unique resources allows 
+					you to connect to your XMPP server from multiple locations simultaneously. Resources might
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="port" type="xsd:string" default="5222">
+				<xsd:annotation>
+					<xsd:documentation>
+						The port on which the host is running
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="subscription-mode" default="accept_all">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -54,8 +98,21 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+					Specifies if generated Message payload should consist of only 
+					the text of the XMPP message or the entire XMPP (Smack API specific) message. Default is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Lifecycle attribute signaling if this component should be started during Application Context startup.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>		
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -63,6 +120,11 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+					Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="xmpp-connection" type="xsd:string">
@@ -72,6 +134,9 @@
 							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						Reference to XMPP connection bean
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -95,6 +160,11 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+					Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="xmpp-connection" type="xsd:string">
@@ -104,6 +174,9 @@
 							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						Reference to XMPP connection bean
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -117,8 +190,21 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+				<xsd:documentation>
+					Specifies if generated Message payload should consist of only 
+					the text of the XMPP Presence message or the entire XMPP Presence (Smack API specific) message. 
+					Default is TRUE.
+					</xsd:documentation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Lifecycle attribute signaling if this component should be started during Application Context startup.
+						Default is TRUE
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -126,6 +212,11 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+					Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="xmpp-connection" type="xsd:string">
@@ -135,6 +226,9 @@
 							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						Reference to XMPP connection bean
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -158,6 +252,11 @@
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+					Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="xmpp-connection" type="xsd:string">
@@ -167,6 +266,9 @@
 							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
 						</tool:annotation>
 					</xsd:appinfo>
+					<xsd:documentation>
+						Reference to XMPP connection bean
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -182,8 +284,21 @@
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
-						<xsd:element name="chat-to" type="headerType"/>
-						<xsd:element name="chat-thread-id" type="headerType"/>
+						<xsd:element name="chat-to" type="headerType">
+							<xsd:annotation>
+								<xsd:documentation>
+								The id of the user you sending a message to (e.g., user@gmail.com)
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="chat-thread-id" type="headerType">
+							<xsd:annotation>
+								<xsd:documentation>
+									The conversation thread id used to corelate XMPP packets as 
+									belonging to a particular conversation
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>
@@ -203,9 +318,27 @@
 	</xsd:element>
 
 	<xsd:complexType name="headerType">
-		<xsd:attribute name="value" type="xsd:string"/>
-		<xsd:attribute name="ref" type="xsd:string"/>
-		<xsd:attribute name="expression" type="xsd:string"/>
+		<xsd:attribute name="value" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Value of this header inside of a Message
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a bean that contains a method that will compute the header value
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				SpEL expression that will compute the header value
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="overwrite">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -227,6 +360,9 @@
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				The receiving Message channel of this endpoint
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="output-channel" type="xsd:string">
@@ -236,6 +372,9 @@
 						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
+				<xsd:documentation>
+				Identifies the Message channel where Message will be sent after it's being processed by this endpoint
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
