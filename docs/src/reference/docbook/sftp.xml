@@ -3,17 +3,17 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>SFTP Adapters</title>
   <para>
-    Spring Integration provides support for file transfer operations via SFTP
+    Spring Integration provides support for file transfer operations via SFTP.
   </para>
   <section id="sftp-intro">
     <title>Introduction</title>
     <para>
-      Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer 
+      The Secure File Transfer Protocol (SFTP) is a network protocol which allows you to transfer 
       files between two computers on the Internet over any reliable stream.
     </para>
     
     <para>
-    SFTP protocol requires secure channel, such as SSH, as well as visibility to client's identity throughout SFTP session.
+    The SFTP protocol requires a secure channel, such as SSH, as well as visibility to a client's identity throughout the SFTP session.
     </para>
     
     <para>
@@ -31,8 +31,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
    <section id="sftp-session-factory">
   	<title>SFTP Session Factory</title>
   	<para>
-  	Before configuring SFTP adapters you must configure <emphasis>Sftp Session Factory</emphasis>. You configure 
-  	<emphasis>Sftp Session Factory</emphasis> via regular bean configuration:
+  	Before configuring SFTP adapters you must configure an <emphasis>SFTP Session Factory</emphasis>. You can configure 
+  	the <emphasis>SFTP Session Factory</emphasis> via a regular bean definition:
 	Below is a basic configuration:
 	
 	<programlisting language="xml"><![CDATA[<beans:bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.SftpSessionFactory">
@@ -44,12 +44,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 </beans:bean>]]></programlisting>
 
 
-	Now all you need to do is inject this <emphasis>Sftp Session Factory</emphasis> into your adapters.
+	Now all you need to do is inject this <emphasis>SFTP Session Factory</emphasis> into your adapters.
   	</para>
   	<para>
   	<note>
-  	A more practical way to provide values for <emphasis>Sftp Session Factory</emphasis> would be via Spring's property 
-  	placeholder (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
+  	A more practical way to provide values for the <emphasis>SFTP Session Factory</emphasis> would be via Spring's property 
+  	placeholder support (http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer)	
   	</note>
   </para>
   </section>
@@ -57,7 +57,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
    <section id="sftp-inbound">
   	<title>SFTP Inbound Channel Adapter</title>
   	<para>
-  	<emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the FTP server and will listen for 
+  	The <emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the server and listen for 
   	the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
   	
   	<programlisting language="xml"><![CDATA[<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
@@ -71,53 +71,54 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		<poller fixed-rate="1000"/>
 </sftp:inbound-channel-adapter>]]></programlisting>
 
-	As you can see form the configuration above you can configure <emphasis>SFTP Inbound Channel Adapter</emphasis> via 
+	As you can see from the configuration above you can configure the <emphasis>SFTP Inbound Channel Adapter</emphasis> via the
 	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory</code> 
-	- where files are going to be transfered TO and <code>remote-directory</code> - the remote source directory 
-	as well as other attributes including <code>session-factory</code> which we configured earlier. 
+	- where files are going to be transferred TO and <code>remote-directory</code> - the remote source directory where files are
+	going to be transferred FROM -
+	as well as other attributes including a <code>session-factory</code> reference to the bean we configured earlier. 
 	</para>
   	<para>
 	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
-	sufficient enough. If this is the case, you can use <code>filename-regex</code> attribute to specify Regular expression 
-	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 
-	attribute and provide reference to a custom implementation of the 
+	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression 
+	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use the <code>filter</code> 
+	attribute to provide a reference to a custom implementation of the 
 	<classname>org.springframework.integration.file.filters.FileListFilter</classname> - a strategy interface for filtering a 
-	group of files.
+	list of files.
   	</para>
   	<para>
-  	Please refer to the schema for more details on these attributes. 
+  	Please refer to the schema for more detail on these attributes. 
   	</para>
 	
   	<para>
-  	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a polling consumer and therefore 
-  	you must configure a poller (global or local)
-	Once the file has been transferred to a local directory a Message with <classname>java.io.File</classname> being a 
-	payload will be generated and sent to the channel identified with <code>channel</code> attribute.	
+  	It is also important to understand that <emphasis>SFTP Inbound Channel Adapter</emphasis> is a Polling Consumer and therefore 
+  	you must configure a poller (either a global default or a local sub-element).
+	Once the file has been transferred to a local directory, a Message with <classname>java.io.File</classname> as its 
+	payload type will be generated and sent to the channel identified by the <code>channel</code> attribute.
   	</para>
   	<para>
   		<emphasis>More on File Filtering and Large Files</emphasis>
   	</para>
   	 <para>
-  	Some times the file that just  appeared in the monitored (remote) directory is not complete. Typically such file 
-  	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished. 
-  	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
-  	To handle these scenarios use filtering support provided via <code>filename-pattern</code>, <code>filename-regex</code> 
-  	and <code>filter</code> attributes. We also provide a convenient Regex-based implementation 
-  	<classname>org.springframework.integration.sftp.filters.SftpPatternMatchingFileListFilter</classname>.
-	Once configured all you need is include such filter in your adapter via <code>filter</code> attribute.
+  	Some times a file that just appeared in the monitored (remote) directory is not complete. Typically such a file 
+  	will be written with some temporary extension (e.g., foo.txt.writing) and then renamed after the writing process completes. 
+  	As a user in most cases you are only interested in files that are complete and would like to filter only those files. 
+  	To handle these scenarios, use filtering support provided via the <code>filename-pattern</code>, <code>filename-regex</code> 
+  	and <code>filter</code> attributes.
+
+	If you need a custom filter implementation simply include a reference in your adapter via the <code>filter</code> attribute.
 	
 	<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="sftpInbondAdapter"
 			channel="receiveChannel" 
-			session-factory="sftpSessionFactory" 
+			session-factory="sftpSessionFactory"
+			filter="customFilter"
 			local-directory="file:/local-test-dir"
 			remote-directory="/remote-test-dir">
 		<int:poller fixed-rate="1000" max-messages-per-poll="10" task-executor="executor"/>
 </int-sftp:inbound-channel-adapter>
 	
-<bean id="fileNameFilter" 
-	class="org.springframework.integration.ftp.filters.FtpPatternMatchingFileListFilt"">
-	<constructor-arg value=".*\.txt$"/>
-</bean>]]></programlisting>
+<bean id="customFilter" class="org.foo.CustomFilter"/>
+
+]]></programlisting>
   	</para>
   </section>
   
@@ -125,12 +126,12 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	<title>SFTP Outbound Channel Adapter</title>
   	
   	<para>
-  	<emphasis>SFTP Outbound Channel Adapter </emphasis>is a special <classname>MessageHandler</classname> that will connect to the 
-  	remote directory and will initiate a file transfer for every file it will receive as a payload of the <classname>Message</classname>. 
-  	It also supports several representation of the File so you are not limited to the File object. 
-  	Similar to FTP outbound adapter <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads: 
+  	The <emphasis>SFTP Outbound Channel Adapter</emphasis>is a special <classname>MessageHandler</classname> that will connect to the 
+  	remote directory and will initiate a file transfer for every file it will receive as the payload of an incoming <classname>Message</classname>. 
+  	It also supports several representations of the File so you are not limited to the File object. 
+  	Similar to the FTP outbound adapter, the <emphasis>SFTP Outbound Channel Adapter</emphasis> supports the following payloads: 
   	1) <classname>java.io.File</classname> - the actual file object; 2) <classname>byte[]</classname> - byte array that represents 
-  	the file contents; 3) <classname>java.lang.String</classname> - represents the file contents.
+  	the file contents; 3) <classname>java.lang.String</classname> - text that represents the file contents.
   	
   	<programlisting language="xml"><![CDATA[<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
@@ -139,20 +140,21 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 				remote-directory="foo/bar"
 				remote-filename-generator-expression="payload.getName() + '-foo'"/>]]></programlisting>
 			
-	As you can see form the configuration above you can configure <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
-	<code>outbound-channel-adapter</code>. 
-	Please refer to the schema for more details on these attributes. 
+	As you can see from the configuration above you can configure the <emphasis>SFTP Outbound Channel Adapter</emphasis> via 
+	the <code>outbound-channel-adapter</code> element. 
+	Please refer to the schema for more detail on these attributes. 
   	</para>
   	<para>
-  		<emphasis>SpEL and SFTP Outbound Adapter</emphasis>
+  		<emphasis>SpEL and the SFTP Outbound Adapter</emphasis>
   	</para>
   	<para>
-  		As with many other components in Spring Integration, you can benefit from Spring Expression Language (SpEL) when configuring 
-  		<emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and 
-  		<code>remote-filename-generator-expression</code> (see above). Expression evaluation context will have Message as its root object, thus allowing 
+  		As with many other components in Spring Integration, you can benefit from the Spring Expression Language (SpEL) support when configuring 
+  		an <emphasis>SFTP Outbound Channel Adapter</emphasis>, by specifying two attributes <code>remote-directory-expression</code> and 
+  		<code>remote-filename-generator-expression</code> (see above). The expression evaluation context will have the Message as its root object, thus allowing 
   		you to provide expressions which can dynamically compute the <emphasis>file name</emphasis> or the existing <emphasis>directory path</emphasis> 
-  		based on the data in the Message. In the example above we are defining <code>remote-filename-generator-expression</code> attribute with expression 
-  		value which computes the <emphasis>file name</emphasis> based on its original name while also appending suffix '-foo'.
+  		based on the data in the Message (either from 'payload' or 'headers'). In the example above we are defining
+        the <code>remote-filename-generator-expression</code> attribute with an expression 
+  		value that computes the <emphasis>file name</emphasis> based on its original name while also appending a suffix: '-foo'.
   	</para>
   </section>
 </chapter>
