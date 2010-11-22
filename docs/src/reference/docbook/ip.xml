@@ -155,7 +155,7 @@
       transferred using TCP; therefore any message correlation must be performed
       by downstream components such as aggregators or other endpoints.
       For more information refer to  
-      <xref linkend="ip-correlation">TCP Message Correlationn</xref></para></tip>
+      <xref linkend="ip-correlation">TCP Message Correlation</xref></para></tip>
     </para>
     <para>
       A maximum of one adapter of each type may be given a reference to a connection
@@ -179,7 +179,7 @@
   <ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
-                using-nio="true"
+    using-nio="true"
   />]]></programlisting>
       A simple server connection factory that uses <classname>java.nio.channel.SocketChannel</classname>
       connections.
@@ -204,7 +204,7 @@
     port="1234"
     single-use="true"
     so-timeout="10000"
-                using-nio=true
+    using-nio=true
   />]]></programlisting>
       A client connection factory that uses <classname>java.nio.channel.Socket</classname>
       connections and creates a new connection for each message.
@@ -409,12 +409,12 @@
     <title>TCP Gateways</title>
     <para>
       The inbound TCP gateway <classname>TcpInboundGateway</classname>
-      and oubound TCP gateway <classname>TcpOutboundGateway</classname>
+      and outbound TCP gateway <classname>TcpOutboundGateway</classname>
       use a server and client connection factory respectively. Each connection
       can process a single request/response at a time.
     </para>
     <para>
-      The intbound gateway, after constructing a message with the incoming payload and sending
+      The inbound gateway, after constructing a message with the incoming payload and sending
       it to the requestChannel, waits for a response and sends the payload
       from the response message by writing it to the connection.
     </para>
@@ -449,7 +449,7 @@
     request-timeout="10000"
     reply-timeout="10000"
     />]]></programlisting>
-        A simple oubound TCP gateway.
+        A simple outbound TCP gateway.
   </para>
   </section>
   <section id="ip-correlation">
@@ -790,7 +790,7 @@
             <row>
               <entry>so-send-buffer-size</entry>
               <entry></entry>
-              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
+              <entry>Used for udp acknowledgment packets. See <classname>java.net.DatagramSocket</classname>
                      setSendBufferSize() methods for more information.</entry>
             </row>
             <row>
@@ -857,7 +857,7 @@
               <entry></entry>
               <entry>When acknowledge is true, indicates the host or ip address to which the
                      acknowledgment should be sent. Usually the current host, but may be
-                     different, for example when Network Address Transation (NAT) is
+                     different, for example when Network Address Transaction (NAT) is
                      being used.</entry>
             </row>
             <row>
@@ -871,14 +871,14 @@
               <entry>ack-timeout</entry>
               <entry></entry>
               <entry>When acknowledge is true, indicates the time in milliseconds that the
-                     adapter will wait for an acknowlegment. If an acknowlegment is not
+                     adapter will wait for an acknowledgment. If an acknowledgment is not
                      received in time, the adapter will throw an exception.</entry>
             </row>
             <row>
               <entry>min-acks-for- success</entry>
               <entry></entry>
               <entry>Defaults to 1. For multicast adapters, you can set this to a larger
-                     value, requiring acknowlegments from multiple destinations.</entry>
+                     value, requiring acknowledgments from multiple destinations.</entry>
             </row>
             <row>
               <entry>check-length</entry>
@@ -909,7 +909,7 @@
             <row>
               <entry>so-receive-buffer- size</entry>
               <entry></entry>
-              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
+              <entry>Used for udp acknowledgment packets. See <classname>java.net.DatagramSocket</classname>
                      setReceiveBufferSize() methods for more information.</entry>
             </row>
             <row>
