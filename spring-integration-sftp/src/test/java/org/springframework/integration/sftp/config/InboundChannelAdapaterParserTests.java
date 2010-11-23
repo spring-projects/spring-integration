@@ -24,6 +24,7 @@ import java.io.File;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -67,7 +68,7 @@ public class InboundChannelAdapaterParserTests {
 		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
 	}
 
-	@Test
+	@Test @Ignore
 	public void testLocalFilesAreFound() throws Exception{
 		assertTrue(new File("target").exists());
 		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
