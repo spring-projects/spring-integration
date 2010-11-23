@@ -6,19 +6,20 @@
  <section id="samples-introduction">
    <title>Introduction</title>
    <para>
-   Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are no longer included with
-   Spring Integration distribution. Instead we've switched to a much simpler collaborative model that should promote
-   better community participation and community contributions. Samples now have a dedicated Git SCM repository and a
+   As of Spring Integration 2.0, the <emphasis>samples</emphasis> are no longer included with the
+   Spring Integration distribution. Instead we have switched to a much simpler collaborative model that should promote
+   better community participation and, ideally, more contributions. Samples now have a dedicated Git repository and a
    dedicated JIRA Issue Tracking system. Sample development will also have its own lifecycle which is not dependent on the
    lifecycle of the framework releases although the repository will still be tagged with each major release for compatibility
    reasons.
    </para>
    <para>
    The great benefit to the community is that we can now add more samples and make them available to you right away
-   without waiting for the release to get them out to you. Having its own JIRA that is not tied up to the the actual
+   without waiting for the next release. Having its own JIRA that is not tied to the the actual
    framework is also a great benefit. You now have a dedicated place to suggest samples as well as report issues with existing
-   samples. <emphasis>Or you may want to submit a sample to us</emphasis>  as an attachment through the JIRA and if we believe your sample adds value we
-   would be more then glad to add it to a samples repository properly crediting the author.
+   samples. Or, <emphasis> you may want to submit a sample to us</emphasis>  as an attachment through the JIRA or, better, through
+   the collaborative model that Git promotes. If we believe your sample adds value, we
+   would be more then glad to add it to the 'samples' repository, properly crediting you as the author.
    </para>
  </section>
 
@@ -27,7 +28,7 @@
    <para>
    To monitor samples development and to get more information on the repository you can visit the following
    URL: <link linkend="http://git.springsource.org/spring-integration/samples">http://git.springsource.org/spring-integration/samples</link>
-    Since we are using Git SCM we should use the proper terminology as well when it comes to the tasks you need to perform to make
+    Since we are using Git as the SCM, we should use the proper terminology as well when it comes to the tasks you need to perform to make
     <emphasis>samples</emphasis> available locally on your machine. For more information on Git SCM please visit their
     website: <link linkend="http://git-scm.com/">http://git-scm.com/</link>
    </para>
@@ -36,16 +37,16 @@
    </para>
    <para>
    This is the first step you should go through. You must have Git installed on your machine. There are many GUI-based products
-   available for many platforms. Simple Google search will let you find them.
-    To clone samples repository from command line:
-    <programlisting language="xml"><![CDATA[> mkdir spring-itegration-samples
-> cd spring-itegration-samples
+   available for many platforms. A simple Google search will help you find them.
+    To clone the Spring Integration samples repository, issue the following at the command line:
+    <programlisting language="xml"><![CDATA[> mkdir spring-integration-samples
+> cd spring-integration-samples
 > git clone git://git.springsource.org/spring-integration/samples.git]]></programlisting>
    </para>
    <para>
-   That is all you need to do. Now you have cloned the entire samples repository. Since samples repository is a live
-   repository, you might want to perform periodic updates to get new samples as well as updates to the existing samples.
-   To get the updates use git PULL command:
+   That is all you need to do. Now you have cloned the entire samples repository. Since the samples repository is a live
+   repository, you might want to perform periodic "pulls" to get new samples as well as updates to the existing samples.
+   To get the updates use the git PULL command:
    <programlisting language="xml"><![CDATA[> git pull]]></programlisting>
    </para>
    <para>
@@ -53,19 +54,20 @@
    </para>
    <para>
    As mentioned earlier, Spring Integration <emphasis>samples</emphasis> have a dedicated JIRA Issue tracking system.
-   To submit new sample request or to submit the actual sample (as an attachment) please visit our JIRA Issue Tracking system:
-   <link linkend="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</link> 
+   To submit new sample requests or to submit an actual sample (as an attachment), please visit our JIRA Issue Tracking system:
+   <link linkend="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springsource.org/browse/INTSAMPLES</link> 
    </para>
  </section>
  <section id="samples-structure">
-   <title>Samples structure</title>
+   <title>Samples Structure</title>
    <para>
    The structure of the <emphasis>samples</emphasis> changed as well. With plans for more samples we realized that some
-   samples have different goals then others. While they all share the common  goal of showing you how to apply and work with
-   Spring Integration framework, they also defer in areas where some samples were meant to concentrate on a technical
-   use case while others on the business use case and some samples are all about showcasing various techniques that
-   could be applied to address certain scenarios (both technical and business). Categorization of samples will allow us
-   better organize them based on the problem each sample addresses while giving you a simpler way of finding the right sample
+   samples have different goals than others. While they all share the common goal of showing you how to apply and work with
+   the Spring Integration framework, they also differ in areas where some samples are meant to concentrate on a technical
+   use case while others focus on a business use case, and some samples are all about showcasing various techniques that
+   could be applied to address certain scenarios (both technical and business). The new categorization of samples will allow us
+   to better organize them based on the problem each sample addresses while giving you a simpler way of finding the right sample
+   for your needs.
    </para>
    <para>
    Currently there are 4 categories. Within the samples repository each category has its own directory which is named after the
@@ -77,10 +79,10 @@
    </para>
    <para>
    This is a good place to get started. The samples here are technically motivated and demonstrate the bare
-     minimum with regard to configuration and code, to help you to get started quickly by introducing you to the basic concepts,
-     API and configuration of Spring Integration as well as Enterprise Integration Patterns (EIP). For example; If your are
-     looking for an answer on how to implement and wire <emphasis>Service Activator</emphasis> to a <emphasis>Channel</emphasis>
-     or how to use <emphasis>Messaging Gateway</emphasis> to your message exchange or how to get started with using MAIL or
+     minimum with regard to configuration and code. These should help you to get started quickly by introducing you to the basic concepts,
+     API and configuration of Spring Integration as well as Enterprise Integration Patterns (EIP). For example, if you are
+     looking for an answer on how to implement and wire a <emphasis>Service Activator</emphasis> to a <emphasis>Message Channel</emphasis>
+     or how to use a <emphasis>Messaging Gateway</emphasis> as a facade to your message exchange, or how to get started with using MAIL or
      TCP/UDP modules etc., this would be the right place to find a good sample. The bottom line is this is a good place
      to get started.
    </para>
@@ -89,13 +91,13 @@
    <emphasis>INTERMEDIATE (samples/intermediate)</emphasis>
    </para>
    <para>
-   This category targets developers who are already familiar with Spring Integration framework (past getting started),
-  but need some more guidance while resolving a more advanced technical problems one might deal with
-  once switch to a Messaging architecture.
-  For example; If you are looking for an answer on how to handle errors in various message exchange
+   This category targets developers who are already familiar with the Spring Integration framework (past getting started),
+  but need some more guidance while resolving the more advanced technical problems one might deal with
+  after switching to a Messaging architecture.
+  For example, if you are looking for an answer on how to handle errors in various message exchange
   scenarios or how to properly configure the <emphasis>Aggregator</emphasis> for the situations where some messages
-  might not ever arrive for aggregation etc,. and any other issue that goes beyond a basic implementation and configuration
-  of a particular component and addresses <emphasis>"what else you can do with it"</emphasis> type of problem this
+  might not ever arrive for aggregation, or any other issue that goes beyond a basic implementation and configuration
+  of a particular component and addresses <emphasis>what else</emphasis> types of problems, this
   would be the right place to find these type of samples.
    </para>
 
@@ -103,36 +105,35 @@
    <emphasis>ADVANCED (samples/advanced)</emphasis>
    </para>
    <para>
-   This category targets develoopers who are very familiar with Spring Integration framework but looking to
-  extend it to address a specific custom need by using Spring Integration public API.
-  For example; if you are looking for samples showing you how to implement a custom <emphasis>Channel</emphasis> or
-  <emphasis>Consumer</emphasis> (event-based or polling-based), or you trying to figure out what is the most appropriate
-  way to implement custom Bean parser on top of Spring Integration Bean parsers hierarchy when implementing custom name space
-  for a custom component, this would be the right place to look.
+   This category targets developers who are very familiar with the Spring Integration framework but are looking to
+  extend it to address a specific custom need by using Spring Integration's public API.
+  For example, if you are looking for samples showing you how to implement a custom <emphasis>Channel</emphasis> or
+  <emphasis>Consumer</emphasis> (event-based or polling-based), or you are trying to figure out what is the most appropriate
+  way to implement a custom Bean parser on top of the Spring Integration Bean parser hierarchy when implementing your own
+  namespace and schema for a custom component, this would be the right place to look.
   Here you can also find samples that will help you with <emphasis>Adapter</emphasis> development. Spring Integration comes
-  with an extensive library of adapters to allow you to connect remote systems with Spring Integration messaging framework.
-  However you might have a need to integrate with system for which the core framework does not provide an adapter.
-  So you have to implement your own. This category would include samples showing you how to do it.
+  with an extensive library of adapters to allow you to connect remote systems with the Spring Integration messaging framework.
+  However you might have a need to integrate with a system for which the core framework does not provide an adapter.
+  So, you may decide to implement your own (and potentially contribute it). This category would include samples showing you how.
    </para>
-
 
    <para>
    <emphasis>APPLICATIONS (samples/applications)</emphasis>
    </para>
    <para>
-   This category targets developers and architects who have a good understanding of the Messaging architecture,
-  EIP and above average understanding of Spring and Spring Integration frameworks and are looking for samples that
+   This category targets developers and architects who have a good understanding of Message-driven architecture and
+  EIP, and an above average understanding of Spring and Spring Integration who are looking for samples that
   address a particular <emphasis>business problem</emphasis>. In other words the emphasis of samples in this category
-  is <emphasis>business use cases</emphasis> and how it could be solved via Messaging Architecture and Spring Integration
+  is <emphasis>business use cases</emphasis> and how they can be solved with a Message-Driven Architecture and Spring Integration
   in particular.
-  For example; If you are interested to see how a <emphasis>Loan Broker</emphasis> or <emphasis>Travel Agent</emphasis>
-  process could be implemented and automated via Spring Integration this would be the right place to find these types of samples.
+  For example, if you are interested to see how a <emphasis>Loan Broker</emphasis> or <emphasis>Travel Agent</emphasis>
+  process could be implemented and automated via Spring Integration, this would be the right place to find these types of samples.
    </para>
 
    <important>
    <remark>
-   Remember! Spring Integration is a community driven framework, therefore community participation is IMPORTANT.
-That includes Samples, so if you can't find what you are looking for let us know.
+   Remember: Spring Integration is a community driven framework, therefore community participation is IMPORTANT.
+That includes Samples; so, if you can't find what you are looking for, let us know!
    </remark>
    </important>
  </section>
@@ -140,17 +141,17 @@ That includes Samples, so if you can't find what you are looking for let us know
     <title>Samples</title>
      <para>
      Currently Spring Integration comes with quite a few samples and you can only expect more.
-     To help you better navigate through them, each sample comes with its own <code>readme.txt</code> file which coveres
-     sevaral details about the sample (e.g., what EIP patterns it addresses, what problem it is trying to solve, how to run sample etc.).
-     However, certain samples require a more detailed and some times graphical explanation. In these section you'll
+     To help you better navigate through them, each sample comes with its own <code>readme.txt</code> file which covers
+     several details about the sample (e.g., what EIP patterns it addresses, what problem it is trying to solve, how to run sample etc.).
+     However, certain samples require a more detailed and sometimes graphical explanation. In this section you'll
      find details on samples that we believe require special attention.
      </para>
       <section id="samples-loan-broker">
         <title>Loan Broker</title>
         <para>
-       In this section, we will review a <emphasis>Loan Broker</emphasis> sample application that is included in the
+       In this section, we will review the <emphasis>Loan Broker</emphasis> sample application that is included in the
        Spring Integration samples. This sample is inspired by one of the samples featured in Gregor
-       Hohpe's <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
+       Hohpe and Bobby Woolf's book, <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>.
         </para>
         <para>The diagram below represents the entire process</para>
         <para>
@@ -163,13 +164,14 @@ That includes Samples, so if you can't find what you are looking for let us know
           </imageobject>
         </mediaobject>
       </para>
-      <para>Now lets look at this process in more details</para>
+      <para>Now lets look at this process in more detail</para>
       <para>
-      At the core of EIP architecture are the very simple yet powerful concepts of Pipes and Filters and Message. Endpoints (Filters) are
-      connected with one another via Channels (Pipes). The producing endpoint sends Message to the Channel and the Message is retrieved
-      by the Consuming endpoint.  This architecture is meant to define various mechanisms that describe How information is exchanged between
-      the endpoints, without any awareness of What those endpoints are or What information they are exchanging, thus providing for a very loosely
-      coupled and flexible collaboration model while also, decoupling Integration concerns from Business concerns. EIP extends this architecture
+      At the core of an EIP architecture are the very simple yet powerful concepts of Pipes and Filters, and of course: Messages.
+      Endpoints (Filters) are connected with one another via Channels (Pipes). The producing endpoint sends Message to the Channel,
+      and the Message is retrieved
+      by the Consuming endpoint.  This architecture is meant to define various mechanisms that describe HOW information is exchanged between
+      the endpoints, without any awareness of WHAT those endpoints are or what information they are exchanging. Thus, it provides for a very loosely
+      coupled and flexible collaboration model while also decoupling Integration concerns from Business concerns. EIP extends this architecture
       by further defining:
         <itemizedlist>
             <listitem>
@@ -306,7 +308,7 @@ That includes Samples, so if you can't find what you are looking for let us know
         </mediaobject>
       </para>
       <para>
-      There are several implementation of <emphasis>Message Routing</emphasis>  pattern available in Spring Integration. Here we are using
+      There are several implementations of the <emphasis>Message Routing</emphasis> pattern available in Spring Integration. Here we are using a
       router that will determine a list of channels based on evaluating an expression (Spring Expression Language) which will look at
       the credit score that was determined is the previous step and will select the list of channels from the Map bean with id 'banks'
       whose values are 'premier' or 'secondary' based o the value of credit score. Once the list of <emphasis>Channels</emphasis> is selected, the
@@ -341,7 +343,7 @@ That includes Samples, so if you can't find what you are looking for let us know
 
       <para>
       Our Loan Broker defines a 'quotesAggregator' bean via the <emphasis>&lt;aggregator&gt;</emphasis> element which provides a default
-      aggregation and correlation strategy. The default correlation strategy correlates messages based on the <code>$corelationId</code> header
+      aggregation and correlation strategy. The default correlation strategy correlates messages based on the <code>correlationId</code> header
       (see <emphasis>Correlation Identifier</emphasis> pattern). What's interesting is that we never provided the value for this header.
       It was set earlier by the router automatically, when it generated a separate <emphasis>Message</emphasis> for each Bank channel.
       </para>
@@ -367,7 +369,7 @@ That includes Samples, so if you can't find what you are looking for let us know
       <para>
       As you can see a rather complex process was assembled based on POJO (read existing, legacy), light weight, embeddable messaging
       framework (Spring Integration) with a loosely coupled programming model intended to simplify integration of heterogeneous systems
-      without requiring a heavy-weight ESB-like engine or proprietary development and deployment environment, becouse as a developer you
+      without requiring a heavy-weight ESB-like engine or proprietary development and deployment environment, because as a developer you
       should not be porting your Swing or console-based application to an ESB-like server or implementing proprietary interfaces just
       because you have an integration concern.
       </para>
