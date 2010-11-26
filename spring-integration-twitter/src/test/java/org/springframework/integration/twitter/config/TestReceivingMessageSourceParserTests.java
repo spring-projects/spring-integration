@@ -27,6 +27,8 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class TestReceivingMessageSourceParserTests {
 
+    @org.junit.Test public void test() { }
+
 	
 // NO LONGER RELEVANT...
 //	@Test
