@@ -143,14 +143,20 @@ configure(javaprojects) {
         testCompile "org.springframework:spring-test:$springVersion"
     }
 
-    // enable all compiler warnings (GRADLE-1077); eliminate path warnings
-    [compileJava, compileTestJava]*.options*.compilerArgs = ['-Xlint:all,-path']
+    // enable all compiler warnings; individual projects may customize further
+    xLintArg = '-Xlint:all'
+    [compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
     // generate .classpath files without GRADLE_CACHE variable (GRADLE-1079)
     eclipseClasspath.variables = [:]
 
     // Tie pom generation into the standard build lifecycle (INT-1609)
     assemble.dependsOn generatePom
+
+    test {
+        // suppress all console output during testing unless running `gradle -i`
+        logging.captureStandardOutput(LogLevel.INFO)
+    }
 }
 
 
@@ -271,6 +277,9 @@ project('spring-integration-jdbc') {
         testCompile "org.aspectj:aspectjrt:$aspectjVersion"
         testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
     }
+
+    // suppress derby localization jar path warnings during test compilation
+    compileTestJava.options.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-jms') {
@@ -306,6 +315,9 @@ project('spring-integration-mail') {
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
+
+    // suppress javax.activation path warnings
+    [compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-rmi') {
@@ -315,7 +327,11 @@ project('spring-integration-rmi') {
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-context:$springVersion"
     }
+
+    // suppress deprecation warnings (@SuppressWarnings("deprecation") is not enough for javac)
+    compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 }
+
 
 project('spring-integration-security') {
     description = 'Spring Integration Security Support'
@@ -389,6 +405,9 @@ project('spring-integration-ws') {
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
+
+    // suppress saaj path warnings
+    [compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 project('spring-integration-xml') {
@@ -415,6 +434,9 @@ project('spring-integration-xmpp') {
         testCompile project(":spring-integration-test")
         testCompile project(":spring-integration-stream")
     }
+
+    // suppress smack path warnings
+    [compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
 // -----------------------------------------------------------------------------
