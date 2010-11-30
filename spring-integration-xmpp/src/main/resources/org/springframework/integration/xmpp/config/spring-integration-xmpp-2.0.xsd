@@ -127,7 +127,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -167,7 +167,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -221,7 +221,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -261,7 +261,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string">
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

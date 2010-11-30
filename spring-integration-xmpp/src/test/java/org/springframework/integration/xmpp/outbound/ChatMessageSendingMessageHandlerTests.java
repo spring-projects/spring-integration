@@ -28,7 +28,11 @@ import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+import org.mockito.internal.verification.api.VerificationData;
+import org.mockito.verification.VerificationMode;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -47,37 +51,76 @@ public class ChatMessageSendingMessageHandlerTests {
 	
 
 	@Test
-	public void validateMessagePost() throws Exception{
+	public void validateMessagePostAsString() throws Exception{
 		XMPPConnection connection = mock(XMPPConnection.class);
-		ChatManager chantManager = mock(ChatManager.class);
-		when(connection.getChatManager()).thenReturn(chantManager);
-		Chat chat = mock(Chat.class);
-		when(chantManager.createChat(Mockito.any(String.class), Mockito.any(MessageListener.class))).thenReturn(chat);
-		
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("Test Message").
 					setHeader(XmppHeaders.CHAT_TO, "kermit@frog.com").
 					build();
-		// first Message
+		// first Message new 
 		handler.handleMessage(message);
 		
-		verify(chantManager, times(1)).createChat(Mockito.any(String.class), Mockito.any(MessageListener.class));
-		verify(chat, times(1)).sendMessage("Test Message");
+		class EqualSmackMessage extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
+		      public boolean matches(Object msg) {
+		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
+		    	  boolean bodyMatches = smackMessage.getBody().equals("Test Message");
+		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+		          return bodyMatches & toMatches;		          
+		      }
+		}
+		
+		verify(connection, times(1)).sendPacket(Mockito.argThat(new EqualSmackMessage()));
 		
 		// assuming we know thread ID although currently we do not provide this capability
 		message = MessageBuilder.withPayload("Hello Kitty").
 			setHeader(XmppHeaders.CHAT_TO, "kermit@frog.com").
 			setHeader(XmppHeaders.CHAT_THREAD_ID, "123").
 			build();
-		reset(chat, chantManager);
-		when(chantManager.getThreadChat("123")).thenReturn(chat);
 		
+		class EqualSmackMessageWithThreadId extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
+		      public boolean matches(Object msg) {
+		    	  org.jivesoftware.smack.packet.Message smackMessage = (org.jivesoftware.smack.packet.Message) msg;
+		    	  boolean bodyMatches = smackMessage.getBody().equals("Hello Kitty");
+		    	  boolean toMatches = smackMessage.getTo().equals("kermit@frog.com");
+		    	  boolean threadIdMatches = smackMessage.getThread().equals("123");
+		          return bodyMatches & toMatches & threadIdMatches;		          
+		      }
+		}
+		reset(connection);
 		handler.handleMessage(message);
+		
 		// in threaded conversation we need to look for existing chat
-		verify(chantManager, times(0)).createChat(Mockito.any(String.class), Mockito.any(MessageListener.class));
-		verify(chantManager, times(1)).getThreadChat("123");
-		verify(chat, times(1)).sendMessage("Hello Kitty");
+		verify(connection, times(1)).sendPacket(Mockito.argThat(new EqualSmackMessageWithThreadId()));
+	}
+	
+	@Test
+	public void validateMessagePostAsSmackMessage() throws Exception{
+		XMPPConnection connection = mock(XMPPConnection.class);
+		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
+		handler.afterPropertiesSet();
+		
+		org.jivesoftware.smack.packet.Message smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
+		smackMessage.setBody("Test Message");
+		
+		
+		Message<?> message = MessageBuilder.withPayload(smackMessage).build();
+		// first Message new 
+		handler.handleMessage(message);
+		
+		verify(connection, times(1)).sendPacket(smackMessage);
+		
+		// assuming we know thread ID although currently we do not provide this capability
+		smackMessage = new org.jivesoftware.smack.packet.Message("kermit@frog.com");
+		smackMessage.setBody("Hello Kitty");
+		smackMessage.setThread("123");
+		message = MessageBuilder.withPayload(smackMessage).build();
+		
+		reset(connection);
+		handler.handleMessage(message);
+		
+		// in threaded conversation we need to look for existing chat
+		verify(connection, times(1)).sendPacket(smackMessage);
 	}
 	
 	@Test(expected=MessageHandlingException.class)

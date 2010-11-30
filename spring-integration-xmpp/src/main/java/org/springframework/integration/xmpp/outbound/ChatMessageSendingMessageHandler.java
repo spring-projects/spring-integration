@@ -16,9 +16,7 @@
 
 package org.springframework.integration.xmpp.outbound;
 
-import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -45,36 +43,31 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) {
+	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		Object messageBody = message.getPayload();
-		String chatTo = (String) message.getHeaders().get(XmppHeaders.CHAT_TO);
-		Assert.state(StringUtils.hasText(chatTo), "The '" + XmppHeaders.CHAT_TO + "' header must not be null");
-		Assert.isInstanceOf(String.class, messageBody, "Only payload of type String is suported. You " +
-				"can apply transformer prior to sending message to this handler");
-		String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
-		Chat chat = getOrCreateChatWithParticipant(chatTo, threadId);
-		try {
-			chat.sendMessage((String) messageBody);
-		} 
-		catch (XMPPException e) {
-			throw new MessageHandlingException(message, e);
+		org.jivesoftware.smack.packet.Message xmppMessage = null;
+		
+		if (messageBody instanceof org.jivesoftware.smack.packet.Message) {
+			xmppMessage = (org.jivesoftware.smack.packet.Message) messageBody;
 		}
-	}
-
-	private Chat getOrCreateChatWithParticipant(String userId, String thread) {
-		Chat chat = null;
-		if (!StringUtils.hasText(thread)) {
-			chat = xmppConnection.getChatManager().createChat(userId, null);
-		} 
-		else {
-			chat = xmppConnection.getChatManager().getThreadChat(thread);
-			if (chat == null) {
-				chat = xmppConnection.getChatManager().createChat(userId, thread, null);
+		else if (messageBody instanceof String) {		
+			String chatTo = (String) message.getHeaders().get(XmppHeaders.CHAT_TO);
+			
+			Assert.state(StringUtils.hasText(chatTo), "The '" + XmppHeaders.CHAT_TO + "' header must not be null");
+			xmppMessage = new org.jivesoftware.smack.packet.Message(chatTo);
+			
+			String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
+			if (StringUtils.hasText(threadId)){
+				xmppMessage.setThread(threadId);
 			}
+			xmppMessage.setBody((String) messageBody);
 		}
-		Assert.notNull(chat, "Failed to obtain Chat instance");
-		return chat;
+		else {
+			throw new MessageHandlingException(message, "Only payloads of type java.lang.String or org.jivesoftware.smack.packet.Message " +
+					"are suported. Was '" + messageBody.getClass().getName() + 
+					"' Consider adding a transformer prior to sending message to this handler");
+		}
+		this.xmppConnection.sendPacket(xmppMessage);
 	}
-
 }
