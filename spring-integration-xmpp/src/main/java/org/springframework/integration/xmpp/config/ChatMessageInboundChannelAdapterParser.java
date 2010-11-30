@@ -19,7 +19,6 @@ package org.springframework.integration.xmpp.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 
@@ -30,7 +29,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ChatMessageInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
+public class ChatMessageInboundChannelAdapterParser extends AbstractXmppInboundChannelAdapterParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -38,22 +37,8 @@ public class ChatMessageInboundChannelAdapterParser extends AbstractSingleBeanDe
 	}
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String connectionName = element.getAttribute("xmpp-connection");
-		builder.addConstructorArgReference(connectionName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
 
 }

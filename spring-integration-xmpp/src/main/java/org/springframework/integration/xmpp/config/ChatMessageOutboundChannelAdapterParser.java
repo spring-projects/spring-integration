@@ -16,11 +16,6 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the XMPP 'outbound-channel-adapter' element
@@ -28,15 +23,11 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ChatMessageOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class ChatMessageOutboundChannelAdapterParser extends AbstractXmppOutboundChannelAdapterParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHandler");
-		String connectionName = element.getAttribute("xmpp-connection");
-		builder.addConstructorArgReference(connectionName);
-		return builder.getBeanDefinition();
+	protected String getHandlerClassName() {
+		return "org.springframework.integration.xmpp.outbound.ChatMessageSendingMessageHandler";
 	}
 
 }

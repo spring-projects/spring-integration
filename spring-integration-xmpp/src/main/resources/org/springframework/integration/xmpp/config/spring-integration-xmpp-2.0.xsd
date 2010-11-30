@@ -20,11 +20,11 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="id" type="xsd:string" default="xmppConnection"/>
 			<xsd:attribute name="user" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-						The user name (e.g., somuser@gmail.com) that will be used by this connection object
+						The user name (e.g., someuser@gmail.com) that will be used by this connection object
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -174,7 +174,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+			<xsd:attribute name="xmpp-connection" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -207,7 +207,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+			<xsd:attribute name="xmpp-connection" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

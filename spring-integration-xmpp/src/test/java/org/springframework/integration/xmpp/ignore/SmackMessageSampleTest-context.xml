@@ -12,7 +12,6 @@
 	<context:property-placeholder location="classpath:test.properties"/>
 
 	<int-xmpp:xmpp-connection
-			id="testConnection"
 			user="${user.1.login}"
 			password="${user.1.password}"
 			host="${user.1.host}"
@@ -20,6 +19,6 @@
 	
 	<int:channel id="xmppInput"/>
 	
-	<int-xmpp:outbound-channel-adapter channel="xmppInput" xmpp-connection="testConnection"/>
+	<int-xmpp:outbound-channel-adapter channel="xmppInput"/>
 
 </beans>

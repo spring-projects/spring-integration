@@ -19,6 +19,7 @@ package org.springframework.integration.xmpp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
 
 import java.util.List;
 
@@ -61,6 +62,12 @@ public class XmppConnectionParserTests {
 		ConnectionConfiguration configuration = (ConnectionConfiguration) TestUtils.getPropertyValue(connection, "configuration");
 		assertEquals("localhost", configuration.getHost());
 		assertEquals(5222, configuration.getPort());
+	}
+	
+	@Test
+	public void testDefaultConnectionName() {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("XmppConnectionParserTests-simple.xml", this.getClass());
+		assertTrue(ac.containsBean("xmppConnection"));
 	}
 
 	@Test

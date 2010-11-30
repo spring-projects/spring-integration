@@ -27,6 +27,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @since 2.0
  */
 public class XmppNamespaceHandler extends NamespaceHandlerSupport {
+	
+	public final static String XMPP_CONNECTION_BEAN_NAME = "xmppConnection";
 
 	public void init() {
 		// connection
