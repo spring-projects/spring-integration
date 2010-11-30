@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
- * Parser for 'xmpp:presence-outbound-channel-adapter' element
+ * Base class of XMPP outbound parsers
  * 
  * @author Oleg Zhurakousky
  * @since 2.0.1
