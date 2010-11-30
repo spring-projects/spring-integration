@@ -29,7 +29,7 @@ import org.w3c.dom.Element;
  * Parser for 'xmpp:presence-outbound-channel-adapter' element
  * 
  * @author Oleg Zhurakousky
- * @since 2.0
+ * @since 2.0.1
  */
 public abstract class AbstractXmppOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 	

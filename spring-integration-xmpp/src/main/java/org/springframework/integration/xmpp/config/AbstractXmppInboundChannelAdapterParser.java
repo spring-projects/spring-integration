@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  * Base class for XMPP inbound parsers
  * 
  * @author Oleg Zhurakousky
- * @since 2.0
+ * @since 2.0.1
  */
 public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
