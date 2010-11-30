@@ -58,6 +58,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
   subscription-mode="accept_all"/>
       ]]></programlisting>
     </para>
+    
+    <para>
+    	<note>
+    	For added convenience you can rely on the default naming convention and omit the <code>id</code> attribute. 
+    	The default name <emphasis>xmppConnection</emphasis> will be used for this connection bean.
+    	</note>
+    </para>
   </section>
 
   <section id="xmpp-messages">
@@ -183,6 +190,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 	Like its inbound counterpart, it requires a reference to an XMPP Connection.
       </para>
     </section>
+    <para>
+    	<note>
+    	
+		If you are relying on default naming convention for XMPP Connection bean (described earlier) and you only have one 
+		XMPP Connection bean configured in your Application Context, you may omit the <code>xmpp-connection</code> attribute and 
+		rely on the default naming convention. The bean with the name <emphasis>xmppConnection</emphasis> will be located and 
+		injected into the adapters.
+    	</note>
+    </para>
   </section>
   <section id="xmpp-appendices">
     	<title>Appendices</title>

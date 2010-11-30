@@ -83,12 +83,8 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.CHAT_TO, "oleg").build();
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
-		ChatManager chatManager = mock(ChatManager.class);
-		when(connection.getChatManager()).thenReturn(chatManager);
-		Chat chat = mock(Chat.class);
-		when(chatManager.createChat(Mockito.anyString(), Mockito.any(MessageListener.class))).thenReturn(chat);
 		channel.send(message);
-		//verify(chat, times(1)).sendMessage("hello");
+		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 	}
 
 }
