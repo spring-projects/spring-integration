@@ -30,10 +30,11 @@ import com.jcraft.jsch.UserInfo;
  *
  * @author Josh Long
  * @author Mario Gray
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class DefaultSftpSessionFactory implements SessionFactory {
-
+	
 	private volatile String host;
 
 	private volatile int port = 22; // the default
@@ -97,6 +98,8 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	}
 
 	private com.jcraft.jsch.Session initJschSession() throws Exception { 
+		JSch.setLogger(new JschLogger());
+		
 		if (this.port <= 0) {
 			this.port = 22;
 		}
