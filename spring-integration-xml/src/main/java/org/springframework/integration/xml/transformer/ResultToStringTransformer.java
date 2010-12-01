@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xml.transformer;
 
+import java.util.Properties;
+
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -36,6 +38,8 @@ import org.springframework.xml.transform.StringResult;
  */
 public class ResultToStringTransformer implements ResultTransformer {
 
+	private volatile Properties outputProperties;
+
 	private final TransformerFactory transformerFactory;
 
 
@@ -43,6 +47,10 @@ public class ResultToStringTransformer implements ResultTransformer {
 		this.transformerFactory = TransformerFactory.newInstance();
 	}
 
+
+	public void setOutputProperties(Properties outputProperties) {
+		this.outputProperties = outputProperties;
+	}
 
 	public Object transformResult(Result result) {
 		String returnString = null;
@@ -68,9 +76,14 @@ public class ResultToStringTransformer implements ResultTransformer {
 	}
 
 	private Transformer getNewTransformer() throws TransformerConfigurationException {
+		Transformer transformer = null;
 		synchronized (this.transformerFactory) {
-			return this.transformerFactory.newTransformer();
+			transformer = this.transformerFactory.newTransformer();
 		}
+		if (this.outputProperties != null) {
+			transformer.setOutputProperties(this.outputProperties);
+		}
+		return transformer;
 	}
 
 }
