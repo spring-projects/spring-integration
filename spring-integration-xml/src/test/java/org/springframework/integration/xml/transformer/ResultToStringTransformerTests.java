@@ -19,6 +19,9 @@ package org.springframework.integration.xml.transformer;
 import static junit.framework.Assert.assertTrue;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
+import java.util.Properties;
+
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
 
@@ -31,6 +34,7 @@ import org.springframework.xml.transform.StringResult;
 
 /**
  * @author Jonas Partner
+ * @author Dave Turanski
  */
 public class ResultToStringTransformerTests {
 
@@ -51,6 +55,27 @@ public class ResultToStringTransformerTests {
 		assertTrue("Wrong transformed type expected String", transformed instanceof String);
 		String transformedString = (String) transformed;
 		assertXMLEqual("Wrong content", doc, transformedString);
+	}
+	
+	@Test
+	public void testWithOutputProperties() throws Exception {
+		String formattedDoc = "<order>\n  <orderItem>test</orderItem>\n</order>";
+
+		DOMResult result = XmlTestUtil.getDomResultForString(doc);
+		
+		Properties outputProperties = new Properties();
+		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
+		outputProperties.setProperty(OutputKeys.INDENT,"yes");
+		outputProperties.setProperty("{http://xml.apache.org/xslt}indent-amount","2");
+		
+		transformer.setOutputProperties(outputProperties);
+		
+		Object transformed = transformer.transformResult(result);
+		System.out.println(transformed);
+		assertTrue("Wrong transformed type expected String", transformed instanceof String);
+		String transformedString = (String) transformed;
+		
+		assertXMLEqual("Wrong content", formattedDoc, transformedString);
 	}
 
 	@Test
