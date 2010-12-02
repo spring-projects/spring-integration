@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.sftp.session;
 
-import java.util.logging.Level;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
