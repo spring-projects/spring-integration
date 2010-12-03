@@ -18,8 +18,10 @@ package org.springframework.integration.http.outbound;
 
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -258,15 +260,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
 		Object payload = requestMessage.getPayload();
-		
-		MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-				: this.resolveContentType(payload);
-		if (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED) || contentType.equals(MediaType.MULTIPART_FORM_DATA)){
-			if (!(payload instanceof MultiValueMap)){
+		if (httpHeaders.getContentType() == null) {
+			MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+					: this.resolveContentType(payload);
+			httpHeaders.setContentType(contentType);
+		}
+		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
+				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
+			if (!(payload instanceof MultiValueMap)) {
 				payload = this.convertToMultiValueMap((Map) payload);
 			}
 		}
-		httpHeaders.setContentType(contentType);
 		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
 			return new HttpEntity<Object>(payload, httpHeaders);
 		}
@@ -288,13 +292,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		else if (content instanceof Source) {
 			contentType = MediaType.TEXT_XML;
 		}
-		else if (content instanceof Map){
-			/*
-			 * We need to check separately for MULTIPART as well as URLENCODED simply because
-			 * MultiValueMap<Object, Object> is actually valid content for serialization
-			 */
-			if (this.isFormData((Map<Object, ?>) content)){
-				if (this.isMultipart((Map<String, ?>)content)){
+		else if (content instanceof Map) {
+			// We need to check separately for MULTIPART as well as URLENCODED simply because
+			// MultiValueMap<Object, Object> is actually valid content for serialization
+			if (this.isFormData((Map<Object, ?>) content)) {
+				if (this.isMultipart((Map<String, ?>)content)) {
 					contentType = MediaType.MULTIPART_FORM_DATA;
 				} 
 				else {
@@ -311,27 +313,26 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private MediaType resolveContentType(String content, String charset) {
 		return new MediaType("text", "plain", Charset.forName(charset));
 	}
-	
-	
+
 	@SuppressWarnings("unchecked")
-	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<Object, Object> simpleContentMap){
-		
+	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<Object, Object> simpleMap) {
 		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
-		for (Object key : simpleContentMap.keySet()) {
-			Object value = simpleContentMap.get(key);
-			if (value instanceof Object[]){
+		for (Object key : simpleMap.keySet()) {
+			Object value = simpleMap.get(key);
+			if (value instanceof Object[]) {
 				Object[] valueArray = (Object[]) value;
 				value = Arrays.asList(valueArray);	
-			} 
-			if (value instanceof Collection){
-				multipartValueMap.put(key, (List<Object>) value);
-			} 
+			}
+			if (value instanceof Collection) {
+				multipartValueMap.put(key, new ArrayList<Object>((Collection<?>) value));
+			}
 			else {
 				multipartValueMap.add(key, value);
 			}
 		}
 		return multipartValueMap;
 	}
+
 	/**
 	 * If all keys are Strings, and some values are not Strings we'll consider 
 	 * the Map to be multipart/form-data
