@@ -45,6 +45,30 @@ public class XPathRouterTests {
 		assertEquals("Wrong number of channels returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "one", channelNames[0]);
 	}
+	
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void simpleSingleAttributeAsString() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
+		XPathRouter router = new XPathRouter(expression);
+		router.setEvaluateAsNode(false);
+		Object[] channelNames = router.getChannelIdentifiers(new GenericMessage(doc)).toArray();
+		assertEquals("Wrong number of channels returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "one", channelNames[0]);
+	}
+	
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void simpleRootNode() throws Exception {	
+		Document doc = XmlTestUtil.getDocumentForString("<doc><foo>oleg</foo><bar>bang</bar></doc>");
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("name(./node())");
+		XPathRouter router = new XPathRouter(expression);
+		router.setEvaluateAsNode(false);
+		Object[] channelNames = router.getChannelIdentifiers(new GenericMessage(doc)).toArray();
+		assertEquals("Wrong number of channels returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "doc", channelNames[0]);
+	}
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -57,16 +81,24 @@ public class XPathRouterTests {
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
 		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
 	}
+	
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
+	/*
+	 * Will return only one (the first node text in the collection), since 
+	 * the evaluation return type use is String (not NODESET)
+	 * This test is just for sanity and the reminder that setting 'evaluateAsNode'
+	 * to 'false' would still result in no exception but result will most likely be 
+	 * not what is expected.
+	 */
 	public void multipleNodeValuesAsString() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
 		XPathRouter router = new XPathRouter(expression);
+		router.setEvaluateAsNode(false);
 		Object[] channelNames = router.getChannelIdentifiers(new GenericMessage("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>")).toArray();
-		assertEquals("Wrong number of channels returned", 2, channelNames.length);
+		assertEquals("Wrong number of channels returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
-		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
 	}
 
 	@Test(expected = MessagingException.class)

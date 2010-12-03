@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.router;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,8 @@ public class XPathRouter extends AbstractMessageRouter {
 	private final XPathExpression xPathExpression;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-
+	
+	private volatile boolean evaluateAsNode = true;
 
 	/**
 	 * Create a router that uses an XPath expression. The expression may
@@ -95,6 +97,9 @@ public class XPathRouter extends AbstractMessageRouter {
 		this.xPathExpression = expression;
 	}
 
+	public void setEvaluateAsNode(boolean evaluateAsNode) {
+		this.evaluateAsNode = evaluateAsNode;
+	}
 
 	/**
 	 * Specify the Converter to use when converting payloads prior to XPath evaluation.
@@ -110,9 +115,14 @@ public class XPathRouter extends AbstractMessageRouter {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
-		return this.xPathExpression.evaluate(node, this.nodeMapper);
+		if (this.evaluateAsNode){
+			return this.xPathExpression.evaluate(node, this.nodeMapper);
+		}
+		else {
+			return Collections.singletonList((Object)this.xPathExpression.evaluateAsString(node));
+		}
 	}
 
 
