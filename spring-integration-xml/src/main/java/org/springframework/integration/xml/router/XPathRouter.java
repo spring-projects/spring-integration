@@ -47,7 +47,7 @@ public class XPathRouter extends AbstractMessageRouter {
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 	
-	private volatile boolean evaluateAsNode = true;
+	private volatile boolean evaluateAsString = false;
 
 	/**
 	 * Create a router that uses an XPath expression. The expression may
@@ -97,8 +97,8 @@ public class XPathRouter extends AbstractMessageRouter {
 		this.xPathExpression = expression;
 	}
 
-	public void setEvaluateAsNode(boolean evaluateAsNode) {
-		this.evaluateAsNode = evaluateAsNode;
+	public void setEvaluateAsString(boolean evaluateAsString) {
+		this.evaluateAsString = evaluateAsString;
 	}
 
 	/**
@@ -117,11 +117,11 @@ public class XPathRouter extends AbstractMessageRouter {
 	@SuppressWarnings("unchecked")
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
-		if (this.evaluateAsNode){
-			return this.xPathExpression.evaluate(node, this.nodeMapper);
+		if (this.evaluateAsString){		
+			return Collections.singletonList((Object)this.xPathExpression.evaluateAsString(node));
 		}
 		else {
-			return Collections.singletonList((Object)this.xPathExpression.evaluateAsString(node));
+			return this.xPathExpression.evaluate(node, this.nodeMapper);
 		}
 	}
 

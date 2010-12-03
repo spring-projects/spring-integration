@@ -12,7 +12,7 @@
 		<int-xml:xpath-expression expression="/name"/>	
 	</int-xml:xpath-router>
 	
-	<int-xml:xpath-router id="xpathRouterAsString" input-channel="xpathStringChannel" evaluate-as-node="false">
+	<int-xml:xpath-router id="xpathRouterAsString" input-channel="xpathStringChannel" evaluate-as-string="true">
 		<int-xml:xpath-expression expression="name(./node())"/>	
 	</int-xml:xpath-router>
 	

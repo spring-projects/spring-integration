@@ -47,7 +47,7 @@ public class XPathRouterParser extends AbstractRouterParser {
 				element.getNamespaceURI(), "xpath-expression");
 		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(xpathRouterBuilder, element, "evaluate-as-node");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(xpathRouterBuilder, element, "evaluate-as-string");
 		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,

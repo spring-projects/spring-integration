@@ -485,20 +485,61 @@
     <si:poller fixed-rate="2000"/>
 </si-xml:xpath-splitter>]]></programlisting>
     </para>
+    
+    
     <para>
       XPath router namespace support allows for the creation of a Message Endpoint with an input channel but no output channel
-      since the output channel is determined dynamically.  The <code>multi-channel</code> attribute causes the creation of a multi channel router capable of
-      routing a single message to many channels when true and a single channel router when false.
-      <programlisting language="xml"><![CDATA[<!-- route the message according to exactly one order type channel -->
-<si-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel" multi-channel="false">
+      since the output channel(s) is determined dynamically.  
+      <programlisting language="xml"><![CDATA[
+<si-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
     <si-xml:xpath-expression expression="/order/type"/>
-</si-xml:xpath-router>
-
-<!-- route the order to all responders-->
-<si-xml:xpath-router id="responderRouter" input-channel="orderChannel" multi-channel="true">
+</si-xml:xpath-router>	
+]]></programlisting>
+    </para>
+    
+    <para>
+     Internally XPath expression will be evaluated as <emphasis>NODESET</emphasis> type and converted to a 
+      <classname>List&lt;String&gt;</classname> representing channel names. Typically such list will contain a single channel name.
+	  However, based on the result of an XPath Expression XPath router can also take on the characteristics of the <emphasis>Recipient List Router</emphasis> 
+	  if XPath Expression returns more then one value, thus resulting in the <classname>List&lt;String&gt;</classname> containing more 
+	  then one channel name. In that case Message will be sent to all channels in the list.	
+	  So assuming that the xml file passed to the router configured below contains many <code>responder</code> sub-elements representing channel names, 
+	  the message will be sent to all of those channels.
+	  
+	  <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
+<si-xml:xpath-router id="responderRouter" input-channel="orderChannel">
     <si-xml:xpath-expression expression="/request/responders"/>
-    <si:poller fixed-rate="2000"/>
-</si-xml:xpath-router>]]></programlisting>
+</si-xml:xpath-router>	
+]]></programlisting>
+
+    If the returned values do not represent the channel names additional mapping could be specified. For example if 
+    the <code>/request/responders</code> expression results in two values <code>responderA</code> and <code>responderB</code> but 
+    you don't want to couple the responder names to channel names you may provide additional mapping as such:
+    <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
+<si-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <si-xml:xpath-expression expression="/request/responders"/>
+    <int-xml:mapping value="responderA" channel="channelA"/>	
+    <int-xml:mapping value="responderB" channel="channelB"/>	
+</si-xml:xpath-router>	
+]]></programlisting>
+    </para>
+    
+    <para>
+    As we already said the default evaluation type for XPath expressions is NODESET which is converted 
+	to a List&lt;String&gt; of channel names, thus handling single channel scenarios as well as multiple.
+	However certain XPath expressions may evaluate as String type from the very 
+	beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in 
+	the exception if default evaluation type (NODESET) is used. 
+	For these scenarious you may use <code>evaluate-as-string</code> attribute which will allow you to manage the 
+	evaluation type. It is FALSE by default, however if set to TRUE, the String evaluation type will be used.
+	For example if we want to route based on the name of the root node we can have use the following configuration:
+	
+	<programlisting language="xml"><![CDATA[<int-xml:xpath-router id="xpathRouterAsString" 
+		input-channel="xpathStringChannel" 
+		evaluate-as-string="true">
+	<int-xml:xpath-expression expression="name(./node())"/>	
+</int-xml:xpath-router>	
+]]></programlisting>
     </para>
   </section>
 
