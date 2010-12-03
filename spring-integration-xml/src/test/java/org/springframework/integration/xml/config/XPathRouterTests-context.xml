@@ -12,13 +12,17 @@
 		<int-xml:xpath-expression expression="/name"/>	
 	</int-xml:xpath-router>
 	
+	<int-xml:xpath-router id="xpathRouterAsString" input-channel="xpathStringChannel" evaluate-as-node="false">
+		<int-xml:xpath-expression expression="name(./node())"/>	
+	</int-xml:xpath-router>
+	
 	<int-xml:xpath-router id="xpathRouterWithMapping" input-channel="xpathRouterWithMappingChannel">
 		<int-xml:xpath-expression expression="/name"/>
 		<int-xml:mapping value="channelA" channel="channelB"/>	
 	</int-xml:xpath-router>
 	
 	<int-xml:xpath-router id="xpathRouterWithMappingMultiChannel" input-channel="multiChannelRouterChannel">
-		<int-xml:xpath-expression expression="/root/name"/>
+		<int-xml:xpath-expression expression="/root/name" />
 		<int-xml:mapping value="channelA" channel="channelA"/>	
 		<int-xml:mapping value="channelB" channel="channelA"/>	
 	</int-xml:xpath-router>

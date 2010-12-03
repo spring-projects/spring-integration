@@ -265,5 +265,16 @@ public class XPathRouterParserTests {
 		assertNotNull(channelA.receive(10));
 		assertNotNull(channelB.receive(10));
 	}
+	@Test
+	public void testWithStringEvaluationType() throws Exception {
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());	
+		MessageChannel inputChannel = ac.getBean("xpathStringChannel", MessageChannel.class);
+		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
+		Document doc = XmlTestUtil.getDocumentForString("<channelA/>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		inputChannel.send(docMessage);
+		assertNotNull(channelA.receive(10));
+		
+	}
 
 }

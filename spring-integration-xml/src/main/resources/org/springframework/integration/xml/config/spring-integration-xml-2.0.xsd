@@ -369,6 +369,18 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="evaluate-as-node" type="xsd:boolean" default="true">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+					By default XPath expressions are evaluated as NODESET type and then converted 
+					to a List<String> of channel names, thus handling single channel scenarios as well as multiple.
+					However certain XPath expressions may evaluate as String type from the very 
+					beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in 
+					the exception if default evaluation type (NODESET) is used. This flag will allow you to manage the 
+					evaluation type. It is TRUE by default, however if set to FALSE, the String evaluation type will be used.
+						]]></xsd:documentation>
+				</xsd:annotation>	
+			</xsd:attribute>
 			<xsd:attribute name="input-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

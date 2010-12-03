@@ -23,6 +23,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractRouterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,6 +47,7 @@ public class XPathRouterParser extends AbstractRouterParser {
 				element.getNamespaceURI(), "xpath-expression");
 		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(xpathRouterBuilder, element, "evaluate-as-node");
 		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
