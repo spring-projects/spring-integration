@@ -34,7 +34,7 @@
                    channel="channel"
                    mbean-server="someServer"
                    object-name="example.domain:name=somePublisher"
-                   notification-fliter="notificationFilter"
+                   notification-filter="notificationFilter"
                    handback="myHandback"/&gt;</programlisting> Since the
     notification-listening adapter is registered with the MBeanServer
     directly, it is event-driven and does not require any poller
