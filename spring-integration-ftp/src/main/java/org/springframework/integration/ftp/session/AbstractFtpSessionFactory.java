@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
 import java.net.SocketException;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
@@ -26,6 +27,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPReply;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -36,12 +38,12 @@ import org.springframework.util.Assert;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory {
 
 	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
-
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -54,8 +56,8 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	protected String password;
 
 	protected int port = FTP.DEFAULT_PORT;
-
-	protected String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
+	
+	protected int bufferSize = 2048; //see https://issues.apache.org/jira/browse/NET-207
 
 	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
@@ -80,6 +82,10 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		Assert.notNull(config);
 		this.config = config;
 	}
+	
+	public void setBufferSize(int bufferSize) {
+		this.bufferSize = bufferSize;
+	}
 
 	public void setHost(String host) {
 		Assert.hasText(host);
@@ -100,12 +106,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		Assert.notNull(pass, "password should not be null");
 		this.password = pass;
 	}
-
-	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
-		Assert.notNull(remoteWorkingDirectory, "remote directory should not be null");
-		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
-	}
-
 	/**
 	 * ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0 <br>
 	 * A constant indicating the FTP session is expecting all transfers
@@ -139,41 +139,46 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private T createClient() throws SocketException, IOException { 
-		T client = this.createClientInstance();
+		final T client = this.createClientInstance();
 		Assert.notNull(client, "client must not be null");
 		client.configure(this.config);
 		Assert.hasText(this.username, "username is required");
-		client.connect(this.host);
-		this.afterConnect(client);
-		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
-			throw new MessagingException("Connecting to server [" +
-					this.host + ":" + this.port + "] failed. Please check the connection.");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Connected to server [" + this.host + ":" + this.port + "]");
-		}
-		if (!client.login(username, password)) {
-			throw new MessagingException(
-					"Login failed. Please check the username and password.");
-		}
-		this.updateClientMode(client);
-		client.setFileType(this.fileType);
-		if (logger.isDebugEnabled()) {
-			logger.debug("login successful");
-		}
-		if (!this.remoteWorkingDirectory.equals(client.printWorkingDirectory()) &&
-				!client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
-			throw new MessagingException("Could not change directory to '" +
-					remoteWorkingDirectory + "'. Please check the path.");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("working directory is: " + client.printWorkingDirectory());
-		}
-		if (client != null) {
-			this.postProcessClient(client);
-		}
-		return client;
+		
+		this.postProcessClientBeforeConnect(client);
+		
+		ProxyFactory factory = new ProxyFactory(client);
+		factory.setProxyTargetClass(true);
+		factory.addAdvice(new MethodInterceptor() {	
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				String methodName = invocation.getMethod().getName();
+				if (!methodName.endsWith("connect")){ // will take care of both 'connect' and 'disconnect'
+					if (!client.isConnected()){
+						client.connect(host);
+						postProcessClientAfterConnect	(client);
+						if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
+							throw new MessagingException("Connecting to server [" +
+									host + ":" + port + "] failed. Please check the connection.");
+						}
+						
+						logger.debug("Connected to server [" + host + ":" + port + "]");
+						
+						if (!client.login(username, password)) {
+							throw new IllegalStateException("Login failed. The respponse from the server is: " + 
+									client.getReplyString());
+						}
+					
+						updateClientMode(client);
+						client.setFileType(fileType);
+						client.setBufferSize(bufferSize);
+					}
+				}
+				return invocation.proceed();
+			}
+		});
+
+		return (T) factory.getProxy();
 	}
 
 	/**
@@ -195,18 +200,16 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	protected abstract T createClientInstance();
 
 	/**
-	 * this is a hook to setup the state of the {@link org.apache.commons.net.ftp.FTPClient} impl *after* the
-	 * implementation's {@link org.apache.commons.net.ftp.FTPClient#connect(String)} method's been called but before any
-	 * action's been taken.
-	 *
-	 * @param t the ftp client instance on which to act
-	 * @throws IOException if anything should go wrong
+	 * Will handle additional initialization after client.connect() method was invoked, 
+	 * but before any action on the client has been taken 
 	 */
-	protected void afterConnect(T t) throws IOException {
+	protected void postProcessClientAfterConnect(T t) throws IOException {
 		// NOOP
 	}
-
-	protected void postProcessClient(T t) throws IOException {
+	/**
+	 * Will handle additional initialization before client.connect() method was invoked. 
+	 */
+	protected void postProcessClientBeforeConnect(T client) throws IOException {
 		// NOOP
 	}
 

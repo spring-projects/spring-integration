@@ -55,7 +55,7 @@ public class FtpSendingMessageHandlerTest {
 		sessionFactory.setUsername("kermit");
 		sessionFactory.setPassword("frog");
 		sessionFactory.setHost("foo.com");
-		sessionFactory.setRemoteWorkingDirectory("remote-test-dir");
+		//sessionFactory.setRemoteWorkingDirectory("remote-test-dir");
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

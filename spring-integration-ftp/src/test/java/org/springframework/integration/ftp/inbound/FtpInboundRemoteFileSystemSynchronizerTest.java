@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -71,8 +71,7 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		ftpSessionFactory.setUsername("kermit");
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
-		ftpSessionFactory.setRemoteWorkingDirectory("remote-test-dir");
-
+		
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
@@ -117,10 +116,10 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 					file.setName(fileName);
 					file.setType(FTPFile.FILE_TYPE);
 					ftpFiles.add(file);
-					when(ftpClient.retrieveFileStream(fileName)).thenReturn(new FileInputStream("remote-test-dir/" + fileName));
+					when(ftpClient.retrieveFile(Mockito.eq("remote-test-dir/" + fileName) , Mockito.any(OutputStream.class))).thenReturn(true);
 				}
 				when(ftpClient.listFiles("remote-test-dir")).thenReturn(ftpFiles.toArray(new FTPFile[]{}));
-						
+				when(ftpClient.deleteFile(Mockito.anyString())).thenReturn(true);
 				return ftpClient;
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to create mock client", e);

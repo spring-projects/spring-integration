@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,6 +32,7 @@ import org.springframework.util.Assert;
  * Implementation of {@link Session} for FTP.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 class FtpSession implements Session {
@@ -46,21 +48,26 @@ class FtpSession implements Session {
 	}
 
 
-	public boolean rm(String path) {
+	public boolean remove(String path) {
+		Assert.hasText(path, "path must not be null");
+		boolean completed = false;
 		try {
-			this.client.deleteFile(path);
-			return true;
+			completed = this.client.deleteFile(path);
+			if (!completed){
+				throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
+			}
 		}
 		catch (IOException e) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("failed to delete file", e);
 			}
-			return false;
 		}
+		return completed;
 	}
 
 	@SuppressWarnings({"unchecked"})
-	public FTPFile[] ls(String path) {
+	public FTPFile[] list(String path) {
+		Assert.hasText(path, "path must not be null");
 		try {
 			return this.client.listFiles(path);
 		}
@@ -72,29 +79,24 @@ class FtpSession implements Session {
 		}
 	}
 
-	public InputStream get(String path) {
-		try {
-			InputStream inputStream = this.client.retrieveFileStream(path);
-			this.client.completePendingCommand();
-			return inputStream;
+	public void copy(String path, OutputStream fos) throws IOException{
+		Assert.hasText(path, "path must not be null");
+		Assert.notNull(fos, "outputStream must not be null");
+		boolean completed = this.client.retrieveFile(path, fos);
+		if (!completed){
+			throw new IOException("Failed to copy '" + path + "'. Server replied with: " + client.getReplyString());
 		}
-		catch (IOException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to retrieve file", e);
-			}
-			return null;
-		}
+		logger.info("File have been successfully transfered to: " + path);
 	}
 
-	public void put(InputStream inputStream, String path) {
+	public void copy(InputStream inputStream, String path) throws IOException{
 		Assert.notNull(inputStream, "inputStream must not be null");
-		Assert.notNull(path, "path must not be null");
-		try {
-			this.client.storeFile(path, inputStream);
+		Assert.hasText(path, "path must not be null");
+		boolean completed = client.storeFile(path, inputStream);
+		if (!completed){
+			throw new IOException("Failed to copy '" + path + "'. Server replied with: " + client.getReplyString());
 		}
-		catch (IOException e) {
-			throw new IllegalStateException("failed to copy file", e);
-		}
+		logger.info("File have been successfully transfered to: " + path);
 	}
 
 	public void close() {
@@ -107,5 +109,4 @@ class FtpSession implements Session {
 			}
 		}
 	}
-
 }

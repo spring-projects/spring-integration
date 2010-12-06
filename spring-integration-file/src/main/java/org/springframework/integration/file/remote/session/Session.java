@@ -16,7 +16,9 @@
 
 package org.springframework.integration.file.remote.session;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Common abstraction for a Session with a remote File system.
@@ -24,18 +26,18 @@ import java.io.InputStream;
  * @author Josh Long
  * @author Mario Gray
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public interface Session {
 
-	boolean rm(String path);
+	boolean remove(String path);
 
-	<F> F[] ls(String path);
+	<F> F[] list(String path);
+	
+	void copy(String source, OutputStream outputStream) throws IOException;
 
-	InputStream get(String source);
-
-	void put(InputStream inputStream, String destination);
+	void copy(InputStream inputStream, String destination) throws IOException;
 
 	void close();
-
 }

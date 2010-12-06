@@ -21,7 +21,6 @@
 		<property name="password" value="password"/>
 		<property name="clientMode" value="0"/>
 		<property name="fileType" value="2"/>
-		<property name="remoteWorkingDirectory" value="foo/bar"/>
 		<property name="useClientMode" value="true"/>
 		<property name="cipherSuites" value="a,b.c"/>
 		<property name="keyManager" ref="keyManager"/>

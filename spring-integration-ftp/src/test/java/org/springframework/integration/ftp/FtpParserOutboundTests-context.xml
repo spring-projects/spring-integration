@@ -16,7 +16,6 @@
 		<property name="password" value="password"/>
 		<property name="clientMode" value="0"/>
 		<property name="fileType" value="2"/>
-		<property name="remoteWorkingDirectory" value="temp"/>
 	</bean>
 
 	<int-ftp:outbound-channel-adapter id="ftpOutboundAdapter" 

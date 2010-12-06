@@ -9,9 +9,8 @@
 
 	<bean id="ftpClientFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
-		<property name="username" value="ozhurakousky"/>
+		<property name="username" value="oleg"/>
 		<property name="password" value="xxxx"/>
-		<property name="remoteWorkingDirectory" value="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-test-dir"/>
 	</bean>
 
 	<int-ftp:inbound-channel-adapter id="ftpInbound"

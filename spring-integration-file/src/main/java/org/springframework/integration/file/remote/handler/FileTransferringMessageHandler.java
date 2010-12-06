@@ -178,7 +178,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			remoteDirectory += File.separatorChar;
 		}
 		String remoteFilePath = remoteDirectory + file.getName();
-		session.put(fileInputStream, remoteFilePath);
+		session.copy(fileInputStream, remoteFilePath);
 		fileInputStream.close();
 		return true;
 	}

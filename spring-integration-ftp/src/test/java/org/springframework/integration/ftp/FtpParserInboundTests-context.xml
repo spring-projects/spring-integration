@@ -17,7 +17,6 @@
 		<property name="password" value="password"/>
 		<property name="clientMode" value="2"/>
 		<property name="fileType" value="2"/>
-		<property name="remoteWorkingDirectory" value="foo/bar"/>
 	</bean>
 	
 	<ftp:inbound-channel-adapter id="adapterFtp" 

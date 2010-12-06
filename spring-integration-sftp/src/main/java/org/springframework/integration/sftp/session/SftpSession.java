@@ -16,7 +16,9 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
@@ -24,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -53,7 +56,7 @@ class SftpSession implements Session {
 	}
 
 
-	public boolean rm(String path) {
+	public boolean remove(String path) {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.rm(path);
@@ -68,7 +71,7 @@ class SftpSession implements Session {
 	}
 
 	@SuppressWarnings("unchecked")
-	public LsEntry[] ls(String path) {
+	public LsEntry[] list(String path) {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			Vector<?> lsEntries = this.channel.ls(path);
@@ -90,28 +93,25 @@ class SftpSession implements Session {
 		return new LsEntry[0];
 	}
 
-	public InputStream get(String source) {
+	public void copy(String source, OutputStream os) throws IOException{
 		Assert.state(this.channel != null, "session is not connected");
+		
 		try {
-			return this.channel.get(source);
+			InputStream is = this.channel.get(source);
+			FileCopyUtils.copy(is, os);
 		}
 		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to retrieve file", e);
-			}
-			return null;
+			throw new IOException("failed to copy file", e);
 		}
 	}
 
-	public void put(InputStream inputStream, String destination) {
+	public void copy(InputStream inputStream, String destination) throws IOException{
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.put(inputStream, destination);
 		}
 		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to copy file", e);
-			}
+			throw new IOException("failed to copy file", e);
 		}
 	}
 

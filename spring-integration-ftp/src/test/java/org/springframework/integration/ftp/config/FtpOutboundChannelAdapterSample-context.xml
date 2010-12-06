@@ -9,9 +9,8 @@
 
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
-		<property name="username" value="ozhurakousky"/>
+		<property name="username" value="oleg"/>
 		<property name="password" value="xxxx"/>
-		<property name="remoteWorkingDirectory" value="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-target-dir"/>
 	</bean>
 	
 	<int:channel id="ftpChannel"/>
@@ -19,8 +18,5 @@
 	<int-ftp:outbound-channel-adapter 
 				session-factory="ftpSessionFactory" 
 				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-ftp/remote-target-dir"
-				channel="ftpChannel"/>
-	
-	
-	
+				channel="ftpChannel"/>	
 </beans>

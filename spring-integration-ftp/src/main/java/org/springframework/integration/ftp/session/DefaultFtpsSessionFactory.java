@@ -123,13 +123,13 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 	}
 
 	@Override
-	protected void afterConnect(FTPSClient ftpsClient) throws IOException {
+	protected void postProcessClientAfterConnect(FTPSClient ftpsClient) throws IOException {
 		ftpsClient.execPBSZ(0);
 		ftpsClient.execPROT(this.prot);
 	}
 
 	@Override
-	protected void postProcessClient(FTPSClient ftpsClient) throws IOException {
+	protected void postProcessClientBeforeConnect(FTPSClient ftpsClient) throws IOException {
 		if (StringUtils.hasText(this.authValue)) {
 			ftpsClient.setAuthValue(authValue);
 		}

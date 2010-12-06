@@ -33,7 +33,6 @@ import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -117,7 +116,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		try {
 			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire a Session");
-			F[] files = session.<F>ls(this.remoteDirectory);
+			F[] files = session.<F>list(this.remoteDirectory);
 			if (!ObjectUtils.isEmpty(files)) {
 				Collection<F> filteredFiles = this.filterFiles(files);
 				for (F file : filteredFiles) {
@@ -160,10 +159,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
 			try {
-				inputStream = session.get(remoteFilePath);
-				if (inputStream != null) {
-					FileCopyUtils.copy(inputStream, fileOutputStream);
-				}
+				session.copy(remoteFilePath, fileOutputStream);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
@@ -189,7 +185,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
-					session.rm(remoteFilePath);
+					session.remove(remoteFilePath);
 					if (logger.isDebugEnabled()) {
 						logger.debug("deleted " + remoteFilePath);
 					}
