@@ -60,7 +60,7 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;
 		for (MessageGroup group : this) {
-			if (group.getTimestamp() < threshold) {
+			if (group.getTimestamp() <= threshold) {
 				count++;
 				expire(group);
 			}
