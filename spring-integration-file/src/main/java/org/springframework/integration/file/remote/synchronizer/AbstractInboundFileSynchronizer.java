@@ -52,7 +52,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
+	static final String INCOMPLETE_EXTENSION = ".writing";
 
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
