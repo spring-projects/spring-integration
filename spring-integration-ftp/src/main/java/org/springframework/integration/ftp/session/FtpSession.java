@@ -63,7 +63,7 @@ class FtpSession implements Session {
 		return this.client.listFiles(path);
 	}
 
-	public void copy(String path, OutputStream fos) throws IOException{
+	public void read(String path, OutputStream fos) throws IOException{
 		Assert.hasText(path, "path must not be null");
 		Assert.notNull(fos, "outputStream must not be null");
 		boolean completed = this.client.retrieveFile(path, fos);
@@ -73,7 +73,7 @@ class FtpSession implements Session {
 		logger.info("File have been successfully transfered to: " + path);
 	}
 
-	public void copy(InputStream inputStream, String path) throws IOException{
+	public void write(InputStream inputStream, String path) throws IOException{
 		Assert.notNull(inputStream, "inputStream must not be null");
 		Assert.hasText(path, "path must not be null");
 		boolean completed = client.storeFile(path, inputStream);

@@ -21,9 +21,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -43,8 +40,6 @@ import com.jcraft.jsch.SftpException;
  * @since 2.0
  */
 class SftpSession implements Session {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ChannelSftp channel;
 
@@ -89,7 +84,7 @@ class SftpSession implements Session {
 		return new LsEntry[0];
 	}
 
-	public void copy(String source, OutputStream os) throws IOException{
+	public void read(String source, OutputStream os) throws IOException{
 		Assert.state(this.channel != null, "session is not connected");
 		
 		try {
@@ -101,7 +96,7 @@ class SftpSession implements Session {
 		}
 	}
 
-	public void copy(InputStream inputStream, String destination) throws IOException{
+	public void write(InputStream inputStream, String destination) throws IOException{
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.put(inputStream, destination);

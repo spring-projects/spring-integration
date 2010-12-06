@@ -125,12 +125,12 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			return this.targetSession.<F>list(path);
 		}
 
-		public void copy(String source, OutputStream os) throws IOException{
-			this.targetSession.copy(source, os);
+		public void read(String source, OutputStream os) throws IOException{
+			this.targetSession.read(source, os);
 		}
 
-		public void copy(InputStream inputStream, String destination) throws IOException{
-			this.targetSession.copy(inputStream, destination);
+		public void write(InputStream inputStream, String destination) throws IOException{
+			this.targetSession.write(inputStream, destination);
 		}
 
 		public boolean isOpen() {

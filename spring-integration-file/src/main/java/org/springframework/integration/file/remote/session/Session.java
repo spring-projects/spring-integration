@@ -35,9 +35,9 @@ public interface Session {
 
 	<F> F[] list(String path) throws IOException;
 	
-	void copy(String source, OutputStream outputStream) throws IOException;
+	void read(String source, OutputStream outputStream) throws IOException;
 
-	void copy(InputStream inputStream, String destination) throws IOException;
+	void write(InputStream inputStream, String destination) throws IOException;
 
 	void close();
 	

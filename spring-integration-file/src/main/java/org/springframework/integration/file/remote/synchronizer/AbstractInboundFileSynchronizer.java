@@ -159,7 +159,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
 			try {
-				session.copy(remoteFilePath, fileOutputStream);
+				session.read(remoteFilePath, fileOutputStream);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
