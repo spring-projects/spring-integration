@@ -109,4 +109,8 @@ class FtpSession implements Session {
 			}
 		}
 	}
+
+	public boolean isOpen() {
+		return this.client.isConnected();
+	}
 }

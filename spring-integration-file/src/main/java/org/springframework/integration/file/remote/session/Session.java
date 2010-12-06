@@ -40,4 +40,6 @@ public interface Session {
 	void copy(InputStream inputStream, String destination) throws IOException;
 
 	void close();
+	
+	boolean isOpen();
 }

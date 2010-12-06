@@ -39,6 +39,7 @@ import com.jcraft.jsch.SftpException;
  * @author Josh Long
  * @author Mario Gray
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 class SftpSession implements Session {
@@ -134,6 +135,10 @@ class SftpSession implements Session {
 		catch (JSchException e) {
 			throw new IllegalStateException("failed to connect", e);
 		}
+	}
+
+	public boolean isOpen() {
+		return this.channel.isConnected() && this.jschSession.isConnected();
 	}
 
 }

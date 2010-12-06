@@ -25,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.util.Assert;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -63,21 +62,23 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
 	}
 
-
 	public Session getSession() {
-		Assert.notNull(this.queue, "SftpSession is unavailable since the pool component is not started");
 		this.lock.lock();
 		try {
 			Session session = this.queue.poll();
+			if (session != null && !session.isOpen()){
+				this.queue.remove(session);
+				session = null;
+			}
 			if (null == session) {
 				session = sessionFactory.getSession();
 			}
+			
 			return (session != null) ? new CachedSession(session) : null;
 		} 
 		finally {
 			this.lock.unlock();
 		}
-		
 	}
 
 	public void destroy() {
@@ -96,7 +97,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 		catch (Throwable e) {
 			// log and ignore
-			logger.warning("Exception was thrown while destroying SftpSession. " + e);
+			logger.warning("Exception was thrown while destroying Session. " + e);
 		}
 	}
 
@@ -132,6 +133,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		public void copy(InputStream inputStream, String destination) throws IOException{
 			this.targetSession.copy(inputStream, destination);
+		}
+
+		public boolean isOpen() {
+			return this.targetSession.isOpen();
 		}
 	}
 

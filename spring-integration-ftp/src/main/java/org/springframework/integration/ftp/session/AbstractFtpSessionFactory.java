@@ -18,8 +18,6 @@ package org.springframework.integration.ftp.session;
 import java.io.IOException;
 import java.net.SocketException;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
@@ -27,7 +25,6 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPReply;
 
-import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -139,7 +136,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private T createClient() throws SocketException, IOException { 
 		final T client = this.createClientInstance();
 		Assert.notNull(client, "client must not be null");
@@ -148,37 +144,28 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		
 		this.postProcessClientBeforeConnect(client);
 		
-		ProxyFactory factory = new ProxyFactory(client);
-		factory.setProxyTargetClass(true);
-		factory.addAdvice(new MethodInterceptor() {	
-			public Object invoke(MethodInvocation invocation) throws Throwable {
-				String methodName = invocation.getMethod().getName();
-				if (!methodName.endsWith("connect")){ // will take care of both 'connect' and 'disconnect'
-					if (!client.isConnected()){
-						client.connect(host);
-						postProcessClientAfterConnect	(client);
-						if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
-							throw new MessagingException("Connecting to server [" +
-									host + ":" + port + "] failed. Please check the connection.");
-						}
-						
-						logger.debug("Connected to server [" + host + ":" + port + "]");
-						
-						if (!client.login(username, password)) {
-							throw new IllegalStateException("Login failed. The respponse from the server is: " + 
-									client.getReplyString());
-						}
-					
-						updateClientMode(client);
-						client.setFileType(fileType);
-						client.setBufferSize(bufferSize);
-					}
-				}
-				return invocation.proceed();
-			}
-		});
-
-		return (T) factory.getProxy();
+		// Connect
+		client.connect(host);
+		
+		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
+			throw new MessagingException("Connecting to server [" +
+					host + ":" + port + "] failed. Please check the connection.");
+		}	
+		logger.debug("Connected to server [" + host + ":" + port + "]");
+		
+		// Login
+		if (!client.login(username, password)) {
+			throw new IllegalStateException("Login failed. The respponse from the server is: " + 
+					client.getReplyString());
+		}
+		
+		this.postProcessClientAfterConnect(client);
+		
+		this.updateClientMode(client);
+		
+		client.setFileType(fileType);
+		client.setBufferSize(bufferSize);
+		return client;
 	}
 
 	/**
