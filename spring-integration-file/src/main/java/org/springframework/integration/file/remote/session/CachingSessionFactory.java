@@ -21,8 +21,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Logger;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 
@@ -38,7 +39,7 @@ import org.springframework.beans.factory.DisposableBean;
  */
 public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
-	private static Logger logger = Logger.getLogger(CachingSessionFactory.class.getName());
+	private static Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
 	public static final int DEFAULT_POOL_SIZE = 10;
 
@@ -48,9 +49,6 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	private final SessionFactory sessionFactory;
 
 	private final int maxPoolSize;
-
-	private final ReentrantLock lock = new ReentrantLock();
-
 
 	public CachingSessionFactory(SessionFactory sessionFactory) {
 		this(sessionFactory, DEFAULT_POOL_SIZE);
@@ -63,22 +61,20 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	}
 
 	public Session getSession() {
-		this.lock.lock();
-		try {
-			Session session = this.queue.poll();
+		Session session = this.queue.poll();
+
+		if (session == null || (session != null && !session.isOpen())) {
 			if (session != null && !session.isOpen()){
-				this.queue.remove(session);
-				session = null;
+				logger.debug("Located session in the pool but it is stale, will create new one.");
 			}
-			if (null == session) {
-				session = sessionFactory.getSession();
-			}
-			
-			return (session != null) ? new CachedSession(session) : null;
-		} 
-		finally {
-			this.lock.unlock();
+			session = sessionFactory.getSession();
+			logger.debug("Created new session");
 		}
+		else {
+			logger.debug("Using session from the pool");
+		}
+		
+		return new CachedSession(session);
 	}
 
 	public void destroy() {
@@ -97,7 +93,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 		catch (Throwable e) {
 			// log and ignore
-			logger.warning("Exception was thrown while destroying Session. " + e);
+			logger.warn("Exception was thrown while destroying Session. ", e);
 		}
 	}
 
@@ -112,18 +108,20 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		public void close() {
 			if (queue.size() < maxPoolSize) {
+				logger.debug("Releasing target session back to the pool");
 				queue.add(targetSession);
 			}
 			else {
+				logger.debug("Disconnecting target session");
 				targetSession.close();
 			}
 		}
 
-		public boolean remove(String path) {
+		public boolean remove(String path) throws IOException{
 			return this.targetSession.remove(path);
 		}
 
-		public <F> F[] list(String path) {
+		public <F> F[] list(String path) throws IOException{
 			return this.targetSession.<F>list(path);
 		}
 

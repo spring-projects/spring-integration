@@ -57,22 +57,19 @@ class SftpSession implements Session {
 	}
 
 
-	public boolean remove(String path) {
+	public boolean remove(String path) throws IOException{
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.rm(path);
 			return true;
 		}
 		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to remove file", e);
-			}
-			return false;
+			throw new IOException("Failed to remove file", e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public LsEntry[] list(String path) {
+	public LsEntry[] list(String path) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			Vector<?> lsEntries = this.channel.ls(path);
@@ -87,9 +84,7 @@ class SftpSession implements Session {
 			}
 		}
 		catch (SftpException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to list files", e);
-			}
+			throw new IOException("Failed to list files", e);
 		}
 		return new LsEntry[0];
 	}

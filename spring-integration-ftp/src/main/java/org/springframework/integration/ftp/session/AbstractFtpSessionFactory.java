@@ -162,7 +162,6 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.postProcessClientAfterConnect(client);
 		
 		this.updateClientMode(client);
-		
 		client.setFileType(fileType);
 		client.setBufferSize(bufferSize);
 		return client;

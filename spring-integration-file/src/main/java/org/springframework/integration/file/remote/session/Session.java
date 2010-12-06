@@ -31,9 +31,9 @@ import java.io.OutputStream;
  */
 public interface Session {
 
-	boolean remove(String path);
+	boolean remove(String path) throws IOException;
 
-	<F> F[] list(String path);
+	<F> F[] list(String path) throws IOException;
 	
 	void copy(String source, OutputStream outputStream) throws IOException;
 

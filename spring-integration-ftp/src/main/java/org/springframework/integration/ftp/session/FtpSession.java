@@ -48,35 +48,19 @@ class FtpSession implements Session {
 	}
 
 
-	public boolean remove(String path) {
+	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
-		boolean completed = false;
-		try {
-			completed = this.client.deleteFile(path);
-			if (!completed){
-				throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
-			}
-		}
-		catch (IOException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to delete file", e);
-			}
+		boolean completed = this.client.deleteFile(path);
+		if (!completed){
+			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
 		}
 		return completed;
 	}
 
 	@SuppressWarnings({"unchecked"})
-	public FTPFile[] list(String path) {
+	public FTPFile[] list(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
-		try {
-			return this.client.listFiles(path);
-		}
-		catch (IOException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to list files", e);
-			}
-			return new FTPFile[0];
-		}
+		return this.client.listFiles(path);
 	}
 
 	public void copy(String path, OutputStream fos) throws IOException{
@@ -111,6 +95,11 @@ class FtpSession implements Session {
 	}
 
 	public boolean isOpen() {
-		return this.client.isConnected();
+		try {
+			client.noop();
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
 	}
 }
