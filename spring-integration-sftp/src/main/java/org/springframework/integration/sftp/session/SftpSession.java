@@ -128,7 +128,7 @@ class SftpSession implements Session {
 	}
 
 	public boolean isOpen() {
-		return this.channel.isConnected() && this.jschSession.isConnected();
+		return this.jschSession.isConnected();
 	}
 
 }
