@@ -65,13 +65,13 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		if (session == null || (session != null && !session.isOpen())) {
 			if (session != null && !session.isOpen()){
-				logger.debug("Located session in the pool but it is stale, will create new one.");
+				logger.trace("Located session in the pool but it is stale, will create new one.");
 			}
 			session = sessionFactory.getSession();
-			logger.debug("Created new session");
+			logger.trace("Created new session");
 		}
 		else {
-			logger.debug("Using session from the pool");
+			logger.trace("Using session from the pool");
 		}
 		
 		return new CachedSession(session);
@@ -108,11 +108,11 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		public void close() {
 			if (queue.size() < maxPoolSize) {
-				logger.debug("Releasing target session back to the pool");
+				logger.trace("Releasing target session back to the pool");
 				queue.add(targetSession);
 			}
 			else {
-				logger.debug("Disconnecting target session");
+				logger.trace("Disconnecting target session");
 				targetSession.close();
 			}
 		}
