@@ -38,8 +38,11 @@ public interface Session {
 	void read(String source, OutputStream outputStream) throws IOException;
 
 	void write(InputStream inputStream, String destination) throws IOException;
+	
+	void rename(String pathFrom, String pathTo) throws IOException;
 
 	void close();
 	
 	boolean isOpen();
+	
 }

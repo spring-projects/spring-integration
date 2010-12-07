@@ -19,9 +19,7 @@ package org.springframework.integration.file.remote.handler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
 import org.springframework.expression.Expression;
@@ -29,6 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -48,9 +47,6 @@ import org.springframework.util.StringUtils;
  */
 public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
-	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
-
-
 	private final SessionFactory sessionFactory;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
@@ -60,6 +56,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = Charset.defaultCharset().name();
+	
+	private volatile boolean deleteOnExit;
 
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
@@ -94,10 +92,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		File file = this.redeemForStorableFile(message);
 		if (file != null && file.exists()) {
 			Session session = this.sessionFactory.getSession();
-			boolean sentSuccesfully = false;
 			try {
 				String targetDirectory = this.directoryExpressionProcessor.processMessage(message);
-				sentSuccesfully = this.sendFileToRemoteDirectory(file, targetDirectory, session);
+				String fileName = this.fileNameGenerator.generateFileName(message);
+				this.sendFileToRemoteDirectory(file, targetDirectory, fileName, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -112,59 +110,51 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 						"Error handling message for file [" + file + "]", e);
 			}
 			finally {
-				if (file.exists()) {
-					try {
-						file.delete();
-					}
-					catch (Throwable th) {
-						// ignore
+				if (deleteOnExit){
+					if (file.exists()) {
+						try {
+							file.delete();
+						}
+						catch (Throwable th) {
+							// ignore
+						}
 					}
 				}
 				if (session != null) {
 					session.close();
 				}
 			}
-			if (!sentSuccesfully) {
-				throw new MessageDeliveryException(message, "Failed to transfer file '" + file + "'");
-			}
 		}
-	}
-
-	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
-		FileCopyUtils.copy(sourceFile, tempFile);
-		tempFile.renameTo(resultFile);
-		return resultFile;
-	}
-
-	private File handleByteArrayMessage(byte[] bytes, File tempFile, File resultFile) throws IOException {
-		FileCopyUtils.copy(bytes, tempFile);
-		tempFile.renameTo(resultFile);
-		return resultFile;
-	}
-
-	private File handleStringMessage(String content, File tempFile, File resultFile, String charset) throws IOException {
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), charset);
-		FileCopyUtils.copy(content, writer);
-		tempFile.renameTo(resultFile);
-		return resultFile;
 	}
 
 	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
-			String generateFileName = this.fileNameGenerator.generateFileName(message);
-			File tempFile = new File(this.temporaryDirectory, generateFileName + TEMPORARY_FILE_SUFFIX);
-			File resultFile = new File(this.temporaryDirectory, generateFileName);
+			
 			File sendableFile = null;
-			if (payload instanceof String) {
-				sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);
+			
+			if (payload instanceof File){
+				sendableFile = (File) payload;
+				deleteOnExit = false;
 			}
-			else if (payload instanceof File) {
-				sendableFile = this.handleFileMessage((File) payload, tempFile, resultFile);
+			else if (payload instanceof byte[] || payload instanceof String) { 
+				String tempFileName = this.fileNameGenerator.generateFileName(message) + ".tmp";
+				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
+				deleteOnExit = true;
+				byte[] bytes = null;
+				if (payload instanceof String){
+					bytes = ((String)payload).getBytes(charset);
+				}
+				else {
+					bytes = (byte[]) payload;
+				}
+				FileCopyUtils.copy(bytes, sendableFile);
 			}
-			else if (payload instanceof byte[]) {
-				sendableFile = this.handleByteArrayMessage((byte[]) payload, tempFile, resultFile);
+			else {
+				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
+							"java.io.File, java.lang.String and byte[]");
 			}
+			
 			return sendableFile;
 		}
 		catch (Exception e) {
@@ -172,15 +162,19 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private boolean sendFileToRemoteDirectory(File file, String remoteDirectory, Session session) throws FileNotFoundException, IOException {
+	private void sendFileToRemoteDirectory(File file, String remoteDirectory, String pathTo, Session session) 
+											throws FileNotFoundException, IOException {
+		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, File.separator)) {
-			remoteDirectory += File.separatorChar;
+			remoteDirectory += File.separatorChar; 
 		}
-		String remoteFilePath = remoteDirectory + file.getName();
+		String remoteFilePath = remoteDirectory + file.getName() + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
+		// write remote file first with .writing extension
 		session.write(fileInputStream, remoteFilePath);
 		fileInputStream.close();
-		return true;
+		// then rename it to its final name
+		session.rename(remoteFilePath, pathTo);
 	}
 
 }

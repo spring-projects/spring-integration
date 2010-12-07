@@ -16,67 +16,127 @@
 
 package org.springframework.integration.sftp.outbound;
 
-import static org.mockito.Mockito.atLeast;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpTestSessionFactory;
+import org.springframework.util.FileCopyUtils;
+
+import com.jcraft.jsch.ChannelSftp;
 
 /**
  * @author Oleg Zhurakousky
  */
-// there are few validations in this tests, but it is mainly to increase code coverage during CI
 public class SftpSendingMessageHandlerTests {
+	
+	private static com.jcraft.jsch.Session jschSession = mock(com.jcraft.jsch.Session.class);
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testHandleFileNameMessage() throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
-		Session session = mock(Session.class);
-		when(sessionFactory.getSession()).thenReturn(session);
+	public void testHandleFileMessage() throws Exception {
+		File file = new File("remote-target-dir", "template.mf.test");
+		if (file.exists()){
+			file.delete();
+		}
+		SessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
-		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
-		handler.handleMessage(new GenericMessage("hello"));
-		verify(sessionFactory, times(1)).getSession();
+		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setExpression("payload + '.test'");
+		handler.setFileNameGenerator(fGenerator);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
+
+		handler.handleMessage(new GenericMessage<File>(new File("template.mf")));
+		assertTrue(new File("remote-target-dir", "template.mf.test").exists());
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testHandleFileAsByte() throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
-		Session session = mock(Session.class);
-		when(sessionFactory.getSession()).thenReturn(session);
+	public void testHandleStringMessage() throws Exception {
+		File file = new File("remote-target-dir", "foo.txt");
+		if (file.exists()){
+			file.delete();
+		}
+		SessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
-		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
+		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setExpression("'foo.txt'");
+		handler.setFileNameGenerator(fGenerator);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage("hello".getBytes()));
-		verify(sessionFactory, times(1)).getSession();
+		handler.handleMessage(new GenericMessage("hello"));
+		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	public void testHandleFileMessage() throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
-		Session session = mock(Session.class);
-		when(sessionFactory.getSession()).thenReturn(session);
+	public void testHandleBytesMessage() throws Exception {
+		File file = new File("remote-target-dir", "foo.txt");
+		if (file.exists()){
+			file.delete();
+		}
+		SessionFactory sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
-		handler.setRemoteDirectoryExpression(new SpelExpressionParser().parseExpression("'foo.txt'"));
+		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
+		fGenerator.setExpression("'foo.txt'");
+		handler.setFileNameGenerator(fGenerator);
+		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
 		handler.handleMessage(new GenericMessage("hello".getBytes()));
+		assertTrue(new File("remote-target-dir", "foo.txt").exists());
+	}
+	
+	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 		
-		File file = File.createTempFile("foo", ".txt");
-		handler.handleMessage(new GenericMessage(file));
-		verify(sessionFactory, atLeast(1)).getSession();
+		@SuppressWarnings("rawtypes")
+		public Session getSession() {
+			try {
+				ChannelSftp channel = mock(ChannelSftp.class);
+
+				doAnswer(new Answer() {
+					public Object answer(InvocationOnMock invocation)
+							throws Throwable {	
+						File file = new File((String)invocation.getArguments()[1]);
+						assertTrue(file.getName().endsWith(FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX));
+						FileCopyUtils.copy((InputStream)invocation.getArguments()[0], new FileOutputStream(file));
+						return null;
+					}
+					
+				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
+				
+				doAnswer(new Answer() {
+					public Object answer(InvocationOnMock invocation)
+							throws Throwable {
+						File file = new File((String) invocation.getArguments()[0]);
+						assertTrue(file.getName().endsWith(FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX));
+						file.renameTo(new File(file.getParent(), (String) invocation.getArguments()[1]));
+						return null;
+					}
+					
+				}).when(channel).rename(Mockito.anyString(), Mockito.anyString());
+				when(jschSession.openChannel("sftp")).thenReturn(channel);
+				return SftpTestSessionFactory.createSftpSession(jschSession);
+			} catch (Exception e) {
+				throw new RuntimeException("Failed to create mock sftp session", e);
+			}
+		}
 	}
 
 }

@@ -92,7 +92,7 @@ class SftpSession implements Session {
 			FileCopyUtils.copy(is, os);
 		}
 		catch (SftpException e) {
-			throw new IOException("failed to copy file", e);
+			throw new IOException("failed to read file", e);
 		}
 	}
 
@@ -102,7 +102,7 @@ class SftpSession implements Session {
 			this.channel.put(inputStream, destination);
 		}
 		catch (SftpException e) {
-			throw new IOException("failed to copy file", e);
+			throw new IOException("failed to write file", e);
 		}
 	}
 
@@ -129,6 +129,14 @@ class SftpSession implements Session {
 
 	public boolean isOpen() {
 		return this.jschSession.isConnected();
+	}
+
+	public void rename(String pathFrom, String pathTo) throws IOException {
+		try {
+			this.channel.rename(pathFrom, pathTo);
+		} catch (SftpException e) {
+			throw new IOException("failed to rename from " + pathFrom + " to " + pathTo, e);
+		}
 	}
 
 }

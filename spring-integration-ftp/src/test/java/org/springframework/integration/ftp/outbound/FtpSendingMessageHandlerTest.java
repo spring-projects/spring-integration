@@ -133,6 +133,14 @@ public class FtpSendingMessageHandlerTest {
 						return true;
 					}
 				});
+				when(ftpClient.rename(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Boolean>() {
+					public Boolean answer(InvocationOnMock invocation)
+							throws Throwable {
+						File file = new File((String) invocation.getArguments()[0]);
+						file.renameTo(new File(file.getParent(), (String) invocation.getArguments()[1]));
+						return true;
+					}
+				});
 				return ftpClient;
 			} catch (Exception e) {
 				throw new RuntimeException("Failed to create mock client", e);

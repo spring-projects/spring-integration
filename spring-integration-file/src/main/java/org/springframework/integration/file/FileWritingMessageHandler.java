@@ -56,7 +56,7 @@ import java.nio.charset.Charset;
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final String TEMPORARY_FILE_SUFFIX =".writing";
+	public static final String TEMPORARY_FILE_SUFFIX =".writing";
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());

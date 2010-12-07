@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 
@@ -78,7 +79,8 @@ class FtpSession implements Session {
 		Assert.hasText(path, "path must not be null");
 		boolean completed = client.storeFile(path, inputStream);
 		if (!completed){
-			throw new IOException("Failed to copy '" + path + "'. Server replied with: " + client.getReplyString());
+			throw new IOException("Failed to write to '" + (path+FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX) 
+					+ "'. Server replied with: " + client.getReplyString());
 		}
 		logger.info("File have been successfully transfered to: " + path);
 	}
@@ -101,5 +103,14 @@ class FtpSession implements Session {
 			return false;
 		}
 		return true;
+	}
+
+	public void rename(String pathFrom, String pathTo) throws IOException{
+		boolean completed = client.rename(pathFrom, pathTo);
+		if (!completed){
+			throw new IOException("Failed to rename '" + pathFrom + 
+					"' to " + pathTo + "'. Server replied with: " + client.getReplyString());
+		}
+		logger.info("File have been successfully renamed from: " + pathFrom + " to " + pathTo);
 	}
 }

@@ -136,6 +136,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		public boolean isOpen() {
 			return this.targetSession.isOpen();
 		}
+
+		public void rename(String pathFrom, String pathTo) throws IOException {
+			this.targetSession.rename(pathFrom, pathTo);
+		}
 	}
 
 }
