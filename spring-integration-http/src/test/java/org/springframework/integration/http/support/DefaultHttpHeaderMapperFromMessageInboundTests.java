@@ -18,6 +18,7 @@ package org.springframework.integration.http.support;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
+import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,7 +35,6 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.CollectionUtils;
 
-import com.sun.jndi.toolkit.url.Uri;
 
 /**
  * @author Oleg Zhurakousky
@@ -251,7 +251,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 	
-		assertEquals(new Uri("http://foo.com").toString(), headers.getLocation().toString());
+		assertEquals(new URI("http://foo.com").toString(), headers.getLocation().toString());
 	}
 	
 	// Pragma tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
