@@ -98,7 +98,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
+	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.inboundMapper();
 
 	private final boolean expectReply;
 

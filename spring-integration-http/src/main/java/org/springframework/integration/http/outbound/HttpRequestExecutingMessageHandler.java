@@ -83,7 +83,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile String charset = "UTF-8";
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
+	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
@@ -339,11 +339,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private boolean isMultipart(Map<String, ?> map) {
 		for (String key : map.keySet()) {
 			Object value = map.get(key);
-			if (value != null){
-				if (value.getClass().isArray()){
+			if (value != null) {
+				if (value.getClass().isArray()) {
 					value = CollectionUtils.arrayToList(value);	
 				}
-				if (value instanceof Collection){
+				if (value instanceof Collection) {
 					Collection<?> cValues = (Collection<?>) value;
 					for (Object cValue : cValues) {
 						if (cValue != null && !(cValue instanceof String)) {
@@ -358,15 +358,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		return false;
 	}
+
 	/**
 	 * If all keys and values are Strings, we'll consider the Map to be form data.
 	 */
 	private boolean isFormData(Map<Object, ?> map) {
 		for (Object	 key : map.keySet()) {
-			if (!(key instanceof String)){
+			if (!(key instanceof String)) {
 				return false;
 			} 	
 		}
 		return true;
 	}
+
 }
