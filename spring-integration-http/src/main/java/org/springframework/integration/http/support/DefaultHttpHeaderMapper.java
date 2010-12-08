@@ -388,7 +388,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 							: StringUtils.commaDelimitedListToStringArray((String) value);
 					Set<HttpMethod> allowedMethods = new HashSet<HttpMethod>();
 					for (String next : values) {
-						allowedMethods.add(HttpMethod.valueOf(next));
+						allowedMethods.add(HttpMethod.valueOf(next.trim()));
 					}
 					target.setAllow(allowedMethods);
 				}
