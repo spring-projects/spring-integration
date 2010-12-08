@@ -16,12 +16,16 @@
 package org.springframework.integration.http.support;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -168,7 +172,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals("UTF-8", headers.getAcceptCharset().get(0).displayName());
 	}
 	@Test
-	@Ignore // Since we allow coma delimited strings for ACCEPT, we may allow it here
+	@Ignore // Since we allow comma delimited strings for ACCEPT, we may allow it here
 	public void validateAcceptCharsetHeaderMultipleAsDelimitedString(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -452,4 +456,32 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals("foo", headers.getPragma());
 	}
+	
+	// Custom headers
+	
+	@Test
+	public void validateCustomHeaderWithNoHeaderNames() throws ParseException{
+		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foo", "foo");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNull(headers.get("foo"));
+		assertNull(headers.get("X-foo"));
+	}
+	
+	@Test
+	public void validateCustomHeaderWithHeaderNames() throws ParseException{
+		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[]{"foo"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foo", "foo");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNull(headers.get("foo"));
+		assertNotNull(headers.get("X-foo"));
+		assertTrue(headers.get("X-foo").size() == 1);
+		assertEquals("foo", headers.get("X-foo").get(0));
+	}
+	
 }
