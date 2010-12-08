@@ -475,7 +475,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
 				throw new IllegalArgumentException(
 						"Expected Date, Number, or String value for 'Expires' header value, but received: " + clazz);
-			}	
+			}
 		}
 		else if (IF_MODIFIED_SINCE.equals(name)) {
 			if (value instanceof Date) {
