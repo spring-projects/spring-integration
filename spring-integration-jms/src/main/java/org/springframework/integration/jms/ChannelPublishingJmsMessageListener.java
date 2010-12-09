@@ -30,6 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -58,6 +59,8 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile Object defaultReplyDestination;
+
+	private volatile String correlationKey;
 
 	private volatile long replyTimeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
 
@@ -146,6 +149,21 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	}
 
 	/**
+	 * Provide the name of a JMS property that should be copied from the request
+	 * Message to the reply Message. If this value is NULL (the default) then the
+	 * JMSMessageID from the request will be copied into the JMSCorrelationID of the reply
+	 * unless there is already a value in the JMSCorrelationID property of the newly created
+	 * reply Message in which case nothing will be copied. If the JMSCorrelationID of the
+	 * request Message should be copied into the JMSCorrelationID of the reply Message 
+	 * instead, then this value should be set to "JMSCorrelationID".
+	 * Any other value will be treated as a JMS String Property to be copied as-is
+	 * from the request Message into the reply Message with the same property name.
+	 */
+	public void setCorrelationKey(String correlationKey) {
+		this.correlationKey = correlationKey;
+	}
+
+	/**
 	 * Specify whether explicit QoS should be enabled for replies
 	 * (for timeToLive, priority, and deliveryMode settings). 
 	 */
@@ -228,34 +246,18 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 			Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
 			if (replyMessage != null) {
 				Destination destination = this.getReplyDestination(jmsMessage, session);
-				if (destination != null){
+				if (destination != null) {
 					// convert SI Message to JMS Message
 					Object replyResult = replyMessage;
-					if (this.extractReplyPayload){
+					if (this.extractReplyPayload) {
 						replyResult = replyMessage.getPayload();
 					}
-			
 					try {
 						javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
 						// map SI Message Headers to JMS Message Properties/Headers
 						headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
-						
-						if (jmsReply.getJMSCorrelationID() == null) {
-							jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
-						}
-						MessageProducer producer = session.createProducer(destination);
-						try {
-							if (this.explicitQosEnabledForReplies) {
-								producer.send(jmsReply,
-										this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
-							}
-							else {
-								producer.send(jmsReply);
-							}
-						}
-						finally {
-							producer.close();
-						}
+						this.copyCorrelationIdFromRequestToReply(jmsMessage, jmsReply);
+						this.sendReply(jmsReply, destination, session);
 					}
 					catch (RuntimeException e) {
 						logger.error("Failed to generate JMS Reply Message from: " + replyResult, e);
@@ -263,6 +265,29 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 					}
 				}
 			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("expected a reply but none was received");
+			}
+		}
+	}
+
+	private void copyCorrelationIdFromRequestToReply(javax.jms.Message requestMessage, javax.jms.Message replyMessage) throws JMSException {
+		if (this.correlationKey != null) {
+			if (this.correlationKey.equals("JMSCorrelationID")) {
+				replyMessage.setJMSCorrelationID(requestMessage.getJMSCorrelationID());
+			}
+			else {
+				String value = requestMessage.getStringProperty(this.correlationKey);
+				if (value != null) {
+					replyMessage.setStringProperty(this.correlationKey, value);
+				}
+				else if (logger.isWarnEnabled()) {
+					logger.warn("No property value available on request Message for correlationKey '" + this.correlationKey + "'");
+				}
+			}
+		}
+		else if (replyMessage.getJMSCorrelationID() == null) {
+			replyMessage.setJMSCorrelationID(requestMessage.getJMSMessageID());
 		}
 	}
 
@@ -315,6 +340,20 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 		return null;
 	}
 
+	private void sendReply(javax.jms.Message replyMessage, Destination destination, Session session) throws JMSException {
+		MessageProducer producer = session.createProducer(destination);
+		try {
+			if (this.explicitQosEnabledForReplies) {
+				producer.send(replyMessage, this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+			}
+			else {
+				producer.send(replyMessage);
+			}
+		}
+		finally {
+			JmsUtils.closeMessageProducer(producer);
+		}
+	}
 
 	/**
 	 * Internal class combining a destination name

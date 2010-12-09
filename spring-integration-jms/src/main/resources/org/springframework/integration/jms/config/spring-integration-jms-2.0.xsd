@@ -528,6 +528,21 @@
 					</xsd:attribute>
 					<xsd:attribute name="default-reply-queue-name" type="xsd:string"/>
 					<xsd:attribute name="default-reply-topic-name" type="xsd:string"/>
+					<xsd:attribute name="correlation-key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+								Provide the name of a JMS property that should be copied from the request
+								Message to the reply Message. If NO value is provided for this attribute then the
+								JMSMessageID from the request will be copied into the JMSCorrelationID of the reply
+								unless there is already a value in the JMSCorrelationID property of the newly created
+								reply Message in which case nothing will be copied. If the JMSCorrelationID of the
+								request Message should be copied into the JMSCorrelationID of the reply Message 
+								instead, then this value should be set to "JMSCorrelationID".
+								Any other value will be treated as a JMS String Property to be copied as-is
+								from the request Message into the reply Message with the same property name.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="header-mapper" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
