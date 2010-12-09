@@ -420,13 +420,20 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		finally {
 			JmsUtils.closeMessageProducer(messageProducer);
 			JmsUtils.closeMessageConsumer(messageConsumer);
-		}		
+		}
 	}
 
 	/**
 	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
 	 */
 	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+		if (replyTo instanceof Topic && logger.isWarnEnabled()) {
+			logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
+					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
+					"creating a race condition where a fast response might be sent before the MessageConsumer has been created. " +
+					"Consider providing a value to the 'correlationKey' property of this gateway instead. Then the MessageConsumer " +
+					"will be created before the request Message is sent."); 
+		}
 		MessageProducer messageProducer = null;
 		MessageConsumer messageConsumer = null;
 		try {
