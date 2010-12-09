@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import java.util.UUID;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -81,6 +83,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
+	private volatile String correlationKey;
+
 	private volatile boolean extractRequestPayload = true;
 
 	private volatile boolean extractReplyPayload = true;
@@ -88,10 +92,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-	
-	public String getComponentType(){
-		return "jms:outbound-gateway";
-	}
 
 
 	/**
@@ -197,6 +197,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
+	 * Provide the name of a JMS property that should hold a generated UUID that
+	 * the receiver of the JMS Message would expect to represent the CorrelationID.
+	 * When waiting for the reply Message, a MessageSelector will be configured
+	 * to match this property name and the UUID value that was sent in the request.
+	 * If this value is NULL (the default) then the reply consumer's MessageSelector
+	 * will be expecting the JMSCorrelationID to equal the Message ID of the request.
+	 * If you want to store the outbound correlation UUID value in the actual
+	 * JMSCorrelationID property, then set this value to "JMSCorrelationID".
+	 * However, any other value will be treated as a JMS String Property.
+	 */
+	public void setCorrelationKey(String correlationKey) {
+		this.correlationKey = correlationKey;
+	}
+
+	/**
 	 * Provide a {@link MessageConverter} strategy to use for converting the
 	 * Spring Integration request Message into a JMS Message and for converting
 	 * the JMS reply Messages back into Spring Integration Messages.
@@ -217,13 +232,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * This property describes how JMS Message should be generated from 
-	 * Spring Integration (SI) Message. If set to 'true', the base for JMS Message will be 
-	 * SI Message's payload, if set to 'false', then the entire SI Message will serve as
-	 * a base for JMS Message creation.
-	 * 
-	 * Since JMS Message is created by the MessageConverter, this really manages what 
-	 * is sent to a {@link MessageConverter} - the entire SI Message or only its payload.
+	 * This property describes how a JMS Message should be generated from the 
+	 * Spring Integration Message. If set to 'true', the body of the JMS Message will be 
+	 * created from the Spring Integration Message's payload (via the MessageConverter).
+	 * If set to 'false', then the entire Spring Integration Message will serve as
+	 * the base for JMS Message creation. Since the JMS Message is created by the
+	 * MessageConverter, this really manages what is sent to the {@link MessageConverter}:
+	 * the entire Spring Integration Message or only its payload.
 	 * <br>
 	 * Default is 'true'
 	 * 
@@ -234,9 +249,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * This property describes what to do with JMS Message after reply was received.
-	 * If set to 'true', the base for SI Message will be JMS Reply Message's payload
-	 * otherwise the entire JMS Message will become a payload of SI Message.
+	 * This property describes what to do with a JMS reply Message.
+	 * If set to 'true', the payload of the Spring Integration Message will be
+	 * created from the JMS Reply Message's body (via MessageConverter).
+	 * Otherwise, the entire JMS Message will become the payload of the
+	 * Spring Integration Message.
 	 * 
 	 * @param extractReplyPayload
 	 */
@@ -250,6 +267,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
+	}
+
+	public String getComponentType() {
+		return "jms:outbound-gateway";
 	}
 
 	private Destination getRequestDestination(Session session) throws JMSException {
@@ -317,50 +338,122 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
 		Connection connection = createConnection();
 		Session session = null;
-		MessageProducer messageProducer = null;
-		MessageConsumer messageConsumer = null;
 		Destination replyTo = null;
 		try {
 			session = createSession(connection);
+
 			// convert to JMS Message
 			Object objectToSend = requestMessage;
-			if (this.extractRequestPayload){
+			if (this.extractRequestPayload) {
 				objectToSend = requestMessage.getPayload();
 			}
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
+
 			// map headers
 			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
-			// create JMS Producer and send
-			messageProducer = session.createProducer(this.getRequestDestination(session));
-			
+
 			// TODO: support a JmsReplyTo header in the SI Message?
 			replyTo = this.getReplyDestination(session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
-			if (this.explicitQosEnabled) {
-				messageProducer.send(jmsRequest,
-						this.deliveryMode, this.priority, this.timeToLive);
+
+			javax.jms.Message replyMessage = null;
+			if (this.correlationKey != null) {
+				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(jmsRequest, replyTo, session);
+			}
+			else if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
+				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(jmsRequest, replyTo, session);
 			}
 			else {
-				messageProducer.send(jmsRequest);
+				replyMessage = this.doSendAndReceiveWithMessageIdCorrelation(jmsRequest, replyTo, session);
 			}
-			if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
-				messageConsumer = session.createConsumer(replyTo);
-			}
-			else {
-				String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
-				String messageSelector = "JMSCorrelationID = '" + messageId + "'";
-				messageConsumer = session.createConsumer(replyTo, messageSelector);
-			}
-			return (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
+			return replyMessage;
 		}
 		finally {
-			JmsUtils.closeMessageProducer(messageProducer);
-			JmsUtils.closeMessageConsumer(messageConsumer);
 			JmsUtils.closeSession(session);
 			this.deleteDestinationIfTemporary(replyTo);
 			ConnectionFactoryUtils.releaseConnection(connection, this.connectionFactory, true);
 		}
+	}
+
+	/**
+	 * Creates the MessageConsumer before sending the request Message since we are generating our own correlationId value for the MessageSelector.
+	 */
+	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+		MessageProducer messageProducer = null;
+		MessageConsumer messageConsumer = null;
+		try {
+			messageProducer = session.createProducer(this.getRequestDestination(session));
+			String correlationId = UUID.randomUUID().toString().replaceAll("'", "''");
+			Assert.state(this.correlationKey != null, "correlationKey must not be null");
+			String messageSelector = null;
+			if (this.correlationKey.equals("JMSCorrelationID")) {
+				jmsRequest.setJMSCorrelationID(correlationId);
+				messageSelector = "JMSCorrelationID = '" + correlationId + "'";
+			}
+			else {
+				jmsRequest.setStringProperty(this.correlationKey, correlationId);
+				messageSelector = this.correlationKey + " = '" + correlationId + "'";
+			}
+			messageConsumer = session.createConsumer(replyTo, messageSelector);
+			this.sendRequestMessage(jmsRequest, messageProducer);
+			return this.receiveReplyMessage(messageConsumer);
+		}
+		finally {
+			JmsUtils.closeMessageProducer(messageProducer);
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
+	}
+
+	/**
+	 * Creates the MessageConsumer before sending the request Message since we do not need any correlation.
+	 */
+	private javax.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+		MessageProducer messageProducer = null;
+		MessageConsumer messageConsumer = null;
+		try {
+			messageProducer = session.createProducer(this.getRequestDestination(session));
+			messageConsumer = session.createConsumer(replyTo);
+			this.sendRequestMessage(jmsRequest, messageProducer);
+			return this.receiveReplyMessage(messageConsumer);
+		}
+		finally {
+			JmsUtils.closeMessageProducer(messageProducer);
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}		
+	}
+
+	/**
+	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
+	 */
+	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+		MessageProducer messageProducer = null;
+		MessageConsumer messageConsumer = null;
+		try {
+			messageProducer = session.createProducer(this.getRequestDestination(session));
+			this.sendRequestMessage(jmsRequest, messageProducer);
+			String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
+			String messageSelector = "JMSCorrelationID = '" + messageId + "'";
+			messageConsumer = session.createConsumer(replyTo, messageSelector);
+			return this.receiveReplyMessage(messageConsumer);
+		}
+		finally {
+			JmsUtils.closeMessageProducer(messageProducer);
+			JmsUtils.closeMessageConsumer(messageConsumer);
+		}
+	}
+
+	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer) throws JMSException {
+		if (this.explicitQosEnabled) {
+			messageProducer.send(jmsRequest, this.deliveryMode, this.priority, this.timeToLive);
+		}
+		else {
+			messageProducer.send(jmsRequest);
+		}
+	}
+
+	private javax.jms.Message receiveReplyMessage(MessageConsumer messageConsumer) throws JMSException {
+		return (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
 	}
 
 	/**

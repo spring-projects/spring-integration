@@ -656,6 +656,21 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
 			<xsd:attribute name="reply-pub-sub-domain" type="xsd:string"/>
+			<xsd:attribute name="correlation-key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Provide the name of a JMS property that should hold a generated UUID that
+						the receiver of the JMS Message would expect to represent the CorrelationID.
+						When waiting for the reply Message, a MessageSelector will be configured
+						to match this property name and the UUID value that was sent in the request.
+						If NO value is provided for this attribute, then the reply consumer's
+						MessageSelector will be expecting the JMSCorrelationID to equal the Message ID
+						of the request. If you want to store the outbound correlation UUID value in the
+						actual "JMSCorrelationID" property, then set this value to "JMSCorrelationID".
+						However, any other value will be treated as a JMS String Property.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="destination-resolver" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
