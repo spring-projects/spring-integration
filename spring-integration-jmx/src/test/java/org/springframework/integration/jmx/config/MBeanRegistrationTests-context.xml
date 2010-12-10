@@ -12,11 +12,13 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
+	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="test.MBeanRegistration"/>
+
 	<context:mbean-server id="mbs" />
 	
 	<context:mbean-export server="mbs" default-domain="test.MBeanRegistration"/>
 
-	<int:publish-subscribe-channel id="testChannel" />
+	<int:channel id="testChannel" />
 	
 	<int:service-activator id="service" input-channel="testChannel" method="get">
 		<bean class="org.springframework.integration.jmx.config.MBeanRegistrationTests$Source"/>
@@ -24,6 +26,4 @@
 	
 	<int:logging-channel-adapter id="logger" channel="testChannel"/>
 	
-	<jmx:mbean-export id="integrationMbeanExporter" server="mbs" default-domain="test.MBeanRegistration"/>
-
 </beans>

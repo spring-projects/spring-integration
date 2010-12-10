@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:int="http://www.springframework.org/schema/integration"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -12,19 +11,19 @@
 			http://www.springframework.org/schema/integration/jmx
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
+	<jmx:mbean-export server="mbs" default-domain="test.RouterMBean" />
+
+	<context:mbean-export server="mbs" default-domain="test.RouterMBean" />
+
 	<context:mbean-server id="mbs" />
 
 	<int:channel id="testChannel" />
 	<int:channel id="intChannel" />
 	<int:channel id="stringChannel" />
 
-	<int:payload-type-router id="ptRouter"
-		input-channel="testChannel">
+	<int:payload-type-router id="ptRouter" input-channel="testChannel">
 		<int:mapping type="java.lang.String" channel="stringChannel" />
 		<int:mapping type="java.lang.Integer" channel="intChannel" />
 	</int:payload-type-router>
-
-	<jmx:mbean-export id="mbeanExporter" server="mbs"
-		default-domain="test.RouterMBean" />
 
 </beans>

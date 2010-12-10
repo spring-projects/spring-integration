@@ -41,7 +41,7 @@ public class ControlBusParserTests {
 		MessageChannel control = this.context.getBean("controlChannel", MessageChannel.class);
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		Object value = messagingTemplate.convertSendAndReceive(control,
-				"@mbeanExporter.getChannelSendRate('testChannel').count");
+				"@integrationMbeanExporter.getChannelSendRate('testChannel').count");
 		assertEquals(new Integer(0), value);
 		MBeanExporter exporter = this.context.getBean(MBeanExporter.class);
 		exporter.destroy();
