@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.parsing.CompositeComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -80,8 +82,12 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			return handlerBeanDefinition;
 		}
+		Object source = parserContext.extractSource(element);
+		CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(), source);
+		parserContext.pushContainingComponent(compositeDef);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
+		builder.getRawBeanDefinition().setSource(source);
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
@@ -110,6 +116,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElementList.get(0), builder, parserContext);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		return builder.getBeanDefinition();
+		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+		String beanName = this.resolveId(element, beanDefinition, parserContext);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
+		parserContext.popAndRegisterContainingComponent();
+		return null;
 	}
+
 }
