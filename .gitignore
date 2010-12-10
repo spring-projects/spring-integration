@@ -9,7 +9,9 @@
 .idea
 .project
 .settings
+bin
 build
+nohup.out
 derby.log
 lib
 logs
