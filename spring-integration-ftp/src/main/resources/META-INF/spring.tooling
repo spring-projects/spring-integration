@@ -1,0 +1,4 @@
+# Tooling related information for the integration ftp namespace
+http\://www.springframework.org/schema/integration/ftp@name=integration ftp Namespace
+http\://www.springframework.org/schema/integration/ftp@prefix=int-ftp
+http\://www.springframework.org/schema/integration/ftp@icon=org/springframework/integration/ftp/config/spring-integration-ftp.gif

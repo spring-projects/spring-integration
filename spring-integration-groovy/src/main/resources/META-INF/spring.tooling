@@ -1,0 +1,4 @@
+# Tooling related information for the integration groovy namespace
+http\://www.springframework.org/schema/integration/groovy@name=integration groovy Namespace
+http\://www.springframework.org/schema/integration/groovy@prefix=int-groovy
+http\://www.springframework.org/schema/integration/groovy@icon=org/springframework/integration/groovy/config/spring-integration-groovy.gif
