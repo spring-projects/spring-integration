@@ -15,32 +15,56 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Dave Syer
  * @since 2.0
  */
-@ContextConfiguration
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(Parameterized.class)
 public class RouterMBeanTests {
 
-	@Autowired
 	private MBeanServer server;
-	
+
+	private ClassPathXmlApplicationContext context;
+
+	public RouterMBeanTests(String configLocation) {
+		context = new ClassPathXmlApplicationContext(configLocation, getClass());
+		server = context.getBean(MBeanServer.class);
+	}
+
+	@Parameters
+	public static List<Object[]> getParameters() {
+		return Arrays.asList(
+				new Object[] { RouterMBeanTests.class.getSimpleName() + "-context.xml" },
+				new Object[] { RouterMBeanTests.class.getSimpleName() + "None-context.xml" },
+				new Object[] { RouterMBeanTests.class.getSimpleName() + "Switch-context.xml" });
+	}
+
+	@After
+	public void close() {
+		if (context != null) {
+			context.close();
+		}
+	}
+
 	@Test
 	public void testRouterMBeanExists() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
-		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
+		Set<ObjectName> names = server.queryNames(
+				new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertEquals(1, names.size());
 	}
 

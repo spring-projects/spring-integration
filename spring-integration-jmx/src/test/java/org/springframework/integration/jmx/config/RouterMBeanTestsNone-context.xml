@@ -19,8 +19,7 @@
 
 	<context:mbean-server id="mbs" />
 
-	<context:mbean-export server="mbs" default-domain="test.RouterMBean" />
-
+	<!-- Same as RouterMBeanTests-context.xml but no Core MBeanExporter -->
 	<jmx:mbean-export server="mbs" default-domain="test.RouterMBean" />
 
 </beans>

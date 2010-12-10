@@ -17,10 +17,9 @@
 
 	<int:router id="ptRouter" input-channel="testChannel" expression="payload instanceof String ? 'stringChannel' : 'intChannel'"/>
 
-	<context:mbean-server id="mbs" />
-
-	<context:mbean-export server="mbs" default-domain="test.RouterMBean" />
-
+	<!-- Same as RouterMBeanTests-context.xml but switched order of MBeanExporters -->
 	<jmx:mbean-export server="mbs" default-domain="test.RouterMBean" />
+
+	<context:mbean-server id="mbs" />
 
 </beans>

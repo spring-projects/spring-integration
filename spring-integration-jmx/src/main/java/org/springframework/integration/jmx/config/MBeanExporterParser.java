@@ -31,7 +31,11 @@ import org.w3c.dom.Element;
  */
 public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String ILLEGAL_NAME = "mbeanExporter";
+	/**
+	 * 
+	 */
+	private static final String MBEAN_EXPORTER_NAME = "mbeanExporter";
+	private static final String ILLEGAL_NAME = MBEAN_EXPORTER_NAME;
 
 	@Override
 	protected boolean shouldGenerateIdAsFallback() {

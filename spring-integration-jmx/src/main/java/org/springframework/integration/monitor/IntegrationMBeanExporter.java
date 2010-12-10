@@ -83,13 +83,12 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  */
 @ManagedResource
-public class IntegrationMBeanExporter extends MBeanExporter
-		implements BeanPostProcessor, BeanFactoryAware, BeanClassLoaderAware, SmartLifecycle {
+public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
+		BeanClassLoaderAware, SmartLifecycle {
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
-
 
 	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
 
@@ -125,7 +124,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 
 	private final Map<String, String> objectNameStaticProperties = new HashMap<String, String>();
 
-
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -133,7 +131,6 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		setNamingStrategy(new MetadataNamingStrategy(attributeSource));
 		setAssembler(new MetadataMBeanInfoAssembler(attributeSource));
 	}
-
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -183,8 +180,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
 			return advised;
-		}
-		else if (bean instanceof MessageSource<?>) {
+		} else if (bean instanceof MessageSource<?>) {
 			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
@@ -197,12 +193,10 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
 					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
-				}
-				else {
+				} else {
 					monitor = new PollableChannelMetrics(beanName);
 				}
-			}
-			else {
+			} else {
 				monitor = new DirectChannelMetrics(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
@@ -233,8 +227,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -249,8 +242,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 					logger.info("started " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -265,8 +257,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 					logger.info("stopped " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -276,8 +267,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		try {
 			this.stop();
 			callback.run();
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -293,6 +283,16 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		registerChannels();
 		registerHandlers();
 		registerSources();
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		super.afterPropertiesSet();
+		/*
+		 * Force early initialization of other MBeanExporters. Workaround for possible bug in Spring (see INT-1675) for
+		 * more details.
+		 */
+		beanFactory.getBeansOfType(MBeanExporter.class);
 	}
 
 	@Override
@@ -457,8 +457,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("Could not extract target", e);
 			return null;
 		}
@@ -470,8 +469,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(advisor);
 				return bean;
-			}
-			else {
+			} else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
 				return proxyFactory.getProxy(beanClassLoader);
@@ -531,8 +529,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "handler"));
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				logger.trace("Could not get handler from bean = " + beanName);
 			}
 			if (field == monitor.getMessageHandler()) {
@@ -551,8 +548,7 @@ public class IntegrationMBeanExporter extends MBeanExporter
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
