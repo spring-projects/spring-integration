@@ -69,6 +69,7 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		if (StringUtils.hasText(scopeAttr)) {
 			builder.setScope(scopeAttr);
 		}
+		beanDefinition.setSource(parserContext.extractSource(element));
 		return beanDefinition;
 	}
 	
