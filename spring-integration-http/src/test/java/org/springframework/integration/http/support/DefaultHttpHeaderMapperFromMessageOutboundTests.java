@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.support;
 
 import static junit.framework.Assert.assertEquals;
@@ -24,14 +25,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.http.HttpHeaders;
@@ -42,7 +40,8 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 
@@ -144,7 +143,6 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("Accept-Charset", "foo");
 		HttpHeaders headers = new HttpHeaders();
-		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 	}
 	
@@ -171,8 +169,8 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(1, headers.getAcceptCharset().size());
 		assertEquals("UTF-8", headers.getAcceptCharset().get(0).displayName());
 	}
+
 	@Test
-	@Ignore // Since we allow comma delimited strings for ACCEPT, we may allow it here
 	public void validateAcceptCharsetHeaderMultipleAsDelimitedString(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -181,13 +179,12 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAcceptCharset().size());
-		// validate contains since the order is not enforsed
+		// validate contains since the order is not enforced
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("UTF-8"))); 
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("ISO-8859-1"))); 
 	}
 	
 	@Test
-	@Ignore // we may want to support String[] as well
 	public void validateAcceptCharsetHeaderMultipleAsStringArray(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -196,11 +193,25 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAcceptCharset().size());
-		// validate contains since the order is not enforsed
+		// validate contains since the order is not enforced
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("UTF-8"))); 
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("ISO-8859-1"))); 
 	}
-	
+
+	@Test
+	public void validateAcceptCharsetHeaderMultipleAsCharsetArray(){
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("Accept-Charset", new Charset[]{ Charset.forName("UTF-8"), Charset.forName("ISO-8859-1") });
+		HttpHeaders headers = new HttpHeaders();
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.getAcceptCharset().size());
+		// validate contains since the order is not enforced
+		assertTrue(headers.getAcceptCharset().contains(Charset.forName("UTF-8"))); 
+		assertTrue(headers.getAcceptCharset().contains(Charset.forName("ISO-8859-1"))); 
+	}
+
 	@Test
 	public void validateAcceptCharsetHeaderMultipleAsCollectionOfStrings(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
@@ -210,10 +221,11 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAcceptCharset().size());
-		// validate contains since the order is not enforsed
+		// validate contains since the order is not enforced
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("UTF-8"))); 
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("ISO-8859-1"))); 
 	}
+
 	@Test
 	public void validateAcceptCharsetHeaderMultipleAsCollectionOfCharsets(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
@@ -224,7 +236,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 		assertEquals(2, headers.getAcceptCharset().size());
-		// validate contains since the order is not enforsed
+		// validate contains since the order is not enforced
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("UTF-8"))); 
 		assertTrue(headers.getAcceptCharset().contains(Charset.forName("ISO-8859-1"))); 
 	}
@@ -420,7 +432,6 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 	
 	@Test
-	@Ignore // we may want to support it or throw exception
 	public void validateIfNoneMatchAsStringArray() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
@@ -432,7 +443,20 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals("1234567", headers.getIfNoneMatch().get(0));
 		assertEquals("123", headers.getIfNoneMatch().get(1));
 	}
+
+	@Test
+	public void validateIfNoneMatchAsCommaDelimitedString() throws ParseException{
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("If-None-Match", "1234567, 123");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
 	
+		assertEquals(2, headers.getIfNoneMatch().size());
+		assertEquals("1234567", headers.getIfNoneMatch().get(0));
+		assertEquals("123", headers.getIfNoneMatch().get(1));
+	}
+
 	@Test
 	public void validateIfNoneMatchAsStringCollection() throws ParseException{
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();

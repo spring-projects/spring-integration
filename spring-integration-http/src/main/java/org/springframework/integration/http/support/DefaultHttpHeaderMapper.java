@@ -346,11 +346,29 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 					target.setAcceptCharset(acceptableCharsets);
 				}
 			}
+			else if (value instanceof Charset[] || value instanceof String[]) {
+				List<Charset> acceptableCharsets = new ArrayList<Charset>();
+				Object[] values = ObjectUtils.toObjectArray(value);
+				for (Object charset : values) {
+					if (charset instanceof Charset) {
+						acceptableCharsets.add((Charset) charset);
+					}
+					else if (charset instanceof String) {
+						acceptableCharsets.add(Charset.forName((String) charset));
+					}
+				}
+				target.setAcceptCharset(acceptableCharsets);
+			}
 			else if (value instanceof Charset) {
 				target.setAcceptCharset(Collections.singletonList((Charset) value));
 			}
 			else if (value instanceof String) {
-				target.setAcceptCharset(Collections.singletonList(Charset.forName((String) value)));
+				String[] charsets = StringUtils.commaDelimitedListToStringArray((String) value);
+				List<Charset> acceptableCharsets = new ArrayList<Charset>();
+				for (String charset : charsets) {
+					acceptableCharsets.add(Charset.forName(charset.trim()));
+				}
+				target.setAcceptCharset(acceptableCharsets);
 			}
 			else {
 				Class<?> clazz = (value != null) ? value.getClass() : null;
@@ -382,6 +400,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			else {
 				if (value instanceof HttpMethod) {
 					target.setAllow(Collections.singleton((HttpMethod) value));
+				}
+				else if (value instanceof HttpMethod[]) {
+					Set<HttpMethod> allowedMethods = new HashSet<HttpMethod>();
+					for (HttpMethod next : (HttpMethod[]) value) {
+						allowedMethods.add(next);
+					}
+					target.setAllow(allowedMethods);
 				}
 				else if (value instanceof String || value instanceof String[]) {
 					String[] values = (value instanceof String[]) ? (String[]) value
@@ -496,6 +521,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		else if (IF_NONE_MATCH.equals(name)) {
 			if (value instanceof String) {
 				target.setIfNoneMatch((String) value);
+			}
+			else if (value instanceof String[]) {
+				String delmitedString = StringUtils.arrayToCommaDelimitedString((String[]) value);
+				target.setIfNoneMatch(delmitedString);
 			}
 			else if (value instanceof Collection) {
 				Collection<?> values = (Collection<?>) value;

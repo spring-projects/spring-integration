@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.support;
 
 import static junit.framework.Assert.assertEquals;
@@ -26,7 +27,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.http.HttpHeaders;
@@ -35,10 +35,10 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.CollectionUtils;
 
-
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0.1
  */
 public class DefaultHttpHeaderMapperFromMessageInboundTests {
 
@@ -104,7 +104,6 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	}
 	
 	@Test
-	@Ignore // we may want to allow that for consistency
 	public void validateAllowAsHttpMethodArray(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
