@@ -172,6 +172,51 @@ By default the HTTP request will be generated using an instance of <classname>Si
 
   
   </section>
+  
+  <section id="http-header-mapping">
+  	<title> HTTP Header Mappings</title>
+  	<para>
+  	Spring Integration provides support for Http Header mapping for both HTTP Request and HTTP Responses.
+  	</para>
+  	
+  	<para>
+  	By default all standard Http Headers as defined here 
+  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to http request/response headers without 
+  	further configuration. 
+  	However if you do need further customization you may provide an additional configuration via convenient namesapce support. 
+  	Below are couple of examples:
+  	
+  	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
+			url="http://localhost/test2"
+			mapped-request-headers="foo, bar"
+			mapped-response-headers="baz, a"
+			channel="someChannel"/>
+			
+<int-http:outbound-channel-adapter id="httpAdapter"
+			url="http://localhost/test2"
+			mapped-request-headers="foo, bar"
+			channel="someChannel"/>]]></programlisting>
+			
+	The adapters and gateways will use the <classname>DefaultHttpHeaderMapper</classname> which now provides 
+	two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be 
+	applied (mapping HTTP requests/reponses IN/OUT as appropriate). 
+  	</para>
+  	<para>
+  	If further customization is required you can also configure <classname>DefaultHttpHeaderMapper</classname> independently 
+  	and inject it into the adapter via <code>header-mapper</code> attribute.
+  	
+  	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
+			url="http://localhost/test2"
+			header-mapper="headerMapper"
+			channel="someChannel"/>
+
+<bean id="headerMapper" class="org.springframework.integration.http.support.DefaultHttpHeaderMapper">
+		<property name="inboundHeaderNames" value="foo, bar, baz"/>
+		<property name="outboundHeaderNames" value="a, b, d"/>
+</bean>]]></programlisting>
+  	</para>
+  </section>
+  
   <section id="http-samples">
     <title>HTTP Samples</title>
   <section id="multipart-rest-inbound">

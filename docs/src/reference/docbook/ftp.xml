@@ -47,7 +47,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 		<property name="password" value="frog"/>
 		<property name="clientMode" value="0"/>
 		<property name="fileType" value="2"/>
-		<property name="bufferSize" value="1000000"/>
+		<property name="bufferSize" value="100000"/>
 </bean>]]></programlisting>
 	</para>
 	<para>
@@ -75,11 +75,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 		<property name="implicit" value="true"/>
 </bean>]]></programlisting>
 	</para>
-	
-	<para>
-	<emphasis>Stale session and session pooling</emphasis>
-	</para>
-	
+
+
 	<para>
 	Every time an adapter requests a session object from the <classname>DefaultFtpClientFactory</classname> or <classname>DefaultFtpsClientFactory</classname> the session is 
 	returned from the default session pool maintained by these factories. Session in the session pool might go stale 
@@ -90,7 +87,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	If you experience connectivity problems and would like to trace session creation as well as see which session are 
 	polled you may enable it by setting logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE)
 	</note>
-	</para>
+   </para>
 
 	<para>
 	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) that an adapter will 
@@ -196,13 +193,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
      in the MessageHeaders, or if the payload of the Message is already a <classname>java.io.File</classname>, then it will use the original name of that file.
 	 </note>
   	</para>
+  	
   	<para>
   	<important>
   	Defining certain values (e.g., remote-directory) might be platform/ftp server dependent. For example as it 
-  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&posted=1#post333478 on some 
+  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&amp;posted=1#post333478 on some 
   	platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/" 
   	instead of remote-directory="/foo/bar")
   	</important>
   	</para>
+  	
   </section>
 </chapter>
