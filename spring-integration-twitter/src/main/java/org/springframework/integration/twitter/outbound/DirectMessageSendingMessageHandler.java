@@ -60,9 +60,7 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isInstanceOf(String.class, message.getPayload(), "Only payload of type String is supported. If your payload " +
 				"is not of type String consider adding a transformer to the message flow in front of this adapter.");
-//		Assert.isTrue(message.getHeaders().containsKey(TwitterHeaders.DM_TARGET_USER_ID), 
-//				"the '" + TwitterHeaders.DM_TARGET_USER_ID + "' header is required");
-		
+
 		Object toUser = targetUserExpression.getValue(this.evaluationContext, message);
 		
 		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,

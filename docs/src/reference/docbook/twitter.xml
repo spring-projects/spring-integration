@@ -160,7 +160,9 @@ received.
   		<title>Inbound Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive updates from everyone you follow. It's essentially the "Timeline Update" adapter.
-  		<programlisting language="java"><![CDATA[<twitter:inbound-channel-adapter twitter-template="twitterTemplate" channel="inChannel">
+  		<programlisting language="xml"><![CDATA[<twitter:inbound-channel-adapter 
+  		twitter-template="twitterTemplate" 
+  		channel="inChannel">
     <poller fixed-rate="5000" max-messages-per-poll="3"/>
 </twitter:inbound-channel-adapter>]]></programlisting>
   		</para>
@@ -170,7 +172,9 @@ received.
   		<title>Direct Inbound  Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive Direct Messages that were sent to you from other Twitter users.
-  		<programlisting language="java"><![CDATA[<twitter:dm-inbound-channel-adapter twitter-template="twiterTemplate" channel="inboundDmChannel">
+  		<programlisting language="xml"><![CDATA[<twitter:dm-inbound-channel-adapter 
+  		twitter-template="twiterTemplate" 
+  		channel="inboundDmChannel">
     <poller fixed-rate="5000" max-messages-per-poll="3"/>
 </twitter:dm-inbound-channel-adapter>]]></programlisting>
   		</para>
@@ -180,8 +184,9 @@ received.
   		<title>Mentions Inbound Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive Twitter Messages that Mention you via @user syntax.
-  		<programlisting language="java"><![CDATA[<twitter:mentions-inbound-channel-adapter twitter-template="twiterTemplate" 
-			channel="inboundMentionsChannel">
+  		<programlisting language="xml"><![CDATA[<twitter:mentions-inbound-channel-adapter 
+  		twitter-template="twiterTemplate" 
+		channel="inboundMentionsChannel">
     <poller fixed-rate="5000" max-messages-per-poll="3"/>
 </twitter:mentions-inbound-channel-adapter>]]></programlisting>
   		</para>
@@ -192,8 +197,9 @@ received.
   		<para>
   		This adapter allows you to perform searches. As you can see it is not necessary to define twitter-template 
   		since a search can be performed anonymously, however you must define a search query.
-  		<programlisting language="java"><![CDATA[<twitter:search-inbound-channel-adapter query="#springintegration" 
-			channel="inboundMentionsChannel">
+  		<programlisting language="xml"><![CDATA[<twitter:search-inbound-channel-adapter 
+  		query="#springintegration" 
+		channel="inboundMentionsChannel">
      <poller fixed-rate="5000" max-messages-per-poll="3"/>
 </twitter:search-inbound-channel-adapter>]]></programlisting>
 		
@@ -234,7 +240,9 @@ received.
   		<para>
   		This adapter allows you to send regular status updates by simply sending a Message to the channel 
   		identified by the <code>channel</code> attribute. 
-  		<programlisting language="java"><![CDATA[<twitter:outbound-channel-adapter twitter-template="twitterTemplate" channel="twitterChannel"/>]]></programlisting>
+  		<programlisting language="xml"><![CDATA[<twitter:outbound-channel-adapter 
+  		twitter-template="twitterTemplate" 
+  		channel="twitterChannel"/>]]></programlisting>
   		The only extra configuration that is required for this adapter is the <code>twitter-template</code> reference.
   		</para>
   	</section>
@@ -244,8 +252,30 @@ received.
   		<para>
   		This adapter allows you to send Direct Twitter Messages (i.e., @user) by simply sending a Message to the channel 
   		identified by the <code>channel</code> attribute. 
-  		<programlisting language="java"><![CDATA[<twitter:dm-outbound-channel-adapter twitter-template="twitterTemplate" channel="twitterChannel"/>]]></programlisting>
+  		<programlisting language="xml"><![CDATA[<twitter:dm-outbound-channel-adapter 
+  		twitter-template="twitterTemplate" 
+  		channel="twitterChannel"/>]]></programlisting>
   		The only extra configuration that is required for this adapter is the <code>twitter-template</code> reference.
+  		</para>
+  		<para>
+  		When it comes to Twitter Direct Message you must specify who you sending this message to - <emphasis>target userid</emphasis>. 
+  		Twitter Outbound Direct Message Channel Adapter provides several ways you can specify target user.
+        By default it will look for target userid in the Message headers under the name <code>twitter_dmTargetUserId</code> which 
+        is also identified by the following constant - <classname>TwitterHeaders.DM_TARGET_USER_ID</classname>.
+		So when creating a Message all you need to do is add this header:
+		
+		<programlisting language="java"><![CDATA[Message message = MessageBuilder.withPayload("hello")
+		.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();]]></programlisting>
+  		</para>
+  		<para>
+  		The above approach works well if you know the target userid in advance. However there are times when such 
+  		value must be determined dynamically. For those cases you can utilize SpEL support by providing valid SpEL 
+  		expression via <code>target-user-expression</code> attribute.
+  		
+  		<programlisting language="xml"><![CDATA[<twitter:dm-outbound-channel-adapter id="dmAdapter"
+		twitter-template="twitter" 
+		channel="inputChannel" 
+		target-user-expression="'z' + '_oleg'"/>]]></programlisting>
   		</para>
   	</section>
   	<para>
