@@ -25,7 +25,10 @@ import java.lang.annotation.Target;
 /**
  * Annotation indicating that a method parameter's value should be
  * retrieved from the message headers. The value of the annotation
- * provides the header name, and the optional 'required' property
+ * can either be a header name (e.g., 'foo') or SpEL expression 
+ * (e.g., 'payload.getCustomerId()') which is quite useful when
+ * the name of the header has to be dynamically computed. It also 
+ * provides an optional 'required' property which
  * specifies whether the attribute value must be available within
  * the header. The default value for 'required' is <code>true</code>.
  * 

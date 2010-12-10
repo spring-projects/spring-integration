@@ -252,6 +252,13 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
+    <note>
+    The value of the annotation can also be a SpEL expression (e.g., 'payload.getCustomerId()') which is quite useful when
+    the name of the header has to be dynamically computed. It also provides an optional 'required' property which
+    specifies whether the attribute value must be available within the header. The default value for 'required' is <code>true</code>.
+    </note>
+    </para>
+    <para>
       For several of these annotations, when a Message-handling method returns a non-null value, the endpoint will
       attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in
       that such an endpoint's output channel will be used if available, and the REPLY_CHANNEL message header value
