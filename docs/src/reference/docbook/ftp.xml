@@ -196,6 +196,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
      in the MessageHeaders, or if the payload of the Message is already a <classname>java.io.File</classname>, then it will use the original name of that file.
 	 </note>
   	</para>
-  	
+  	<para>
+  	<important>
+  	Defining certain values (e.g., remote-directory) might be platform/ftp server dependent. For example as it 
+  	was reported on this forum http://forum.springsource.org/showthread.php?p=333478&posted=1#post333478 on some 
+  	platforms you must add slash to the end of the directory definition (e.g., remote-directory="/foo/bar/" 
+  	instead of remote-directory="/foo/bar")
+  	</important>
+  	</para>
   </section>
 </chapter>
