@@ -313,7 +313,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new MediaType("text", "plain", Charset.forName(charset));
 	}
 
-	@SuppressWarnings("unchecked")
 	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<Object, Object> simpleMap) {
 		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
 		for (Object key : simpleMap.keySet()) {
