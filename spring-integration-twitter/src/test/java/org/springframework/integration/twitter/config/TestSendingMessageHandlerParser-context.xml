@@ -24,7 +24,10 @@
 	
    <channel id="inputChannel"/>
 
-	<twitter:dm-outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
+	<twitter:dm-outbound-channel-adapter id="dmAdapter"
+										 twitter-template="twitter" 
+								         channel="inputChannel" 
+								         target-user-expression="'z' + '_oleg'"/>
 	
 	<twitter:outbound-channel-adapter twitter-template="twitter" channel="inputChannel" />
    

@@ -16,8 +16,16 @@
 
 package org.springframework.integration.twitter.config;
 
+import static junit.framework.Assert.assertEquals;
+
 import org.junit.Test;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.expression.Expression;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler;
 
 /**
  * @author Oleg Zhurakousky
@@ -27,8 +35,12 @@ public class TestSendingMessageHandlerParserTests {
 
 	@Test
 	public void testSendingMessageHandlerSuccessfulBootstrap(){
-		new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
-		// the fact that no exception was thrown satisfies this test	
+		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
+		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);
+		DirectMessageSendingMessageHandler handler = 
+			(DirectMessageSendingMessageHandler) TestUtils.getPropertyValue(dmAdapter, "handler");
+		Expression targetUserExpression = (Expression) TestUtils.getPropertyValue(handler, "targetUserExpression");
+		assertEquals("'z' + '_oleg'", targetUserExpression.getExpressionString());
 	}
 
 }

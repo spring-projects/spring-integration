@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
 import org.springframework.integration.twitter.core.TwitterOperations;
@@ -46,6 +47,18 @@ public class DirectMessageSendingMessageHandlerTests {
 				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123).build();;
 		handler.handleMessage(message2);
 		verify(twitter, times(1)).sendDirectMessage(123, "hello");
+	}
+	
+	@Test
+	public void validateSendDirectMessageWithTargetUserExpression() throws Exception{
+		Message<?> message1 = MessageBuilder.withPayload("hello").build();
+		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
+		ExpressionFactoryBean efb = new ExpressionFactoryBean("'z' + '_oleg'");
+		efb.afterPropertiesSet();
+		handler.setTargetUserExpression(efb.getObject());
+		handler.afterPropertiesSet();
+		handler.handleMessage(message1);
+		verify(twitter, times(1)).sendDirectMessage("z_oleg", "hello");
 	}
 
 }
