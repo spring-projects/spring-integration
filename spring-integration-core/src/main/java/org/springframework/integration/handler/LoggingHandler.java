@@ -66,7 +66,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 		this.evaluationContext = evaluationContext;
 		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
-
+	
 	public void setExpression(String expressionString) {
 		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
 	}

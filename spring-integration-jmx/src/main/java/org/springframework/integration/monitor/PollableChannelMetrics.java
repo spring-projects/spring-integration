@@ -19,7 +19,6 @@ package org.springframework.integration.monitor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -36,13 +35,9 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 	private final AtomicInteger receiveErrorCount = new AtomicInteger();
 
 
-	/**
-	 * @param name
-	 */
-	public PollableChannelMetrics(String name) {
-		super(name);
+	public PollableChannelMetrics(MessageChannel messageChannel, String name) {
+		super(messageChannel, name);
 	}
-
 
 	@Override
 	protected Object doInvoke(MethodInvocation invocation, String method, MessageChannel channel) throws Throwable {

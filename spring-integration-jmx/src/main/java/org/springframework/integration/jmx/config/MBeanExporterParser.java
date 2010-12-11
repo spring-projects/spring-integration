@@ -53,6 +53,18 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		builder.addPropertyValue("server", mbeanServer);
+//		if (!parserContext.getRegistry().containsBeanDefinition(MBEAN_EXPORTER_NAME)) {
+//			/*
+//			 * Vanilla MBeanExporter not yet registered - need to hack this in to ensure if it is subsequently
+//			 * registered, then it gets initialized before the IntegrationMBeanExporter.
+//			 */
+//			BeanDefinitionBuilder dummy = BeanDefinitionBuilder.genericBeanDefinition(String.class);
+//			dummy.addConstructorArgValue("Dummy " + MBEAN_EXPORTER_NAME
+//					+ " will be overridden by a <context:mbean-export/>");
+//			parserContext.getRegistry().registerBeanDefinition(MBEAN_EXPORTER_NAME, dummy.getBeanDefinition());
+//		}
+//		// Force vanilla MBeanExporter to initialize first if it exists to prevent problems with Proxies
+//		builder.getRawBeanDefinition().setDependsOn(new String[] { MBEAN_EXPORTER_NAME });
 	}
 
 	private Object getMBeanServer(Element element, ParserContext parserContext) {

@@ -29,15 +29,10 @@ public class QueueChannelMetrics extends PollableChannelMetrics {
 	private final QueueChannel channel;
 
 
-	/**
-	 * @param channel
-	 * @param name
-	 */
 	public QueueChannelMetrics(QueueChannel channel, String name) {
-		super(name);
+		super(channel, name);
 		this.channel = channel;
 	}
-
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "QueueChannel Queue Size")
 	public int getQueueSize() {

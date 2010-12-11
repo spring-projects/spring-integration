@@ -21,6 +21,11 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.management.DynamicMBean;
+import javax.management.JMException;
+import javax.management.ObjectName;
+import javax.management.modelmbean.ModelMBean;
+
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +51,7 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jmx.export.MBeanExporter;
+import org.springframework.jmx.export.UnableToRegisterMBeanException;
 import org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedMetric;
@@ -104,6 +110,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
 
+	private Map<String, Object> exposedBeans = new HashMap<String, Object>();
+
 	private Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
 
 	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
@@ -122,14 +130,24 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private String domain = DEFAULT_DOMAIN;
 
+	private boolean initialized = false;
+
 	private final Map<String, String> objectNameStaticProperties = new HashMap<String, String>();
+
+	private final MetadataMBeanInfoAssembler assembler = new MetadataMBeanInfoAssembler(attributeSource);
+
+	private final MetadataNamingStrategy namingStrategy = new MetadataNamingStrategy(attributeSource);
+
+	private final Set<MBeanExporter> mbeanExporters = new HashSet<MBeanExporter>();
+
+	private final Set<String> excludedBeansForOtherExporters = new HashSet<String>();
 
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
 		setAutodetect(false);
-		setNamingStrategy(new MetadataNamingStrategy(attributeSource));
-		setAssembler(new MetadataMBeanInfoAssembler(attributeSource));
+		setNamingStrategy(namingStrategy);
+		setAssembler(assembler);
 	}
 
 	@Override
@@ -155,6 +173,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 */
 	public void setDefaultDomain(String domain) {
 		this.domain = domain;
+		this.namingStrategy.setDefaultDomain(domain);
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -164,6 +183,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+
+		if (!initialized) {
+			initialized = true;
+			collectMBeanExporters();
+		}
+
 		if (bean instanceof Advised) {
 			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
 				Advice advice = advisor.getAdvice();
@@ -179,40 +204,97 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
+			excludeBeanInOtherExporters(beanName);
 			return advised;
-		} else if (bean instanceof MessageSource<?>) {
+		}
+
+		if (bean instanceof MessageSource<?>) {
 			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
+			excludeBeanInOtherExporters(beanName);
 			return advised;
 		}
 
 		if (bean instanceof MessageChannel) {
 			DirectChannelMetrics monitor;
+			MessageChannel target = (MessageChannel) extractTarget(bean);
 			if (bean instanceof PollableChannel) {
-				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
 					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
 				} else {
-					monitor = new PollableChannelMetrics(beanName);
+					monitor = new PollableChannelMetrics(target, beanName);
 				}
 			} else {
-				monitor = new DirectChannelMetrics(beanName);
+				monitor = new DirectChannelMetrics(target, beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
+			excludeBeanInOtherExporters(beanName);
 			return advised;
 		}
 		return bean;
 	}
 
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
+	/**
+	 * Make sure the named bean is not exposed in any other MBean exporters in the context. Called for beans that are
+	 * being directly monitored by this exporter, but are wrapped in a proxy so cannot be directly exposed by a normal
+	 * exporter.
+	 * 
+	 * @param beanName the bean name to exclude
+	 */
+	private void excludeBeanInOtherExporters(String beanName) {
+		excludedBeansForOtherExporters.add(beanName);
+		String[] excluded = excludedBeansForOtherExporters.toArray(new String[0]);
+		for (MBeanExporter exporter : mbeanExporters) {
+			exporter.setExcludedBeans(excluded);
+		}
 	}
 
-	@Override
-	protected void registerBeans() {
-		// Completely disable super class registration to avoid duplicates
+	/**
+	 * Copy of private method in super class. Needed so we can avoid using the bean factory to extract the bean again,
+	 * and risk it being a proxy (which it almost certainly is by now).
+	 * 
+	 * @param bean the bean instance to register
+	 * @param beanKey the bean name or human readable version if autogenerated
+	 * @return the JMX object name of the MBean that was registered
+	 */
+	private ObjectName registerBeanInstance(Object bean, String beanKey) {
+		try {
+			ObjectName objectName = getObjectName(bean, beanKey);
+			Object mbeanToExpose = null;
+			if (isMBean(bean.getClass())) {
+				mbeanToExpose = bean;
+			} else {
+				DynamicMBean adaptedBean = adaptMBeanIfPossible(bean);
+				if (adaptedBean != null) {
+					mbeanToExpose = adaptedBean;
+				}
+			}
+			if (mbeanToExpose != null) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Located MBean '" + beanKey + "': registering with JMX server as MBean [" + objectName
+							+ "]");
+				}
+				doRegister(mbeanToExpose, objectName);
+			} else {
+				if (logger.isInfoEnabled()) {
+					logger.info("Located managed bean '" + beanKey + "': registering with JMX server as MBean ["
+							+ objectName + "]");
+				}
+				ModelMBean mbean = createAndConfigureMBean(bean, beanKey);
+				doRegister(mbean, objectName);
+				// injectNotificationPublisherIfNecessary(bean, mbean, objectName);
+			}
+			return objectName;
+		} catch (JMException e) {
+			throw new UnableToRegisterMBeanException("Unable to register MBean [" + bean + "] with key '" + beanKey
+					+ "'", e);
+		}
+	}
+
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return bean;
 	}
 
 	public final boolean isAutoStartup() {
@@ -285,14 +367,18 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerSources();
 	}
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		/*
-		 * Force early initialization of other MBeanExporters. Workaround for possible bug in Spring (see INT-1675) for
-		 * more details.
-		 */
-		beanFactory.getBeansOfType(MBeanExporter.class);
+	/**
+	 * Force early initialization of other MBean exporters and collect them for later use to ensure that they don't try
+	 * to register the same beans that this exporter is covering.
+	 */
+	private void collectMBeanExporters() {
+		String[] beanNames = beanFactory.getBeanNamesForType(MBeanExporter.class, false, false);
+		for (String beanName : beanNames) {
+			MBeanExporter bean = beanFactory.getBean(beanName, MBeanExporter.class);
+			if (bean != this) {
+				mbeanExporters.add((MBeanExporter) bean);
+			}
+		}
 	}
 
 	@Override
@@ -381,6 +467,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return null;
 	}
 
+	@Override
+	protected void registerBeans() {
+		if (!exposedBeans.isEmpty()) {
+			super.setBeans(exposedBeans);
+			super.registerBeans();
+		}
+	}
+
 	private void registerChannels() {
 		for (DirectChannelMetrics monitor : channels) {
 			String name = monitor.getName();
@@ -392,6 +486,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					channelsByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
+				// Expose the raw bean if it is managed
+				MessageChannel bean = monitor.getMessageChannel();
+				if (assembler.includeBean(bean.getClass(), monitor.getName())) {
+					registerBeanInstance(bean, monitor.getName());
+				}
 			}
 		}
 	}
@@ -407,6 +506,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					handlersByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
+				// Expose the raw bean if it is managed
+				MessageHandler bean = source.getMessageHandler();
+				if (assembler.includeBean(bean.getClass(), source.getName())) {
+					registerBeanInstance(bean, monitor.getName());
+				}
 			}
 		}
 	}
@@ -422,6 +526,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					sourcesByName.put(name, monitor);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
+				// Expose the raw bean if it is managed
+				MessageSource<?> bean = source.getMessageSource();
+				if (assembler.includeBean(bean.getClass(), source.getName())) {
+					registerBeanInstance(bean, monitor.getName());
+				}
 			}
 		}
 	}
@@ -472,6 +581,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			} else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
+				/**
+				 * N.B. it's not a good idea to use proxyFactory.setProxyTargetClass(true) here because it forces all
+				 * the integration components to be cglib proxyable (i.e. have a default constructor etc.), which they
+				 * are not in general (usually for good reason).
+				 */
 				return proxyFactory.getProxy(beanClassLoader);
 			}
 		}

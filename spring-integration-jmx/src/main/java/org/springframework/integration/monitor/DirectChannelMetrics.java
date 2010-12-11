@@ -19,7 +19,6 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -63,8 +62,11 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 
 	private final String name;
 
+	private final MessageChannel messageChannel;
 
-	public DirectChannelMetrics(String name) {
+
+	public DirectChannelMetrics(MessageChannel messageChannel, String name) {
+		this.messageChannel = messageChannel;
 		this.name = name;
 	}
 
@@ -73,6 +75,10 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		if (logger.isDebugEnabled()) {
 			logger.debug(sendDuration);
 		}
+	}
+
+	public MessageChannel getMessageChannel() {
+		return messageChannel;
 	}
 
 	public String getName() {
@@ -196,4 +202,5 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 	public String toString() {
 		return String.format("MessageChannelMonitor: [name=%s, sends=%d]", name, sendCount.get());
 	}
+
 }

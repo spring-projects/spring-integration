@@ -14,11 +14,15 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -48,9 +52,10 @@ public class RouterMBeanTests {
 	@Parameters
 	public static List<Object[]> getParameters() {
 		return Arrays.asList(
-				new Object[] { RouterMBeanTests.class.getSimpleName() + "-context.xml" },
-				new Object[] { RouterMBeanTests.class.getSimpleName() + "None-context.xml" },
-				new Object[] { RouterMBeanTests.class.getSimpleName() + "Switch-context.xml" });
+				new Object[] { "RouterMBeanTests-context.xml" },
+				new Object[] { "RouterMBeanGatewayTests-context.xml" },
+				new Object[] { "RouterMBeanNoneTests-context.xml" },
+				new Object[] { "RouterMBeanSwitchTests-context.xml" });
 	}
 
 	@After
@@ -69,10 +74,49 @@ public class RouterMBeanTests {
 	}
 
 	@Test
+	public void testInputChannelMBeanExists() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:type=MessageChannel,*"), null));
+		Set<ObjectName> names = server.queryNames(
+				new ObjectName("test.RouterMBean:type=MessageChannel,name=testChannel,*"), null);
+		assertEquals(1, names.size());
+	}
+
+	@Test
+	public void testErrorChannelMBeanExists() throws Exception {
+		Set<ObjectName> names = server.queryNames(
+				new ObjectName("test.RouterMBean:type=MessageChannel,name=errorChannel,*"), null);
+		assertEquals(1, names.size());
+	}
+
+	@Test
 	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
-		// The errorLogger and the router
-		assertEquals(2, server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,*"), null).size());
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
+		assertEquals(1, names.size());
+	}
+	
+	@Test
+	public void testRouterMBeanHasTrackableComponent() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=ExpressionEvaluatingRouter,*"), null);
+		Map<String,MBeanOperationInfo> infos = new HashMap<String, MBeanOperationInfo>();
+		for (MBeanOperationInfo info : server.getMBeanInfo(names.iterator().next()).getOperations()) {
+			infos.put(info.getName(), info);
+		}
+		// System.err.println(infos);
+		assertNotNull(infos.get("setShouldTrack"));
+	}
+	
+	@Test
+	public void testVanillaRouterMBeanRegistration() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("test.RouterMBean:*"), null));
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=ExpressionEvaluatingRouter,*"), null);
+		// The router is exposed...
+		assertEquals(1, names.size());
+	}
+
+	public static interface Service {
+		void send(String input);
 	}
 
 }
