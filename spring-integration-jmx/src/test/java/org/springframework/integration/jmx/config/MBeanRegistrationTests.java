@@ -14,12 +14,17 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +54,19 @@ public class MBeanRegistrationTests {
 		// System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
+	}
+
+	@Test
+	@Ignore // re-instate this if Spring decides to look for @ManagedResource on super classes
+	public void testServiceActivatorMBeanHasTrackableComponent() throws Exception {
+		System.err.println(server.queryNames(new ObjectName("test.MBeanRegistration:*"), null));
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=ServiceActivatingHandler,name=service,*"), null);
+		Map<String,MBeanOperationInfo> infos = new HashMap<String, MBeanOperationInfo>();
+		for (MBeanOperationInfo info : server.getMBeanInfo(names.iterator().next()).getOperations()) {
+			infos.put(info.getName(), info);
+		}
+		System.err.println(infos);
+		assertNotNull(infos.get("setShouldTrack"));
 	}
 
 	public static class Source {
