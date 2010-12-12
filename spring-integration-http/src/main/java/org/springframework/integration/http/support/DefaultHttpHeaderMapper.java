@@ -214,6 +214,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			WWW_AUTHENTICATE
 	};
 
+	public static final String HTTP_REQUEST_HEADER_NAME_PATTERN = "HTTP_REQUEST_HEADERS";
+
+	public static final String HTTP_RESPONSE_HEADER_NAME_PATTERN = "HTTP_RESPONSE_HEADERS";
+
 
 	private volatile String[] outboundHeaderNames = new String[0];
 
@@ -305,6 +309,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+					return true;
+				}
+				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
+						&& ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, headerName)) {
+					return true;
+				}
+				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
+						&& ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
 					return true;
 				}
 			}

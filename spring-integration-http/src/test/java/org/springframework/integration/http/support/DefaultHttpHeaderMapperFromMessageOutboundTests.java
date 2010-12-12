@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -507,7 +508,7 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertTrue(headers.get("X-foo").size() == 1);
 		assertEquals("foo", headers.get("X-foo").get(0));
 	}
-	
+
 	@Test
 	public void validateCustomHeaderWithHeaderNamePatterns() throws ParseException{
 		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
@@ -533,6 +534,39 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals("1z-value", headers.getFirst("X-1z"));
 		assertEquals(1, headers.get("X-abcdef").size());
 		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));
+	}
+
+	@Test
+	public void validateCustomHeaderWithHeaderNamePatternsAndStandardRequestHeaders() throws ParseException{
+		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[]{"foo*", "HTTP_REQUEST_HEADERS"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foobar", "abc");
+		messageHeaders.put("Content-Type", "text/html");
+		messageHeaders.put("Accept", "text/xml");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(3, headers.size());
+		assertEquals(1, headers.get("X-foobar").size());
+		assertEquals("abc", headers.getFirst("X-foobar"));
+		assertEquals("text/html", headers.getContentType().toString());
+		assertEquals(1, headers.getAccept().size());
+		assertEquals(MediaType.TEXT_XML, headers.getAccept().get(0));
+	}
+
+	@Test
+	public void validateCustomHeaderWithHeaderNamePatternsAndStandardResponseHeaders() throws ParseException{
+		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[]{"foo*", "HTTP_RESPONSE_HEADERS"});
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.set("foobar", "abc");
+		httpHeaders.setContentType(MediaType.TEXT_HTML);
+		httpHeaders.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
+		Map<String, ?> messageHeaders = mapper.toHeaders(httpHeaders);
+		assertEquals(2, messageHeaders.size());
+		assertNull(messageHeaders.get("Accept"));
+		assertEquals("abc", messageHeaders.get("foobar"));
+		assertEquals("text/html", messageHeaders.get("Content-Type").toString());
 	}
 
 }

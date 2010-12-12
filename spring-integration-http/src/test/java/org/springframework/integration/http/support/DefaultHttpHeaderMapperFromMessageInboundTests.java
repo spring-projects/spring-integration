@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.CollectionUtils;
@@ -300,6 +302,23 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	}
 
 	@Test
+	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foobar", "abc");
+		messageHeaders.put("Accept", "text/html");
+		messageHeaders.put("Content-Type", "text/xml");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.size());
+		assertTrue(headers.getAccept().isEmpty());
+		assertEquals(MediaType.TEXT_XML, headers.getContentType());
+		assertEquals(1, headers.get("X-foobar").size());
+		assertEquals("abc", headers.getFirst("X-foobar"));
+	}
+
+	@Test
 	public void validateCustomHeaderNamesMappedFromHttpHeaders() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
 		mapper.setInboundHeaderNames(new String[] {"foo", "bar"});
@@ -333,6 +352,21 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals("x1-value", result.get("x1"));
 		assertEquals("1z-value", result.get("1z"));
 		assertEquals("abcdef-value", result.get("abcdef"));
+	}
+
+	@Test
+	public void validateCustomHeaderNamePatternsAndStandardRequestHeadersMappedFromHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"foo*", "HTTP_REQUEST_HEADERS"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("foobar", "abc");
+		headers.setAccept(Collections.singletonList(MediaType.TEXT_XML));
+		headers.setLocation(new URI("http://example.org"));
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(2, result.size());
+		assertNull(result.get("Location"));
+		assertEquals("abc", result.get("foobar"));
+		assertEquals(MediaType.TEXT_XML, result.get("Accept"));
 	}
 
 }

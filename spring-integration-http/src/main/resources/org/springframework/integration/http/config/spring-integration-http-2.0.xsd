@@ -239,7 +239,9 @@
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP request.
-	This can only be provided if the 'header-mapper' reference is not being set directly.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -334,7 +336,9 @@
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP request.
-	This can only be provided if the 'header-mapper' reference is not being set directly.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -342,7 +346,9 @@
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	Comma-separated list of names of HttpHeaders to be mapped from the HTTP response into the MessageHeaders.
-	This can only be provided if the 'header-mapper' reference is not being set directly.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+	The String "HTTP_RESPONSE_HEADERS" will match against any of the standard HTTP Response headers.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
