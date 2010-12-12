@@ -2488,6 +2488,7 @@ Name of the header whose value will be used to route messages
 				Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:ID" use="optional" />
 		<xsd:attribute name="channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>

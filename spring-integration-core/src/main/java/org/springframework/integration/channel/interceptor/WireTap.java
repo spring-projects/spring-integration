@@ -18,12 +18,14 @@ package org.springframework.integration.channel.interceptor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
 /**
@@ -32,6 +34,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
+@ManagedResource
 public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 	private static final Log logger = LogFactory.getLog(WireTap.class);
@@ -80,6 +83,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Check whether the wire tap is currently running.
 	 */
+	@ManagedAttribute
 	public boolean isRunning() {
 		return this.running;
 	}
@@ -87,6 +91,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Restart the wire tap if it has been stopped. It is running by default.
 	 */
+	@ManagedOperation
 	public void start() {
 		this.running = true;
 	}
@@ -94,6 +99,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Stop the wire tap. To restart, invoke {@link #start()}.
 	 */
+	@ManagedOperation
 	public void stop() {
 		this.running = false;
 	}

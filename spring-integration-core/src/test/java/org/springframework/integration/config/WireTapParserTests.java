@@ -52,6 +52,14 @@ public class WireTapParserTests {
 	}
 
 	@Test
+	public void simpleWireTapWithId() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"wireTapParserTests.xml", this.getClass());
+		WireTap wireTap = (WireTap) context.getBean("wireTap");
+		assertNotNull(wireTap);
+	}
+
+	@Test
 	public void wireTapWithAcceptingSelector() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"wireTapParserTests.xml", this.getClass());
@@ -98,7 +106,7 @@ public class WireTapParserTests {
 				otherTimeoutCount++;
 			}
 		}
-		assertEquals(3, defaultTimeoutCount);
+		assertEquals(4, defaultTimeoutCount);
 		assertEquals(1, expectedTimeoutCount);
 		assertEquals(0, otherTimeoutCount);
 	}

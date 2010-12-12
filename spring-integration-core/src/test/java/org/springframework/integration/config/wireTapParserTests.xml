@@ -18,6 +18,13 @@
 		</interceptors>
 	</channel>
 
+	<channel id="withId">
+		<queue capacity="10"/>
+		<interceptors>
+			<wire-tap id="wireTap" channel="wireTapChannel"/>
+		</interceptors>
+	</channel>
+
 	<channel id="accepting">
 		<queue capacity="10"/>
 		<interceptors>
