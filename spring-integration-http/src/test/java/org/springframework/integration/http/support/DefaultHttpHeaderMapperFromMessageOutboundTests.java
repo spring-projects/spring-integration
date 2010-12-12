@@ -508,4 +508,31 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals("foo", headers.get("X-foo").get(0));
 	}
 	
+	@Test
+	public void validateCustomHeaderWithHeaderNamePatterns() throws ParseException{
+		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[]{"x*", "*z", "a*f"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("x1", "x1-value");
+		messageHeaders.put("1x", "1x-value");
+		messageHeaders.put("z1", "z1-value");
+		messageHeaders.put("1z", "1z-value");
+		messageHeaders.put("abc", "abc-value");
+		messageHeaders.put("def", "def-value");
+		messageHeaders.put("abcdef", "abcdef-value");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(3, headers.size());
+		assertNull(headers.get("1x"));
+		assertNull(headers.get("z1"));
+		assertNull(headers.get("abc"));
+		assertNull(headers.get("def"));
+		assertEquals(1, headers.get("X-x1").size());
+		assertEquals("x1-value", headers.getFirst("X-x1"));
+		assertEquals(1, headers.get("X-1z").size());
+		assertEquals("1z-value", headers.getFirst("X-1z"));
+		assertEquals(1, headers.get("X-abcdef").size());
+		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));
+	}
+
 }

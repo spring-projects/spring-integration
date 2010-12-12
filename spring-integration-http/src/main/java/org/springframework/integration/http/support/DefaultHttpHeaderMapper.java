@@ -36,6 +36,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -222,6 +223,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	/**
 	 * Provide the header names that should be mapped to an HTTP request (for outbound adapters)
 	 * or HTTP response (for inbound adapters) from a Spring Integration Message's headers.
+	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * Any non-standard headers will be prefixed by {@value #USER_DEFINED_HEADER_PREFIX} if not already.
 	 */
@@ -232,6 +234,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	/**
 	 * Provide the header names that should be mapped from an HTTP request (for inbound adapters)
 	 * or HTTP response (for outbound adapters) to a Spring Integration Message's headers.
+	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * This will match the header name directly or, for non-standard HTTP headers, it will match
 	 * the header name prefixed by {@value #USER_DEFINED_HEADER_PREFIX}. 
@@ -246,14 +249,17 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter). 
 	 */
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
-		for (String name : this.outboundHeaderNames) {
-			Object value = headers.get(name);
-			if (value != null) {
-				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					// prefix the user-defined header names if not already prefixed
-					name = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name : USER_DEFINED_HEADER_PREFIX + name;
+		Set<String> headerNames = headers.keySet();
+		for (String name : headerNames) {
+			if (this.shouldMapOutboundHeader(name)) {
+				Object value = headers.get(name);
+				if (value != null) {
+					if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
+						// prefix the user-defined header names if not already prefixed
+						name = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name : USER_DEFINED_HEADER_PREFIX + name;
+					}
+					this.setHttpHeader(target, name, value);
 				}
-				this.setHttpHeader(target, name, value);
 			}
 		}
 	}
@@ -265,23 +271,45 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 */
 	public Map<String, ?> toHeaders(HttpHeaders source) {
 		Map<String, Object> target = new HashMap<String, Object>();
-		for (String name : this.inboundHeaderNames) {
-			if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-				String prefixedName = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name
-						: USER_DEFINED_HEADER_PREFIX + name;
-				Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
-				if (value != null) {
-					this.setMessageHeader(target, name, value);
+		Set<String> headerNames = source.keySet();
+		for (String name : headerNames) {
+			if (this.shouldMapInboundHeader(name)) {
+				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
+					String prefixedName = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name
+							: USER_DEFINED_HEADER_PREFIX + name;
+					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
+					if (value != null) {
+						this.setMessageHeader(target, name, value);
+					}
 				}
-			}
-			else {
-				Object value = this.getHttpHeader(source, name);
-				if (value != null) {
-					this.setMessageHeader(target, name, value);
+				else {
+					Object value = this.getHttpHeader(source, name);
+					if (value != null) {
+						this.setMessageHeader(target, name, value);
+					}
 				}
 			}
 		}
 		return target;
+	}
+
+	private boolean shouldMapOutboundHeader(String headerName) {
+		return this.shouldMapHeader(headerName, this.outboundHeaderNames);
+	}
+
+	private boolean shouldMapInboundHeader(String headerName) {
+		return this.shouldMapHeader(headerName, this.inboundHeaderNames);
+	}
+
+	private boolean shouldMapHeader(String headerName, String[] patterns) {
+		if (patterns != null && patterns.length > 0) {
+			for (String pattern : patterns) {
+				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void setHttpHeader(HttpHeaders target, String name, Object value) {

@@ -18,6 +18,7 @@ package org.springframework.integration.http.support;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -254,4 +255,84 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	}
 	
 	// Pragma tested as part of DefaultHttpHeaderMapperFromMessageOutboundTests
+
+	@Test
+	public void validateCustomHeaderNamesMappedToHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"foo", "bar"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foo", "abc");
+		messageHeaders.put("bar", "123");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.size());
+		assertEquals(1, headers.get("X-foo").size());
+		assertEquals("abc", headers.getFirst("X-foo"));
+		assertEquals(1, headers.get("X-bar").size());
+		assertEquals("123", headers.getFirst("X-bar"));
+	}
+
+	@Test
+	public void validateCustomHeaderNamePatternsMappedToHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"x*", "*z", "a*f"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("x1", "x1-value");
+		messageHeaders.put("1x", "1x-value");
+		messageHeaders.put("z1", "z1-value");
+		messageHeaders.put("1z", "1z-value");
+		messageHeaders.put("abc", "abc-value");
+		messageHeaders.put("def", "def-value");
+		messageHeaders.put("abcdef", "abcdef-value");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(3, headers.size());
+		assertNull(headers.get("1x"));
+		assertNull(headers.get("z1"));
+		assertNull(headers.get("abc"));
+		assertNull(headers.get("def"));
+		assertEquals(1, headers.get("X-x1").size());
+		assertEquals("x1-value", headers.getFirst("X-x1"));
+		assertEquals(1, headers.get("X-1z").size());
+		assertEquals("1z-value", headers.getFirst("X-1z"));
+		assertEquals(1, headers.get("X-abcdef").size());
+		assertEquals("abcdef-value", headers.getFirst("X-abcdef"));		
+	}
+
+	@Test
+	public void validateCustomHeaderNamesMappedFromHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"foo", "bar"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("foo", "abc");
+		headers.set("bar", "123");
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(2, result.size());
+		assertEquals("abc", result.get("foo"));
+		assertEquals("123", result.get("bar"));
+	}
+
+	@Test
+	public void validateCustomHeaderNamePatternsMappedFromHttpHeaders() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"x*", "*z", "a*f"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("x1", "x1-value");
+		headers.set("1x", "1x-value");
+		headers.set("z1", "z1-value");
+		headers.set("1z", "1z-value");
+		headers.set("abc", "abc-value");
+		headers.set("def", "def-value");
+		headers.set("abcdef", "abcdef-value");
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(3, result.size());
+		assertNull(result.get("1x"));
+		assertNull(result.get("z1"));
+		assertNull(result.get("abc"));
+		assertNull(result.get("def"));
+		assertEquals("x1-value", result.get("x1"));
+		assertEquals("1z-value", result.get("1z"));
+		assertEquals("abcdef-value", result.get("abcdef"));
+	}
+
 }
