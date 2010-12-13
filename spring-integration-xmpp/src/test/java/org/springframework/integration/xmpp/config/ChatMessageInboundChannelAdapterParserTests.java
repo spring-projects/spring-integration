@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
@@ -45,6 +46,8 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	@Test
 	public void testInboundAdapter(){
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
+		MessageChannel errorChannel = (MessageChannel) TestUtils.getPropertyValue(adapter, "errorChannel");
+		assertEquals(context.getBean("errorChannel"), errorChannel);
 		assertFalse(adapter.isAutoStartup());
 		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(adapter, "outputChannel");
 		assertEquals("xmppInbound", channel.getComponentName());

@@ -60,6 +60,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		this.postProcess(element, parserContext, builder);
 	}
 	
