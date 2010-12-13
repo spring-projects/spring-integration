@@ -46,7 +46,7 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	public void testInboundAdapter(){
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
 		assertFalse(adapter.isAutoStartup());
-		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(adapter, "messagingTemplate.defaultChannel");
+		DirectChannel channel = (DirectChannel) TestUtils.getPropertyValue(adapter, "outputChannel");
 		assertEquals("xmppInbound", channel.getComponentName());
 		XMPPConnection connection = (XMPPConnection)TestUtils.getPropertyValue(adapter, "xmppConnection");
 		assertEquals(connection, context.getBean("testConnection"));

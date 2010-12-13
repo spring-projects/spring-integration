@@ -68,6 +68,7 @@ public class PresenceListeningEndpointTests {
 			}
 		}).when(roster).removeRosterListener(Mockito.any(RosterListener.class));
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
+		rosterEndpoint.setOutputChannel(new QueueChannel());
 		rosterEndpoint.afterPropertiesSet();
 		assertEquals(0, rosterSet.size());
 		rosterEndpoint.start();
@@ -89,7 +90,7 @@ public class PresenceListeningEndpointTests {
 		when(connection.getRoster()).thenReturn(roster);
 		PresenceListeningEndpoint rosterEndpoint = new PresenceListeningEndpoint(connection);
 		QueueChannel channel = new QueueChannel();
-		rosterEndpoint.setRequestChannel(channel);
+		rosterEndpoint.setOutputChannel(channel);
 		rosterEndpoint.afterPropertiesSet();
 		rosterEndpoint.start();
 		RosterListener rosterListener = (RosterListener) TestUtils.getPropertyValue(rosterEndpoint, "rosterListener");
@@ -105,6 +106,7 @@ public class PresenceListeningEndpointTests {
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
 		endpoint.setBeanFactory(bf);
+		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
 	}

@@ -31,6 +31,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
@@ -66,6 +67,7 @@ public class ChatMessageListeningEndpointTests {
 		}).when(connection).removePacketListener(Mockito.any(PacketListener.class));
 		
 		assertEquals(0, packetListSet.size());
+		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
 		endpoint.start();
 		assertEquals(1, packetListSet.size());
@@ -85,6 +87,7 @@ public class ChatMessageListeningEndpointTests {
 		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, mock(XMPPConnection.class));
 		ChatMessageListeningEndpoint endpoint = new ChatMessageListeningEndpoint();
 		endpoint.setBeanFactory(bf);
+		endpoint.setOutputChannel(new QueueChannel());
 		endpoint.afterPropertiesSet();
 		assertNotNull(TestUtils.getPropertyValue(endpoint,"xmppConnection"));
 	}

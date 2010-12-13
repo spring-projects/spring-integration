@@ -21,8 +21,6 @@ import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
@@ -39,8 +37,6 @@ import org.springframework.util.Assert;
  */
 public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
 	private volatile boolean extractPayload = true;
 
 	private final PacketListener packetListener = new ChatMessagePublishingPacketListener();
@@ -56,13 +52,6 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 
 	/**
-	 * @param requestChannel the channel on which the inbound message should be sent
-	 */
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
-	}
-
-	/**
 	 * Specify whether the text message body should be extracted when mapping to a
 	 * Spring Integration Message payload. Otherwise, the full XMPP Message will be
 	 * passed within the payload. This value is <em>true</em> by default.
@@ -72,9 +61,8 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 	}
 
 	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		this.messagingTemplate.afterPropertiesSet();
+	public String getComponentType() {
+		return "xmpp:inbound-channel-adapter";
 	}
 
 	@Override
@@ -101,7 +89,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 				MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
 						.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
 						.setHeader(XmppHeaders.CHAT, chat);
-				messagingTemplate.send(messageBuilder.build());
+				sendMessage(messageBuilder.build());
 			}
 		}
 	}

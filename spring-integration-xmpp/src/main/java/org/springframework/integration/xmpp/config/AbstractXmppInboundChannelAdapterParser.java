@@ -58,7 +58,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 					"'xmpp-connection' attribute or have default XMPP connection bean registered under the name 'xmppConnection'" +
 					"(e.g., <int-xmpp:xmpp-connection .../>). If 'id' is not provided the default will be 'xmppConnection'.");
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		this.postProcess(element, parserContext, builder);
 	}

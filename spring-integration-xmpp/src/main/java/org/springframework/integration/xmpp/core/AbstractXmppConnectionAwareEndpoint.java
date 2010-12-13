@@ -17,15 +17,18 @@
 package org.springframework.integration.xmpp.core;
 
 import org.jivesoftware.smack.XMPPConnection;
+
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.util.Assert;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public abstract class AbstractXmppConnectionAwareEndpoint extends AbstractEndpoint {
+public abstract class AbstractXmppConnectionAwareEndpoint extends MessageProducerSupport {
 
 	protected volatile XMPPConnection xmppConnection;
 
@@ -40,8 +43,18 @@ public abstract class AbstractXmppConnectionAwareEndpoint extends AbstractEndpoi
 		this.xmppConnection = xmppConnection;
 	}
 
+	/**
+	 * {@link Deprecated} This method will be eligible for removal in 2.1.
+	 * Use {@link #setOutputChannel(MessageChannel)} instead.
+	 */
+	@Deprecated
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.setOutputChannel(requestChannel);
+	}
 
-	protected void onInit() throws Exception {
+	@Override
+	protected void onInit() {
+		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.xmppConnection == null && beanFactory != null) {
 			this.xmppConnection = beanFactory.getBean(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, XMPPConnection.class);

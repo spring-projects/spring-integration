@@ -20,15 +20,13 @@ import java.util.Collection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -40,6 +38,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoint {
@@ -47,8 +46,6 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	private static final Log logger = LogFactory.getLog(PresenceListeningEndpoint.class);
 
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-	
 	private final PresencePublishingRosterListener rosterListener = new PresencePublishingRosterListener();
 
 
@@ -61,11 +58,9 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 	}
 
 
-	/**
-	 * @param requestChannel the channel on which the inbound message should be sent
-	 */
-	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.messagingTemplate.setDefaultChannel(requestChannel);
+	@Override
+	public String getComponentType() {
+		return "xmpp:presence-inbound-channel-adapter";
 	}
 
 	@Override
@@ -80,12 +75,6 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 		if (this.xmppConnection != null) {
 			this.xmppConnection.getRoster().removeRosterListener(this.rosterListener);
 		}
-	}
-
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		this.messagingTemplate.afterPropertiesSet();
 	}
 
 
@@ -119,7 +108,7 @@ public class PresenceListeningEndpoint extends AbstractXmppConnectionAwareEndpoi
 				if (logger.isDebugEnabled()) {
 					logger.debug("presence changed: " + presence.getFrom() + " - " + presence);
 				}
-				messagingTemplate.convertAndSend(presence);
+				sendMessage(MessageBuilder.withPayload(presence).build());
 			}
 		}
 	}
