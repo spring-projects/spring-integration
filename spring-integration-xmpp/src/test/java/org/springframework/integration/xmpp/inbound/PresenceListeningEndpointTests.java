@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -38,7 +40,12 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.core.XmppContextUtils;
 
@@ -117,4 +124,38 @@ public class PresenceListeningEndpointTests {
 		handler.afterPropertiesSet();
 	}
 
+	@Test
+	public void testWithErrorChannel(){
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		XMPPConnection connection = mock(XMPPConnection.class);
+		bf.registerSingleton(XmppContextUtils.XMPP_CONNECTION_BEAN_NAME, connection);
+		
+		ChatManager cm = mock(ChatManager.class);
+		when(connection.getChatManager()).thenReturn(cm);
+		Chat chat = mock(Chat.class);
+		when(cm.getThreadChat(Mockito.anyString())).thenReturn(chat);
+		
+		PresenceListeningEndpoint endpoint = new PresenceListeningEndpoint();
+		
+		DirectChannel outChannel = new DirectChannel();
+		outChannel.subscribe(new MessageHandler() {		
+			public void handleMessage(org.springframework.integration.Message<?> message)
+					throws MessagingException {
+				throw new RuntimeException("ooops");
+			}
+		});
+		PollableChannel errorChannel = new QueueChannel();
+		endpoint.setBeanFactory(bf);
+		endpoint.setOutputChannel(outChannel);
+		endpoint.setErrorChannel(errorChannel);
+		endpoint.afterPropertiesSet();
+		RosterListener listener = (RosterListener) TestUtils.getPropertyValue(endpoint, "rosterListener");
+		Presence presence = new Presence(Type.available);
+		
+		listener.presenceChanged(presence);
+		
+		ErrorMessage msg =  
+			(ErrorMessage) errorChannel.receive();
+		assertEquals(Type.available.toString(), ((MessagingException)msg.getPayload()).getFailedMessage().getPayload().toString());
+	}
 }
