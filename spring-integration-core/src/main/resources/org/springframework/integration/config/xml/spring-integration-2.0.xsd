@@ -1186,6 +1186,26 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:documentation>Fixed rate trigger (in milliseconds).</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="time-unit">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The java.util.concurrent.TimeUnit enum value. This can ONLY be used in combination
+	with the 'fixed-delay' or 'fixed-rate' attributes. If combined with either 'cron'
+	or a 'trigger' reference attribute, it will cause a failure. The minimal supported
+	granularity for a PeriodicTrigger is MILLISEONDS. Therefore, the only available options
+	are MILLISECONDS and SECONDS. If this value is not provided, then any 'fixed-delay' or
+	'fixed-rate' value will be interpreted as MILLISECONDS by default. Basically this enum
+	provides a convenience for SECONDS-based interval trigger values. For hourly, daily,
+	and monthly settings, consider using a 'cron' trigger instead.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="MILLISECONDS" />
+					<xsd:enumeration value="SECONDS" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
 		<xsd:attribute name="cron" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>Cron trigger.</xsd:documentation>
