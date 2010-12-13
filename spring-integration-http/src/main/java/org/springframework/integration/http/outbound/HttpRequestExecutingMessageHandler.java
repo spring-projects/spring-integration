@@ -38,6 +38,7 @@ import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -60,7 +61,13 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * A {@link MessageHandler} implementation that executes HTTP requests by delegating
- * to a {@link RestTemplate} instance.
+ * to a {@link RestTemplate} instance. If the 'expectReply' flag is set to true (the default)
+ * then a reply Message will be generated from the HTTP response. If that response contains
+ * a body, it will be used as the reply Message's payload. Otherwise the reply Message's
+ * payload will contain the response status as an instance of the {@link HttpStatus} enum.
+ * When there is a response body, the {@link HttpStatus} enum instance will instead be
+ * copied to the MessageHeaders of the reply. In both cases, the response headers will
+ * be mapped to the reply Message's headers by this handler's {@link HeaderMapper} instance.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -229,7 +236,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 					Object responseBody = httpResponse.getBody();
 					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
 							MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
-							return replyBuilder.copyHeaders(headers).build();
+					replyBuilder.setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode());
+					return replyBuilder.copyHeaders(headers).build();
 				}
 				else {
 					return MessageBuilder.withPayload(httpResponse.getStatusCode()).copyHeaders(headers).build();

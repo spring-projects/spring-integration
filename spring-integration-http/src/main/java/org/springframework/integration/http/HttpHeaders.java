@@ -30,4 +30,6 @@ public abstract class HttpHeaders {
 
 	public static final String USER_PRINCIPAL = PREFIX + "userPrincipal";
 
+	public static final String STATUS_CODE = PREFIX + "statusCode";
+
 }
