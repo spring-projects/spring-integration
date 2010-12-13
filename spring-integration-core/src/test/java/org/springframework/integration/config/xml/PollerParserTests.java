@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -28,6 +30,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.config.TestTrigger;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -81,13 +85,15 @@ public class PollerParserTests {
 	}
 
 	@Test
-	public void pollerWithReceiveTimeout() {
+	public void pollerWithReceiveTimeoutAndTimeunit() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollerWithReceiveTimeout.xml", PollerParserTests.class);
 		Object poller = context.getBean("poller");
 		assertNotNull(poller);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertEquals(1234, metadata.getReceiveTimeout());
+		PeriodicTrigger trigger = (PeriodicTrigger) metadata.getTrigger();
+		assertEquals(TimeUnit.SECONDS.toString(), TestUtils.getPropertyValue(trigger, "timeUnit").toString());
 	}
 
     @Test
@@ -99,5 +105,10 @@ public class PollerParserTests {
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertTrue(metadata.getTrigger() instanceof TestTrigger);
 	}
-
+    
+    @Test(expected=BeanDefinitionParsingException.class)
+	public void pollerWithCronTriggerAndTimeUnit() {
+		new ClassPathXmlApplicationContext(
+				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class);
+	}
 }
