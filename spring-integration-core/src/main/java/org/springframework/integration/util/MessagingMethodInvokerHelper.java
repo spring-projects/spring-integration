@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -51,6 +52,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
@@ -317,6 +319,28 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		if (!candidateMethods.isEmpty()) {
 			return candidateMethods;
 		}
+		if ((fallbackMethods.isEmpty() || ambiguousFallbackType.get() != null) && ServiceActivator.class.equals(annotationType)) {
+			// a Service Activator can fallback to either MessageHandler.handleMessage(m) or RequestReplyExchanger.exchange(m)
+			List<Method> frameworkMethods = new ArrayList<Method>();
+			Class<?>[] allInterfaces = org.springframework.util.ClassUtils.getAllInterfacesForClass(targetClass);
+			for (Class<?> iface : allInterfaces) {
+				try {
+					if ("org.springframework.integration.gateway.RequestReplyExchanger".equals(iface.getName())) {
+						frameworkMethods.add(targetClass.getMethod("exchange", Message.class));
+					}
+					else if ("org.springframework.integration.core.MessageHandler".equals(iface.getName()) && !requiresReply) {
+						frameworkMethods.add(targetClass.getMethod("handleMessage", Message.class));
+					}
+				}
+				catch (Exception e) {
+					// should never happen (but would fall through to errors below)
+				}
+			}
+			if (frameworkMethods.size() == 1) {
+				HandlerMethod handlerMethod = new HandlerMethod(frameworkMethods.get(0), canProcessMessageList);
+				return Collections.<Class<?>, HandlerMethod>singletonMap(Object.class, handlerMethod);
+			}
+		}
 		Assert.notEmpty(fallbackMethods, "Target object of type [" + this.targetObject.getClass()
 				+ "] has no eligible methods for handling Messages.");
 		Assert.isNull(ambiguousFallbackType.get(), "Found ambiguous parameter type [" + ambiguousFallbackType
@@ -370,6 +394,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		return (method.getName().equals("clone") && method.getParameterTypes().length == 0);
 	}
 
+
 	/**
 	 * Helper class for generating and exposing metadata for a candidate handler method. The metadata includes the SpEL
 	 * expression and the expected payload type.
@@ -380,29 +405,32 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 
 		private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new LocalVariableTableParameterNameDiscoverer();
 
-		private final Method method;
-
-		private final Expression expression;
-
-		private volatile TypeDescriptor targetParameterType;
-
 		private static final TypeDescriptor messageTypeDescriptor = TypeDescriptor.valueOf(Message.class);
 
-		private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(ReflectionUtils.findField(
-				HandlerMethod.class, "dummyMessages"));
+		private static final TypeDescriptor messageListTypeDescriptor = new TypeDescriptor(
+				ReflectionUtils.findField(HandlerMethod.class, "dummyMessages"));
 
 		private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
 
 		@SuppressWarnings("unused")
 		private static final List<Message<?>> dummyMessages = Collections.emptyList();
 
+
+		private final Method method;
+
+		private final Expression expression;
+
+		private volatile TypeDescriptor targetParameterType;
+
 		private final boolean canProcessMessageList;
+
 
 		HandlerMethod(Method method, boolean canProcessMessageList) {
 			this.method = method;
 			this.canProcessMessageList = canProcessMessageList;
 			this.expression = this.generateExpression(method);
 		}
+
 
 		Expression getExpression() {
 			return this.expression;
