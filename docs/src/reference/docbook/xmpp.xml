@@ -66,9 +66,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     	</note>
     </para>
     <para>
-    If XMPP Connection goes stale the attempts to reconnect with an automatic login if the previous connection 
-    state was logged (authenticated) will be made. 
-    We also register <classname>ConnectionListener</classname> which  will log connection events if DEBUG level is enabled.
+    If the XMPP Connection goes stale, reconnection attempts will be made with an automatic login as long as the previous connection 
+    state was logged (authenticated). We also register a <classname>ConnectionListener</classname> which will log connection events
+    if the DEBUG logging level is enabled.
     </para>
   </section>
 
