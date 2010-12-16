@@ -65,6 +65,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
     	The default name <emphasis>xmppConnection</emphasis> will be used for this connection bean.
     	</note>
     </para>
+    <para>
+    If XMPP Connection goes stale the attempts to reconnect with an automatic login if the previous connection 
+    state was logged (authenticated) will be made. 
+    We also register <classname>ConnectionListener</classname> which  will log connection events if DEBUG level is enabled.
+    </para>
   </section>
 
   <section id="xmpp-messages">
