@@ -76,18 +76,17 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 </bean>]]></programlisting>
 	</para>
 
-
 	<para>
-	Every time an adapter requests a session object from the <classname>DefaultFtpClientFactory</classname> or <classname>DefaultFtpsClientFactory</classname> the session is 
-	returned from the default session pool maintained by these factories. Session in the session pool might go stale 
-	(session that were disconnected by the server due to inactivity) so <classname>DefaultFtpClientFactory</classname> or <classname>DefaultFtpsClientFactory</classname> 
-	will perform validation to make sure that they never return stale session to the adapter. If stale session was encountered 
-	it will be removed form the pool and the new one will be created.
+	Every time an adapter requests a session object from its <interfacename>SessionFactory</interfacename> the session is 
+	returned from a session pool maintained by a caching wrapper around the factory. A Session in the session pool might go stale 
+	(if it has been disconnected by the server due to inactivity) so the <interfacename>SessionFactory</interfacename> 
+	will perform validation to make sure that it never returns a stale session to the adapter. If a stale session was encountered,
+	it will be removed from the pool, and a new one will be created.
 	<note>
-	If you experience connectivity problems and would like to trace session creation as well as see which session are 
-	polled you may enable it by setting logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE)
+	If you experience connectivity problems and would like to trace Session creation as well as see which Sessions are 
+	polled you may enable it by setting the logger to TRACE level (e.g., log4j.category.org.springframework.integration.file=TRACE)
 	</note>
-   </para>
+	</para>
 
 	<para>
 	Now all you need to do is inject these session factories into your adapters. Obviously the protocol (FTP or FTPS) that an adapter will 
