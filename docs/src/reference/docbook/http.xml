@@ -181,29 +181,32 @@ By default the HTTP request will be generated using an instance of <classname>Si
   	
   	<para>
   	By default all standard Http Headers as defined here 
-  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to http request/response headers without 
+  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without 
   	further configuration. 
-  	However if you do need further customization you may provide an additional configuration via convenient namesapce support. 
-  	Below are couple of examples:
+  	However if you do need further customization you may provide additional configuration via convenient namespace support.
+    You can provide a comma-separated list of header names, and you can also include simple patterns with the '*' character acting as a wildcard.
+  	If you do provide such values, it will override the default behavior. Basically, it assumes you are in complete control at that point.
+    However, if you do want to include all of the standard HTTP headers, you can use the shortcut patterns: HTTP_REQUEST_HEADERS and
+    HTTP_RESPONSE_HEADERS. Here are some examples:
   	
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
 			url="http://localhost/test2"
 			mapped-request-headers="foo, bar"
-			mapped-response-headers="baz, a"
+			mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
 			channel="someChannel"/>
 			
 <int-http:outbound-channel-adapter id="httpAdapter"
 			url="http://localhost/test2"
-			mapped-request-headers="foo, bar"
+			mapped-request-headers="foo, bar, HTTP_REQUEST_HEADERS"
 			channel="someChannel"/>]]></programlisting>
 			
 	The adapters and gateways will use the <classname>DefaultHttpHeaderMapper</classname> which now provides 
 	two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be 
-	applied (mapping HTTP requests/reponses IN/OUT as appropriate). 
+	applied (mapping HTTP requests/responses IN/OUT as appropriate). 
   	</para>
   	<para>
-  	If further customization is required you can also configure <classname>DefaultHttpHeaderMapper</classname> independently 
-  	and inject it into the adapter via <code>header-mapper</code> attribute.
+  	If further customization is required you can also configure a <classname>DefaultHttpHeaderMapper</classname> independently 
+  	and inject it into the adapter via the <code>header-mapper</code> attribute.
   	
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
 			url="http://localhost/test2"
@@ -211,10 +214,12 @@ By default the HTTP request will be generated using an instance of <classname>Si
 			channel="someChannel"/>
 
 <bean id="headerMapper" class="org.springframework.integration.http.support.DefaultHttpHeaderMapper">
-		<property name="inboundHeaderNames" value="foo, bar, baz"/>
-		<property name="outboundHeaderNames" value="a, b, d"/>
+		<property name="inboundHeaderNames" value="foo*, *bar, baz"/>
+		<property name="outboundHeaderNames" value="a*b, d"/>
 </bean>]]></programlisting>
   	</para>
+    <para>Of course, you can even implement the HeaderMapper strategy interface directly and provide a reference to that
+	  if you need to do something other than what the <classname>DefaultHttpHeaderMapper</classname> supports.</para>
   </section>
   
   <section id="http-samples">
