@@ -54,6 +54,7 @@ import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -216,7 +217,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
-			Method[] methods = proxyInterface.getDeclaredMethods();
+
+			Method[] methods = ReflectionUtils.getAllDeclaredMethods(proxyInterface);
 			for (Method method : methods) {
 				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
@@ -262,15 +264,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		if (AopUtils.isToStringMethod(method)) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
-		if (method.getDeclaringClass().equals(this.serviceInterface)) {
-			try {
-				return this.invokeGatewayMethod(invocation);
-			}
-			catch (Exception e) {
-				rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
-			}
+		try {
+			return this.invokeGatewayMethod(invocation);
 		}
-		return invocation.proceed();
+		catch (Throwable e) {
+			this.rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
+		}
+		return null;
 	}
 
 	private Object invokeGatewayMethod(MethodInvocation invocation) throws Exception {
