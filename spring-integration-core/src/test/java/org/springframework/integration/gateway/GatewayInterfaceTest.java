@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.gateway;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,12 +25,16 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+
+import com.sun.org.apache.bcel.internal.generic.FNEG;
 
 /**
  * @author Oleg Zhurakousky
@@ -91,13 +98,13 @@ public class GatewayInterfaceTest {
 	}
 	
 	@Test
-	public void testWithServiceHashcode(){
+	public void testWithServiceHashcode() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
-		bar.hashCode();
+		assertEquals(bar.hashCode(), ac.getBean(Bar.class).hashCode());
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
 	
@@ -113,13 +120,21 @@ public class GatewayInterfaceTest {
 	}
 	
 	@Test
-	public void testWithServiceEquals(){
+	public void testWithServiceEquals() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
 		Bar bar = ac.getBean(Bar.class);
-		bar.equals("");
+		assertTrue(bar.equals(ac.getBean(Bar.class)));
+		GatewayProxyFactoryBean fb = new GatewayProxyFactoryBean(Bar.class);
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.registerSingleton("requestChannelBar", channel);
+		bf.registerSingleton("requestChannelBaz", channel);
+		bf.registerSingleton("requestChannelFoo", channel);
+		fb.setBeanFactory(bf);
+		fb.afterPropertiesSet();
+		assertFalse(bar.equals(fb.getObject()));
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
 	
@@ -133,6 +148,11 @@ public class GatewayInterfaceTest {
 		bar.getClass();
 		verify(handler, times(0)).handleMessage(Mockito.any(Message.class));
 	}
+	
+	@Test(expected=IllegalArgumentException.class)
+	public void testWithServiceAsNotAnInterface(){
+		new GatewayProxyFactoryBean(NotAnInterface.class);
+	}
 
 	
 	public interface Foo {
@@ -145,5 +165,9 @@ public class GatewayInterfaceTest {
 	public static interface Bar extends Foo{
 		@Gateway(requestChannel="requestChannelBar")
 		public void bar(String payload);	
+	}
+	
+	public static class NotAnInterface {
+		public void fail(String payload){}
 	}
 }

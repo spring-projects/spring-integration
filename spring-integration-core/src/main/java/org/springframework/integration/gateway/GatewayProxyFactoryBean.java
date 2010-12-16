@@ -113,6 +113,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	}
 
 	public GatewayProxyFactoryBean(Class<?> serviceInterface) {
+		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
+		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;
 	}
 
