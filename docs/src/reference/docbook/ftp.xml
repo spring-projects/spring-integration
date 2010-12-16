@@ -162,6 +162,36 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 <bean id="customFilter" class="org.example.CustomFilter"/>
 ]]></programlisting>
   	</para>
+  	<para>
+  		<emphasis>Poller configuration notes for FTP Inbound adapter</emphasis>
+  	</para>
+  	<para>
+  	The job of protocol specific adapters such as FTP  consists of two tasks. 
+	<emphasis>1) Communicate with remote server and transfer file from the remote directory to the local directory</emphasis>
+	<emphasis>2) Generate Message with the transferred file as a payload and send it to a channel identified via 'channel' attribute.</emphasis>
+
+	That is why they called 'channel-adapters' not just 'adapters' and  therefore the main job of such adapter is to generate a 
+	Message which essentially makes the second part of the above explanation to take precedence in such way that 
+	*IF* your local directory already has a file(s) it will first generate Messages from these files and *ONLY* 
+	when all files have been processed it will initiate the remote communication to get more files.
+
+	So when configuring a trigger on the poller you might want to pay an extra attention to <code>max-messages-per-poll</code> 
+	attribute which has a default value of 1 for all <classname>SourcePollingChannelAdapter</classname> instances (e.g., FTP). 
+	This means that as soon as one file is processed it will wait for the next execution time which is dependent on your 
+	trigger configuration, so if you happened to have a file(s) sitting in the <code>local-directory</code> it would process 
+	those files before it would initiate communication with remote FTP server and if the <code>max-messages-per-poll</code> 
+	was set to 1 (default) then it would be processing one file at the time with intervals defined by your trigger 
+	essentially working as <emphasis>one-poll = one-file</emphasis>.
+  	</para>
+  	<para>
+  	For typical use cases you most likely want the oposite behavior and that is to process all the files you can for each 
+  	poll and only then wait for the next poll. If that is the case it is recommended to set <code>max-messages-per-poll</code> to -1 
+  	value which means on each poll the adapter will attempt to generate as many messages as it possibly can meaning it will process 
+  	everything in the local directory, then it will connect to the remote directory transferring everything that is available 
+  	there and processing them locally. Only then the poll will stop and wait for the next execution time
+
+	You can also set it to some value greater then 1 (e.g., 10 which means on each poll attempt to process no more then 10 files)
+  	</para>
   </section>
   
   <section id="ftp-outbound">
@@ -202,6 +232,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	instead of remote-directory="/foo/bar")
   	</important>
   	</para>
-  	
+ 
   </section>
 </chapter>
