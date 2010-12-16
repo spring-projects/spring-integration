@@ -272,16 +272,16 @@ received.
         <programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
     <header name="twitter_dmTargetUserId" value="z_oleg"/> 
 </header-enricher>]]></programlisting>
-        <para>
+        </para>
 
         <para>It's quite common that the value must be determined dynamically. For those cases you can take advantage
-        of SpEL support within the &lt;header-enricher&gt;.</para>
-
+        of SpEL support within the &lt;header-enricher&gt;.
   		<programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
     <header name="twitter_dmTargetUserId" expression="@twitterIdService.lookup(headers.username)"/> 
 </header-enricher>]]></programlisting>
   		</para>
   	</section>
+
   	<para>
   		<important>Twitter does not allow you to post duplicate Messages. This is a common problem during testing when 
   		the same code works the first time but does not work the second time. So, make sure to change the content of the Message
