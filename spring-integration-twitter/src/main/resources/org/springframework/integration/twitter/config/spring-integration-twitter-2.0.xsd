@@ -94,15 +94,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="outbound-twitter-type">
-					<xsd:attribute name="target-user-expression" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Allows you to provide a valid SpEL Expression which will compute the target userid.
-							</xsd:documentation>
-						</xsd:annotation>	
-					</xsd:attribute>
-				</xsd:extension>
+				<xsd:extension base="outbound-twitter-type"/>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>

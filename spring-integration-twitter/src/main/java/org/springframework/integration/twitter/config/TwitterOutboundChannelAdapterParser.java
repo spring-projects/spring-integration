@@ -18,15 +18,12 @@ package org.springframework.integration.twitter.config;
 
 import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.util.StringUtils;
-
-import org.w3c.dom.Element;
 
 /**
  * Parser for all outbound Twitter adapters
@@ -42,12 +39,6 @@ public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannel
 		String className = determineClassName(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
 		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
-		String targetUserExpression = element.getAttribute("target-user-expression");
-		if (StringUtils.hasText(targetUserExpression)){
-			BeanDefinition expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
-			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(targetUserExpression);
-			builder.addPropertyValue("targetUserExpression", expressionDef);
-		}
 		return builder.getBeanDefinition();
 	}
 
@@ -64,7 +55,6 @@ public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannel
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
-		
 		return className;
 	}
 

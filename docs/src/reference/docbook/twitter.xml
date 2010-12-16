@@ -259,25 +259,27 @@ received.
   		</para>
   		<para>
   	    When it comes to Twitter Direct Messages, you must specify who you are sending the message to - the <emphasis>target userid</emphasis>. 
-  	    The Twitter Outbound Direct Message Channel Adapter provides two ways you can specify that target user.
-        </para>
-        <para>
-        The first (and default) way is that it will look for a target userid in the Message headers under the name <code>twitter_dmTargetUserId</code> which 
-        is also identified by the following constant: <classname>TwitterHeaders.DM_TARGET_USER_ID</classname>.
+  	    The Twitter Outbound Direct Message Channel Adapter will look for a target userid in the Message headers under the name
+        <code>twitter_dmTargetUserId</code> which is also identified by the following constant: <classname>TwitterHeaders.DM_TARGET_USER_ID</classname>.
         So when creating a Message all you need to do is add a value for that header.
-		
+
 		<programlisting language="java"><![CDATA[Message message = MessageBuilder.withPayload("hello")
-		.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();]]></programlisting>
+        .setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();]]></programlisting>
   		</para>
   		<para>
-  		The above approach works well if you know the target userid in advance. However there are times when that
-  		value must be determined dynamically. For those cases you can utilize the second approach: SpEL support.
-        Simply provide a valid SpEL expression via the <code>target-user-expression</code> attribute.
-  		
-  		<programlisting language="xml"><![CDATA[<twitter:dm-outbound-channel-adapter id="dmAdapter"
-		twitter-template="twitter" 
-		channel="inputChannel" 
-		target-user-expression="payload.user.twitterId"/>]]></programlisting>
+  		The above approach works well if you are creating the Message programmatically. However it's more common to
+        provide the header value within a messaging flow. The value can be provided by an upstream &lt;header-enricher&gt;.
+        <programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
+    <header name="twitter_dmTargetUserId" value="z_oleg"/> 
+</header-enricher>]]></programlisting>
+        <para>
+
+        <para>It's quite common that the value must be determined dynamically. For those cases you can take advantage
+        of SpEL support within the &lt;header-enricher&gt;.</para>
+
+  		<programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
+    <header name="twitter_dmTargetUserId" expression="@twitterIdService.lookup(headers.username)"/> 
+</header-enricher>]]></programlisting>
   		</para>
   	</section>
   	<para>

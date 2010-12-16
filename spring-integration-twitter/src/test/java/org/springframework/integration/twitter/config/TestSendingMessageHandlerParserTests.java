@@ -16,13 +16,12 @@
 
 package org.springframework.integration.twitter.config;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.expression.Expression;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler;
@@ -37,10 +36,8 @@ public class TestSendingMessageHandlerParserTests {
 	public void testSendingMessageHandlerSuccessfulBootstrap(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
 		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);
-		DirectMessageSendingMessageHandler handler = 
-			(DirectMessageSendingMessageHandler) TestUtils.getPropertyValue(dmAdapter, "handler");
-		Expression targetUserExpression = (Expression) TestUtils.getPropertyValue(handler, "targetUserExpression");
-		assertEquals("'z' + '_oleg'", targetUserExpression.getExpressionString());
+		Object handler = TestUtils.getPropertyValue(dmAdapter, "handler");
+		assertEquals(DirectMessageSendingMessageHandler.class, handler.getClass());
 	}
 
 }

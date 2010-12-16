@@ -16,14 +16,6 @@
 
 package org.springframework.integration.twitter.outbound;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.core.TwitterHeaders;
@@ -40,17 +32,7 @@ import org.springframework.util.Assert;
  */
 public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 
-	private static final ExpressionParser PARSER = new SpelExpressionParser();
-
-	private static final Expression DEFAULT_TARGET_USER_EXPRESSION = PARSER.parseExpression(
-			"headers[T(org.springframework.integration.twitter.core.TwitterHeaders).DM_TARGET_USER_ID]");
-
-
 	private final TwitterOperations twitterOperations;
-
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-
-	private volatile Expression targetUserExpression = DEFAULT_TARGET_USER_EXPRESSION;
 
 
 	public DirectMessageSendingMessageHandler(TwitterOperations twitterOperations) {
@@ -59,31 +41,14 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 
-	public void setTargetUserExpression(Expression targetUserExpression) {
-		this.targetUserExpression = (targetUserExpression != null) ? targetUserExpression : DEFAULT_TARGET_USER_EXPRESSION;
-	}
-
-	@Override
-	public void onInit() throws Exception {
-		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
-	}
-
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isTrue(message.getPayload() instanceof String, "Only payload of type String is supported. " +
 				"Consider adding a transformer to the message flow in front of this adapter.");
-		Object toUser = this.targetUserExpression.getValue(this.evaluationContext, message);
+		Object toUser = message.getHeaders().get(TwitterHeaders.DM_TARGET_USER_ID);
 		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
 				"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
-				"' must be either a String (a screenname) or an int (a user ID)");
+				"' must contain either a String (a screenname) or an int (a user ID)");
 		String payload = (String) message.getPayload();
 		if (toUser instanceof Integer) {
 			this.twitterOperations.sendDirectMessage((Integer) toUser, payload);
