@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,8 +32,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
-
-import com.sun.org.apache.bcel.internal.generic.FNEG;
 
 /**
  * @author Oleg Zhurakousky
