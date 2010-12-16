@@ -29,7 +29,20 @@ class JschLogger implements Logger {
 	private final static Log logger = LogFactory.getLog("com.jcraft.jsch");
 
 	public boolean isEnabled(int level) {
-		return true;
+		switch (level) {
+		case Logger.INFO:
+			return logger.isInfoEnabled();
+		case Logger.WARN:
+			return logger.isWarnEnabled();
+		case Logger.DEBUG:
+			return logger.isDebugEnabled();
+		case Logger.ERROR:
+			return logger.isErrorEnabled();
+		case Logger.FATAL:
+			return logger.isFatalEnabled();
+		default:
+			return false;
+		}
 	}
 
 	public void log(int level, String message) {
