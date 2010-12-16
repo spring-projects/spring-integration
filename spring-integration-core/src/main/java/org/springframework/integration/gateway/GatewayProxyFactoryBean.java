@@ -219,7 +219,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
-
 			Method[] methods = ReflectionUtils.getAllDeclaredMethods(proxyInterface);
 			for (Method method : methods) {
 				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
@@ -271,8 +270,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
 		catch (Throwable e) {
 			this.rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
+			return null; // preceding call should always throw something
 		}
-		return null;
 	}
 
 	private Object invokeGatewayMethod(MethodInvocation invocation) throws Exception {
