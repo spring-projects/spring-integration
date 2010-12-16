@@ -184,8 +184,8 @@ public final class MessageBuilder<T> {
 			else {
 				incomingSequenceDetails = new ArrayList<List<Object>>(incomingSequenceDetails);
 			}
-			incomingSequenceDetails.add(Arrays.asList(incomingCorrelationId, headers
-					.get(MessageHeaders.SEQUENCE_NUMBER), headers.get(MessageHeaders.SEQUENCE_SIZE)));
+			incomingSequenceDetails.add(Arrays.asList(incomingCorrelationId,
+					headers.get(MessageHeaders.SEQUENCE_NUMBER), headers.get(MessageHeaders.SEQUENCE_SIZE)));
 			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
 		}
 		if (incomingSequenceDetails != null) {
@@ -207,12 +207,17 @@ public final class MessageBuilder<T> {
 		setCorrelationId(sequenceDetails.get(0));
 		Integer sequenceNumber = (Integer) sequenceDetails.get(1);
 		Integer sequenceSize = (Integer) sequenceDetails.get(2);
-		if (sequenceSize > 0) {
+		if (sequenceNumber != null) {
 			setSequenceNumber(sequenceNumber);
+		}
+		if (sequenceSize != null) {
 			setSequenceSize(sequenceSize);
 		}
 		if (!incomingSequenceDetails.isEmpty()) {
 			headers.put(MessageHeaders.SEQUENCE_DETAILS, incomingSequenceDetails);
+		}
+		else {
+			headers.remove(MessageHeaders.SEQUENCE_DETAILS);
 		}
 		return this;
 	}

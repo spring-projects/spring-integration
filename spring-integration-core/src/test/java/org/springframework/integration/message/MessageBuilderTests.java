@@ -19,12 +19,12 @@ package org.springframework.integration.message;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.UUID;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
@@ -162,6 +162,44 @@ public class MessageBuilderTests {
 			.setHeader("foo", null)
 			.build();
 		assertFalse(message2.getHeaders().containsKey("foo"));
+	}
+	
+	@Test
+	public void testPushAndPopSequenceDetails() throws Exception {
+		Message<Integer> message1 = MessageBuilder.withPayload(1).pushSequenceDetails("foo", 1, 2).build();
+		assertFalse(message1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
+		assertTrue(message2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
+		assertFalse(message3.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+	}
+
+	@Test
+	public void testPushAndPopSequenceDetailsWhenNoCorrelationId() throws Exception {
+		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
+		assertFalse(message1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
+		assertFalse(message2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
+		assertFalse(message3.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+	}
+
+	@Test
+	public void testPopSequenceDetailsWhenNotPopped() throws Exception {
+		Message<Integer> message1 = MessageBuilder.withPayload(1).build();
+		assertFalse(message1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1).popSequenceDetails().build();
+		assertFalse(message2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+	}
+
+	@Test
+	public void testPushAndPopSequenceDetailsWhenNoSequence() throws Exception {
+		Message<Integer> message1 = MessageBuilder.withPayload(1).setCorrelationId("foo").build();
+		assertFalse(message1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1).pushSequenceDetails("bar", 1, 1).build();
+		assertTrue(message2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
+		assertFalse(message3.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
 	}
 
 }
