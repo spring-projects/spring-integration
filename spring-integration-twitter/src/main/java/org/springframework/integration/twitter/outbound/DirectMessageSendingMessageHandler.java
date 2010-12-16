@@ -35,15 +35,22 @@ import org.springframework.util.Assert;
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 
-	private final TwitterOperations twitterOperations;
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
-	
-	private volatile Expression targetUserExpression;
+
+	private static final Expression DEFAULT_TARGET_USER_EXPRESSION = PARSER.parseExpression(
+			"headers[T(org.springframework.integration.twitter.core.TwitterHeaders).DM_TARGET_USER_ID]");
+
+
+	private final TwitterOperations twitterOperations;
+
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private volatile Expression targetUserExpression = DEFAULT_TARGET_USER_EXPRESSION;
 
 
 	public DirectMessageSendingMessageHandler(TwitterOperations twitterOperations) {
@@ -51,32 +58,13 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 		this.twitterOperations = twitterOperations;
 	}
 
+
 	public void setTargetUserExpression(Expression targetUserExpression) {
-		Assert.notNull(targetUserExpression, "'targetUserExpression' must not be null");
-		this.targetUserExpression = targetUserExpression;
+		this.targetUserExpression = (targetUserExpression != null) ? targetUserExpression : DEFAULT_TARGET_USER_EXPRESSION;
 	}
 
 	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.isInstanceOf(String.class, message.getPayload(), "Only payload of type String is supported. If your payload " +
-				"is not of type String consider adding a transformer to the message flow in front of this adapter.");
-
-		Object toUser = targetUserExpression.getValue(this.evaluationContext, message);
-		
-		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
-				"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
-				"' must be either a String (a screenname) or an int (a user ID)");
-		String payload = (String) message.getPayload();
-		if (toUser instanceof Integer) {
-			this.twitterOperations.sendDirectMessage((Integer) toUser, payload);
-		} 
-		else if (toUser instanceof String) {
-			this.twitterOperations.sendDirectMessage((String) toUser, payload);
-		}
-	}
-	
-	@Override
-	public void onInit() throws Exception{
+	public void onInit() throws Exception {
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
@@ -86,9 +74,22 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
-		if (targetUserExpression == null){
-			targetUserExpression = 
-				PARSER.parseExpression("headers[T(org.springframework.integration.twitter.core.TwitterHeaders).DM_TARGET_USER_ID]");
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		Assert.isTrue(message.getPayload() instanceof String, "Only payload of type String is supported. " +
+				"Consider adding a transformer to the message flow in front of this adapter.");
+		Object toUser = this.targetUserExpression.getValue(this.evaluationContext, message);
+		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
+				"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
+				"' must be either a String (a screenname) or an int (a user ID)");
+		String payload = (String) message.getPayload();
+		if (toUser instanceof Integer) {
+			this.twitterOperations.sendDirectMessage((Integer) toUser, payload);
+		} 
+		else if (toUser instanceof String) {
+			this.twitterOperations.sendDirectMessage((String) toUser, payload);
 		}
 	}
 
