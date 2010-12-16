@@ -30,6 +30,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  */
 public class DirectMessageSendingMessageHandlerTests {
 
@@ -51,14 +52,14 @@ public class DirectMessageSendingMessageHandlerTests {
 	
 	@Test
 	public void validateSendDirectMessageWithTargetUserExpression() throws Exception{
-		Message<?> message1 = MessageBuilder.withPayload("hello").build();
+		Message<?> message1 = MessageBuilder.withPayload("z").build();
 		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
-		ExpressionFactoryBean efb = new ExpressionFactoryBean("'z' + '_oleg'");
+		ExpressionFactoryBean efb = new ExpressionFactoryBean("payload + '_oleg'");
 		efb.afterPropertiesSet();
 		handler.setTargetUserExpression(efb.getObject());
 		handler.afterPropertiesSet();
 		handler.handleMessage(message1);
-		verify(twitter, times(1)).sendDirectMessage("z_oleg", "hello");
+		verify(twitter, times(1)).sendDirectMessage("z_oleg", "z");
 	}
 
 }
