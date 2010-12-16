@@ -15,6 +15,8 @@ package org.springframework.integration.jmx.config;
 
 import javax.management.MBeanServerFactory;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -23,19 +25,17 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
+ * Parser for the 'mbean-export' element of the integration JMX namespace.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
 public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
-	/**
-	 * 
-	 */
 	private static final String MBEAN_EXPORTER_NAME = "mbeanExporter";
-	private static final String ILLEGAL_NAME = MBEAN_EXPORTER_NAME;
+
 
 	@Override
 	protected boolean shouldGenerateIdAsFallback() {
@@ -53,37 +53,25 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		builder.addPropertyValue("server", mbeanServer);
-//		if (!parserContext.getRegistry().containsBeanDefinition(MBEAN_EXPORTER_NAME)) {
-//			/*
-//			 * Vanilla MBeanExporter not yet registered - need to hack this in to ensure if it is subsequently
-//			 * registered, then it gets initialized before the IntegrationMBeanExporter.
-//			 */
-//			BeanDefinitionBuilder dummy = BeanDefinitionBuilder.genericBeanDefinition(String.class);
-//			dummy.addConstructorArgValue("Dummy " + MBEAN_EXPORTER_NAME
-//					+ " will be overridden by a <context:mbean-export/>");
-//			parserContext.getRegistry().registerBeanDefinition(MBEAN_EXPORTER_NAME, dummy.getBeanDefinition());
-//		}
-//		// Force vanilla MBeanExporter to initialize first if it exists to prevent problems with Proxies
-//		builder.getRawBeanDefinition().setDependsOn(new String[] { MBEAN_EXPORTER_NAME });
 	}
 
 	private Object getMBeanServer(Element element, ParserContext parserContext) {
 		String mbeanServer = element.getAttribute("server");
 		if (StringUtils.hasText(mbeanServer)) {
 			return new RuntimeBeanReference(mbeanServer);
-		} else {
+		}
+		else {
 			return MBeanServerFactory.createMBeanServer();
 		}
 	}
 
 	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
-			throws BeanDefinitionStoreException {
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
 		String id = super.resolveId(element, definition, parserContext);
-		if (ILLEGAL_NAME.equals(id)) {
+		if (MBEAN_EXPORTER_NAME.equals(id)) {
 			parserContext.getReaderContext().error(
-					"Illegal bean id for <jmx:mbean-export/>: " + ILLEGAL_NAME
-							+ " (clashes with <context:mbean-export/> default).  Please choose another bean id.",
+					"Illegal bean id for <jmx:mbean-export/>: " + MBEAN_EXPORTER_NAME +
+					" (clashes with <context:mbean-export/> default).  Please choose another bean id.",
 					definition);
 		}
 		return id;
