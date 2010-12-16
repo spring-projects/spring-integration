@@ -54,7 +54,9 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	private volatile int phase = Integer.MIN_VALUE;
 
-	private volatile boolean started;
+	private final Object lifecycleMonitor = new Object();
+
+	private volatile boolean running;
 
 
 	public XmppConnectionFactoryBean(ConnectionConfiguration connectionConfiguration) {
@@ -90,62 +92,53 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 
 	@Override
 	protected XMPPConnection createInstance() throws Exception {
-		connection = new XMPPConnection(this.connectionConfiguration);
-		return connection;
+		this.connection = new XMPPConnection(this.connectionConfiguration);
+		return this.connection;
 	}
 
 	public void start() {
-		try {
-			connection.connect();
-			connection.addConnectionListener(new ConnectionListener() {
-				
-				public void reconnectionSuccessful() {
-					logger.debug("Reconnection is successfull");
-				}
-				
-				public void reconnectionFailed(Exception e) {
-					logger.debug("Reconnection failed", e);
-				}
-				
-				public void reconnectingIn(int seconds) {
-					logger.debug("Reconnecting in " + seconds + " seconds");
-				}
-				
-				public void connectionClosedOnError(Exception e) {
-					logger.debug("Connection closed",  e);
-				}
-				
-				public void connectionClosed() {
-					logger.debug("Connection closed");
-				}
-			});
-			if (StringUtils.hasText(user)){
-				connection.login(user, password, resource);
-				Assert.isTrue(connection.isAuthenticated(), "Failed to authenticate user: " + user);
-				if (StringUtils.hasText(this.subscriptionMode)) {
-					Roster.SubscriptionMode subscriptionMode = Roster.SubscriptionMode.valueOf(this.subscriptionMode);
-					connection.getRoster().setSubscriptionMode(subscriptionMode);
-				}	
+		synchronized (this.lifecycleMonitor) {
+			if (this.running) {
+				return;
 			}
-			else {
-				connection.loginAnonymously();
+			try {
+				this.connection.connect();
+				this.connection.addConnectionListener(new LoggingConnectionListener());
+				if (StringUtils.hasText(this.user)) {
+					this.connection.login(this.user, this.password, this.resource);
+					Assert.isTrue(this.connection.isAuthenticated(), "Failed to authenticate user: " + this.user);
+					if (StringUtils.hasText(this.subscriptionMode)) {
+						Roster.SubscriptionMode subscriptionMode = Roster.SubscriptionMode.valueOf(this.subscriptionMode);
+						this.connection.getRoster().setSubscriptionMode(subscriptionMode);
+					}
+				}
+				else {
+					this.connection.loginAnonymously();
+				}
+				this.running = true;
 			}
-			this.started = true;
-		}
-		catch (Exception e) {
-			throw new BeanInitializationException("failed to connect to " + this.connectionConfiguration.getHost(), e);
+			catch (Exception e) {
+				throw new BeanInitializationException("failed to connect to " + this.connectionConfiguration.getHost(), e);
+			}
 		}
 	}
 
 	public void stop() {
-		if (this.isRunning()) {
-			this.connection.disconnect();
-			this.started = false;
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				this.connection.disconnect();
+				this.running = false;
+			}
 		}
 	}
 
+	public void stop(Runnable callback) {
+		this.stop();
+		callback.run();
+	}
+
 	public boolean isRunning() {
-		return this.started;
+		return this.running;
 	}
 
 	public int getPhase() {
@@ -156,8 +149,28 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 		return this.autoStartup;
 	}
 
-	public void stop(Runnable callback) {
-		callback.run();
+
+	private class LoggingConnectionListener implements ConnectionListener {
+
+		public void reconnectionSuccessful() {
+			logger.debug("Reconnection successful");
+		}
+
+		public void reconnectionFailed(Exception e) {
+			logger.debug("Reconnection failed", e);
+		}
+
+		public void reconnectingIn(int seconds) {
+			logger.debug("Reconnecting in " + seconds + " seconds");
+		}
+
+		public void connectionClosedOnError(Exception e) {
+			logger.debug("Connection closed on error",  e);
+		}
+
+		public void connectionClosed() {
+			logger.debug("Connection closed");
+		}
 	}
 
 }
