@@ -13,6 +13,7 @@
 				<constructor-arg value="myServiceName"/>
 			</bean>
 		</constructor-arg>
+		<property name="autoStartup" value="false"/>
 	</bean>
 	
 	<int:channel id="outboundEventChannel"/>

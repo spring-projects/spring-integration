@@ -50,7 +50,7 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	
 	private volatile XMPPConnection connection;
 	
-	private volatile boolean autoStartup;
+	private volatile boolean autoStartup = true;
 
 	private volatile int phase = Integer.MIN_VALUE;
 
