@@ -17,6 +17,7 @@
 package org.springframework.integration.xmpp.config;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -96,6 +97,28 @@ public class XmppConnectionFactoryBean extends AbstractFactoryBean<XMPPConnectio
 	public void start() {
 		try {
 			connection.connect();
+			connection.addConnectionListener(new ConnectionListener() {
+				
+				public void reconnectionSuccessful() {
+					logger.debug("Reconnection is successfull");
+				}
+				
+				public void reconnectionFailed(Exception e) {
+					logger.debug("Reconnection failed", e);
+				}
+				
+				public void reconnectingIn(int seconds) {
+					logger.debug("Reconnecting in " + seconds + " seconds");
+				}
+				
+				public void connectionClosedOnError(Exception e) {
+					logger.debug("Connection closed",  e);
+				}
+				
+				public void connectionClosed() {
+					logger.debug("Connection closed");
+				}
+			});
 			if (StringUtils.hasText(user)){
 				connection.login(user, password, resource);
 				Assert.isTrue(connection.isAuthenticated(), "Failed to authenticate user: " + user);

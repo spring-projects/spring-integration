@@ -46,6 +46,9 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 		Object payload = message.getPayload();
 		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was: " 
 					+ payload.getClass().getName());
+		if (!this.xmppConnection.isConnected()){
+			this.xmppConnection.connect();
+		}
 		this.xmppConnection.sendPacket((Presence)payload);
 	}
 

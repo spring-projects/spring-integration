@@ -68,6 +68,9 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 					"are suported. Was '" + messageBody.getClass().getName() + 
 					"' Consider adding a transformer prior to sending message to this handler");
 		}
+		if (!this.xmppConnection.isConnected()){
+			this.xmppConnection.connect();
+		}
 		this.xmppConnection.sendPacket(xmppMessage);
 	}
 }
