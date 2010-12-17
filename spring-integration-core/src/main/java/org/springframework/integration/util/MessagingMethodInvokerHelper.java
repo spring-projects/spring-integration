@@ -19,6 +19,7 @@ package org.springframework.integration.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -275,6 +276,9 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 					return;
 				}
 				if (isMethodDefinedOnObjectClass(method)) {
+					return;
+				}
+				if (method.getDeclaringClass().equals(Proxy.class)) { 
 					return;
 				}
 				if (!Modifier.isPublic(method.getModifiers())) {
