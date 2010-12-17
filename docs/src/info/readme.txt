@@ -1,8 +1,8 @@
-SPRING INTEGRATION 2.0.0 GA (Nov 22, 2010)
+SPRING INTEGRATION 2.0.1 (Dec 17, 2010)
 -----------------------------------------------------------
 
 To find out what has changed since version 1.0.x or any earlier 2.0.0
-milestones and release candidates, see 'changelog.txt'.
+releases or milestones, see 'changelog.txt'.
 
 Please consult the documentation located within the 'docs/reference' directory
 of this release and also visit the official Spring Integration home at
