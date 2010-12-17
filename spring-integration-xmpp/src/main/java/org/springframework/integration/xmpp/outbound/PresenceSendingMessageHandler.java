@@ -18,12 +18,13 @@ package org.springframework.integration.xmpp.outbound;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * MessageHandler that publishes updated Presence values for a given connection. 
+ * MessageHandler that publishes updated Presence values for a given XMPP connection. 
  *
  * @author Josh Long
  * @author Oleg Zhurakousky
@@ -44,12 +45,12 @@ public class PresenceSendingMessageHandler extends AbstractXmppConnectionAwareMe
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Assert.isTrue(this.initialized, this.getComponentName() + " must be initialized");
 		Object payload = message.getPayload();
-		Assert.isInstanceOf(Presence.class, payload, "'payload' must be of type 'org.jivesoftware.smack.packet.Presence', was: " 
-					+ payload.getClass().getName());
-		if (!this.xmppConnection.isConnected()){
+		Assert.isTrue(payload instanceof Presence,
+				"Payload must be of type 'org.jivesoftware.smack.packet.Presence', was: " + payload.getClass().getName());
+		if (!this.xmppConnection.isConnected()) {
 			this.xmppConnection.connect();
 		}
-		this.xmppConnection.sendPacket((Presence)payload);
+		this.xmppConnection.sendPacket((Presence) payload);
 	}
 
 }

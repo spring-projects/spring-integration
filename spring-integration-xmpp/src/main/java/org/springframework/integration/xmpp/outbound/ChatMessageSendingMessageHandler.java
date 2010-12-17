@@ -26,6 +26,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * MessageHandler that sends an XMPP Chat Message. Supported payload types are Smack Message
+ * (org.jivesoftware.smack.packet.Message) or String.
+ * 
  * @author Josh Long
  * @author Mario Gray
  * @author Oleg Zhurakousky
@@ -33,11 +36,11 @@ import org.springframework.util.StringUtils;
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 	
-	public ChatMessageSendingMessageHandler(){
+	public ChatMessageSendingMessageHandler() {
 		super();
 	}
 		
-	public ChatMessageSendingMessageHandler(XMPPConnection xmppConnection){
+	public ChatMessageSendingMessageHandler(XMPPConnection xmppConnection) {
 		super(xmppConnection);
 	}
 
@@ -47,30 +50,28 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		Assert.isTrue(this.initialized, this.getComponentName() + "#" + this.getComponentType() + " must be initialized");
 		Object messageBody = message.getPayload();
 		org.jivesoftware.smack.packet.Message xmppMessage = null;
-		
 		if (messageBody instanceof org.jivesoftware.smack.packet.Message) {
 			xmppMessage = (org.jivesoftware.smack.packet.Message) messageBody;
 		}
-		else if (messageBody instanceof String) {		
-			String chatTo = (String) message.getHeaders().get(XmppHeaders.CHAT_TO);
-			
+		else if (messageBody instanceof String) {
+			String chatTo = message.getHeaders().get(XmppHeaders.CHAT_TO, String.class);
 			Assert.state(StringUtils.hasText(chatTo), "The '" + XmppHeaders.CHAT_TO + "' header must not be null");
 			xmppMessage = new org.jivesoftware.smack.packet.Message(chatTo);
-			
-			String threadId = (String) message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID);
-			if (StringUtils.hasText(threadId)){
+			String threadId = message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID, String.class);
+			if (StringUtils.hasText(threadId)) {
 				xmppMessage.setThread(threadId);
 			}
 			xmppMessage.setBody((String) messageBody);
 		}
 		else {
 			throw new MessageHandlingException(message, "Only payloads of type java.lang.String or org.jivesoftware.smack.packet.Message " +
-					"are suported. Was '" + messageBody.getClass().getName() + 
-					"' Consider adding a transformer prior to sending message to this handler");
+					"are supported. Received [" + messageBody.getClass().getName() + 
+					"]. Consider adding a Transformer prior to this adapter.");
 		}
-		if (!this.xmppConnection.isConnected()){
+		if (!this.xmppConnection.isConnected()) {
 			this.xmppConnection.connect();
 		}
 		this.xmppConnection.sendPacket(xmppMessage);
 	}
+
 }
