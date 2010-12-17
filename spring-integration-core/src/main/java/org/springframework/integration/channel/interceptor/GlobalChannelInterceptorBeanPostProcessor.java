@@ -73,16 +73,16 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return bean;
+	}
+
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageChannel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Applying global interceptors on channel '" + beanName + "'");
 			}
 			this.addMatchingInterceptors((MessageChannel) bean, beanName);
 		} 
-		return bean;
-	}
-
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 

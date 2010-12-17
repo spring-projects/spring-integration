@@ -13,7 +13,6 @@
 
 	<int-jms:channel id="jmsChannel" queue="jmsQueue"/>
 		
-		
 	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">
 			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
@@ -23,8 +22,9 @@
 		<property name="sessionCacheSize" value="10"/>
 		<property name="cacheProducers" value="false"/>
 	</bean>
-	
+
 	<bean id="jmsQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<constructor-arg value="jmsQueue.queue"/>
 	</bean>
+
 </beans>

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
 
 import static junit.framework.Assert.assertEquals;
@@ -21,54 +22,36 @@ import static junit.framework.Assert.assertTrue;
 
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0.1
  */
 public class GlobalChannelInterceptorTests {
 
-	@SuppressWarnings("rawtypes")
 	@Test
-	@Ignore
-	public void testJmsChannel(){
+	public void testJmsChannel() {
 		ActiveMqTestUtils.prepare();
-		ApplicationContext context = new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-context.xml", 
-																		 GlobalChannelInterceptorTests.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"GlobalChannelInterceptorTests-context.xml",  GlobalChannelInterceptorTests.class);
 		AbstractMessageChannel jmsChannel = context.getBean("jmsChannel", AbstractMessageChannel.class);
 		Object interceptors = TestUtils.getPropertyValue((TestUtils.getPropertyValue(jmsChannel, "interceptors")), "interceptors");
 		assertNotNull(interceptors);
 		assertTrue(interceptors instanceof List);
-		assertEquals(1, ((List)interceptors).size());
-		assertTrue(((List)interceptors).get(0) instanceof SampleInterceptor);
+		assertEquals(1, ((List<?>) interceptors).size());
+		assertTrue(((List<?>) interceptors).get(0) instanceof SampleInterceptor);
 	}
-	
-	public static class SampleInterceptor implements ChannelInterceptor{
-		public Message<?> preSend(Message<?> message, MessageChannel channel) {
-			return message;
-		}
 
-		public void postSend(Message<?> message, MessageChannel channel,
-				boolean sent) {
-		}
 
-		public boolean preReceive(MessageChannel channel) {
-			return true;
-		}
-
-		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
-			return message;
-		}
-		
+	public static class SampleInterceptor extends ChannelInterceptorAdapter {
 	}
+
 }
