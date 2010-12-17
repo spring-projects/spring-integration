@@ -16,7 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import static junit.framework.Assert.assertFalse;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -34,6 +33,7 @@ import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -44,7 +44,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.test.util.TestUtils;
 
 /**
@@ -238,7 +237,6 @@ public class MessagingGatewayTests {
 	
 	// should fail but it doesn't now
 	@Test(expected=MessagingException.class)
-	@Ignore
 	public void validateErroMessageCanNotBeReplyMessage() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(new MessageHandler() {		
@@ -259,14 +257,11 @@ public class MessagingGatewayTests {
 		this.messagingGateway.start();
 		
 		this.messagingGateway.sendAndReceiveMessage("hello");
-		
 	}
-	
 	
 	// should not fail but it does now
 	@Test
-	@Ignore
-	public void validateErrorChannelWithSuccessfullReply() {
+	public void validateErrorChannelWithSuccessfulReply() {
 		DirectChannel reqChannel = new DirectChannel();
 		reqChannel.subscribe(new MessageHandler() {		
 			public void handleMessage(Message<?> message) throws MessagingException {
