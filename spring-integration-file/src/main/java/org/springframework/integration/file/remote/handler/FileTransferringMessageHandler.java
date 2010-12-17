@@ -73,7 +73,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
-		this.fileNameGenerator = fileNameGenerator;
+		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
 	}
 
 	public void setCharset(String charset) {
