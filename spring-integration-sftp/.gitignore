@@ -1,2 +1,3 @@
 local-test-dir/*.test
-remote-target-dir/*test-foo
+remote-target-dir/*foo*
+remote-target-dir/*test*

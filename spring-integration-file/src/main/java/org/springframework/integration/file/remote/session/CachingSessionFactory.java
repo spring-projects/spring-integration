@@ -39,7 +39,7 @@ import org.springframework.beans.factory.DisposableBean;
  */
 public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
-	private static Log logger = LogFactory.getLog(CachingSessionFactory.class);
+	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
 	public static final int DEFAULT_POOL_SIZE = 10;
 
@@ -49,6 +49,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	private final SessionFactory sessionFactory;
 
 	private final int maxPoolSize;
+
 
 	public CachingSessionFactory(SessionFactory sessionFactory) {
 		this(sessionFactory, DEFAULT_POOL_SIZE);
@@ -60,20 +61,21 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
 	}
 
+
 	public Session getSession() {
 		Session session = this.queue.poll();
-
-		if (session == null || (session != null && !session.isOpen())) {
-			if (session != null && !session.isOpen()){
+		if (session == null || !session.isOpen()) {
+			if (session != null && logger.isTraceEnabled()) {
 				logger.trace("Located session in the pool but it is stale, will create new one.");
 			}
-			session = sessionFactory.getSession();
-			logger.trace("Created new session");
+			session = this.sessionFactory.getSession();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Created new session");
+			}
 		}
-		else {
+		else if (logger.isTraceEnabled()) {
 			logger.trace("Using session from the pool");
 		}
-		
 		return new CachedSession(session);
 	}
 
@@ -92,8 +94,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			}	
 		}
 		catch (Throwable e) {
-			// log and ignore
-			logger.warn("Exception was thrown while destroying Session. ", e);
+			if (logger.isWarnEnabled()) {
+				// log and ignore
+				logger.warn("Exception was thrown while destroying Session. ", e);
+			}
 		}
 	}
 
@@ -108,11 +112,15 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		public void close() {
 			if (queue.size() < maxPoolSize) {
-				logger.trace("Releasing target session back to the pool");
+				if (logger.isTraceEnabled()) {
+					logger.trace("Releasing target session back to the pool");
+				}
 				queue.add(targetSession);
 			}
 			else {
-				logger.trace("Disconnecting target session");
+				if (logger.isTraceEnabled()) {
+					logger.trace("Disconnecting target session");
+				}
 				targetSession.close();
 			}
 		}
