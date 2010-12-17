@@ -98,7 +98,16 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="xmppInboundAdapterType"/>
+				<xsd:extension base="xmppInboundAdapterType">
+					<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+							Specifies if generated Message payload should consist of only 
+							the text of the XMPP message or the entire XMPP (Smack API specific) message. Default is true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
@@ -145,14 +154,6 @@
 	
 	<xsd:complexType name="xmppInboundAdapterType">
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-					Specifies if generated Message payload should consist of only 
-					the text of the XMPP message or the entire XMPP (Smack API specific) message. Default is true.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
 				<xsd:annotation>
 					<xsd:documentation>
