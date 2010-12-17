@@ -187,10 +187,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			if (this.errorChannel != null) {
 				this.messagingTemplate.send(this.errorChannel, new ErrorMessage(e));
 			}
-			else if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
+			else {
+				this.rethrow(e, "failed to send message");
 			}
-			throw new MessagingException("failed to send message", e);
 		}
 	}
 
@@ -246,25 +245,37 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 		if (error != null) {
 			if (this.errorChannel != null) {
 				Message<?> errorMessage = null;
+				Message<?> errorFlowReply = null;
 				try {
-					Message<?> errorFlowReply = this.messagingTemplate.sendAndReceive(this.errorChannel, new ErrorMessage(error));
-					if (shouldConvert) {
-						return (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
-					}
-					return errorFlowReply;
+					errorFlowReply = this.messagingTemplate.sendAndReceive(this.errorChannel, new ErrorMessage(error));
 				}
 				catch (Exception errorFlowFailure) {
 					throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
+				}				
+				if (shouldConvert) {
+					Object result = (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
+					if (result instanceof Throwable) {
+						this.rethrow((Throwable) result, "error flow returned Exception");
+					}
+					return result;
 				}
+				if (errorFlowReply != null && errorFlowReply.getPayload() instanceof Throwable) {
+					this.rethrow((Throwable) errorFlowReply.getPayload(), "error flow returned an Error Message");
+				}
+				return errorFlowReply;
 			}
 			else { // no errorChannel so we'll propagate
-				if (error instanceof RuntimeException) {
-					throw (RuntimeException) error;
-				}
-				throw new MessagingException("gateway received checked Exception", error);
+				this.rethrow(error, "gateway received checked Exception");
 			}
 		}
 		return reply;
+	}
+
+	private void rethrow(Throwable t, String description) {
+		if (t instanceof RuntimeException) {
+			throw (RuntimeException) t;
+		}
+		throw new MessagingException(description, t);
 	}
 
 	private void registerReplyMessageCorrelator() {
