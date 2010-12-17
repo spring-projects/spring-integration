@@ -251,7 +251,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 				}
 				catch (Exception errorFlowFailure) {
 					throw new MessagingException(errorMessage, "failure occurred in error-handling flow", errorFlowFailure);
-				}				
+				}
 				if (shouldConvert) {
 					Object result = (errorFlowReply != null) ? errorFlowReply.getPayload() : null;
 					if (result instanceof Throwable) {
