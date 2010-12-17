@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
@@ -55,8 +54,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
-	private volatile String charset = Charset.defaultCharset().name();
-	
+	private volatile String charset = "UTF-8";
+
 	private volatile boolean deleteOnExit;
 
 
@@ -130,10 +129,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private File redeemForStorableFile(Message<?> message) throws MessageDeliveryException {
 		try {
 			Object payload = message.getPayload();
-			
 			File sendableFile = null;
-			
-			if (payload instanceof File){
+			if (payload instanceof File) {
 				sendableFile = (File) payload;
 				deleteOnExit = false;
 			}
@@ -142,8 +139,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				deleteOnExit = true;
 				byte[] bytes = null;
-				if (payload instanceof String){
-					bytes = ((String)payload).getBytes(charset);
+				if (payload instanceof String) {
+					bytes = ((String) payload).getBytes(charset);
 				}
 				else {
 					bytes = (byte[]) payload;
@@ -154,7 +151,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
 							"java.io.File, java.lang.String and byte[]");
 			}
-			
 			return sendableFile;
 		}
 		catch (Exception e) {
