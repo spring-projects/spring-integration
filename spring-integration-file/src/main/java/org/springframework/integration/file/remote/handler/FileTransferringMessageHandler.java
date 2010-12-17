@@ -56,8 +56,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private volatile String charset = "UTF-8";
 
-	private volatile boolean deleteOnExit;
-
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -109,7 +107,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 						"Error handling message for file [" + file + "]", e);
 			}
 			finally {
-				if (deleteOnExit){
+				if (!(message.getPayload() instanceof File)) {
+					// we created the File, so we need to delete it
 					if (file.exists()) {
 						try {
 							file.delete();
@@ -132,12 +131,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			File sendableFile = null;
 			if (payload instanceof File) {
 				sendableFile = (File) payload;
-				deleteOnExit = false;
 			}
 			else if (payload instanceof byte[] || payload instanceof String) { 
 				String tempFileName = this.fileNameGenerator.generateFileName(message) + ".tmp";
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
-				deleteOnExit = true;
 				byte[] bytes = null;
 				if (payload instanceof String) {
 					bytes = ((String) payload).getBytes(charset);
