@@ -49,6 +49,7 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
 
+	private String remoteFileSeparator = "/";
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
@@ -145,7 +146,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
-		String remoteFilePath = remoteDirectoryPath + File.separator + remoteFileName;
+		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;
 		if (!this.isFile(remoteFile)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("cannot copy, not a file: " + remoteFilePath);
