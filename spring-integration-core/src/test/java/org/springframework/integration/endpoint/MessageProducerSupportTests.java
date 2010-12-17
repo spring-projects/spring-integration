@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -42,6 +41,7 @@ public class MessageProducerSupportTests {
 	@Test(expected=MessageDeliveryException.class)
 	public void validateExceptionIfNoErrorChannel() {
 		DirectChannel outChannel = new DirectChannel();
+		
 		outChannel.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) throws MessagingException {
 				throw new RuntimeException("problems");
@@ -55,7 +55,7 @@ public class MessageProducerSupportTests {
 		mps.sendMessage(new GenericMessage<String>("hello"));
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected=MessageDeliveryException.class)
 	public void validateExceptionIfSendToErrorChannelFails() {
 		DirectChannel outChannel = new DirectChannel();
 		outChannel.subscribe(new MessageHandler() {
@@ -64,9 +64,11 @@ public class MessageProducerSupportTests {
 			}
 		});
 		PublishSubscribeChannel errorChannel = new PublishSubscribeChannel();
-		ServiceActivatingHandler handler  = new ServiceActivatingHandler(new FailingErrorService());
-		handler.afterPropertiesSet();
-		errorChannel.subscribe(handler);
+		errorChannel.subscribe(new MessageHandler() {	
+			public void handleMessage(Message<?> message) throws MessagingException {
+				throw new RuntimeException("ooops");
+			}
+		});
 		MessageProducerSupport mps = new MessageProducerSupport() {};
 		mps.setOutputChannel(outChannel);
 		mps.setErrorChannel(errorChannel);
@@ -112,14 +114,6 @@ public class MessageProducerSupportTests {
 		@SuppressWarnings("unused")
 		public void handleErrorMessage(Message<?> errorMessage) {
 			this.lastMessage = errorMessage;
-		}
-	}
-
-
-	private static class FailingErrorService {
-		@SuppressWarnings("unused")
-		public void handleErrorMessage(Message<?> errorMessage) {
-			throw new RuntimeException("ooops");
 		}
 	}
 
