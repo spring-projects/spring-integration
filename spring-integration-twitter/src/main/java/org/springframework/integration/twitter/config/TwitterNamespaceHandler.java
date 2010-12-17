@@ -27,9 +27,6 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  */
 public class TwitterNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
-	static String BASE_PACKAGE = "org.springframework.integration.twitter";
-
-
 	public void init() {
 		// inbound
 		registerBeanDefinitionParser("inbound-channel-adapter", new TwitterInboundChannelAdapterParser());

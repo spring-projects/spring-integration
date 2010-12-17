@@ -16,8 +16,6 @@
 
 package org.springframework.integration.twitter.config;
 
-import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -33,6 +31,9 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
  * @since 2.0
  */
 public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+
+	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
+
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {

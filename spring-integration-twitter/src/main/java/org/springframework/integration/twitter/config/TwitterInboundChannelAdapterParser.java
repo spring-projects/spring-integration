@@ -16,8 +16,6 @@
 
 package org.springframework.integration.twitter.config;
 
-import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -34,6 +32,9 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+
+	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
+
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
