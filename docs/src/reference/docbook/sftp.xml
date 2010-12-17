@@ -172,17 +172,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   <section id="sftp-jsch-logging">
   	<title>SFTP/JSCH Logging</title>
   	<para>
-  	Since we use JSch libraries (http://www.jcraft.com/jsch/) to provide SFTP support some times you may require
-  	 more information from the JSch API itself especially if something is not working properly 
-  	 (e.g., Authentication exceptions etc.). Unfortunately JSch does not use commonly used logging facilities and instead 
-  	 relies on the custom implementation of <classname>com.jcraft.jsch.Logger</classname>  interface. 
-  	 Since Spring Integration 2.0.1 we've implemented this interface, so now all you need to do to enable 
-  	 JSch logging is to configure your logger the way you usually do. For example below is sample configuration of a 
+  	Since we use JSch libraries (http://www.jcraft.com/jsch/) to provide SFTP support, at times you may require
+  	 more information from the JSch API itself, especially if something is not working properly 
+  	 (e.g., Authentication exceptions). Unfortunately JSch does not use commons-logging but instead 
+  	 relies on custom implementations of their <classname>com.jcraft.jsch.Logger</classname> interface. 
+  	 As of Spring Integration 2.0.1, we have implemented this interface. So, now all you need to do to enable 
+  	 JSch logging is to configure your logger the way you usually do. For example, here is valid configuration of a 
   	 logger using Log4J.
   	 
   	 <programlisting language="java"><![CDATA[log4j.category.com.jcraft.jsch=DEBUG]]></programlisting>
-
-
   	
   	</para>
   </section>
