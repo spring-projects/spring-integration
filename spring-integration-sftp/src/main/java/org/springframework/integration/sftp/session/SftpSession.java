@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
+import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -59,7 +60,7 @@ class SftpSession implements Session {
 			return true;
 		}
 		catch (SftpException e) {
-			throw new IOException("Failed to remove file", e);
+			throw new NestedIOException("Failed to remove file: "+ e);
 		}
 	}
 
@@ -79,7 +80,7 @@ class SftpSession implements Session {
 			}
 		}
 		catch (SftpException e) {
-			throw new IOException("Failed to list files", e);
+			throw new NestedIOException("Failed to list files", e);
 		}
 		return new LsEntry[0];
 	}
@@ -92,7 +93,7 @@ class SftpSession implements Session {
 			FileCopyUtils.copy(is, os);
 		}
 		catch (SftpException e) {
-			throw new IOException("failed to read file", e);
+			throw new NestedIOException("failed to read file", e);
 		}
 	}
 
@@ -102,7 +103,7 @@ class SftpSession implements Session {
 			this.channel.put(inputStream, destination);
 		}
 		catch (SftpException e) {
-			throw new IOException("failed to write file", e);
+			throw new NestedIOException("failed to write file", e);
 		}
 	}
 
@@ -135,7 +136,7 @@ class SftpSession implements Session {
 		try {
 			this.channel.rename(pathFrom, pathTo);
 		} catch (SftpException e) {
-			throw new IOException("failed to rename from " + pathFrom + " to " + pathTo, e);
+			throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, e);
 		}
 	}
 
