@@ -55,7 +55,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = "UTF-8";
-
+	
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -155,7 +155,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String remoteDirectory, String pathTo, Session session) 
+	private void sendFileToRemoteDirectory(File file, String remoteDirectory, String fileName, Session session) 
 											throws FileNotFoundException, IOException {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
@@ -167,7 +167,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		session.write(fileInputStream, remoteFilePath);
 		fileInputStream.close();
 		// then rename it to its final name
-		session.rename(remoteFilePath, pathTo);
+		session.rename(remoteFilePath, remoteDirectory + fileName);
 	}
 
 }
