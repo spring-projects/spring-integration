@@ -404,6 +404,7 @@ project('spring-integration-ws') {
         compile("com.sun.xml.messaging.saaj:saaj-impl:1.3") { optional = true }
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
+        testCompile "stax:stax-api:1.0.1"
     }
 
     // suppress saaj path warnings
@@ -419,6 +420,7 @@ project('spring-integration-xml') {
         compile "org.springframework.ws:spring-xml:$springWsVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
+        testCompile "javax.xml:jaxb-api:2.1"
         testCompile "xmlunit:xmlunit:1.2"
     }
 }
