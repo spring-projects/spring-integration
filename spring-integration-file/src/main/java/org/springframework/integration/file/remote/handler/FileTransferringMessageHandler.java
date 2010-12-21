@@ -162,7 +162,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, File.separator)) {
 			remoteDirectory += File.separatorChar; 
 		}
-		String remoteFilePath = remoteDirectory + file.getName() + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
+		String remoteFilePath = remoteDirectory + fileName + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
 		// write remote file first with .writing extension
 		session.write(fileInputStream, remoteFilePath);
 		fileInputStream.close();
