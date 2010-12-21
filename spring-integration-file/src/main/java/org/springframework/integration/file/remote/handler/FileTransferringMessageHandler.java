@@ -162,12 +162,13 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, File.separator)) {
 			remoteDirectory += File.separatorChar; 
 		}
-		String remoteFilePath = remoteDirectory + fileName + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
+		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
-		session.write(fileInputStream, remoteFilePath);
+		String tempFilePath = remoteFilePath + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
+		session.write(fileInputStream, tempFilePath);
 		fileInputStream.close();
 		// then rename it to its final name
-		session.rename(remoteFilePath, remoteDirectory + fileName);
+		session.rename(tempFilePath, remoteFilePath);
 	}
 
 }
