@@ -137,7 +137,8 @@ public class FtpSendingMessageHandlerTest {
 					public Boolean answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);
-						file.renameTo(new File(file.getParent(), (String) invocation.getArguments()[1]));
+						File renameToFile = new File((String) invocation.getArguments()[1]);
+						file.renameTo(renameToFile);
 						return true;
 					}
 				});

@@ -126,7 +126,8 @@ public class SftpSendingMessageHandlerTests {
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);
 						assertTrue(file.getName().endsWith(FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX));
-						file.renameTo(new File(file.getParent(), (String) invocation.getArguments()[1]));
+						File renameToFile = new File((String) invocation.getArguments()[1]);
+						file.renameTo(renameToFile);
 						return null;
 					}
 					
