@@ -16,7 +16,10 @@
 
 package org.springframework.integration.mail.config;
 
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Properties;
 
 import org.junit.Test;
 
@@ -24,6 +27,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.mail.MailSendingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.MailSender;
 
 /**
@@ -65,6 +69,10 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
+		Properties javaMailiProperties = (Properties) TestUtils.getPropertyValue(mailSender, "javaMailProperties");
+		assertEquals(7, javaMailiProperties.size());
+		assertNotNull(javaMailiProperties);
+		assertEquals("true", javaMailiProperties.get("mail.smtps.auth"));
 	}
 
 }
