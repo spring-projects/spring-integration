@@ -422,6 +422,7 @@ project('spring-integration-xml') {
         testCompile project(":spring-integration-test")
         testCompile "javax.xml:jaxb-api:2.0EA3"
         testCompile "javax.xml:jaxb-impl:2.0EA3"
+        testCompile "stax:stax-api:1.0.1"
         testCompile "xmlunit:xmlunit:1.2"
     }
 }
