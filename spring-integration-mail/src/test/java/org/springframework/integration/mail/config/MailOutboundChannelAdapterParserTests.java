@@ -69,10 +69,10 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
-		Properties javaMailiProperties = (Properties) TestUtils.getPropertyValue(mailSender, "javaMailProperties");
-		assertEquals(7, javaMailiProperties.size());
-		assertNotNull(javaMailiProperties);
-		assertEquals("true", javaMailiProperties.get("mail.smtps.auth"));
+		Properties javaMailProperties = (Properties) TestUtils.getPropertyValue(mailSender, "javaMailProperties");
+		assertEquals(7, javaMailProperties.size());
+		assertNotNull(javaMailProperties);
+		assertEquals("true", javaMailProperties.get("mail.smtps.auth"));
 	}
 
 }
