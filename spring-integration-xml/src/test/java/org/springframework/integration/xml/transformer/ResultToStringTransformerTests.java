@@ -27,7 +27,6 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.integration.MessagingException;
@@ -60,23 +59,15 @@ public class ResultToStringTransformerTests {
 	}
 	
 	@Test
-	@Ignore
 	public void testWithOutputProperties() throws Exception {
 		String formattedDoc = "<order><orderItem>test</orderItem></order>";
-
-		DOMResult result = XmlTestUtil.getDomResultForString(doc);
-		
+		DOMResult domResult = XmlTestUtil.getDomResultForString(doc);
 		Properties outputProperties = new Properties();
 		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
-		outputProperties.setProperty("{http://xml.apache.org/xslt}indent-amount","2");
-		
 		transformer.setOutputProperties(outputProperties);
-		
-		Object transformed = transformer.transformResult(result);
-		//System.out.println(transformed);
+		Object transformed = transformer.transformResult(domResult);
 		assertTrue("Wrong transformed type expected String", transformed instanceof String);
 		String transformedString = (String) transformed;
-		
 		assertEquals("Wrong content", formattedDoc, transformedString);
 	}
 
