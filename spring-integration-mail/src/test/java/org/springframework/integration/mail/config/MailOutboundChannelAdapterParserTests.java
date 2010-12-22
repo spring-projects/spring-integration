@@ -54,5 +54,17 @@ public class MailOutboundChannelAdapterParserTests {
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 	}
+	
+	@Test
+	public void adapterWithJavaMailProperties() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"MailOutboundWithJavamailProperties-context.xml", this.getClass());
+		Object adapter = context.getBean("adapterWithHostProperty.adapter");
+		MailSendingMessageHandler handler = (MailSendingMessageHandler)
+				new DirectFieldAccessor(adapter).getPropertyValue("handler");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
+		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
+		assertNotNull(mailSender);
+	}
 
 }

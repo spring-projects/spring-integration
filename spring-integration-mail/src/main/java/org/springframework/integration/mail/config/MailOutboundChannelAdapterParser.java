@@ -64,8 +64,9 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			if (StringUtils.hasText(port)) {
 				mailSenderBuilder.addPropertyValue("port", port);
 			}
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
 					mailSenderBuilder, element, "java-mail-properties", "javaMailProperties");
+			
 			String mailSenderBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					mailSenderBuilder.getBeanDefinition(), parserContext.getRegistry());
 			builder.addConstructorArgReference(mailSenderBeanName);

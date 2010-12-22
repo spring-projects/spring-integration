@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
+	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+	xmlns:util="http://www.springframework.org/schema/util">
+
+	<int-mail:outbound-channel-adapter
+		id="adapterWithHostProperty" host="somehost" username="someuser"
+		password="somepassword" java-mail-properties="javaMailProperties"/>
+
+	<util:properties id="javaMailProperties">
+		<prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
+		<prop key="mail.imap.socketFactory.fallback">false</prop>
+		<prop key="mail.store.protocol">imaps</prop>
+		<prop key="mail.transport.protocol">smtps</prop>
+		<prop key="mail.smtps.auth">true</prop>
+		<prop key="mail.smtp.starttls.enable">true</prop>
+		<prop key="mail.debug">false</prop>
+	</util:properties>
+</beans>
