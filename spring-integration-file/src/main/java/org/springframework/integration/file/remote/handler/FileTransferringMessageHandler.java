@@ -56,6 +56,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private volatile String charset = "UTF-8";
 	
+	private volatile String remoteFileSeparator = "/";
+	
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -159,8 +161,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 											throws FileNotFoundException, IOException {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
-		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, File.separator)) {
-			remoteDirectory += File.separatorChar; 
+		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, remoteFileSeparator)) {
+			remoteDirectory += remoteFileSeparator; 
 		}
 		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
