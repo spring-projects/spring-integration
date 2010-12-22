@@ -17,6 +17,10 @@
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -49,8 +53,15 @@ public class ObjectToJsonTransformerTests {
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(address);
 		String result = transformer.transformPayload(person);
-		String expected = "{\"address\":{\"number\":123,\"street\":\"Main Street\"},\"firstName\":\"John\",\"lastName\":\"Doe\",\"age\":42}";
-		assertEquals(expected, result);
+		assertTrue(result.contains("\"firstName\":\"John\""));
+		assertTrue(result.contains("\"lastName\":\"Doe\""));
+		assertTrue(result.contains("\"age\":42"));
+		Pattern addressPattern = Pattern.compile("(\"address\":\\{.*?\\})");
+		Matcher matcher = addressPattern.matcher(result);
+		assertTrue(matcher.find());
+		String addressResult = matcher.group(1);
+		assertTrue(addressResult.contains("\"number\":123"));
+		assertTrue(addressResult.contains("\"street\":\"Main Street\""));
 	}
 
 	@Test
@@ -61,8 +72,15 @@ public class ObjectToJsonTransformerTests {
 		TestPerson person = new TestPerson("John", "Doe", 42);
 		person.setAddress(new TestAddress(123, "Main Street"));
 		String result = transformer.transformPayload(person);
-		String expected = "{address:{number:123,street:\"Main Street\"},firstName:\"John\",lastName:\"Doe\",age:42}";
-		assertEquals(expected, result);
+		assertTrue(result.contains("firstName:\"John\""));
+		assertTrue(result.contains("lastName:\"Doe\""));
+		assertTrue(result.contains("age:42"));
+		Pattern addressPattern = Pattern.compile("(address:\\{.*?\\})");
+		Matcher matcher = addressPattern.matcher(result);
+		assertTrue(matcher.find());
+		String addressResult = matcher.group(1);
+		assertTrue(addressResult.contains("number:123"));
+		assertTrue(addressResult.contains("street:\"Main Street\""));
 	}
 
 
