@@ -161,7 +161,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 											throws FileNotFoundException, IOException {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
-		if (!StringUtils.endsWithIgnoreCase(remoteDirectory, remoteFileSeparator)) {
+		if (!remoteDirectory.endsWith(remoteFileSeparator)) {
 			remoteDirectory += remoteFileSeparator; 
 		}
 		String remoteFilePath = remoteDirectory + fileName;
