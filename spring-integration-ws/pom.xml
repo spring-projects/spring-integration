@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-ws</artifactId>
-  <version>2.0.1.RELEASE</version>
+  <version>2.0.2.BUILD-SNAPSHOT</version>
   <name>Spring Integration Web Services Support</name>
   <licenses>
     <license>
@@ -133,9 +133,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax-api</artifactId>
+      <version>1.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-test</artifactId>
-      <version>2.0.1.RELEASE</version>
+      <version>2.0.2.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -146,15 +152,15 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.0.5.RELEASE</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -166,7 +172,7 @@
     <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-core</artifactId>
-      <version>2.0.1.RELEASE</version>
+      <version>2.0.2.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
