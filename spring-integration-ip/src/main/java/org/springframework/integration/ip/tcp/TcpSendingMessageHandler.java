@@ -81,7 +81,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	public void handleMessageInternal(final Message<?> message) throws MessageRejectedException,
 			MessageHandlingException, MessageDeliveryException {
 		if (this.serverConnectionFactory != null) {
-			// We don't own the connection
+			// We don't own the connection, we are asynchronously replying
 			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
 			TcpConnection connection = connections.get(connectionId);
 			if (connection != null) {
@@ -97,7 +97,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 			return;
 		}
 		
-		
+		// we own the connection
 		try {
 			doWrite(message);
 		} catch (MessageMappingException e) {

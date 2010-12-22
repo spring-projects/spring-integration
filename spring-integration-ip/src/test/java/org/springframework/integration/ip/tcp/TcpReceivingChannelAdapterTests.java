@@ -518,6 +518,7 @@ public class TcpReceivingChannelAdapterTests {
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
 		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
+		
 		socket = SocketFactory.getDefault().createSocket("localhost", port);
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
 		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());

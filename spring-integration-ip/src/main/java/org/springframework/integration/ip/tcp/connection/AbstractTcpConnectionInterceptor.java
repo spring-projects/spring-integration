@@ -34,7 +34,8 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	private TcpListener tcpListener;
 
 	private TcpSender tcpSender;
-
+	
+	private Boolean realSender;
 
 	public void close() {
 		this.theConnection.close();
@@ -61,8 +62,8 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	}
 
 	public void registerListener(TcpListener listener) {
-		this.theConnection.registerListener(this);
 		this.tcpListener = listener;
+		this.theConnection.registerListener(this);
 	}
 
 	public void registerSender(TcpSender sender) {
@@ -159,6 +160,21 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	public long getConnectionSeq() {
 		return this.theConnection.getConnectionSeq();
 	}
-
+	
+	TcpSender getSender() {
+		return this.tcpSender;
+	}
+	
+	protected boolean hasRealSender() {
+		if (this.realSender != null) {
+			return this.realSender;
+		}
+		TcpSender sender = this.getSender();
+		while (sender != null && sender instanceof AbstractTcpConnectionInterceptor) {
+			sender = ((AbstractTcpConnectionInterceptor) sender).getSender();
+		}
+		this.realSender = sender != null;
+		return this.realSender;
+	}
 	
 }

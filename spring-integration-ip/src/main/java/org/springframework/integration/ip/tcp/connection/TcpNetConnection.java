@@ -35,6 +35,8 @@ public class TcpNetConnection extends AbstractTcpConnection {
 
 	private final Socket socket; 
 	
+	private boolean noReadErrorOnClose;
+	
 	/**
 	 * Constructs a TcpNetConnection for the socket.
 	 * @param socket the socket
@@ -42,7 +44,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * a result of an incoming request.
 	 */
 	public TcpNetConnection(Socket socket, boolean server) {
-		super(server);
+		super(socket, server);
 		this.socket = socket;
 		getConnectionId();
 	}
@@ -51,6 +53,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * Closes this connection.
 	 */
 	public void close() {
+		this.noReadErrorOnClose = true;
 		try {
 			this.socket.close();
 		} catch (Exception e) {}
@@ -65,8 +68,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	public synchronized void send(Message<?> message) throws Exception {
 		Object object = mapper.fromMessage(message);
 		this.serializer.serialize(object, this.socket.getOutputStream());
-		if (logger.isDebugEnabled())
-			logger.debug("Message sent " + message);
+		this.afterSend(message);
 	}
 
 	public String getHostAddress() {
@@ -108,12 +110,19 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			try {
 				message = this.mapper.toMessage(this);
 			} catch (Exception e) {
-				this.close();
+				this.closeConnection();
 				if (!(e instanceof SoftEndOfStreamException)) {
 					if (e instanceof SocketTimeoutException && this.singleUse) {
 						logger.debug("Closing single use socket after timeout");
 					} else {
-						if (logger.isTraceEnabled()) {
+						if (this.noReadErrorOnClose) {
+							if (logger.isDebugEnabled()) {
+								logger.debug("Read exception " +
+										 this.getConnectionId() + " " +
+										 e.getClass().getSimpleName() + 
+									     ":" + e.getCause() + ":" + e.getMessage());
+							}
+						} else if (logger.isTraceEnabled()) {
 							logger.error("Read exception " +
 									 this.getConnectionId(), e);
 						} else {
@@ -138,7 +147,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 				if (e instanceof NoListenerException) {
 					if (this.singleUse) {
 						logger.debug("Closing single use socket after inbound message " + this.connectionId);
-						this.close();
+						this.closeConnection();
 						okToRun = false;
 					} else {
 						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
@@ -154,7 +163,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			 */
 			if (this.singleUse && ((!this.server && !intercepted) || (this.server && this.sender == null))) {
 				logger.debug("Closing single use socket after inbound message " + this.connectionId);
-				this.close();
+				this.closeConnection();
 				okToRun = false;
 			}
 		}

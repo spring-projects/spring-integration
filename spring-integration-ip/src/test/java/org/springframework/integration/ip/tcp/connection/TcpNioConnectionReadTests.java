@@ -235,6 +235,7 @@ public class TcpNioConnectionReadTests {
 		SocketTestUtils.testSendLengthOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
 	}
@@ -273,6 +274,7 @@ public class TcpNioConnectionReadTests {
 		SocketTestUtils.testSendStxEtxOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
 	}
@@ -311,6 +313,7 @@ public class TcpNioConnectionReadTests {
 		SocketTestUtils.testSendCrLfOverflow(port);
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
 	}
@@ -349,6 +352,7 @@ public class TcpNioConnectionReadTests {
 		socket.close();
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
 	}
@@ -416,6 +420,7 @@ public class TcpNioConnectionReadTests {
 		socket.close();
 		whileOpen(semaphore, added);
 		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
 		assertTrue(removed.size() > 0);
 		scf.close();
 	}

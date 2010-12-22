@@ -60,11 +60,11 @@ public abstract class AbstractConnectionFactory
 	
 	private boolean soTcpNoDelay;
 
-	private int soLinger;
+	private int soLinger  = -1; // don't set by default
 
 	private boolean soKeepAlive;
 
-	private int soTrafficClass;
+	private int soTrafficClass = -1; // don't set by default
 	
 	protected Executor taskExecutor;
 	

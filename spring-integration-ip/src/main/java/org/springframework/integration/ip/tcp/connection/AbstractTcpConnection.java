@@ -16,13 +16,15 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 
@@ -48,6 +50,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	protected TcpMessageMapper mapper;
 	
 	protected TcpListener listener;
+	
+	private TcpListener actualListener;
 
 	protected TcpSender sender;
 
@@ -59,8 +63,27 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	
 	private AtomicLong sequence = new AtomicLong();
 	
-	public AbstractTcpConnection(boolean server) {
+	private int soLinger = -1;
+	
+	public AbstractTcpConnection(Socket socket, boolean server) {
 		this.server = server;
+		try {
+			this.soLinger = socket.getSoLinger();
+		} catch (SocketException e) { }
+	}
+	
+	public void afterSend(Message<?> message) throws Exception {
+		if (logger.isDebugEnabled())
+			logger.debug("Message sent " + message);
+		if (this.singleUse) {
+			// if (we're a server socket, or a send-only socket), and soLinger <> 0, close
+			if ((this.isServer() || this.actualListener == null) && this.soLinger != 0) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Closing single-use connection" + this.getConnectionId());
+				}
+				this.closeConnection();
+			}
+		}
 	}
 
 	/**
@@ -71,7 +94,23 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 			this.sender.removeDeadConnection(this);
 		}
 	}
-	
+
+	/**
+	 * If we have been intercepted, propagate the close from the outermost interceptor; 
+	 * otherwise, just call close().
+	 */
+	protected void closeConnection() {
+		if (!(this.listener instanceof TcpConnectionInterceptor)) {
+			close();
+			return;
+		}
+		TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) this.listener;
+		while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
+			outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
+		}
+		outerInterceptor.close();
+	}
+
 	/**
 	 * @return the mapper
 	 */
@@ -129,6 +168,16 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	 */
 	public void registerListener(TcpListener listener) {
 		this.listener = listener;
+		// Determine the actual listener for this connection
+		if (!(this.listener instanceof TcpConnectionInterceptor)) {
+			this.actualListener = this.listener;
+		} else {
+			TcpConnectionInterceptor outerInterceptor = (TcpConnectionInterceptor) this.listener;
+			while (outerInterceptor.getListener() instanceof TcpConnectionInterceptor) {
+				outerInterceptor = (TcpConnectionInterceptor) outerInterceptor.getListener();
+			}
+			this.actualListener = outerInterceptor.getListener();
+		}
 	}
 	
 	/**

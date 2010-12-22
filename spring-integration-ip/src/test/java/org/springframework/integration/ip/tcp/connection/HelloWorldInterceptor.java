@@ -42,6 +42,8 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 	private String hello = "Hello";
 
 	private String world = "world!";
+	
+	private boolean closeReceived;
 
 	public HelloWorldInterceptor() { 
 	}
@@ -86,24 +88,58 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 				return true;
 			}
 		}
-		return super.onMessage(message);
+		try {
+			return super.onMessage(message);
+		} finally {
+			// on the server side, we don't want to close if we are expecting a response 
+			if (!(this.isServer() && this.hasRealSender())) {
+				this.checkDeferredClose();
+			}
+		}
 	}
 
 	@Override
 	public void send(Message<?> message) throws Exception {
-		if (!this.negotiated) {
-			if (!this.isServer()) {
-				logger.debug("Sending " + hello);
-				super.send(MessageBuilder.withPayload(hello).build());
-				this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);
-				if (!this.negotiated) {
-					throw new MessagingException("Negotiation error");
+		try {
+			if (!this.negotiated) {
+				if (!this.isServer()) {
+					logger.debug("Sending " + hello);
+					super.send(MessageBuilder.withPayload(hello).build());
+					this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);
+					if (!this.negotiated) {
+						throw new MessagingException("Negotiation error");
+					}
 				}
 			}
+			super.send(message);
+		} finally {
+			this.checkDeferredClose();
 		}
-		super.send(message);
 	}
-	
+
+	/**
+	 * Defer the close until we've actually sent the data after negotiation
+	 */
+	@Override
+	public void close() {
+		if (this.negotiated) {
+			super.close();
+			return;
+		}
+		closeReceived = true;
+		logger.debug("Deferring close");
+	}
+
+	/**
+	 * Execute the close, if deferred
+	 */
+	private void checkDeferredClose() {
+		if (this.closeReceived) {
+			logger.debug("Executing deferred close");
+			this.close();
+		}
+	}
+
 	
 
 }

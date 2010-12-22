@@ -69,15 +69,16 @@ public class TcpInboundGatewayTests {
 				return channel;
 			}
 		});
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		socket.getOutputStream().write("Test1\r\n".getBytes());
-		socket.getOutputStream().write("Test2\r\n".getBytes());
-		handler.handleMessage(channel.receive());
-		handler.handleMessage(channel.receive());
+		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket1.getOutputStream().write("Test1\r\n".getBytes());
+		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket2.getOutputStream().write("Test2\r\n".getBytes());
+		handler.handleMessage(channel.receive(1000));
+		handler.handleMessage(channel.receive(1000));
 		byte[] bytes = new byte[12];
-		readFully(socket.getInputStream(), bytes);
+		readFully(socket1.getInputStream(), bytes);
 		assertEquals("Echo:Test1\r\n", new String(bytes));
-		readFully(socket.getInputStream(), bytes);
+		readFully(socket2.getInputStream(), bytes);
 		assertEquals("Echo:Test2\r\n", new String(bytes));
 	}
 
@@ -134,19 +135,17 @@ public class TcpInboundGatewayTests {
 				return channel;
 			}
 		});
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		socket.getOutputStream().write("Test1\r\n".getBytes());
-		socket.getOutputStream().write("Test2\r\n".getBytes());
+		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket1.getOutputStream().write("Test1\r\n".getBytes());
+		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		handler.handleMessage(channel.receive());
 		handler.handleMessage(channel.receive());
-		Set<String> results = new HashSet<String>();
 		byte[] bytes = new byte[12];
-		readFully(socket.getInputStream(), bytes);
-		results.add(new String(bytes));
-		readFully(socket.getInputStream(), bytes);
-		results.add(new String(bytes));
-		assertTrue(results.remove("Echo:Test1\r\n"));
-		assertTrue(results.remove("Echo:Test2\r\n"));
+		readFully(socket1.getInputStream(), bytes);
+		assertEquals("Echo:Test1\r\n", new String(bytes));
+		readFully(socket2.getInputStream(), bytes);
+		assertEquals("Echo:Test2\r\n", new String(bytes));
 	}
 
 	@Test
@@ -210,13 +209,14 @@ public class TcpInboundGatewayTests {
 		gateway.setRequestChannel(channel);
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(new FailingService());
 		channel.subscribe(handler);
-		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		socket.getOutputStream().write("Test1\r\n".getBytes());
-		socket.getOutputStream().write("Test2\r\n".getBytes());
+		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket1.getOutputStream().write("Test1\r\n".getBytes());
+		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);		
+		socket2.getOutputStream().write("Test2\r\n".getBytes());
 		byte[] bytes = new byte[errorMessage.length() + 2];
-		readFully(socket.getInputStream(), bytes);
+		readFully(socket1.getInputStream(), bytes);
 		assertEquals(errorMessage + "\r\n", new String(bytes));
-		readFully(socket.getInputStream(), bytes);
+		readFully(socket2.getInputStream(), bytes);
 		assertEquals(errorMessage + "\r\n", new String(bytes));
 	}
 

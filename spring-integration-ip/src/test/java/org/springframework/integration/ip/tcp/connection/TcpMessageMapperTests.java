@@ -19,6 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.net.Socket;
+
+import javax.net.SocketFactory;
+
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
@@ -68,7 +72,8 @@ public class TcpMessageMapperTests {
 	public void testToMessageSequence() throws Exception {
 		
 		TcpMessageMapper mapper = new TcpMessageMapper();
-		TcpConnection connection = new AbstractTcpConnection(false) {
+		Socket socket = SocketFactory.getDefault().createSocket();
+		TcpConnection connection = new AbstractTcpConnection(socket, false) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {

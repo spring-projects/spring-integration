@@ -26,8 +26,8 @@ package org.springframework.integration.ip.tcp.connection;
 public interface TcpConnectionInterceptorFactory {
 
 	/**
-	 * Called for each new connection - if an interceptor is
-	 * stateful, a new interceptor must be returned on each call.
+	 * Called for each new connection;
+	 * a new interceptor must be returned on each call.
 	 *  
 	 * @return the TcpInterceptor 
 	 */
