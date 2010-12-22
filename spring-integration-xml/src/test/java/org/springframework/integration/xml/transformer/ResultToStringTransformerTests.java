@@ -59,7 +59,7 @@ public class ResultToStringTransformerTests {
 	}
 	
 	@Test
-	@Ignore
+	//@Ignore
 	public void testWithOutputProperties() throws Exception {
 		String formattedDoc = "<order>\n  <orderItem>test</orderItem>\n</order>";
 
@@ -68,7 +68,8 @@ public class ResultToStringTransformerTests {
 		Properties outputProperties = new Properties();
 		outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION,"yes");
 		outputProperties.setProperty(OutputKeys.INDENT,"yes");
-		outputProperties.setProperty("{http://xml.apache.org/xslt}indent-amount","2");
+		//outputProperties.setProperty("{http://xml.apache.org/xslt}indent-amount","2");
+		outputProperties.setProperty("{http://xml.apache.org/xalan}indent-amount","2");
 		
 		transformer.setOutputProperties(outputProperties);
 		
