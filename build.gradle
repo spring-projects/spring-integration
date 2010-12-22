@@ -420,7 +420,8 @@ project('spring-integration-xml') {
         compile "org.springframework.ws:spring-xml:$springWsVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
-        testCompile "javax.xml:jaxb-api:2.1"
+        testCompile "javax.xml:jaxb-api:2.0EA3"
+        testCompile "javax.xml:jaxb-impl:2.0EA3"
         testCompile "xmlunit:xmlunit:1.2"
     }
 }
