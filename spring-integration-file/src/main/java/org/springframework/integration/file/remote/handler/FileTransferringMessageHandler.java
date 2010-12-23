@@ -66,7 +66,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression);
+		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 
 	public void setTemporaryDirectory(File temporaryDirectory) {
