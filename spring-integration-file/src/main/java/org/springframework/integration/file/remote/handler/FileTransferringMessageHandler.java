@@ -33,7 +33,6 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link org.springframework.integration.core.MessageHandler} implementation that transfers files to a remote server.
@@ -55,9 +54,9 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile File temporaryDirectory = new File(System.getProperty("java.io.tmpdir"));
 
 	private volatile String charset = "UTF-8";
-	
+
 	private volatile String remoteFileSeparator = "/";
-	
+
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
@@ -92,9 +91,9 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (file != null && file.exists()) {
 			Session session = this.sessionFactory.getSession();
 			try {
-				String targetDirectory = this.directoryExpressionProcessor.processMessage(message);
+				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 				String fileName = this.fileNameGenerator.generateFileName(message);
-				this.sendFileToRemoteDirectory(file, targetDirectory, fileName, session);
+				this.sendFileToRemoteDirectory(file, remoteDirectory, fileName, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -158,7 +157,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	}
 
 	private void sendFileToRemoteDirectory(File file, String remoteDirectory, String fileName, Session session) 
-											throws FileNotFoundException, IOException {
+			throws FileNotFoundException, IOException {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		if (!remoteDirectory.endsWith(remoteFileSeparator)) {
