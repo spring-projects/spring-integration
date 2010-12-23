@@ -33,6 +33,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link org.springframework.integration.core.MessageHandler} implementation that transfers files to a remote server.
@@ -160,7 +161,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			throws FileNotFoundException, IOException {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
-		if (!remoteDirectory.endsWith(remoteFileSeparator)) {
+		if (!StringUtils.hasText(remoteDirectory)) {
+			remoteDirectory = "";
+		}
+		else if (!remoteDirectory.endsWith(remoteFileSeparator)) {
 			remoteDirectory += remoteFileSeparator; 
 		}
 		String remoteFilePath = remoteDirectory + fileName;
