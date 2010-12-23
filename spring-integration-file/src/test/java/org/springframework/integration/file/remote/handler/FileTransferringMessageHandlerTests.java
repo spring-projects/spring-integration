@@ -1,0 +1,116 @@
+/*
+ * Copyright 2002-2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.file.remote.handler;
+
+import static junit.framework.Assert.assertFalse;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.integration.Message;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
+
+
+/**
+ * @author Oleg Zhurakousky
+ *
+ */
+public class FileTransferringMessageHandlerTests {
+
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testRemoteDirWithEmptyString() throws Exception{
+		SessionFactory sf = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		
+		when(sf.getSession()).thenReturn(session);
+		doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				String path =  (String) invocation.getArguments()[1];
+				assertFalse(path.startsWith("/"));
+				return null;
+			}
+		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		ExpressionParser parser = new SpelExpressionParser();
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sf);
+		handler.setRemoteDirectoryExpression(parser.parseExpression("''"));
+		handler.afterPropertiesSet();
+		handler.handleMessage(new GenericMessage<String>("hello"));
+		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testRemoteDirWithNull() throws Exception{
+		SessionFactory sf = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		
+		when(sf.getSession()).thenReturn(session);
+		doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				String path =  (String) invocation.getArguments()[1];
+				assertFalse(path.startsWith("/"));
+				return null;
+			}
+		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		ExpressionParser parser = new SpelExpressionParser();
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sf);
+		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
+		handler.handleMessage(message);
+		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void testWithNonString() throws Exception{
+		SessionFactory sf = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		
+		when(sf.getSession()).thenReturn(session);
+		doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				String path =  (String) invocation.getArguments()[1];
+				assertFalse(path.startsWith("/"));
+				return null;
+			}
+		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		ExpressionParser parser = new SpelExpressionParser();
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sf);
+		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", new Foo()).build();
+		handler.handleMessage(message);
+		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+	
+	private static class Foo{}
+}
