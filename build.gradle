@@ -147,9 +147,6 @@ configure(javaprojects) {
     xLintArg = '-Xlint:all'
     [compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
-    // generate .classpath files without GRADLE_CACHE variable (GRADLE-1079)
-    eclipseClasspath.variables = [:]
-
     // Tie pom generation into the standard build lifecycle (INT-1609)
     assemble.dependsOn generatePom
 
