@@ -673,12 +673,12 @@
 			<xsd:sequence>
 				<xsd:choice>
 					<xsd:sequence>
-						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 					<xsd:sequence>
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 				</xsd:choice>
 				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
@@ -833,7 +833,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:complexType name="channelAdapterType">
 		<xsd:all>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
 		<xsd:attributeGroup ref="channelAdapterAttributes" />
@@ -964,7 +964,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:complexType name="delayer-type">
 		<xsd:sequence>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute name="default-delay" type="xsd:string" use="required">
 			<xsd:annotation>
@@ -1084,7 +1084,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:element name="header-value-router" type="header-value-router-type" />
 			<xsd:element name="delayer" type="delayer-type" />
 			<xsd:element name="gateway" type="innerGatewayType" />
-			<xsd:element name="poller" type="innerPollerType" />
+			<xsd:element name="poller" type="basePollerType" />
 			<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type" />
 			<xsd:element name="payload-deserializing-transformer" type="payload-deserializing-transformer-type" />
 			<xsd:element name="object-to-string-transformer" type="specialized-transformer-type" />
@@ -1113,14 +1113,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-
-	<xsd:complexType name="innerPollerType">
-		<xsd:complexContent>
-			<xsd:extension base="basePollerType">
-				<xsd:attribute name="ref" type="xsd:string" />
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
 
 	<xsd:complexType name="basePollerType">
 		<xsd:annotation>
@@ -1179,6 +1171,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="fixed-delay" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="ref" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Allows this poller to reference another instance of top-level poller. 
+					[IMPORTANT] - This attribute is only allowed on inner poller definitions. 
+					Defining this attribute on the top-level poller definition will result in the configuration 
+					exception. 
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="fixed-rate" type="xsd:string">
@@ -1417,7 +1419,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" >
+			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" >
 				<xsd:annotation>
 					<xsd:documentation>
 						Allows you to configure Message Poller if this endpoint is a Polling Consumer
@@ -2082,7 +2084,7 @@ Name of the header whose value will be used to route messages
 		<xsd:complexContent>
 			<xsd:extension base="channelNameResolvingRouterType">
 				<xsd:choice minOccurs="0" maxOccurs="2">
-					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
@@ -2603,7 +2605,7 @@ Name of the header whose value will be used to route messages
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
 				<xsd:choice minOccurs="0" maxOccurs="2">
-					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
@@ -2644,7 +2646,7 @@ Name of the header whose value will be used to route messages
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
 				<xsd:choice minOccurs="0" maxOccurs="2">
-					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 			</xsd:extension>
@@ -2814,7 +2816,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all minOccurs="0" maxOccurs="1">
-				<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
 			<xsd:attributeGroup ref="inputOutputChannelGroup" />
 		</xsd:complexType>

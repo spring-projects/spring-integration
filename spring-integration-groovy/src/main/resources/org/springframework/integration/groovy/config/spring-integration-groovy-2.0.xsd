@@ -49,7 +49,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:all minOccurs="0" maxOccurs="1">
-				<xsd:element name="poller" type="integration:innerPollerType" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
 		</xsd:complexType>

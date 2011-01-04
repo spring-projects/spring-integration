@@ -35,6 +35,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PollerParserTests {
 
@@ -110,5 +111,11 @@ public class PollerParserTests {
 	public void pollerWithCronTriggerAndTimeUnit() {
 		new ClassPathXmlApplicationContext(
 				"cronTriggerWithTimeUnit-fail.xml", PollerParserTests.class);
+	}
+    
+    @Test(expected=BeanDefinitionParsingException.class)
+	public void topLevelPollerWithRef() {
+		new ClassPathXmlApplicationContext(
+				"defaultPollerWithRef.xml", PollerParserTests.class);
 	}
 }

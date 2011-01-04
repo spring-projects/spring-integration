@@ -197,7 +197,11 @@ consumer.setTransactionManager(txManager);</programlisting>
               output-channel="output">
     <poller ref="weekdayPoller"/>
  </transformer>]]></programlisting>
-      In fact, to simplify the configuration, you can define a global default poller. A single top-level poller within
+ 	<note>
+ 	The "ref" attribute is only allowed on the inner-poller definitions. Defining his attribute on the top-level 
+ 	poller will result in configuration exception thrown during initialization of Application Context
+ 	</note>
+      In fact, to simplify the configuration even further, you can define a global default poller. A single top-level poller within
       an ApplicationContext may have the <code>default</code> attribute with a value of "true". In that case, any
       endpoint with a PollableChannel for its input-channel that is defined within the same ApplicationContext and has
       no explicitly configured 'poller' sub-element will use that default.

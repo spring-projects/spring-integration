@@ -86,7 +86,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.PollerMetadata");
 		if (element.hasAttribute("ref")) {
 			parserContext.getReaderContext().error(
-					"the 'ref' attribute must not be present on a 'poller' element submitted to the parser", element);
+					"the 'ref' attribute must not be present on the top-level 'poller' element", element);
 		}
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
