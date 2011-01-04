@@ -10,12 +10,12 @@
 		</layout>
 	</appender>
 	<logger name="org.springframework.integration">
-		<level value="warn" />
+		<level value="trace" />
 	</logger>
 	
-	<logger name="org.springframework.integration.xmpp">
-		<level value="debug" />
-	</logger>
+<!--	<logger name="org.springframework.integration">-->
+<!--		<level value="debug" />-->
+<!--	</logger>-->
 
 	<!-- Root Logger -->
 	<root>

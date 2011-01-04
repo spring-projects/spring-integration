@@ -25,6 +25,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
@@ -85,11 +86,23 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
 				Chat chat = xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread());
-				Object payload = (extractPayload ? xmppMessage.getBody() : xmppMessage);
-				MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
-						.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
-						.setHeader(XmppHeaders.CHAT, chat);
-				sendMessage(messageBuilder.build());
+	
+				String messageBody = xmppMessage.getBody();
+				/*
+				 * Since there are several types of chat messages with different ChatState (e.g., composing, paused etc) 
+				 * we need to perform further validation since for now we only support messages that have 
+				 * content (e.g., Use A says 'Hello' to User B). We don't yet support messages with no 
+				 * content (e.g., User A is typing a message for User B etc.).
+				 * See https://jira.springsource.org/browse/INT-1728
+				 * Also see: packet.getExtensions()   
+				 */
+				if (StringUtils.hasText(messageBody)){
+					Object payload = (extractPayload ? messageBody : xmppMessage);
+					MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
+									.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
+									.setHeader(XmppHeaders.CHAT, chat);
+					sendMessage(messageBuilder.build());
+				}	
 			}
 		}
 	}
