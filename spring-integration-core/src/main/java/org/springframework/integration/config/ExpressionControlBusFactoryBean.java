@@ -27,12 +27,14 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.util.CustomizableThreadCreator;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a SpEL expression.
  * 
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
@@ -69,10 +71,11 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 			return supportedMethods;
 		}
 
-		private boolean accept(Method method) {
-			if (method.getDeclaringClass().equals(Lifecycle.class)) {
+		private boolean accept(Method method) {	
+			if (ReflectionUtils.findMethod(Lifecycle.class, method.getName(), method.getParameterTypes()) != null){
 				return true;
 			}
+
 			if (CustomizableThreadCreator.class.isAssignableFrom(method.getDeclaringClass())
 					&& (method.getName().startsWith("get")
 							|| method.getName().startsWith("set")

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:groovy="http://www.springframework.org/schema/integration/groovy"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration
+		http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<control-bus input-channel="inputChannel" auto-startup="true"/>
+
+	<inbound-channel-adapter id="adapter" channel="outputChannel" auto-startup="false" >
+	<poller fixed-rate="1000"/>
+		<beans:bean class="org.springframework.integration.config.xml.ControlBusTests.AdapterService"/>
+		
+	</inbound-channel-adapter>
+	
+	
+	
+	<channel id="outputChannel">
+		<queue/>
+	</channel>
+
+</beans:beans>

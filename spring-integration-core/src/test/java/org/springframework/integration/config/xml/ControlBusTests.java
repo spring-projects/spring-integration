@@ -16,15 +16,22 @@
 
 package org.springframework.integration.config.xml;
 
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,6 +58,17 @@ public class ControlBusTests {
 		assertEquals("catbar", output.receive(0).getPayload());
 		assertNull(output.receive(0));
 	}
+	
+	@Test
+	public void testLifecycleMethods() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("ControlBusLifecycleTests-context.xml", this.getClass());
+		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);  
+		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);  
+		assertNull(outputChannel.receive(1000));
+		Message<?> message = MessageBuilder.withPayload("@adapter.start()").build();
+		inputChannel.send(message);
+		assertNotNull(outputChannel.receive(1000));
+	}
 
 
 	public static class Service {
@@ -58,6 +76,19 @@ public class ControlBusTests {
 		@ManagedOperation
 		public String convert(String input) {
 			return "cat";
+		}
+	}
+	
+	public static class AdapterService implements MessageSource<String>{
+
+//		public String produceDate() {
+//			System.out.println("Producing Date");
+//			return new Date().toString();
+//		}
+
+		public Message<String> receive() {
+			System.out.println("Producing Date");
+			return new GenericMessage<String>(new Date().toString());
 		}
 	}
 
