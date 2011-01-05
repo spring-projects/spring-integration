@@ -318,17 +318,16 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
-			headerName = headerName.toLowerCase();
 			for (String pattern : patterns) {
-				pattern = pattern.toLowerCase();
-				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
+
+				if (PatternMatchUtils.simpleMatch(pattern.toLowerCase(), headerName.toLowerCase())) {
 					return true;
 				}
-				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equalsIgnoreCase(pattern)
+				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, headerName)) {
 					return true;
 				}
-				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equalsIgnoreCase(pattern)
+				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
 					return true;
 				}
