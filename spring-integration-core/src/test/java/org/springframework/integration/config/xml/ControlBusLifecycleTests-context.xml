@@ -9,10 +9,9 @@
 
 	<control-bus input-channel="inputChannel" auto-startup="true"/>
 
-	<inbound-channel-adapter id="adapter" channel="outputChannel" auto-startup="false" >
-	<poller fixed-rate="1000"/>
+	<inbound-channel-adapter id="adapter" channel="outputChannel" auto-startup="false" method="receive">
+		<poller fixed-rate="1000"/>
 		<beans:bean class="org.springframework.integration.config.xml.ControlBusTests.AdapterService"/>
-		
 	</inbound-channel-adapter>
 	
 	

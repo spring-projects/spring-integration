@@ -24,12 +24,12 @@ import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -79,15 +79,8 @@ public class ControlBusTests {
 		}
 	}
 	
-	public static class AdapterService implements MessageSource<String>{
-
-//		public String produceDate() {
-//			System.out.println("Producing Date");
-//			return new Date().toString();
-//		}
-
+	public static class AdapterService {
 		public Message<String> receive() {
-			System.out.println("Producing Date");
 			return new GenericMessage<String>(new Date().toString());
 		}
 	}
