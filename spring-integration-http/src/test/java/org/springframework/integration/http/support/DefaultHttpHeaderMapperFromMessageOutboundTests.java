@@ -123,6 +123,19 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 	}
 	
 	@Test
+	public void validateAcceptHeaderMultipleAsStringCollectionCaseInsensitive(){
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("acCePt", CollectionUtils.arrayToList(new String[]{"bar/foo", "text/xml"}));
+		HttpHeaders headers = new HttpHeaders();
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.getAccept().size());
+		assertEquals("bar/foo", headers.getAccept().get(0).toString());
+		assertEquals("text/xml", headers.getAccept().get(1).toString());
+	}
+	
+	@Test
 	public void validateAcceptHeaderMultipleAsMediatypeCollection(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.outboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();

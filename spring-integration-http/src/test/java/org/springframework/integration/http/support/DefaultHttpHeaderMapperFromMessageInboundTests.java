@@ -69,6 +69,18 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	}
 	
 	@Test
+	public void validateAllowAsStringCaseInsensitive(){
+		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("allow", "GET");
+		HttpHeaders headers = new HttpHeaders();
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(1, headers.getAllow().size());
+		assertEquals(HttpMethod.GET, headers.getAllow().iterator().next());
+	}
+	
+	@Test
 	public void validateAllowAsHttpMethod(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();

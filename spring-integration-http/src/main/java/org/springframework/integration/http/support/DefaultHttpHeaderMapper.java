@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Jeremy Grelle
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
@@ -258,12 +259,13 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			if (this.shouldMapOutboundHeader(name)) {
 				Object value = headers.get(name);
 				if (value != null) {
-					if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
+					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && 
+						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
 						name = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name : USER_DEFINED_HEADER_PREFIX + name;
 					}
 					this.setHttpHeader(target, name, value);
-				}
+				}	
 			}
 		}
 	}
@@ -296,6 +298,15 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		}
 		return target;
 	}
+	
+	private boolean containsElementIgnoreCase(String[] headerNames, String name){
+		for (String headerName : headerNames) {
+			if (headerName.equalsIgnoreCase(name)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private boolean shouldMapOutboundHeader(String headerName) {
 		return this.shouldMapHeader(headerName, this.outboundHeaderNames);
@@ -307,16 +318,18 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
+			headerName = headerName.toLowerCase();
 			for (String pattern : patterns) {
+				pattern = pattern.toLowerCase();
 				if (PatternMatchUtils.simpleMatch(pattern, headerName)) {
 					return true;
 				}
-				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
-						&& ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, headerName)) {
+				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equalsIgnoreCase(pattern)
+						&& this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, headerName)) {
 					return true;
 				}
-				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
-						&& ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
+				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equalsIgnoreCase(pattern)
+						&& this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
 					return true;
 				}
 			}
@@ -325,7 +338,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	}
 
 	private void setHttpHeader(HttpHeaders target, String name, Object value) {
-		if (ACCEPT.equals(name)) {
+		if (ACCEPT.equalsIgnoreCase(name)) {
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
@@ -365,7 +378,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected MediaType or String value for 'Accept' header value, but received: " + clazz);
 			}
 		}
-		else if (ACCEPT_CHARSET.equals(name)) {
+		else if (ACCEPT_CHARSET.equalsIgnoreCase(name)) {
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
@@ -416,7 +429,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Charset or String value for 'Accept-Charset' header value, but received: " + clazz);
 			}
 		}
-		else if (ALLOW.equals(name)) {
+		else if (ALLOW.equalsIgnoreCase(name)) {
 			if (value instanceof Collection<?>) {
 				Collection<?> values = (Collection<?>) value;
 				if (!CollectionUtils.isEmpty(values)) {
@@ -464,7 +477,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 				}
 			}
 		}
-		else if (CACHE_CONTROL.equals(name)) {
+		else if (CACHE_CONTROL.equalsIgnoreCase(name)) {
 			if (value instanceof String) {
 				target.setCacheControl((String) value);
 			}
@@ -474,7 +487,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected String value for 'Cache-Control' header value, but received: " + clazz);				
 			}
 		}
-		else if (CONTENT_LENGTH.equals(name)) {
+		else if (CONTENT_LENGTH.equalsIgnoreCase(name)) {
 			if (value instanceof Number) {
 				target.setContentLength(((Number) value).longValue());
 			}
@@ -487,7 +500,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Number or String value for 'Content-Length' header value, but received: " + clazz);
 			}
 		}
-		else if (CONTENT_TYPE.equals(name)) {
+		else if (CONTENT_TYPE.equalsIgnoreCase(name)) {
 			if (value instanceof MediaType) {
 				target.setContentType((MediaType) value);
 			}
@@ -500,7 +513,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected MediaType or String value for 'Content-Type' header value, but received: " + clazz);
 			}
 		}
-		else if (DATE.equals(name)) {
+		else if (DATE.equalsIgnoreCase(name)) {
 			if (value instanceof Date) {
 				target.setDate(((Date) value).getTime());
 			}
@@ -516,7 +529,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Date, Number, or String value for 'Date' header value, but received: " + clazz);
 			}
 		}
-		else if (ETAG.equals(name)) {
+		else if (ETAG.equalsIgnoreCase(name)) {
 			if (value instanceof String) {
 				target.setETag((String) value);
 			}
@@ -526,7 +539,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected String value for 'ETag' header value, but received: " + clazz);
 			}
 		}
-		else if (EXPIRES.equals(name)) {
+		else if (EXPIRES.equalsIgnoreCase(name)) {
 			if (value instanceof Date) {
 				target.setExpires(((Date) value).getTime());
 			}
@@ -542,7 +555,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Date, Number, or String value for 'Expires' header value, but received: " + clazz);
 			}
 		}
-		else if (IF_MODIFIED_SINCE.equals(name)) {
+		else if (IF_MODIFIED_SINCE.equalsIgnoreCase(name)) {
 			if (value instanceof Date) {
 				target.setIfModifiedSince(((Date) value).getTime());
 			}
@@ -558,7 +571,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Date, Number, or String value for 'If-Modified-Since' header value, but received: " + clazz);
 			}
 		}
-		else if (IF_NONE_MATCH.equals(name)) {
+		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
 			if (value instanceof String) {
 				target.setIfNoneMatch((String) value);
 			}
@@ -584,7 +597,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 				}
 			}
 		}
-		else if (LAST_MODIFIED.equals(name)) {
+		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
 			if (value instanceof Date) {
 				target.setLastModified(((Date) value).getTime());
 			}
@@ -600,7 +613,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected Date, Number, or String value for 'Last-Modified' header value, but received: " + clazz);
 			}
 		}
-		else if (LOCATION.equals(name)) {
+		else if (LOCATION.equalsIgnoreCase(name)) {
 			if (value instanceof URI) {
 				target.setLocation((URI) value);
 			}
@@ -618,7 +631,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						"Expected URI or String value for 'Location' header value, but received: " + clazz);
 			}
 		}
-		else if (PRAGMA.equals(name)) {
+		else if (PRAGMA.equalsIgnoreCase(name)) {
 			if (value instanceof String) {
 				target.setPragma((String) value);
 			}
@@ -646,53 +659,53 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	}
 
 	private Object getHttpHeader(HttpHeaders source, String name) {
-		if (ACCEPT.equals(name)) {
+		if (ACCEPT.equalsIgnoreCase(name)) {
 			return source.getAccept();
 		}
-		else if (ACCEPT_CHARSET.equals(name)) {
+		else if (ACCEPT_CHARSET.equalsIgnoreCase(name)) {
 			return source.getAcceptCharset();
 		}
-		else if (ALLOW.equals(name)) {
+		else if (ALLOW.equalsIgnoreCase(name)) {
 			return source.getAllow();
 		}
-		else if (CACHE_CONTROL.equals(name)) {
+		else if (CACHE_CONTROL.equalsIgnoreCase(name)) {
 			String cacheControl = source.getCacheControl();
 			return (StringUtils.hasText(cacheControl)) ? cacheControl : null;
 		}
-		else if (CONTENT_LENGTH.equals(name)) {
+		else if (CONTENT_LENGTH.equalsIgnoreCase(name)) {
 			long contentLength = source.getContentLength();
 			return (contentLength > -1) ? contentLength : null;
 		}
-		else if (CONTENT_TYPE.equals(name)) {
+		else if (CONTENT_TYPE.equalsIgnoreCase(name)) {
 			return source.getContentType();
 		}
-		else if (DATE.equals(name)) {
+		else if (DATE.equalsIgnoreCase(name)) {
 			long date = source.getDate();
 			return (date > -1) ? date : null;
 		}
-		else if (ETAG.equals(name)) {
+		else if (ETAG.equalsIgnoreCase(name)) {
 			String eTag = source.getETag();
 			return (StringUtils.hasText(eTag)) ? eTag : null;
 		}
-		else if (EXPIRES.equals(name)) {
+		else if (EXPIRES.equalsIgnoreCase(name)) {
 			long expires = source.getExpires();
 			return (expires > -1) ? expires : null;
 		}
-		else if (IF_NONE_MATCH.equals(name)) {
+		else if (IF_NONE_MATCH.equalsIgnoreCase(name)) {
 			return source.getIfNoneMatch();
 		}
-		else if (IF_UNMODIFIED_SINCE.equals(name)) {
+		else if (IF_UNMODIFIED_SINCE.equalsIgnoreCase(name)) {
 			long unmodifiedSince = source.getIfNotModifiedSince();
 			return (unmodifiedSince > -1) ? unmodifiedSince : null;
 		}
-		else if (LAST_MODIFIED.equals(name)) {
+		else if (LAST_MODIFIED.equalsIgnoreCase(name)) {
 			long lastModified = source.getLastModified();
 			return (lastModified > -1) ? lastModified : null;
 		}
-		else if (LOCATION.equals(name)) {
+		else if (LOCATION.equalsIgnoreCase(name)) {
 			return source.getLocation();
 		}
-		else if (PRAGMA.equals(name)) {
+		else if (PRAGMA.equalsIgnoreCase(name)) {
 			String pragma = source.getPragma();
 			return (StringUtils.hasText(pragma)) ? pragma : null;
 		}
