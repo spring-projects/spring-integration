@@ -637,8 +637,37 @@
     that the components (whether defined by the framework or a user) should be able to remain stateless.
     All state is carried by the <interfacename>MessageGroup</interfacename> and its
     management is delegated to the
-    <interfacename>MessageGroupStore</interfacename>.</para>
+    <interfacename>MessageGroupStore</interfacename>.
+    
+    
+    <programlisting><![CDATA[public interface MessageGroupStore {
+   int getMessageCountForAllMessageGroups();
 
+   int getMarkedMessageCountForAllMessageGroups();
+
+   int getMessageGroupCount();
+
+   MessageGroup getMessageGroup(Object groupId);
+
+   MessageGroup addMessageToGroup(Object groupId, Message<?> message);
+
+   MessageGroup markMessageGroup(MessageGroup group);
+
+   MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
+
+   MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
+
+   void removeMessageGroup(Object groupId);
+
+   void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
+
+   int expireMessageGroups(long timeout);
+}]]></programlisting>
+    
+    For more information on regarding details for each method please refer to 
+    javadoc http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html
+    </para>
+    
     <para>The <interfacename>MessageGroupStore</interfacename> accumulates state
     information in <interfacename>MessageGroups</interfacename> while waiting for
     a release strategy to be triggered, and that event might not ever happen.
@@ -661,11 +690,6 @@
     <para>The  <interfacename>MessageGroupStore</interfacename> maintains a list of these callbacks which it
     applies, on demand, to all messages whose timestamp is earlier than a time
     supplied as a parameter:</para>
-
-    <programlisting><![CDATA[public interface MessageGroupStore {
-   void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
-   int expireMessageGroups(long timeout);
-}]]></programlisting>
 
     <para>The <code>expireMessageGroups</code> method can be called with a timeout value:
     any message older than the current time minus this value will be expired,
