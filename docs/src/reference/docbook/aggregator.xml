@@ -604,7 +604,7 @@
         <para id="aggann2">An annotation indicating that this method shall be
         used as the release strategy of an aggregator. If not present on any
         method, the aggregator will use the
-        SequenceSizeCompletionStrategy.</para>
+        SequenceSizeReleaseStrategy.</para>
       </callout>
 
       <callout arearefs="agganncorrs">
