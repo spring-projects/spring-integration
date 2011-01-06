@@ -60,13 +60,20 @@
     <para>
       The method that is used for transformation may expect either the <interfacename>Message</interfacename> type or
       the payload type of inbound Messages. It may also accept Message header values either individually or as a full
-      map by using the @Header and @Headers parameter annotations respectively. The return value of the method can be
+      map by using the <code>@Header</code> and <code>@Headers</code> parameter annotations respectively. The return value of the method can be
       any type. If the return value is itself a <interfacename>Message</interfacename>, that will be passed along to
       the transformer's output channel. If the return type is a Map, and the original Message payload was
       <emphasis>not</emphasis> a Map, the entries in that Map will be added to the Message headers of the original
-      Message (the keys must be Strings). If the return value is <emphasis>null</emphasis>, then no reply Message will
-      be sent (effectively the same behavior as a Message Filter returning false). Otherwise, the return value will be
-      sent as the payload of an outbound reply Message.
+      Message (the keys must be Strings).
+    </para>
+    <para>
+    Since Spring Integration 2.0 after many debates we've changed the behavior of Message Transformer for the cases where 
+    transformation method returns <code>null</code>. Returning <code>null</code> will now result in the exception. In other 
+    words Message Transformer should no longer be used as Message Filter (that is what Message Filter is for). Message Transformer 
+    should always be expected to transform the source Message into a valid target Message. 
+    However, if you still need this type of behavior (where component might return NULL and not be considered an error), a 
+    <emphasis>service-activator</emphasis> could be used. Its <code>requires-reply</code> value is FALSE by default, but can 
+    be set to TRUE in order to have Exceptions thrown for NULL return values.
     </para>
     
     <para>
