@@ -55,6 +55,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="remote-file-separator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide remote file/directory separator character. DEFAULT: '/' 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 			<xsd:attribute name="remote-directory-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -166,6 +173,13 @@
 	            	Allows you to provide Regular Expression to determine the file names that needs to be scanned.
 	            	 (e.g., "f[o]+\.txt" etc.)
 	            	</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="remote-file-separator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Allows you to provide remote file/directory separator character. DEFAULT: '/' 
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required">

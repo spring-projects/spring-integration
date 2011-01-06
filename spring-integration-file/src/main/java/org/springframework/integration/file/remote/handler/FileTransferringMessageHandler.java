@@ -64,6 +64,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		this.sessionFactory = sessionFactory;
 	}
 
+	public void setRemoteFileSeparator(String remoteFileSeparator) {
+		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be null");
+		this.remoteFileSeparator = remoteFileSeparator;
+	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);

@@ -88,6 +88,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 			}
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "remote-file-separator");
 		return handlerBuilder.getBeanDefinition();
 	}
 

@@ -37,6 +37,13 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="remote-file-separator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide remote file/directory separator character. DEFAULT: '/' 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            		<xsd:annotation>
 	            			<xsd:documentation>
@@ -108,6 +115,13 @@
 						<xsd:annotation>
 						    <xsd:documentation>
 							Identifies directory path (e.g., "/temp/mytransfers") where file will be transferred FROM.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="remote-file-separator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide remote file/directory separator character. DEFAULT: '/' 
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

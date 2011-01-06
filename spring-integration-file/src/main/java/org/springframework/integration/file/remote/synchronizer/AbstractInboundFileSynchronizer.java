@@ -88,6 +88,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.sessionFactory = sessionFactory;
 	}
 
+	public void setRemoteFileSeparator(String remoteFileSeparator) {
+		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be null");
+		this.remoteFileSeparator = remoteFileSeparator;
+	}
 
 	/**
 	 * Specify the full path to the remote directory.

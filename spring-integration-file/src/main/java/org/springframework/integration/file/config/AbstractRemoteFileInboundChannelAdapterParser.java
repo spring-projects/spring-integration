@@ -47,6 +47,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-file-separator");
 		this.configureFilter(synchronizerBuilder, element, parserContext);
 
 		// build the MessageSource
