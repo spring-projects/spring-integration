@@ -114,6 +114,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				delete-remote-files="true"
 				filename-pattern="*.txt"
 				remote-directory="some/remote/path"
+				remote-file-separator="/"
 				local-directory=".">
 			<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
@@ -130,6 +131,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a 
 	list of files.
   	</para>
+  	<note>
+	Since Spring Integration 2.0.2 we've added 'remote-file-separator' attribute which allows you to configure which 
+	file separator character to use if default '/' is not applicable for your environment.
+	</note>
   	<para>
   	Please refer to the schema for more details on these attributes. 
   	</para>
@@ -212,6 +217,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
+				remote-file-separator="/"
 				filename-generator="fileNameGenerator"/>]]></programlisting>	
 
 	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
