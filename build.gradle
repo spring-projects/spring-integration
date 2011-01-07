@@ -68,6 +68,7 @@ allprojects {
         mavenRepo urls: 'http://repository.springsource.com/maven/bundles/external'
         mavenRepo urls: 'http://repository.springsource.com/maven/bundles/release'
         mavenRepo urls: 'http://repository.springsource.com/maven/bundles/milestone'
+        mavenRepo urls: 'http://download.java.net/maven/2' // for javax.mail 1.4.3
     }
 }
 
@@ -308,7 +309,7 @@ project('spring-integration-mail') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context-support:$springVersion"
-        compile("javax.mail:mail:1.4.1") { provided = true }
+        compile("javax.mail:mail:1.4.3") { provided = true }
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
