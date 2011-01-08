@@ -162,7 +162,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		CountDownLatch latch = new CountDownLatch(1);
 		try {
 			logger.warn("Waiting " + reconnectDelay + " seconds before attemptong to reconnect to host");
-			latch.await(5, TimeUnit.SECONDS);
+			latch.await(this.reconnectDelay, TimeUnit.SECONDS);
 			reconnecting = true;
 			logger.warn("Will attempt to reconnect to host now");
 		} catch (Exception ignore) {
