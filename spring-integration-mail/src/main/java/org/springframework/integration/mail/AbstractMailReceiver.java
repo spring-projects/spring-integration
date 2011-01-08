@@ -303,4 +303,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 			this.folderOpenMode = Folder.READ_WRITE;
 		}
 	}
+	
+	Store getStore(){
+		return this.store;
+	}
 }

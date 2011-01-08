@@ -16,11 +16,15 @@
 
 package org.springframework.integration.mail;
 
+import java.net.UnknownHostException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.StoreClosedException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -47,6 +51,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private volatile Executor taskExecutor;
 
 	private final ImapMailReceiver mailReceiver;
+	
+	private volatile boolean reconnecting;
+	
+	private volatile int reconnectDelay = 10; // seconds
 
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
@@ -117,6 +125,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 						logger.debug("waiting for mail");
 					}
 					mailReceiver.waitForNewMessages();
+					reconnecting = false;
 					Message[] mailMessages = mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
@@ -127,8 +136,13 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					}
 				}
 				catch (MessagingException e) {
-					if (e instanceof FolderClosedException && shouldReconnectAutomatically) {
-						continue;
+					if (shouldReconnectAutomatically){
+						if (e instanceof FolderClosedException || 
+							e instanceof StoreClosedException || 
+							(e.getNextException() instanceof UnknownHostException && reconnecting)){
+							waitToReconnect();
+							continue;
+						}
 					}
 					handleMailMessagingException(e);
 					return;
@@ -144,4 +158,14 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		return "mail:imap-idle-channel-adapter";
 	}
 
+	private void waitToReconnect() {
+		CountDownLatch latch = new CountDownLatch(1);
+		try {
+			logger.warn("Waiting " + reconnectDelay + " seconds before attemptong to reconnect to host");
+			latch.await(5, TimeUnit.SECONDS);
+			reconnecting = true;
+			logger.warn("Will attempt to reconnect to host now");
+		} catch (Exception ignore) {
+		}
+	}
 }

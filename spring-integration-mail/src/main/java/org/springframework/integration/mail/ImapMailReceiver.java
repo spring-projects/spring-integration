@@ -21,6 +21,7 @@ import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Store;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
@@ -29,6 +30,7 @@ import javax.mail.search.FlagTerm;
 import javax.mail.search.NotTerm;
 import javax.mail.search.SearchTerm;
 
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 import com.sun.mail.imap.IMAPFolder;
@@ -48,6 +50,8 @@ import com.sun.mail.imap.IMAPFolder;
 public class ImapMailReceiver extends AbstractMailReceiver {
 	private volatile boolean shouldMarkMessagesAsRead = true;;
 	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
+	
+	private volatile long connectionPingInterval = 10000;
 
 
 	public ImapMailReceiver() {
@@ -178,6 +182,22 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		super.onInit();
 		if (this.shouldMarkMessagesAsRead){
 			this.folderOpenMode = Folder.READ_WRITE;
+		}
+		this.initialized = true;
+		TaskScheduler scheduler = this.getTaskScheduler();
+		if (scheduler != null){
+			scheduler.scheduleAtFixedRate(new Runnable() {	
+				public void run() {
+					try {
+						Store store = getStore();
+						if (initialized && store != null){
+							store.isConnected();
+						}		
+					} 
+					catch (Throwable ignore) {
+					}
+				}
+			}, connectionPingInterval);
 		}
 	}
 	/**
