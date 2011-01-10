@@ -89,7 +89,7 @@
       </note>
     </para>
     <para>
-      To configure an inbound Channel Adapter, you have the choice between polling or event-driven (assuming your
+      To configure an Inbound Channel Adapter, you have the choice between polling or event-driven (assuming your
       mail server supports IMAP IDLE - if not, then polling is the only option). A polling Channel Adapter simply
       requires the store URI and the channel to send inbound Messages to. The URI may begin with "pop3" or "imap":
       <programlisting language="xml"><![CDATA[<int-mail:inbound-channel-adapter id="imapAdapter"
@@ -120,6 +120,39 @@
   <prop key="mail.store.protocol">imaps</prop>
   <prop key="mail.debug">false</prop>
 </util:properties>]]></programlisting>
+    </para>
+    
+    <para><emphasis>IMAP IDLE and lost connection</emphasis></para>
+    
+    <para>
+    When using IMAP IDLE channel adapter there might be situations where connection to the server may be lost 
+    (e.g., network failure) and since Java Mail documentation explicitly states that the actual IMAP API is EXPERIMENTAL it is 
+    important to understand the differences in the API and how to deal with them when configuring IMAP IDLE adapters.
+    Currently Spring Integration Mail adapters was tested with Java Mail 1.4.1 and Java Mail 1.4.3 and depending on which one 
+    is used special attention must be payed to some of the java mail properties that needs to be set with regard to auto-reconnect.
+	</para>
+	<para>
+    <emphasis>
+    The following behavior was observed with GMAIL but should provide you with some tips on how to solve re-connect 
+    issue with other providers, however feedback is always welcome. Again, below notes are based on GMAIL.
+    </emphasis>
+    </para>
+    <para>
+    With Java Mail 1.4.1 if <code>mail.imaps.timeout</code> property is set for a relatively short period of time (e.g., ~ 5 min) 
+    then <code>IMAPFolder.idle()</code> will throw <classname>FolderClosedException</classname> after this timeout. 
+    However if this property is not set (should be indefinite) the behavior that was observed is that <code>IMAPFolder.idle()</code> 
+    method never returns nor it throws an exception. It will however reconnect automatically if connection was lost for a short 
+    period of time (e.g., under 10 min), but  if connection was lost for a long period of time (e.g., over 10 min), then 
+    <code>IMAPFolder.idle()</code> will not throw <classname>FolderClosedException</classname> nor it will re-establish connection 
+    and will remain in the blocked state indefinitely, thus leaving you no possibility to reconnect without restarting the adapter. 
+    So the only way to make re-connect to work with Java Mail 1.4.1 is to set <code>mail.imaps.timeout</code> property explicitly 
+    to some value, but it also means that such value shoudl be relatively short (under 10 min) and the connection should be 
+    re-estabished relatively quickly. Again, it may be different with other providers.
+
+	With Java Mail 1.4.3 there was significant improvements to the API ensuring that there will always be a condition which 
+	will force <code>IMAPFolder.idle()</code> method to return via <classname>StoreClosedException</classname> or 
+	<classname>FolderClosedException</classname> or simply return, thus allowing us to proceed with auto-reconnect.
+    Currently auto-reconnect will run infinitely making attempts to reconnect every 10 sec. 
     </para>
 
     <important>
