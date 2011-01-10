@@ -35,6 +35,7 @@ import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.2
  */
 public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayloadEndpoint
@@ -84,6 +85,10 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 
 	public void setRequestTimeout(long requestTimeout) {
 		this.gatewayDelegate.setRequestTimeout(requestTimeout);
+	}
+	
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.gatewayDelegate.setErrorChannel(errorChannel);
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {

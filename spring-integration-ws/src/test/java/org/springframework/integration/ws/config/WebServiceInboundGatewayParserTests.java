@@ -41,6 +41,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
@@ -72,6 +73,10 @@ public class WebServiceInboundGatewayParserTests {
 	PollableChannel requestsSimple;
 	
 	@Autowired
+	@Qualifier("customErrorChannel")
+	MessageChannel customErrorChannel;
+	
+	@Autowired
 	@Qualifier("requestsVerySimple")
 	MessageChannel requestsVerySimple;
 
@@ -91,6 +96,10 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("requestChannel"),
 				is(requestsVerySimple));
+		
+		assertThat(
+				(MessageChannel) accessor.getPropertyValue("errorChannel"),
+				is(customErrorChannel));
 	}
 
 	//extractPayload = false
@@ -121,6 +130,12 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
 				is(marshaller));
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
+		
+		MessagingGatewaySupport mgs = (MessagingGatewaySupport) accessor.getPropertyValue("gatewayDelegate");
+		DirectFieldAccessor mgsAccessor = new DirectFieldAccessor(mgs);
+		assertThat(
+				(MessageChannel) mgsAccessor.getPropertyValue("errorChannel"),
+				is(customErrorChannel));
 	}
 
 	@Test

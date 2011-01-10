@@ -14,13 +14,15 @@
 			
 	<si:message-history/>
 
-	<ws:inbound-gateway id="simple" request-channel="requestsVerySimple" />
+	<ws:inbound-gateway id="simple" request-channel="requestsVerySimple" error-channel="customErrorChannel"/>
+	
+	<si:channel id="customErrorChannel"/>
 	
 	<si:channel id="requestsVerySimple"></si:channel>
 	
 	<ws:inbound-gateway id="extractsPayload" request-channel="requestsSimple" extract-payload="false"/>
 	
-	<ws:inbound-gateway id="marshalling" request-channel="requestsMarshalling"
+	<ws:inbound-gateway id="marshalling" request-channel="requestsMarshalling" error-channel="customErrorChannel"
 		marshaller="marshaller" unmarshaller="marshaller" />
 
 	<si:channel id="requestsMarshalling">
