@@ -19,7 +19,7 @@
 	</int:channel>
 
 	<int-jdbc:outbound-gateway query="select * from bazz where id=:headers[id]" update="insert into bazz (id, status, name) values (:headers[id], 0, :payload[foo])"
-		request-channel="target" reply-channel="output" data-source="dataSource">
+		request-channel="target" reply-channel="output" data-source="dataSource" auto-startup="true">
 		<int:poller fixed-rate="1000"/>
 	</int-jdbc:outbound-gateway>
 
