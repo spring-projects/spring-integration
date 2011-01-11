@@ -10,6 +10,8 @@ import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.Test;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -17,6 +19,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 public class JdbcOutboundGatewayParserTests {
@@ -72,6 +75,24 @@ public class JdbcOutboundGatewayParserTests {
 		assertEquals(1, payload.get("updated"));
 	}
 
+	@Test
+	public void testWithPoller() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
+		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
+		MessageChannel target = ac.getBean("target", MessageChannel.class);
+		PollableChannel output = ac.getBean("output", PollableChannel.class);
+		target.send(message);
+		Thread.sleep(1000);
+		Map<String, Object> map = (ac.getBean("jdbcTemplate", JdbcTemplate.class)).queryForMap("SELECT * from BAZZ");
+		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
+		assertEquals("Wrong name", "bar", map.get("name"));
+		Message<?> reply = output.receive(1000);
+		assertNotNull(reply);
+		@SuppressWarnings("unchecked")
+		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
+		assertEquals("bar", payload.get("name"));
+	}
+	
 	@After
 	public void tearDown() {
 		if (context != null) {
