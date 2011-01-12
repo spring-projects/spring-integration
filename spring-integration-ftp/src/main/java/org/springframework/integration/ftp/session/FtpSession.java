@@ -79,7 +79,7 @@ class FtpSession implements Session {
 		Assert.hasText(path, "path must not be null");
 		boolean completed = client.storeFile(path, inputStream);
 		if (!completed){
-			throw new IOException("Failed to write to '" + (path+FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX) 
+			throw new IOException("Failed to write to '" + path 
 					+ "'. Server replied with: " + client.getReplyString());
 		}
 		logger.info("File have been successfully transfered to: " + path);
@@ -106,6 +106,7 @@ class FtpSession implements Session {
 	}
 
 	public void rename(String pathFrom, String pathTo) throws IOException{
+		client.deleteFile(pathTo);
 		boolean completed = client.rename(pathFrom, pathTo);
 		if (!completed){
 			throw new IOException("Failed to rename '" + pathFrom + 
