@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task">
+
+	<int:inbound-channel-adapter id="withErrorHeader" expression="5/0" channel="serviceChannel" auto-startup="false">
+		<int:poller fixed-rate="1000"/>
+		<int:header name="errorChannel" value="eChannel"/>
+	</int:inbound-channel-adapter>
+	
+	<int:inbound-channel-adapter id="withErrorChannel" expression="5/0" 
+					channel="serviceChannel" auto-startup="false" error-channel="eChannel">
+		<int:poller fixed-rate="1000"/>
+	</int:inbound-channel-adapter>
+	
+	<int:channel id="serviceChannel"/>
+	
+	<int:channel id="eChannel">
+		<int:queue/>
+	</int:channel>
+</beans>

@@ -685,6 +685,15 @@
 			</xsd:sequence>
 			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
 			<xsd:attributeGroup ref="channelAdapterAttributes" />
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+						Identifies channel that error messages will be sent to if a failure occurs in this
+						adapter's invocation. To completely suppress Exceptions, provide a
+						reference to the "nullChannel" here.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

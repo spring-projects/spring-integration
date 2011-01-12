@@ -22,6 +22,8 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -46,6 +48,14 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, adapterBuilder, parserContext);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "auto-startup");
+		String errorChannel = element.getAttribute("error-channel");
+		if (StringUtils.hasText(errorChannel)){
+			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.channel.MessagePublishingErrorHandler");
+			errorHandler.addPropertyReference("defaultErrorChannel", errorChannel);
+			
+			adapterBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
+		}
 		return adapterBuilder.getBeanDefinition();
 	}
 

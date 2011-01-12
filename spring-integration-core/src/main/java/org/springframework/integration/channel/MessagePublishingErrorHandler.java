@@ -18,10 +18,12 @@ package org.springframework.integration.channel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageSourceReceiveException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.message.ErrorMessage;
@@ -29,6 +31,7 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a
@@ -36,6 +39,7 @@ import org.springframework.util.ErrorHandler;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
@@ -73,9 +77,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	}
 
 	public final void handleError(Throwable t) {
-		Message<?> failedMessage = (t instanceof MessagingException) ?
-				((MessagingException) t).getFailedMessage() : null;
-		MessageChannel errorChannel = this.resolveErrorChannel(failedMessage);
+		MessageChannel errorChannel = this.resolveErrorChannel(t);
 		boolean sent = false;
 		if (errorChannel != null) {
 			try {
@@ -93,6 +95,8 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 			}
 		}
 		if (!sent && logger.isErrorEnabled()) {
+			Message<?> failedMessage = (t instanceof MessagingException) ?
+					((MessagingException) t).getFailedMessage() : null;
 			if (failedMessage != null) {
 				logger.error("failure occurred in messaging task with message: " + failedMessage, t);
 			}
@@ -102,10 +106,27 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		}
 	}
 
-	private MessageChannel resolveErrorChannel(Message<?> failedMessage) {
+	private MessageChannel resolveErrorChannel(Throwable t) {
+		Message<?> failedMessage = (t instanceof MessagingException) ?
+				((MessagingException) t).getFailedMessage() : null;
 		if (this.defaultErrorChannel == null && this.channelResolver != null) {
 			this.defaultErrorChannel = this.channelResolver.resolveChannelName(
 					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		}
+		
+		if (t instanceof MessageSourceReceiveException){
+			Object errorChannel = ((MessageSourceReceiveException)t).getErrorChannel();
+			if (errorChannel != null){
+				if (errorChannel instanceof MessageChannel){
+					return  (MessageChannel) errorChannel;
+				}
+				else if (errorChannel instanceof String && StringUtils.hasText((String)errorChannel)){
+					return this.channelResolver.resolveChannelName((String) errorChannel);
+				}
+				else {
+					throw new MessagingException("Failed to resolve 'errorChannel' - " + errorChannel);
+				}
+			}		
 		}
 		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
 			return this.defaultErrorChannel;
