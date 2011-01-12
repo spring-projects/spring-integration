@@ -19,6 +19,7 @@ package org.springframework.integration.http.support;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -48,6 +52,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
+	
+	private static Log log = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
 	public static final String USER_DEFINED_HEADER_PREFIX = "X-";
 
@@ -254,6 +260,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter). 
 	 */
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
+		if (log.isDebugEnabled()){
+	      log.debug(MessageFormat.format("outboundHeaderNames={0}", CollectionUtils.arrayToList(outboundHeaderNames)));
+	    }
 		Set<String> headerNames = headers.keySet();
 		for (String name : headerNames) {
 			if (this.shouldMapOutboundHeader(name)) {
@@ -264,6 +273,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						// prefix the user-defined header names if not already prefixed
 						name = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name : USER_DEFINED_HEADER_PREFIX + name;
 					}
+					if (log.isDebugEnabled()) {
+			            log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+			        }
 					this.setHttpHeader(target, name, value);
 				}	
 			}
@@ -276,6 +288,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter). 
 	 */
 	public Map<String, ?> toHeaders(HttpHeaders source) {
+		if (log.isDebugEnabled()) {
+	      log.debug(MessageFormat.format("inboundHeaderNames={0}", CollectionUtils.arrayToList(inboundHeaderNames)));
+	    }
 		Map<String, Object> target = new HashMap<String, Object>();
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
@@ -285,12 +300,18 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 							: USER_DEFINED_HEADER_PREFIX + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
+						if (log.isDebugEnabled()) {
+			              log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+			            }
 						this.setMessageHeader(target, name, value);
 					}
 				}
 				else {
 					Object value = this.getHttpHeader(source, name);
 					if (value != null) {
+						if (log.isDebugEnabled()) {
+			              log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+			            }
 						this.setMessageHeader(target, name, value);
 					}
 				}
@@ -321,18 +342,33 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			for (String pattern : patterns) {
 
 				if (PatternMatchUtils.simpleMatch(pattern.toLowerCase(), headerName.toLowerCase())) {
+					 if (log.isDebugEnabled()) {
+			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+			            								headerName, pattern));
+			         }
 					return true;
 				}
 				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, headerName)) {
+					if (log.isDebugEnabled()) {
+			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+			            								headerName, pattern));
+			        }
 					return true;
 				}
 				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
+					if (log.isDebugEnabled()) {
+			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
+			            								headerName, pattern));
+			        }
 					return true;
 				}
 			}
 		}
+		if (log.isDebugEnabled()) {
+	      log.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
+	    }
 		return false;
 	}
 
