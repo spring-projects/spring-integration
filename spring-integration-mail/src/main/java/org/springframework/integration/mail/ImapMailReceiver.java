@@ -118,7 +118,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	protected Message[] searchForNewMessages() throws MessagingException {
 		Flags supportedFlags = this.getFolder().getPermanentFlags();
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
-		return searchTerm != null ? this.getFolder().search(searchTerm) : this.getFolder().getMessages();
+		Folder folder = this.getFolder();
+		if (folder.isOpen()){
+			return searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+		}
+		throw new MessagingException("Folder is closed");
 	}
 	
 	private SearchTerm compileSearchTerms(Flags supportedFlags){
