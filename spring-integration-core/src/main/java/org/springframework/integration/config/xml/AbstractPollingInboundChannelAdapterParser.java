@@ -22,7 +22,6 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 

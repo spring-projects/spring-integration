@@ -36,7 +36,7 @@ public class PollerWithErrorChannel {
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorHeader", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(100000));
+		assertNotNull(errorChannel.receive(1000));
 		adapter.stop();
 	}
 	
@@ -46,7 +46,17 @@ public class PollerWithErrorChannel {
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannel", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(100000));
+		assertNotNull(errorChannel.receive(1000));
+		adapter.stop();
+	}
+	
+	@Test
+	public void testWithErrorChannelAndHeader() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
+		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeader", SourcePollingChannelAdapter.class);
+		adapter.start();
+		PollableChannel errorChannel = ac.getBean("errChannel", PollableChannel.class);
+		assertNotNull(errorChannel.receive(1000));
 		adapter.stop();
 	}
 	

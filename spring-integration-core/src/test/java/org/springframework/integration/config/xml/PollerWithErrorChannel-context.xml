@@ -17,9 +17,19 @@
 		<int:poller fixed-rate="1000"/>
 	</int:inbound-channel-adapter>
 	
+	<int:inbound-channel-adapter id="withErrorChannelAndHeader" expression="5/0" 
+					channel="serviceChannel" auto-startup="false" error-channel="eChannel">
+		<int:poller fixed-rate="1000"/>
+		<int:header name="errorChannel" value="errChannel"/>
+	</int:inbound-channel-adapter>
+	
 	<int:channel id="serviceChannel"/>
 	
 	<int:channel id="eChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="errChannel">
 		<int:queue/>
 	</int:channel>
 </beans>
