@@ -16,20 +16,22 @@
 package org.springframework.integration.jms.config;
 
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.AbstractMessageListenerContainer;
 
 /**
  * @author Oleg Zhurakousky
@@ -37,27 +39,26 @@ import org.springframework.integration.message.GenericMessage;
  */
 public class JmsChannelHistoryTests {
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testMessageHistory() throws Exception{
-		ActiveMqTestUtils.prepare();
-		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("JmsChannelHistory-context.xml", this.getClass());
-		SubscribableJmsChannel jmsChannel = ac.getBean("jmsChannel", SubscribableJmsChannel.class);
-		JmsService service = ac.getBean("subscriber", JmsService.class);
+		AbstractMessageListenerContainer mlContainer = mock(AbstractMessageListenerContainer.class);
+		JmsTemplate template = mock(JmsTemplate.class);
+		SubscribableJmsChannel channel = new SubscribableJmsChannel(mlContainer, template);
+		channel.setShouldTrack(true);
+		channel.setBeanName("jmsChannel");
+		Message<String> message = new GenericMessage<String>("hello");
 		
-		jmsChannel.send(new GenericMessage<String>("hello"));
-		Thread.sleep(5000);
-		verify(service, times(1)).handleMessage(Mockito.any(Message.class));
-		ac.destroy();
-	}
-	
-	public static interface JmsGateway{
-		public Long echo(String time);
-	}
-	
-	public static class JmsService implements MessageHandler{
-		public void handleMessage(Message<?> message) throws MessagingException {
-			MessageHistory history = MessageHistory.read(message);
-			assertTrue(history.contains("jmsChannel"));
-		}
+		doAnswer(new Answer() {
+		      @SuppressWarnings("unchecked")
+			public Object answer(InvocationOnMock invocation) {
+		          Message<String> msg = (Message<String>) invocation.getArguments()[0];
+		          MessageHistory history = MessageHistory.read(msg);
+		  		  assertTrue(history.get(0).contains("jmsChannel"));
+		          return null;
+		      }})
+		  .when(template).convertAndSend(Mockito.any(Message.class));
+		channel.send(message);
+		verify(template, times(1)).convertAndSend(Mockito.any(Message.class));
 	}
 }
