@@ -38,14 +38,14 @@ import org.springframework.integration.message.GenericMessage;
 public class JmsChannelHistoryTests {
 
 	@Test
-	public void testReqRepPerformanceWithConsecutiveMessages() throws Exception{
+	public void testMessageHistory() throws Exception{
 		ActiveMqTestUtils.prepare();
 		ApplicationContext ac = new ClassPathXmlApplicationContext("JmsChannelHistory-context.xml", this.getClass());
 		SubscribableJmsChannel jmsChannel = ac.getBean("jmsChannel", SubscribableJmsChannel.class);
 		JmsService service = ac.getBean("subscriber", JmsService.class);
 		
 		jmsChannel.send(new GenericMessage<String>("hello"));
-		Thread.sleep(1000);
+		Thread.sleep(5000);
 		verify(service, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 	
