@@ -19,7 +19,6 @@ package org.springframework.integration.json;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
@@ -29,6 +28,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * {@link InboundMessageMapper} implementation that maps incoming JSON messages to a {@link Message} with the specified payload type.  
  * 
  * @author Jeremy Grelle
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
@@ -49,11 +50,8 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 	private static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
 
 	static {
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.ID, UUID.class);
-		DEFAULT_HEADER_TYPES.put(MessageHeaders.TIMESTAMP, Long.class);
 		DEFAULT_HEADER_TYPES.put(MessageHeaders.EXPIRATION_DATE, Long.class);
 	}
-
 
 	private final JavaType payloadType;
 
