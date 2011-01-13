@@ -24,6 +24,7 @@ import javax.jms.Destination;
 import javax.jms.ExceptionListener;
 import javax.jms.Session;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
@@ -44,9 +45,10 @@ import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel> implements SmartLifecycle, DisposableBean {
+public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel> implements SmartLifecycle, DisposableBean, BeanNameAware {
 
 	private volatile AbstractJmsChannel channel;
 
@@ -103,6 +105,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile Long receiveTimeout;
 
 	private volatile Long recoveryInterval;
+	
+	private volatile String beanName;
 
 	/**
 	 * This value differs from the container implementations' default (which is AUTO_ACKNOWLEDGE)
@@ -322,6 +326,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.channel.setInterceptors(this.interceptors);
 		}
 		this.channel.afterPropertiesSet();
+		this.channel.setBeanName(this.beanName);
 		return this.channel;
 	}
 
@@ -414,7 +419,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		return container;
 	}
 
-
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
 	/*
 	 * SmartLifecycle implementation (delegates to the created channel if message-driven)
 	 */
@@ -457,5 +464,4 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			((SubscribableJmsChannel) this.channel).destroy();
 		}
 	}
-
 }
