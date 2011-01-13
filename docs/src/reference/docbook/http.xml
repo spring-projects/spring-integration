@@ -64,7 +64,6 @@
       <value>DELETE</value>
     </list>
   </property>
-  <property name="expectReply" value="true" />
 </bean>]]></programlisting>
   The reply message will be available in the Model map. The key that is used
   for that map entry by default is 'reply', but this can be overridden by setting the
