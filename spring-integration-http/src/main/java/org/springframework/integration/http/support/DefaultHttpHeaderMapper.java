@@ -55,7 +55,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	
 	private static Log log = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
-	public static final String USER_DEFINED_HEADER_PREFIX = "X-";
+	private volatile String userDefinedPrefix = "X-";
 
 	private static final String ACCEPT = "Accept";
 
@@ -253,6 +253,16 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
 	}
+	/**
+	 * Sets prefix to use with custom headers. Default is 'X-'
+	 * @param userDefinedPrefix
+	 */
+	public void setUserDefinedPrefix(String userDefinedPrefix) {
+		if (userDefinedPrefix == null){
+			userDefinedPrefix = "";
+		}
+		this.userDefinedPrefix = userDefinedPrefix;
+	}
 
 	/**
 	 * Map from the integration MessageHeaders to an HttpHeaders instance.
@@ -271,7 +281,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && 
 						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
-						name = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name : USER_DEFINED_HEADER_PREFIX + name;
+						name = name.startsWith(userDefinedPrefix) ? name : userDefinedPrefix + name;
 					}
 					if (log.isDebugEnabled()) {
 			            log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
@@ -296,8 +306,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					String prefixedName = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name
-							: USER_DEFINED_HEADER_PREFIX + name;
+					String prefixedName = name.startsWith(userDefinedPrefix) ? name
+							: userDefinedPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
 						if (log.isDebugEnabled()) {
@@ -319,7 +329,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		}
 		return target;
 	}
-	
+
 	private boolean containsElementIgnoreCase(String[] headerNames, String name){
 		for (String headerName : headerNames) {
 			if (headerName.equalsIgnoreCase(name)){

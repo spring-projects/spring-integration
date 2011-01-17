@@ -329,6 +329,60 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertEquals(1, headers.get("X-foobar").size());
 		assertEquals("abc", headers.getFirst("X-foobar"));
 	}
+	
+	@Test
+	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefix() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setUserDefinedPrefix("Z-");
+		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foobar", "abc");
+		messageHeaders.put("Accept", "text/html");
+		messageHeaders.put("Content-Type", "text/xml");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.size());
+		assertTrue(headers.getAccept().isEmpty());
+		assertEquals(MediaType.TEXT_XML, headers.getContentType());
+		assertEquals(1, headers.get("Z-foobar").size());
+		assertEquals("abc", headers.getFirst("Z-foobar"));
+	}
+	
+	@Test
+	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setUserDefinedPrefix("");
+		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foobar", "abc");
+		messageHeaders.put("Accept", "text/html");
+		messageHeaders.put("Content-Type", "text/xml");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.size());
+		assertTrue(headers.getAccept().isEmpty());
+		assertEquals(MediaType.TEXT_XML, headers.getContentType());
+		assertEquals(1, headers.get("foobar").size());
+		assertEquals("abc", headers.getFirst("foobar"));
+	}
+	
+	@Test
+	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixNull() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setUserDefinedPrefix(null);
+		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("foobar", "abc");
+		messageHeaders.put("Accept", "text/html");
+		messageHeaders.put("Content-Type", "text/xml");
+		HttpHeaders headers = new HttpHeaders();
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertEquals(2, headers.size());
+		assertTrue(headers.getAccept().isEmpty());
+		assertEquals(MediaType.TEXT_XML, headers.getContentType());
+		assertEquals(1, headers.get("foobar").size());
+		assertEquals("abc", headers.getFirst("foobar"));
+	}
 
 	@Test
 	public void validateCustomHeaderNamesMappedFromHttpHeaders() throws Exception{
