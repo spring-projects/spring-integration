@@ -236,7 +236,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * or HTTP response (for inbound adapters) from a Spring Integration Message's headers.
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
-	 * Any non-standard headers will be prefixed by {@value #USER_DEFINED_HEADER_PREFIX} if not already.
+	 * Any non-standard headers will be prefixed with the value specified by 
+	 * {@value DefaultHttpHeaderMapper#setUserDefinedPrefix(String)}. The default is 'X-'.
 	 */
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
@@ -248,7 +249,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * This will match the header name directly or, for non-standard HTTP headers, it will match
-	 * the header name prefixed by {@value #USER_DEFINED_HEADER_PREFIX}. 
+	 * the header name prefixed with the value specified by 
+	 * {@value DefaultHttpHeaderMapper#setUserDefinedPrefix(String)}. The default is 'X-'.
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];

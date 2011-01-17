@@ -16,6 +16,7 @@
 
 package org.springframework.integration.sftp.config;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
@@ -33,6 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizingMessageSource;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -57,6 +59,10 @@ public class InboundChannelAdapaterParserTests {
 		SftpInboundFileSynchronizingMessageSource source = 
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
+		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
+		assertNotNull(remoteFileSeparator);
+		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
 	}

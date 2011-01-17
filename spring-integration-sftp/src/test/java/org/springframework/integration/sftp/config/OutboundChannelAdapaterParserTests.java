@@ -50,6 +50,9 @@ public class OutboundChannelAdapaterParserTests {
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
+		assertNotNull(remoteFileSeparator);
+		assertEquals(".", remoteFileSeparator);
 		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);

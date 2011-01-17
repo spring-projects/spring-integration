@@ -21,7 +21,7 @@
 				session-factory="ftpSessionFactory"
 				remote-directory="foo/bar"
 				charset="UTF-8"
-				remote-file-separator="/"
+				remote-file-separator="."
 				remote-filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>

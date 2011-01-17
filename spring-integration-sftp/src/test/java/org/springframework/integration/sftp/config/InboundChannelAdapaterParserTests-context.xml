@@ -42,7 +42,7 @@
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"
 			auto-create-local-directory="false"
-			remote-file-separator="/"
+			remote-file-separator="."
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
