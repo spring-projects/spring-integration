@@ -142,7 +142,12 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 						if (e instanceof FolderClosedException || 
 							e instanceof StoreClosedException || 
 							(e.getNextException() instanceof UnknownHostException && reconnecting)){
-							waitToReconnect();
+							try {
+								waitToReconnect();
+							} catch (InterruptedException e1) {
+								Thread.currentThread().interrupt();
+								return;
+							}
 							continue;
 						}
 					}
