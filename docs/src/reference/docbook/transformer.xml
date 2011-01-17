@@ -67,13 +67,13 @@
       Message (the keys must be Strings).
     </para>
     <para>
-    Since Spring Integration 2.0 after many debates we've changed the behavior of Message Transformer for the cases where 
-    transformation method returns <code>null</code>. Returning <code>null</code> will now result in the exception. In other 
-    words Message Transformer should no longer be used as Message Filter (that is what Message Filter is for). Message Transformer 
-    should always be expected to transform the source Message into a valid target Message. 
-    However, if you still need this type of behavior (where component might return NULL and not be considered an error), a 
-    <emphasis>service-activator</emphasis> could be used. Its <code>requires-reply</code> value is FALSE by default, but can 
-    be set to TRUE in order to have Exceptions thrown for NULL return values.
+    As of Spring Integration 2.0, a Message Transformer's transformation method can no longer return <code>null</code>.
+    Returning <code>null</code> will result in an exception since a Message Transformer should always be expected to
+    transform each source Message into a valid target Message. In other words, a Message Transformer should not be used
+    as a Message Filter since there is a dedicated &lt;filter&gt; option for that. However, if you do need this type of
+    behavior (where a component might return NULL and that should not be considered an error), a 
+    <emphasis>service-activator</emphasis> could be used. Its <code>requires-reply</code> value is FALSE by default,
+    but that can be set to TRUE in order to have Exceptions thrown for NULL return values as with the transformer.
     </para>
     
     <para>
