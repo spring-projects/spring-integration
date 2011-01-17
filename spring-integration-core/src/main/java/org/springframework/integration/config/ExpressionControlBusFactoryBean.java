@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -71,12 +71,13 @@ public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandle
 			return supportedMethods;
 		}
 
-		private boolean accept(Method method) {	
-			if (ReflectionUtils.findMethod(Lifecycle.class, method.getName(), method.getParameterTypes()) != null){
+		private boolean accept(Method method) {
+			Class<?> declaringClass = method.getDeclaringClass();
+			if (Lifecycle.class.isAssignableFrom(declaringClass)
+					&& ReflectionUtils.findMethod(Lifecycle.class, method.getName(), method.getParameterTypes()) != null) {
 				return true;
 			}
-
-			if (CustomizableThreadCreator.class.isAssignableFrom(method.getDeclaringClass())
+			if (CustomizableThreadCreator.class.isAssignableFrom(declaringClass)
 					&& (method.getName().startsWith("get")
 							|| method.getName().startsWith("set")
 							|| method.getName().startsWith("shutdown"))) {
