@@ -228,7 +228,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
 	private volatile String[] inboundHeaderNames = new String[0];
 
-	private volatile String userDefinedPrefix = "X-";
+	private volatile String userDefinedHeaderPrefix = "X-";
 
 
 	/**
@@ -257,10 +257,10 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	}
 
 	/**
-	 * Sets the prefix to use with custom headers. Default is 'X-'.
+	 * Sets the prefix to use with user-defined (non-standard) headers. Default is 'X-'.
 	 */
-	public void setUserDefinedPrefix(String userDefinedPrefix) {
-		this.userDefinedPrefix = (userDefinedPrefix != null) ? userDefinedPrefix : "";
+	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
+		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
 	}
 
 	/**
@@ -280,7 +280,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && 
 						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
-						name = name.startsWith(userDefinedPrefix) ? name : userDefinedPrefix + name;
+						name = name.startsWith(this.userDefinedHeaderPrefix) ? name : this.userDefinedHeaderPrefix + name;
 					}
 					if (logger.isDebugEnabled()) {
 						logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
@@ -305,7 +305,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					String prefixedName = name.startsWith(userDefinedPrefix) ? name : userDefinedPrefix + name;
+					String prefixedName = name.startsWith(this.userDefinedHeaderPrefix) ? name : this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
 						if (logger.isDebugEnabled()) {

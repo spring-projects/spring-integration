@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,7 +333,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefix() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setUserDefinedPrefix("Z-");
+		mapper.setUserDefinedHeaderPrefix("Z-");
 		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
@@ -351,7 +351,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixEmptyString() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setUserDefinedPrefix("");
+		mapper.setUserDefinedHeaderPrefix("");
 		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
@@ -369,7 +369,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	@Test
 	public void validateCustomHeaderNamePatternsAndStandardResponseHeadersMappedToHttpHeadersWithCustomPrefixNull() throws Exception{
 		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
-		mapper.setUserDefinedPrefix(null);
+		mapper.setUserDefinedHeaderPrefix(null);
 		mapper.setOutboundHeaderNames(new String[] {"foo*", "HTTP_RESPONSE_HEADERS"});
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
 		messageHeaders.put("foobar", "abc");
