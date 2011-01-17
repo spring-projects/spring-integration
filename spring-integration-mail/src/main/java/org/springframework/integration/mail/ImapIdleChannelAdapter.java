@@ -160,14 +160,11 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		return "mail:imap-idle-channel-adapter";
 	}
 
-	private void waitToReconnect() {
+	private void waitToReconnect() throws InterruptedException{
 		CountDownLatch latch = new CountDownLatch(1);
-		try {
-			logger.warn("Waiting " + reconnectDelay + " seconds before attemptong to reconnect to host");
-			latch.await(this.reconnectDelay, TimeUnit.SECONDS);
-			reconnecting = true;
-			logger.warn("Will attempt to reconnect to host now");
-		} catch (Exception ignore) {
-		}
+		logger.warn("Waiting " + reconnectDelay + " seconds before attemptong to reconnect to host");
+		latch.await(this.reconnectDelay, TimeUnit.SECONDS);
+		reconnecting = true;
+		logger.warn("Will attempt to reconnect to host now");
 	}
 }

@@ -26,7 +26,11 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -60,5 +64,17 @@ public class JmsChannelHistoryTests {
 		  .when(template).convertAndSend(Mockito.any(Message.class));
 		channel.send(message);
 		verify(template, times(1)).convertAndSend(Mockito.any(Message.class));
+	}
+	
+	@Test
+	public void testFullConfig() throws Exception{
+		ActiveMqTestUtils.prepare();
+		ApplicationContext ac = new ClassPathXmlApplicationContext("JmsChannelHistoryTests-context.xml", this.getClass());
+		SubscribableChannel channel = ac.getBean("jmsChannel", SubscribableChannel.class);
+		PollableChannel resultChannel = ac.getBean("resultChannel", PollableChannel.class);
+		channel.send(new GenericMessage<String>("hello"));
+		Message<?> resultMessage = resultChannel.receive(5000);
+		MessageHistory history = MessageHistory.read(resultMessage);
+ 		assertTrue(history.get(0).contains("jmsChannel"));
 	}
 }
