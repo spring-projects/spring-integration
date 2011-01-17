@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<int:channel id="errorChannelA"/>
+	
+	<int:service-activator input-channel="errorChannelA" expression="'ERROR from errorChannelA'"/>
+		
+	<int:channel id="errorChannelB"/>
+	
+	<int:service-activator input-channel="errorChannelB" expression="'ERROR from errorChannelB'"/>
+		
+
+	<int:gateway id="testGateway" 
+	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
+	             default-request-channel="requestChannelA"
+	             error-channel="errorChannelA"/>
+	                    
+	<int:chain input-channel="requestChannelA">
+		<int:service-activator expression="1/(payload-5)"/>
+		<int:gateway request-channel="requestChannelB" error-channel="errorChannelB"/>
+	</int:chain>
+	
+	<int:service-activator input-channel="requestChannelB" expression="10/payload"/>
+</beans>

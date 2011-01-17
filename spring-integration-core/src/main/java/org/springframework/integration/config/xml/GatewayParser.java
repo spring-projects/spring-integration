@@ -45,7 +45,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 	};
 
 	private static String[] innerAttributes = new String[] {
-		"request-channel", "reply-channel", "request-timeout", "reply-timeout"
+		"request-channel", "reply-channel", "request-timeout", "reply-timeout", "error-channel"
 	};
 
 
@@ -75,7 +75,8 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel", "defaultRequestChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "defaultReplyChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "defaultRequestTimeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");		
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 	}
 
 	private void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
