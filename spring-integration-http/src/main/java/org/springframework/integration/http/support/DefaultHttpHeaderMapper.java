@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
-	
-	private static Log log = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
-	private volatile String userDefinedPrefix = "X-";
+	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
 
 	private static final String ACCEPT = "Accept";
 
@@ -230,6 +228,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
 	private volatile String[] inboundHeaderNames = new String[0];
 
+	private volatile String userDefinedPrefix = "X-";
+
 
 	/**
 	 * Provide the header names that should be mapped to an HTTP request (for outbound adapters)
@@ -255,15 +255,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
 	}
+
 	/**
-	 * Sets prefix to use with custom headers. Default is 'X-'
-	 * @param userDefinedPrefix
+	 * Sets the prefix to use with custom headers. Default is 'X-'.
 	 */
 	public void setUserDefinedPrefix(String userDefinedPrefix) {
-		if (userDefinedPrefix == null){
-			userDefinedPrefix = "";
-		}
-		this.userDefinedPrefix = userDefinedPrefix;
+		this.userDefinedPrefix = (userDefinedPrefix != null) ? userDefinedPrefix : "";
 	}
 
 	/**
@@ -272,9 +269,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * for an HTTP request (outbound adapter) or for an HTTP response (inbound adapter). 
 	 */
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
-		if (log.isDebugEnabled()){
-	      log.debug(MessageFormat.format("outboundHeaderNames={0}", CollectionUtils.arrayToList(outboundHeaderNames)));
-	    }
+		if (logger.isDebugEnabled()){
+			logger.debug(MessageFormat.format("outboundHeaderNames={0}", CollectionUtils.arrayToList(outboundHeaderNames)));
+		}
 		Set<String> headerNames = headers.keySet();
 		for (String name : headerNames) {
 			if (this.shouldMapOutboundHeader(name)) {
@@ -285,9 +282,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 						// prefix the user-defined header names if not already prefixed
 						name = name.startsWith(userDefinedPrefix) ? name : userDefinedPrefix + name;
 					}
-					if (log.isDebugEnabled()) {
-			            log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-			        }
+					if (logger.isDebugEnabled()) {
+						logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+					}
 					this.setHttpHeader(target, name, value);
 				}	
 			}
@@ -300,30 +297,29 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter). 
 	 */
 	public Map<String, ?> toHeaders(HttpHeaders source) {
-		if (log.isDebugEnabled()) {
-	      log.debug(MessageFormat.format("inboundHeaderNames={0}", CollectionUtils.arrayToList(inboundHeaderNames)));
-	    }
+		if (logger.isDebugEnabled()) {
+			logger.debug(MessageFormat.format("inboundHeaderNames={0}", CollectionUtils.arrayToList(inboundHeaderNames)));
+		}
 		Map<String, Object> target = new HashMap<String, Object>();
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					String prefixedName = name.startsWith(userDefinedPrefix) ? name
-							: userDefinedPrefix + name;
+					String prefixedName = name.startsWith(userDefinedPrefix) ? name : userDefinedPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
-						if (log.isDebugEnabled()) {
-			              log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-			            }
+						if (logger.isDebugEnabled()) {
+							logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+						}
 						this.setMessageHeader(target, name, value);
 					}
 				}
 				else {
 					Object value = this.getHttpHeader(source, name);
 					if (value != null) {
-						if (log.isDebugEnabled()) {
-			              log.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
-			            }
+						if (logger.isDebugEnabled()) {
+							logger.debug(MessageFormat.format("setting headerName=[{0}], value={1}", name, value));
+						}
 						this.setMessageHeader(target, name, value);
 					}
 				}
@@ -352,35 +348,31 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
 		if (patterns != null && patterns.length > 0) {
 			for (String pattern : patterns) {
-
 				if (PatternMatchUtils.simpleMatch(pattern.toLowerCase(), headerName.toLowerCase())) {
-					 if (log.isDebugEnabled()) {
-			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-			            								headerName, pattern));
-			         }
+					if (logger.isDebugEnabled()) {
+						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
+					}
 					return true;
 				}
 				else if (HTTP_REQUEST_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, headerName)) {
-					if (log.isDebugEnabled()) {
-			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-			            								headerName, pattern));
-			        }
+					if (logger.isDebugEnabled()) {
+						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
+					}
 					return true;
 				}
 				else if (HTTP_RESPONSE_HEADER_NAME_PATTERN.equals(pattern)
 						&& this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, headerName)) {
-					if (log.isDebugEnabled()) {
-			            log.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}",
-			            								headerName, pattern));
-			        }
+					if (logger.isDebugEnabled()) {
+						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));
+					}
 					return true;
 				}
 			}
 		}
-		if (log.isDebugEnabled()) {
-	      log.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
-	    }
+		if (logger.isDebugEnabled()) {
+			logger.debug(MessageFormat.format("headerName=[{0}] WILL NOT be mapped", headerName));
+		}
 		return false;
 	}
 
