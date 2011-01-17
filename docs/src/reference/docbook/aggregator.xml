@@ -664,8 +664,8 @@
    int expireMessageGroups(long timeout);
 }]]></programlisting>
     
-    For more information on regarding details for each method please refer to 
-    javadoc http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html
+    For more information please refer to the
+    <ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/store/MessageGroupStore.html">JavaDoc</ulink>.
     </para>
     
     <para>The <interfacename>MessageGroupStore</interfacename> accumulates state
@@ -687,12 +687,13 @@
     so it can manage the persistent state (e.g. by removing the group from the
     store entirely).</para>
 
-    <para>The  <interfacename>MessageGroupStore</interfacename> maintains a list of these callbacks which it
-    applies, on demand, to all messages whose timestamp is earlier than a time
-    supplied as a parameter:</para>
+    <para>The <interfacename>MessageGroupStore</interfacename> maintains a list of these callbacks
+    which it applies, on demand, to all messages whose timestamp is earlier than a time
+    supplied as a parameter (see the <methodname>registerMessageGroupExpiryCallback(..)</methodname>
+    and <methodname>expireMessageGroups(..)</methodname> methods above).</para>
 
-    <para>The <code>expireMessageGroups</code> method can be called with a timeout value:
-    any message older than the current time minus this value will be expired,
+    <para>The <code>expireMessageGroups</code> method can be called with a timeout value.
+    Any message older than the current time minus this value will be expired,
     and have the callbacks applied. Thus it is the user of the store that
     defines what is meant by message group "expiry".</para>
 
@@ -710,7 +711,7 @@
 </task:scheduled-tasks>]]></programlisting>
 
     <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
-    in the sample above is that the message group store's expire method is being called
+    in the example above is that the message group store's expire method is being called
     once every 10 seconds. The timeout itself is 30 seconds.</para>
 
     <para>In addition to the reaper, the expiry callbacks are invoked when the application
