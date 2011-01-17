@@ -1194,10 +1194,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Allows this poller to reference another instance of top-level poller. 
+					Allows this poller to reference another instance of a top-level poller. 
 					[IMPORTANT] - This attribute is only allowed on inner poller definitions. 
-					Defining this attribute on the top-level poller definition will result in the configuration 
-					exception. 
+					Defining this attribute on a top-level poller definition will result in a configuration exception.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
