@@ -132,8 +132,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	list of files.
   	</para>
   	<note>
-	Since Spring Integration 2.0.2 we've added 'remote-file-separator' attribute which allows you to configure which 
-	file separator character to use if default '/' is not applicable for your environment.
+	As of Spring Integration 2.0.2, we have added a 'remote-file-separator' attribute. That allows you to configure a
+	file separator character to use if the default '/' is not applicable for your particular environment.
 	</note>
   	<para>
   	Please refer to the schema for more details on these attributes. 
