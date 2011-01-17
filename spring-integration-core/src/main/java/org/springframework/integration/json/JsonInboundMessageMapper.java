@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * 
  * @author Jeremy Grelle
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
@@ -50,8 +51,12 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 	private static final Map<String, Class<?>> DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
 
 	static {
+		DEFAULT_HEADER_TYPES.put(MessageHeaders.PRIORITY, Integer.class);
 		DEFAULT_HEADER_TYPES.put(MessageHeaders.EXPIRATION_DATE, Long.class);
+		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_SIZE, Integer.class);
+		DEFAULT_HEADER_TYPES.put(MessageHeaders.SEQUENCE_NUMBER, Integer.class);
 	}
+
 
 	private final JavaType payloadType;
 
