@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,8 +88,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		this.sessionFactory = sessionFactory;
 	}
 
+
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be null");
+		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
