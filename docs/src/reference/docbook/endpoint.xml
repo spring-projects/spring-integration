@@ -198,8 +198,8 @@ consumer.setTransactionManager(txManager);</programlisting>
     <poller ref="weekdayPoller"/>
  </transformer>]]></programlisting>
  	<note>
- 	The "ref" attribute is only allowed on the inner-poller definitions. Defining his attribute on the top-level 
- 	poller will result in configuration exception thrown during initialization of Application Context
+ 	The "ref" attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level 
+ 	poller will result in a configuration exception thrown during initialization of the Application Context.
  	</note>
       In fact, to simplify the configuration even further, you can define a global default poller. A single top-level poller within
       an ApplicationContext may have the <code>default</code> attribute with a value of "true". In that case, any
