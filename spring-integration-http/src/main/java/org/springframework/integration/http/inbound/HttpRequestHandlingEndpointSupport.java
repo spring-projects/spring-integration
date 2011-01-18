@@ -270,6 +270,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				if (reply != null) {
 					ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 					this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
+					response.close();
 					if (this.extractReplyPayload) {
 						reply = ((Message<?>) reply).getPayload();
 					}
