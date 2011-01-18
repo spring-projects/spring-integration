@@ -304,7 +304,11 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	public void setTransactionTimeout(int transactionTimeout) {
 		this.transactionTimeout = transactionTimeout;
 	}
-	
+
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
 	@Override
 	public Class<?> getObjectType() {
 		return (this.channel != null) ? this.channel.getClass() : AbstractJmsChannel.class;
@@ -419,9 +423,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		return container;
 	}
 
-	public void setBeanName(String name) {
-		this.beanName = name;
-	}
 	/*
 	 * SmartLifecycle implementation (delegates to the created channel if message-driven)
 	 */
