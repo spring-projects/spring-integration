@@ -16,20 +16,20 @@
 
 package org.springframework.integration.mail;
 
-import java.net.UnknownHostException;
-import java.util.concurrent.CountDownLatch;
+import java.security.ProviderException;
+import java.util.Date;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.StoreClosedException;
 import javax.mail.internet.MimeMessage;
 
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -53,9 +53,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private final ImapMailReceiver mailReceiver;
 	
-	private volatile boolean reconnecting;
+	private volatile int reconnectDelay = 10000; // seconds
 	
-	private volatile int reconnectDelay = 10; // seconds
+	private volatile ScheduledFuture<?> scheduledFuture;
 
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
@@ -76,6 +76,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
+	
+	public String getComponentType(){
+		return "mail:imap-idle-channel-adapter";
+	}
 
 	protected void handleMailMessagingException(MessagingException e) {
 		if (logger.isWarnEnabled()) {
@@ -89,87 +93,41 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		if (this.taskExecutor == null) {
-			if (logger.isInfoEnabled()) {
-				logger.info("No TaskExecutor has been provided, will use a ["
-						+ SimpleAsyncTaskExecutor.class + "] as the default.");
-			}
-			this.taskExecutor = new SimpleAsyncTaskExecutor();
-		}
-		this.taskExecutor.execute(this.idleTask);
+		TaskScheduler scheduler =  this.getTaskScheduler();
+		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+		scheduledFuture = scheduler.schedule(new ResubmittingTask(this.idleTask, scheduler, reconnectDelay), new Date());
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		this.idleTask.interrupt();
+		scheduledFuture.cancel(true);
 	}
-
 
 	private class IdleTask implements Runnable {
 
-		private volatile Thread thread;
-
-		public synchronized void interrupt() {
-			if (this.thread != null) {
-				this.thread.interrupt();
-			}
-			else if (logger.isInfoEnabled()) {
-				logger.info("monitor is not running, cannot interrupt");
-			}
-		}
-
 		public void run() {
-			this.thread = Thread.currentThread();
-			while (!Thread.currentThread().isInterrupted()) {
-				try {
-					if (logger.isDebugEnabled()) {
-						logger.debug("waiting for mail");
-					}
-					mailReceiver.waitForNewMessages();
-					reconnecting = false;
-					Message[] mailMessages = mailReceiver.receive();
-					if (logger.isDebugEnabled()) {
-						logger.debug("received " + mailMessages.length + " mail messages");
-					}
-					for (Message mailMessage : mailMessages) {
-						MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
-						sendMessage(MessageBuilder.withPayload(copied).build());
-					}
+			try {
+				if (logger.isDebugEnabled()) {
+					logger.debug("waiting for mail");
 				}
-				catch (MessagingException e) {
-					e.printStackTrace();
-					if (shouldReconnectAutomatically){
-						if (e instanceof FolderClosedException || 
-							e instanceof StoreClosedException || 
-							(e.getNextException() instanceof UnknownHostException && reconnecting)){
-							try {
-								waitToReconnect();
-							} catch (InterruptedException e1) {
-								Thread.currentThread().interrupt();
-								return;
-							}
-							continue;
-						}
-					}
-					handleMailMessagingException(e);
-					return;
+				mailReceiver.waitForNewMessages();
+				Message[] mailMessages = mailReceiver.receive();
+				if (logger.isDebugEnabled()) {
+					logger.debug("received " + mailMessages.length + " mail messages");
 				}
-				catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					return;
+				for (Message mailMessage : mailMessages) {
+					MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
+					sendMessage(MessageBuilder.withPayload(copied).build());
+				}
+			} catch (MessagingException e) {
+				ImapIdleChannelAdapter.this.handleMailMessagingException(e);
+				if (shouldReconnectAutomatically){
+					throw new ProviderException("Failure in 'idle' task. Will resubmit", e);
+				}
+				else {
+					throw new RejectedExecutionException("Failure in 'idle' task. Will NOT resubmit", e);
 				}
 			}
 		}
-	}
-	public String getComponentType(){
-		return "mail:imap-idle-channel-adapter";
-	}
-
-	private void waitToReconnect() throws InterruptedException{
-		CountDownLatch latch = new CountDownLatch(1);
-		logger.warn("Waiting " + reconnectDelay + " seconds before attemptong to reconnect to host");
-		latch.await(this.reconnectDelay, TimeUnit.SECONDS);
-		reconnecting = true;
-		logger.warn("Will attempt to reconnect to host now");
 	}
 }

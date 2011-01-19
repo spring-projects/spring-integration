@@ -86,7 +86,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
 	 */
-	public void waitForNewMessages() throws MessagingException, InterruptedException {
+	public void waitForNewMessages() throws MessagingException{
 		this.openFolder();
 		Assert.state(this.getFolder() instanceof IMAPFolder,
 				"folder is not an instance of [" + IMAPFolder.class.getName() + "]");
