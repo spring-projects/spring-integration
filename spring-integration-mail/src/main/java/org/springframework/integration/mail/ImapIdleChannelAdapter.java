@@ -27,6 +27,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -62,8 +63,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		Assert.notNull(mailReceiver, "mailReceiver must not be null");
 		this.mailReceiver = mailReceiver;
 	}
-
-
 	/**
 	 * Specify whether the IDLE task should reconnect automatically after
 	 * catching a {@link FolderClosedException} while waiting for messages.
@@ -86,7 +85,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			logger.warn("error occurred in idle task", e);
 		}
 	}
-
 	/*
 	 * Lifecycle implementation
 	 */
@@ -95,6 +93,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	protected void doStart() {
 		TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
+		ResubmittingTask task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
+		task.setTaskExecutor(taskExecutor);
 		scheduledFuture = scheduler.schedule(new ResubmittingTask(this.idleTask, scheduler, reconnectDelay), new Date());
 	}
 

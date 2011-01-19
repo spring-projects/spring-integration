@@ -17,6 +17,7 @@ package org.springframework.integration.mail;
 
 import java.security.ProviderException;
 import java.util.Date;
+import java.util.concurrent.Executor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,14 +35,32 @@ class ResubmittingTask implements Runnable {
 	private final Runnable targetTask;
 	private final TaskScheduler scheduler;
 	private final long delay;
+	private Executor taskExecutor;
 	
 	public ResubmittingTask(Runnable targetTask, TaskScheduler scheduler, long delay) {
 		this.targetTask = targetTask;
 		this.scheduler = scheduler;
 		this.delay = delay;
 	}
+	
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
 
 	public void run() {
+		if (taskExecutor != null){
+			taskExecutor.execute(new Runnable() {	
+				public void run() {
+					ResubmittingTask.this.invokeTask();
+				}
+			});
+		}
+		else {
+			this.invokeTask();
+		}	
+	}
+	
+	private void invokeTask(){
 		try {
 			targetTask.run();
 			logger.debug("Task completed successfully. Re-scheduling it again right away");
