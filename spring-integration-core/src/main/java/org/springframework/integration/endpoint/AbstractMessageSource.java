@@ -22,8 +22,6 @@ import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessageSourceReceiveException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
@@ -47,21 +45,9 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	@SuppressWarnings("unchecked")
 	public final Message<T> receive() {
 		Message<T> message = null; 
-		Object result = null;
+		Object result = this.doReceive();
 
 		Map<String, Object> headers = this.evaluateHeaders();
-		
-		if (headers.containsKey(MessageHeaders.ERROR_CHANNEL)){
-			try {
-				result = this.doReceive();
-			}
-			catch (Exception e) {
-				throw new MessageSourceReceiveException((String) headers.get(MessageHeaders.ERROR_CHANNEL), e);
-			}
-		}
-		else {
-			result = this.doReceive();
-		}
 		
 		if (result instanceof Message<?>) {
 			try {

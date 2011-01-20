@@ -30,7 +30,6 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
-import org.springframework.util.ErrorHandler;
 
 /**
  * FactoryBean for creating a SourcePollingChannelAdapter instance.
@@ -60,13 +59,6 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-	
-	private volatile ErrorHandler errorHandler;
-
-
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
 
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
@@ -127,7 +119,6 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			SourcePollingChannelAdapter spca = new SourcePollingChannelAdapter();
 			spca.setSource(this.source);
 			spca.setOutputChannel(this.outputChannel);
-			spca.setErrorHandler(errorHandler);
 			if (this.pollerMetadata == null) {
 				this.pollerMetadata = IntegrationContextUtils.getDefaultPollerMetadata(this.beanFactory);
 				Assert.notNull(this.pollerMetadata, "No poller has been defined for channel-adapter '"

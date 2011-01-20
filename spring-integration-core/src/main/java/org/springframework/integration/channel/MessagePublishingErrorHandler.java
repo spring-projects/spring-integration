@@ -23,7 +23,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageSourceReceiveException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.message.ErrorMessage;
@@ -31,7 +30,6 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a
@@ -114,20 +112,6 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		}
 		
-		if (t instanceof MessageSourceReceiveException){
-			Object errorChannel = ((MessageSourceReceiveException)t).getErrorChannel();
-			if (errorChannel != null){
-				if (errorChannel instanceof MessageChannel){
-					return  (MessageChannel) errorChannel;
-				}
-				else if (errorChannel instanceof String && StringUtils.hasText((String)errorChannel)){
-					return this.channelResolver.resolveChannelName((String) errorChannel);
-				}
-				else {
-					throw new MessagingException("Failed to resolve 'errorChannel' - " + errorChannel);
-				}
-			}		
-		}
 		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
 			return this.defaultErrorChannel;
 		}
