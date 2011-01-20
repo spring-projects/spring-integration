@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
@@ -91,8 +92,14 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
 		else if (message.getPayload() instanceof String) {
-			mailMessage = new SimpleMailMessage();
-			mailMessage.setText((String) message.getPayload());
+			String contentType = (String) message.getHeaders().get(MailHeaders.CONTENT_TYPE);
+			if (StringUtils.hasText(contentType)){
+				mailMessage = this.createMailMessageWithContentType((Message<String>) message, contentType);
+			}
+			else {
+				mailMessage = new SimpleMailMessage();
+				mailMessage.setText((String) message.getPayload());
+			}	
 		}
 		else {
 			throw new MessageHandlingException(message, "Unable to create MailMessage from payload type ["
@@ -100,6 +107,18 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 		}
 		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
+	}
+	
+	private MailMessage createMailMessageWithContentType(Message<String> message, String contentType){
+		MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+		try {
+			mimeMessage.setContent(message.getPayload(), contentType);
+			return new MimeMailMessage(mimeMessage);
+		} 
+		catch (Exception e) {
+			throw new org.springframework.integration.MessagingException("Failed to creaet MimeMessage with contentType: " + 
+																			contentType, e);
+		}
 	}
 
 	private MailMessage createMailMessageFromByteArrayMessage(Message<byte[]> message) {

@@ -41,5 +41,7 @@ public abstract class MailHeaders {
 	public static final String MULTIPART_MODE = PREFIX + "multipartMode";
 
 	public static final String ATTACHMENT_FILENAME = PREFIX + "attachmentFilename";
+	
+	public static final String CONTENT_TYPE = PREFIX + "contentType";
 
 }
