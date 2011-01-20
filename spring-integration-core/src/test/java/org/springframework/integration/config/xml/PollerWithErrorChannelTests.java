@@ -18,10 +18,8 @@ package org.springframework.integration.config.xml;
 import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
