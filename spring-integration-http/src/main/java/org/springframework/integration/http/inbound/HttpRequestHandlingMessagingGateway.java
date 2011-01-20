@@ -23,6 +23,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -52,6 +53,7 @@ import org.springframework.web.HttpRequestHandler;
  * the {@link #setMessageConverters(List)} method.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
@@ -96,7 +98,12 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		if (responseContent != null) {
 			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-			this.writeResponse(responseContent, response, request.getHeaders().getAccept());
+			if (responseContent instanceof HttpStatus){
+				response.setStatusCode((HttpStatus) responseContent);
+			}
+			else {
+				this.writeResponse(responseContent, response, request.getHeaders().getAccept());
+			}			
 		}
 	}
 

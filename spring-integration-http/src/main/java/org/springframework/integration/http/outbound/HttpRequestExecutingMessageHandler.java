@@ -240,7 +240,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 					return replyBuilder.copyHeaders(headers).build();
 				}
 				else {
-					return MessageBuilder.withPayload(httpResponse.getStatusCode()).copyHeaders(headers).build();
+					return MessageBuilder.withPayload(httpResponse.getStatusCode()).
+							copyHeaders(headers).setHeader(org.springframework.integration.http.HttpHeaders.STATUS_CODE, httpResponse.getStatusCode()).
+							build();
 				}
 			}
 			return null;
