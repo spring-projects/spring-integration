@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -35,7 +36,7 @@ class ResubmittingTask implements Runnable {
 	private final Runnable targetTask;
 	private final TaskScheduler scheduler;
 	private final long delay;
-	private Executor taskExecutor;
+	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
 	
 	public ResubmittingTask(Runnable targetTask, TaskScheduler scheduler, long delay) {
 		this.targetTask = targetTask;
@@ -44,20 +45,15 @@ class ResubmittingTask implements Runnable {
 	}
 	
 	public void setTaskExecutor(Executor taskExecutor) {
-		this.taskExecutor = taskExecutor;
+		this.taskExecutor = (taskExecutor != null) ? taskExecutor : new SimpleAsyncTaskExecutor();
 	}
 
 	public void run() {
-		if (taskExecutor != null){
-			taskExecutor.execute(new Runnable() {	
-				public void run() {
-					ResubmittingTask.this.invokeTask();
-				}
-			});
-		}
-		else {
-			this.invokeTask();
-		}	
+		taskExecutor.execute(new Runnable() {	
+			public void run() {
+				ResubmittingTask.this.invokeTask();
+			}
+		});	
 	}
 	
 	private void invokeTask(){
