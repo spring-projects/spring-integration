@@ -68,7 +68,7 @@ public class MessageWithContentTypeTests {
 		JavaMailSender sender = mock(JavaMailSender.class);
 		MailSendingMessageHandler handler = new MailSendingMessageHandler(sender);
 		StringWriter writer = new StringWriter();
-		FileReader reader = new FileReader("test.html"); 
+		FileReader reader = new FileReader("src/test/java/org/springframework/integration/mail/config/test.html"); 
 		FileCopyUtils.copy(reader, writer);
 		Message<String> message = MessageBuilder.withPayload(writer.getBuffer().toString())
 								.setHeader(MailHeaders.TO, "to")
