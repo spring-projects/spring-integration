@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
@@ -41,6 +43,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +52,7 @@ import org.springframework.util.MultiValueMap;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -65,6 +69,9 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway putOrDeleteAdapter;
+	
+	@Autowired
+	private HttpRequestHandlingMessagingGateway withMappedHeaders;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
@@ -88,6 +95,22 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("foo", map.keySet().iterator().next());
 		assertEquals(1, map.get("foo").size());
 		assertEquals("bar", map.getFirst("foo"));
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getRequestWithHeaders() throws Exception {
+		DefaultHttpHeaderMapper headerMapper = 
+			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("foo", "foo");
+		headers.set("bar", "bar");
+		headers.set("baz", "baz");
+		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		assertTrue(map.size() == 2);
+		assertEquals("foo", map.get("foo"));
+		assertEquals("bar", map.get("bar"));
 	}
 
 	@Test

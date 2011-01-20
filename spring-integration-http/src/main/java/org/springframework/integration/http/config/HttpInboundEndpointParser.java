@@ -92,7 +92,26 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "errors-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "error-code");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
+		
+		
+		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
+		String headerMapper = element.getAttribute("header-mapper");
+		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
+		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");
+		if (StringUtils.hasText(headerMapper)) {
+			if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
+				parserContext.getReaderContext().error("Neither 'mappped-request-headers' or 'mapped-response-headers' " +
+						"attributes are allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
+			}
+			builder.addPropertyReference("headerMapper", headerMapper);
+		}
+		else if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
+			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "inboundHeaderNames");
+			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
+		}
 	}
 
 	private String getInputChannelAttributeName() {

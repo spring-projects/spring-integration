@@ -21,8 +21,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 import static org.springframework.integration.test.util.TestUtils.handlerExpecting;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -31,26 +36,37 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.MockHttpServletResponse;
 import org.springframework.integration.http.inbound.HttpRequestHandlingController;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
+import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HttpInboundGatewayParserTests {
 
 	@Autowired
+	@Qualifier("inboundGateway")
 	private HttpRequestHandlingMessagingGateway gateway;
+	
+	@Autowired
+	@Qualifier("withMappedHeaders")
+	private HttpRequestHandlingMessagingGateway withMappedHeaders;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
@@ -88,6 +104,31 @@ public class HttpInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
 		String errorCode =  (String) accessor.getPropertyValue("errorCode");
 		assertEquals("oops", errorCode);
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void requestWithHeaders() throws Exception {
+		DefaultHttpHeaderMapper headerMapper = 
+			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("foo", "foo");
+		headers.set("bar", "bar");
+		headers.set("baz", "baz");
+		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		assertTrue(map.size() == 2);
+		assertEquals("foo", map.get("foo"));
+		assertEquals("bar", map.get("bar"));
+		
+		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
+		mapOfHeaders.put("abc", "abc");
+		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
+		headers = new HttpHeaders();
+		headerMapper.fromHeaders(mh, headers);
+		assertTrue(headers.size() == 1);
+		List<String> abc = headers.get("X-abc");
+		assertEquals("abc", abc.get(0));
 	}
 
 }

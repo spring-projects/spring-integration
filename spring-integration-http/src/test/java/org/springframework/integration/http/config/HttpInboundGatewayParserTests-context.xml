@@ -20,5 +20,9 @@
 	<inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses" convert-exceptions="true"/>
 
 	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
+	
+	<inbound-gateway id="withMappedHeaders" request-channel="requests"
+								mapped-response-headers="foo,bar"
+								mapped-request-headers="abc, xyz"/>
 
 </beans:beans>
