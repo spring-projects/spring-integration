@@ -729,7 +729,24 @@
 			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="receive-timeout" type="xsd:string"/>
-			<xsd:attribute name="delivery-mode" type="xsd:string"/>
+			<xsd:attribute name="delivery-mode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	[DEPRECATED - use delivery-persistent attribute instead]
+	A reference to the MessageConverter strategy for converting between JMS Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="delivery-persistent" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify a boolean value indicating whether the delivery mode should be
+	DeliveryMode.PERSISTENT (true) or DeliveryMode.NON_PERSISTENT (false).
+	This setting will only take effect if 'explicit-qos-enabled' is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="time-to-live" type="xsd:string"/>
 			<xsd:attribute name="priority" type="xsd:string"/>
 			<xsd:attribute name="explicit-qos-enabled" type="xsd:string"/>

@@ -24,8 +24,11 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Properties;
 
+import javax.jms.DeliveryMode;
+
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -47,6 +50,18 @@ import org.springframework.jms.support.converter.MessageConverter;
  * @author Oleg Zhurakousky
  */
 public class JmsOutboundGatewayParserTests {
+	
+	@Test
+	public void testWithDelivertPersistentAttribute(){
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(gateway);
+		int deliveryMode = (Integer)accessor.getPropertyValue("deliveryMode");
+		assertEquals(DeliveryMode.PERSISTENT, deliveryMode);
+	}
 
 	@Test
 	public void testDefault(){

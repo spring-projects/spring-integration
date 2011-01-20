@@ -16,6 +16,10 @@
 
 package org.springframework.integration.jms.config;
 
+import javax.jms.DeliveryMode;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -28,8 +32,10 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
  *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
+	private static final Log logger = LogFactory.getLog(JmsOutboundGatewayParser.class);
 
 	@Override
 	protected String getInputChannelAttributeName() {
@@ -64,10 +70,31 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
+		
+		String deliveryMode = element.getAttribute("delivery-mode");
+		String deliveryPersistent = element.getAttribute("delivery-persistent");
+		
+		if (StringUtils.hasText(deliveryMode) && StringUtils.hasText(deliveryPersistent)){
+			parserContext.getReaderContext().
+				error("Exactly one of the 'delivery-mode' attribute or 'delivery-persistent' attribute is allowed", element);
+			return null;
+		}
+		if (StringUtils.hasText(deliveryMode)){
+			logger.warn("'delivery-mode' attribute is deprecated. Use 'delivery-persistent' instead");
+			builder.addPropertyValue("deliveryMode", deliveryMode);
+		}
+		else if (StringUtils.hasText(deliveryPersistent)){
+			boolean persistentValue = Boolean.parseBoolean(deliveryPersistent);
+			if (persistentValue){
+				builder.addPropertyValue("deliveryMode", DeliveryMode.PERSISTENT);
+			}
+			else {
+				builder.addPropertyValue("deliveryMode", DeliveryMode.NON_PERSISTENT);
+			}
+		}
 		return builder;
 	}
 
