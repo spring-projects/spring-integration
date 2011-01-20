@@ -13,14 +13,11 @@
 
 	<int:channel id="inputChannel"/>
 	
-	<int:header-enricher input-channel="inputChannel" output-channel="mailEnricherChannel">
-		<int:header name="mail_contentType" value="text/html"/>
-	</int:header-enricher>
-	
-	<int-mail:header-enricher input-channel="mailEnricherChannel" output-channel="mailChannel">
-		<int-mail:to value="emailaddress"/>
-		<int-mail:from value="emailaddress"/>
+	<int-mail:header-enricher input-channel="inputChannel" output-channel="mailChannel">
+		<int-mail:to value="mailto"/>
+		<int-mail:from value="mailfrom"/>
 		<int-mail:subject value="With Content Type"/>
+		<int-mail:content-type value="text/html"/>
 	</int-mail:header-enricher>
 	
 	<int:channel id="mailChannel"/>

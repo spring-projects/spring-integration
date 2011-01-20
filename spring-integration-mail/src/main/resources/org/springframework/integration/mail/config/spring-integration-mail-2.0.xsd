@@ -257,6 +257,7 @@
 						<xsd:element name="bcc" type="headerType"/>
 						<xsd:element name="from" type="headerType"/>
 						<xsd:element name="reply-to" type="headerType"/>
+						<xsd:element name="content-type" type="headerType"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>
