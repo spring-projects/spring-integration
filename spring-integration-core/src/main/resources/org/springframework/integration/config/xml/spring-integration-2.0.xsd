@@ -1242,6 +1242,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="error-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Identifies channel that error messages will be sent to if a failure occurs in this
+					poller's invocation. To completely suppress Exceptions, provide a
+					reference to the "nullChannel" here.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="intervalTriggerType">

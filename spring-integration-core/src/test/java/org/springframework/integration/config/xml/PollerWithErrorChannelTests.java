@@ -16,34 +16,49 @@
 package org.springframework.integration.config.xml;
 
 import static junit.framework.Assert.assertNotNull;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-public class PollerWithErrorChannel {
+public class PollerWithErrorChannelTests {
 
 	@Test
-	@Ignore
+	/*
+	 * Although adapter configuration specifies header-enricher pointing to the 'eChannel' as errorChannel
+	 * the ErrorMessage will still be forwarded to the 'errorChannel' since exception occurs on 
+	 * receive() and not on send()
+	 */
 	public void testWithErrorChannelAsHeader() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorHeader", SourcePollingChannelAdapter.class);
+		
+		SubscribableChannel errorChannel = ac.getBean("errorChannel", SubscribableChannel.class);
+		MessageHandler handler = mock(MessageHandler.class);
+		errorChannel.subscribe(handler);
 		adapter.start();
-		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
-		assertNotNull(errorChannel.receive(1000));
+		Thread.sleep(1000);
+		verify(handler, atLeastOnce()).handleMessage(Mockito.any(Message.class));
 		adapter.stop();
 	}
 	
 	@Test
-	@Ignore
 	public void testWithErrorChannel() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannel", SourcePollingChannelAdapter.class);
@@ -54,10 +69,20 @@ public class PollerWithErrorChannel {
 	}
 	
 	@Test
-	@Ignore
 	public void testWithErrorChannelAndHeader() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeader", SourcePollingChannelAdapter.class);
+		adapter.start();
+		PollableChannel errorChannel = ac.getBean("eChannel", PollableChannel.class);
+		assertNotNull(errorChannel.receive(1000));
+		adapter.stop();
+	}
+	
+	@Test 
+	// config the same as above but the error wil come from the send
+	public void testWithErrorChannelAndHeaderWithSendFailure() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
+		SourcePollingChannelAdapter adapter = ac.getBean("withErrorChannelAndHeaderErrorOnSend", SourcePollingChannelAdapter.class);
 		adapter.start();
 		PollableChannel errorChannel = ac.getBean("errChannel", PollableChannel.class);
 		assertNotNull(errorChannel.receive(1000));

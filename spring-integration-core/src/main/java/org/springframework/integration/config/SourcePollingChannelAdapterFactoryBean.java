@@ -130,7 +130,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 				this.pollerMetadata.setMaxMessagesPerPoll(1);
 			}
 			spca.setPollerMetadata(this.pollerMetadata);
-			
+			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);

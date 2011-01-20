@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -36,6 +37,8 @@ public class PollerMetadata {
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
 	private volatile long receiveTimeout = 1000;
+	
+	private volatile ErrorHandler errorHandler;
 
 	private List<Advice> adviceChain;
 
@@ -47,6 +50,14 @@ public class PollerMetadata {
 
 	public Trigger getTrigger() {
 		return this.trigger;
+	}
+	
+	public ErrorHandler getErrorHandler() {
+		return errorHandler;
+	}
+
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
 	}
 
 	/**

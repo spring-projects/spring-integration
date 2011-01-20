@@ -9,21 +9,29 @@
 
 	<int:inbound-channel-adapter id="withErrorHeader" expression="5/0" channel="serviceChannel" auto-startup="false">
 		<int:poller fixed-rate="1000"/>
-		<int:header name="errorChannel" value="eChannel"/>
+		<int:header name="eChannel" value="eChannel"/>
 	</int:inbound-channel-adapter>
 	
 	<int:inbound-channel-adapter id="withErrorChannel" expression="5/0" 
-					channel="serviceChannel" auto-startup="false" error-channel="eChannel">
-		<int:poller fixed-rate="1000"/>
+					channel="serviceChannel" auto-startup="false">
+		<int:poller fixed-rate="1000" error-channel="eChannel"/>
 	</int:inbound-channel-adapter>
 	
 	<int:inbound-channel-adapter id="withErrorChannelAndHeader" expression="5/0" 
-					channel="serviceChannel" auto-startup="false" error-channel="eChannel">
-		<int:poller fixed-rate="1000"/>
+					channel="serviceChannel" auto-startup="false">
+		<int:poller fixed-rate="1000" error-channel="eChannel"/>
+		<int:header name="errorChannel" value="errChannel"/>
+	</int:inbound-channel-adapter>
+	
+	<int:inbound-channel-adapter id="withErrorChannelAndHeaderErrorOnSend" expression="5" 
+					channel="serviceChannel" auto-startup="false">
+		<int:poller fixed-rate="1000" error-channel="eChannel"/>
 		<int:header name="errorChannel" value="errChannel"/>
 	</int:inbound-channel-adapter>
 	
 	<int:channel id="serviceChannel"/>
+	
+	<int:service-activator input-channel="serviceChannel" expression="payload/0"/>
 	
 	<int:channel id="eChannel">
 		<int:queue/>

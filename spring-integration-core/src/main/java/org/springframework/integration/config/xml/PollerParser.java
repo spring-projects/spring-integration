@@ -99,6 +99,14 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		configureAdviceChain(adviceChainElement, txElement, metadataBuilder, parserContext);
 		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
+		String errorChannel = element.getAttribute("error-channel");
+		if (StringUtils.hasText(errorChannel)){
+			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.channel.MessagePublishingErrorHandler");
+			errorHandler.addPropertyReference("defaultErrorChannel", errorChannel);
+			
+			metadataBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
+		}
 		return metadataBuilder.getBeanDefinition();
 	}
 
