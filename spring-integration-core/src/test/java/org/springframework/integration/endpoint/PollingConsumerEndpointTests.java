@@ -122,6 +122,7 @@ public class PollingConsumerEndpointTests {
 		verify(channelMock);
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test
 	public void multipleMessagesWithPollerMetadata() {
 		expect(channelMock.receive()).andReturn(message).times(5);
