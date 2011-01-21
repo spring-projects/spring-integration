@@ -25,13 +25,13 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ErrorHandler;
@@ -62,10 +62,8 @@ public class ExpressionEvaluatingMessageSourceIntegrationTests {
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setTaskScheduler(scheduler);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(3);
-		pollerMetadata.setTrigger(new PeriodicTrigger(60000));
-		adapter.setPollerMetadata(pollerMetadata);
+		adapter.setMaxMessagesPerPoll(3);
+		adapter.setTrigger(new PeriodicTrigger(60000));
 		adapter.setOutputChannel(channel);
 		adapter.setErrorHandler(new ErrorHandler() {
 			public void handleError(Throwable t) {

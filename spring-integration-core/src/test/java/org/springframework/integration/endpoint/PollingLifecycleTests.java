@@ -68,9 +68,7 @@ public class PollingLifecycleTests {
 			}
 		});
 		PollingConsumer consumer = new PollingConsumer(channel, handler);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(0));
-		consumer.setPollerMetadata(pollerMetadata);
+		consumer.setTrigger(new PeriodicTrigger(0));
 		consumer.setErrorHandler(errorHandler);
 		consumer.setTaskScheduler(taskScheduler);
 		consumer.setBeanFactory(mock(BeanFactory.class));
@@ -111,7 +109,7 @@ public class PollingLifecycleTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		assertTrue(latch.await(2, TimeUnit.SECONDS));
+		assertTrue(latch.await(20, TimeUnit.SECONDS));
 		assertNotNull(channel.receive(100));
 		adapter.stop();
 		assertNull(channel.receive(1000));

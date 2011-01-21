@@ -41,7 +41,6 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -81,9 +80,7 @@ public class PollingConsumerEndpointTests {
 		taskScheduler.setPoolSize(5);
 		endpoint.setErrorHandler(errorHandler);
 		endpoint.setTaskScheduler(taskScheduler);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.setReceiveTimeout(-1);
 		endpoint.afterPropertiesSet();
@@ -102,10 +99,8 @@ public class PollingConsumerEndpointTests {
 		expect(channelMock.receive()).andReturn(message);
 		expectLastCall();
 		replay(channelMock);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(1);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(1);
+		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -117,10 +112,8 @@ public class PollingConsumerEndpointTests {
 	public void multipleMessages() {
 		expect(channelMock.receive()).andReturn(message).times(5);
 		replay(channelMock);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(5);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(5);
+		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -133,10 +126,8 @@ public class PollingConsumerEndpointTests {
 		expect(channelMock.receive()).andReturn(message).times(5);
 		expect(channelMock.receive()).andReturn(null);
 		replay(channelMock);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(6);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(6);
+		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -169,11 +160,8 @@ public class PollingConsumerEndpointTests {
 	public void droppedMessage_onePerPoll() throws Throwable {
 		expect(channelMock.receive()).andReturn(badMessage).times(1);
 		replay(channelMock);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(10);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
-		//endpoint.setErrorHandler(null);
+		endpoint.setMaxMessagesPerPoll(10);
+		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -201,10 +189,8 @@ public class PollingConsumerEndpointTests {
 		expectLastCall();
 		replay(channelMock);
 		endpoint.setReceiveTimeout(1);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(1);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(1);
+		endpoint.setTrigger(trigger);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();

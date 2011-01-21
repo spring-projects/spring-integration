@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -29,9 +30,10 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -47,7 +49,9 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private volatile ErrorHandler errorHandler;
 
-	private volatile PollerMetadata pollerMetadata = new PollerMetadata();
+	private volatile Trigger trigger = new PeriodicTrigger(10);
+
+	private volatile List<Advice> adviceChain;
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
@@ -56,17 +60,30 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile Runnable poller;
 
 	private volatile boolean initialized;
-
+	
+	private volatile long maxMessagesPerPoll = -1;
+	
 	private final Object initializationMonitor = new Object();
 
 
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
 	}
+	
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = (taskExecutor != null ? taskExecutor : new SyncTaskExecutor());
+	}
 
+	public void setTrigger(Trigger trigger) {
+		this.trigger = (trigger != null ? trigger : new PeriodicTrigger(10));
+	}
 
-	public void setPollerMetadata(PollerMetadata pollerMetadata) {
-		this.pollerMetadata = pollerMetadata;
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
+	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
+		this.maxMessagesPerPoll = maxMessagesPerPoll;
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -83,8 +100,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (this.initialized) {
 				return;
 			}
-			Assert.notNull(this.pollerMetadata.getTrigger(), "Trigger is required");
-			Executor providedExecutor = this.pollerMetadata.getTaskExecutor();
+			Assert.notNull(this.trigger, "Trigger is required");
+			Executor providedExecutor = this.taskExecutor;
 			if (providedExecutor != null) {
 				this.taskExecutor = providedExecutor;
 			}
@@ -117,7 +134,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 		};
 		
-		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
+		List<Advice> adviceChain = this.adviceChain;
 		if (!CollectionUtils.isEmpty(adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
 			if (!CollectionUtils.isEmpty(adviceChain)) {
@@ -140,7 +157,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		Assert.state(this.getTaskScheduler() != null,
 				"unable to start polling, no taskScheduler available");
-		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.pollerMetadata.getTrigger());
+		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.trigger);
 	}
 
 	@Override // guarded by super#lifecycleLock
@@ -161,7 +178,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	 */
 	private class Poller implements Runnable {
 
-		private final long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
+		//private final long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
 
 		private final Callable<Boolean> pollingTask;
 

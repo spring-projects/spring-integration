@@ -28,6 +28,7 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
@@ -37,7 +38,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
@@ -75,8 +75,7 @@ public class PollingTransactionTests {
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
 	
-		PollerMetadata pollerMetedata = TestUtils.getPropertyValue(advicedPoller, "pollerMetadata",PollerMetadata.class);
-		List<Advice> adviceChain = TestUtils.getPropertyValue(pollerMetedata, "adviceChain",List.class);
+		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain",List.class);
 		assertEquals(3, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
 		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);

@@ -69,7 +69,6 @@ public class ApplicationContextMessageBusTests {
 		handler.setBeanFactory(context);
 		handler.afterPropertiesSet();
 		PollingConsumer endpoint = new PollingConsumer(sourceChannel, handler);
-		endpoint.setPollerMetadata(new PollerMetadata());
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
@@ -127,10 +126,8 @@ public class ApplicationContextMessageBusTests {
 		handler1.setOutputChannel(outputChannel1);
 		handler2.setOutputChannel(outputChannel2);
 		PollingConsumer endpoint1 = new PollingConsumer(inputChannel, handler1);
-		endpoint1.setPollerMetadata(new PollerMetadata());
 		endpoint1.setBeanFactory(mock(BeanFactory.class));
 		PollingConsumer endpoint2 = new PollingConsumer(inputChannel, handler2);
-		endpoint2.setPollerMetadata(new PollerMetadata());
 		endpoint2.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint1", endpoint1);
 		context.registerEndpoint("testEndpoint2", endpoint2);
@@ -194,7 +191,6 @@ public class ApplicationContextMessageBusTests {
 		channelAdapter.setSource(new FailingSource(latch));
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setTrigger(new PeriodicTrigger(1000));
-		channelAdapter.setPollerMetadata(pollerMetadata);
 		channelAdapter.setOutputChannel(outputChannel);
 		context.registerEndpoint("testChannel", channelAdapter);
 		context.refresh();
@@ -222,7 +218,6 @@ public class ApplicationContextMessageBusTests {
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(errorChannel, handler);
-		endpoint.setPollerMetadata(new PollerMetadata());
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();

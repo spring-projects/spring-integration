@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -25,9 +24,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	public PollingEndpointStub() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(500));
-		this.setPollerMetadata(pollerMetadata);
+		this.setTrigger(new PeriodicTrigger(500));
 	}
 
 	@Override

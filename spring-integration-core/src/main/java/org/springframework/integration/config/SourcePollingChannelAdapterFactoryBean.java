@@ -129,7 +129,10 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 				// a non-null and non-interruptable value every time it is invoked
 				this.pollerMetadata.setMaxMessagesPerPoll(1);
 			}
-			spca.setPollerMetadata(this.pollerMetadata);
+			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
+			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
+			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
+			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setErrorHandler(this.pollerMetadata.getErrorHandler());
 			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.setAutoStartup(this.autoStartup);

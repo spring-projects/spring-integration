@@ -53,7 +53,7 @@ public class InboundChannelAdapterExpressionTests {
 		SourcePollingChannelAdapter adapter = context.getBean("fixedDelayProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(1234L, triggerAccessor.getPropertyValue("period"));
@@ -68,7 +68,7 @@ public class InboundChannelAdapterExpressionTests {
 		SourcePollingChannelAdapter adapter = context.getBean("fixedRateProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(5678L, triggerAccessor.getPropertyValue("period"));
@@ -83,7 +83,7 @@ public class InboundChannelAdapterExpressionTests {
 		SourcePollingChannelAdapter adapter = context.getBean("cronProducer", SourcePollingChannelAdapter.class);
 		assertFalse(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(CronTrigger.class, trigger.getClass());
 		assertEquals("7 6 5 4 3 ?", new DirectFieldAccessor(new DirectFieldAccessor(
 				trigger).getPropertyValue("sequenceGenerator")).getPropertyValue("expression"));
@@ -97,7 +97,7 @@ public class InboundChannelAdapterExpressionTests {
 		SourcePollingChannelAdapter adapter = context.getBean("triggerRefProducer", SourcePollingChannelAdapter.class);
 		assertTrue(adapter.isAutoStartup());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Trigger trigger = TestUtils.getPropertyValue(adapter, "pollerMetadata.trigger", Trigger.class);
+		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(context.getBean("customTrigger"), trigger);
 		assertEquals(context.getBean("triggerRefChannel"), adapterAccessor.getPropertyValue("outputChannel"));
 		Expression expression = TestUtils.getPropertyValue(adapter, "source.expression", Expression.class);

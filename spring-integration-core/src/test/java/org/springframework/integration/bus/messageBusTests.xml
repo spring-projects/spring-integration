@@ -17,13 +17,9 @@
 		class="org.springframework.integration.endpoint.PollingConsumer">
 		<constructor-arg ref="sourceChannel" />
 		<constructor-arg ref="serviceActivator" />
-		<property name="pollerMetadata">
-			<bean class="org.springframework.integration.scheduling.PollerMetadata">
-				<property name="trigger">
-					<bean class="org.springframework.scheduling.support.PeriodicTrigger">
-						<constructor-arg value="100" />
-					</bean>
-				</property>
+		<property name="trigger">
+			<bean class="org.springframework.scheduling.support.PeriodicTrigger">
+				<constructor-arg value="100" />
 			</bean>
 		</property>
 	</bean>

@@ -28,11 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -66,9 +66,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		this.endpoint.setTaskScheduler(scheduler);
 		scheduler.afterPropertiesSet();
 		trigger.reset();
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
 		endpoint.setBeanFactory(mock(BeanFactory.class));
 	}
 
@@ -86,10 +84,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void twoStringsAndNoNewLinesByDefault() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(1);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(1);
+		endpoint.setTrigger(trigger);
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -106,10 +102,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void twoStringsWithNewLines() {
 		handler.setShouldAppendNewLine(true);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerMetadata(pollerMetadata);	
+		endpoint.setTrigger(trigger);
+		endpoint.setMaxMessagesPerPoll(1);
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -126,10 +120,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		pollerMetadata.setMaxMessagesPerPoll(2);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
+		endpoint.setMaxMessagesPerPoll(2);
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -140,10 +132,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void maxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		pollerMetadata.setMaxMessagesPerPoll(10);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
+		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
 		channel.send(new GenericMessage<String>("foo"), 0);
@@ -157,10 +147,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleNonStringObject() {
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
+		endpoint.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		endpoint.start();
@@ -172,10 +160,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void twoNonStringObjectWithOutNewLines() {
 		endpoint.setReceiveTimeout(0);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(trigger);
-		pollerMetadata.setMaxMessagesPerPoll(2);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setTrigger(trigger);
+		endpoint.setMaxMessagesPerPoll(2);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -190,10 +176,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoNonStringObjectWithNewLines() {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setReceiveTimeout(0);
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(2);
-		pollerMetadata.setTrigger(trigger);
-		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setMaxMessagesPerPoll(2);
+		endpoint.setTrigger(trigger);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

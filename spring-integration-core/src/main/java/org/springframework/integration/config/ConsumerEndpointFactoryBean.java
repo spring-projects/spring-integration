@@ -158,7 +158,11 @@ public class ConsumerEndpointFactoryBean
 					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
 							+ "', and no default poller is available within the context.");
 				}
-				pollingConsumer.setPollerMetadata(this.pollerMetadata);
+				pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
+				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
+				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
+				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
+				
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
 				pollingConsumer.setBeanClassLoader(beanClassLoader);
 				pollingConsumer.setBeanFactory(beanFactory);

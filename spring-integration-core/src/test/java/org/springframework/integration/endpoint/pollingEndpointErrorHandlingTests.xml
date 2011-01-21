@@ -12,11 +12,7 @@
 
 	<bean id="testEndpoint"
 		class="org.springframework.integration.endpoint.PollingEndpointStub">
-		<property name="pollerMetadata">
-			<bean class="org.springframework.integration.scheduling.PollerMetadata">
-				<property name="taskExecutor" ref="taskExecutor" />
-			</bean>
-		</property>
+		<property name="taskExecutor" ref="taskExecutor" />
 	</bean>
 
 	<task:executor id="taskExecutor" pool-size="1"

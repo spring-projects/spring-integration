@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
@@ -41,14 +42,12 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
-import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -65,9 +64,6 @@ public class MessagingTemplateTests {
 		this.requestChannel = new QueueChannel();
 		context.registerChannel("requestChannel", requestChannel);
 		PollingConsumer endpoint = new PollingConsumer(requestChannel, new TestHandler());
-		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setTrigger(new PeriodicTrigger(10));
-		endpoint.setPollerMetadata(pollerMetadata);
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 	}

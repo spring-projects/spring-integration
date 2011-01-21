@@ -229,9 +229,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithPoller");
 		assertEquals(PollingConsumer.class, endpoint.getClass());
-		Object pollerMetadata = new DirectFieldAccessor(endpoint).getPropertyValue("pollerMetadata");
-		assertEquals(PollerMetadata.class, pollerMetadata.getClass());
-		Object triggerObject = new DirectFieldAccessor(pollerMetadata).getPropertyValue("trigger");
+		Object triggerObject = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
 		assertEquals(PeriodicTrigger.class, triggerObject.getClass());
 		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);

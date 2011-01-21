@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+
 import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -32,7 +32,7 @@ public class PollerMetadata {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 	
-	private volatile Trigger trigger = new PeriodicTrigger(10);
+	private volatile Trigger trigger;
 
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
