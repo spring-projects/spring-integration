@@ -41,6 +41,7 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -114,6 +115,23 @@ public class PollingConsumerEndpointTests {
 		replay(channelMock);
 		endpoint.setMaxMessagesPerPoll(5);
 		endpoint.setTrigger(trigger);
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
+		assertEquals(5, consumer.counter.get());
+		verify(channelMock);
+	}
+	
+	@Test
+	public void multipleMessagesWithPollerMetadata() {
+		expect(channelMock.receive()).andReturn(message).times(5);
+		replay(channelMock);
+		
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(5);
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
+		
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
