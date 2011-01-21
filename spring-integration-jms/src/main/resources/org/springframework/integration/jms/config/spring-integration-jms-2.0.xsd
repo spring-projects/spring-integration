@@ -738,7 +738,7 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="delivery-persistent" type="xsd:boolean" default="false">
+			<xsd:attribute name="delivery-persistent" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 	Specify a boolean value indicating whether the delivery mode should be

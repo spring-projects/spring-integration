@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms.config;
 
-import javax.jms.DeliveryMode;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
@@ -87,13 +85,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			builder.addPropertyValue("deliveryMode", deliveryMode);
 		}
 		else if (StringUtils.hasText(deliveryPersistent)){
-			boolean persistentValue = Boolean.parseBoolean(deliveryPersistent);
-			if (persistentValue){
-				builder.addPropertyValue("deliveryMode", DeliveryMode.PERSISTENT);
-			}
-			else {
-				builder.addPropertyValue("deliveryMode", DeliveryMode.NON_PERSISTENT);
-			}
+			builder.addPropertyValue("deliveryPersistent", deliveryPersistent);
 		}
 		return builder;
 	}

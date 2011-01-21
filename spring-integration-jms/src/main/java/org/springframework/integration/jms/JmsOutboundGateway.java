@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
@@ -93,6 +94,18 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final Object initializationMonitor = new Object();
 
+	/**
+	 * Set whether message delivery should be persistent or non-persistent,
+	 * specified as boolean value ("true" or "false"). This will set the delivery
+	 * mode accordingly, to either "PERSISTENT" (1) or "NON_PERSISTENT" (2).
+	 * <p>Default it "true" aka delivery mode "PERSISTENT".
+	 * @see #setDeliveryMode(int)
+	 * @see javax.jms.DeliveryMode#PERSISTENT
+	 * @see javax.jms.DeliveryMode#NON_PERSISTENT
+	 */
+	public void setDeliveryPersistent(boolean deliveryPersistent) {
+		this.deliveryMode = (deliveryPersistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
+	}
 
 	/**
 	 * Set the JMS ConnectionFactory that this gateway should use.
