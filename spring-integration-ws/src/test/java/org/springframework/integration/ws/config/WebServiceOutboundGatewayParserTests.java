@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ws.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -27,7 +27,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
