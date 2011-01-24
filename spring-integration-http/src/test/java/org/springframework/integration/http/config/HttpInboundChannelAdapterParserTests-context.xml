@@ -25,6 +25,6 @@
 	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops"/>
 	
 	<inbound-channel-adapter id="withMappedHeaders" channel="requests"
-								mapped-response-headers="foo,bar"/>
+								mapped-request-headers="foo,bar"/>
 
 </beans:beans>
