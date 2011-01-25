@@ -1499,7 +1499,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					should return a Map with String-typed keys.
 					</xsd:documentation>
 				<xsd:appinfo>
-					<tool:annotation kind="ref" />
+					<tool:annotation>
+						<tool:expected-method type-ref="@ref"/>
+					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
