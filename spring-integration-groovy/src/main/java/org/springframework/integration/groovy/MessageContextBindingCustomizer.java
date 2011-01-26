@@ -36,6 +36,8 @@ class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 	private volatile Message<?> message;
 
 	private final GroovyObjectCustomizer customizer;
+	
+	private volatile Map<String, ?> resolvedScriptVariables;
 
 
 	public MessageContextBindingCustomizer() {
@@ -51,19 +53,28 @@ class MessageContextBindingCustomizer implements GroovyObjectCustomizer {
 	}
 
 
+	public void setResolvedScriptVariables(Map<String, ?> resolvedScriptVariables) {
+		this.resolvedScriptVariables = resolvedScriptVariables;
+	}
+
 	public void setMessage(Message<?> message) {
 		this.message = message;
 	}
 
 	public void customize(GroovyObject goo) {
 		Assert.state(goo instanceof Script, "Expected a Script");
-		if (this.customizer != null) {
-			this.customizer.customize(goo);
+		Binding binding = ((Script) goo).getBinding();
+		if (resolvedScriptVariables != null){
+			for (String key : resolvedScriptVariables.keySet()) {
+				binding.setVariable(key, this.resolvedScriptVariables.get(key));
+			}
 		}
 		if (this.message != null) {
-			Binding binding = ((Script) goo).getBinding();
 			binding.setVariable("payload", this.message.getPayload());
 			binding.setVariable("headers", this.message.getHeaders());
+		}
+		if (this.customizer != null){
+			this.customizer.customize(goo);
 		}
 	}
 

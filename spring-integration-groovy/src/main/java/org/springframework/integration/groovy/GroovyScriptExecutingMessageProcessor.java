@@ -36,14 +36,20 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	private final MessageContextBindingCustomizer customizer = new MessageContextBindingCustomizer();
 
 	private final ScriptSource scriptSource;
-
+	
+	private final ScriptVariableSource scriptVariableSource;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
+		this(scriptSource, null);
+	}
+	
+	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableSource scriptVariableSource) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		this.scriptSource = scriptSource;
+		this.scriptVariableSource = scriptVariableSource;
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
 	}
 
@@ -57,9 +63,12 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
 		synchronized (this) {
 			this.customizer.setMessage(message);
+			if (this.scriptVariableSource != null){
+				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables());
+			}		
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;
 		}
-	}
+	}	
 
 }

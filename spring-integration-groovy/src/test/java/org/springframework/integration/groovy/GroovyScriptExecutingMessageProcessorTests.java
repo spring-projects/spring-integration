@@ -22,10 +22,13 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.groovy.config.RefreshableResourceScriptSource;
@@ -59,6 +62,29 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar"+count, result.toString());
+	}
+	
+	@Test
+	public void testSimpleExecutionWithScriptVariableSource() throws Exception {
+		int count = countHolder.getAndIncrement();
+		String script = "return \"payload is $payload, header is $headers.testHeader and date is $date\"";
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar"+count).build();
+		TestResource resource = new TestResource(script, "simpleTest");
+		ScriptSource scriptSource = new ResourceScriptSource(resource);
+		Object result = null;
+		for (int i = 0; i < 5; i++) {
+			ScriptVariableSource scriptVariableSource = new ScriptVariableSource() {	
+				public Map<String, Object> resolveScriptVariables() {
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("date", System.nanoTime());
+					return map;
+				}
+			};
+			MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableSource);
+			Object newResult = processor.processMessage(message);
+			assertFalse(newResult.equals(result)); // make sure that we get different nanotime verifying that resolveScriptVariables() is invoked
+			result = newResult;
+		}
 	}
 
 	@Test
