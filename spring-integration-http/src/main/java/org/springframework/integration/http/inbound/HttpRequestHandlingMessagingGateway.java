@@ -17,6 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -30,6 +31,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
 
@@ -98,12 +100,12 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		if (responseContent != null) {
 			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-			if (responseContent instanceof HttpStatus){
+			if (responseContent instanceof HttpStatus) {
 				response.setStatusCode((HttpStatus) responseContent);
 			}
 			else {
 				this.writeResponse(responseContent, response, request.getHeaders().getAccept());
-			}			
+			}
 		}
 	}
 
@@ -126,6 +128,9 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
+		if (CollectionUtils.isEmpty(acceptTypes)) {
+			acceptTypes = Collections.singletonList(MediaType.ALL);
+		}
 		for (HttpMessageConverter converter : this.getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
 				if (converter.canWrite(content.getClass(), acceptType)) {

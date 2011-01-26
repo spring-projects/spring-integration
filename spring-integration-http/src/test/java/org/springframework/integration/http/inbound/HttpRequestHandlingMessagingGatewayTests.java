@@ -108,6 +108,26 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		assertEquals("HELLO", response.getContentAsString());
 	}
 
+	@Test // INT-1767
+	public void noAcceptHeaderOnRequest() throws Exception {
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return requestMessage.getPayload().toString().toUpperCase();
+			}
+		});
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setRequestPayloadType(String.class);
+		gateway.setRequestChannel(requestChannel);
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("text/plain");
+		request.setContent("hello".getBytes());
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		assertEquals("HELLO", response.getContentAsString());
+	}
+
 	@Test
 	public void testExceptionConversion() throws Exception {
 		QueueChannel requestChannel = new QueueChannel() {
