@@ -64,7 +64,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		synchronized (this) {
 			this.customizer.setMessage(message);
 			if (this.scriptVariableSource != null){
-				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables());
+				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables(message));
 			}		
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;

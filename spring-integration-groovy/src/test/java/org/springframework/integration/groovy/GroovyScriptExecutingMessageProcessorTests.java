@@ -74,7 +74,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Object result = null;
 		for (int i = 0; i < 5; i++) {
 			ScriptVariableSource scriptVariableSource = new ScriptVariableSource() {	
-				public Map<String, Object> resolveScriptVariables() {
+				public Map<String, Object> resolveScriptVariables(Message<?> message) {
 					Map<String, Object> map = new HashMap<String, Object>();
 					map.put("date", System.nanoTime());
 					return map;

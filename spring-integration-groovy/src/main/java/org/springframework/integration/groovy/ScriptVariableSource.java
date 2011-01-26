@@ -17,6 +17,8 @@ package org.springframework.integration.groovy;
 
 import java.util.Map;
 
+import org.springframework.integration.Message;
+
 
 /**
  * @author Oleg Zhurakousky
@@ -24,5 +26,5 @@ import java.util.Map;
  */
 public interface ScriptVariableSource {
 	
-	Map<String, Object> resolveScriptVariables();
+	Map<String, Object> resolveScriptVariables(Message<?> message);
 }
