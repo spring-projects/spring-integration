@@ -17,24 +17,30 @@
 			<xsd:sequence>
 				<xsd:element name="variable" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to define custom Groovy variable bindings. The use of this sub-element is mutually 
+								exclusive with 'script-variable-source' attribute
+							</xsd:documentation>
+						</xsd:annotation>
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Name of the groovy binding variable
+									Name of the Groovy binding variable
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 						<xsd:attribute name="value" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Value of the groovy binding variable
+									Value of the Groovy binding variable
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 						<xsd:attribute name="ref" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Value of the groovy binding variable pointing to a bean reference
+									Value of the Groovy binding variable pointing to a bean reference
 								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:expected-type type="java.lang.Object"/>
@@ -51,6 +57,17 @@
 						as body text should be
 						provided, but not both.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="script-variable-source">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the ScriptVariableSource bean. This attribute is mutually 
+						exclusive with 'variable' sub-element
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:expected-type type="rg.springframework.integration.groovy.ScriptVariableSource"/>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="refresh-check-delay">

@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
@@ -66,6 +67,13 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			return;
 		}
 		
+		String scriptVariableSourceName = element.getAttribute("script-variable-source");
+		
+		if (StringUtils.hasText(scriptVariableSourceName) && variableElements.size() > 0){
+			parserContext.getReaderContext().error("'script-variable-source' and 'variable' sub-element are mutualy exclusive. Must use one or the other.", element);
+			return;
+		}
+		
 		if (StringUtils.hasText(scriptLocation)){
 			builder.addConstructorArgValue(this.resolveScriptLocation(element, parserContext.getReaderContext(), scriptLocation));
 		}
@@ -73,33 +81,34 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			builder.addConstructorArgValue(new StaticScriptSource(scriptText, "groovy.lang.Script"));
 		}
 				
-		BeanDefinitionBuilder scriptVariableSource = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
-		String name = 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(scriptVariableSource.getBeanDefinition(), parserContext.getRegistry());
-		builder.addConstructorArgReference(name);
-		
-		Map<String, Object> variableMap = new HashMap<String, Object>();
-		for (Element childElement : variableElements) {
-			String variableName = childElement.getAttribute("name");
-			String variableValue = childElement.getAttribute("value");
-			String variableRef = childElement.getAttribute("ref");
-			if (StringUtils.hasText(variableValue) && StringUtils.hasText(variableRef)){
-				parserContext.getReaderContext().error("Exactly one of the 'ref' attribute or 'value' attribute, " +
-						" is required for element " +
-						IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+		if (!StringUtils.hasText(scriptVariableSourceName)){
+			BeanDefinitionBuilder scriptVariableSourceBuilder = 
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
+			
+			Map<String, Object> variableMap = new HashMap<String, Object>();
+			for (Element childElement : variableElements) {
+				String variableName = childElement.getAttribute("name");
+				String variableValue = childElement.getAttribute("value");
+				String variableRef = childElement.getAttribute("ref");
+				if (!(StringUtils.hasText(variableValue) ^ StringUtils.hasText(variableRef))) {
+					parserContext.getReaderContext().error("Exactly one of the 'ref' attribute or 'value' attribute, " +
+							" is required for element " +
+							IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+				}
+				if (StringUtils.hasText(variableValue)){
+					variableMap.put(variableName, variableValue);
+				}
+				else {
+					variableMap.put(variableName, new RuntimeBeanReference(variableRef));
+				}
 			}
-			if (StringUtils.hasText(variableValue)){
-				variableMap.put(variableName, variableValue);
+			if (!CollectionUtils.isEmpty(variableMap)){
+				scriptVariableSourceBuilder.addConstructorArgValue(variableMap);
 			}
-			else {
-				// 'null' means that the value will be retrieved from the AC
-				variableMap.put(variableName, null);
-			}
+			scriptVariableSourceName = 
+				BeanDefinitionReaderUtils.registerWithGeneratedName(scriptVariableSourceBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
-		if (!CollectionUtils.isEmpty(variableMap)){
-			scriptVariableSource.addConstructorArgValue(variableMap);
-		}
+		builder.addConstructorArgReference(scriptVariableSourceName);
 	}
 
 	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {

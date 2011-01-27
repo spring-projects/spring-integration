@@ -10,31 +10,12 @@
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<service-activator input-channel="referencedScriptInput">
-		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy">
-			<groovy:variable name="foo" value="foo"/>
-			<groovy:variable name="bar" value="bar"/>
-			<groovy:variable name="date" ref="date"/>
-		</groovy:script>
-	</service-activator>
-	
-	
 	<service-activator input-channel="withScriptVariableSource">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
-					   script-variable-source="scriptVarSource"/>
-	</service-activator>
-	
-	<beans:bean id="scriptVarSource" 
-		class="org.springframework.integration.groovy.config.GroovyServiceActivatorTests.SampleScriptVariSource"/>
-
-	<service-activator input-channel="inlineScriptInput">
-		<groovy:script>
-			<![CDATA[
-				return "inline-$payload"
-			]]>
+					   script-variable-source="scriptVarSource">
+			<groovy:variable name="foo" value="foo"/>
+			<groovy:variable name="bar" value="bar"/>
 		</groovy:script>
 	</service-activator>
-
-	<beans:bean id="date" class="java.util.Date" scope="prototype"/>
 	
 </beans:beans>

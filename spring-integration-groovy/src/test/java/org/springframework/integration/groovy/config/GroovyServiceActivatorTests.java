@@ -21,6 +21,9 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Date;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +33,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.groovy.DefaultScriptVariableSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -47,6 +51,9 @@ public class GroovyServiceActivatorTests {
 
 	@Autowired
 	private MessageChannel inlineScriptInput;
+	
+	@Autowired
+	private MessageChannel withScriptVariableSource;
 
 
 	@Test
@@ -56,6 +63,29 @@ public class GroovyServiceActivatorTests {
 		for (int i = 1; i <= 3; i++) {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.referencedScriptInput.send(message);
+			Thread.sleep(1000);
+		}
+		String value1 = (String) replyChannel.receive(0).getPayload();
+		String value2 = (String) replyChannel.receive(0).getPayload();
+		String value3 = (String) replyChannel.receive(0).getPayload();
+		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
+		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
+		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
+		// becouse we are using 'prototype bean the suffix date will be different
+
+		assertFalse(value1.substring(26).equals(value2.substring(26)));
+		assertFalse(value2.substring(26).equals(value3.substring(26)));
+		
+		assertNull(replyChannel.receive(0));
+	}
+	
+	@Test
+	public void withScriptVariableSource() throws Exception{
+		QueueChannel replyChannel = new QueueChannel();
+		replyChannel.setBeanName("returnAddress");
+		for (int i = 1; i <= 3; i++) {
+			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
+			this.withScriptVariableSource.send(message);
 			Thread.sleep(1000);
 		}
 		String value1 = (String) replyChannel.receive(0).getPayload();
@@ -90,5 +120,17 @@ public class GroovyServiceActivatorTests {
 	public void inlineScriptAndVariables() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-context.xml", this.getClass());
 	}
+	
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void variablesAndScriptVariableSource() throws Exception{
+		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withsource-context.xml", this.getClass());
+	}
 
+	public static class SampleScriptVariSource extends DefaultScriptVariableSource{
+		protected void doResolveScriptVariables(Map<String, Object> variables){
+			variables.put("foo", "foo");
+			variables.put("bar", "bar");
+			variables.put("date", new Date());
+		}
+	}
 }
