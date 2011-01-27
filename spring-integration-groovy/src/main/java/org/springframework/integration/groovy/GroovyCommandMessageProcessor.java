@@ -13,40 +13,26 @@
 
 package org.springframework.integration.groovy;
 
-import groovy.lang.GString;
-
-import java.util.Map;
-
 import org.springframework.integration.Message;
-import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
-import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
-
-	private final GroovyObjectCustomizer customizer;
-
-
+public class GroovyCommandMessageProcessor extends GroovyScriptExecutingMessageProcessor {
+	
 	public GroovyCommandMessageProcessor() {
-		this((GroovyObjectCustomizer) null);
+		super(null);
 	}
-
-	public GroovyCommandMessageProcessor(Map<String, ?> map) {
-		this(new MapContextBindingCustomizer(map));
+	
+	public GroovyCommandMessageProcessor(ScriptVariableSource scriptVariableSource) {
+		super(null, scriptVariableSource);
 	}
-
-	public GroovyCommandMessageProcessor(GroovyObjectCustomizer customizer) {
-		this.customizer = customizer;
-	}
-
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
@@ -56,19 +42,8 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		return new StaticScriptSource((String) payload, className);
 	}
 
-	@Override
-	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
-		// Keeping everything local prevents PermGen (class instances) leaks...
-		MessageContextBindingCustomizer bindingCustomizer = new MessageContextBindingCustomizer(this.customizer);
-		bindingCustomizer.setMessage(message);
-		GroovyScriptFactory scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), bindingCustomizer);
-		Object result = scriptFactory.getScriptedObject(scriptSource, null);
-		return (result instanceof GString) ? result.toString() : result;
-	}
-
 	protected String generateScriptName(Message<?> message) {
 		// Don't use the same script (class) name for all invocations by default
 		return getClass().getSimpleName() + message.getHeaders().getId().toString().replaceAll("-", "");
 	}
-
 }

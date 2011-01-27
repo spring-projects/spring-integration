@@ -13,32 +13,22 @@
 
 package org.springframework.integration.groovy.config;
 
-import groovy.lang.Binding;
-import groovy.lang.GroovyObject;
-import groovy.lang.Script;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.context.Lifecycle;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.groovy.DefaultScriptVariableSource;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.scripting.groovy.GroovyObjectCustomizer;
-import org.springframework.util.CustomizableThreadCreator;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a Groovy Script.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
-
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
@@ -46,8 +36,9 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	@Override
 	protected MessageHandler createHandler() {
-		ControlBusContextBindingCustomizer customizer = new ControlBusContextBindingCustomizer(this.getBeanFactory());
-		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(customizer);
+		DefaultScriptVariableSource scriptVariableSource = new DefaultScriptVariableSource();
+		scriptVariableSource.setBeanFactory(this.getBeanFactory());
+		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
@@ -57,32 +48,4 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		}
 		return handler;
 	}
-
-
-	/**
-	 * Adds any @ManagedResource, Lifecycle, or CustomizableThreadCreator instances from
-	 * the application context to the Script variable bindings.
-	 */
-	private static class ControlBusContextBindingCustomizer implements GroovyObjectCustomizer {
-
-		private final ListableBeanFactory beanFactory;
-
-		public ControlBusContextBindingCustomizer(BeanFactory beanFactory) {
-			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
-		}
-
-		public void customize(GroovyObject goo) {
-			if (this.beanFactory != null) {
-				Binding binding = ((Script) goo).getBinding();
-				for (String name : this.beanFactory.getBeanDefinitionNames()) {
-					Object bean = this.beanFactory.getBean(name);
-					if (bean instanceof Lifecycle || bean instanceof CustomizableThreadCreator
-							|| (AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-						binding.setVariable(name, bean);
-					}
-				}
-			}
-		}
-	}
-
 }

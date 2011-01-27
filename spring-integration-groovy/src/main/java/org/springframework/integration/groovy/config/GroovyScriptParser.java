@@ -19,6 +19,7 @@ package org.springframework.integration.groovy.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
@@ -45,6 +46,11 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		builder.addConstructorArgValue(this.resolveScriptSource(element, parserContext.getReaderContext()));
+		BeanDefinitionBuilder scriptVariableSource = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
+		String name = 
+			BeanDefinitionReaderUtils.registerWithGeneratedName(scriptVariableSource.getBeanDefinition(), parserContext.getRegistry());
+		builder.addConstructorArgReference(name);
 	}
 
 	private Object resolveScriptSource(Element element, XmlReaderContext readerContext) {

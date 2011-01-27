@@ -24,26 +24,26 @@ import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class MapContextBindingCustomizer implements GroovyObjectCustomizer {
+public class MapResolvingBindingCustomizer implements GroovyObjectCustomizer {
 
-	private final Map<String, ?> map;
+	private volatile Map<String, ?> resolvedScriptVariables;
 
-
-	public MapContextBindingCustomizer(Map<String, ?> map) {
-		this.map = map;
+	
+	public void setResolvedScriptVariables(Map<String, ?> resolvedScriptVariables) {
+		this.resolvedScriptVariables = resolvedScriptVariables;
 	}
-
 
 	public void customize(GroovyObject goo) {
 		Assert.state(goo instanceof Script, "Expected a Script");
-		if (this.map != null) {
+		if (this.resolvedScriptVariables != null) {
 			Binding binding = ((Script) goo).getBinding();
-			for (String key : this.map.keySet()) {
-				binding.setVariable(key, this.map.get(key));
+			for (String key : this.resolvedScriptVariables.keySet()) {
+				binding.setVariable(key, this.resolvedScriptVariables.get(key));
 			}
 		}
 	}
-
 }
+

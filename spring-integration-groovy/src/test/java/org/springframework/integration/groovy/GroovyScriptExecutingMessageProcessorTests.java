@@ -22,7 +22,6 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +58,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar"+count).build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
-		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, new DefaultScriptVariableSource());
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar"+count, result.toString());
 	}
@@ -72,14 +71,13 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
+		class CustomScriptVariableSource extends DefaultScriptVariableSource{
+			protected void doResolveScriptVariables(Map<String, Object> variables){
+				variables.put("date", System.nanoTime());
+			}
+		}
 		for (int i = 0; i < 5; i++) {
-			ScriptVariableSource scriptVariableSource = new ScriptVariableSource() {	
-				public Map<String, Object> resolveScriptVariables(Message<?> message) {
-					Map<String, Object> map = new HashMap<String, Object>();
-					map.put("date", System.nanoTime());
-					return map;
-				}
-			};
+			ScriptVariableSource scriptVariableSource = new CustomScriptVariableSource();		
 			MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableSource);
 			Object newResult = processor.processMessage(message);
 			assertFalse(newResult.equals(result)); // make sure that we get different nanotime verifying that resolveScriptVariables() is invoked
@@ -103,7 +101,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
-		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, new DefaultScriptVariableSource());
 		Thread.sleep(20L);
 		resource.setScript("return \"payload is $payload\"");
 		Object result = processor.processMessage(message);
@@ -116,7 +114,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 1000L);
-		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, new DefaultScriptVariableSource());
 		// should be the original script
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
@@ -140,7 +138,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, -1L);
-		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, new DefaultScriptVariableSource());
 		// process with the first script
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
@@ -157,7 +155,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 0);
-		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, new DefaultScriptVariableSource());
 		// process with the first script
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());

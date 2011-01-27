@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
@@ -61,8 +62,9 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(Collections.singletonMap("spam",
-				"bucket"));
+		ScriptVariableSource scriptVariableSource = 
+			new DefaultScriptVariableSource(Collections.singletonMap("spam",(Object)"bucket"));
+		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());
 	}

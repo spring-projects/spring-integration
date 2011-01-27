@@ -27,15 +27,16 @@ import org.springframework.util.Assert;
 /**
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
 	private final GroovyScriptFactory scriptFactory;
 
-	private final MessageContextBindingCustomizer customizer = new MessageContextBindingCustomizer();
+	private final MapResolvingBindingCustomizer customizer = new MapResolvingBindingCustomizer();
 
-	private final ScriptSource scriptSource;
+	private volatile ScriptSource scriptSource;
 	
 	private final ScriptVariableSource scriptVariableSource;
 
@@ -43,16 +44,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * Create a processor for the given {@link ScriptSource}.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		this(scriptSource, null);
+		this(scriptSource, new DefaultScriptVariableSource());
 	}
 	
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableSource scriptVariableSource) {
-		Assert.notNull(scriptSource, "scriptSource must not be null");
 		this.scriptSource = scriptSource;
 		this.scriptVariableSource = scriptVariableSource;
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
 	}
-
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
@@ -61,8 +60,8 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
+		Assert.notNull(scriptSource, "scriptSource must not be null");
 		synchronized (this) {
-			this.customizer.setMessage(message);
 			if (this.scriptVariableSource != null){
 				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables(message));
 			}		
