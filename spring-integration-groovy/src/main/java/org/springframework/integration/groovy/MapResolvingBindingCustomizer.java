@@ -27,11 +27,11 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class MapResolvingBindingCustomizer implements GroovyObjectCustomizer {
+class MapResolvingBindingCustomizer implements GroovyObjectCustomizer {
 
 	private volatile Map<String, ?> resolvedScriptVariables;
 
-	
+
 	public void setResolvedScriptVariables(Map<String, ?> resolvedScriptVariables) {
 		this.resolvedScriptVariables = resolvedScriptVariables;
 	}

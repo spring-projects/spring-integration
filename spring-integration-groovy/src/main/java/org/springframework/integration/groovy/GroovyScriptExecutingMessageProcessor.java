@@ -38,7 +38,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private volatile ScriptSource scriptSource;
 	
-	private final ScriptVariableSource scriptVariableSource;
+	protected final ScriptVariableSource scriptVariableSource;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
@@ -69,5 +69,4 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 			return (result instanceof GString) ? result.toString() : result;
 		}
 	}	
-
 }

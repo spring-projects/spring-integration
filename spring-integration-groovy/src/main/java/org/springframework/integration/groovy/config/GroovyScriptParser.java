@@ -16,6 +16,10 @@
 
 package org.springframework.integration.groovy.config;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,12 +27,15 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.scripting.support.StaticScriptSource;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
@@ -37,7 +44,6 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
 
-
 	@Override
 	protected String getBeanClassName(Element element) {
 		return "org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor";
@@ -45,36 +51,70 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgValue(this.resolveScriptSource(element, parserContext.getReaderContext()));
+		String scriptLocation = element.getAttribute(LOCATION_ATTRIBUTE);
+		String scriptText = DomUtils.getTextValue(element);
+		if (!(StringUtils.hasText(scriptLocation) ^ StringUtils.hasText(scriptText))) {
+			parserContext.getReaderContext().error("Either the 'location' attribute or inline script text must be provided, but not both.", element);
+			return;
+		}
+		
+		List<Element> variableElements = DomUtils.getChildElementsByTagName(element, "variable");
+		
+		if (StringUtils.hasText(scriptText) && variableElements.size() > 0){
+			parserContext.getReaderContext().error("Variable bindings are not allowed when using inline groovy script. " +
+					"Specify location of the script via 'location' attribute instead", element);
+			return;
+		}
+		
+		if (StringUtils.hasText(scriptLocation)){
+			builder.addConstructorArgValue(this.resolveScriptLocation(element, parserContext.getReaderContext(), scriptLocation));
+		}
+		else {
+			builder.addConstructorArgValue(new StaticScriptSource(scriptText, "groovy.lang.Script"));
+		}
+				
 		BeanDefinitionBuilder scriptVariableSource = 
 			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
 		String name = 
 			BeanDefinitionReaderUtils.registerWithGeneratedName(scriptVariableSource.getBeanDefinition(), parserContext.getRegistry());
 		builder.addConstructorArgReference(name);
-	}
-
-	private Object resolveScriptSource(Element element, XmlReaderContext readerContext) {
-		boolean hasScriptLocation = element.hasAttribute(LOCATION_ATTRIBUTE);
-		String scriptText = DomUtils.getTextValue(element);
-		if (!(hasScriptLocation ^ StringUtils.hasText(scriptText))) {
-			readerContext.error("Either the 'location' attribute or inline script text must be provided, but not both.", element);
-			return null;
-		}
-		else if (hasScriptLocation) {
-			String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);			
-			String beanClassName = "org.springframework.integration.groovy.config.RefreshableResourceScriptSource";
-			BeanDefinitionBuilder resourceScriptSourceBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition(beanClassName);
-			resourceScriptSourceBuilder.addConstructorArgValue(element.getAttribute(LOCATION_ATTRIBUTE));
-			if (StringUtils.hasText(refreshDelayText)) {
-				resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
+		
+		Map<String, Object> variableMap = new HashMap<String, Object>();
+		for (Element childElement : variableElements) {
+			String variableName = childElement.getAttribute("name");
+			String variableValue = childElement.getAttribute("value");
+			String variableRef = childElement.getAttribute("ref");
+			if (StringUtils.hasText(variableValue) && StringUtils.hasText(variableRef)){
+				parserContext.getReaderContext().error("Exactly one of the 'ref' attribute or 'value' attribute, " +
+						" is required for element " +
+						IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+			}
+			if (StringUtils.hasText(variableValue)){
+				variableMap.put(variableName, variableValue);
 			}
 			else {
-				resourceScriptSourceBuilder.addConstructorArgValue(-1L);				
+				// 'null' means that the value will be retrieved from the AC
+				variableMap.put(variableName, null);
 			}
-			return resourceScriptSourceBuilder.getBeanDefinition();
 		}
-		return new StaticScriptSource(scriptText, "groovy.lang.Script");
+		if (!CollectionUtils.isEmpty(variableMap)){
+			scriptVariableSource.addConstructorArgValue(variableMap);
+		}
+	}
+
+	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {
+		String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);			
+		String beanClassName = "org.springframework.integration.groovy.config.RefreshableResourceScriptSource";
+		BeanDefinitionBuilder resourceScriptSourceBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(beanClassName);
+		resourceScriptSourceBuilder.addConstructorArgValue(scriptLocation);
+		if (StringUtils.hasText(refreshDelayText)) {
+			resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
+		}
+		else {
+			resourceScriptSourceBuilder.addConstructorArgValue(-1L);				
+		}
+		return resourceScriptSourceBuilder.getBeanDefinition();
 	}
 
 }

@@ -22,12 +22,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.context.Lifecycle;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.Message;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.CustomizableThreadCreator;
 
 /**
  * @author Oleg Zhurakousky
@@ -60,19 +56,17 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 		}
 		// Add contents of 'variableMap'
 		if (!CollectionUtils.isEmpty(variableMap)){
-			scriptVariables.putAll(variableMap);
-		}
-		// Add contents of 'beanFactory'
-		if (this.beanFactory != null){
-			for (String name : this.beanFactory.getBeanDefinitionNames()) {
-				Object bean = this.beanFactory.getBean(name);
-				if (bean instanceof Lifecycle || bean instanceof CustomizableThreadCreator
-						|| (AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-					scriptVariables.put(name, bean);
+			for (String variableName : variableMap.keySet()) {
+				Object variableValue = variableMap.get(variableName);
+				if (variableValue == null){
+					scriptVariables.put(variableName, this.beanFactory.getBean(variableName));
 				}
-			}
+				else {
+					scriptVariables.put(variableName, variableValue);
+				}
+			}		
 		}
-		
+		// custom logic
 		this.doResolveScriptVariables(scriptVariables);
 		return scriptVariables;
 	}

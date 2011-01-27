@@ -13,8 +13,11 @@
 
 package org.springframework.integration.groovy;
 
+import groovy.lang.GString;
+
 import org.springframework.integration.Message;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
 
@@ -41,6 +44,18 @@ public class GroovyCommandMessageProcessor extends GroovyScriptExecutingMessageP
 		String className = generateScriptName(message);
 		return new StaticScriptSource((String) payload, className);
 	}
+	
+	@Override
+	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
+		Assert.notNull(scriptSource, "scriptSource must not be null");
+		MapResolvingBindingCustomizer bindingCustomizer = new MapResolvingBindingCustomizer();
+		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), bindingCustomizer);
+		if (this.scriptVariableSource != null){
+			bindingCustomizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables(message));
+		}
+		Object result = factory.getScriptedObject(scriptSource, null);
+		return (result instanceof GString) ? result.toString() : result;
+	}	
 
 	protected String generateScriptName(Message<?> message) {
 		// Don't use the same script (class) name for all invocations by default

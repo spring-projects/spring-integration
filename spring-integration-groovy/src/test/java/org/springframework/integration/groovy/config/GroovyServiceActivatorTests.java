@@ -16,6 +16,8 @@
 
 package org.springframework.integration.groovy.config;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -23,6 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -46,21 +50,30 @@ public class GroovyServiceActivatorTests {
 
 
 	@Test
-	public void referencedScript() {
+	public void referencedScript() throws Exception{
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
 			this.referencedScriptInput.send(message);
+			Thread.sleep(1000);
 		}
-		assertEquals("groovy-test-1", replyChannel.receive(0).getPayload());
-		assertEquals("groovy-test-2", replyChannel.receive(0).getPayload());
-		assertEquals("groovy-test-3", replyChannel.receive(0).getPayload());
+		String value1 = (String) replyChannel.receive(0).getPayload();
+		String value2 = (String) replyChannel.receive(0).getPayload();
+		String value3 = (String) replyChannel.receive(0).getPayload();
+		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
+		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
+		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
+		// becouse we are using 'prototype bean the suffix date will be different
+
+		assertFalse(value1.substring(26).equals(value2.substring(26)));
+		assertFalse(value2.substring(26).equals(value3.substring(26)));
+		
 		assertNull(replyChannel.receive(0));
 	}
 
 	@Test
-	public void inlineScript() {
+	public void inlineScript() throws Exception{
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -71,6 +84,11 @@ public class GroovyServiceActivatorTests {
 		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
 		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
+	}
+	
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void inlineScriptAndVariables() throws Exception{
+		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-context.xml", this.getClass());
 	}
 
 }

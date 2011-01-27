@@ -1,1 +1,1 @@
-"groovy-$payload"
+"groovy-$payload-" + "$foo" + " - " + bar + " - " + date

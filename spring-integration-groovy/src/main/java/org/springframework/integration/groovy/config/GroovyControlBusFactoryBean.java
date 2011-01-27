@@ -13,11 +13,17 @@
 
 package org.springframework.integration.groovy.config;
 
+import java.util.Map;
+
+import org.springframework.context.Lifecycle;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.groovy.DefaultScriptVariableSource;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.util.CustomizableThreadCreator;
 
 /**
  * FactoryBean for creating {@link MessageHandler} instances to handle a message as a Groovy Script.
@@ -36,7 +42,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	@Override
 	protected MessageHandler createHandler() {
-		DefaultScriptVariableSource scriptVariableSource = new DefaultScriptVariableSource();
+		DefaultScriptVariableSource scriptVariableSource = new ManagedBeansScriptVariableSource();
 		scriptVariableSource.setBeanFactory(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		return this.configureHandler(new ServiceActivatingHandler(processor));
@@ -47,5 +53,21 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			handler.setSendTimeout(this.sendTimeout);
 		}
 		return handler;
+	}
+	
+	private class ManagedBeansScriptVariableSource extends DefaultScriptVariableSource {
+		@Override
+		protected void doResolveScriptVariables(Map<String, Object> variables){
+			if (this.beanFactory != null){
+				for (String name : this.beanFactory.getBeanDefinitionNames()) {
+					Object bean = this.beanFactory.getBean(name);
+					if (bean instanceof Lifecycle || 
+						bean instanceof CustomizableThreadCreator || 
+						(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+							variables.put(name, bean);
+					}
+				}
+			}
+		}
 	}
 }
