@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -40,6 +41,7 @@ import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.http.converter.MultipartAwareFormHttpMessageConverter;
@@ -270,6 +272,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				if (reply != null) {
 					ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 					this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
+					HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) reply).getHeaders());
+					if (httpStatus != null){
+						response.setStatusCode(httpStatus);
+					}	
 					response.close();
 					if (this.extractReplyPayload) {
 						reply = ((Message<?>) reply).getPayload();
@@ -356,6 +362,22 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		throw new MessagingException(
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
 						+ expectedType.getName() + "] and content type [" + contentType + "]");
+	}
+	
+	private HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers){
+		Object httpStatusFromHeader = 
+			headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
+		HttpStatus httpStatus = null;
+		if (httpStatusFromHeader instanceof HttpStatus){
+			httpStatus = (HttpStatus) httpStatusFromHeader;
+		}
+		else if (httpStatusFromHeader instanceof Integer){
+			httpStatus = HttpStatus.valueOf((Integer) httpStatusFromHeader);
+		}
+		else if (httpStatusFromHeader instanceof String){
+			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusFromHeader));
+		}
+		return httpStatus;
 	}
 
 }
