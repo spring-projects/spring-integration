@@ -35,6 +35,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the 'outbound-channel-adapter' element of the http namespace.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -46,7 +47,18 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		builder.addPropertyValue("expectReply", false);
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
+		
+		String restTemplate = element.getAttribute("rest-template");
+		if (StringUtils.hasText(restTemplate)){
+			HttpParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+			builder.addPropertyReference("restTemplate", restTemplate);
+		}
+		else {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
+		}
+		
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		if (StringUtils.hasText(headerMapper)) {
@@ -66,8 +78,6 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
 		if (!CollectionUtils.isEmpty(uriVariableElements)) {
 			Map<String, String> uriVariableExpressions = new HashMap<String, String>();

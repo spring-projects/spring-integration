@@ -234,6 +234,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="rest-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.client.RestTemplate" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="charset" type="xsd:string" />
 			<xsd:attribute name="extract-payload" type="xsd:string" />
 			<xsd:attribute name="expected-response-type" type="xsd:string">
@@ -358,6 +367,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="rest-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.web.client.RestTemplate" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

@@ -94,7 +94,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	private volatile RestTemplate restTemplate = new RestTemplate();
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -115,6 +115,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.uri = uri;
 	}
 
+	public void setRestTemplate(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
+	}
 
 	/**
 	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
