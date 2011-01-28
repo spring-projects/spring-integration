@@ -16,6 +16,7 @@ package org.springframework.integration.groovy;
 import groovy.lang.GString;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
@@ -27,14 +28,12 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class GroovyCommandMessageProcessor extends GroovyScriptExecutingMessageProcessor {
+public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 	
-	public GroovyCommandMessageProcessor() {
-		super(null);
-	}
+	private final ScriptVariableSource scriptVariableSource;
 	
 	public GroovyCommandMessageProcessor(ScriptVariableSource scriptVariableSource) {
-		super(null, scriptVariableSource);
+		this.scriptVariableSource = scriptVariableSource;
 	}
 
 	@Override

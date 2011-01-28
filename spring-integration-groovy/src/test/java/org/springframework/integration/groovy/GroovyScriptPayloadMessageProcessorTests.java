@@ -37,19 +37,21 @@ public class GroovyScriptPayloadMessageProcessorTests {
 
 	private AtomicInteger countHolder = new AtomicInteger();
 
-	private GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor();
+	private GroovyCommandMessageProcessor processor;
 
 	@Test
 	@Repeat(20)
 	public void testSimpleExecution() throws Exception {
 		int count = countHolder.getAndIncrement();
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();
+		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableSource());
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
 	}
 
 	@Test
 	public void testDoubleExecutionWithNewScript() throws Exception {
+		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableSource());
 		Message<?> message = MessageBuilder.withPayload("headers.foo").setHeader("foo", "bar").build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
