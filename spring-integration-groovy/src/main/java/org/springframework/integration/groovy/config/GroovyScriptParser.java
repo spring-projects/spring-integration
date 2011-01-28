@@ -16,15 +16,14 @@
 
 package org.springframework.integration.groovy.config;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
@@ -85,7 +84,7 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			BeanDefinitionBuilder scriptVariableSourceBuilder = 
 				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
 			
-			Map<String, Object> variableMap = new HashMap<String, Object>();
+			ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
 			for (Element childElement : variableElements) {
 				String variableName = childElement.getAttribute("name");
 				String variableValue = childElement.getAttribute("value");

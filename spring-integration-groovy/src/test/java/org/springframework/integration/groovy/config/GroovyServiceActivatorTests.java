@@ -68,6 +68,7 @@ public class GroovyServiceActivatorTests {
 		String value1 = (String) replyChannel.receive(0).getPayload();
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
+		System.out.println(value1 + "\n" + value2 + "\n" + value3);
 		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
 		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
 		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));

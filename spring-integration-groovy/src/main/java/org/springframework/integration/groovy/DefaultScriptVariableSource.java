@@ -22,7 +22,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.integration.Message;
 import org.springframework.util.CollectionUtils;
 
@@ -59,13 +58,7 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 		if (!CollectionUtils.isEmpty(variableMap)){
 			for (String variableName : variableMap.keySet()) {
 				Object variableValue = variableMap.get(variableName);
-				if (variableValue instanceof RuntimeBeanReference){
-					String beanName = ((RuntimeBeanReference)variableValue).getBeanName();
-					scriptVariables.put(variableName, this.beanFactory.getBean(beanName));
-				}
-				else {
-					scriptVariables.put(variableName, variableValue);
-				}
+				scriptVariables.put(variableName, variableValue);
 			}		
 		}
 		// custom logic
