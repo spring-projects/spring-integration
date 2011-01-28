@@ -31,6 +31,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jms.core.JmsTemplate;
 
 /**
  * @author Mark Fisher
@@ -40,7 +41,7 @@ public class JmsInboundChannelAdapterParserTests {
 	long timeoutOnReceive = 3000;
 	
 	@Test
-	public void adapterWithJmsTemplate() {
+	public void adapterWithJmsTemplate() {  
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithJmsTemplate.xml", this.getClass());
 		PollableChannel output = (PollableChannel) context.getBean("output");
@@ -52,6 +53,15 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("jms:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
+	}
+	
+	@Test
+	public void adapterWithoutJmsTemplateAndAcknowlegeMode() {  
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithJmsTemplate.xml", this.getClass());
+		JmsTemplate jmsTemplate = 
+			TestUtils.getPropertyValue(context.getBean("inboundAdapterWithoutJmsTemplate"), "source.jmsTemplate", JmsTemplate.class);
+		assertEquals(0, jmsTemplate.getSessionAcknowledgeMode());
 	}
 
 	@Test

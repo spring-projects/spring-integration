@@ -13,7 +13,12 @@
 	<integration:message-history/>
 
 	<jms:inbound-channel-adapter id="inboundAdapter" jms-template="jmsTemplate" channel="output"/>
+	
+	<jms:inbound-channel-adapter id="inboundAdapterWithoutJmsTemplate" channel="outputA" acknowledge="transacted" 
+									destination-name="foo.bar"/>
 
+	<integration:channel id="outputA"/>
+			
 	<integration:channel id="output">
 		<integration:queue capacity="1"/>
 	</integration:channel>

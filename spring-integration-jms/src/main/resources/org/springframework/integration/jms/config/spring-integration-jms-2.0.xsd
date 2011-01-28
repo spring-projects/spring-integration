@@ -872,7 +872,7 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="jmsAdapterType">
-				<xsd:attribute name="acknowledge" default="auto">
+				<xsd:attribute name="acknowledge">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
 	The native JMS acknowledge mode: "auto", "client", "dups-ok" or "transacted".
