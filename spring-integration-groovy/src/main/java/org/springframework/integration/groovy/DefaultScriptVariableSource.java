@@ -62,7 +62,7 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 			}		
 		}
 		// custom logic
-		this.doResolveScriptVariables(scriptVariables);
+		this.doResolveScriptVariables(scriptVariables, message);
 		return scriptVariables;
 	}
 	/**
@@ -71,7 +71,7 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 	 * 
 	 * @param variables
 	 */
-	protected void doResolveScriptVariables(Map<String, Object> variables){
+	protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
 		
 	}
 }

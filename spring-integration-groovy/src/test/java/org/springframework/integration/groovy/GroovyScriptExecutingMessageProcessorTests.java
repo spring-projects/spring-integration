@@ -72,7 +72,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
 		class CustomScriptVariableSource extends DefaultScriptVariableSource{
-			protected void doResolveScriptVariables(Map<String, Object> variables){
+			protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
 				variables.put("date", System.nanoTime());
 			}
 		}

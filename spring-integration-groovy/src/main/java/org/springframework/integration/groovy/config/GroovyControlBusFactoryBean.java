@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.groovy.DefaultScriptVariableSource;
@@ -57,7 +58,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	
 	private class ManagedBeansScriptVariableSource extends DefaultScriptVariableSource {
 		@Override
-		protected void doResolveScriptVariables(Map<String, Object> variables){
+		protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
 			if (this.beanFactory != null){
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
 					Object bean = this.beanFactory.getBean(name);

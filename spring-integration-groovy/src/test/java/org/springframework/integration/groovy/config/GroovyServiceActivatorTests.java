@@ -128,7 +128,7 @@ public class GroovyServiceActivatorTests {
 	}
 
 	public static class SampleScriptVariSource extends DefaultScriptVariableSource{
-		protected void doResolveScriptVariables(Map<String, Object> variables){
+		protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
 			variables.put("foo", "foo");
 			variables.put("bar", "bar");
 			variables.put("date", new Date());
