@@ -50,8 +50,8 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)){
-			HttpParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addPropertyReference("restTemplate", restTemplate);
+			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+			builder.addConstructorArgReference("restTemplate");
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");

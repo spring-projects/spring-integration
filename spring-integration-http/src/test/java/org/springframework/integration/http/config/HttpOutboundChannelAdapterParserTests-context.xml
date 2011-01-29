@@ -13,6 +13,10 @@
 	<si:channel id="requests"/>
 
 	<outbound-channel-adapter id="minimalConfig" url="http://localhost/test1" channel="requests"/>
+	
+	<outbound-channel-adapter id="restTemplateConfig" url="http://localhost/test1" channel="requests" rest-template="restTemplate"/>
+	
+	<beans:bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
 
 	<outbound-channel-adapter id="fullConfig"
 			url="http://localhost/test2/{foo}"

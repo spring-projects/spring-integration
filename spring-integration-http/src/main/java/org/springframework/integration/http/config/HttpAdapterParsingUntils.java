@@ -23,7 +23,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  * @author Oleg Zhurakousky
  * @since 2.0.2
  */
-public class HttpParsingUtils {
+class HttpAdapterParsingUtils {
 	
 	private static final String[] REST_TEMPLATE_ATTRIBUTES = {
 		"request-factory", "error-handler", "message-converters"

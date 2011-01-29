@@ -94,7 +94,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private volatile RestTemplate restTemplate = new RestTemplate();
+	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -110,13 +110,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * Create a handler that will send requests to the provided URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
+		this(uri, null);
+	}
+	/**
+	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
+	 * @param uri
+	 * @param resrTemplate
+	 */
+	public HttpRequestExecutingMessageHandler(String uri, RestTemplate restTemplate) {
 		Assert.hasText(uri, "URI is required");
+		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
 		this.uri = uri;
-	}
-
-	public void setRestTemplate(RestTemplate restTemplate) {
-		this.restTemplate = restTemplate;
 	}
 
 	/**

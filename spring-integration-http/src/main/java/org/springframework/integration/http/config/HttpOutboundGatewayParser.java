@@ -48,12 +48,11 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				"org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler");
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
-		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		
 		String restTemplate = element.getAttribute("rest-template");
 		if (StringUtils.hasText(restTemplate)){
-			HttpParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addPropertyReference("restTemplate", restTemplate);
+			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
+			builder.addConstructorArgReference("restTemplate");
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
@@ -83,8 +82,6 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
-		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
-		//IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
 		if (!CollectionUtils.isEmpty(uriVariableElements)) {

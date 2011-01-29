@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http.config;
 
+import static junit.framework.Assert.assertNotSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -29,7 +30,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -37,10 +40,12 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.ResponseErrorHandler;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Mark Fisher
@@ -54,14 +59,23 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("fullConfig")
 	private AbstractEndpoint fullConfigEndpoint;
+	
+	@Autowired @Qualifier("restTemplateConfig")
+	private AbstractEndpoint restTemplateConfig;
 
 	@Autowired
 	private ApplicationContext applicationContext;
+	
+	@Autowired
+	private RestTemplate restTemplate;
 
 
 	@Test
 	public void minimalConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfigEndpoint);
+		RestTemplate rTemplate = 
+			TestUtils.getPropertyValue(this.minimalConfigEndpoint, "handler.restTemplate", RestTemplate.class);
+		assertNotSame(restTemplate, rTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
@@ -114,6 +128,18 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(0, mappedResponseHeaders.length);
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
+	}
+	
+	@Test
+	public void restTemplateConfig() {
+		RestTemplate rTemplate = 
+			TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
+		assertEquals(restTemplate, rTemplate);
+	}
+
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void failWithRestTemplateAndRestAttributes() {
+		new ClassPathXmlApplicationContext("HttpOutboundChannelAdapterParserTests-fail-context.xml", this.getClass());
 	}
 
 
