@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,9 +72,13 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
-		class CustomScriptVariableSource extends DefaultScriptVariableSource{
-			protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
+		class CustomScriptVariableSource implements ScriptVariableSource {
+			public Map<String, Object> resolveScriptVariables(Message<?> message) {
+				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("date", System.nanoTime());
+				variables.put("payload", message.getPayload());
+				variables.put("headers", message.getHeaders());
+				return variables;
 			}
 		}
 		for (int i = 0; i < 5; i++) {

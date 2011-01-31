@@ -13,15 +13,18 @@
 
 package org.springframework.integration.groovy.config;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.groovy.DefaultScriptVariableSource;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
+import org.springframework.integration.groovy.ScriptVariableSource;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.CustomizableThreadCreator;
@@ -43,8 +46,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	@Override
 	protected MessageHandler createHandler() {
-		DefaultScriptVariableSource scriptVariableSource = new ManagedBeansScriptVariableSource();
-		scriptVariableSource.setBeanFactory(this.getBeanFactory());
+		ManagedBeansScriptVariableSource scriptVariableSource = new ManagedBeansScriptVariableSource(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
@@ -56,9 +58,16 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		return handler;
 	}
 	
-	private class ManagedBeansScriptVariableSource extends DefaultScriptVariableSource {
-		@Override
-		protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
+	private class ManagedBeansScriptVariableSource implements ScriptVariableSource {
+		private final ListableBeanFactory beanFactory;
+		
+		public ManagedBeansScriptVariableSource(BeanFactory beanFactory){
+			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
+		}
+		
+		public Map<String, Object> resolveScriptVariables(Message<?> message) {
+			Map<String, Object> variables = new HashMap<String, Object>();
+			variables.put("headers", message.getHeaders());
 			if (this.beanFactory != null){
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
 					Object bean = this.beanFactory.getBean(name);
@@ -69,6 +78,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 					}
 				}
 			}
+			return variables;
 		}
 	}
 }

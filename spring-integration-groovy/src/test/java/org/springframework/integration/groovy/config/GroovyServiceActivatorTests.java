@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -34,6 +35,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.groovy.DefaultScriptVariableSource;
+import org.springframework.integration.groovy.ScriptVariableSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -127,11 +129,15 @@ public class GroovyServiceActivatorTests {
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withsource-context.xml", this.getClass());
 	}
 
-	public static class SampleScriptVariSource extends DefaultScriptVariableSource{
-		protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
+	public static class SampleScriptVariSource implements ScriptVariableSource{
+		public Map<String, Object> resolveScriptVariables(Message<?> message) {
+			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
 			variables.put("bar", "bar");
 			variables.put("date", new Date());
+			variables.put("payload", message.getPayload());
+			variables.put("headers", message.getHeaders());
+			return variables;
 		}
 	}
 }

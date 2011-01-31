@@ -61,17 +61,6 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 				scriptVariables.put(variableName, variableValue);
 			}		
 		}
-		// custom logic
-		this.doResolveScriptVariables(scriptVariables, message);
 		return scriptVariables;
-	}
-	/**
-	 * Will allow further customization to the map of script variables
-	 * that will be accessible to script executing engine
-	 * 
-	 * @param variables
-	 */
-	protected void doResolveScriptVariables(Map<String, Object> variables, Message<?> message){
-		
 	}
 }
