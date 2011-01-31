@@ -82,7 +82,7 @@ public class GroovyServiceActivatorTests {
 	}
 	
 	@Test
-	public void withScriptVariableSource() throws Exception{
+	public void withScriptVariableGenerator() throws Exception{
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -125,7 +125,7 @@ public class GroovyServiceActivatorTests {
 	
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void variablesAndScriptVariableSource() throws Exception{
-		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withsource-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
 	}
 
 	public static class SampleScriptVariSource implements ScriptVariableGenerator{

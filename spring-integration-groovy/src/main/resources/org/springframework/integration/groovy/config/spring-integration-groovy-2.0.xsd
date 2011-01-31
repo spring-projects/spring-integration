@@ -20,7 +20,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to define custom Groovy variable bindings. The use of this sub-element is mutually 
-								exclusive with 'script-variable-source' attribute
+								exclusive with 'script-variable-generator' attribute
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:attribute name="name" type="xsd:string">
@@ -59,14 +59,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="script-variable-source">
+			<xsd:attribute name="script-variable-generator" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Reference to the ScriptVariableSource bean. This attribute is mutually 
 						exclusive with 'variable' sub-element
 					</xsd:documentation>
 					<xsd:appinfo>
-						<tool:expected-type type="rg.springframework.integration.groovy.ScriptVariableSource"/>
+						<tool:expected-type type="rg.springframework.integration.groovy.ScriptVariableGenerator"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>

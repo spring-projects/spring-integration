@@ -104,15 +104,15 @@
     </para>
     <para>
      However if you need more dynamics with regard to how a particular variable is generated then all you need to do is 
-     provide your own implementation of ScriptVariableGenerator and inject it via <code>script-variable-source</code> atribute:
+     provide your own implementation of ScriptVariableGenerator and inject it via <code>script-variable-generator</code> attribute:
    <programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy"
-				script-variable-source="scriptVarSource"/>
-<bean id="scriptVariabelSource" class="foo.bar.MyScriptVariableGeneratore"/>]]></programlisting>
+				script-variable-generator="scriptVarGenerator"/>
+<bean id="scriptVariableGenerator" class="foo.bar.MyScriptVariableGenerator"/>]]></programlisting>
 	
 	  <important>
 	  
-	  Remember that <code>script-variable-source</code> and use of &lt;variable&gt; sub-element is mutually exclusive. 
-	  You can only use one of another. Also, the <code>script-variable-source</code> and/or &lt;variable&gt; sub-elements can 
+	  Remember that <code>script-variable-generator</code> and use of &lt;variable&gt; sub-element is mutually exclusive. 
+	  You can only use one of another. Also, the <code>script-variable-generator</code> and/or &lt;variable&gt; sub-elements can 
 	  not be used when using inline script, only when pointing to the script via <code>location</code> attribute.
 
 	  </important>
