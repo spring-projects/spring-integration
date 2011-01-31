@@ -29,17 +29,17 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0.2
  */
-class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVariablesGenerator {
+class DefaultScriptVariableGenerator implements BeanFactoryAware, ScriptVariableGenerator {
 	
 	protected volatile ListableBeanFactory beanFactory;
 	
 	private volatile Map<String, Object> variableMap;
 	
-	public DefaultScriptVariableSource(){
+	public DefaultScriptVariableGenerator(){
 		this(null);
 	}
 	
-	public DefaultScriptVariableSource(Map<String, Object> variableMap){
+	public DefaultScriptVariableGenerator(Map<String, Object> variableMap){
 		this.variableMap = variableMap;
 	}
 	

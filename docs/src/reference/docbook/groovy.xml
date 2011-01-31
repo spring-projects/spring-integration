@@ -74,6 +74,50 @@
     In this case, the "dynamic" aspect of Groovy is not being used, but the syntax
     might be the primary reason that Groovy has been chosen in the first place.
     <important>Inline defined scripts can not be reloaded.</important></para>
+    
+    <para><emphasis>Custom bindings</emphasis> </para>
+    
+    <para>
+    You already know that by default, 'payload' and 'headers' will be bound as Groovy binding variables.
+
+	However, some times in order to take the most out of Groovy you may want to customize Groovy bindings 
+	(e.g., include extra variables pointing to some scalar values or bind some beans as variables etc.)
+   To support this requirement we have defined a simple strategy ScriptVariableGenerator.
+  <programlisting language="java"><![CDATA[public interface ScriptVariableGenerator {
+	
+	Map<String, Object> generateScriptVariables(Message<?> message);
+	
+}]]></programlisting>
+
+	As you can see the only method that needs to be implemented is <code>generateScriptVariables(Message)</code> which takes 
+	Message as an argument (allowing you to use data available in Message payload/headers) and returns the Map of variables 
+	that will be bound as Groovy bindings. This method will be called every time the script is executed. We also provide 
+	default implementation and namespace based configuration for simple bindings via &lt;variable&gt; sub-element (see below):
+	<programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy">
+	<groovy:variable name="foo" value="foo"/>
+	<groovy:variable name="bar" value="bar"/>
+	<groovy:variable name="date" ref="date"/>
+</groovy:script>]]></programlisting>
+
+	As you can see similar to other constructs in Spring, when setting binding variables you can either set scalar values 
+	or reference another bean in the Application Context.
+    </para>
+    <para>
+     However if you need more dynamics with regard to how a particular variable is generated then all you need to do is 
+     provide your own implementation of ScriptVariableGenerator and inject it via <code>script-variable-source</code> atribute:
+   <programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy"
+				script-variable-source="scriptVarSource"/>
+<bean id="scriptVariabelSource" class="foo.bar.MyScriptVariableGeneratore"/>]]></programlisting>
+	
+	  <important>
+	  
+	  Remember that <code>script-variable-source</code> and use of &lt;variable&gt; sub-element is mutually exclusive. 
+	  You can only use one of another. Also, the <code>script-variable-source</code> and/or &lt;variable&gt; sub-elements can 
+	  not be used when using inline script, only when pointing to the script via <code>location</code> attribute.
+
+	  </important>
+
+    </para>
   </section>
 
   <section id="groovy-control-bus">

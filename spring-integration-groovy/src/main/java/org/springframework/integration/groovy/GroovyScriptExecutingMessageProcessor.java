@@ -38,16 +38,16 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private volatile ScriptSource scriptSource;
 	
-	protected final ScriptVariablesGenerator scriptVariableSource;
+	protected final ScriptVariableGenerator scriptVariableSource;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		this(scriptSource, new DefaultScriptVariableSource());
+		this(scriptSource, new DefaultScriptVariableGenerator());
 	}
 	
-	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariablesGenerator scriptVariableSource) {
+	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableSource) {
 		this.scriptSource = scriptSource;
 		this.scriptVariableSource = scriptVariableSource;
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);

@@ -24,7 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
-import org.springframework.integration.groovy.ScriptVariablesGenerator;
+import org.springframework.integration.groovy.ScriptVariableGenerator;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.CustomizableThreadCreator;
@@ -58,7 +58,7 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		return handler;
 	}
 	
-	private class ManagedBeansScriptVariableSource implements ScriptVariablesGenerator {
+	private class ManagedBeansScriptVariableSource implements ScriptVariableGenerator {
 		private final ListableBeanFactory beanFactory;
 		
 		public ManagedBeansScriptVariableSource(BeanFactory beanFactory){

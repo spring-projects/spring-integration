@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 	
-	private final ScriptVariablesGenerator scriptVariableSource;
+	private final ScriptVariableGenerator scriptVariableSource;
 	
-	public GroovyCommandMessageProcessor(ScriptVariablesGenerator scriptVariableSource) {
+	public GroovyCommandMessageProcessor(ScriptVariableGenerator scriptVariableSource) {
 		this.scriptVariableSource = scriptVariableSource;
 	}
 

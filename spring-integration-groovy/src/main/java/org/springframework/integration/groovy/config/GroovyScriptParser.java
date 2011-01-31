@@ -81,7 +81,7 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 				
 		if (!StringUtils.hasText(scriptVariableSourceName)){
 			BeanDefinitionBuilder scriptVariableSourceBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableSource");
+				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableGenerator");
 			
 			ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
 			for (Element childElement : variableElements) {

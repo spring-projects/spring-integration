@@ -34,7 +34,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.groovy.ScriptVariablesGenerator;
+import org.springframework.integration.groovy.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -128,7 +128,7 @@ public class GroovyServiceActivatorTests {
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withsource-context.xml", this.getClass());
 	}
 
-	public static class SampleScriptVariSource implements ScriptVariablesGenerator{
+	public static class SampleScriptVariSource implements ScriptVariableGenerator{
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");

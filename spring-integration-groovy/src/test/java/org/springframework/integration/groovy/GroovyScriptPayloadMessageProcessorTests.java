@@ -44,14 +44,14 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecution() throws Exception {
 		int count = countHolder.getAndIncrement();
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();
-		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableSource());
+		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableGenerator());
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
 	}
 
 	@Test
 	public void testDoubleExecutionWithNewScript() throws Exception {
-		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableSource());
+		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableGenerator());
 		Message<?> message = MessageBuilder.withPayload("headers.foo").setHeader("foo", "bar").build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
@@ -64,8 +64,8 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		ScriptVariablesGenerator scriptVariableSource = 
-			new DefaultScriptVariableSource(Collections.singletonMap("spam",(Object)"bucket"));
+		ScriptVariableGenerator scriptVariableSource = 
+			new DefaultScriptVariableGenerator(Collections.singletonMap("spam",(Object)"bucket"));
 		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());
