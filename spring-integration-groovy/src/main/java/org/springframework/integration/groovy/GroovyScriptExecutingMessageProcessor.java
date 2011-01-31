@@ -38,7 +38,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private volatile ScriptSource scriptSource;
 	
-	protected final ScriptVariableSource scriptVariableSource;
+	protected final ScriptVariablesGenerator scriptVariableSource;
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
@@ -47,7 +47,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		this(scriptSource, new DefaultScriptVariableSource());
 	}
 	
-	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableSource scriptVariableSource) {
+	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariablesGenerator scriptVariableSource) {
 		this.scriptSource = scriptSource;
 		this.scriptVariableSource = scriptVariableSource;
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
@@ -63,7 +63,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		synchronized (this) {
 			if (this.scriptVariableSource != null){
-				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables(message));
+				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.generateScriptVariables(message));
 			}		
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;

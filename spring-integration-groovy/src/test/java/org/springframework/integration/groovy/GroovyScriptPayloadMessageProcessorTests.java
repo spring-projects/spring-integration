@@ -64,7 +64,7 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		ScriptVariableSource scriptVariableSource = 
+		ScriptVariablesGenerator scriptVariableSource = 
 			new DefaultScriptVariableSource(Collections.singletonMap("spam",(Object)"bucket"));
 		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableSource);
 		Object result = processor.processMessage(message);

@@ -24,7 +24,7 @@ import org.springframework.integration.Message;
  * @author Oleg Zhurakousky
  *
  */
-public interface ScriptVariableSource {
+public interface ScriptVariablesGenerator {
 	
-	Map<String, Object> resolveScriptVariables(Message<?> message);
+	Map<String, Object> generateScriptVariables(Message<?> message);
 }

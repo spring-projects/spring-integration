@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 	
-	private final ScriptVariableSource scriptVariableSource;
+	private final ScriptVariablesGenerator scriptVariableSource;
 	
-	public GroovyCommandMessageProcessor(ScriptVariableSource scriptVariableSource) {
+	public GroovyCommandMessageProcessor(ScriptVariablesGenerator scriptVariableSource) {
 		this.scriptVariableSource = scriptVariableSource;
 	}
 
@@ -50,7 +50,7 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		MapResolvingBindingCustomizer bindingCustomizer = new MapResolvingBindingCustomizer();
 		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), bindingCustomizer);
 		if (this.scriptVariableSource != null){
-			bindingCustomizer.setResolvedScriptVariables(this.scriptVariableSource.resolveScriptVariables(message));
+			bindingCustomizer.setResolvedScriptVariables(this.scriptVariableSource.generateScriptVariables(message));
 		}
 		Object result = factory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;

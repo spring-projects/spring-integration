@@ -29,7 +29,7 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0.2
  */
-public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVariableSource {
+class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVariablesGenerator {
 	
 	protected volatile ListableBeanFactory beanFactory;
 	
@@ -47,7 +47,7 @@ public class DefaultScriptVariableSource implements BeanFactoryAware, ScriptVari
 		this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
 	}
 	
-	public Map<String, Object> resolveScriptVariables(Message<?> message){
+	public Map<String, Object> generateScriptVariables(Message<?> message){
 		Map<String, Object> scriptVariables = new HashMap<String, Object>();
 		// Ad Message attributes
 		if (message != null) {

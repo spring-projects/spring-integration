@@ -72,8 +72,8 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
 		Object result = null;
-		class CustomScriptVariableSource implements ScriptVariableSource {
-			public Map<String, Object> resolveScriptVariables(Message<?> message) {
+		class CustomScriptVariableSource implements ScriptVariablesGenerator {
+			public Map<String, Object> generateScriptVariables(Message<?> message) {
 				Map<String, Object> variables = new HashMap<String, Object>();
 				variables.put("date", System.nanoTime());
 				variables.put("payload", message.getPayload());
@@ -82,7 +82,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 			}
 		}
 		for (int i = 0; i < 5; i++) {
-			ScriptVariableSource scriptVariableSource = new CustomScriptVariableSource();		
+			ScriptVariablesGenerator scriptVariableSource = new CustomScriptVariableSource();		
 			MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource, scriptVariableSource);
 			Object newResult = processor.processMessage(message);
 			assertFalse(newResult.equals(result)); // make sure that we get different nanotime verifying that resolveScriptVariables() is invoked

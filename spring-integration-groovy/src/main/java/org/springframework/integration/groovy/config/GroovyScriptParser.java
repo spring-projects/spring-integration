@@ -59,14 +59,13 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 		}
 		
 		List<Element> variableElements = DomUtils.getChildElementsByTagName(element, "variable");
+		String scriptVariableSourceName = element.getAttribute("script-variable-source");
 		
-		if (StringUtils.hasText(scriptText) && variableElements.size() > 0){
-			parserContext.getReaderContext().error("Variable bindings are not allowed when using inline groovy script. " +
+		if (StringUtils.hasText(scriptText) && (variableElements.size() > 0 || StringUtils.hasText(scriptVariableSourceName))){
+			parserContext.getReaderContext().error("Variable bindings or custom ScriptVariabelSource are not allowed when using inline groovy script. " +
 					"Specify location of the script via 'location' attribute instead", element);
 			return;
 		}
-		
-		String scriptVariableSourceName = element.getAttribute("script-variable-source");
 		
 		if (StringUtils.hasText(scriptVariableSourceName) && variableElements.size() > 0){
 			parserContext.getReaderContext().error("'script-variable-source' and 'variable' sub-element are mutualy exclusive. Must use one or the other.", element);

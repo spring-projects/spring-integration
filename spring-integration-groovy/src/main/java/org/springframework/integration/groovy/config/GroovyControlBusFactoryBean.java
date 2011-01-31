@@ -24,7 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
-import org.springframework.integration.groovy.ScriptVariableSource;
+import org.springframework.integration.groovy.ScriptVariablesGenerator;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.CustomizableThreadCreator;
@@ -58,14 +58,14 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		return handler;
 	}
 	
-	private class ManagedBeansScriptVariableSource implements ScriptVariableSource {
+	private class ManagedBeansScriptVariableSource implements ScriptVariablesGenerator {
 		private final ListableBeanFactory beanFactory;
 		
 		public ManagedBeansScriptVariableSource(BeanFactory beanFactory){
 			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
 		}
 		
-		public Map<String, Object> resolveScriptVariables(Message<?> message) {
+		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("headers", message.getHeaders());
 			if (this.beanFactory != null){
