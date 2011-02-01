@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 import org.springframework.integration.core.Message;
@@ -79,6 +91,70 @@ public class DefaultInboundRequestMapperTests {
 		request.setContent(bytes);
 		Message<String> message = (Message<String>) mapper.toMessage(request);
 		assertThat(message.getPayload(), is(content));
+	}
+
+	@Test
+	public void largeStreamTest() throws Exception {
+		final int size = 100000;
+		final byte[] content = new byte[size];
+		for (int i = 0; i < size; i++) {
+			content[i] = 7;
+		}
+		HttpServletRequest request = createMock(HttpServletRequest.class);
+		final InputStream inputStream = new InputStream() {
+			private final AtomicInteger next = new AtomicInteger(0);
+			public int read() throws IOException {
+				if (next.get() >= size) {
+					return -1;
+				}
+				int index = next.getAndIncrement();
+				return content[index];
+			}
+		};
+		expect(request.getInputStream()).andReturn(new ServletInputStream() {
+			public int read(byte[] b) throws IOException {
+				int length = b.length;
+				if (length > 99990) {
+					length = 99990;
+				}
+				byte[] temp = new byte[length];
+				int numRead = inputStream.read(temp);
+				for (int i = 0; i < numRead; i++) {
+					b[i] = temp[i];
+				}
+				return numRead;
+			}
+			public int read(byte[] b, int off, int length) throws IOException {
+				if (length > 99990) {
+					length = 99990;
+				}
+				byte[] temp = new byte[length];
+				int numRead = inputStream.read(temp, 0, length);
+				for (int i = 0; i < numRead; i++) {
+					b[off + i] = temp[i];
+				}
+				return numRead;
+			}
+			public int read() throws IOException {
+				return inputStream.read();
+			}
+		});
+		expect(request.getContentType()).andReturn(null);
+		expect(request.getMethod()).andReturn("POST").anyTimes();
+		expect(request.getContentLength()).andReturn(size);
+		expect(request.getHeaderNames()).andReturn(null);
+		expect(request.getRequestURL()).andReturn(new StringBuffer("http://test"));
+		expect(request.getUserPrincipal()).andReturn(null);
+		replay(request);
+		Message<?> message = mapper.toMessage(request);
+		byte[] payload = (byte[]) message.getPayload();
+		int byteValueCounter = 0;
+		for (byte b : payload) {
+			if (b == 7) {
+				byteValueCounter++;
+			}
+		}
+		assertEquals(size, byteValueCounter);
 	}
 
 }

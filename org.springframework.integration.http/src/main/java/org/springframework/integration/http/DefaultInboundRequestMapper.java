@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -225,7 +226,8 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	}
 
 	private byte[] createPayloadFromInputStream(HttpServletRequest request) throws Exception {
-		InputStream stream = request.getInputStream();
+		int bufferSize = 4096;
+		InputStream in = request.getInputStream();
 		int length = request.getContentLength();
 		if (length == -1) {
 			throw new ResponseStatusCodeException(HttpServletResponse.SC_LENGTH_REQUIRED);
@@ -234,9 +236,13 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 			logger.debug("received " + request.getMethod() + " request, "
 					+ "creating byte array payload with content lenth: " + length);
 		}
-		byte[] bytes = new byte[length];
-		stream.read(bytes, 0, length);
-		return bytes;
+		ByteArrayOutputStream out = new ByteArrayOutputStream(bufferSize);
+		byte[] buffer = new byte[bufferSize];
+		int bytesRead = -1;
+		while ((bytesRead = in.read(buffer)) != -1) {
+			out.write(buffer, 0, bytesRead);
+		}
+		return out.toByteArray();
 	}
 
 	private void populateHeaders(HttpServletRequest request, MessageBuilder<?> builder) {
