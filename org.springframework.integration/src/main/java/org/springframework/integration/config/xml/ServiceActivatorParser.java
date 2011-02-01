@@ -34,12 +34,12 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
-		
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");
 		if (innerHandlerDefinition != null){
 			builder.addConstructorArgValue(innerHandlerDefinition);
-		} else {
+		}
+		else {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			if (!StringUtils.hasText(ref)) {
 				parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required for element "
@@ -47,11 +47,11 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 			}
 			builder.addConstructorArgReference(ref);
 		}
-		
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "requires-reply");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}

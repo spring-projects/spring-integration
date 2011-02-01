@@ -443,7 +443,7 @@
 			default="true" />
 	</xsd:complexType>
 
-	<xsd:element name="service-activator" type="innerEndpointDefinitionAware">
+	<xsd:element name="service-activator">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an endpoint for exposing any bean
@@ -459,6 +459,21 @@
 				should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="innerEndpointDefinitionAware">
+					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify whether the service method must return a non-null value. This value will be
+	FALSE by default, but if set to TRUE, a MessageHandlingException will be thrown when
+	the underlying service method (or expression) returns a NULL value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="handlerEndpointType">
