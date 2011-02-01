@@ -1231,7 +1231,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="receive-timeout" type="xsd:string" />
-		<xsd:attribute name="send-timeout" type="xsd:string" />
 		<xsd:attribute name="max-messages-per-poll" type="xsd:string" />
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
