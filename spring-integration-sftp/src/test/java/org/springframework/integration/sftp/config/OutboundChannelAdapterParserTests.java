@@ -39,12 +39,12 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Oleg Zhurakousky
  *
  */
-public class OutboundChannelAdapaterParserTests {
+public class OutboundChannelAdapterParserTests {
 
 	@Test
-	public void testOutboundChannelAdapaterWithId(){
+	public void testOutboundChannelAdapterWithId(){
 		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
@@ -66,9 +66,9 @@ public class OutboundChannelAdapaterParserTests {
 	}
 	
 	@Test
-	public void testOutboundChannelAdapaterWithWithRemoteDirectoryAndFileExpression(){
+	public void testOutboundChannelAdapterWithWithRemoteDirectoryAndFileExpression(){
 		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapterWithExpression");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
@@ -87,13 +87,13 @@ public class OutboundChannelAdapaterParserTests {
 	
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithRemoteDirAndExpression(){
-		new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
 		
 	}
 	
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithFileExpressionAndFileGenerator(){
-		new ClassPathXmlApplicationContext("OutboundChannelAdapaterParserTests-context-fail-fileFileGen.xml", this.getClass());
+		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail-fileFileGen.xml", this.getClass());
 		
 	}
 }

@@ -41,7 +41,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  */
-public class InboundChannelAdapaterParserTests {
+public class InboundChannelAdapterParserTests {
 	
 	@Before
 	public void prepare(){
@@ -51,7 +51,7 @@ public class InboundChannelAdapaterParserTests {
 	@Test
 	public void testWithLocalFiles() throws Exception{
 		ApplicationContext context =
-			new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
+			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("src/main/resources").exists());
 	
 		Object adapter = context.getBean("sftpAdapterAutoCreate");
@@ -71,26 +71,26 @@ public class InboundChannelAdapaterParserTests {
 	//exactly one of 'filename-pattern' or 'filter' is allowed on SFTP inbound adapter
 	public void testFailWithFilePatternAndFilter() throws Exception{
 		assertTrue(!new File("target/bar").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail.xml", this.getClass());
 	}
 
 	@Test @Ignore
 	public void testLocalFilesAreFound() throws Exception{
 		assertTrue(new File("target").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("target").exists());
 	}
 	
 	@Test
 	public void testLocalDirAutoCreated() throws Exception{
 		assertFalse(new File("foo").exists());
-		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
 		assertTrue(new File("foo").exists());
 	}
 	
 	@Test(expected=BeanCreationException.class)
 	public void testLocalDirAutoCreateFailed() throws Exception{
-		new ClassPathXmlApplicationContext("InboundChannelAdapaterParserTests-context-fail-autocreate.xml", this.getClass());
+		new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context-fail-autocreate.xml", this.getClass());
 	}
 	
 	@After
