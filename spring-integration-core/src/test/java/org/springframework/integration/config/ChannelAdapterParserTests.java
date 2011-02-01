@@ -36,6 +36,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -219,6 +220,17 @@ public class ChannelAdapterParserTests {
 	public void methodInvokingSourceAdapterIsNotChannel() {
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		channelResolver.resolveChannelName("methodInvokingSource");
+	}
+	
+	@Test
+	public void methodInvokingSourceWithSendTimeout() throws Exception{
+		String beanName = "methodInvokingSourceWithTimeout";
+		
+		SourcePollingChannelAdapter adapter = 
+			this.applicationContext.getBean(beanName, SourcePollingChannelAdapter.class);
+		assertNotNull(adapter);
+		long sendTimeout = TestUtils.getPropertyValue(adapter, "messagingTemplate.sendTimeout", Long.class);
+		assertEquals(999, sendTimeout);
 	}
 
 	public static class SampleBean{

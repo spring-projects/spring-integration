@@ -809,6 +809,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:attributeGroup name="channelAdapterAttributes">
 		<xsd:attribute name="id" type="xsd:ID" />
+		<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel 
+					is a Queue Channel since Queue Channel is the only channel that has the concept capacity. If maximum capasity is reached
+					the messages will be rejected by the Queue Channel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

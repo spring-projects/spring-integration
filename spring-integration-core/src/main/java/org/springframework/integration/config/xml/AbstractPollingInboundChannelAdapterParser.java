@@ -41,6 +41,7 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SourcePollingChannelAdapterFactoryBean");
 		adapterBuilder.addPropertyValue("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "send-timeout");
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, adapterBuilder, parserContext);

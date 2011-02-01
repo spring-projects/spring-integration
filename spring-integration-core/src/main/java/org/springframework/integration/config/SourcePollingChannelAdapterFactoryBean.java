@@ -47,6 +47,8 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 	private volatile PollerMetadata pollerMetadata;
 
 	private volatile boolean autoStartup = true;
+	
+	private volatile long sendTimeout = -1;
 
 	private volatile String beanName;
 
@@ -62,6 +64,10 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
+	}
+	
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -130,6 +136,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 				this.pollerMetadata.setMaxMessagesPerPoll(1);
 			}
 			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
+			spca.setSendTimeout(this.sendTimeout);
 			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
 			spca.setTrigger(this.pollerMetadata.getTrigger());
