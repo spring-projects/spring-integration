@@ -149,13 +149,15 @@
              the header ip_connection_id that was inserted into the original message by
              the connection factory.</para></tip>
       <tip>
-       <para>This is the extent of message correlation performed when sharing connection
-      factories between inbound and outbound adapters. Such sharing allows for
-      asynchronous two-way communication over TCP. Only payload information is
-      transferred using TCP; therefore any message correlation must be performed
-      by downstream components such as aggregators or other endpoints.
-      For more information refer to  
-      <xref linkend="ip-correlation">TCP Message Correlation</xref></para></tip>
+       <para>
+        This is the extent of message correlation performed when sharing connection
+        factories between inbound and outbound adapters. Such sharing allows for
+        asynchronous two-way communication over TCP. Only payload information is
+        transferred using TCP; therefore any message correlation must be performed
+        by downstream components such as aggregators or other endpoints.
+        For more information refer to <xref linkend="ip-correlation" />.
+       </para>
+      </tip>
     </para>
     <para>
       A maximum of one adapter of each type may be given a reference to a connection
@@ -531,13 +533,40 @@
      such as the <classname>DefaultSerializer/Deserializer</classname> which use java 
      serialization, or a custom serializer and deserializer. 
      The <classname>ByteArray*Serializer</classname> options
-     mentioned in <xref linkend="connection-factories">Connection Factories</xref>,
+     mentioned in <xref linkend="connection-factories" />,
      including the default <classname>ByteArrayCrLfSerializer</classname>, 
      do not support such payloads,
      unless the transformed payload is a <classname>String</classname> or 
      <classname>byte[]</classname>, 
     </para>
    </section>
+  </section>
+  <section id="note_nio">
+   <title>A Note About NIO</title>
+   <para>
+    Using NIO (see <classname>using-nio</classname> in 
+    <xref linkend="ip-endpoint-reference" />)
+    avoids dedicating a thread to read from each socket. For a small number
+    of sockets, you will likely find that <emphasis>not</emphasis> using NIO, 
+    together with an async handoff (e.g. to a <classname>QueueChannel</classname>), 
+    will perform  as well as, or better than, using NIO.
+   </para>
+   <para>
+    Consider using NIO when handling a large number of connections. However, the use
+    of NIO has some other ramifications. A pool of threads (in the task executor) is
+    shared across all the sockets; each incoming message is assembled and sent to the
+    configured channel as a separate unit of work on a thread selected from that pool.
+    Two sequential
+    messages arriving on the <emphasis>same</emphasis> socket <emphasis>might</emphasis>
+    be processed by different threads. This means that the order in which the messages are
+    sent to the channel is indeterminate; the strict ordering of the messages on the
+    socket is not maintained.     
+   </para>
+   <para>
+    For some applications, this is not an issue; for others it is. If strict ordering
+    is required, consider setting <classname>using-nio</classname> to false
+    and using async handoff.
+   </para>
   </section>
   <section id="ip-endpoint-reference">
     <title>IP Configuration Attributes</title>
@@ -603,8 +632,10 @@
               <entry>Y</entry>
               <entry>Y</entry>
               <entry>true, false</entry>
-              <entry>Whether or not the tcp adapter is using NIO. Refer to the java.nio
-                     package for more information. Default false.</entry>
+              <entry>Whether or not the socket handing uses NIO. Refer to the java.nio
+                     package for more information.
+                     See <xref linkend="note_nio" />. 
+                     Default false.</entry>
             </row>
             <row>
               <entry>using-direct-buffers</entry>
