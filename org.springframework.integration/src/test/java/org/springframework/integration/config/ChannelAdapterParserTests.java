@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -178,6 +179,16 @@ public class ChannelAdapterParserTests {
 	public void methodInvokingSourceAdapterIsNotChannel() {
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		channelResolver.resolveChannelName("methodInvokingSource");
+	}
+
+	@Test
+	public void methodInvokingSourceWithSendTimeout() throws Exception{
+		String beanName = "methodInvokingSourceWithTimeout";
+		SourcePollingChannelAdapter adapter = 
+				(SourcePollingChannelAdapter) this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		long sendTimeout = TestUtils.getPropertyValue(adapter, "channelTemplate.sendTimeout", Long.class);
+		assertEquals(999, sendTimeout);
 	}
 
 }

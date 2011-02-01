@@ -21,6 +21,17 @@
 		</poller>
 	</inbound-channel-adapter>
 
+	<channel id="withTimeoutChannel">
+		<queue/>
+	</channel>
+
+	<inbound-channel-adapter id="methodInvokingSourceWithTimeout" ref="testBean" method="getMessage" 
+			channel="withTimeoutChannel" auto-startup="false" send-timeout="999">
+		<poller max-messages-per-poll="1">
+			<interval-trigger interval="800" fixed-rate="true"/>
+		</poller>
+	</inbound-channel-adapter>
+
 	<beans:bean id="consumer" class="org.springframework.integration.config.TestConsumer"/>
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean"/>

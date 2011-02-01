@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ public class SourcePollingChannelAdapterFactoryBean
 
 	private volatile PollerMetadata pollerMetadata;
 
+	private volatile Long sendTimeout;
+
 	private volatile boolean autoStartup = true;
 
 	private volatile String beanName;
@@ -70,6 +72,10 @@ public class SourcePollingChannelAdapterFactoryBean
 
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
 		this.pollerMetadata = pollerMetadata;
+	}
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -126,6 +132,9 @@ public class SourcePollingChannelAdapterFactoryBean
 			}
 			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
+			if (this.sendTimeout != null) {
+				spca.setSendTimeout(this.sendTimeout);
+			}
 			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 			spca.setTransactionManager(this.pollerMetadata.getTransactionManager());
 			spca.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());

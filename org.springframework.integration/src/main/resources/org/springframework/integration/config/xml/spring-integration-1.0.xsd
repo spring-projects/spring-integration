@@ -339,7 +339,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Channel Adapter that receives from a
@@ -347,6 +347,20 @@
 				MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="methodInvokingChannelAdapterType">
+					<xsd:attribute name="send-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel may block.
+	For example, a Queue Channel can block until space is available if its maximum capacity has been reached.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="outbound-channel-adapter">
