@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
@@ -56,7 +57,7 @@ public class GatewayRequiresReplyTests {
 	public void timedOutGateway() {
 		TestService gateway = (TestService) applicationContext.getBean("timeoutGateway");
 		String result = gateway.test("hello");
-		System.out.println("Result: " + result);
+		assertNull(result);
 	}
 
 
