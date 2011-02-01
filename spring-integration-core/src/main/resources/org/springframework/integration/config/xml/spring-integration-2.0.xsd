@@ -694,6 +694,14 @@
 			</xsd:sequence>
 			<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
 			<xsd:attributeGroup ref="channelAdapterAttributes" />
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+		Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel may block.
+		For example, a Queue Channel can block until space is available if its maximum capacity has been reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -809,14 +817,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:attributeGroup name="channelAdapterAttributes">
 		<xsd:attribute name="id" type="xsd:ID" />
-		<xsd:attribute name="send-timeout" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel may block.
-	For example, a Queue Channel can block until space is available if its maximum capacity has been reached.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
