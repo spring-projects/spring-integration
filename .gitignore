@@ -1,1 +1,5 @@
 buildSrc
+integration-repo
+ivy-cache
+spring-build
+target

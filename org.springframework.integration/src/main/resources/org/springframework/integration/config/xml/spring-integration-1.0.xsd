@@ -765,7 +765,6 @@
 			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="receive-timeout" type="xsd:string" />
-		<xsd:attribute name="send-timeout" type="xsd:string" />
 		<xsd:attribute name="max-messages-per-poll" type="xsd:string" />
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
