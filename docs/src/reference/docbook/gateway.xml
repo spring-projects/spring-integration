@@ -31,6 +31,30 @@ public interface Cafe {
       proxied instance of the Cafe interface has no awareness of the Spring Integration API. The general
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
       an example that uses this "gateway" element (in the Cafe demo).
+      <important>
+      In 90% of the cases you don't have to specify <code>default-reply-channel</code> since by default Gateway will always 
+      auto-create a temporary reply channel where it will listen for the reply.
+      However, there are some cases which may prompt you to define a <code>default-reply-channel</code> (or <code>reply-channel</code> 
+      with adapter gateways such as HTTP, JMS etc.).
+	  First quickly about some of the details on inner-workings of the Gateway.
+      Gateway will always create a default (temporary) reply channel which is always anonymous and DirectChannel and it is injected 
+      into the MessageHeaders as <code>replyChannel</code>. 
+      When providing an explicit <code>default-reply-channel</code> (<code>reply-channel</code> with remote adapter gateways), 
+      now you have an option to point to a pub-sub channel which is obviously named, so you can add subscriber to it. 
+      Internally Spring Integration will create a Bridge between the temporary <code>replyChannel</code> and explicitly defined 
+      <code>default-reply-channel</code>. 
+
+	  So let's say you want your reply to go not only to the gateway, but also to some other consumer. In this case you 
+	  would want two things; <emphasis>a) Named channel you can subscribe to; b) Such channel must be publish-subscribe channel.</emphasis> 
+	  Obviously default strategy used by the gateway will not satisfy you simply because default reply channel is anonymous and 
+	  DirectChannel. This  means that second subscribers can't get a handle to it and even if it could (somehow), the channel 
+	  is still a DirectChannel which means only one subscriber would get the Message. So by defining a <code>default-reply-channel</code> 
+	  you can point to a channel of your choosing which for this case would be <code>publish-subscribe-channel</code> and 
+	  Spring Integration would bridge it with the temporary reply channel.
+
+      Another case is monitoring/auditing via interceptor (e.g., wiretap). Yet again you can't add an interceptor to a 
+      nameless channel, but you can to a named one. 
+      </important>
   </para>
     <para>
       The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
