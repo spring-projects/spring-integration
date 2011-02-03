@@ -370,15 +370,19 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
 
+			Integer priority = requestMessage.getHeaders().getPriority();
+			if (priority == null) {
+				priority = this.priority;
+			}
 			javax.jms.Message replyMessage = null;
 			if (this.correlationKey != null) {
-				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(jmsRequest, replyTo, session);
+				replyMessage = this.doSendAndReceiveWithGeneratedCorrelationId(jmsRequest, replyTo, session, priority);
 			}
 			else if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
-				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(jmsRequest, replyTo, session);
+				replyMessage = this.doSendAndReceiveWithTemporaryReplyToDestination(jmsRequest, replyTo, session, priority);
 			}
 			else {
-				replyMessage = this.doSendAndReceiveWithMessageIdCorrelation(jmsRequest, replyTo, session);
+				replyMessage = this.doSendAndReceiveWithMessageIdCorrelation(jmsRequest, replyTo, session, priority);
 			}
 			return replyMessage;
 		}
@@ -392,7 +396,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * Creates the MessageConsumer before sending the request Message since we are generating our own correlationId value for the MessageSelector.
 	 */
-	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+	private javax.jms.Message doSendAndReceiveWithGeneratedCorrelationId(javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		MessageProducer messageProducer = null;
 		MessageConsumer messageConsumer = null;
 		try {
@@ -409,7 +413,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				messageSelector = this.correlationKey + " = '" + correlationId + "'";
 			}
 			messageConsumer = session.createConsumer(replyTo, messageSelector);
-			this.sendRequestMessage(jmsRequest, messageProducer);
+			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			return this.receiveReplyMessage(messageConsumer);
 		}
 		finally {
@@ -421,13 +425,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * Creates the MessageConsumer before sending the request Message since we do not need any correlation.
 	 */
-	private javax.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+	private javax.jms.Message doSendAndReceiveWithTemporaryReplyToDestination(javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		MessageProducer messageProducer = null;
 		MessageConsumer messageConsumer = null;
 		try {
 			messageProducer = session.createProducer(this.getRequestDestination(session));
 			messageConsumer = session.createConsumer(replyTo);
-			this.sendRequestMessage(jmsRequest, messageProducer);
+			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			return this.receiveReplyMessage(messageConsumer);
 		}
 		finally {
@@ -439,7 +443,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * Creates the MessageConsumer after sending the request Message since we need the MessageID for correlation with a MessageSelector.
 	 */
-	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(javax.jms.Message jmsRequest, Destination replyTo, Session session) throws JMSException {
+	private javax.jms.Message doSendAndReceiveWithMessageIdCorrelation(javax.jms.Message jmsRequest, Destination replyTo, Session session, int priority) throws JMSException {
 		if (replyTo instanceof Topic && logger.isWarnEnabled()) {
 			logger.warn("Relying on the MessageID for correlation is not recommended when using a Topic as the replyTo Destination " +
 					"because that ID can only be provided to a MessageSelector after the reuqest Message has been sent thereby " +
@@ -451,7 +455,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		MessageConsumer messageConsumer = null;
 		try {
 			messageProducer = session.createProducer(this.getRequestDestination(session));
-			this.sendRequestMessage(jmsRequest, messageProducer);
+			this.sendRequestMessage(jmsRequest, messageProducer, priority);
 			String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
 			String messageSelector = "JMSCorrelationID = '" + messageId + "'";
 			messageConsumer = session.createConsumer(replyTo, messageSelector);
@@ -463,9 +467,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
-	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer) throws JMSException {
+	private void sendRequestMessage(javax.jms.Message jmsRequest, MessageProducer messageProducer, int priority) throws JMSException {
 		if (this.explicitQosEnabled) {
-			messageProducer.send(jmsRequest, this.deliveryMode, this.priority, this.timeToLive);
+			messageProducer.send(jmsRequest, this.deliveryMode, priority, this.timeToLive);
 		}
 		else {
 			messageProducer.send(jmsRequest);

@@ -20,6 +20,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,8 +32,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,10 +48,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class JmsPriorityTests {
 
 	@Autowired
-	private MessageChannel outbound;
+	private MessageChannel channelAdapterChannel;
 
 	@Autowired
-	private PollableChannel results;
+	private PollableChannel channelAdapterResults;
+
+	@Autowired
+	private MessageChannel gatewayChannel;
+
 
 	@Before
 	public void prepareActiveMq() {
@@ -52,10 +63,10 @@ public class JmsPriorityTests {
 	}
 
 	@Test
-	public void verifyPrioritySettingOnAdapterUsedAsJmsPriorityIfNoHeader() throws Exception {
+	public void verifyPrioritySettingOnChannelAdapterUsedAsJmsPriorityIfNoHeader() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		outbound.send(message);
-		Message<?> result = results.receive(5000);
+		channelAdapterChannel.send(message);
+		Message<?> result = channelAdapterResults.receive(5000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof javax.jms.Message);
 		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
@@ -63,14 +74,45 @@ public class JmsPriorityTests {
 	}
 
 	@Test
-	public void verifyPriorityHeaderUsedAsJmsPriority() throws Exception {
+	public void verifyPriorityHeaderUsedAsJmsPriorityWithChannelAdapter() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").setPriority(7).build();
-		outbound.send(message);
-		Message<?> result = results.receive(5000);
+		channelAdapterChannel.send(message);
+		Message<?> result = channelAdapterResults.receive(5000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof javax.jms.Message);
 		javax.jms.Message jmsMessage = (javax.jms.Message) result.getPayload();
 		assertEquals(7, jmsMessage.getJMSPriority());
+	}
+
+	@Test
+	public void verifyPrioritySettingOnGatewayUsedAsJmsPriorityIfNoHeader() throws Exception {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
+		gatewayChannel.send(message);
+		Message<?> result = replyChannel.receive(5000);
+		assertNotNull(result);
+		assertEquals("priority=2", result.getPayload());
+	}
+
+	@Test
+	public void verifyPriorityHeaderUsedAsJmsPriorityWithGateway() throws Exception {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test").setPriority(8).setReplyChannel(replyChannel).build();
+		gatewayChannel.send(message);
+		Message<?> result = replyChannel.receive(5000);
+		assertNotNull(result);
+		assertEquals("priority=8", result.getPayload());
+	}
+
+
+	public static class PriorityReader implements SessionAwareMessageListener<javax.jms.Message> {
+
+		public void onMessage(javax.jms.Message request, Session session) throws JMSException {
+			String text = "priority=" + request.getJMSPriority();
+			TextMessage reply = session.createTextMessage(text);
+			MessageProducer producer = session.createProducer(request.getJMSReplyTo());
+			producer.send(reply);
+		}
 	}
 
 }
