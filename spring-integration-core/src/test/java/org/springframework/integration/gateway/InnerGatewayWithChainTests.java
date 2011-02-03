@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -33,18 +34,36 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class InnerGatewayWithChainTests {
 	
 	@Autowired
-	private TestGateway testGateway;
+	private TestGateway testGatewayWithErrorChannelA;
+	
+	@Autowired
+	private TestGateway testGatewayWithErrorChannelAA;
+	
+	@Autowired
+	private TestGateway testGatewayWithNoErrorChannelAAA;
 
 	@Test
 	public void testExceptionHandledByMainGateway(){
-		String reply = testGateway.echo(5);
+		String reply = testGatewayWithErrorChannelA.echo(5);
+		assertEquals("ERROR from errorChannelA", reply);
+	}
+	
+	@Test
+	public void testExceptionHandledByMainGatewayNoErrorChannelInChain(){
+		String reply = testGatewayWithErrorChannelAA.echo(0);
 		assertEquals("ERROR from errorChannelA", reply);
 	}
 	
 	@Test
 	public void testExceptionHandledByInnerGateway(){
-		String reply = testGateway.echo(0);
+		String reply = testGatewayWithErrorChannelA.echo(0);
 		assertEquals("ERROR from errorChannelB", reply);
+	}
+	
+	// if no error channels explicitly defined exception is rethrown
+	@Test(expected=MessageHandlingException.class)
+	public void testGatewaysNoErrorChannel(){
+		testGatewayWithNoErrorChannelAAA.echo(0);
 	}
 	
 	public static interface TestGateway{

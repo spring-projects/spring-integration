@@ -35,7 +35,7 @@ public class SftpInboundOutboundSanitySample {
 	
 
 	@Test
-	@Ignore
+	//@Ignore
 	public void testInbound() throws Exception{
 		File fileA = new File("local-test-dir/a.test");
 		if (fileA.exists()){
@@ -55,11 +55,12 @@ public class SftpInboundOutboundSanitySample {
 		}
 		
 		new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored.xml", this.getClass());
-		Thread.sleep(3000);
-		fileA = new File("local-test-dir/a.test");
-		fileB = new File("local-test-dir/b.test");
-		assertTrue(fileA.exists());
-		assertTrue(fileB.exists());
+		System.in.read();
+		//Thread.sleep(30000);
+//		fileA = new File("local-test-dir/a.test");
+//		fileB = new File("local-test-dir/b.test");
+//		assertTrue(fileA.exists());
+//		assertTrue(fileB.exists());
 	}
 	
 	@Test

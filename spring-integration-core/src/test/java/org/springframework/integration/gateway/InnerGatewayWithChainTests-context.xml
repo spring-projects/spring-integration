@@ -14,7 +14,7 @@
 	<int:service-activator input-channel="errorChannelB" expression="'ERROR from errorChannelB'"/>
 		
 
-	<int:gateway id="testGateway" 
+	<int:gateway id="testGatewayWithErrorChannelA" 
 	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
 	             default-request-channel="requestChannelA"
 	             error-channel="errorChannelA"/>
@@ -22,6 +22,25 @@
 	<int:chain input-channel="requestChannelA">
 		<int:service-activator expression="1/(payload-5)"/>
 		<int:gateway request-channel="requestChannelB" error-channel="errorChannelB"/>
+	</int:chain>
+	
+	<int:gateway id="testGatewayWithErrorChannelAA" 
+	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
+	             default-request-channel="requestChannelAA"
+	             error-channel="errorChannelA"/>
+	                    
+	<int:chain input-channel="requestChannelAA">
+		<int:service-activator expression="1/(payload-5)"/>
+		<int:gateway request-channel="requestChannelB"/>
+	</int:chain>
+	
+	<int:gateway id="testGatewayWithNoErrorChannelAAA" 
+	             service-interface="org.springframework.integration.gateway.InnerGatewayWithChainTests.TestGateway"
+	             default-request-channel="requestChannelAAA"/>
+	                    
+	<int:chain input-channel="requestChannelAAA">
+		<int:service-activator expression="1/(payload-5)"/>
+		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
 	
 	<int:service-activator input-channel="requestChannelB" expression="10/payload"/>
