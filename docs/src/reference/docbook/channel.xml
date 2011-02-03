@@ -418,6 +418,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 ]]></programlisting>
       </para>
     </section>
+    
+    
     <section id="channel-configuration-queuechannel">
       <title>QueueChannel Configuration</title>
       <para>
@@ -432,7 +434,62 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
           recommended to set an explicit value for a bounded queue.
         </note>
       </para>
+      
+      <para><emphasis>Persistent QueueChannel Configuration</emphasis></para>
+      
+      <para>
+      Since <classname>QueueChannel</classname> provides capability to buffer Messages it also introduces a point of failure 
+      where Messages could be lost in the event of the system crash. To mitigate this risk, <classname>QueueChannel</classname> is 
+      backed by a persistent store which is exposed via simple strategy interface <classname>MessageStore</classname>:
+      <programlisting language="java"><![CDATA[public interface MessageStore {
+
+	Message<?> getMessage(UUID id);
+
+	<T> Message<T> addMessage(Message<T> message);
+
+	Message<?> removeMessage(UUID id);
+
+	int getMessageCount();
+}]]></programlisting>
+	  For more details on <classname>MessageStore</classname> see <xref linkend="message-store" />.
+	  </para>
+	  <para>
+	  When <classname>QueueChannel</classname> receives the Message it will add the Message to the <classname>MessageStore</classname>
+	  by invoking <code>addMessage(Message)</code>  method and when the Message is polled from the <classname>MessageStore</classname> 
+	  it is removed from it via <code>removeMessage(UUID)</code> method.
+      </para>
+      <para>
+      By default any <classname>QueueChannel</classname> is bootstrapped with <classname>SimpleMessageStore</classname> which is 
+      in-memory Map-based implementation of the <classname>MessageStore</classname> interface. However Spring Integration 
+      also provides <classname>JdbcMessageStore</classname> to allow <classname>QueueChannel</classname> to be backed by an RDBMS.
+      </para>
+      <para>
+      You configure <classname>MessageStore</classname> for <classname>QueueChannel</classname> via <code>message-store</code> attribute.
+     
+      <programlisting language="xml"><![CDATA[<int:channel id="myChannel">
+    <int:queuel message-store="messageStore">
+<int:channel id="myChannel">
+
+<jdbc:embedded-database id="dataSource" type="HSQL"/>
+	
+<int-jdbc:message-store id="messageStore" data-source="dataSource"/>]]></programlisting>
+     
+     You can also see that you can configure <classname>JdbcMessageStore</classname> via namespace support provided by 
+     Spring Integration JDBC module. All you need to do is inject any standard Spring datasource. Spring Integration JDBC 
+     module also provides schemas for most popular databases. These schemas are located in 
+     <emphasis>org.springframework.integration.jdbc</emphasis> package of Spring Integration JDBC module.
+     
+     <important>
+     One thing to remember is that with any transactional persistent store (e.g., JdbcMessageStore) 
+     the messages removed from such persistent store will only be completely removed if transaction completed 
+     successfully, otherwise transaction will roll back and the Message will not be lost.  
+     </important>
+     And of course you can alway provide your own implementation of MessageStore interface
+      </para>
     </section>
+    
+    
+    
     <section id="channel-configuration-pubsubchannel">
       <title>PublishSubscribeChannel Configuration</title>
       <para>

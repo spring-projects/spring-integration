@@ -158,7 +158,7 @@
     binding of the incoming message to the query.</para>
   </section>
 
-  <section>
+  <section id="message-store">
     <title>Message Store</title>
 
     <para>The JDBC module provides an implementation of the Spring Integration
