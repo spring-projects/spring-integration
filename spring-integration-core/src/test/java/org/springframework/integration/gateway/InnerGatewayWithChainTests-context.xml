@@ -43,5 +43,27 @@
 		<int:gateway request-channel="requestChannelB"/>
 	</int:chain>
 	
+	<int:inbound-channel-adapter id="inboundAdapterDefaultErrorChannel" auto-startup="false" expression="5" channel="requestChannelAAAA">
+		<int:poller fixed-rate="2000"/>
+	</int:inbound-channel-adapter>
+	                    
+	<int:chain input-channel="requestChannelAAAA">
+		<int:service-activator expression="1/(payload-5)"/>
+		<int:gateway request-channel="requestChannelB"/>
+	</int:chain>
+	
+	<int:inbound-channel-adapter id="inboundAdapterAssignedErrorChannel" auto-startup="false" expression="5" channel="requestChannelAAAA">
+		<int:poller fixed-rate="2000" error-channel="assignedErrorChannel"/>
+	</int:inbound-channel-adapter>
+	                    
+	<int:chain input-channel="requestChannelAAAA">
+		<int:service-activator expression="1/(payload-5)"/>
+		<int:gateway request-channel="requestChannelB"/>
+	</int:chain>
+	
+	<int:publish-subscribe-channel id="assignedErrorChannel"/>
+	
+	
 	<int:service-activator input-channel="requestChannelB" expression="10/payload"/>
+	
 </beans>

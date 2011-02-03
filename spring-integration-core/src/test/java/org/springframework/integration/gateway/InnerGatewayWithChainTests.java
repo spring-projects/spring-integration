@@ -16,14 +16,23 @@
 package org.springframework.integration.gateway;
 
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 
 /**
  * @author Oleg Zhurakousky
@@ -41,6 +50,20 @@ public class InnerGatewayWithChainTests {
 	
 	@Autowired
 	private TestGateway testGatewayWithNoErrorChannelAAA;
+	
+	@Autowired
+	private SourcePollingChannelAdapter inboundAdapterDefaultErrorChannel;
+	
+	@Autowired
+	private SourcePollingChannelAdapter inboundAdapterAssignedErrorChannel;
+	
+	@Autowired
+	private SubscribableChannel errorChannel;
+	
+	@Autowired
+	private SubscribableChannel assignedErrorChannel;
+	
+	
 
 	@Test
 	public void testExceptionHandledByMainGateway(){
@@ -64,6 +87,26 @@ public class InnerGatewayWithChainTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testGatewaysNoErrorChannel(){
 		testGatewayWithNoErrorChannelAAA.echo(0);
+	}
+	
+	@Test
+	public void testWithSPCADefaultErrorChannel() throws Exception{
+		MessageHandler handler = mock(MessageHandler.class);
+		errorChannel.subscribe(handler);
+		inboundAdapterDefaultErrorChannel.start();
+		Thread.sleep(1000);
+		inboundAdapterDefaultErrorChannel.stop();
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+	}
+	
+	@Test
+	public void testWithSPCAAssignedErrorChannel() throws Exception{
+		MessageHandler handler = mock(MessageHandler.class);
+		assignedErrorChannel.subscribe(handler);
+		inboundAdapterAssignedErrorChannel.start();
+		Thread.sleep(1000);
+		inboundAdapterAssignedErrorChannel.stop();
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 	
 	public static interface TestGateway{
