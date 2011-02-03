@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jms;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -29,9 +26,6 @@ import org.springframework.jms.core.JmsTemplate;
  * @since 2.0
  */
 public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel {
-
-	private Log logger = LogFactory.getLog(this.getClass());
-
 
 	public PollableJmsChannel(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -50,19 +44,13 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 	}
 
 	public Message<?> receive(long timeout) {
-		if (logger.isWarnEnabled() && this.timeoutConflictsWithTemplateValue(timeout)) {
-			logger.warn("The JmsTemplate's receiveTimeout value is always used for the JMS channel. " +
-					"Its current value is " + this.getJmsTemplate().getReceiveTimeout() + 
-					". The passed value of " + timeout + " will be ignored.");
+		try {
+			DynamicJmsTemplateProperties.setReceiveTimeout(timeout);
+			return this.receive();
 		}
-		return this.receive();
-	}
-
-	private boolean timeoutConflictsWithTemplateValue(long timeout) {
-		long templateTimeout = this.getJmsTemplate().getReceiveTimeout();
-		return (timeout == -1 && templateTimeout != JmsTemplate.RECEIVE_TIMEOUT_INDEFINITE_WAIT)
-				|| (timeout == 0 && templateTimeout != JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT)
-				|| (timeout != templateTimeout);
+		finally {
+			DynamicJmsTemplateProperties.clearReceiveTimeout();
+		}
 	}
 
 }

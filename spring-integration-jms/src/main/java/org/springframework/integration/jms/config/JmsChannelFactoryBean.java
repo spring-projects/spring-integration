@@ -30,6 +30,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.jms.AbstractJmsChannel;
+import org.springframework.integration.jms.DynamicJmsTemplate;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
@@ -56,7 +57,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private final boolean messageDriven;
 
-	private final JmsTemplate jmsTemplate = new JmsTemplate();
+	private final JmsTemplate jmsTemplate = new DynamicJmsTemplate();
 
 	private volatile AbstractMessageListenerContainer container;
 
