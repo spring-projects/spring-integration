@@ -113,7 +113,7 @@ abstract class JmsAdapterParserUtils {
 
 	static BeanDefinition parseJmsTemplateBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.jms.core.JmsTemplate");
+				"org.springframework.integration.jms.DynamicJmsTemplate");
 		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");

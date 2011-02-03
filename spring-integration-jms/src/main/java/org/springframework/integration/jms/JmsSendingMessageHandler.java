@@ -85,6 +85,16 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 		}
 		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
 		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
+		try {
+			DynamicJmsTemplateProperties.setPriority(message.getHeaders().getPriority());
+			this.send(objectToSend, messagePostProcessor);
+		}
+		finally {
+			DynamicJmsTemplateProperties.clearPriority();
+		}
+	}
+
+	private void send(Object objectToSend, MessagePostProcessor messagePostProcessor) {
 		if (this.destination != null) {
 			this.jmsTemplate.convertAndSend(this.destination, objectToSend, messagePostProcessor);
 		}

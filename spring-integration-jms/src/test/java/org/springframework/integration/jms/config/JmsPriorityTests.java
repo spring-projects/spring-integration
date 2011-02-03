@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -64,7 +63,6 @@ public class JmsPriorityTests {
 	}
 
 	@Test
-	@Ignore
 	public void verifyPriorityHeaderUsedAsJmsPriority() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").setPriority(7).build();
 		outbound.send(message);
