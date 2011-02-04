@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.groovy;
+package org.springframework.integration.scripting;
 
 import java.util.Map;
 

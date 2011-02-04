@@ -21,7 +21,8 @@ import groovy.lang.GString;
 import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
+import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
+import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
@@ -41,20 +42,17 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private volatile ScriptSource scriptSource;
 
-	private final ScriptVariableGenerator scriptVariableGenerator;
-
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		this(scriptSource, new DefaultScriptVariableGenerator());
+		this(scriptSource, null);
 	}
 
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
+		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
-		this.scriptVariableGenerator = (scriptVariableGenerator != null) ? scriptVariableGenerator
-				: new DefaultScriptVariableGenerator();
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
 	}
 
@@ -65,12 +63,11 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	}
 
 	@Override
-	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
+	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		Map<String, Object> scriptVariables = this.scriptVariableGenerator.generateScriptVariables(message);
 		synchronized (this) {
-			if (!CollectionUtils.isEmpty(scriptVariables)) {
-				this.customizer.setVariables(scriptVariables);
+			if (!CollectionUtils.isEmpty(variables)) {
+				this.customizer.setVariables(variables);
 			}
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;

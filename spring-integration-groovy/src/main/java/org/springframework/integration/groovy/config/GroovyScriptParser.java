@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
 
+
 	@Override
 	protected String getBeanClassName(Element element) {
 		return "org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor";
@@ -57,32 +58,30 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			parserContext.getReaderContext().error("Either the 'location' attribute or inline script text must be provided, but not both.", element);
 			return;
 		}
-		
+
 		List<Element> variableElements = DomUtils.getChildElementsByTagName(element, "variable");
-		String scriptVariableSourceName = element.getAttribute("script-variable-generator");
-		
-		if (StringUtils.hasText(scriptText) && (variableElements.size() > 0 || StringUtils.hasText(scriptVariableSourceName))){
-			parserContext.getReaderContext().error("Variable bindings or custom ScriptVariabelSource are not allowed when using inline groovy script. " +
+		String scriptVariableGeneratorName = element.getAttribute("script-variable-generator");
+
+		if (StringUtils.hasText(scriptText) && (variableElements.size() > 0 || StringUtils.hasText(scriptVariableGeneratorName))) {
+			parserContext.getReaderContext().error("Variable bindings or custom ScriptVariableGenerator are not allowed when using an inline groovy script. " +
 					"Specify location of the script via 'location' attribute instead", element);
 			return;
 		}
 		
-		if (StringUtils.hasText(scriptVariableSourceName) && variableElements.size() > 0){
-			parserContext.getReaderContext().error("'script-variable-generator' and 'variable' sub-element are mutualy exclusive. Must use one or the other.", element);
+		if (StringUtils.hasText(scriptVariableGeneratorName) && variableElements.size() > 0){
+			parserContext.getReaderContext().error("'script-variable-generator' and 'variable' sub-elements are mutualy exclusive.", element);
 			return;
 		}
 		
-		if (StringUtils.hasText(scriptLocation)){
+		if (StringUtils.hasText(scriptLocation)) {
 			builder.addConstructorArgValue(this.resolveScriptLocation(element, parserContext.getReaderContext(), scriptLocation));
 		}
 		else {
 			builder.addConstructorArgValue(new StaticScriptSource(scriptText, "groovy.lang.Script"));
 		}
-				
-		if (!StringUtils.hasText(scriptVariableSourceName)){
-			BeanDefinitionBuilder scriptVariableSourceBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.groovy.DefaultScriptVariableGenerator");
-			
+		if (!StringUtils.hasText(scriptVariableGeneratorName)) {
+			BeanDefinitionBuilder scriptVariableGeneratorBuilder = 
+					BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.scripting.DefaultScriptVariableGenerator");
 			ManagedMap<String, Object> variableMap = new ManagedMap<String, Object>();
 			for (Element childElement : variableElements) {
 				String variableName = childElement.getAttribute("name");
@@ -93,20 +92,20 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 							" is required for element " +
 							IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
 				}
-				if (StringUtils.hasText(variableValue)){
+				if (StringUtils.hasText(variableValue)) {
 					variableMap.put(variableName, variableValue);
 				}
 				else {
 					variableMap.put(variableName, new RuntimeBeanReference(variableRef));
 				}
 			}
-			if (!CollectionUtils.isEmpty(variableMap)){
-				scriptVariableSourceBuilder.addConstructorArgValue(variableMap);
+			if (!CollectionUtils.isEmpty(variableMap)) {
+				scriptVariableGeneratorBuilder.addConstructorArgValue(variableMap);
 			}
-			scriptVariableSourceName = 
-				BeanDefinitionReaderUtils.registerWithGeneratedName(scriptVariableSourceBuilder.getBeanDefinition(), parserContext.getRegistry());
+			scriptVariableGeneratorName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					scriptVariableGeneratorBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
-		builder.addConstructorArgReference(scriptVariableSourceName);
+		builder.addConstructorArgReference(scriptVariableGeneratorName);
 	}
 
 	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {

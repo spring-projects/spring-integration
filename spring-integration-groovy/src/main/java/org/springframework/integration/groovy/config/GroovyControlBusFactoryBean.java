@@ -24,8 +24,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
-import org.springframework.integration.groovy.ScriptVariableGenerator;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.CustomizableThreadCreator;
 
@@ -46,8 +46,8 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	@Override
 	protected MessageHandler createHandler() {
-		ManagedBeansScriptVariableSource scriptVariableSource = new ManagedBeansScriptVariableSource(this.getBeanFactory());
-		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableSource);
+		ManagedBeansScriptVariableGenerator scriptVariableGenerator = new ManagedBeansScriptVariableGenerator(this.getBeanFactory());
+		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
@@ -59,11 +59,11 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 	}
 
 
-	private static class ManagedBeansScriptVariableSource implements ScriptVariableGenerator {
+	private static class ManagedBeansScriptVariableGenerator implements ScriptVariableGenerator {
 
 		private final ListableBeanFactory beanFactory;
 
-		public ManagedBeansScriptVariableSource(BeanFactory beanFactory) {
+		public ManagedBeansScriptVariableGenerator(BeanFactory beanFactory) {
 			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
 		}
 
@@ -73,10 +73,10 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			if (this.beanFactory != null) {
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
 					Object bean = this.beanFactory.getBean(name);
-					if (bean instanceof Lifecycle || 
-						bean instanceof CustomizableThreadCreator || 
-						(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-							variables.put(name, bean);
+					if (bean instanceof Lifecycle ||
+							bean instanceof CustomizableThreadCreator || 
+							(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+						variables.put(name, bean);
 					}
 				}
 			}

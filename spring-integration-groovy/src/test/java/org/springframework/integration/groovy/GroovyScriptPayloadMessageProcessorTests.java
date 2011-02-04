@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,9 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.scripting.DefaultScriptVariableGenerator;
+import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.annotation.Repeat;
 
@@ -44,14 +45,14 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecution() throws Exception {
 		int count = countHolder.getAndIncrement();
 		Message<?> message = MessageBuilder.withPayload("headers.foo" + count).setHeader("foo" + count, "bar").build();
-		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableGenerator());
+		processor = new GroovyCommandMessageProcessor();
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
 	}
 
 	@Test
 	public void testDoubleExecutionWithNewScript() throws Exception {
-		processor = new GroovyCommandMessageProcessor(new DefaultScriptVariableGenerator());
+		processor = new GroovyCommandMessageProcessor();
 		Message<?> message = MessageBuilder.withPayload("headers.foo").setHeader("foo", "bar").build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar", result.toString());
@@ -64,9 +65,9 @@ public class GroovyScriptPayloadMessageProcessorTests {
 	public void testSimpleExecutionWithContext() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("\"spam is $spam foo is $headers.foo\"")
 				.setHeader("foo", "bar").build();
-		ScriptVariableGenerator scriptVariableSource = 
-			new DefaultScriptVariableGenerator(Collections.singletonMap("spam",(Object)"bucket"));
-		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableSource);
+		ScriptVariableGenerator scriptVariableGenerator = 
+				new DefaultScriptVariableGenerator(Collections.singletonMap("spam",(Object)"bucket"));
+		MessageProcessor<Object> processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
 		Object result = processor.processMessage(message);
 		assertEquals("spam is bucket foo is bar", result.toString());
 	}

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.groovy;
+package org.springframework.integration.scripting;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,13 +28,13 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @since 2.0.2
  */
-class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
+public class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
 
 	private final Map<String, Object> variableMap;
 
 
-	public DefaultScriptVariableGenerator(){
-		this(null);
+	public DefaultScriptVariableGenerator() {
+		this.variableMap = Collections.<String, Object>emptyMap();
 	}
 
 	public DefaultScriptVariableGenerator(Map<String, Object> variableMap) {

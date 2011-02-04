@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -11,10 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.scripting;
+
+import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.scripting.ScriptSource;
 
 /**
@@ -25,12 +28,27 @@ import org.springframework.scripting.ScriptSource;
  */
 public abstract class AbstractScriptExecutingMessageProcessor<T> implements MessageProcessor<T> {
 
+	private final ScriptVariableGenerator scriptVariableGenerator;
+
+
+	protected AbstractScriptExecutingMessageProcessor() {
+		this.scriptVariableGenerator = new DefaultScriptVariableGenerator();
+	}
+
+	protected AbstractScriptExecutingMessageProcessor(ScriptVariableGenerator scriptVariableGenerator) {
+		this.scriptVariableGenerator = (scriptVariableGenerator != null) ? scriptVariableGenerator
+				: new DefaultScriptVariableGenerator();
+	}
+
+
 	/**
 	 * Executes the script and returns the result.
 	 */
 	public final T processMessage(Message<?> message) {
 		try {
-			return this.executeScript(getScriptSource(message), message);
+			ScriptSource source = this.getScriptSource(message);
+			Map<String, Object> variables = this.scriptVariableGenerator.generateScriptVariables(message);
+			return this.executeScript(source, variables);
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(message, "failed to execute script", e);
@@ -39,8 +57,8 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 
 
 	/**
-	 * Subclasses must implement this method to create a script source, optionally using the message to locate or
-	 * create the script.
+	 * Subclasses must implement this method to create a script source,
+	 * optionally using the message to locate or create the script.
 	 * 
 	 * @param message the message being processed
 	 * @return a ScriptSource to use to create a script
@@ -48,9 +66,9 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	protected abstract ScriptSource getScriptSource(Message<?> message);
 
 	/**
-	 * Subclasses must implement this method. In doing so, the execution context for the script should be populated with
-	 * the Message's 'payload' and 'headers' as variables.
+	 * Subclasses must implement this method. In doing so, the execution context
+	 * for the script should be populated with the provided script variables.
 	 */
-	protected abstract T executeScript(ScriptSource scriptSource, Message<?> message) throws Exception;
+	protected abstract T executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception;
 
 }
