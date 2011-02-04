@@ -24,6 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -38,24 +39,39 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private final GroovyScriptFactory scriptFactory;
 
-	private final VariableBindingGroovyObjectCustomizer customizer = new VariableBindingGroovyObjectCustomizer();
+	private final VariableBindingGroovyObjectCustomizerDecorator
+			customizerDecorator = new VariableBindingGroovyObjectCustomizerDecorator();
 
 	private volatile ScriptSource scriptSource;
 
 
 	/**
-	 * Create a processor for the given {@link ScriptSource}.
+	 * Create a processor for the given {@link ScriptSource} that will use a
+	 * DefaultScriptVariableGenerator.
 	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
-		this(scriptSource, null);
+		super();
+		this.scriptSource = scriptSource;
+		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
 	}
 
+	/**
+	 * Create a processor for the given {@link ScriptSource} that will use the provided
+	 * ScriptVariableGenerator.
+	 */
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
-		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
+		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizerDecorator);
 	}
 
+
+	/**
+	 * Sets a {@link GroovyObjectCustomizer} for this processor.
+	 */
+	public void setCustomizer(GroovyObjectCustomizer customizer) {
+		this.customizerDecorator.setCustomizer(customizer);
+	}
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
@@ -67,7 +83,7 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 		Assert.notNull(scriptSource, "scriptSource must not be null");
 		synchronized (this) {
 			if (!CollectionUtils.isEmpty(variables)) {
-				this.customizer.setVariables(variables);
+				this.customizerDecorator.setVariables(variables);
 			}
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;

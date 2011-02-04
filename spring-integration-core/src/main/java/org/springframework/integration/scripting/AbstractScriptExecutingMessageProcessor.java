@@ -19,6 +19,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.util.Assert;
 
 /**
  * Base {@link MessageProcessor} for scripting implementations to extend.
@@ -36,8 +37,8 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 	}
 
 	protected AbstractScriptExecutingMessageProcessor(ScriptVariableGenerator scriptVariableGenerator) {
-		this.scriptVariableGenerator = (scriptVariableGenerator != null) ? scriptVariableGenerator
-				: new DefaultScriptVariableGenerator();
+		Assert.notNull(scriptVariableGenerator, "scriptVariableGenerator must not be null");
+		this.scriptVariableGenerator = scriptVariableGenerator;
 	}
 
 

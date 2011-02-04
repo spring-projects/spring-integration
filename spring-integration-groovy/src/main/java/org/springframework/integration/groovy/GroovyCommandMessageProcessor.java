@@ -21,6 +21,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.scripting.AbstractScriptExecutingMessageProcessor;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.scripting.ScriptSource;
+import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.Assert;
@@ -33,6 +34,9 @@ import org.springframework.util.CollectionUtils;
  * @since 2.0
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
+
+	private volatile GroovyObjectCustomizer customizer;
+
 
 	/**
 	 * Creates a GroovyCommandMessageProcessor that will use the DefaultScriptVariableGenerator.
@@ -49,6 +53,13 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	}
 
 
+	/**
+	 * Sets a {@link GroovyObjectCustomizer} for this processor.
+	 */
+	public void setCustomizer(GroovyObjectCustomizer customizer) {
+		this.customizer = customizer;
+	}
+
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
 		Object payload = message.getPayload();
@@ -56,14 +67,17 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		String className = generateScriptName(message);
 		return new StaticScriptSource((String) payload, className);
 	}
-	
+
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		VariableBindingGroovyObjectCustomizer customizer = new VariableBindingGroovyObjectCustomizer();
-		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), customizer);
+		VariableBindingGroovyObjectCustomizerDecorator customizerDecorator = new VariableBindingGroovyObjectCustomizerDecorator();
+		if (this.customizer != null) {
+			customizerDecorator.setCustomizer(this.customizer);
+		}
+		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), customizerDecorator);
 		if (!CollectionUtils.isEmpty(variables)) {
-			customizer.setVariables(variables);
+			customizerDecorator.setVariables(variables);
 		}
 		Object result = factory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;
