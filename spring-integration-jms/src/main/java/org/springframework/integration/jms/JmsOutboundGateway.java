@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,11 +94,12 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final Object initializationMonitor = new Object();
 
+
 	/**
 	 * Set whether message delivery should be persistent or non-persistent,
-	 * specified as boolean value ("true" or "false"). This will set the delivery
-	 * mode accordingly, to either "PERSISTENT" (1) or "NON_PERSISTENT" (2).
-	 * <p>Default it "true" aka delivery mode "PERSISTENT".
+	 * specified as a boolean value ("true" or "false"). This will set the delivery
+	 * mode accordingly to either "PERSISTENT" (1) or "NON_PERSISTENT" (2).
+	 * <p>The default is "true", i.e. delivery mode "PERSISTENT".
 	 * @see #setDeliveryMode(int)
 	 * @see javax.jms.DeliveryMode#PERSISTENT
 	 * @see javax.jms.DeliveryMode#NON_PERSISTENT
