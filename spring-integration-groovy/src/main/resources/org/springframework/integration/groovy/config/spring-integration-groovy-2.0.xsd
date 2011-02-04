@@ -62,7 +62,7 @@
 			<xsd:attribute name="script-variable-generator" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to the ScriptVariableSource bean. This attribute is mutually 
+						Reference to the ScriptVariableGenerator bean. This attribute is mutually 
 						exclusive with 'variable' sub-element
 					</xsd:documentation>
 					<xsd:appinfo>

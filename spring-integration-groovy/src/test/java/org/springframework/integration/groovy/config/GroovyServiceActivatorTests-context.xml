@@ -18,7 +18,7 @@
 	</service-activator>
 	
 	
-	<service-activator input-channel="withScriptVariableSource">
+	<service-activator input-channel="withScriptVariableGenerator">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
 					   script-variable-generator="scriptVarSource"/>
 	</service-activator>

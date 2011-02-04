@@ -54,7 +54,7 @@ public class GroovyServiceActivatorTests {
 	private MessageChannel inlineScriptInput;
 	
 	@Autowired
-	private MessageChannel withScriptVariableSource;
+	private MessageChannel withScriptVariableGenerator;
 
 
 	@Test
@@ -87,7 +87,7 @@ public class GroovyServiceActivatorTests {
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
 			Message<?> message = MessageBuilder.withPayload("test-" + i).setReplyChannel(replyChannel).build();
-			this.withScriptVariableSource.send(message);
+			this.withScriptVariableGenerator.send(message);
 			Thread.sleep(1000);
 		}
 		String value1 = (String) replyChannel.receive(0).getPayload();
@@ -124,7 +124,7 @@ public class GroovyServiceActivatorTests {
 	}
 	
 	@Test(expected=BeanDefinitionParsingException.class)
-	public void variablesAndScriptVariableSource() throws Exception{
+	public void variablesAndScriptVariableGenerator() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
 	}
 

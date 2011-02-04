@@ -10,7 +10,7 @@
 		http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<service-activator input-channel="withScriptVariableSource">
+	<service-activator input-channel="withScriptVariableGenerator">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
 					   script-variable-generator="scriptVarSource">
 			<groovy:variable name="foo" value="foo"/>
