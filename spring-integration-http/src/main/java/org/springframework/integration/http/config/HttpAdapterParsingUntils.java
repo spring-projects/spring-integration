@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.config;
 
 import org.w3c.dom.Element;
@@ -23,18 +24,20 @@ import org.springframework.beans.factory.xml.ParserContext;
  * @author Oleg Zhurakousky
  * @since 2.0.2
  */
-class HttpAdapterParsingUtils {
-	
+abstract class HttpAdapterParsingUtils {
+
 	private static final String[] REST_TEMPLATE_ATTRIBUTES = {
 		"request-factory", "error-handler", "message-converters"
 	};
-	
+
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
 		for (String attributeName : REST_TEMPLATE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
-						+ attributeName + "' attribute is not allowed", parserContext.extractSource(element));
+						+ attributeName + "' attribute is not allowed.",
+						parserContext.extractSource(element));
 			}
 		}
 	}
+
 }
