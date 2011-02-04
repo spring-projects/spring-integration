@@ -68,7 +68,7 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			return;
 		}
 		
-		if (StringUtils.hasText(scriptVariableGeneratorName) && variableElements.size() > 0){
+		if (StringUtils.hasText(scriptVariableGeneratorName) && variableElements.size() > 0) {
 			parserContext.getReaderContext().error("'script-variable-generator' and 'variable' sub-elements are mutualy exclusive.", element);
 			return;
 		}
@@ -106,6 +106,7 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 					scriptVariableGeneratorBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
 		builder.addConstructorArgReference(scriptVariableGeneratorName);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "customizer");
 	}
 
 	private Object resolveScriptLocation(Element element, XmlReaderContext readerContext, String scriptLocation) {

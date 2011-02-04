@@ -20,27 +20,27 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to define custom Groovy variable bindings. The use of this sub-element is mutually 
-								exclusive with 'script-variable-generator' attribute
+								exclusive with the 'script-variable-generator' attribute.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Name of the Groovy binding variable
+									Name of the Groovy variable.
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 						<xsd:attribute name="value" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Value of the Groovy binding variable
+									Value of the Groovy variable as a literal.
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
 						<xsd:attribute name="ref" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>
-									Value of the Groovy binding variable pointing to a bean reference
+									Value of the Groovy variable as a bean reference.
 								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:expected-type type="java.lang.Object"/>
@@ -54,8 +54,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Resource location path for the Script. Either this or an inline script
-						as body text should be
-						provided, but not both.
+						as body text should be provided, but not both.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -63,10 +62,20 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Reference to the ScriptVariableGenerator bean. This attribute is mutually 
-						exclusive with 'variable' sub-element
+						exclusive with any 'variable' sub-elements.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<tool:expected-type type="rg.springframework.integration.groovy.ScriptVariableGenerator"/>
+						<tool:expected-type type="org.springframework.integration.scripting.ScriptVariableGenerator"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="customizer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a GroovyObjectCustomizer bean to be applied to this script.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:expected-type type="org.springframework.scripting.groovy.GroovyObjectCustomizer"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -74,8 +83,7 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Refresh delay for the script contents if specified as a resource
-						location (defaults to never
-						refresh).
+						location (defaults to -1, never refresh).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -95,6 +103,16 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
 			<xsd:attributeGroup ref="integration:inputOutputChannelGroup" />
+			<xsd:attribute name="customizer" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a GroovyObjectCustomizer bean to be applied to each script payload.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:expected-type type="org.springframework.scripting.groovy.GroovyObjectCustomizer"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

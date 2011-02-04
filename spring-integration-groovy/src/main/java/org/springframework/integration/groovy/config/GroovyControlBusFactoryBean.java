@@ -27,6 +27,7 @@ import org.springframework.integration.groovy.GroovyCommandMessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.util.CustomizableThreadCreator;
 
 /**
@@ -34,20 +35,31 @@ import org.springframework.util.CustomizableThreadCreator;
  * 
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
 
+	private volatile GroovyObjectCustomizer customizer;
+
+
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+	public void setCustomizer(GroovyObjectCustomizer customizer) {
+		this.customizer = customizer;
 	}
 
 	@Override
 	protected MessageHandler createHandler() {
 		ManagedBeansScriptVariableGenerator scriptVariableGenerator = new ManagedBeansScriptVariableGenerator(this.getBeanFactory());
 		GroovyCommandMessageProcessor processor = new GroovyCommandMessageProcessor(scriptVariableGenerator);
+		if (this.customizer != null) {
+			processor.setCustomizer(this.customizer);
+		}
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
