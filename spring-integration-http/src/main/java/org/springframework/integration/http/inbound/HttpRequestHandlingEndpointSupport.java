@@ -363,18 +363,17 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
 						+ expectedType.getName() + "] and content type [" + contentType + "]");
 	}
-	
-	private HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers){
-		Object httpStatusFromHeader = 
-			headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
+
+	private HttpStatus resolveHttpStatusFromHeaders(MessageHeaders headers) {
+		Object httpStatusFromHeader = headers.get(org.springframework.integration.http.HttpHeaders.STATUS_CODE);
 		HttpStatus httpStatus = null;
-		if (httpStatusFromHeader instanceof HttpStatus){
+		if (httpStatusFromHeader instanceof HttpStatus) {
 			httpStatus = (HttpStatus) httpStatusFromHeader;
 		}
-		else if (httpStatusFromHeader instanceof Integer){
+		else if (httpStatusFromHeader instanceof Integer) {
 			httpStatus = HttpStatus.valueOf((Integer) httpStatusFromHeader);
 		}
-		else if (httpStatusFromHeader instanceof String){
+		else if (httpStatusFromHeader instanceof String) {
 			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusFromHeader));
 		}
 		return httpStatus;
