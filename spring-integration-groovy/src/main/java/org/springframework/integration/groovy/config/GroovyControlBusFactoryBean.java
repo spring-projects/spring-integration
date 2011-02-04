@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -57,18 +57,20 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 		}
 		return handler;
 	}
-	
-	private class ManagedBeansScriptVariableSource implements ScriptVariableGenerator {
+
+
+	private static class ManagedBeansScriptVariableSource implements ScriptVariableGenerator {
+
 		private final ListableBeanFactory beanFactory;
-		
-		public ManagedBeansScriptVariableSource(BeanFactory beanFactory){
+
+		public ManagedBeansScriptVariableSource(BeanFactory beanFactory) {
 			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
 		}
-		
+
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("headers", message.getHeaders());
-			if (this.beanFactory != null){
+			if (this.beanFactory != null) {
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
 					Object bean = this.beanFactory.getBean(name);
 					if (bean instanceof Lifecycle || 
@@ -81,4 +83,5 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			return variables;
 		}
 	}
+
 }

@@ -13,54 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.groovy;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0.2
  */
-class DefaultScriptVariableGenerator implements BeanFactoryAware, ScriptVariableGenerator {
-	
-	protected volatile ListableBeanFactory beanFactory;
-	
-	private volatile Map<String, Object> variableMap;
-	
+class DefaultScriptVariableGenerator implements ScriptVariableGenerator {
+
+	private final Map<String, Object> variableMap;
+
+
 	public DefaultScriptVariableGenerator(){
 		this(null);
 	}
-	
-	public DefaultScriptVariableGenerator(Map<String, Object> variableMap){
+
+	public DefaultScriptVariableGenerator(Map<String, Object> variableMap) {
 		this.variableMap = variableMap;
 	}
-	
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
-	}
-	
-	public Map<String, Object> generateScriptVariables(Message<?> message){
+
+
+	public Map<String, Object> generateScriptVariables(Message<?> message) {
 		Map<String, Object> scriptVariables = new HashMap<String, Object>();
-		// Ad Message attributes
+		// Add Message content
 		if (message != null) {
 			scriptVariables.put("payload", message.getPayload());
 			scriptVariables.put("headers", message.getHeaders());
 		}
 		// Add contents of 'variableMap'
-		if (!CollectionUtils.isEmpty(variableMap)){
-			for (String variableName : variableMap.keySet()) {
-				Object variableValue = variableMap.get(variableName);
-				scriptVariables.put(variableName, variableValue);
+		if (!CollectionUtils.isEmpty(this.variableMap)) {
+			for (Map.Entry<String, Object> entry : this.variableMap.entrySet()) {
+				scriptVariables.put(entry.getKey(), entry.getValue());
 			}		
 		}
 		return scriptVariables;
 	}
+
 }

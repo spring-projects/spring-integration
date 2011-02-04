@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.groovy;
 
 import java.util.Map;
 
 import org.springframework.integration.Message;
 
-
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.0.2
  */
 public interface ScriptVariableGenerator {
-	
+
 	Map<String, Object> generateScriptVariables(Message<?> message);
+
 }
