@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -29,12 +29,14 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
-	
-	private final ScriptVariableGenerator scriptVariableSource;
-	
-	public GroovyCommandMessageProcessor(ScriptVariableGenerator scriptVariableSource) {
-		this.scriptVariableSource = scriptVariableSource;
+
+	private final ScriptVariableGenerator scriptVariableGenerator;
+
+
+	public GroovyCommandMessageProcessor(ScriptVariableGenerator scriptVariableGenerator) {
+		this.scriptVariableGenerator = scriptVariableGenerator;
 	}
+
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
@@ -47,10 +49,10 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		MapResolvingBindingCustomizer bindingCustomizer = new MapResolvingBindingCustomizer();
-		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), bindingCustomizer);
-		if (this.scriptVariableSource != null){
-			bindingCustomizer.setResolvedScriptVariables(this.scriptVariableSource.generateScriptVariables(message));
+		VariableBindingGroovyObjectCustomizer customizer = new VariableBindingGroovyObjectCustomizer();
+		GroovyScriptFactory factory = new GroovyScriptFactory(this.getClass().getSimpleName(), customizer);
+		if (this.scriptVariableGenerator != null) {
+			customizer.setVariables(this.scriptVariableGenerator.generateScriptVariables(message));
 		}
 		Object result = factory.getScriptedObject(scriptSource, null);
 		return (result instanceof GString) ? result.toString() : result;
@@ -60,4 +62,5 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		// Don't use the same script (class) name for all invocations by default
 		return getClass().getSimpleName() + message.getHeaders().getId().toString().replaceAll("-", "");
 	}
+
 }

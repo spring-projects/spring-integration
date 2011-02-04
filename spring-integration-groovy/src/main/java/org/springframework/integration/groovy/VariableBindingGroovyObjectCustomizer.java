@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -25,25 +25,26 @@ import org.springframework.util.Assert;
 /**
  * @author Dave Syer
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-class MapResolvingBindingCustomizer implements GroovyObjectCustomizer {
+class VariableBindingGroovyObjectCustomizer implements GroovyObjectCustomizer {
 
-	private volatile Map<String, ?> resolvedScriptVariables;
+	private volatile Map<String, ?> variables;
 
 
-	public void setResolvedScriptVariables(Map<String, ?> resolvedScriptVariables) {
-		this.resolvedScriptVariables = resolvedScriptVariables;
+	public void setVariables(Map<String, ?> variables) {
+		this.variables = variables;
 	}
 
 	public void customize(GroovyObject goo) {
 		Assert.state(goo instanceof Script, "Expected a Script");
-		if (this.resolvedScriptVariables != null) {
+		if (this.variables != null) {
 			Binding binding = ((Script) goo).getBinding();
-			for (String key : this.resolvedScriptVariables.keySet()) {
-				binding.setVariable(key, this.resolvedScriptVariables.get(key));
+			for (Map.Entry<String, ?> entry : this.variables.entrySet()) {
+				binding.setVariable(entry.getKey(), entry.getValue());
 			}
 		}
 	}
-}
 
+}

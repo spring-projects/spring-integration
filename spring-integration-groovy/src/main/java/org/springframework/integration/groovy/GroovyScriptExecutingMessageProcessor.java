@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package org.springframework.integration.groovy;
 
 import groovy.lang.GString;
 
+import java.util.Map;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyScriptFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Dave Syer
@@ -34,11 +37,12 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 
 	private final GroovyScriptFactory scriptFactory;
 
-	private final MapResolvingBindingCustomizer customizer = new MapResolvingBindingCustomizer();
+	private final VariableBindingGroovyObjectCustomizer customizer = new VariableBindingGroovyObjectCustomizer();
 
 	private volatile ScriptSource scriptSource;
-	
-	protected final ScriptVariableGenerator scriptVariableSource;
+
+	private final ScriptVariableGenerator scriptVariableGenerator;
+
 
 	/**
 	 * Create a processor for the given {@link ScriptSource}.
@@ -46,12 +50,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource) {
 		this(scriptSource, new DefaultScriptVariableGenerator());
 	}
-	
-	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableSource) {
+
+	public GroovyScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator) {
 		this.scriptSource = scriptSource;
-		this.scriptVariableSource = scriptVariableSource;
+		this.scriptVariableGenerator = (scriptVariableGenerator != null) ? scriptVariableGenerator
+				: new DefaultScriptVariableGenerator();
 		this.scriptFactory = new GroovyScriptFactory(this.getClass().getSimpleName(), this.customizer);
 	}
+
 
 	@Override
 	protected ScriptSource getScriptSource(Message<?> message) {
@@ -61,12 +67,14 @@ public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	@Override
 	protected Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
+		Map<String, Object> scriptVariables = this.scriptVariableGenerator.generateScriptVariables(message);
 		synchronized (this) {
-			if (this.scriptVariableSource != null){
-				this.customizer.setResolvedScriptVariables(this.scriptVariableSource.generateScriptVariables(message));
-			}		
+			if (!CollectionUtils.isEmpty(scriptVariables)) {
+				this.customizer.setVariables(scriptVariables);
+			}
 			Object result = this.scriptFactory.getScriptedObject(scriptSource, null);
 			return (result instanceof GString) ? result.toString() : result;
 		}
-	}	
+	}
+
 }
