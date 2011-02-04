@@ -116,7 +116,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		assertNotNull(message);
 		List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM item WHERE status=1");
 		assertEquals(1, list.size());
-		assertEquals("bar", list.get(0).get("NAME"));
+		assertEquals("BAR", list.get(0).get("NAME"));
 	}
 
 	@Test

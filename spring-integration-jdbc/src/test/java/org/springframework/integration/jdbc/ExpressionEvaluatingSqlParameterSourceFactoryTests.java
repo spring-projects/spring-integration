@@ -60,8 +60,37 @@ public class ExpressionEvaluatingSqlParameterSourceFactoryTests {
 	@Test
 	public void testMapInputWithExpression() {
 		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
+		// This is an illegal parameter name in Spring JDBC so we'd never get this as input
 		assertTrue(source.hasValue("foo.toUpperCase()"));
 		assertEquals("BAR", source.getValue("foo.toUpperCase()"));
+	}
+
+	@Test
+	public void testMapInputWithMappedExpression() {
+		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("foo", "bar"));
+		assertTrue(source.hasValue("spam"));
+		assertEquals("BAR", source.getValue("spam"));
+	}
+
+	@Test
+	public void testMapInputWithMappedExpressionResolveStatic() {
+		factory.setParameterExpressions(Collections.singletonMap("spam", "#staticParameters['foo'].toUpperCase()"));
+		factory.setStaticParameters(Collections.singletonMap("foo", "bar"));
+		SqlParameterSource source = factory.createParameterSource(Collections.singletonMap("crap", "bucket"));
+		assertTrue(source.hasValue("spam"));
+		assertEquals("BAR", source.getValue("spam"));
+	}
+
+	@Test
+	public void testListOfMapsInputWithExpression() {
+		factory.setParameterExpressions(Collections.singletonMap("spam", "foo.toUpperCase()"));
+		@SuppressWarnings("unchecked")
+		SqlParameterSource source = factory.createParameterSource(Arrays.asList(Collections.singletonMap("foo", "bar"),
+				Collections.singletonMap("foo", "bucket")));
+		String expression = "spam";
+		assertTrue(source.hasValue(expression));
+		assertEquals("[BAR, BUCKET]", source.getValue(expression).toString());
 	}
 
 }

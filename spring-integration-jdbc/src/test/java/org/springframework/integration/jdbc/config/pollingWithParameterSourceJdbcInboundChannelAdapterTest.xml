@@ -10,12 +10,17 @@
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<inbound-channel-adapter query="select * from item where status=2" channel="target"
-		update="update item set status=1, name=:foo where id in (:id)" jdbc-operations="jdbcTemplate"
+		update="update item set status=1, name=:name where id in (:id)" jdbc-operations="jdbcTemplate"
 		update-sql-parameter-source-factory="sqlParameterSourceFactory" />
 
 	<beans:import resource="jdbcInboundChannelAdapterCommonConfig.xml" />
 
 	<beans:bean id="sqlParameterSourceFactory" class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+		<beans:property name="parameterExpressions">
+			<beans:map>
+				<beans:entry key="name" value="'bar'.toUpperCase()" />
+			</beans:map>
+		</beans:property>
 		<beans:property name="staticParameters">
 			<beans:map>
 				<beans:entry key="foo" value="bar" />

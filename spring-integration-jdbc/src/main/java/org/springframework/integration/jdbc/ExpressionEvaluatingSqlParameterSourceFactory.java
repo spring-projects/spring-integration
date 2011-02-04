@@ -42,22 +42,65 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	private Map<String, ?> staticParameters;
 
+	private Map<String, String> parameterExpressions;
+
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
+		this.parameterExpressions = Collections.unmodifiableMap(new HashMap<String, String>());
 	}
 
 	/**
-	 * If the input is a List or a Map, the output is a map parameter source, and in that case some static parameters
-	 * can be added (default is empty). If the input is not a List or a Map then this value is ignored.
+	 * Define some static parameter values. These take precedence over those defined as expressions in the
+	 * {@link #setParameterExpressions(Map) parameterExpressions}, so a parameter in the query will be filled from here
+	 * first, and then from the expressions.
 	 * 
 	 * @param staticParameters the static parameters to set
 	 */
 	public void setStaticParameters(Map<String, ?> staticParameters) {
 		this.staticParameters = staticParameters;
+		getEvaluationContext().setVariable("staticParameters", staticParameters);
+	}
+
+	/**
+	 * Optionally maps parameter names to explicit expressions. The named parameter support in Spring is limited to
+	 * simple parameter names with no special characters, so this feature allows you to specify a simple name in the SQL
+	 * query and then have it translated into an expression at runtime. The target of the expression depends on the
+	 * context: generally in an outbound setting it is a Message, and in an inbound setting it is a result set row (a
+	 * Map or a domain object if a RowMapper has been provided). The {@link #setStaticParameters(Map) static parameters}
+	 * can be referred to in an expression using the variable <code>#staticParameters</code>, for example:
+	 * 
+	 * <table border="1" cellspacing="1" cellpadding="1">
+	 * <tr>
+	 * <th><b>Key</b></th>
+	 * <th><b>Value (Expression)</b></th>
+	 * <th><b>Example SQL</b></th>
+	 * </tr>
+	 * <tr>
+	 * <td>id</td>
+	 * <td>payload.businessKey</td>
+	 * <td>select * from items where id=:id</td>
+	 * </tr>
+	 * <tr>
+	 * <td>date</td>
+	 * <td>headers['timestamp']</td>
+	 * <td>select * from items where created>:date</td>
+	 * </tr>
+	 * <tr>
+	 * <td>key</td>
+	 * <td>#staticParameters['foo'].toUpperCase()</td>
+	 * <td>select * from items where name=:key</td>
+	 * </tr>
+	 * </pre>
+	 * 
+	 * @param parameterExpressions the parameter expressions to set
+	 */
+	public void setParameterExpressions(Map<String, String> parameterExpressions) {
+		this.parameterExpressions = parameterExpressions;
 	}
 
 	public SqlParameterSource createParameterSource(final Object input) {
-		SqlParameterSource toReturn = new ExpressionEvaluatingSqlParameterSource(input, staticParameters);
+		SqlParameterSource toReturn = new ExpressionEvaluatingSqlParameterSource(input, staticParameters,
+				parameterExpressions);
 		return toReturn;
 	}
 
@@ -67,8 +110,12 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private Map<String, Object> values = new ConcurrentHashMap<String, Object>();
 
-		private ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters) {
+		private final Map<String, String> parameterExpressions;
+
+		private ExpressionEvaluatingSqlParameterSource(Object input, Map<String, ?> staticParameters,
+				Map<String, String> parameterExpressions) {
 			this.input = input;
+			this.parameterExpressions = parameterExpressions;
 			this.values.putAll(staticParameters);
 		}
 
@@ -77,8 +124,11 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 				return values.get(paramName);
 			}
 			String expression = paramName;
+			if (parameterExpressions.containsKey(expression)) {
+				expression = parameterExpressions.get(expression);
+			}
 			if (input instanceof Collection<?>) {
-				expression = "#root.![" + paramName + "]";
+				expression = "#root.![" + expression + "]";
 			}
 			Object value = evaluateExpression(expression, input);
 			values.put(paramName, value);
