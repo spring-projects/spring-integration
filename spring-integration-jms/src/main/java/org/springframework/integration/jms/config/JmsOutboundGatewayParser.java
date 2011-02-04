@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -33,7 +31,6 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  */
 public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
-	private static final Log logger = LogFactory.getLog(JmsOutboundGatewayParser.class);
 
 	@Override
 	protected String getInputChannelAttributeName() {
@@ -71,20 +68,20 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
-		
+
 		String deliveryMode = element.getAttribute("delivery-mode");
 		String deliveryPersistent = element.getAttribute("delivery-persistent");
-		
-		if (StringUtils.hasText(deliveryMode) && StringUtils.hasText(deliveryPersistent)){
-			parserContext.getReaderContext().
-				error("Exactly one of the 'delivery-mode' attribute or 'delivery-persistent' attribute is allowed", element);
+		if (StringUtils.hasText(deliveryMode) && StringUtils.hasText(deliveryPersistent)) {
+			parserContext.getReaderContext().error(
+					"The 'delivery-mode' and 'delivery-persistent' attributes are mutually exclusive.", element);
 			return null;
 		}
-		if (StringUtils.hasText(deliveryMode)){
-			logger.warn("'delivery-mode' attribute is deprecated. Use 'delivery-persistent' instead");
+		if (StringUtils.hasText(deliveryMode)) {
+			parserContext.getReaderContext().warning(
+					"The 'delivery-mode' attribute is deprecated. Use 'delivery-persistent' instead.", element);
 			builder.addPropertyValue("deliveryMode", deliveryMode);
 		}
-		else if (StringUtils.hasText(deliveryPersistent)){
+		else if (StringUtils.hasText(deliveryPersistent)) {
 			builder.addPropertyValue("deliveryPersistent", deliveryPersistent);
 		}
 		return builder;
