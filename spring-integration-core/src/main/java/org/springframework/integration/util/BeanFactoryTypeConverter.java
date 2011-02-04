@@ -110,9 +110,16 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
+			if (editor==null) {
+				editor = delegate.getDefaultEditor(sourceType.getType());
+			}
 			if (editor != null){ // INT-1441
 				editor.setValue(value);
-				return editor.getAsText();
+				String text = editor.getAsText();
+				if (String.class.isAssignableFrom(targetType.getClass())) {					
+					return text;
+				}
+				return convertValue(text, TypeDescriptor.valueOf(String.class), targetType);
 			}
 		}
 		return delegate.convertIfNecessary(value, targetType.getType());
