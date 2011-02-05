@@ -12,8 +12,13 @@
 		<queue/>
 	</channel>
 
-	<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"/>
+	<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"
+						customizer="groovyCustomizer"/>
 
 	<beans:bean id="service" class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service" />
+	
+	<beans:bean id="groovyCustomizer" 
+			class="org.springframework.integration.groovy.config.GroovyControlBusTests.MyGroovyCustomizer"/>
+	
 
 </beans:beans>

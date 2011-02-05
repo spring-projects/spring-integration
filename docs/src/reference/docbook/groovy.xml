@@ -116,6 +116,21 @@
 	  not be used when using inline script, only when pointing to the script via <code>location</code> attribute.
 
 	  </important>
+	  
+	  If you need  control over customization of the Groovy object itself which goes beyond setting variables 
+	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
+	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via 'customizer' attribute.
+	  
+	   <programlisting language="xml"><![CDATA[<service-activator input-channel="withScriptVariableGenerator">
+		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
+					   script-variable-generator="scriptVarSource" customizer="groovyCustomizer"/>
+</service-activator>
+				   
+<beans:bean id="groovyCustomizer" 
+			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
+
+Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &ly;variable&gt; sub-element and/or <code>script-variable-generator</code>
+ and is allowed with inline scripting.
 
     </para>
   </section>
@@ -142,5 +157,19 @@
     that are annotated with @ManagedResource, implement Spring's
     Lifecycle interface or extend Spring's CustomizableThreadCreator base class
     (e.g. several of the TaskExecutor and TaskScheduler implementations).</para>
+    
+    <para>
+     If you need  control over customization of the Groovy object itself which goes beyond setting variables 
+	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
+	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via 'customizer' attribute.
+	  
+	   <programlisting language="xml"><![CDATA[<service-activator input-channel="withScriptVariableGenerator">
+		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
+					   script-variable-generator="scriptVarSource" customizer="groovyCustomizer"/>
+</service-activator>
+				   
+<beans:bean id="groovyCustomizer" 
+			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
+    </para>
   </section>
 </section>
