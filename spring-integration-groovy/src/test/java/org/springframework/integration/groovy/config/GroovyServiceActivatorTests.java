@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class GroovyServiceActivatorTests {
 	
-	private static boolean customizerExecuted;
-
 	@Autowired
 	private MessageChannel referencedScriptInput;
 
@@ -60,10 +59,13 @@ public class GroovyServiceActivatorTests {
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
+	@Autowired
+	private MyGroovyCustomizer groovyCustomizer;
+
 
 	@Test
 	public void referencedScriptAndCustomiser() throws Exception{
-		customizerExecuted = false;
+		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -78,19 +80,17 @@ public class GroovyServiceActivatorTests {
 		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
 		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
 		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
-		// becouse we are using 'prototype bean the suffix date will be different
+		// because we are using 'prototype bean the suffix date will be different
 
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
-		
-		assertTrue(customizerExecuted);
-		
+		assertTrue(groovyCustomizer.executed);
 		assertNull(replyChannel.receive(0));
 	}
 	
 	@Test
 	public void withScriptVariableGenerator() throws Exception{
-		customizerExecuted = false;
+		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -104,18 +104,17 @@ public class GroovyServiceActivatorTests {
 		assertTrue(value1.startsWith("groovy-test-1-foo - bar"));
 		assertTrue(value2.startsWith("groovy-test-2-foo - bar"));
 		assertTrue(value3.startsWith("groovy-test-3-foo - bar"));
-		// becouse we are using 'prototype bean the suffix date will be different
+		// because we are using 'prototype bean the suffix date will be different
 
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
-		assertTrue(customizerExecuted);
-		
+		assertTrue(groovyCustomizer.executed);
 		assertNull(replyChannel.receive(0));
 	}
 
 	@Test
 	public void inlineScript() throws Exception{
-		customizerExecuted = false;
+		groovyCustomizer.executed = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -126,7 +125,7 @@ public class GroovyServiceActivatorTests {
 		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
 		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
-		assertTrue(customizerExecuted);
+		assertTrue(groovyCustomizer.executed);
 	}
 	
 	@Test(expected=BeanDefinitionParsingException.class)
@@ -139,6 +138,7 @@ public class GroovyServiceActivatorTests {
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
 	}
 
+
 	public static class SampleScriptVariSource implements ScriptVariableGenerator{
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
@@ -150,12 +150,15 @@ public class GroovyServiceActivatorTests {
 			return variables;
 		}
 	}
-	
-	public static class MyGroovyCustomizer implements GroovyObjectCustomizer{
+
+
+	public static class MyGroovyCustomizer implements GroovyObjectCustomizer {
+
+		private volatile boolean executed;
 
 		public void customize(GroovyObject goo) {
-			customizerExecuted = true;
+			this.executed = true;
 		}
-		
 	}
+
 }
