@@ -119,7 +119,7 @@
 	  
 	  If you need  control over customization of the Groovy object itself which goes beyond setting variables 
 	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
-	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via 'customizer' attribute.
+	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via <code>customizer</code> attribute.
 	  
 	   <programlisting language="xml"><![CDATA[<service-activator input-channel="withScriptVariableGenerator">
 		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
@@ -129,7 +129,7 @@
 <beans:bean id="groovyCustomizer" 
 			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
 
-Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &ly;variable&gt; sub-element and/or <code>script-variable-generator</code>
+Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &lt;variable&gt; sub-element and/or <code>script-variable-generator</code>
  and is allowed with inline scripting.
 
     </para>
@@ -161,12 +161,10 @@ Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &ly;variable&
     <para>
      If you need  control over customization of the Groovy object itself which goes beyond setting variables 
 	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
-	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via 'customizer' attribute.
+	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via <code>customizer</code> attribute.
 	  
-	   <programlisting language="xml"><![CDATA[<service-activator input-channel="withScriptVariableGenerator">
-		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
-					   script-variable-generator="scriptVarSource" customizer="groovyCustomizer"/>
-</service-activator>
+	   <programlisting language="xml"><![CDATA[<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"
+						customizer="groovyCustomizer"/>
 				   
 <beans:bean id="groovyCustomizer" 
 			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
