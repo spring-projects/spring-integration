@@ -20,6 +20,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import groovy.lang.GroovyObject;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -46,6 +48,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class GroovyServiceActivatorTests {
+	
+	private static boolean customizerExecuted;
 
 	@Autowired
 	private MessageChannel referencedScriptInput;
@@ -58,7 +62,8 @@ public class GroovyServiceActivatorTests {
 
 
 	@Test
-	public void referencedScript() throws Exception{
+	public void referencedScriptAndCustomiser() throws Exception{
+		customizerExecuted = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -78,11 +83,14 @@ public class GroovyServiceActivatorTests {
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
 		
+		assertTrue(customizerExecuted);
+		
 		assertNull(replyChannel.receive(0));
 	}
 	
 	@Test
 	public void withScriptVariableGenerator() throws Exception{
+		customizerExecuted = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -100,12 +108,14 @@ public class GroovyServiceActivatorTests {
 
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
+		assertTrue(customizerExecuted);
 		
 		assertNull(replyChannel.receive(0));
 	}
 
 	@Test
 	public void inlineScript() throws Exception{
+		customizerExecuted = false;
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -116,6 +126,7 @@ public class GroovyServiceActivatorTests {
 		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
 		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
+		assertTrue(customizerExecuted);
 	}
 	
 	@Test(expected=BeanDefinitionParsingException.class)
@@ -138,5 +149,13 @@ public class GroovyServiceActivatorTests {
 			variables.put("headers", message.getHeaders());
 			return variables;
 		}
+	}
+	
+	public static class MyGroovyCustomizer implements GroovyObjectCustomizer{
+
+		public void customize(GroovyObject goo) {
+			customizerExecuted = true;
+		}
+		
 	}
 }
