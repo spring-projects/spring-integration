@@ -79,59 +79,57 @@
     
     <para>
     You already know that by default, 'payload' and 'headers' will be bound as Groovy binding variables.
-
 	However, some times in order to take the most out of Groovy you may want to customize Groovy bindings 
-	(e.g., include extra variables pointing to some scalar values or bind some beans as variables etc.)
-   To support this requirement we have defined a simple strategy ScriptVariableGenerator.
+	(e.g., include extra variables pointing to some scalar values or bind some beans as variables).
+   To support this requirement we have defined a simple strategy: ScriptVariableGenerator.
   <programlisting language="java"><![CDATA[public interface ScriptVariableGenerator {
 	
 	Map<String, Object> generateScriptVariables(Message<?> message);
 	
 }]]></programlisting>
 
-	As you can see the only method that needs to be implemented is <code>generateScriptVariables(Message)</code> which takes 
-	Message as an argument (allowing you to use data available in Message payload/headers) and returns the Map of variables 
-	that will be bound as Groovy bindings. This method will be called every time the script is executed. We also provide 
-	default implementation and namespace based configuration for simple bindings via &lt;variable&gt; sub-element (see below):
+	As you can see the only method to implement is <code>generateScriptVariables(Message)</code>. It takes the Message
+	as an argument. That allows you to use data available in the Message payload and/or headers. The return value is
+	the Map of variables that will be bound to the script's evaluation context. This method will be called every time
+	the script is executed, corresponding to the processing of that particular Message. We also provide a
+	default implementation and namespace based configuration for simple bindings via &lt;variable&gt; sub-elements (see below):
 	<programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy">
 	<groovy:variable name="foo" value="foo"/>
 	<groovy:variable name="bar" value="bar"/>
 	<groovy:variable name="date" ref="date"/>
 </groovy:script>]]></programlisting>
 
-	As you can see similar to other constructs in Spring, when setting binding variables you can either set scalar values 
-	or reference another bean in the Application Context.
+	As you can see similar to other constructs in Spring, when binding each of these variables you can either provide a
+	scalar value or reference another bean in the Application Context.
     </para>
     <para>
-     However if you need more dynamics with regard to how a particular variable is generated then all you need to do is 
-     provide your own implementation of ScriptVariableGenerator and inject it via <code>script-variable-generator</code> attribute:
+     If you need more control over how a particular variable is generated, then all you need to do is 
+     provide your own implementation of ScriptVariableGenerator and reference it with the <code>script-variable-generator</code>
+	attribute:
    <programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy"
-				script-variable-generator="scriptVarGenerator"/>
-<bean id="scriptVariableGenerator" class="foo.bar.MyScriptVariableGenerator"/>]]></programlisting>
+				script-variable-generator="variableGenerator"/>
+
+<bean id="variableGenerator" class="foo.bar.MyScriptVariableGenerator"/>]]></programlisting>
 	
 	  <important>
-	  
-	  Remember that <code>script-variable-generator</code> and use of &lt;variable&gt; sub-element is mutually exclusive. 
-	  You can only use one of another. Also, the <code>script-variable-generator</code> and/or &lt;variable&gt; sub-elements can 
-	  not be used when using inline script, only when pointing to the script via <code>location</code> attribute.
-
+	  The <code>script-variable-generator</code> attribute and &lt;variable&gt; sub-element(s) are mutually exclusive. 
+	  You can use at most one of them. Also, the <code>script-variable-generator</code> and &lt;variable&gt; sub-elements
+	  cannot be used with an inline script, but rather only when pointing to the script via the <code>location</code> attribute.
 	  </important>
 	  
-	  If you need  control over customization of the Groovy object itself which goes beyond setting variables 
-	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
-	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via <code>customizer</code> attribute.
+	  If you need to customize the Groovy object itself, beyond setting variables, you can reference
+	  a bean that implementats <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via the
+	  <code>customizer</code> attribute. For example, this might be useful if you want to configure a domain-specific
+	  language (DSL) by modifying the MetaClass and registering functions to be available within the script.
 	  
-	   <programlisting language="xml"><![CDATA[<service-activator input-channel="withScriptVariableGenerator">
-		<groovy:script location="org/springframework/integration/groovy/config/GroovyServiceActivatorTests.groovy"
-					   script-variable-generator="scriptVarSource" customizer="groovyCustomizer"/>
+	   <programlisting language="xml"><![CDATA[<service-activator input-channel="groovyChannel">
+    <groovy:script location="foo/SomeScript.groovy" customizer="groovyCustomizer"/>
 </service-activator>
-				   
-<beans:bean id="groovyCustomizer" 
-			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
 
-Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &lt;variable&gt; sub-element and/or <code>script-variable-generator</code>
- and is allowed with inline scripting.
+<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>]]></programlisting>
 
+	  Setting a custom GroovyObjectCustomizer is not mutually exclusive with &lt;variable&gt; sub-elements or
+	  the <code>script-variable-generator</code> attribute. It can also be provided when defining an inline script.
     </para>
   </section>
 
@@ -144,13 +142,13 @@ Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &lt;variable&
     monitoring and managing the components within the framework as is used for
     "application-level" messaging. In Spring Integration we build upon the
     adapters described above so that it's possible to send Messages as a means
-    of invoking exposed operations.
+    of invoking exposed operations. One option for those operations is Groovy scripts.
     <programlisting language="xml"> &lt;groovy:control-bus input-channel="operationChannel"/&gt;</programlisting></para>
 
     <para>The Control Bus has an input channel that can be accessed for
     invoking operations on the beans in the application context.</para>
 
-    <para>The groovy control bus executes messages on the input channel as
+    <para>The Groovy Control Bus executes messages on the input channel as
     Groovy scripts. It takes a message, compiles the body to a Script,
     customizes it with a GroovyObjectCustomizer, and then executes it. The
     Control Bus' customizer exposes all the beans in the application context
@@ -159,15 +157,15 @@ Setting custom GroovyObjectCustomizer is NOT mutually exclusive to &lt;variable&
     (e.g. several of the TaskExecutor and TaskScheduler implementations).</para>
     
     <para>
-     If you need  control over customization of the Groovy object itself which goes beyond setting variables 
-	  (e.g., properties, MetaObject etc.) you can also register a GroovyObjectCustomizer which is an implementation of 
-	  <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via <code>customizer</code> attribute.
+     If you need to further customize the Groovy objects, you can also provide a reference to a bean
+     that implements <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via
+     the <code>customizer</code> attribute.
 	  
-	   <programlisting language="xml"><![CDATA[<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"
-						customizer="groovyCustomizer"/>
+	   <programlisting language="xml"><![CDATA[<groovy:control-bus input-channel="input"
+        output-channel="output"
+        customizer="groovyCustomizer"/>
 				   
-<beans:bean id="groovyCustomizer" 
-			class="ofoo.bar.MyGroovyCustomizer"/>]]></programlisting>
+<beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>]]></programlisting>
     </para>
   </section>
 </section>
