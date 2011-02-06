@@ -32,28 +32,28 @@ public interface Cafe {
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
       an example that uses this "gateway" element (in the Cafe demo).
       <important>
-      In 90% of the cases you don't have to specify <code>default-reply-channel</code> since by default Gateway will always 
-      auto-create a temporary reply channel where it will listen for the reply.
+      Typically you don't have to specify the <code>default-reply-channel</code> since a Gateway will 
+      auto-create a temporary, anonymous reply channel where it will listen for the reply.
       However, there are some cases which may prompt you to define a <code>default-reply-channel</code> (or <code>reply-channel</code> 
-      with adapter gateways such as HTTP, JMS etc.).
-	  First quickly about some of the details on inner-workings of the Gateway.
-      Gateway will always create a default (temporary) reply channel which is always anonymous and DirectChannel and it is injected 
-      into the MessageHeaders as <code>replyChannel</code>. 
+      with adapter gateways such as HTTP, JMS, etc.).
+	  For some background, we'll quickly discuss some of the inner-workings of the Gateway.
+      A Gateway will create a temporary point-to-point reply channel which is anonymous and is added 
+      to the Message Headers with the name <code>replyChannel</code>. 
       When providing an explicit <code>default-reply-channel</code> (<code>reply-channel</code> with remote adapter gateways), 
-      now you have an option to point to a pub-sub channel which is obviously named, so you can add subscriber to it. 
-      Internally Spring Integration will create a Bridge between the temporary <code>replyChannel</code> and explicitly defined 
+      you have the option to point to a publish-subscribe channel, which is so named because you can add more than one subscriber to it.
+      Internally Spring Integration will create a Bridge between the temporary <code>replyChannel</code> and the explicitly defined 
       <code>default-reply-channel</code>. 
 
 	  So let's say you want your reply to go not only to the gateway, but also to some other consumer. In this case you 
-	  would want two things; <emphasis>a) Named channel you can subscribe to; b) Such channel must be publish-subscribe channel.</emphasis> 
-	  Obviously default strategy used by the gateway will not satisfy you simply because default reply channel is anonymous and 
-	  DirectChannel. This  means that second subscribers can't get a handle to it and even if it could (somehow), the channel 
-	  is still a DirectChannel which means only one subscriber would get the Message. So by defining a <code>default-reply-channel</code> 
-	  you can point to a channel of your choosing which for this case would be <code>publish-subscribe-channel</code> and 
-	  Spring Integration would bridge it with the temporary reply channel.
+	  would want two things: <emphasis>a) a named channel you can subscribe to and b) that channel is a publish-subscribe-channel.</emphasis> 
+	  The default strategy used by the gateway will not satisfy those needs, because the reply channel added to the header is anonymous and 
+	  point-to-point. This means that no other subscriber can get a handle to it and even if it could, the channel 
+	  has point-to-point behavior such that only one subscriber would get the Message. So by defining a <code>default-reply-channel</code> 
+	  you can point to a channel of your choosing which in this case would be a <code>publish-subscribe-channel</code>.
+	  The Gateway would create a bridge from it to the temporary, anonymous reply channel that is stored in the header.
 
-      Another case is monitoring/auditing via interceptor (e.g., wiretap). Yet again you can't add an interceptor to a 
-      nameless channel, but you can to a named one. 
+      Another case where you might want to provide a reply channel explicitly is for monitoring or auditing via an interceptor
+      (e.g., wiretap). You need a named channel in order to configure a Channel Interceptor. 
       </important>
   </para>
     <para>
