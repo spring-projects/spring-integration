@@ -438,57 +438,46 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <para><emphasis>Persistent QueueChannel Configuration</emphasis></para>
       
       <para>
-      Since <classname>QueueChannel</classname> provides capability to buffer Messages it also introduces a point of failure 
-      where Messages could be lost in the event of the system crash. To mitigate this risk, <classname>QueueChannel</classname> is 
-      backed by a persistent store which is exposed via simple strategy interface <classname>MessageStore</classname>:
-      <programlisting language="java"><![CDATA[public interface MessageStore {
-
-	Message<?> getMessage(UUID id);
-
-	<T> Message<T> addMessage(Message<T> message);
-
-	Message<?> removeMessage(UUID id);
-
-	int getMessageCount();
-}]]></programlisting>
-	  For more details on <classname>MessageStore</classname> see <xref linkend="message-store" />.
+      Since a <classname>QueueChannel</classname> provides the capability to buffer Messages, but does so in-memory only
+      by default, it also introduces a possibility that Messages could be lost in the event of a system failure. To
+      mitigate this risk, a <classname>QueueChannel</classname> may be backed by a persistent implementation of the
+      <classname>MessageGroupStore</classname> strategy interface. For more details on <classname>MessageGroupStore</classname>
+      and <classname>MessageStore</classname> see <xref linkend="message-store" />.
 	  </para>
 	  <para>
-	  When <classname>QueueChannel</classname> receives the Message it will add the Message to the <classname>MessageStore</classname>
-	  by invoking <code>addMessage(Message)</code>  method and when the Message is polled from the <classname>MessageStore</classname> 
-	  it is removed from it via <code>removeMessage(UUID)</code> method.
+	  When a <classname>QueueChannel</classname> receives a Message, it will add it to the Message Store, and when a Message
+	  is polled from a <classname>QueueChannel</classname>, it is removed from the Message Store.
       </para>
       <para>
-      By default any <classname>QueueChannel</classname> is bootstrapped with <classname>SimpleMessageStore</classname> which is 
-      in-memory Map-based implementation of the <classname>MessageStore</classname> interface. However Spring Integration 
-      also provides <classname>JdbcMessageStore</classname> to allow <classname>QueueChannel</classname> to be backed by an RDBMS.
+      By default any <classname>QueueChannel</classname> only stores its Messages in an in-memory Queue
+      and can therefore lead to the lost message scenario mentioned above. However Spring Integration 
+      provides a <classname>JdbcMessageStore</classname> to allow a <classname>QueueChannel</classname> to be backed by an RDBMS.
       </para>
       <para>
-      You configure <classname>MessageStore</classname> for <classname>QueueChannel</classname> via <code>message-store</code> attribute.
+      You can configure a Message Store for any <classname>QueueChannel</classname> by adding the
+      <code>message-store</code> attribute as shown in the next example.
      
-      <programlisting language="xml"><![CDATA[<int:channel id="myChannel">
-    <int:queuel message-store="messageStore">
+      <programlisting language="xml"><![CDATA[<int:channel id="dbBackedChannel">
+    <int:queue message-store="messageStore">
 <int:channel id="myChannel">
 
-<jdbc:embedded-database id="dataSource" type="HSQL"/>
-	
-<int-jdbc:message-store id="messageStore" data-source="dataSource"/>]]></programlisting>
+<int-jdbc:message-store id="messageStore" data-source="someDataSource"/>]]></programlisting>
      
-     You can also see that you can configure <classname>JdbcMessageStore</classname> via namespace support provided by 
-     Spring Integration JDBC module. All you need to do is inject any standard Spring datasource. Spring Integration JDBC 
-     module also provides schemas for most popular databases. These schemas are located in 
-     <emphasis>org.springframework.integration.jdbc</emphasis> package of Spring Integration JDBC module.
+     The above example also shows that <classname>JdbcMessageStore</classname> can be configured with the namespace support
+     provided by the Spring Integration JDBC module. All you need to do is inject any <classname>javax.sql.DataSource</classname>
+     instance. The Spring Integration JDBC module also provides schema DDL for most popular databases. These schemas are located in
+     the <emphasis>org.springframework.integration.jdbc</emphasis> package of that module (spring-integration-jdbc).
      
      <important>
-     One thing to remember is that with any transactional persistent store (e.g., JdbcMessageStore) 
-     the messages removed from such persistent store will only be completely removed if transaction completed 
-     successfully, otherwise transaction will roll back and the Message will not be lost.  
+     One thing to remember is that with any transactional persistent store (e.g., JdbcMessageStore),
+     a Message removed from the store will only be permanently removed if the transaction completes
+     successfully, otherwise the transaction will roll back and the Message will not be lost.  
      </important>
-     And of course you can alway provide your own implementation of MessageStore interface
+     Many other implementations of the Message Store will be available as the growing number of Spring projects
+     related to "NoSQL" data stores provide the underlying support. Of course, you can always provide your own implementation
+     of the MessageGroupStore interface if you cannot find one that meets your particular needs.
       </para>
     </section>
-    
-    
     
     <section id="channel-configuration-pubsubchannel">
       <title>PublishSubscribeChannel Configuration</title>
