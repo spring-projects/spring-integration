@@ -1,0 +1,65 @@
+
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Generate a root Maven pom.xml for use at build time. Contains nothing other
+ * than a 'modules' section aggregating child projects. This pom will never be
+ * installed locally or deployed remotely.  Child projects will not explicitly
+ * declare this pom as their parent, given than nothing need be inherited from
+ * it.
+ *
+ * @author Chris Beams
+ * @see maven-deployment.gradle for per-project generatePom task
+ */
+task generatePom {
+    apply plugin: 'maven'
+    group = 'Build'
+    description = 'Generates a root Maven pom for convenience.'
+
+    generatedPomFileName = "pom.xml"
+
+    // ensure version changes in gradle.properties trigger regeneration of root pom
+    inputs.files(new File(project.rootProject.rootDir, Project.GRADLE_PROPERTIES))
+
+    // enable partial cleaning with `gradle cleanGeneratePom`
+    outputs.files(generatedPomFileName)
+
+    doLast() {
+        // customize the pom creation process
+        p = pom {
+            project {
+                name = project.description
+                packaging = 'pom'
+                modules = javaprojects.collect { project -> project.name }
+            }
+        }
+
+        // customizing the artifact id is a special case that must be configured
+        // after the pom is fully configured, otherwise it'll be overwritten
+        p.whenConfigured { pom -> pom.artifactId = project.name }
+
+        // write the pom.xml file out to the filesystem
+        p.writeTo(generatedPomFileName)
+    }
+
+    // ensure that pom generation happens every time resources are processed
+    // (which practically means any time a build happens). if the dependencies
+    // for the project have been updated (in $rootDir/build.gradle), the pom
+    // will have diffs in it and the developer will be reminded to check in
+    // the change during the next commit cycle.
+    //processResources.dependsOn generatePom
+}

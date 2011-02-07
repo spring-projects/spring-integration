@@ -1,0 +1,19 @@
+
+def requiredPropSets = []
+
+gradle.taskGraph.whenReady { graph ->
+    requiredPropSets.each { args ->
+        if (graph.hasTask(args.taskPath)) {
+            def missingProps = args.requiredProps.findAll { prop ->
+                !project.hasProperty(prop)
+            }
+            if (missingProps) {
+                throw new GradleException("For executing the ${args.taskPath} task you need to set all ${missingProps} properties")
+            }
+        }
+    }
+}
+project.checkForProps = { Map args ->
+    requiredPropSets.add args
+}
+

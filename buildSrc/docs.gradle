@@ -1,0 +1,278 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'base'
+apply from: "$rootDir/buildSrc/docbook.gradle"
+apply from: "$rootDir/buildSrc/preconditions.gradle"
+
+description = "${rootProject.description} Documentation"
+
+task build(dependsOn: assemble) {
+    group = 'Build'
+    description = 'Builds reference and API documentation and archives'
+}
+
+
+/**
+ * Build aggregated JavaDoc HTML for all core project classes.  Result is
+ * suitable for packaging into a distribution zip or viewing directly with
+ * a browser.
+ *
+ * @author Chris Beams
+ * @author Luke Taylor
+ * @see http://gradle.org/0.9-rc-1/docs/javadoc/org/gradle/api/tasks/javadoc/Javadoc.html
+ */
+ task api(type: Javadoc) {
+    group = 'Documentation'
+    description = "Builds aggregated JavaDoc HTML for all core project classes."
+
+    // this task is a bit ugly to configure. it was a user contribution, and
+    // Hans tells me it's on the roadmap to redesign it.
+    srcDir = file("${projectDir}/src/api")
+    destinationDir = file("${buildDir}/api")
+    tmpDir = file("${buildDir}/api-work")
+    optionsFile = file("${tmpDir}/apidocs/javadoc.options")
+    options.stylesheetFile = file("${srcDir}/spring-javadoc.css")
+    options.links = ["http://static.springframework.org/spring/docs/3.0.x/javadoc-api"]
+    options.overview = "${srcDir}/overview.html"
+    options.docFilesSubDirs = true
+    title = "${rootProject.description} ${version} API"
+
+    // collect all the sources that will be included in the javadoc output
+    source javaprojects.collect {project ->
+        project.sourceSets.main.allJava
+    }
+
+    // collect all main classpaths to be able to resolve @see refs, etc.
+    // this collection also determines the set of projects that this
+    // task dependsOn, thus the runtimeClasspath is used to ensure all
+    // projects are included, not just *dependencies* of all classes.
+    // this is awkward and took me a while to figure out.
+    classpath = files(javaprojects.collect {project ->
+        project.sourceSets.main.runtimeClasspath
+    })
+
+    // copy the images from the doc-files dir over to the target
+    doLast { task ->
+        copy {
+            from file("${task.srcDir}/doc-files")
+            into file("${task.destinationDir}/doc-files")
+        }
+    }
+}
+
+/**
+ * Expand ${...} variables within docbook sources. This is a workaround
+ * accomodating the fact that the current docbook plugin has no way of
+ * parameterizing and replacing normal XML entities.
+ *
+ * Note that this task represents an implementation detail and it is
+ * unfortunate that it pollutes the listing of available tasks, e.g.
+ * during `gradle -t`. It's a good example of the need for 'task visibility' -
+ * a feature not yet implemented, but on the Gradle roadmap.
+ *
+ * @author Chris Beams
+ * @see http://jira.codehaus.org/browse/GRADLE-1026
+ */
+task preprocessDocbookSources {
+    description = 'Expands ${...} variables within docbook sources.'
+
+    doLast {
+        docbookSrcDir = file('src/reference/docbook')
+        docbookResourceDir = file('src/reference/resources/')
+        docbookWorkDir = file('build/reference-work')
+
+        // copy everything but index.xml
+        copy {
+            into(docbookWorkDir)
+            from(docbookSrcDir) { exclude '**/index.xml' }
+        }
+        copy {
+            into(docbookWorkDir)
+            from(docbookResourceDir)
+        }
+        // copy index.xml and expand ${...} variables along the way
+        // e.g.: ${version} needs to be replaced in the header
+        copy {
+            into(docbookWorkDir)
+            from(docbookSrcDir) { include '**/index.xml' }
+            expand(version: "$version")
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Configure the three docbook* tasks that are added to the project by the
+// 'docbook' plugin.
+// -----------------------------------------------------------------------------
+task reference(dependsOn: [docbookHtml, docbookHtmlSingle, docbookPdf]) {
+    group = 'Documentation'
+    description = 'Generates all HTML and PDF reference documentation.'
+
+    doLast {
+        // copy images and css into respective html dirs
+        ['html', 'htmlsingle'].each { dir ->
+            copy {
+                into "${buildDir}/reference/${dir}/images"
+                from "src/reference/resources/images"
+            }
+            copy {
+                into "${buildDir}/reference/${dir}/css"
+                from "src/reference/resources/css"
+            }
+        }
+    }
+}
+
+[docbookHtml, docbookPdf, docbookHtmlSingle]*.sourceFileName = 'index.xml';
+[docbookHtml, docbookHtmlSingle, docbookPdf]*.dependsOn preprocessDocbookSources
+
+docbookHtml.stylesheet = file('src/reference/resources/xsl/html-custom.xsl')
+docbookHtmlSingle.stylesheet = file('src/reference/resources/xsl/html-single-custom.xsl')
+docbookPdf.stylesheet = file('src/reference/resources/xsl/pdf-custom.xsl')
+def imagesDir = file('src/reference/resources/images');
+docbookPdf.admonGraphicsPath = "${imagesDir}/admon/"
+
+
+/**
+ *
+ * @see http://www.gradle.org/0.9-preview-3/docs/userguide/userguide_single.html#sec:copying_files
+ * @see http://www.gradle.org/0.9-preview-3/docs/javadoc/org/gradle/api/file/CopySpec.html
+ */
+docsSpec = copySpec {
+    into("${version}") {
+        from('src/info/changelog.txt')
+    }
+
+    into("${version}/api") {
+        from(api.destinationDir)
+    }
+
+    into("${version}/reference") {
+        from("${buildDir}/reference")
+    }
+}
+
+task archive(type: Zip, dependsOn: [api, reference]) {
+    group = "Documentation"
+    description = "Creates a zip archive of reference and API documentation."
+
+    baseName = rootProject.name + '-docs'
+
+    // drop it right in the root of the build dir for simplicity
+    destinationDir = buildDir
+
+    // use the copy spec above to specify the contents of the zip
+    with docsSpec
+}
+
+configurations { archives }
+artifacts { archives archive }
+
+configurations { scpAntTask }
+dependencies {
+    scpAntTask("org.apache.ant:ant-jsch:1.8.1")
+}
+
+checkForProps(taskPath: project.path + ':uploadArchives', requiredProps: ['sshHost', 'sshUsername', 'sshPrivateKey', 'remoteDocRoot'])
+
+if (role == 'buildmaster') {
+    uploadArchives {
+        def docsPath = "${rootProject.name}/docs"
+        def docsUrl = "http://${sshHost}/${docsPath}/${version}"
+        def remoteDocsDir = "${remoteDocRoot}/${docsPath}/"
+        def fqRemoteDir = "${sshUsername}@${sshHost}:${remoteDocsDir}"
+
+        group = 'Buildmaster'
+
+        description = "Uploads and unpacks documentation archive" + (sshHost ? " to ${docsUrl}" : ": Host is not specified")
+
+        uploadDescriptor = false
+
+        repositories {
+            add(new org.apache.ivy.plugins.resolver.SshResolver()) {
+                name = 'sshHost: ' + sshHost // used for debugging
+                host = sshHost
+                user = sshUsername
+                if (project.hasProperty('sshPrivateKey')) {
+                    keyFile = sshPrivateKey as File
+                }
+                addArtifactPattern "${remoteDocsDir}/${archive.archiveName}"
+            }
+        }
+
+        configurations { scpAntTask }
+        dependencies { scpAntTask 'org.apache.ant:ant-jsch:1.8.1' }
+
+        doFirst {
+            println "Uploading: ${archive.archivePath} to ${fqRemoteDir}"
+        }
+
+        doLast {
+            project.ant {
+                taskdef(name: 'sshexec',
+                        classname: 'org.apache.tools.ant.taskdefs.optional.ssh.SSHExec',
+                        classpath: configurations.scpAntTask.asPath)
+
+                // copy the archive, unpack it, then delete it
+                def unpackCommand = """
+                    cd ${remoteDocsDir} &&
+                    rm -rf ${version} &&
+                    unzip -qKo ${archive.archiveName} &&
+                    rm ${archive.archiveName}
+                """
+
+                def wildcardSymlinkCommand = """
+                    cd ${remoteDocsDir} &&
+                    if [ -e ${version.wildcardValue} ]; then
+                        currentWildcard=`readlink ${version.wildcardValue}`
+                    else
+                        currentWildcard=-1
+                    fi &&
+                    if [[ ${version} > \$currentWildcard ]]; then
+                        rm -f ${version.wildcardValue} &&
+                        ln -s ${version} ${version.wildcardValue}
+                    fi
+                """
+
+                def latestGASymlinkCommand = """
+                    cd ${remoteDocsDir} &&
+                    if [ -e latest-ga ]; then
+                        latestGa=`readlink latest-ga`
+                    else
+                        latestGa=-1
+                    fi &&
+                    if [[ ${version} > \$latestGa ]]; then
+                        rm -f latest-ga &&
+                        ln -s ${version} latest-ga
+                    fi
+                """
+
+                println "Unpacking docs archive: ${unpackCommand}"
+                sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: unpackCommand)
+                if (version.releaseType != 'SNAPSHOT') {
+                    println "Creating wildcard symlink: ${wildcardSymlinkCommand}"
+                    sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: wildcardSymlinkCommand)
+                }
+                if (version.releaseType == 'RELEASE') {
+                    println "Creating latest-ga symlink: ${latestGASymlinkCommand}"
+                    sshexec(host: sshHost, username: sshUsername, keyfile: sshPrivateKey, command: latestGASymlinkCommand)
+                }
+                println "UPLOAD SUCCESSFUL - validate by visiting ${docsUrl}"
+            }
+        }
+    }
+}
