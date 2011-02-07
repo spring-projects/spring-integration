@@ -4,15 +4,15 @@ Bundle-Vendor: SpringSource
 Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
- org.springframework.integration.*;version="[2.0.1, 2.0.2)",
+ org.springframework.integration.*;version="[2.0.2, 2.0.3)",
  org.springframework.beans.*;version="[3.0.5, 4.0.0)",
  org.springframework.context;version="[3.0.5, 4.0.0)",
  org.springframework.expression;version="[3.0.5, 4.0.0)",
  org.springframework.scheduling.*;version="[3.0.5, 4.0.0)",
  org.springframework.util;version="[3.0.5, 4.0.0)",
  org.springframework.oxm;version="[1.5.9, 3.1.0)",
- org.springframework.ws.*;version="[1.5.9, 2.0.0)",
- org.springframework.xml.*;version="[1.5.9, 2.0.0)",
+ org.springframework.ws.*;version="[1.5.9, 2.1.0)",
+ org.springframework.xml.*;version="[1.5.9, 2.1.0)",
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
  org.w3c.dom.*;version="0",
  javax.xml.*;version="0"
