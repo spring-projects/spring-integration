@@ -45,7 +45,7 @@ The result will be available in 'docs/build/api'.
         https://ebr.springsource.com/repository/app/, where you can download
         many third-party JARs as valid OSGi bundles.
     If a particular bundle is not available in Spring's EBR, there are tools
-       that can convert regular JAR to a bundle JAR. One of them is Bundlor
+       that can convert a regular JAR to a bundle JAR. One of them is Bundlor
        http://www.springsource.org/bundlor which can auto-generate an OSGi
        MANIFEST.MF as part of standard project lifecycle or simply convert a
        non-bundle JAR to a bundle JAR.
