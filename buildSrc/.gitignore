@@ -1,4 +1,0 @@
-*.sw?
-.gradle
-build
-!src/main/groovy/org/springframework/build
