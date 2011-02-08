@@ -74,6 +74,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	/**
 	 * @deprecated  As of release 2.0.2, use individual setters
 	 */
+	@Deprecated
 	public void setPollerMetadata(PollerMetadata pollerMetadata){
 		Assert.notNull(pollerMetadata, "'pollerMetadata' must not be null.");
 		this.setAdviceChain(pollerMetadata.getAdviceChain());
