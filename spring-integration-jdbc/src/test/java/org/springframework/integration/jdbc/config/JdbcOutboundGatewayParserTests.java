@@ -1,5 +1,6 @@
 package org.springframework.integration.jdbc.config;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -35,8 +36,9 @@ public class JdbcOutboundGatewayParserTests {
 	@Test
 	public void testMapPayloadMapReply() {
 		setUp("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
+		assertTrue(context.containsBean("jdbcGateway"));
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
-		channel.send(message);
+		channel.send(message); 
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
 		assertEquals("Wrong name", "bar", map.get("name"));

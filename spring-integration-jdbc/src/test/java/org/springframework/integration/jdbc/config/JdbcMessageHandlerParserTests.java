@@ -1,5 +1,6 @@
 package org.springframework.integration.jdbc.config;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
@@ -50,6 +51,8 @@ public class JdbcMessageHandlerParserTests {
 	@Test
 	public void testMapPayloadOutboundChannelAdapter(){
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
+		assertTrue(context.containsBean("jdbcAdapter"));
+		System.out.println(context.getBean("jdbcAdapter").getClass().getName());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
