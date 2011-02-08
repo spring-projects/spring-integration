@@ -70,7 +70,7 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
 		File childFile = new File(folder, "baz");
 		assertTrue(childFile.createNewFile());
 
-		List<Message<?>> received = Arrays.asList(files.receive(), files.receive());
+		List<Message> received = Arrays.asList((Message) files.receive(), files.receive());
 		//verify
 		assertThat(received, hasItems(hasPayload(siblingFile), hasPayload(childFile)));
 	}

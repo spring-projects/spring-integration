@@ -53,14 +53,14 @@ import org.springframework.integration.Message;
  * @author Iwein Fuld
  * 
  */
-public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
+public class PayloadMatcher extends TypeSafeMatcher<Message> {
 
-	private final Matcher<?> matcher;
+	private final Matcher matcher;
 
 	/**
-	 * @param matcher
+	 * Create a PayloadMatcher that matches the payload of messages against the given matcher
 	 */
-	PayloadMatcher(Matcher<?> matcher) {
+	PayloadMatcher(Matcher matcher) {
 		super();
 		this.matcher = matcher;
 	}
@@ -69,7 +69,7 @@ public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean matchesSafely(Message<?> message) {
+	public boolean matchesSafely(Message message) {
 		return matcher.matches(message.getPayload());
 	}
 
@@ -83,12 +83,12 @@ public class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasPayload(T payload) {
+	public static <T> Matcher<Message> hasPayload(T payload) {
 		return new PayloadMatcher(IsEqual.equalTo(payload));
 	}
 
 	@Factory
-	public static <T> Matcher<Message<?>> hasPayload(Matcher<T> payloadMatcher) {
+	public static <T> Matcher<Message> hasPayload(Matcher<? super T> payloadMatcher) {
 		return new PayloadMatcher(payloadMatcher);
 	}
 }

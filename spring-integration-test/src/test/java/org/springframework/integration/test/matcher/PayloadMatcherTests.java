@@ -36,7 +36,7 @@ public class PayloadMatcherTests {
 
 	static final BigDecimal ANY_PAYLOAD = new BigDecimal("1.123");
 
-	Message<BigDecimal> message =MessageBuilder.withPayload(ANY_PAYLOAD).build();;
+	Message<BigDecimal> message = MessageBuilder.withPayload(ANY_PAYLOAD).build();
 
 	@Test
 	public void hasPayload_withEqualValue_matches() throws Exception {
@@ -69,4 +69,11 @@ public class PayloadMatcherTests {
 			assertTrue(ae.getMessage().contains("Expected: a Message with payload: "));
 		}
 	}
+
+	@Test
+	public void shouldMatchNonParametrizedMessage() throws Exception {
+		Message message = this.message;
+		assertThat(message, hasPayload(new BigDecimal("1.123")));
+	}
+
 }
