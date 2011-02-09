@@ -91,6 +91,21 @@ public class DeserializationTests {
 	}
 
 	@Test
+	public void testReadRaw() throws Exception {
+		int port = SocketTestUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
+		SocketTestUtils.testSendRaw(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+		byte[] out = serializer.deserialize(socket.getInputStream());
+		assertEquals("Data", SocketTestUtils.TEST_STRING + SocketTestUtils.TEST_STRING, 
+								 new String(out));
+		server.close();
+	}
+
+	@Test
 	public void testReadSerialized() throws Exception {
 		int port = SocketTestUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);

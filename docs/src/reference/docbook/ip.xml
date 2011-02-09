@@ -217,14 +217,42 @@
       Connection factories are configured to use (de)serializers to convert between the message
       payload and the bits that are sent over TCP. This is accomplished by providing a
       deserializer and serializer for inbound and outbound messages respectively.
-      Four standard (de)serializers are provided; the first is <classname>ByteArrayCrlfSerializer</classname>,
-      which can convert a byte array to a stream of bytes followed by carriage
+      A number of standard (de)serializers are provided.
+     </para>
+     <para> 
+      The <classname>ByteArrayCrlfSerializer</classname>,
+      converts a byte array to a stream of bytes followed by carriage
       return and linefeed characters (\r\n). This is the default (de)serializer and can be used with
-      telnet as a client, for example. The second is is <classname>ByteArrayStxEtxSerializer</classname>,
-      which can convert a byte array to a stream of bytes preceded by an STX (0x02) and
-      followed by an ETX (0x03). The third is <classname>ByteArrayLengthHeaderSerializer</classname>,
-      which can convert a byte array to a stream of bytes preceded by a 4 byte binary
-      length in network byte order. Each of these is a subclass of
+      telnet as a client, for example. 
+     </para>
+     <para> 
+      The <classname>ByteArrayStxEtxSerializer</classname>,
+      converts a byte array to a stream of bytes preceded by an STX (0x02) and
+      followed by an ETX (0x03). 
+     </para>
+     <para> 
+      The <classname>ByteArrayLengthHeaderSerializer</classname>,
+      converts a byte array to a stream of bytes preceded by a 4 byte binary
+      length in network byte order. This a very efficient deserializer 
+      because it does not have to parse every byte looking for a termination
+      character sequence. It can also be used for payloads containing binary data;
+      the above serializers only support text in the payload.
+     </para>
+     <para> 
+      The <classname>ByteArrayRawSerializer</classname>,
+      converts a byte array to a stream of bytes and adds no additional message
+      demarcation data; with this (de)serializer, the end of a message is indicated
+      by the client closing the socket in an orderly fashion. When using this serializer, 
+      message reception will hang until the client closes the socket, or a timeout occurs; 
+      a timeout will NOT result in a message. When this serializer is being used, and the client
+      is a Spring Integration application, the client must use a connection factory that is
+      configured with single-use=true - this causes the adapter to close the socket after sending
+      the message; the serializer will not, itself, close the connection. This serializer
+      should only be used with connection factories used by channel adapters (not gateways), and the
+      connection factories should be used by either an inbound or outbound adapter, and not both.
+     </para>
+     <para>
+      Each of these is a subclass of
       <classname>AbstractByteArraySerializer</classname> which implements both
       <classname>org.springframework.core.serializer.Serializer</classname> and
       <classname>org.springframework.core.serializer.Deserializer</classname>.
@@ -232,11 +260,25 @@
       <classname>AbstractByteArraySerializer</classname> for serialization
       will also accept a String which will be converted to a byte array first.
       Each of these (de)serializers converts an input stream containing the
-      corresponding format to a byte array payload. The fourth standard serializer is
+      corresponding format to a byte array payload. 
+     </para>
+     <para>
+      To avoid memory exhaustion due to a badly behaved client (one that does not adhere to
+      the protocol of the configured serializer), these serializers impose a maximum message
+      size. If the size is exceeded by an incoming message, an exception will be thrown.
+      The default maximum message size is 2048 bytes, and can be increased by setting the
+      <classname>maxMessageSize</classname> property. If you are using the default (de)serializer
+      and wish to increase the maximum message size, you must declare it as an explicit bean
+      with the property set and configure the connection factory to use that bean.
+     </para>
+     <para>
+      The final standard serializer is
       <classname>org.springframework.core.serializer.DefaultSerializer</classname> which can be
       used to convert Serializable objects using java serialization.
       <classname>org.springframework.core.serializer.DefaultDeserializer</classname> is provided for
       inbound deserialization of streams containing Serializable objects.
+     </para>
+     <para>
       To implement a custom (de)serializer pair, implement the
       <classname>org.springframework.core.serializer.Deserializer</classname> and
       <classname>org.springframework.core.serializer.Serializer</classname> interfaces. If you do not wish to use
@@ -246,16 +288,16 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-        <bean id="javaSerializer"
-              class="org.springframework.core.serializer.DefaultSerializer" />
-        <bean id="javaDeserializer"
-              class="org.springframework.core.serializer.DefaultDeserializer" />
+  <bean id="javaSerializer"
+        class="org.springframework.core.serializer.DefaultSerializer" />
+  <bean id="javaDeserializer"
+        class="org.springframework.core.serializer.DefaultDeserializer" />
 
   <ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
-                deserializer="JavaDeserializer"
-                serializer="javaSerializer"
+    deserializer="JavaDeserializer"
+    serializer="javaSerializer"
   />]]></programlisting>
       A server connection factory that uses <classname>java.net.Socket</classname>
       connections and uses Java serialization on the wire.
@@ -632,7 +674,7 @@
               <entry>Y</entry>
               <entry>Y</entry>
               <entry>true, false</entry>
-              <entry>Whether or not the socket handing uses NIO. Refer to the java.nio
+              <entry>Whether or not connection uses NIO. Refer to the java.nio
                      package for more information.
                      See <xref linkend="note_nio" />. 
                      Default false.</entry>
@@ -642,7 +684,7 @@
               <entry>Y</entry>
               <entry>N</entry>
               <entry>true, false</entry>
-              <entry>When using NIO, whether or not the tcp adapter uses direct buffers.
+              <entry>When using NIO, whether or not the connection uses direct buffers.
                      Refer to <classname>java.nio.ByteBuffer</classname> documentation for
                      more information. Must be false if using-nio is false. </entry>
             </row>
@@ -745,7 +787,7 @@
               <entry>Y</entry>
               <entry>Y</entry>
               <entry></entry>
-              <entry>Documentation to be supplied.</entry>
+              <entry>See <xref linkend="ip-interceptors"/> </entry>
             </row>
           </tbody>
         </tgroup>

@@ -32,6 +32,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayRawSerializer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,4 +81,20 @@ public class ConnectionToConnectionTests {
 		assertEquals("Test", new String((byte[]) message.getPayload()));
 	}
 
+	@Test
+	public void testConnectRaw() throws Exception {
+		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+		client.setSerializer(serializer);
+		server.setDeserializer(serializer);
+		TcpConnection connection = client.getConnection();
+		connection.send(MessageBuilder.withPayload("Test").build());
+		Message<?> message = serverSideChannel.receive(10000);
+		MessageHistory history = MessageHistory.read(message);
+		//org.springframework.integration.test.util.TestUtils
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
+		assertNotNull(componentHistoryRecord);
+		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
+		assertNotNull(message);
+		assertEquals("Test", new String((byte[]) message.getPayload()));
+	}
 }

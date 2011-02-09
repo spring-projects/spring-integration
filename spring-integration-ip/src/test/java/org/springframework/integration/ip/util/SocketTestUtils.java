@@ -253,6 +253,26 @@ public class SocketTestUtils {
 	}
 
 	/**
+	 * Sends a single message in two chunks and then closes the socket.
+	 */
+	public static void testSendRaw(final int port) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					OutputStream outputStream = socket.getOutputStream();
+					outputStream.write(TEST_STRING.getBytes());
+					outputStream.write(TEST_STRING.getBytes());
+					socket.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+	/**
 	 * Sends two serialized objects over the same socket.
 	 * @param port
 	 */

@@ -139,6 +139,39 @@ public class SerializationTests {
 	}
 	
 	@Test
+	public void testWriteRaw() throws Exception {
+		final int port = SocketTestUtils.findAvailableServerSocket();
+		final String testString = "abcdef";
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
+					buffer.put(testString.getBytes());
+					ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
+					serializer.serialize(buffer.array(), socket.getOutputStream());
+					socket.close();
+					Thread.sleep(1000000000L);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		t.setDaemon(true);
+		t.start();
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		InputStream is = socket.getInputStream();
+		byte[] buff = new byte[testString.length() + 1];
+		readFully(is, buff);
+		assertEquals(testString, new String(buff, 0, testString.length()));
+		assertEquals(-1, buff[testString.length()]);
+		server.close();
+	}
+	
+	@Test
 	public void testWriteSerialized() throws Exception {
 		final int port = SocketTestUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
