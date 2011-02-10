@@ -473,6 +473,14 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
+					<xsd:attribute name="receive-timeout" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Timeout for receive calls on the template.
+	NOTE: for JmsTemplate, 0 means indefinite while -1 means no-wait.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="jms-template" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

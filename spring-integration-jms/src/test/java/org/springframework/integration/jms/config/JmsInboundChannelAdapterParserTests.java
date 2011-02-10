@@ -152,6 +152,15 @@ public class JmsInboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void pollingAdapterWithReceiveTimeout() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithReceiveTimeout.xml", this.getClass());
+		JmsTemplate jmsTemplate = 
+				TestUtils.getPropertyValue(context.getBean("adapter"), "source.jmsTemplate", JmsTemplate.class);
+		assertEquals(99, jmsTemplate.getReceiveTimeout());
+	}
+
+	@Test
 	public void pollingAdapterWithMessageConverter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsInboundWithMessageConverter.xml", this.getClass());

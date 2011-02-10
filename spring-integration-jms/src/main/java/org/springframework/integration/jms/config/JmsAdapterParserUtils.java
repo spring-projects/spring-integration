@@ -57,7 +57,8 @@ abstract class JmsAdapterParserUtils {
 
 	private static final String[] JMS_TEMPLATE_ATTRIBUTES = {
 		"connection-factory", "message-converter", "destination-resolver", "pub-sub-domain",
-		"time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled", "acknowledge"
+		"time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled", "acknowledge",
+		"receive-timeout"
 	};
 
 
@@ -123,8 +124,9 @@ abstract class JmsAdapterParserUtils {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
-		if (acknowledgeMode != null){
+		if (acknowledgeMode != null) {
 			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 		}
 	
