@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluator implements MessageSource<T> {
@@ -46,9 +47,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 	public final Message<T> receive() {
 		Message<T> message = null; 
 		Object result = this.doReceive();
-
 		Map<String, Object> headers = this.evaluateHeaders();
-		
 		if (result instanceof Message<?>) {
 			try {
 				message = (Message<T>) result;
@@ -63,7 +62,7 @@ public abstract class AbstractMessageSource<T> extends AbstractExpressionEvaluat
 				message = builder.build();
 			}
 		}
-		else {
+		else if (result != null) {
 			T payload = null;
 			try {
 				payload = (T) result;
