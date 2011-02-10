@@ -237,7 +237,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * Any non-standard headers will be prefixed with the value specified by 
-	 * {@link DefaultHttpHeaderMapper#setUserDefinedPrefix(String)}. The default is 'X-'.
+	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 */
 	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
 		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
@@ -250,7 +250,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	 * <p>
 	 * This will match the header name directly or, for non-standard HTTP headers, it will match
 	 * the header name prefixed with the value specified by 
-	 * {@link DefaultHttpHeaderMapper#setUserDefinedPrefix(String)}. The default is 'X-'.
+	 * {@link DefaultHttpHeaderMapper#setUserDefinedHeaderPrefix(String)}. The default is 'X-'.
 	 */
 	public void setInboundHeaderNames(String[] inboundHeaderNames) {
 		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];

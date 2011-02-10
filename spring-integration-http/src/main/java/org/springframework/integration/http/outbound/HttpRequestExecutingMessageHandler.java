@@ -115,7 +115,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	/**
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
 	 * @param uri
-	 * @param resrTemplate
+	 * @param restTemplate
 	 */
 	public HttpRequestExecutingMessageHandler(String uri, RestTemplate restTemplate) {
 		Assert.hasText(uri, "URI is required");
