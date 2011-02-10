@@ -7,5 +7,5 @@ Import-Template:
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
  org.springframework.beans.*;version="[3.0.5, 4.0.0)",
  org.springframework.util;version="[3.0.5, 4.0.0)",
- org.springframework.integration.*;version="[2.0.2, 2.0.3)",
+ org.springframework.integration.*;version="[2.0.3, 2.0.4)",
  org.w3c.dom.*;version="0"
