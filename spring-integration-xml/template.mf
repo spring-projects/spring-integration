@@ -4,7 +4,7 @@ Bundle-Vendor: SpringSource
 Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
- org.springframework.integration.*;version="[2.0.3, 2.0.4)",
+ org.springframework.integration.*;version="[2.0.4, 2.0.5)",
  org.springframework.beans.*;version="[3.0.5, 4.0.0)",
  org.springframework.core.*;version="[3.0.5, 4.0.0)",
  org.springframework.context.expression.*;version="[3.0.5, 4.0.0)",
