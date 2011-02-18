@@ -22,13 +22,14 @@ import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * An implementation of {@link ReleaseStrategy} that simply compares the
- * current size of the message list to the expected 'sequenceSize'.
+ * An implementation of {@link ReleaseStrategy} that simply compares the current size of the message list to the
+ * expected 'sequenceSize'.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -42,7 +43,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	private volatile Comparator<Message<?>> comparator = new SequenceNumberComparator();
 
 	private volatile boolean releasePartialSequences;
-	
+
 	public SequenceSizeReleaseStrategy() {
 		this(false);
 	}
@@ -63,17 +64,20 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 	public boolean canRelease(MessageGroup messages) {
 		if (releasePartialSequences) {
-			if(logger.isTraceEnabled()){
-				logger.trace("Considering partial release of group [" + messages + "]");
+			Collection<Message<?>> unmarked = messages.getUnmarked();
+			if (!unmarked.isEmpty()) {
+				if (logger.isTraceEnabled()) {
+					logger.trace("Considering partial release of group [" + messages + "]");
+				}
+				List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
+				Collections.sort(sorted, comparator);
+				int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
+				boolean release = tail == messages.getMarked().size();
+				if (logger.isTraceEnabled() && release) {
+					logger.trace("Release imminent because tail [" + tail + "] is next in line.");
+				}
+				return release;
 			}
-			List<Message<?>> sorted = new ArrayList<Message<?>>(messages.getUnmarked());
-			Collections.sort(sorted, comparator);
-			int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-			boolean release = tail == messages.getMarked().size();
-			if (logger.isTraceEnabled() && release) {
-				logger.trace("Release imminent because tail [" + tail + "] is next in line.");
-			}
-			return release;
 		}
 		return messages.isComplete();
 	}
