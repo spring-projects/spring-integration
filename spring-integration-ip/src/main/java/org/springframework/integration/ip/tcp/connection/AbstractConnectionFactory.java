@@ -385,7 +385,7 @@ public abstract class AbstractConnectionFactory
 			}
 		}
 		if (logger.isTraceEnabled())
-			logger.trace("Host" + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
+			logger.trace("Host " + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
 		if (selectionCount > 0) {
 			Set<SelectionKey> keys = selector.selectedKeys();
 			Iterator<SelectionKey> iterator = keys.iterator();

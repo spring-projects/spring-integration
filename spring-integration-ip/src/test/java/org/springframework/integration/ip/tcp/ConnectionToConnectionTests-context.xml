@@ -13,7 +13,6 @@
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
-		using-nio="true"
 		single-use="true"
 		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
 	/>
