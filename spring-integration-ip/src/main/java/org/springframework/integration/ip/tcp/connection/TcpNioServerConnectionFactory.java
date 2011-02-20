@@ -27,9 +27,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
 /**
@@ -112,84 +110,36 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			throws IOException, ClosedChannelException, SocketException {
 		while (this.active) {
 			int selectionCount = selector.select(this.soTimeout);
-			if (logger.isTraceEnabled())
-				logger.trace("Port " + port + " SelectionCount: " + selectionCount);
-			long now = 0;
-			if (this.soTimeout > 0) {
-				Iterator<SocketChannel> it = connections.keySet().iterator();
-				now = System.currentTimeMillis();
-				while (it.hasNext()) {
-					SocketChannel channel = it.next();
-					if (!channel.isOpen()) {
-						logger.debug("Removing closed channel");
-						it.remove();
-					} else {
-						TcpNioConnection connection = this.connections.get(channel);
-						if (now - connection.getLastRead() > this.soTimeout) {
-							logger.warn("Timing out TcpNioConnection " +
-										this.port + " : " +
-									    connection.getConnectionId());
-							connection.timeout();
-						}
-					}
-				}
-			}
-			if (selectionCount > 0) {
-				Set<SelectionKey> keys = selector.selectedKeys();
-				Iterator<SelectionKey> iterator = keys.iterator();
-				SocketChannel channel = null;
-				while (iterator.hasNext()) {
-					final SelectionKey key = iterator.next();
-					iterator.remove();
-					if (!key.isValid()) {
-						logger.debug("Selection key no longer valid");
-					}
-					else if (key.isAcceptable()) {
-						logger.debug("New accept");
-						channel = server.accept();
-						channel.configureBlocking(false);
-						Socket socket = channel.socket();
-						setSocketAttributes(socket);
-						TcpNioConnection connection = createTcpNioConnection(channel);
-						if (connection == null) {
-							continue;
-						}
-						connection.setTaskExecutor(this.taskExecutor);
-						connection.setLastRead(now);
-						connections.put(channel, connection);
-						channel.register(selector, SelectionKey.OP_READ, connection);
-					}
-					else if (key.isReadable()) {
-						key.interestOps(key.interestOps() - key.readyOps());
-						final TcpNioConnection connection; 
-						connection = (TcpNioConnection) key.attachment();
-						connection.setLastRead(System.currentTimeMillis());
-						this.taskExecutor.execute(new Runnable() {
-							public void run() {
-								try {
-									connection.readPacket();
-								} catch (Exception e) {
-									if (connection.isOpen()) {
-										logger.error("Exception on read " + e.getMessage());
-										connection.close();
-									} else {
-										logger.debug("Connection closed");
-									}
-								}
-								if (key.channel().isOpen()) {
-									key.interestOps(SelectionKey.OP_READ);
-									selector.wakeup();
-								}
-							}});
-					}
-					else {
-						logger.error("Unexpected key: " + key);
-					}
-				}
-			}			
+			this.processNioSelections(selectionCount, selector, server, this.connections);			
 		}
 	}
-	
+
+	/**
+	 * @param selector
+	 * @param connections
+	 * @param server
+	 * @param now
+	 * @throws IOException
+	 * @throws SocketException
+	 * @throws ClosedChannelException
+	 */
+	@Override
+	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
+		logger.debug("New accept");
+		SocketChannel channel = server.accept();
+		channel.configureBlocking(false);
+		Socket socket = channel.socket();
+		setSocketAttributes(socket);
+		TcpNioConnection connection = createTcpNioConnection(channel);
+		if (connection == null) {
+			return;
+		}
+		connection.setTaskExecutor(this.taskExecutor);
+		connection.setLastRead(now);
+		connections.put(channel, connection);
+		channel.register(selector, SelectionKey.OP_READ, connection);
+	}
+
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
 			TcpNioConnection connection = new TcpNioConnection(socketChannel, true);

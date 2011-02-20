@@ -16,14 +16,21 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -346,6 +353,92 @@ public abstract class AbstractConnectionFactory
 		return connection;
 	}
 
+	/**
+	 * 
+	 * Times out any expired connections then, if selectionCount > 0, processes the selected keys.
+	 *  
+	 * @param selectionCount
+	 * @param selector
+	 * @param connections
+	 * @throws IOException
+	 */
+	protected void processNioSelections(int selectionCount, final Selector selector, ServerSocketChannel server,
+			Map<SocketChannel, TcpNioConnection> connections) throws IOException {
+		long now = 0;
+		if (this.soTimeout > 0) {
+			Iterator<SocketChannel> it = connections.keySet().iterator();
+			now = System.currentTimeMillis();
+			while (it.hasNext()) {
+				SocketChannel channel = it.next();
+				if (!channel.isOpen()) {
+					logger.debug("Removing closed channel");
+					it.remove();
+				} else {
+					TcpNioConnection connection = connections.get(channel);
+					if (now - connection.getLastRead() > this.soTimeout) {
+						logger.warn("Timing out TcpNioConnection " +
+									this.port + " : " +
+								    connection.getConnectionId());
+						connection.timeout();
+					}
+				}
+			}
+		}
+		if (logger.isTraceEnabled())
+			logger.trace("Host" + this.host + " port " + this.port + " SelectionCount: " + selectionCount);
+		if (selectionCount > 0) {
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
+			while (iterator.hasNext()) {
+				final SelectionKey key = iterator.next();
+				iterator.remove();
+				if (!key.isValid()) {
+					logger.debug("Selection key no longer valid");
+				}
+				else if (key.isReadable()) {
+					key.interestOps(key.interestOps() - key.readyOps());
+					final TcpNioConnection connection; 
+					connection = (TcpNioConnection) key.attachment();
+					connection.setLastRead(System.currentTimeMillis());
+					this.taskExecutor.execute(new Runnable() {
+						public void run() {
+							try {
+								connection.readPacket();
+							} catch (Exception e) {
+								if (connection.isOpen()) {
+									logger.error("Exception on read " +
+											connection.getConnectionId() + " " +
+											e.getMessage());
+									connection.close();
+								} else {
+									logger.debug("Connection closed");
+								}
+							}
+							if (key.channel().isOpen()) {
+								key.interestOps(SelectionKey.OP_READ);
+								selector.wakeup();
+							}
+						}});
+				}
+				else if (key.isAcceptable()) {
+					doAccept(selector, server, now);
+				}
+				else {
+					logger.error("Unexpected key: " + key);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param selector
+	 * @param now
+	 * @throws IOException
+	 */
+	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
+		throw new UnsupportedOperationException("Nio server factory must override this method");
+	}
+	
 	public int getPhase() {
 		return 0;
 	}

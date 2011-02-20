@@ -358,6 +358,46 @@ public class TcpNioConnectionReadTests {
 	}
 
 	/**
+	 * Tests socket closure when no data received.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCloseCleanupPartialData() throws Exception {
+		int port = SocketTestUtils.findAvailableServerSocket();
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		serializer.setMaxMessageSize(1024);
+		final List<Message<?>> responses = new ArrayList<Message<?>>();
+		final Semaphore semaphore = new Semaphore(0);
+		final List<TcpConnection> added = new ArrayList<TcpConnection>();
+		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
+			public boolean onMessage(Message<?> message) {
+				responses.add(message);
+				semaphore.release();
+				return false;
+			}
+		}, new TcpSender() {
+			public void addNewConnection(TcpConnection connection) {
+				added.add(connection);
+				semaphore.release();
+			}
+			public void removeDeadConnection(TcpConnection connection) {
+				removed.add(connection);
+				semaphore.release();
+			}
+		});
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.getOutputStream().write("partial".getBytes());
+		socket.close();
+		whileOpen(semaphore, added);
+		assertEquals(1, added.size());
+		assertTrue(semaphore.tryAcquire(10000, TimeUnit.MILLISECONDS));
+		assertTrue(removed.size() > 0);
+		scf.close();
+	}
+
+	/**
 	 * Tests socket closure when mid-message
 	 * 
 	 * @throws Exception

@@ -21,9 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -120,70 +118,12 @@ public class TcpNioClientConnectionFactory extends
 		try {
 			this.selector = Selector.open();
 			while (this.active) {
-				int selectionCount = selector.select(this.soTimeout);
 				SocketChannel newChannel;
+				int selectionCount = selector.select(this.soTimeout);
 				while ((newChannel = newChannels.poll()) != null) {
 					newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
 				}
-				if (logger.isTraceEnabled())
-					logger.trace("Connection " + host + ":" + port + " SelectionCount: " + selectionCount);
-				long now = 0;
-				if (this.soTimeout > 0) {
-					Iterator<SocketChannel> it = connections.keySet().iterator();
-					now = System.currentTimeMillis();
-					while (it.hasNext()) {
-						SocketChannel channel = it.next();
-						if (!channel.isOpen()) {
-							logger.debug("Removing closed channel");
-							it.remove();
-						} else {
-							TcpNioConnection connection = this.connections.get(channel);
-							if (now - connection.getLastRead() > this.soTimeout) {
-								logger.warn("Timing out TcpNioConnection " + connection.getConnectionId());
-								connection.timeout();
-							}
-						}
-					}
-				}
-				if (selectionCount > 0) {
-					Set<SelectionKey> keys = selector.selectedKeys();
-					Iterator<SelectionKey> iterator = keys.iterator();
-					while (iterator.hasNext()) {
-						final SelectionKey key = iterator.next();
-						iterator.remove();
-						if (!key.isValid()) {
-							logger.debug("Selection key no longer valid");
-						}
-						else if (key.isReadable()) {
-							key.interestOps(key.interestOps() - key.readyOps());
-							final TcpNioConnection connection; 
-							connection = (TcpNioConnection) key.attachment();
-							connection.setLastRead(System.currentTimeMillis());
-							this.taskExecutor.execute(new Runnable() {
-								public void run() {
-									try {
-										connection.readPacket();
-									} catch (Exception e) {
-										if (connection.isOpen()) {
-											logger.error("Exception on read " +
-													connection.getConnectionId() + " " +
-													e.getMessage());
-											connection.close();
-										} else {
-											logger.debug("Connection closed");
-										}
-									}
-									if (key.channel().isOpen()) {
-										key.interestOps(SelectionKey.OP_READ);
-										selector.wakeup();
-									}
-								}});
-						}
-						else {
-							logger.error("Unexpected key: " + key);
-						}
-					}
-				}			
+				this.processNioSelections(selectionCount, selector, null, this.connections);
 			}
 		} catch (Exception e) {
 			logger.error("Exception in reader thread", e);

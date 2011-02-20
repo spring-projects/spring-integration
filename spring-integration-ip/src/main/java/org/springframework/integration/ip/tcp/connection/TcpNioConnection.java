@@ -22,6 +22,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -277,7 +278,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		int len = socketChannel.read(rawBuffer);
 		if (len < 0) {
 			this.closeConnection();
-			throw new IOException("Channel closed");
 		}
 		rawBuffer.flip();
 		if (logger.isDebugEnabled()) {
@@ -305,8 +305,11 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * Invoked by the factory when there is data to be read.
 	 */
 	public void readPacket() {
+		logger.debug("Reading...");
 		try {
 			doRead();
+		} catch (ClosedChannelException cce) {
+			this.closeConnection();
 		} catch (Exception e) {
 			logger.error("Exception on Read " + 
 					     this.getConnectionId() + " " + 
