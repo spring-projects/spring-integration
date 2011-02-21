@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -64,9 +65,18 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	private AtomicLong sequence = new AtomicLong();
 	
 	private int soLinger = -1;
+
+	private String hostName = "unknown";
+
+	private String hostAddress = "unknown";
 	
 	public AbstractTcpConnection(Socket socket, boolean server) {
 		this.server = server;
+		InetAddress inetAddress = socket.getInetAddress();
+		if (inetAddress != null) {
+			this.hostAddress = inetAddress.getHostAddress();
+			this.hostName = inetAddress.getHostName();
+		}
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
@@ -219,6 +229,14 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	public long getConnectionSeq() {
 		return sequence.incrementAndGet();
+	}
+
+	public String getHostAddress() {
+		return this.hostAddress;
+	}
+
+	public String getHostName() {
+		return this.hostName;
 	}
 
 	

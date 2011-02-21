@@ -3,8 +3,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
 	<int:message-history/>
@@ -13,8 +15,11 @@
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
+		using-nio="true"
 		single-use="true"
 		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
+		task-executor="exec"
+		so-timeout="20000"
 	/>
 
 	<int-ip:tcp-connection-factory id="client"
@@ -28,10 +33,13 @@
 	<int-ip:tcp-inbound-gateway id="looper"
 		request-channel="queue"
 		connection-factory="server"
+		reply-timeout="1"
 		/>
 			
 	<int:channel id="queue">
 		<int:queue/>
 	</int:channel>
+	
+	<task:executor id="exec" pool-size="10"/>
 	
 </beans>

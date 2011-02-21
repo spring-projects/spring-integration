@@ -54,7 +54,7 @@ public class TcpNioConnectionTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
-					server.accept();
+					Socket s = server.accept();
 					// block so we fill the buffer
 					server.accept();
 				} catch (Exception e) {

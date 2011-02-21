@@ -45,26 +45,26 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final SocketChannel socketChannel;
 	
-	private OutputStream channelOutputStream;
+	private volatile OutputStream channelOutputStream;
 	
-	private PipedOutputStream pipedOutputStream;
+	private volatile PipedOutputStream pipedOutputStream;
 	
-	private PipedInputStream pipedInputStream;
+	private volatile PipedInputStream pipedInputStream;
 
-	private boolean usingDirectBuffers;
+	private volatile boolean usingDirectBuffers;
 	
-	private Executor taskExecutor;
+	private volatile Executor taskExecutor;
 	
-	private ByteBuffer rawBuffer;
+	private volatile ByteBuffer rawBuffer;
 	
-	private int maxMessageSize = 60 * 1024;
+	private volatile int maxMessageSize = 60 * 1024;
 	
-	private long lastRead;
+	private volatile long lastRead;
 	
 	private AtomicInteger executionControl = new AtomicInteger();
 	
-	private boolean writingToPipe;
-
+	private volatile boolean writingToPipe;
+	
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel the socketChannel
@@ -112,14 +112,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 	}
 
-	public String getHostAddress() {
-		return this.socketChannel.socket().getInetAddress().getHostAddress();
-	}
-
-	public String getHostName() {
-		return this.socketChannel.socket().getInetAddress().getHostName();
-	}
-
 	public Object getPayload() throws Exception {
 		return this.deserializer.deserialize(pipedInputStream);
 	}
@@ -151,7 +143,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * sockets.
 	 */
 	public void run() {
-		logger.trace("Nio message assembler running...");
+		if (logger.isTraceEnabled()) {
+			logger.trace(this.getConnectionId() + " Nio message assembler running...");
+		}
 		try {
 			if (this.listener == null && !this.singleUse) {
 				logger.debug("TcpListener exiting - no listener and not single use");			
@@ -193,8 +187,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	private boolean dataAvailable() throws IOException {
-		return this.socketChannel.isOpen() && 
-			   (this.pipedInputStream.available() > 0 || writingToPipe);
+		return this.pipedInputStream.available() > 0 || writingToPipe;
 	}
 
 	/**
@@ -264,28 +257,29 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 	
 	private void doRead() throws Exception {
-		if (rawBuffer == null) {
-			rawBuffer = allocate(maxMessageSize);
+		if (this.rawBuffer == null) {
+			this.rawBuffer = allocate(maxMessageSize);
 		}
 
-		writingToPipe = true;
+		this.writingToPipe = true;
 		if (this.taskExecutor == null) {
 			this.taskExecutor = Executors.newSingleThreadExecutor();
 		}
 		// If there is no assembler running, start one
 		checkForAssembler();
-		rawBuffer.clear();
-		int len = socketChannel.read(rawBuffer);
+		this.rawBuffer.clear();
+		int len = this.socketChannel.read(this.rawBuffer);
 		if (len < 0) {
+			this.writingToPipe = false;
 			this.closeConnection();
 		}
-		rawBuffer.flip();
+		this.rawBuffer.flip();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
 		}
-		pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
-		pipedOutputStream.flush();
-		writingToPipe = false;
+		this.pipedOutputStream.write(this.rawBuffer.array(), 0, this.rawBuffer.limit());
+		this.pipedOutputStream.flush();
+		this.writingToPipe = false;
 		
 	}
 
@@ -305,7 +299,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * Invoked by the factory when there is data to be read.
 	 */
 	public void readPacket() {
-		logger.debug("Reading...");
+		if (logger.isDebugEnabled()) {
+			logger.debug(this.getConnectionId() + " Reading...");
+		}
 		try {
 			doRead();
 		} catch (ClosedChannelException cce) {

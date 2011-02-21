@@ -69,16 +69,18 @@ public class ConnectionToConnectionTests {
 				throw new Exception("Failed to listen");
 			}
 		}
-		TcpConnection connection = client.getConnection();
-		connection.send(MessageBuilder.withPayload("Test").build());
-		Message<?> message = serverSideChannel.receive(10000);
-		MessageHistory history = MessageHistory.read(message);
-		//org.springframework.integration.test.util.TestUtils
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
-		assertNotNull(componentHistoryRecord);
-		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
-		assertNotNull(message);
-		assertEquals("Test", new String((byte[]) message.getPayload()));
+		for (int i = 0; i < 100; i++) {
+			TcpConnection connection = client.getConnection();
+			connection.send(MessageBuilder.withPayload("Test").build());
+			Message<?> message = serverSideChannel.receive(10000);
+			MessageHistory history = MessageHistory.read(message);
+			//org.springframework.integration.test.util.TestUtils
+			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
+			assertNotNull(componentHistoryRecord);
+			assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
+			assertNotNull(message);
+			assertEquals("Test", new String((byte[]) message.getPayload()));
+		}
 	}
 
 	@Test

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
@@ -69,14 +70,6 @@ public class TcpNetConnection extends AbstractTcpConnection {
 		Object object = mapper.fromMessage(message);
 		this.serializer.serialize(object, this.socket.getOutputStream());
 		this.afterSend(message);
-	}
-
-	public String getHostAddress() {
-		return this.socket.getInetAddress().getHostAddress();
-	}
-
-	public String getHostName() {
-		return this.socket.getInetAddress().getHostName();
 	}
 
 	public Object getPayload() throws Exception {
