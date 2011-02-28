@@ -22,9 +22,7 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.StopWatch;
@@ -85,13 +83,13 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		String method = invocation.getMethod().getName();
 		if ("handleMessage".equals(method)) {
 			Message<?> message = (Message<?>) invocation.getArguments()[0];
-			handleMessage(message);
+			handleMessage(invocation, message);
 			return null;
 		}
 		return invocation.proceed();
 	}
 
-	private void handleMessage(Message<?> message) throws MessagingException {
+	private void handleMessage(MethodInvocation invocation, Message<?> message) throws Throwable {
 		if (logger.isTraceEnabled()) {
 			logger.trace("messageHandler(" + this.handler + ") message(" + message + ") :");
 		}
@@ -105,16 +103,12 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 			this.handleCount.incrementAndGet();
 			this.activeCount.incrementAndGet();
 
-			this.handler.handleMessage(message);
+			invocation.proceed();
 
 			timer.stop();
 			this.duration.append(timer.getTotalTimeMillis());
 		}
-		catch (RuntimeException e) {
-			this.errorCount.incrementAndGet();
-			throw e;
-		}
-		catch (Error e) {
+		catch (Throwable e) {
 			this.errorCount.incrementAndGet();
 			throw e;
 		}
