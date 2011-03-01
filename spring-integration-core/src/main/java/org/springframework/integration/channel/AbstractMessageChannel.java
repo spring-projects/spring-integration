@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile boolean shouldTrack = false;
 
