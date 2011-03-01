@@ -25,20 +25,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
+import javax.mail.Store;
+import javax.mail.URLName;
 import javax.mail.internet.MimeMessage;
+import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -55,6 +61,8 @@ import com.sun.mail.imap.IMAPFolder;
  *
  */
 public class ImapMailReceiverTests {
+	
+	private AtomicInteger failed = new AtomicInteger(0);
 	
 	@Test
 	public void receiveAndMarkAsReadDontDelete() throws Exception{
@@ -343,5 +351,47 @@ public class ImapMailReceiverTests {
 		org.springframework.integration.Message<?> replMessage = errorChannel.receive(10000);
 		assertNotNull(replMessage);
 		assertEquals("Failed", ((Exception) replMessage.getPayload()).getCause().getMessage());
+	}
+	
+	@Test // see INT-1801
+	public void testImapLifecycleForRaceCondition() throws Exception{
+	
+		for (int i = 0; i < 1000; i++) {
+			final ImapMailReceiver receiver = new ImapMailReceiver("imap://foo");
+			Store store = mock(Store.class);
+			Folder folder = mock(Folder.class);
+			when(folder.exists()).thenReturn(true);
+			when(folder.isOpen()).thenReturn(true);
+			when(folder.search((SearchTerm) Mockito.any())).thenReturn(new Message[]{});
+			when(store.getFolder(Mockito.any(URLName.class))).thenReturn(folder);
+			DirectFieldAccessor df = new DirectFieldAccessor(receiver);
+			df.setPropertyValue("store", store);
+			
+			new Thread(new Runnable() {
+				public void run(){
+					try {
+						receiver.receive();
+					} catch (MessagingException e) {
+						if (e.getCause() instanceof NullPointerException){
+							e.printStackTrace();
+							failed.getAndIncrement();
+						}
+					}
+					
+				}
+			}).start();
+			
+			new Thread(new Runnable() {
+				public void run(){
+					try {
+						receiver.destroy();
+					} catch (Exception ignore) {
+						// ignore
+						ignore.printStackTrace();
+					}
+				}
+			}).start();
+		}
+		assertEquals(0, failed.get());
 	}
 }

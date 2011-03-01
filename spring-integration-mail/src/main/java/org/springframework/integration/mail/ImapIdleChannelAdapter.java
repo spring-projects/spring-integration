@@ -16,10 +16,8 @@
 
 package org.springframework.integration.mail;
 
-import java.security.ProviderException;
 import java.util.Date;
 import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.FolderClosedException;
@@ -94,7 +92,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
 		ResubmittingTask task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
 		task.setTaskExecutor(taskExecutor);
-		scheduledFuture = scheduler.schedule(new ResubmittingTask(this.idleTask, scheduler, reconnectDelay), new Date());
+		scheduledFuture = scheduler.schedule(task, new Date());
 	}
 
 	@Override // guarded by super#lifecycleLock
@@ -121,10 +119,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			} catch (MessagingException e) {
 				ImapIdleChannelAdapter.this.handleMailMessagingException(e);
 				if (shouldReconnectAutomatically){
-					throw new ProviderException("Failure in 'idle' task. Will resubmit", e);
+					throw new IllegalStateException("Failure in 'idle' task. Will resubmit", e);
 				}
 				else {
-					throw new RejectedExecutionException("Failure in 'idle' task. Will NOT resubmit", e);
+					throw new org.springframework.integration.MessagingException("Failure in 'idle' task. Will NOT resubmit", e);
 				}
 			}
 		}

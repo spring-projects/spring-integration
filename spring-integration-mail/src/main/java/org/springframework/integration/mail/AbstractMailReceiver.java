@@ -207,42 +207,46 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.folder.open(this.folderOpenMode);
 	}
 	
-	public synchronized Message[] receive() {
-		try {
-			this.openFolder();
-			if (logger.isInfoEnabled()) {
-				logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
-			}
-			Message[] messages = this.searchForNewMessages();
-			if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
-				Message[] reducedMessages = new Message[this.maxFetchSize];
-				System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
-				messages = reducedMessages;
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("found " + messages.length + " new messages");
-			}
-			if (messages.length > 0) {
-				this.fetchMessages(messages);
-			}
+	public synchronized Message[] receive() {	
+		synchronized (this.initializationMonitor) {
+			try {
+				this.openFolder();
+				if (logger.isInfoEnabled()) {
+					logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
+				}
+				Message[] messages = this.searchForNewMessages();
+				
 
-			Message[] copiedMessages = new Message[messages.length];
-			for (int i = 0; i < messages.length; i++) {
-				this.setAdditionalFlags(messages[i]);
-				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
+				if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
+					Message[] reducedMessages = new Message[this.maxFetchSize];
+					System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
+					messages = reducedMessages;
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("found " + messages.length + " new messages");
+				}
+				if (messages.length > 0) {
+					this.fetchMessages(messages);
+				}
+
+				Message[] copiedMessages = new Message[messages.length];
+				for (int i = 0; i < messages.length; i++) {
+					this.setAdditionalFlags(messages[i]);
+					copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
+				}
+				if (this.shouldDeleteMessages()) {
+					this.deleteMessages(messages);
+				}
+				return copiedMessages;
 			}
-			if (this.shouldDeleteMessages()) {
-				this.deleteMessages(messages);
+			catch (Exception e) {
+				throw new org.springframework.integration.MessagingException(
+						"failure occurred while receiving from folder", e);
 			}
-			return copiedMessages;
-		}
-		catch (Exception e) {
-			throw new org.springframework.integration.MessagingException(
-					"failure occurred while receiving from folder", e);
-		}
-		finally {
-			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
-		}
+			finally {
+				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
+			}
+		}	
 	}
 
 	/**

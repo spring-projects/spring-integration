@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.mail;
 
-import java.security.ProviderException;
 import java.util.Date;
 import java.util.concurrent.Executor;
 
@@ -30,6 +29,11 @@ import org.springframework.scheduling.TaskScheduler;
  * @author Oleg Zhurakousky
  * @since 2.0.2
  *
+ * Will run the provided task right away resubmitting it after each successful execution 
+ * or after receiving a {@link IllegalStateException}. If resubmission is after exception then 
+ * the delay will be applied before resubmission. This is useful when the underlying task deals 
+ * with reconnection logic 
+ * Currently only used to manage IDLE task of ImapIdleChannelAdapter
  */
 class ResubmittingTask implements Runnable {
 	private static final Log logger = LogFactory.getLog(ResubmittingTask.class);
@@ -62,7 +66,7 @@ class ResubmittingTask implements Runnable {
 			logger.debug("Task completed successfully. Re-scheduling it again right away");
 			scheduler.schedule(this, new Date());
 		}
-		catch (ProviderException e) { //run again after a delay
+		catch (IllegalStateException e) { //run again after a delay
 			logger.warn("Failed to execute IDLE task. Will atempt to resubmit in " + delay + " milliseconds", e);
 			scheduler.schedule(this, new Date(System.currentTimeMillis() + delay));
 		}
