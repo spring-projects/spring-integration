@@ -18,17 +18,11 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
-import java.lang.reflect.Field;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
@@ -36,9 +30,6 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.ReflectionUtils.FieldCallback;
 
 /**
  * @author Mark Fisher
@@ -59,26 +50,6 @@ public class DirectChannelTests {
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		Object loadBalancingStrategy = dispatcherAccessor.getPropertyValue("loadBalancingStrategy");
 		assertTrue(loadBalancingStrategy instanceof RoundRobinLoadBalancingStrategy);
-	}
-	
-	@Test
-	public void testWithMoreThenOneSubscriber() {
-		final DirectChannel channel = new DirectChannel();
-		final Log logger = mock(Log.class);
-		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
-			
-			public void doWith(Field field) throws IllegalArgumentException,
-					IllegalAccessException {
-				if ("logger".equals(field.getName())){
-					field.setAccessible(true);
-					field.set(channel, logger);
-				}
-			}
-		});
-		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(0)).info(Mockito.anyString());
-		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(1)).info(Mockito.anyString());
 	}
 
 	@Test

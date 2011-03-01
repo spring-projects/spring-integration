@@ -16,7 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -33,15 +32,6 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 public class DirectChannel extends AbstractSubscribableChannel {
 
 	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
-
-	public boolean subscribe(MessageHandler handler) {
-		
-		if (this.getDispatcher().size() > 0){
-			this.logger.info("DirectChannel has more then 1 subscriber. " +
-					"Incoming messages will be dispatched between all subscribers following the load-balancing strategy.");
-		}
-		return super.subscribe(handler);
-	}
 
 	/**
 	 * Create a channel with default {@link RoundRobinLoadBalancingStrategy}

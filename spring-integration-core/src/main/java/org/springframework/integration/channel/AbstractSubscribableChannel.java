@@ -21,6 +21,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.util.Assert;
 
 /**
@@ -28,11 +29,20 @@ import org.springframework.util.Assert;
  * {@link MessageHandler handler(s)} by delegating to a {@link MessageDispatcher}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
 
 	public boolean subscribe(MessageHandler handler) {
-		return this.getRequiredDispatcher().addHandler(handler);
+		MessageDispatcher dispatcher = this.getRequiredDispatcher();
+		if (dispatcher instanceof UnicastingDispatcher){
+			if (((UnicastingDispatcher) dispatcher).size() > 0){
+				String message = "Point-to-Point channel '" + this.getComponentName() + "' has more then 1 subscriber. " +
+						"If load balancing strategy is provided, messages will be dispatched following its rules.";
+				this.logger.info(message);
+			}
+		}
+		return dispatcher.addHandler(handler);
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
