@@ -54,9 +54,8 @@ public class P2pChannelTests {
 		});
 			
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(0)).info(Mockito.anyString());
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(1)).info(Mockito.anyString());
+		verify(logger, times(2)).info(Mockito.anyString());
 	}
 	
 	@Test
@@ -76,9 +75,8 @@ public class P2pChannelTests {
 			}
 		});
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(0)).info(Mockito.anyString());
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(1)).info(Mockito.anyString());
+		verify(logger, times(2)).info(Mockito.anyString());
 	}
 	
 	@Test
@@ -98,8 +96,7 @@ public class P2pChannelTests {
 			}
 		});
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(0)).info(Mockito.anyString());
 		channel.subscribe(mock(MessageHandler.class));
-		verify(logger, times(0)).info(Mockito.anyString());
+		verify(logger, times(2)).info(Mockito.anyString());
 	}
 }

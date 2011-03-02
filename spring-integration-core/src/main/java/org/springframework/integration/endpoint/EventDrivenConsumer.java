@@ -16,9 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.channel.AbstractSubscribableChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Message Endpoint that connects any {@link MessageHandler} implementation to a {@link SubscribableChannel}.
@@ -44,6 +47,16 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	@Override 
 	protected void doStart() {
+		if (this.handler instanceof IntegrationObjectSupport){
+			String channelName = ((AbstractSubscribableChannel)this.inputChannel).getComponentName();
+			String componentType = ((IntegrationObjectSupport)this.handler).getComponentType();
+			componentType = StringUtils.hasText(componentType) ? componentType : "";
+			String componentName = ((IntegrationObjectSupport)this).getComponentName();
+			componentName = (StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
+
+			logger.info("Adding {" + componentType + componentName + "} as a subscriber to the '" + channelName + "' channel");
+		}
+		
 		this.inputChannel.subscribe(this.handler);
 	}
 

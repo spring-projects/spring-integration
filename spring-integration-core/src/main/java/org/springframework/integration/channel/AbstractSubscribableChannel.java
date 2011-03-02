@@ -39,16 +39,13 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
-		if (dispatcher instanceof UnicastingDispatcher){
+		boolean added = dispatcher.addHandler(handler);
+		if (added){
 			int counter = handlers.incrementAndGet();
-			if (counter > 1){				
-				String message = "Point-to-Point channel '" + this.getComponentName() + "' has more then 1 subscriber - (" + counter + "). " +
-						"If load balancing strategy is provided, messages will be dispatched following its rules.";
-				this.logger.info(message);
-			}		
+			logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s). ");
 		}
 		
-		return dispatcher.addHandler(handler);
+		return added;
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
