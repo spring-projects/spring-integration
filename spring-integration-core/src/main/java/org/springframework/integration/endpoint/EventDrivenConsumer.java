@@ -47,8 +47,8 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	@Override 
 	protected void doStart() {
-		if (this.handler instanceof IntegrationObjectSupport){
-			String channelName = ((AbstractSubscribableChannel)this.inputChannel).getComponentName();
+		if (this.handler instanceof IntegrationObjectSupport && this.inputChannel instanceof IntegrationObjectSupport){
+			String channelName = ((IntegrationObjectSupport)this.inputChannel).getComponentName();
 			String componentType = ((IntegrationObjectSupport)this.handler).getComponentType();
 			componentType = StringUtils.hasText(componentType) ? componentType : "";
 			String componentName = ((IntegrationObjectSupport)this).getComponentName();
