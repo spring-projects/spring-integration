@@ -126,7 +126,8 @@ public class TcpNioClientConnectionFactory extends
 				this.processNioSelections(selectionCount, selector, null, this.connections);
 			}
 		} catch (Exception e) {
-			logger.error("Exception in reader thread", e);
+			logger.error("Exception in read selector thread", e);
+			this.active = false;
 		}
 		logger.debug("Read selector exiting for connections to " + host + ":" + port);
 	}

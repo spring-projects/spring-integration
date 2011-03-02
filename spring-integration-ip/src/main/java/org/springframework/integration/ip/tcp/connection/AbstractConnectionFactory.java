@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -401,32 +402,44 @@ public abstract class AbstractConnectionFactory
 					logger.debug("Selection key no longer valid");
 				}
 				else if (key.isReadable()) {
-					key.interestOps(key.interestOps() - key.readyOps());
-					final TcpNioConnection connection; 
-					connection = (TcpNioConnection) key.attachment();
-					connection.setLastRead(System.currentTimeMillis());
-					this.taskExecutor.execute(new Runnable() {
-						public void run() {
-							try {
-								connection.readPacket();
-							} catch (Exception e) {
-								if (connection.isOpen()) {
-									logger.error("Exception on read " +
-											connection.getConnectionId() + " " +
-											e.getMessage());
-									connection.close();
-								} else {
-									logger.debug("Connection closed");
+					try {
+						key.interestOps(key.interestOps() - key.readyOps());
+						final TcpNioConnection connection; 
+						connection = (TcpNioConnection) key.attachment();
+						connection.setLastRead(System.currentTimeMillis());
+						this.taskExecutor.execute(new Runnable() {
+							public void run() {
+								try {
+									connection.readPacket();
+								} catch (Exception e) {
+									if (connection.isOpen()) {
+										logger.error("Exception on read " +
+												connection.getConnectionId() + " " +
+												e.getMessage());
+										connection.close();
+									} else {
+										logger.debug("Connection closed");
+									}
 								}
-							}
-							if (key.channel().isOpen()) {
-								key.interestOps(SelectionKey.OP_READ);
-								selector.wakeup();
-							}
-						}});
+								if (key.channel().isOpen()) {
+									key.interestOps(SelectionKey.OP_READ);
+									selector.wakeup();
+								}
+							}});
+					} catch (Exception e) {
+						if (e instanceof CancelledKeyException) {
+							logger.debug("Exception on readable key", e);
+							continue;
+						}
+						logger.error("Exception on readable key", e);
+					}
 				}
 				else if (key.isAcceptable()) {
-					doAccept(selector, server, now);
+					try {
+						doAccept(selector, server, now);
+					} catch (Exception e) {
+						logger.error("Exception accepting new connection", e);
+					}
 				}
 				else {
 					logger.error("Unexpected key: " + key);
