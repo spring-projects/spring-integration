@@ -76,8 +76,4 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}
-
-	public int size(){
-		return this.handlers.toArray().length;
-	}
 }

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -32,20 +34,27 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
-
+	
+	private final AtomicInteger handlers = new AtomicInteger();
+	
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
 		if (dispatcher instanceof UnicastingDispatcher){
-			if (((UnicastingDispatcher) dispatcher).size() > 0){
-				String message = "Point-to-Point channel '" + this.getComponentName() + "' has more then 1 subscriber. " +
+			int counter = handlers.incrementAndGet();
+			if (counter > 1){				
+				String message = "Point-to-Point channel '" + this.getComponentName() + "' has more then 1 subscriber - (" + counter + "). " +
 						"If load balancing strategy is provided, messages will be dispatched following its rules.";
 				this.logger.info(message);
-			}
+			}		
 		}
+		
 		return dispatcher.addHandler(handler);
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
+		if (this.getRequiredDispatcher() instanceof UnicastingDispatcher){
+			handlers.getAndDecrement();
+		}
 		return this.getRequiredDispatcher().removeHandler(handle);
 	}
 
