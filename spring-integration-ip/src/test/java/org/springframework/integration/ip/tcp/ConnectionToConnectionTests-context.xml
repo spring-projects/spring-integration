@@ -19,6 +19,7 @@
 		single-use="true"
 		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
 		task-executor="exec"
+		lookup-host="false"
 		so-timeout="20000"
 	/>
 
@@ -27,6 +28,7 @@
 		host="localhost"
 		port="#{server.port}"
 		single-use="true"
+		lookup-host="false"
 		so-timeout="100000"
 	/>
 

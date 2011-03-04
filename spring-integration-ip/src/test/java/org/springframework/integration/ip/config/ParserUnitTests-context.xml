@@ -30,6 +30,7 @@
 		local-address="127.0.0.1"
 		task-executor="externalTE"
 		error-channel="errorChannel"
+		lookup-host="false"
 	/>
 
 	<ip:udp-inbound-channel-adapter id="testInUdpMulticast"
@@ -49,6 +50,7 @@
 	<ip:tcp-connection-factory id="cfS1"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
+		lookup-host="false"
 		/>
 		
 	<ip:tcp-inbound-channel-adapter id="testInTcp"
@@ -95,6 +97,7 @@
 		type="client"
 		port="#{tcpIpUtils.findAvailableServerSocket(5700)}"
 		host="localhost"
+		lookup-host="false"
 		/>
 		
 	<ip:tcp-outbound-channel-adapter id="testOutTcpNio" 

@@ -189,7 +189,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		super.doStop();
 		try {
 			this.socket.close();
-			socket = null;
+			this.socket = null;
 		}
 		catch (Exception e) {
 			// ignore
@@ -198,6 +198,10 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	public void setSoSendBufferSize(int soSendBufferSize) {
 		this.soSendBufferSize = soSendBufferSize;
+	}
+	
+	public void setLookupHost(boolean lookupHost) {
+		this.mapper.setLookupHost(lookupHost);
 	}
 	
 	public String getComponentType(){

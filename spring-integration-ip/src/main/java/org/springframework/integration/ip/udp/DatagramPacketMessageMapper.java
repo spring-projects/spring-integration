@@ -66,6 +66,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	
 	private boolean lengthCheck = false;
 
+	private boolean lookupHost = true;
+
 	private static Pattern udpHeadersPattern = 
 		Pattern.compile(RegexUtils.escapeRegexSpecials(IpHeaders.ACK_ADDRESS) +
 				"=" + "([^;]*);" + 
@@ -87,6 +89,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 
 	public void setLengthCheck(boolean lengthCheck) {
 		this.lengthCheck = lengthCheck;
+	}
+
+	/**
+	 * @param lookupHost the lookupHost to set
+	 */
+	public void setLookupHost(boolean lookupHost) {
+		this.lookupHost = lookupHost;
 	}
 
 	/**
@@ -174,6 +183,13 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			offset += 4;
 			length -= 4;
 		}
+		String hostAddress = packet.getAddress().getHostAddress();
+		String hostName;
+		if (this.lookupHost) { 
+			hostName = packet.getAddress().getHostName();
+		} else {
+			hostName = hostAddress;
+		}
 		// Peek at the message in case they didn't configure us for ack but the sending
 		// side expects it.
 		if (this.acknowledge || startsWith(buffer, IpHeaders.ACK_ADDRESS)) {
@@ -188,8 +204,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					message = MessageBuilder.withPayload(payload)
 							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
-							.setHeader(IpHeaders.HOSTNAME, packet.getAddress().getHostName())
-							.setHeader(IpHeaders.IP_ADDRESS, packet.getAddress().getHostAddress())
+							.setHeader(IpHeaders.HOSTNAME, hostName)
+							.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
 							.build();
 				}  // on no match, just treat as simple payload
 			}
@@ -202,8 +218,8 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 			System.arraycopy(packet.getData(), offset, payload, 0, length);
 			if (payload.length > 0) {
 				message = MessageBuilder.withPayload(payload)
-						.setHeader(IpHeaders.HOSTNAME, packet.getAddress().getHostName())
-						.setHeader(IpHeaders.IP_ADDRESS, packet.getAddress().getHostAddress())
+						.setHeader(IpHeaders.HOSTNAME, hostName)
+						.setHeader(IpHeaders.IP_ADDRESS, hostAddress)
 						.build();
 			}
 		}

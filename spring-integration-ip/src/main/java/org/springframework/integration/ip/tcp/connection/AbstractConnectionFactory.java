@@ -86,9 +86,11 @@ public abstract class AbstractConnectionFactory
 
 	protected int poolSize = 5;
 
-	protected boolean active;
+	protected volatile boolean active;
 
 	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+	
+	private boolean lookupHost = true;
 
 	/**
 	 * Sets socket attributes on the socket.
@@ -303,6 +305,22 @@ public abstract class AbstractConnectionFactory
 
 	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
 		this.interceptorFactoryChain = interceptorFactoryChain;
+	}
+
+	/**
+	 * If true, DNS reverse lookup is done on the remote ip address.
+	 * Default true.
+	 * @param lookupHost the lookupHost to set
+	 */
+	public void setLookupHost(boolean lookupHost) {
+		this.lookupHost = lookupHost;
+	}
+
+	/**
+	 * @return the lookupHost
+	 */
+	public boolean isLookupHost() {
+		return lookupHost;
 	}
 
 	/**

@@ -70,13 +70,26 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private String hostAddress = "unknown";
 	
-	public AbstractTcpConnection(Socket socket, boolean server) {
+	private int port;
+	
+	private final boolean lookupHost;
+
+	private int hashCode;
+	
+	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
+		this.lookupHost = lookupHost;
+		this.hashCode = socket.hashCode();
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
 			this.hostAddress = inetAddress.getHostAddress();
-			this.hostName = inetAddress.getHostName();
+			if (this.lookupHost) {
+				this.hostName = inetAddress.getHostName();
+			} else {
+				this.hostName = this.hostAddress;
+			}
 		}
+		this.connectionId = this.hostName + ":" + this.port + ":" + this.hashCode;
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
@@ -239,5 +252,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		return this.hostName;
 	}
 
+	public String getConnectionId() {
+		return this.connectionId;
+	}
 	
 }

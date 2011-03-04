@@ -104,6 +104,8 @@ public abstract class IpAdapterParserUtils {
 	public static final String REPLY_TIMEOUT = "reply-timeout";
 	
 	public static final String REPLY_CHANNEL = "reply-channel";
+
+	public static final String LOOKUP_HOST = "lookup-host";
 	
 
 	/**

@@ -18,6 +18,7 @@ package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.net.DatagramPacket;
@@ -71,6 +72,15 @@ public class DatagramPacketMessageMapperTests {
 			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(), 
 					     message.getHeaders().getId().toString());
 		}
+		assertTrue(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));
+		mapper.setLookupHost(false);
+		messageOut = mapper.toMessage(packet);
+		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
+		if (ack) {
+			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(), 
+					     message.getHeaders().getId().toString());
+		}
+		assertFalse(((String)messageOut.getHeaders().get(IpHeaders.HOSTNAME)).contains("localhost"));		
 	}
 
 	@Test

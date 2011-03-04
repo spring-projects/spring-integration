@@ -16,14 +16,12 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
-import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
@@ -44,10 +42,9 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * @param server if true this connection was created as
 	 * a result of an incoming request.
 	 */
-	public TcpNetConnection(Socket socket, boolean server) {
-		super(socket, server);
+	public TcpNetConnection(Socket socket, boolean server, boolean lookupHost) {
+		super(socket, server, lookupHost);
 		this.socket = socket;
-		getConnectionId();
 	}
 	
 	/**
@@ -161,13 +158,5 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			}
 		}
 	}
-
-	public String getConnectionId() {
-		if (this.connectionId == null) {
-			this.connectionId = SocketUtils.getSocketId(this.socket);
-		}
-		return this.connectionId;
-	}
-
 
 }

@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Properties;
@@ -98,5 +99,20 @@ public class ConnectionToConnectionTests {
 		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 		assertNotNull(message);
 		assertEquals("Test", new String((byte[]) message.getPayload()));
+	}
+	
+	@Test
+	public void testLookup() throws Exception {
+		TcpConnection connection = client.getConnection();
+		assertFalse(connection.getConnectionId().contains("localhost"));
+		connection.close();
+		client.setLookupHost(true);
+		connection = client.getConnection();
+		assertTrue(connection.getConnectionId().contains("localhost"));
+		connection.close();
+		client.setLookupHost(false);
+		connection = client.getConnection();
+		assertFalse(connection.getConnectionId().contains("localhost"));
+		connection.close();
 	}
 }

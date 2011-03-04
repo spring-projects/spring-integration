@@ -78,7 +78,7 @@ public class TcpNioClientConnectionFactory extends
 		logger.debug("Opening new socket channel connection to " + this.host + ":" + this.port);
 		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.host, this.port));
 		setSocketAttributes(socketChannel.socket());
-		TcpNioConnection connection = new TcpNioConnection(socketChannel, false);
+		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, this.isLookupHost());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		if (this.taskExecutor == null) {
 			connection.setTaskExecutor(Executors.newSingleThreadExecutor());

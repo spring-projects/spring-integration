@@ -17,6 +17,7 @@
 package org.springframework.integration.ip.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -178,6 +179,9 @@ public class ParserUnitTests {
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
+		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
+		assertFalse((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
 	}
 	
 	@Test
@@ -193,6 +197,9 @@ public class ParserUnitTests {
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));		
 		assertNull(dfa.getPropertyValue("errorChannel"));
+		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
+		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
+		assertTrue((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
 	}
 	
 	@Test
@@ -202,6 +209,7 @@ public class ParserUnitTests {
 		assertEquals("testInTcp",tcpIn.getComponentName());
 		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+		assertFalse(cfS1.isLookupHost());
 	}
 	
 	@Test
@@ -253,6 +261,7 @@ public class ParserUnitTests {
 		assertSame(cfC1, dfa.getPropertyValue("clientConnectionFactory"));
 		assertEquals("testOutTcpNio",tcpOut.getComponentName());
 		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
+		assertFalse(cfC1.isLookupHost());
 	}
 
 	@Test
@@ -263,6 +272,7 @@ public class ParserUnitTests {
 		assertEquals("inGateway1",tcpInboundGateway1.getComponentName());
 		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
+		assertTrue(cfS2.isLookupHost());
 	}
 
 	@Test
@@ -283,6 +293,7 @@ public class ParserUnitTests {
 		assertEquals(567L, dfa.getPropertyValue("replyTimeout"));
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
+		assertTrue(cfC2.isLookupHost());
 	}
 
 	@Test

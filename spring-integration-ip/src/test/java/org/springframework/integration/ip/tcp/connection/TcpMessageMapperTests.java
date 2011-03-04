@@ -73,7 +73,7 @@ public class TcpMessageMapperTests {
 		
 		TcpMessageMapper mapper = new TcpMessageMapper();
 		Socket socket = SocketFactory.getDefault().createSocket();
-		TcpConnection connection = new AbstractTcpConnection(socket, false) {
+		TcpConnection connection = new AbstractTcpConnection(socket, false, false) {
 			public void run() {
 			}
 			public void send(Message<?> message) throws Exception {

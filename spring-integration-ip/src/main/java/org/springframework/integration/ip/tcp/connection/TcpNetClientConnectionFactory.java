@@ -50,7 +50,7 @@ public class TcpNetClientConnectionFactory extends
 		logger.debug("Opening new socket connection to " + this.host + ":" + this.port);
 		Socket socket = SocketFactory.getDefault().createSocket(this.host, this.port);
 		setSocketAttributes(socket);
-		TcpConnection connection = new TcpNetConnection(socket, false);
+		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.taskExecutor.execute(connection);

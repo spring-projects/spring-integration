@@ -62,6 +62,14 @@ its configuration specifies the number of threads.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="lookup-host" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+Whether or not to do a DNS reverse-lookup on the remote ip address to insert the host name into the 
+message headers (ip_hostName). Default "true".
+							</xsd:documentation>
+						</xsd:annotation>
+			</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -382,6 +390,14 @@ apply to TCP outbound adapters and gateways.
 The number of threads that will be used for socket/channel handling. Only applies
 if an external task-executor is NOT being used. When using an external task executor,
 its configuration specifies the number of threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="lookup-host" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:documentation>
+Whether or not to do a DNS reverse-lookup on the remote ip address to insert the host name into the 
+message headers (ip_connectionId, ip_hostName). Default "true".
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

@@ -123,6 +123,13 @@
     check-length="true" />]]></programlisting>
       A basic multicast inbound udp channel adapter.
     </para>
+    <para>
+      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to 
+      hostnames for use in message headers.
+      In environments where DNS is not configured, this can cause delays.
+      This default behavior can be overridden by setting the <literal>lookup-host</literal>
+      attribute to "false".
+    </para>
   </section>
   <section id="connection-factories">
     <title>TCP Connection Factories</title>
@@ -305,6 +312,13 @@
     <para>
       For full details of the attributes available on connection factories, see the
       reference at the end of this section.
+    </para>
+    <para>
+      By default, reverse DNS lookups are done on inbound packets to convert IP addresses to 
+      hostnames for use in message headers.
+      In environments where DNS is not configured, this can cause connection delays.
+      This default behavior can be overridden by setting the <literal>lookup-host</literal>
+      attribute to "false".
     </para>
   </section>
   <section id="ip-interceptors">
@@ -783,6 +797,16 @@
                      regardless of whether an external task executor is used. Defaults to 5.</entry>
             </row>
             <row>
+              <entry>lookup-host</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>
+                Specifies whether reverse lookups are done on IP addresses to convert to host names
+                for use in message headers. If false, the IP address is used instead. Defaults to true.
+              </entry>
+            </row>
+            <row>
               <entry>interceptor-factory-chain</entry>
               <entry>Y</entry>
               <entry>Y</entry>
@@ -884,6 +908,14 @@
               <entry>If an Exception is thrown by a downstream 
                      component, the MessagingException message containing the exception 
                      and failed message is sent to this channel.</entry>
+            </row>
+            <row>
+              <entry>lookup-host</entry>
+              <entry>true, false</entry>
+              <entry>
+                Specifies whether reverse lookups are done on IP addresses to convert to host names
+                for use in message headers. If false, the IP address is used instead. Defaults to true.
+              </entry>
             </row>
           </tbody>
         </tgroup>
