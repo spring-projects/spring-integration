@@ -9,7 +9,7 @@
 
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<property name="host" value="192.168.1.155"/>
+		<property name="host" value="localhost"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
 		<property name="privateKeyPassphrase" value="springintegration"/>
 		<property name="port" value="22"/>
@@ -22,7 +22,8 @@
 				session-factory="sftpSessionFactory"
 				channel="ftpChannel"
 				charset="UTF-8"
+				temporary-file-suffix=".foo"
 				remote-filename-generator-expression="payload.getName() + '-foo'"
-				remote-directory="/home/ozhurakousky"/>
+				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-target-dir"/>
 			
 </beans>

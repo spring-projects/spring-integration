@@ -19,6 +19,7 @@
 				filename-pattern="*.txt"
 				local-directory="."
 				remote-file-separator="."
+				temporary-file-suffix=".foo"
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>

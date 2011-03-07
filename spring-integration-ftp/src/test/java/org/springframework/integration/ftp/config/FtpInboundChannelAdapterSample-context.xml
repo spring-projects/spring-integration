@@ -21,6 +21,7 @@
 				delete-remote-files="false"
 				filename-regex=".*\.gz$"
 				remote-directory="/home/ozhurakousky/Downloads"
+				temporary-file-suffix=".foo"
 				local-directory="file:local-test-dir">
 			<int:poller fixed-rate="5000"/>
 	</int-ftp:inbound-channel-adapter>

@@ -53,11 +53,11 @@ import java.nio.charset.Charset;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Alex Peters
+ * @author Oleg Zhurakousky
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	public static final String TEMPORARY_FILE_SUFFIX =".writing";
-
+	public volatile String temporaryFileSuffix =".writing";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -87,6 +87,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	 */
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
+	}
+
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
+	}
+	
+	public String getTemporaryFileSuffix() {
+		return temporaryFileSuffix;
 	}
 
 	/**
@@ -139,7 +147,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.notNull(payload, "message payload must not be null");
 		String generatedFileName = this.fileNameGenerator.generateFileName(requestMessage);
 		File originalFileFromHeader = this.retrieveOriginalFileFromHeader(requestMessage);
-		File tempFile = new File(this.destinationDirectory, generatedFileName + TEMPORARY_FILE_SUFFIX);
+		File tempFile = new File(this.destinationDirectory, generatedFileName + temporaryFileSuffix);
 		File resultFile = new File(this.destinationDirectory, generatedFileName);
 		try {
 			if (payload instanceof File) {

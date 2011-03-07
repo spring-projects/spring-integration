@@ -26,7 +26,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -45,6 +44,8 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class FileTransferringMessageHandler extends AbstractMessageHandler {
+	
+	public volatile String temporaryFileSuffix =".writing";
 
 	private final SessionFactory sessionFactory;
 
@@ -73,6 +74,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
+	
+	public String getTemporaryFileSuffix() {
+		return temporaryFileSuffix;
+	}
 
 	public void setTemporaryDirectory(File temporaryDirectory) {
 		Assert.notNull(temporaryDirectory, "temporaryDirectory must not be null");
@@ -86,10 +91,15 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
+	
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
+	}
 
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
 	}
+	
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
@@ -174,7 +184,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
-		String tempFilePath = remoteFilePath + FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX;
+		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
 		session.write(fileInputStream, tempFilePath);
 		fileInputStream.close();
 		// then rename it to its final name

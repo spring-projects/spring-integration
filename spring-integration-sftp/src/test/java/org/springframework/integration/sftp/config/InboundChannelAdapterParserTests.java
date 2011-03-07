@@ -59,8 +59,10 @@ public class InboundChannelAdapterParserTests {
 		SftpInboundFileSynchronizingMessageSource source = 
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
+		
 		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
+		assertEquals(".bar", synchronizer.getTemporaryFileSuffix());
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);

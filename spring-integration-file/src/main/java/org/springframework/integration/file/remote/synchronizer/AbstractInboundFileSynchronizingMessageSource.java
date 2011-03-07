@@ -137,7 +137,7 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 
 	@SuppressWarnings("unchecked")
 	private FileListFilter<File> buildFilter() {
-		Pattern completePattern = Pattern.compile("^.*(?<!" + AbstractInboundFileSynchronizer.INCOMPLETE_EXTENSION + ")$");
+		Pattern completePattern = Pattern.compile("^.*(?<!" + this.synchronizer.getTemporaryFileSuffix() + ")$");
 		return new CompositeFileListFilter<File>(Arrays.asList(
 				new AcceptOnceFileListFilter<File>(),
 				new RegexPatternFileListFilter(completePattern)));

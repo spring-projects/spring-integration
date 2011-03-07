@@ -24,6 +24,7 @@
 				delete-remote-files="true"
 				local-directory="."
 				remote-directory="foo/bar"
+				temporary-file-suffix=".foo"
 				filter="entryListFilter">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>

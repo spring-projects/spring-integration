@@ -57,6 +57,8 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 	private volatile Long sendTimeout;
 
 	private volatile Integer order;
+	
+	private volatile String temporaryFileSuffix;
 
 	private final Object initializationMonitor = new Object();
 
@@ -67,6 +69,10 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 
 	public void setDirectory(File directory) {
 		this.directory = directory;
+	}
+	
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -153,6 +159,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 			if (this.order != null) {
 				this.handler.setOrder(this.order);
 			}
+			this.handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
 			this.handler.setBeanFactory(this.beanFactory);
 			this.handler.afterPropertiesSet();
 		}

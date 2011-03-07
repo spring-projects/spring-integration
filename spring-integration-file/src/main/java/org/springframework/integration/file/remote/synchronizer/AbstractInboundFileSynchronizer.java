@@ -53,8 +53,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	static final String INCOMPLETE_EXTENSION = ".writing";
-
+	public volatile String temporaryFileSuffix =".writing";
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -93,6 +92,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
+	
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
+	}
 
 	/**
 	 * Specify the full path to the remote directory.
@@ -115,6 +118,10 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	protected final List<F> filterFiles(F[] files) {
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
+	}
+	
+	public String getTemporaryFileSuffix() {
+		return temporaryFileSuffix;
 	}
 
 	public void synchronizeToLocalDirectory(File localDirectory) {
@@ -160,7 +167,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 		File localFile = new File(localDirectory, remoteFileName);
 		if (!localFile.exists()) {
-			String tempFileName = localFile.getAbsolutePath() + INCOMPLETE_EXTENSION;
+			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
 			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);

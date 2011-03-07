@@ -48,6 +48,7 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-file-separator");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
 		this.configureFilter(synchronizerBuilder, element, parserContext);
 
 		// build the MessageSource

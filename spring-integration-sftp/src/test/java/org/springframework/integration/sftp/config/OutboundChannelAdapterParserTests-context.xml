@@ -26,6 +26,7 @@
 				charset="UTF-8"
 				remote-filename-generator="fileNameGenerator"
 				remote-file-separator="."
+				temporary-file-suffix=".bar"
 				remote-directory="foo/bar"/>
 				
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"

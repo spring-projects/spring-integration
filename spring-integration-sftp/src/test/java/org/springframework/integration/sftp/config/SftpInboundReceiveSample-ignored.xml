@@ -11,7 +11,7 @@
 
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
-		<property name="host" value="192.168.28.146"/>
+		<property name="host" value="localhost"/>
 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
 		<property name="privateKeyPassphrase" value="springintegration"/>
 		<property name="port" value="22"/>
@@ -22,10 +22,11 @@
 			channel="receiveChannel" 
 			session-factory="sftpSessionFactory" 
 			local-directory="file:local-test-dir"
-			remote-directory="/home/ozhurakousky/foo/bar"
+			remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-test-dir"
 			auto-startup="true"
+			temporary-file-suffix=".foo"
 			delete-remote-files="false"
-			filename-regex=".*\.txt$">
+			filename-regex=".*\.test$">
 		<int:poller fixed-rate="3000" max-messages-per-poll="1" />
 	</int-sftp:inbound-channel-adapter>
 

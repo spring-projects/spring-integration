@@ -32,7 +32,6 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -114,7 +113,7 @@ public class SftpSendingMessageHandlerTests {
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {	
 						File file = new File((String)invocation.getArguments()[1]);
-						assertTrue(file.getName().endsWith(FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX));
+						assertTrue(file.getName().endsWith(".writing"));
 						FileCopyUtils.copy((InputStream)invocation.getArguments()[0], new FileOutputStream(file));
 						return null;
 					}
@@ -125,7 +124,7 @@ public class SftpSendingMessageHandlerTests {
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);
-						assertTrue(file.getName().endsWith(FileWritingMessageHandler.TEMPORARY_FILE_SUFFIX));
+						assertTrue(file.getName().endsWith(".writing"));
 						File renameToFile = new File((String) invocation.getArguments()[1]);
 						file.renameTo(renameToFile);
 						return null;

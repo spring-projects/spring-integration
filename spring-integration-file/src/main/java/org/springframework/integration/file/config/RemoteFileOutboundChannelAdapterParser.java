@@ -46,6 +46,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
 
 		// configure remote directory expression
 		String remoteDirectory = element.getAttribute("remote-directory");

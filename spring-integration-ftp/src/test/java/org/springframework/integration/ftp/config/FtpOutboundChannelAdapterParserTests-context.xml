@@ -22,6 +22,7 @@
 				remote-directory="foo/bar"
 				charset="UTF-8"
 				remote-file-separator="."
+				temporary-file-suffix=".foo"
 				remote-filename-generator="fileNameGenerator"/>
 				
 	<int:channel id="ftpChannel"/>

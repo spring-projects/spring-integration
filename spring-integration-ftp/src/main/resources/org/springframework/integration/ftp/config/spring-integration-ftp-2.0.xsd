@@ -44,6 +44,13 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+						Extension used when uploading files. We change it right after we know it's uploaded.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            		<xsd:annotation>
 	            			<xsd:documentation>
@@ -109,6 +116,13 @@
 				            	Allows you to specify a reference to  
 				            	[org.springframework.integration.file.filters.FileListFilter] bean.
 				            </xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+						Extension used when downloading files. We change it right after we know it's downloaded.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="remote-directory" type="xsd:string" use="required">

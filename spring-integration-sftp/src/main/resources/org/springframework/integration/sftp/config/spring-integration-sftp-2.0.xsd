@@ -70,6 +70,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Extension used when uploading files. We change it right after we know it's uploaded.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            <xsd:annotation>
 	            	<xsd:documentation>
@@ -132,6 +139,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Extension used when downloading files. We change it right after we know it's downloaded.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>		
 			<xsd:attribute name="channel" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
