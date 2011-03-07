@@ -24,8 +24,10 @@ import javax.mail.URLName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.expression.Expression;
 import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.MailReceiver;
@@ -62,6 +64,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	private volatile Boolean shouldMarkMessagesAsRead = null;
 
 	private volatile int maxFetchSize = 1;
+	
+	private volatile Expression selectorExpression;
 
 
 	public void setStoreUri(String storeUri) {
@@ -90,6 +94,10 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 
 	public void setMaxFetchSize(int maxFetchSize) {
 		this.maxFetchSize = maxFetchSize;
+	}
+	
+	public void setSelectorExpression(Expression selectorExpression) {
+		this.selectorExpression = selectorExpression;
 	}
 
 	public MailReceiver getObject() throws Exception {
@@ -147,13 +155,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
+		receiver.setSelectorExpression(selectorExpression);
 		
-		if (this.isShouldMarkMessagesAsRead()){
-			if (isPop3){
+		if (isPop3){
+			if (this.isShouldMarkMessagesAsRead()){
 				logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
-			} else if (isImap){
-				((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 			}
+		} else if (isImap){
+			((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;

@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -83,6 +84,16 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		if (StringUtils.hasText(markAsRead)){
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
+		
+		String selectorExpression = element.getAttribute("message-matcher-expression");
+		
+		RootBeanDefinition expressionDef = null;
+		if (StringUtils.hasText(selectorExpression)){
+			expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(selectorExpression);
+			receiverBuilder.addPropertyValue("selectorExpression", expressionDef);
+		}
+		
 		return receiverBuilder.getBeanDefinition();
 	}
 

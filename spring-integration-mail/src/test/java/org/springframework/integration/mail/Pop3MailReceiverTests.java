@@ -21,8 +21,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Field;
 
 import javax.mail.Flags.Flag;
+import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
@@ -43,6 +47,13 @@ public class Pop3MailReceiverTests {
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
@@ -79,16 +90,18 @@ public class Pop3MailReceiverTests {
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(false);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode == Folder.READ_WRITE){
-					throw new IllegalArgumentException("Folder had to be open in READ_ONLY mode");
-				}
 				return null;
 			}
 		}).when(receiver).openFolder();
@@ -114,16 +127,18 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode == Folder.READ_WRITE){
-					throw new IllegalArgumentException("Folder had to be open in READ_ONLY mode");
-				}
 				return null;
 			}
 		}).when(receiver).openFolder();
@@ -149,16 +164,18 @@ public class Pop3MailReceiverTests {
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
+		
+		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
+		folderField.setAccessible(true);
+		Folder folder = mock(Folder.class);
+		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
+		folderField.set(receiver, folder);
+		
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode == Folder.READ_WRITE){
-					throw new IllegalArgumentException("Folder had to be open in READ_ONLY mode");
-				}
 				return null;
 			}
 		}).when(receiver).openFolder();

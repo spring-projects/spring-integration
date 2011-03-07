@@ -16,6 +16,9 @@
 
 package org.springframework.integration.mail;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -31,9 +34,13 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -72,6 +79,8 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private Authenticator javaMailAuthenticator;
 
+	private final StandardEvaluationContext context = new StandardEvaluationContext();
+	private volatile Expression selectorExpression;
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -91,6 +100,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
+	public void setSelectorExpression(Expression selectorExpression) {
+		this.selectorExpression = selectorExpression;
+	}
 
 	public void setProtocol(String protocol) {
 		if (this.url != null) {
@@ -229,15 +241,37 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.fetchMessages(messages);
 				}
 
-				Message[] copiedMessages = new Message[messages.length];
+				List<Message> copiedMessages = new LinkedList<Message>();
+				logger.debug("Recieved " + messages.length + " messages");
 				for (int i = 0; i < messages.length; i++) {
-					this.setAdditionalFlags(messages[i]);
-					copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
+					System.out.println(this.getFolder());
+					System.out.println(this.getFolder().getPermanentFlags());
+					if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
+						Flags siFlags = new Flags();
+						siFlags.add("spring-integration");
+						messages[i].setFlags(siFlags, true); 
+					}
+					else {
+						logger.warn("USER flags are not supported by this mail server. Flagging message with system flag");
+						messages[i].setFlag(Flags.Flag.FLAGGED, true); 
+					}
+					
+					if (this.selectorExpression != null){
+						Message message = messages[i];
+						if ((Boolean)this.selectorExpression.getValue(this.context, message)){
+							this.setAdditionalFlags(message);
+							copiedMessages.add(new MimeMessage((MimeMessage) message));
+						}			
+					}
+					else {
+						this.setAdditionalFlags(messages[i]);
+						copiedMessages.add(new MimeMessage((MimeMessage) messages[i]));
+					}	
 				}
 				if (this.shouldDeleteMessages()) {
 					this.deleteMessages(messages);
 				}
-				return copiedMessages;
+				return copiedMessages.toArray(new Message[]{});
 			}
 			catch (Exception e) {
 				throw new org.springframework.integration.MessagingException(
@@ -303,12 +337,38 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.shouldDeleteMessages){
+		//if (this.shouldDeleteMessages){
 			this.folderOpenMode = Folder.READ_WRITE;
-		}
+		//}
+		this.registerSpelFunctions();
 	}
 	
 	Store getStore(){
 		return this.store;
+	}
+	
+	private void registerSpelFunctions() throws Exception{
+		context.registerFunction("match",
+				MimeMessageMatchingUtils.class.getDeclaredMethod("match",
+				new Class[] { String.class, String.class }));
+		
+		context.registerFunction("match",
+				MimeMessageMatchingUtils.class.getDeclaredMethod("match",
+				new Class[] { String[].class, String.class }));
+	}
+	
+	static class MimeMessageMatchingUtils {
+		
+		public static boolean match(String pattern, String value) {
+			return PatternMatchUtils.simpleMatch(pattern.toLowerCase(), value.toLowerCase());
+		}
+		
+		public static boolean match(String[] pattern, String value) {
+			List<String> patterns = new ArrayList<String>();
+			for (String originalPattern : pattern) {
+				patterns.add(originalPattern.toLowerCase());
+			}
+			return PatternMatchUtils.simpleMatch(patterns.toArray(new String[]{}), value.toLowerCase());
+		}
 	}
 }

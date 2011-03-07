@@ -157,6 +157,13 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="message-matcher-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Allows you to provide a SpEL expression which defines a fine grained filtering criteria for the emails to be processed by this adapter.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="session" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

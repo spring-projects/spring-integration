@@ -34,6 +34,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPMessage;
 
 /**
  * A {@link MailReceiver} implementation for receiving mail messages from a
@@ -120,7 +121,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
 		Folder folder = this.getFolder();
 		if (folder.isOpen()){
-			return searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+			Message[] messages = searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
+			for (Message message : messages) {
+				((IMAPMessage)message).setPeek(true);
+			}
+			return messages;
 		}
 		throw new MessagingException("Folder is closed");
 	}
@@ -155,9 +160,17 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		if (searchTerm == null){
 			searchTerm = notDeleted;
 		} 
-		if (this.isShouldMarkMessagesAsRead()){
-			searchTerm = new AndTerm(searchTerm, notSeen);
-		} 
+		
+		if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
+			Flags siFlags = new Flags();
+			siFlags.add("spring-integration");
+			searchTerm = new AndTerm(new SearchTerm[]{searchTerm, notSeen, new FlagTerm(siFlags, false)});
+		}
+		else {
+			searchTerm = new AndTerm(new SearchTerm[]{searchTerm, notSeen, new FlagTerm(new Flags(Flags.Flag.FLAGGED), false)});
+		}
+		
+		
 		return searchTerm;
 	}
 
@@ -184,9 +197,9 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		if (this.shouldMarkMessagesAsRead){
-			this.folderOpenMode = Folder.READ_WRITE;
-		}
+//		if (this.shouldMarkMessagesAsRead){
+//			this.folderOpenMode = Folder.READ_WRITE;
+//		}
 		this.initialized = true;
 		TaskScheduler scheduler = this.getTaskScheduler();
 		if (scheduler != null){
