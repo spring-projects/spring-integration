@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
-import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
@@ -28,37 +27,32 @@ import org.springframework.util.Assert;
  * A {@link MessageHandler} that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class MethodInvokingMessageHandler extends MethodInvokingMessageProcessor<Object> implements MessageHandler, Ordered {
+public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 
-	private volatile int order = Ordered.LOWEST_PRECEDENCE;
-
+	private volatile MethodInvokingMessageProcessor<Object> processor;
 
 	public MethodInvokingMessageHandler(Object object, Method method) {
-		super(object, method);
 		Assert.isTrue(method.getReturnType().equals(void.class),
 				"MethodInvokingMessageHandler requires a void-returning method");
+		processor = new MethodInvokingMessageProcessor<Object>(object, method);
 	}
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
-		super(object, methodName);
+		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
 	}
 
-
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return this.order;
-	}
-
-	public void handleMessage(Message<?> message) {
-		Object result = this.processMessage(message);
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		Object result = processor.processMessage(message);
 		if (result != null) {
 			throw new MessagingException(message, "the MethodInvokingMessageHandler method must "
 					+ "have a void return, but '" + this + "' received a value: [" + result + "]");			
 		}
 	}
-
+	
+	public String getComponentType() {
+		return "outbound-channel-adapter";
+	}
 }

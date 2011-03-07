@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.AbstractSubscribableChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;

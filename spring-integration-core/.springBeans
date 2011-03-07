@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beansProjectDescription>
 	<version>1</version>
-	<pluginVersion><![CDATA[2.5.2.201101121000-SR1]]></pluginVersion>
+	<pluginVersion><![CDATA[2.6.0.201102250324-M2]]></pluginVersion>
 	<configSuffixes>
 		<configSuffix><![CDATA[xml]]></configSuffix>
 	</configSuffixes>
@@ -9,6 +9,7 @@
 	<configs>
 		<config>src/test/java/org/springframework/integration/gateway/GatewayInterfaceTest-context.xml</config>
 		<config>src/test/java/org/springframework/integration/gateway/InnerGatewayWithChainTests-context.xml</config>
+		<config>src/test/java/org/springframework/integration/history/annotated-config.xml</config>
 	</configs>
 	<configSets>
 	</configSets>
