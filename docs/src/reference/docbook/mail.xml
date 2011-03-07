@@ -114,6 +114,9 @@
     ... where <emphasis>javaMailProperties</emphasis> could be provided by creating and populating
      a regular <classname>java.utils.Properties</classname> object. For example via <emphasis>util</emphasis> namespace
      provided by Spring.
+     <important>
+     	If your userid contains '@' character use '%40' instead of '@' to avoid parsing errors from he underlying JavaMail API
+     </important>
      <programlisting language="xml"><![CDATA[<util:properties id="javaMailProperties">
   <prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
   <prop key="mail.imap.socketFactory.fallback">false</prop>
