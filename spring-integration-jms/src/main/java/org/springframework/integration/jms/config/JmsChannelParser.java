@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * Spring Integration JMS namespace.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakusky
  * @since 2.0
  */
 public class JmsChannelParser extends AbstractChannelParser {
@@ -108,16 +109,8 @@ public class JmsChannelParser extends AbstractChannelParser {
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
-		int[] concurrency = parseConcurrency(element, parserContext);
-		if (concurrency != null) {
-			if (containerType.startsWith("default")) {
-				builder.addPropertyValue("concurrentConsumers", concurrency[0]);
-				builder.addPropertyValue("maxConcurrentConsumers", concurrency[1]);
-			}
-			else {
-				builder.addPropertyValue("concurrentConsumers", concurrency[1]);
-			}
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrency");
+
 		String prefetch = element.getAttribute("prefetch");
 		if (StringUtils.hasText(prefetch)) {
 			if (containerType.startsWith("default")) {
@@ -178,29 +171,4 @@ public class JmsChannelParser extends AbstractChannelParser {
 			return null;
 		}
 	}
-
-	private int[] parseConcurrency(Element ele, ParserContext parserContext) {
-		String concurrency = ele.getAttribute("concurrency");
-		if (!StringUtils.hasText(concurrency)) {
-			return null;
-		}
-		try {
-			int separatorIndex = concurrency.indexOf('-');
-			if (separatorIndex != -1) {
-				int[] result = new int[2];
-				result[0] = Integer.parseInt(concurrency.substring(0, separatorIndex));
-				result[1] = Integer.parseInt(concurrency.substring(separatorIndex + 1, concurrency.length()));
-				return result;
-			}
-			else {
-				return new int[] {1, Integer.parseInt(concurrency)};
-			}
-		}
-		catch (NumberFormatException ex) {
-			parserContext.getReaderContext().error("Invalid concurrency value [" + concurrency + "]: only " +
-					"single maximum integer (e.g. \"5\") and minimum-maximum combo (e.g. \"3-5\") supported.", ele, ex);
-			return null;
-		}
-	}
-
 }

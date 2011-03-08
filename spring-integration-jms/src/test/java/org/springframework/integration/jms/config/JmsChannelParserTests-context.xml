@@ -2,10 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration/jms
-			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-3.0.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+		
+	<context:property-placeholder location="classpath:org/springframework/integration/jms/config/channel.properties"/>
 
 	<jms:channel id="queueReferenceChannel" queue="testQueue"/>
 
@@ -56,5 +59,8 @@
 	</bean>
 
 	<alias name="connectionFactory" alias="connFact"/>
+	
+	
+	<jms:channel id="withPlaceholders" queue="${queue}" concurrency="${concurrency}"/>
 
 </beans>

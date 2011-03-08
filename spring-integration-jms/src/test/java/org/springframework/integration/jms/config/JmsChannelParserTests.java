@@ -38,6 +38,7 @@ import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -69,7 +70,10 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private MessageChannel topicNameChannel;
-
+	
+	@Autowired
+	private MessageChannel withPlaceholders;
+	
 	@Autowired
 	private MessageChannel topicNameWithResolverChannel;
 
@@ -217,6 +221,14 @@ public class JmsChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		assertEquals("foo", jmsTemplate.getDefaultDestinationName());
+	}
+	
+	@Test
+	public void withPlaceholders() {
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(withPlaceholders, "container", DefaultMessageListenerContainer.class);
+		System.out.println(container.getDestination());
+		System.out.println(container.getConcurrentConsumers());
+		System.out.println(container.getMaxConcurrentConsumers());
 	}
 
 
