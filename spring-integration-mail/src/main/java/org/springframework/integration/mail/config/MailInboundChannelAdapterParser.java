@@ -85,7 +85,7 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
 		}
 		
-		String selectorExpression = element.getAttribute("message-matcher-expression");
+		String selectorExpression = element.getAttribute("mail-filter-expression");
 		
 		RootBeanDefinition expressionDef = null;
 		if (StringUtils.hasText(selectorExpression)){

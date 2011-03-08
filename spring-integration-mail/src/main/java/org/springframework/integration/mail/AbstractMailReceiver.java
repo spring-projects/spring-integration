@@ -53,6 +53,8 @@ import org.springframework.util.PatternMatchUtils;
  */
 public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
+	public final static String SI_USER_FLAG = "spring-integration-mail-adapter";
+	
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final URLName url;
@@ -243,25 +245,33 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 				List<Message> copiedMessages = new LinkedList<Message>();
 				logger.debug("Recieved " + messages.length + " messages");
+				
+				boolean recentFlagSupported = this.getFolder().getPermanentFlags().contains(Flags.Flag.RECENT);
+				
 				for (int i = 0; i < messages.length; i++) {
-					System.out.println(this.getFolder());
-					System.out.println(this.getFolder().getPermanentFlags());
-					if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
-						Flags siFlags = new Flags();
-						siFlags.add("spring-integration");
-						messages[i].setFlags(siFlags, true); 
+					if (!recentFlagSupported){
+						if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
+							logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
+							Flags siFlags = new Flags();
+							siFlags.add(SI_USER_FLAG);
+							messages[i].setFlags(siFlags, true); 
+						}
+						else {
+							logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
+							messages[i].setFlag(Flags.Flag.FLAGGED, true); 
+						}
 					}
-					else {
-						logger.warn("USER flags are not supported by this mail server. Flagging message with system flag");
-						messages[i].setFlag(Flags.Flag.FLAGGED, true); 
-					}
-					
+						
 					if (this.selectorExpression != null){
 						Message message = messages[i];
 						if ((Boolean)this.selectorExpression.getValue(this.context, message)){
 							this.setAdditionalFlags(message);
 							copiedMessages.add(new MimeMessage((MimeMessage) message));
-						}			
+						}	
+						else {
+							logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
+									" and will not be flagged as SEEN.");
+						}
 					}
 					else {
 						this.setAdditionalFlags(messages[i]);

@@ -173,8 +173,6 @@ public class ImapMailReceiverTests {
 		final Message[] messages = new Message[]{msg1, msg2};
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
 				return null;
 			}
 		}).when(receiver).openFolder();

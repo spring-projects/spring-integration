@@ -56,12 +56,11 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof AndTerm);
-		AndTerm andTerm = (AndTerm) searchTerms;
-		SearchTerm[] terms = andTerm.getTerms();
-		assertEquals(3, terms.length);
-		NotTerm notTerm = (NotTerm) terms[1];
-		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.SEEN));
+		assertTrue(searchTerms instanceof NotTerm);
+		NotTerm notTerm = (NotTerm) searchTerms;
+		Flags siFlags = new Flags();
+		siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
+		notTerm.getTerm().equals(siFlags);
 	}
 	@Test
 	public void validateSearchTermsWhenShouldMarkAsReadWithExistingFlags() throws Exception {
@@ -83,9 +82,13 @@ public class ImapMailSearchTermsTests {
 		assertTrue(searchTerms instanceof AndTerm);
 		AndTerm andTerm = (AndTerm) searchTerms;
 		SearchTerm[] terms = andTerm.getTerms();
-		assertEquals(3, terms.length);
-		NotTerm notTerm = (NotTerm) terms[1];
-		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.SEEN));
+		assertEquals(2, terms.length);
+		NotTerm notTerm = (NotTerm) terms[0];
+		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.ANSWERED));
+		notTerm = (NotTerm) terms[1];
+		Flags siFlags = new Flags();
+		siFlags.add(AbstractMailReceiver.SI_USER_FLAG);
+		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(siFlags));
 	}
 	
 	@Test
@@ -104,30 +107,6 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof AndTerm);
-	}
-	@Test
-	public void validateSearchTermsWhenShouldNotMarkAsReadWithExistingFlags() throws Exception {
-		ImapMailReceiver receiver = new ImapMailReceiver();
-		receiver.setShouldMarkMessagesAsRead(false);
-		receiver.afterPropertiesSet();
-		
-		Field folderField = AbstractMailReceiver.class.getDeclaredField("folder");
-		folderField.setAccessible(true);
-		Folder folder = mock(Folder.class);
-		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
-		folderField.set(receiver, folder);
-		
-		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
-		compileSearchTerms.setAccessible(true);
-		Flags flags = new Flags();
-		flags.add(Flag.ANSWERED);
-		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof AndTerm);
-		AndTerm andTerm = (AndTerm) searchTerms;
-		SearchTerm[] andTerms = andTerm.getTerms();
-		assertTrue(andTerms.length == 3);
-		assertTrue(((FlagTerm)andTerms[0]).getFlags().contains(Flag.ANSWERED));
-		
+		assertTrue(searchTerms instanceof NotTerm);
 	}
 }

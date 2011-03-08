@@ -132,45 +132,63 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	
 	private SearchTerm compileSearchTerms(Flags supportedFlags){
 		SearchTerm searchTerm = null;
+		boolean recentFlagSupported = false;
 		if (supportedFlags != null) {
-			if (supportedFlags.contains(Flags.Flag.RECENT)) {
+			recentFlagSupported = supportedFlags.contains(Flags.Flag.RECENT);
+			if (recentFlagSupported) {
 				searchTerm = new FlagTerm(new Flags(Flags.Flag.RECENT), true);
 			}
 			if (supportedFlags.contains(Flags.Flag.ANSWERED)) {
-				FlagTerm answeredTerm = new FlagTerm(new Flags(Flags.Flag.ANSWERED), false);
+				NotTerm notAnswered = new NotTerm(new FlagTerm(new Flags(Flags.Flag.ANSWERED), true));
 				if (searchTerm == null) {
-					searchTerm = answeredTerm;
+					searchTerm = notAnswered;
 				}
 				else {
-					searchTerm = new AndTerm(searchTerm, answeredTerm);
+					searchTerm = new AndTerm(searchTerm, notAnswered);
 				}
 			}
 			if (supportedFlags.contains(Flags.Flag.DELETED)) {
-				FlagTerm deletedTerm = new FlagTerm(new Flags(Flags.Flag.DELETED), false);
+				NotTerm notDeleted = new NotTerm(new FlagTerm(new Flags(Flags.Flag.DELETED), true));
 				if (searchTerm == null) {
-					searchTerm = deletedTerm;
+					searchTerm = notDeleted;
 				}
 				else {
-					searchTerm = new AndTerm(searchTerm, deletedTerm);
+					searchTerm = new AndTerm(searchTerm, notDeleted);
+				}
+			}
+			if (supportedFlags.contains(Flags.Flag.SEEN)) {
+				NotTerm notSeen = new NotTerm(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
+				if (searchTerm == null) {
+					searchTerm = notSeen;
+				}
+				else {
+					searchTerm = new AndTerm(searchTerm, notSeen);
 				}
 			}
 		}
-		NotTerm notDeleted = new NotTerm( new FlagTerm(new Flags(Flags.Flag.DELETED), true) );
-		NotTerm notSeen = new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) );
-		if (searchTerm == null){
-			searchTerm = notDeleted;
-		} 
-		
-		if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
-			Flags siFlags = new Flags();
-			siFlags.add("spring-integration");
-			searchTerm = new AndTerm(new SearchTerm[]{searchTerm, notSeen, new FlagTerm(siFlags, false)});
+	
+		if (!recentFlagSupported){	
+			NotTerm notFlagged = null;
+			if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
+				logger.debug("This email server does not support RECENT flag but it does support " +
+						"USER flags which will be used to prevent duplicates during email fetch");
+				Flags siFlags = new Flags();
+				siFlags.add(SI_USER_FLAG);
+				notFlagged = new NotTerm(new FlagTerm(siFlags, true));			
+			}
+			else {
+				logger.debug("This email server does not support RECENT or USER flags. " +
+						"System flag 'Flag.FLAGGED' will be used to prevent duplicates during email fetch");
+				notFlagged = new NotTerm(new FlagTerm(new Flags(Flags.Flag.FLAGGED), true));
+			}
+			if (searchTerm == null){
+				searchTerm = notFlagged;
+			}
+			else {
+				searchTerm = new AndTerm(searchTerm, notFlagged);
+			}
 		}
-		else {
-			searchTerm = new AndTerm(new SearchTerm[]{searchTerm, notSeen, new FlagTerm(new Flags(Flags.Flag.FLAGGED), false)});
-		}
-		
-		
+			
 		return searchTerm;
 	}
 
