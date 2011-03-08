@@ -61,6 +61,10 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 			builder.addConstructorArgReference(xslTemplates);
 		}
 		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
+        boolean resultFactorySpecified = StringUtils.hasText(resultFactory) || StringUtils.hasText(resultType);
+        if(resultFactorySpecified){
+            builder.addPropertyValue("alwaysUseResultFactory", true);
+        }
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
@@ -88,7 +92,9 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 			}
 			builder.addPropertyValue("xslParameterMappings", xslParameterMappings);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
+
+       IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
+
 	}
 
 }

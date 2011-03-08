@@ -28,8 +28,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xml.transform.StringResult;
+import org.w3c.dom.Document;
+
+import javax.xml.transform.dom.DOMResult;
 
 import static org.junit.Assert.assertFalse;
 
@@ -39,6 +44,7 @@ import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Jonas Partner
  *
  */
 @ContextConfiguration
@@ -110,4 +116,8 @@ public class XsltTransformerTests {
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
 		assertTrue(((String) resultMessage.getPayload()).contains("hello"));
 	}
+
 }
+
+
+
