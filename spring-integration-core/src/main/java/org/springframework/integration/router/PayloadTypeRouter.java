@@ -52,8 +52,15 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	private String getChannelName(Message<?> message) {
 		Class<?> type = message.getPayload().getClass();
 		while (type != null && !CollectionUtils.isEmpty(this.channelIdentifierMap)) {
-			// first, check for an exact type match
-			String channelName = this.channelIdentifierMap.get(type.getName());
+
+			String mappingName = null;
+			if (type.isArray()){
+				mappingName = type.getComponentType().getName()+"[]";
+			}
+			else {
+				mappingName = type.getName();
+			}
+			String channelName = this.channelIdentifierMap.get(mappingName);
 			if (StringUtils.hasText(channelName)) {
 				return channelName;
 			}

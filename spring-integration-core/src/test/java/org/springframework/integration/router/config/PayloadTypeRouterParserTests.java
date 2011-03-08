@@ -53,12 +53,16 @@ public class PayloadTypeRouterParserTests {
 		context.start();
 		Message<?> message1 = MessageBuilder.withPayload("Hello").build();
 		Message<?> message2 = MessageBuilder.withPayload(25).build();
+		Message<?> message3 = MessageBuilder.withPayload(new Integer[]{23, 24, 34}).build();
 		testService.foo(message1);
 		testService.foo(message2);
+		testService.foo(message3);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		assertTrue(chanel1.receive(0).getPayload() instanceof String);
 		assertTrue(chanel2.receive(0).getPayload() instanceof Integer);	
+		System.out.println(chanel3.receive(0).getPayload());
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)

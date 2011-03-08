@@ -13,11 +13,15 @@
 	<channel id="channel2">
 		<queue capacity="1" />
 	</channel>
+	<channel id="channel3">
+		<queue capacity="1" />
+	</channel>
 	
 	<channel id="routingChannel" />
 	<payload-type-router input-channel="routingChannel">
 		<mapping type="java.lang.String" channel="channel1" />
 		<mapping type="java.lang.Integer" channel="channel2" />
+		<mapping type="java.lang.Integer[]" channel="channel3" />
 	</payload-type-router>
 
 	<gateway id="testService"
