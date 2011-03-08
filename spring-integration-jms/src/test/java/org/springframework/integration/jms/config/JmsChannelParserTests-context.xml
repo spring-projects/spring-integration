@@ -61,6 +61,7 @@
 	<alias name="connectionFactory" alias="connFact"/>
 	
 	
-	<jms:channel id="withPlaceholders" queue="${queue}" concurrency="${concurrency}"/>
+	<jms:channel id="withPlaceholders" queue="${queue}" 
+									   concurrency="${concurrency}"/>
 
 </beans>

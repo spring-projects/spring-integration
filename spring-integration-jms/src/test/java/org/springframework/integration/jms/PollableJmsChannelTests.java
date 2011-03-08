@@ -24,7 +24,6 @@ import javax.jms.Destination;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
-import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
@@ -41,17 +40,13 @@ public class PollableJmsChannelTests {
 
 	private Destination queue;
 
-
-	@Before
-	public void setup() throws Exception {
+	@Test
+	public void queueReference() throws Exception {
 		ActiveMqTestUtils.prepare();
 		this.connectionFactory = new ActiveMQConnectionFactory();
 		this.connectionFactory.setBrokerURL("vm://localhost");
 		this.queue = new ActiveMQQueue("pollableJmsChannelTestQueue");
-	}
-
-	@Test
-	public void queueReference() throws Exception {
+		
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		factoryBean.setConnectionFactory(this.connectionFactory);
 		factoryBean.setDestination(this.queue);
@@ -71,9 +66,13 @@ public class PollableJmsChannelTests {
 
 	@Test
 	public void queueName() throws Exception {
+		ActiveMqTestUtils.prepare();
+		this.connectionFactory = new ActiveMQConnectionFactory();
+		this.connectionFactory.setBrokerURL("vm://localhost");
+		
 		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(false);
 		factoryBean.setConnectionFactory(this.connectionFactory);
-		factoryBean.setDestinationName("dynamicQueue");
+		factoryBean.setDestinationName("someDynamicQueue");
 		factoryBean.setPubSubDomain(false);
 		factoryBean.afterPropertiesSet();
 		PollableJmsChannel channel = (PollableJmsChannel) factoryBean.getObject();
@@ -81,7 +80,7 @@ public class PollableJmsChannelTests {
 		assertTrue(sent1);
 		boolean sent2 = channel.send(new GenericMessage<String>("bar"));
 		assertTrue(sent2);
-		Message<?> result1 = channel.receive(1000);
+		Message<?> result1 = channel.receive(10000);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
 		Message<?> result2 = channel.receive(1000);

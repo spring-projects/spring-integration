@@ -73,7 +73,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile String clientId;
 
 	private volatile String concurrency;
-	//private volatile Integer concurrentConsumers;
+	
+	private volatile Integer concurrentConsumers;
 
 	private volatile ConnectionFactory connectionFactory;
 
@@ -93,7 +94,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	private volatile Integer idleTaskExecutionLimit;
 
-	//private volatile Integer maxConcurrentConsumers;
+	private volatile Integer maxConcurrentConsumers;
 
 	private volatile Integer maxMessagesPerTask;
 
@@ -200,9 +201,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	public void setConcurrency(String concurrency) {
 		this.concurrency = concurrency;
 	}
-//	public void setConcurrentConsumers(int concurrentConsumers) {
-//		this.concurrentConsumers = concurrentConsumers;
-//	}
+	
+	public void setConcurrentConsumers(int concurrentConsumers) {
+		this.concurrentConsumers = concurrentConsumers;
+	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -246,9 +248,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.idleTaskExecutionLimit = idleTaskExecutionLimit;
 	}
 
-//	public void setMaxConcurrentConsumers(int maxConcurrentConsumers) {
-//		this.maxConcurrentConsumers = maxConcurrentConsumers;
-//	}
+	public void setMaxConcurrentConsumers(int maxConcurrentConsumers) {
+		this.maxConcurrentConsumers = maxConcurrentConsumers;
+	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		this.maxMessagesPerTask = maxMessagesPerTask;
@@ -386,23 +388,26 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		container.setSessionTransacted(this.sessionTransacted);
 		container.setSubscriptionDurable(this.subscriptionDurable);
 		
-		int[] conc = parseConcurrency(concurrency);
+		
 		
 		if (container instanceof DefaultMessageListenerContainer) {
 			DefaultMessageListenerContainer dmlc = (DefaultMessageListenerContainer) container;
 			if (this.cacheLevelName != null) {
 				dmlc.setCacheLevelName(this.cacheLevelName);
 			}
-					
-			if (conc != null) {
-				if (containerType.isAssignableFrom(DefaultMessageListenerContainer.class)) {
-					dmlc.setConcurrentConsumers(conc[0]);
-					if (conc.length == 2){
-						dmlc.setMaxConcurrentConsumers(conc[1]);
-					}			
-				}
+		
+			if (StringUtils.hasText(this.concurrency)){
+				dmlc.setConcurrency(this.concurrency);
 			}
 			
+			if (this.concurrentConsumers != null){
+				dmlc.setConcurrentConsumers(this.concurrentConsumers);
+			}
+			
+			if (this.maxConcurrentConsumers != null){
+				dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
+			}
+				
 			if (this.idleTaskExecutionLimit != null) {
 				dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 			}
@@ -428,9 +433,14 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		}
 		else if (container instanceof SimpleMessageListenerContainer) {
 			SimpleMessageListenerContainer smlc = (SimpleMessageListenerContainer) container;
-			if (conc != null) {
-				smlc.setConcurrentConsumers(conc[0]);
+			if (StringUtils.hasText(this.concurrency)){
+				smlc.setConcurrency(this.concurrency);
 			}
+			
+			if (this.concurrentConsumers != null){
+				smlc.setConcurrentConsumers(this.concurrentConsumers);
+			}
+			
 			smlc.setPubSubNoLocal(this.pubSubNoLocal);
 			smlc.setTaskExecutor(this.taskExecutor);
 		}
@@ -477,22 +487,6 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	protected void destroyInstance(AbstractJmsChannel instance) throws Exception {
 		if (instance instanceof SubscribableJmsChannel) {
 			((SubscribableJmsChannel) this.channel).destroy();
-		}
-	}
-	
-	private int[] parseConcurrency(String concurrency) {
-		if (!StringUtils.hasText(concurrency)) {
-			return null;
-		}
-		int separatorIndex = concurrency.indexOf('-');
-		if (separatorIndex != -1) {
-			int[] result = new int[2];
-			result[0] = Integer.parseInt(concurrency.substring(0, separatorIndex));
-			result[1] = Integer.parseInt(concurrency.substring(separatorIndex + 1, concurrency.length()));
-			return result;
-		}
-		else {
-			return new int[] {1, Integer.parseInt(concurrency)};
 		}
 	}
 }
