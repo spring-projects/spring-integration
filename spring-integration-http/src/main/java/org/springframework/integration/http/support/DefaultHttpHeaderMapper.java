@@ -303,9 +303,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		Map<String, Object> target = new HashMap<String, Object>();
 		Set<String> headerNames = source.keySet();
 		for (String name : headerNames) {
-			if (name.startsWith(userDefinedHeaderPrefix)){
-				name = name.substring(userDefinedHeaderPrefix.length());
-			}
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
 					String prefixedName = name.startsWith(this.userDefinedHeaderPrefix) ? name : this.userDefinedHeaderPrefix + name;

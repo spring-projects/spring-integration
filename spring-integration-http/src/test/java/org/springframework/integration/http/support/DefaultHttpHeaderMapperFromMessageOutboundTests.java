@@ -581,38 +581,26 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals("abc", messageHeaders.get("foobar"));
 		assertEquals("text/html", messageHeaders.get("Content-Type").toString());
 	}
-	
-	@Test
-	public void validateCustomHeaderAndPrefixWithHeaderNamePatternsAndStandardResponseHeaders() throws ParseException{
-		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
-		mapper.setInboundHeaderNames(new String[]{"foo*", "HTTP_RESPONSE_HEADERS"});
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.set("X-foobar", "abc");
-		httpHeaders.setContentType(MediaType.TEXT_HTML);
-		httpHeaders.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
-		Map<String, ?> messageHeaders = mapper.toHeaders(httpHeaders);
-		assertEquals(2, messageHeaders.size());
-		assertNull(messageHeaders.get("Accept"));
-		assertEquals("abc", messageHeaders.get("foobar"));
-		assertEquals("text/html", messageHeaders.get("Content-Type").toString());
-	}
-	
-	@Test
-	public void validateCustomHeaderAndCustomPrefixWithHeaderNamePatternsAndStandardResponseHeaders() throws ParseException{
-		DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
-		mapper.setUserDefinedHeaderPrefix("BOO-");
-		mapper.setInboundHeaderNames(new String[]{"foo*", "HTTP_RESPONSE_HEADERS"});
-		HttpHeaders httpHeaders = new HttpHeaders();
-		httpHeaders.set("BOO-foobar", "abc");
-		httpHeaders.set("barr", "barr");
-		httpHeaders.set("X-barr", "x-barr");
-		httpHeaders.setContentType(MediaType.TEXT_HTML);
-		httpHeaders.setAccept(Collections.singletonList(MediaType.TEXT_HTML));
-		Map<String, ?> messageHeaders = mapper.toHeaders(httpHeaders);
-		assertEquals(2, messageHeaders.size());
-		assertNull(messageHeaders.get("Accept"));
-		assertEquals("abc", messageHeaders.get("foobar"));
-		assertEquals("text/html", messageHeaders.get("Content-Type").toString());
-	}
 
+	@Test
+	public void validateCustomHeaderWithStandardPrefix() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"X-Foo"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("x-foo", "x-foo-value");
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(1, result.size());
+		assertEquals("x-foo-value", result.get("x-foo"));
+	}
+	
+	@Test
+	public void validateCustomHeaderWithStandardPrefixSameCase() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setInboundHeaderNames(new String[] {"X-Foo"});
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("X-Foo", "x-foo-value");
+		Map<String, ?> result = mapper.toHeaders(headers);
+		assertEquals(1, result.size());
+		assertEquals("x-foo-value", result.get("X-Foo"));
+	}
 }
