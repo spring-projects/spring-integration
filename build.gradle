@@ -23,6 +23,7 @@ import org.springframework.build.Version
 //
 // @author Chris Beams
 // @author Mark Fisher
+// @author Oleg Zhurakousky
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -301,6 +302,7 @@ project('spring-integration-jmx') {
         compile "org.aspectj:aspectjrt:$aspectjVersion"
         compile "org.aspectj:aspectjweaver:$aspectjVersion"
         compile "org.springframework:spring-context:$springVersion"
+        testCompile project(":spring-integration-test")
     }
 }
 
