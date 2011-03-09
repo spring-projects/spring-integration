@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
@@ -40,7 +39,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
-import org.springframework.util.PatternMatchUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -347,38 +345,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		//if (this.shouldDeleteMessages){
-			this.folderOpenMode = Folder.READ_WRITE;
-		//}
-		this.registerSpelFunctions();
+		this.folderOpenMode = Folder.READ_WRITE;
 	}
 	
 	Store getStore(){
 		return this.store;
-	}
-	
-	private void registerSpelFunctions() throws Exception{
-		context.registerFunction("match",
-				MimeMessageMatchingUtils.class.getDeclaredMethod("match",
-				new Class[] { String.class, String.class }));
-		
-		context.registerFunction("match",
-				MimeMessageMatchingUtils.class.getDeclaredMethod("match",
-				new Class[] { String[].class, String.class }));
-	}
-	
-	static class MimeMessageMatchingUtils {
-		
-		public static boolean match(String pattern, String value) {
-			return PatternMatchUtils.simpleMatch(pattern.toLowerCase(), value.toLowerCase());
-		}
-		
-		public static boolean match(String[] pattern, String value) {
-			List<String> patterns = new ArrayList<String>();
-			for (String originalPattern : pattern) {
-				patterns.add(originalPattern.toLowerCase());
-			}
-			return PatternMatchUtils.simpleMatch(patterns.toArray(new String[]{}), value.toLowerCase());
-		}
 	}
 }
