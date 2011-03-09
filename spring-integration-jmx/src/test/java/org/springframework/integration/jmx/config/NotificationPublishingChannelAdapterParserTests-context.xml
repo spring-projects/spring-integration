@@ -15,6 +15,7 @@
 
 	<context:mbean-export/>
 	<context:mbean-server/>
+	<jmx:mbean-export/>
 
 	<si:channel id="channel"/>
 

@@ -31,7 +31,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.ObjectNameManager;
 
@@ -51,13 +53,17 @@ public class NotificationPublishingMessageHandlerTests {
 	@Before
 	public void setup() throws Exception {
 		this.publisherObjectName = ObjectNameManager.getInstance("test:type=publisher");
-		context.registerSingleton("exporter", MBeanExporter.class);
+		// deliberately registering two exporters (one SI specific and one generic)
+		// should not fail INT-1816
+		context.registerSingleton("exporter", IntegrationMBeanExporter.class);
+		context.registerSingleton("anotherExporter", MBeanExporter.class);
+		
 		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingMessageHandler.class);
 		publisherDefinition.getConstructorArgumentValues().addGenericArgumentValue(this.publisherObjectName);
 		publisherDefinition.getPropertyValues().add("defaultNotificationType", "test.type");
-		context.registerBeanDefinition("testPublisher", publisherDefinition);
+		context.registerBeanDefinition("testPublisher", publisherDefinition);	
 		context.refresh();
-		MBeanExporter exporter = context.getBean(MBeanExporter.class);
+		MBeanExporter exporter = context.getBean(IntegrationMBeanExporter.class);
 		exporter.getServer().addNotificationListener(publisherObjectName, this.listener, null, null);
 	}
 
@@ -70,16 +76,15 @@ public class NotificationPublishingMessageHandlerTests {
 
 	@Test
 	public void simplePublish() {
-		NotificationPublishingMessageHandler adapter = context.getBean(NotificationPublishingMessageHandler.class);
+		MessageHandler handler = context.getBean("testPublisher", MessageHandler.class);
 		assertEquals(0, this.listener.notifications.size());
-		adapter.handleMessage(new GenericMessage<String>("foo"));
+		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, this.listener.notifications.size());
 		Notification notification = this.listener.notifications.get(0);
 		assertEquals(this.publisherObjectName, notification.getSource());
 		assertEquals("foo", notification.getMessage());
 		assertEquals("test.type", notification.getType());
 	}
-
 
 	public static class TestNotificationListener implements NotificationListener {
 
