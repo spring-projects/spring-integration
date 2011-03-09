@@ -48,6 +48,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	public volatile String temporaryFileSuffix =".writing";
 
 	private final SessionFactory sessionFactory;
+	
+	private volatile boolean autoCreateDirectory = false;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 
@@ -65,7 +67,10 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		this.sessionFactory = sessionFactory;
 	}
 
-
+	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
+		this.autoCreateDirectory = autoCreateDirectory;
+	}
+	
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
 		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
 		this.remoteFileSeparator = remoteFileSeparator;
@@ -185,10 +190,32 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
+		
+		if (this.autoCreateDirectory){
+			this.ensureDirectoryExists(session, remoteDirectory, remoteDirectory);
+		}
+		
 		session.write(fileInputStream, tempFilePath);
 		fileInputStream.close();
 		// then rename it to its final name
 		session.rename(tempFilePath, remoteFilePath);
 	}
 
+	private void ensureDirectoryExists(Session session, String remoteDirectory, String originalRemoteDirectory){
+		try {
+			session.list(remoteDirectory);
+			String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
+			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, this.remoteFileSeparator);
+			String directory = remoteDirectory + this.remoteFileSeparator;
+			for (String directorySegment : directories) {
+				directory += directorySegment+this.remoteFileSeparator;
+				logger.debug("Creating '" + directory + "'");
+				session.mkdir(directory);
+			}
+		} catch (IOException e) {
+			logger.debug("Directory '" + remoteDirectory + "' does not exist");
+			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.lastIndexOf(this.remoteFileSeparator));
+			this.ensureDirectoryExists(session, remoteDirectory, originalRemoteDirectory);
+		}
+	}
 }

@@ -113,4 +113,15 @@ class FtpSession implements Session {
 		}
 		logger.info("File have been successfully renamed from: " + pathFrom + " to " + pathTo);
 	}
+
+	public void mkdir(String directory) throws IOException {
+		try {
+			this.client.makeDirectory(directory);
+		}
+		catch (Exception e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("failed to create directory '" + directory + "'", e);
+			}
+		}
+	}
 }

@@ -24,6 +24,7 @@
 				charset="UTF-8"
 				temporary-file-suffix=".foo"
 				remote-filename-generator-expression="payload.getName() + '-foo'"
-				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-target-dir"/>
+				auto-create-directory="true"
+				remote-directory="/Users/ozhurakousky/workspace-sts-2.3.3.M2/si/spring-integration/spring-integration-sftp/remote-target-dir/foo/bar/baz"/>
 			
 </beans>

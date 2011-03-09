@@ -140,4 +140,12 @@ class SftpSession implements Session {
 		}
 	}
 
+	public void mkdir(String directory) throws IOException {
+		try {
+			this.channel.mkdir(directory);
+		} catch (SftpException e) {
+			throw new NestedIOException("failed to create remote directory '" + directory + "'.", e);
+		}
+	}
+
 }

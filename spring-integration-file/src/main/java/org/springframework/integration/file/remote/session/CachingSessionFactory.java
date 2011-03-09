@@ -148,6 +148,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		public void rename(String pathFrom, String pathTo) throws IOException {
 			this.targetSession.rename(pathFrom, pathTo);
 		}
+
+		public void mkdir(String directory) throws IOException {
+			this.targetSession.mkdir(directory);
+		}
 	}
 
 }

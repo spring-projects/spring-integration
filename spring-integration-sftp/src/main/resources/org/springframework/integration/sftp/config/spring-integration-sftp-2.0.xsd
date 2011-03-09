@@ -77,6 +77,14 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			
+			<xsd:attribute name="auto-create-directory" type="xsd:string" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specify whether to automatically create the remote target directory if it doesn't exist.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
 			<xsd:attribute name="remote-filename-generator" type="xsd:string">
 	            <xsd:annotation>
 	            	<xsd:documentation>
