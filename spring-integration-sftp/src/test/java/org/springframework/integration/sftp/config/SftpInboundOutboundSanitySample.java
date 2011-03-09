@@ -64,7 +64,7 @@ public class SftpInboundOutboundSanitySample {
 	}
 	
 	@Test
-	//@Ignore
+	@Ignore
 	public void testOutbound() throws Exception{
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("SftpOutboundTransferSample-ignored.xml", this.getClass());	
