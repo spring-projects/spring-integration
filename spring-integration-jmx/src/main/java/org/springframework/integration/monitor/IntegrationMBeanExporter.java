@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,6 +30,7 @@ import javax.management.modelmbean.ModelMBean;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -132,7 +134,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private boolean initialized = false;
 
-	private final Map<String, String> objectNameStaticProperties = new HashMap<String, String>();
+	private final Properties objectNameStaticProperties = new Properties();
 
 	private final MetadataMBeanInfoAssembler assembler = new MetadataMBeanInfoAssembler(attributeSource);
 
@@ -617,7 +619,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			return "";
 		}
 		StringBuilder builder = new StringBuilder();
-		for (String key : objectNameStaticProperties.keySet()) {
+		
+		for (Object key : objectNameStaticProperties.keySet()) {
 			builder.append("," + key + "=" + objectNameStaticProperties.get(key));
 		}
 		return builder.toString();

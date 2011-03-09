@@ -4,19 +4,25 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:jmx="http://www.springframework.org/schema/integration/jmx"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/jmx
-			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:mbean-server id="mbs"/>
 
 	<si:channel id="testChannel"/>
 
-	<jmx:mbean-export id="integratioMbeanExporter" server="mbs" default-domain="tests.MBeanExpoerterParser"/>
+	<jmx:mbean-export id="integratioMbeanExporter" 
+					  server="mbs" 
+					  default-domain="tests.MBeanExpoerterParser"
+					  object-name-static-properties-ref="appProperties"/>
+					  
+	<util:properties id="appProperties">
+		<prop key="foo">foo</prop>
+		<prop key="bar">bar</prop>
+	</util:properties>
 
 </beans>

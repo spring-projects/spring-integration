@@ -16,20 +16,27 @@
 
 package org.springframework.integration.jmx.config;
 
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+
+import java.util.Properties;
 
 import javax.management.MBeanServer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,6 +50,11 @@ public class MBeanExporterParserTests {
 	public void testMBeanExporterExists() throws InterruptedException {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
+		Properties properties = TestUtils.getPropertyValue(exporter, "objectNameStaticProperties", Properties.class);
+		assertNotNull(properties);
+		assertEquals(2, properties.size());
+		assertTrue(properties.containsKey("foo"));
+		assertTrue(properties.containsKey("bar"));
 		assertEquals(server, exporter.getServer());
 		exporter.destroy();
 	}

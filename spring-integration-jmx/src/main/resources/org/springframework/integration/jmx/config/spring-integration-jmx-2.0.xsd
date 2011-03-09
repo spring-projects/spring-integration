@@ -112,6 +112,18 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="object-name-static-properties-ref" use="optional">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.util.Properties" />
+								</tool:annotation>
+							</xsd:appinfo>
+							<xsd:documentation>
+								Static object properties to be used for this domain.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
