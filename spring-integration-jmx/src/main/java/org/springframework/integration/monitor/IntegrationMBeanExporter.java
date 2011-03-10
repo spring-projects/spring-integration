@@ -40,6 +40,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.NameMatchMethodPointcutAdvisor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -140,10 +141,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final MetadataNamingStrategy namingStrategy = new MetadataNamingStrategy(attributeSource);
 
-	private final Set<MBeanExporter> mbeanExporters = new HashSet<MBeanExporter>();
-
-	private final Set<String> excludedBeansForOtherExporters = new HashSet<String>();
-
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -186,11 +183,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 
-		if (!initialized) {
-			initialized = true;
-			collectMBeanExporters();
-		}
-
 		if (bean instanceof Advised) {
 			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
 				Advice advice = advisor.getAdvice();
@@ -202,20 +194,22 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 		}
 
+		boolean foundMetrics = false;
+
 		if (bean instanceof MessageHandler) {
 			SimpleMessageHandlerMetrics monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
-			excludeBeanInOtherExporters(beanName);
-			return advised;
+			foundMetrics = true;
+			bean = advised;
 		}
 
 		if (bean instanceof MessageSource<?>) {
 			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
-			excludeBeanInOtherExporters(beanName);
-			return advised;
+			foundMetrics = true;
+			bean = advised;
 		}
 
 		if (bean instanceof MessageChannel) {
@@ -224,33 +218,39 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (bean instanceof PollableChannel) {
 				if (target instanceof QueueChannel) {
 					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
-				} else {
+				}
+				else {
 					monitor = new PollableChannelMetrics(target, beanName);
 				}
-			} else {
+			}
+			else {
 				monitor = new DirectChannelMetrics(target, beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
-			excludeBeanInOtherExporters(beanName);
-			return advised;
+			foundMetrics = true;
+			bean = advised;
 		}
-		return bean;
-	}
 
-	/**
-	 * Make sure the named bean is not exposed in any other MBean exporters in the context. Called for beans that are
-	 * being directly monitored by this exporter, but are wrapped in a proxy so cannot be directly exposed by a normal
-	 * exporter.
-	 * 
-	 * @param beanName the bean name to exclude
-	 */
-	private void excludeBeanInOtherExporters(String beanName) {
-		excludedBeansForOtherExporters.add(beanName);
-		String[] excluded = excludedBeansForOtherExporters.toArray(new String[0]);
-		for (MBeanExporter exporter : mbeanExporters) {
-			exporter.setExcludedBeans(excluded);
+		if (foundMetrics) {
+			// Only force the other exporters to initialize if we are sure we need to...
+			if (!initialized) {
+				try {
+					collectMBeanExporters();
+					initialized = true;
+				}
+				catch (BeanCreationException e) {
+					// Ignore
+					if (logger.isDebugEnabled()) {
+						logger.debug("Ignoring BeanCreationException while instantiating MBeanExporter during creation of metrics for beanName=["
+								+ beanName + "]");
+					}
+				}
+			}
 		}
+
+		return bean;
+
 	}
 
 	/**
@@ -267,7 +267,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object mbeanToExpose = null;
 			if (isMBean(bean.getClass())) {
 				mbeanToExpose = bean;
-			} else {
+			}
+			else {
 				DynamicMBean adaptedBean = adaptMBeanIfPossible(bean);
 				if (adaptedBean != null) {
 					mbeanToExpose = adaptedBean;
@@ -279,7 +280,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 							+ "]");
 				}
 				doRegister(mbeanToExpose, objectName);
-			} else {
+			}
+			else {
 				if (logger.isInfoEnabled()) {
 					logger.info("Located managed bean '" + beanKey + "': registering with JMX server as MBean ["
 							+ objectName + "]");
@@ -289,7 +291,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				// injectNotificationPublisherIfNecessary(bean, mbean, objectName);
 			}
 			return objectName;
-		} catch (JMException e) {
+		}
+		catch (JMException e) {
 			throw new UnableToRegisterMBeanException("Unable to register MBean [" + bean + "] with key '" + beanKey
 					+ "'", e);
 		}
@@ -311,7 +314,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -326,7 +330,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("started " + this);
 				}
 			}
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -341,7 +346,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("stopped " + this);
 				}
 			}
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -351,7 +357,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		try {
 			this.stop();
 			callback.run();
-		} finally {
+		}
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -370,16 +377,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	/**
-	 * Force early initialization of other MBean exporters and collect them for later use to ensure that they don't try
-	 * to register the same beans that this exporter is covering.
+	 * Force early initialization of other MBean exporters to ensure that they don't try to register the same beans that
+	 * this exporter is covering.
 	 */
 	private void collectMBeanExporters() {
 		String[] beanNames = beanFactory.getBeanNamesForType(MBeanExporter.class, false, false);
 		for (String beanName : beanNames) {
-			MBeanExporter bean = beanFactory.getBean(beanName, MBeanExporter.class);
-			if (bean != this) {
-				mbeanExporters.add((MBeanExporter) bean);
-			}
+			beanFactory.getBean(beanName, MBeanExporter.class);
 		}
 	}
 
@@ -568,7 +572,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.error("Could not extract target", e);
 			return null;
 		}
@@ -580,7 +585,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(advisor);
 				return bean;
-			} else {
+			}
+			else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
 				/**
@@ -619,7 +625,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			return "";
 		}
 		StringBuilder builder = new StringBuilder();
-		
+
 		for (Object key : objectNameStaticProperties.keySet()) {
 			builder.append("," + key + "=" + objectNameStaticProperties.get(key));
 		}
@@ -646,7 +652,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "handler"));
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				logger.trace("Could not get handler from bean = " + beanName);
 			}
 			if (field == monitor.getMessageHandler()) {
@@ -665,7 +672,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
@@ -726,7 +734,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "source"));
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				logger.trace("Could not get source from bean = " + beanName);
 			}
 			if (field == monitor.getMessageSource()) {
@@ -745,7 +754,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
