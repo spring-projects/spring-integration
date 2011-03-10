@@ -29,6 +29,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
@@ -95,7 +96,13 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		Assert.isTrue(exporters.size() > 0,
 				"No MBeanExporter is available in the current context (found " +
 				exporters.size() + ").");
-		MBeanExporter exporter = exporters.values().iterator().next();
+		MBeanExporter exporter = null;
+		for (MBeanExporter exp : exporters.values()) {
+			exporter = exp;
+			if (exporter instanceof IntegrationMBeanExporter){
+				break;
+			}
+		}
 		if (this.notificationMapper == null) {
 			this.notificationMapper = new DefaultNotificationMapper(this.objectName, this.defaultNotificationType);
 		}
