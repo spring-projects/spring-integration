@@ -29,7 +29,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
@@ -90,12 +90,12 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	@Override
 	public final void onInit() throws Exception {
 		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
-		Map<String, IntegrationMBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				(ListableBeanFactory) this.getBeanFactory(), IntegrationMBeanExporter.class);
-		Assert.isTrue(exporters.size() == 1,
-				"No unique IntegrationMBeanExporter is available in the current context (found " +
+		Map<String, MBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+				(ListableBeanFactory) this.getBeanFactory(), MBeanExporter.class);
+		Assert.isTrue(exporters.size() > 0,
+				"No MBeanExporter is available in the current context (found " +
 				exporters.size() + ").");
-		IntegrationMBeanExporter exporter = exporters.values().iterator().next();
+		MBeanExporter exporter = exporters.values().iterator().next();
 		if (this.notificationMapper == null) {
 			this.notificationMapper = new DefaultNotificationMapper(this.objectName, this.defaultNotificationType);
 		}
