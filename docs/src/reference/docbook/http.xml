@@ -169,8 +169,91 @@ By default the HTTP request will be generated using an instance of <classname>Si
   method will be used as the value for URI variable named 'zipCode'.
   </para>
 
-  
   </section>
+  
+  <section id="http-proxy">
+ 	<title>HTTP Proxy configuration</title>
+ 
+ 	<para>
+ 	If you are behind the proxy and need to configure proxy settings for HTTP outbound adapters/gateways you can do 
+ 	so by providing custom instance of <classname>ClientHttpRequestFactory</classname>. 
+	You can provide your own implementation of <classname>ClientHttpRequestFactory</classname> strategy or you can use 
+	implementations already provided by Spring and Apache Commons.	
+ 	</para>
+ 	
+ 	<para>
+ 		<emphasis>Apache Commons</emphasis>
+    </para>
+    <para>
+    Apache Commons gives you <classname>CommonsClientHttpRequestFactory</classname> which could be configured with 
+    <classname>Proxy</classname> aware instance of <classname>HttpClient</classname>. For simplicity you can encapsulate 
+    the construction logic behind a <classname>FactoryBean</classname> as in the example below:
+    
+    <programlisting language="java"><![CDATA[public class CommonsRequestFactoryBean implements 
+    			FactoryBean<CommonsClientHttpRequestFactory> {
+	
+	private String proxyHost;
+	private int proxyPort;
+
+	public CommonsClientHttpRequestFactory getObject() throws Exception {
+		HttpClient client = new HttpClient();
+		client.getHostConfiguration().setProxy(this.proxyHost, this.proxyPort);
+		CommonsClientHttpRequestFactory requestFactory = 
+									new CommonsClientHttpRequestFactory(client);
+		return requestFactory;
+	}
+
+	public Class<?> getObjectType() {
+		return CommonsClientHttpRequestFactory.class;
+	}
+
+	public boolean isSingleton() {
+		return true;
+	}
+	public void setProxyHost(String proxyHost) {
+		this.proxyHost = proxyHost;
+	}
+
+	public void setProxyPort(int proxyPort) {
+		this.proxyPort = proxyPort;
+	}
+}]]></programlisting>
+    and then configure it with a simple XML configuration:
+    <programlisting language="xml"><![CDATA[<int-http:outbound-channel-adapter url="http://foo/bar" channel="requestChannel" 
+					request-factory="requestFactory"/>
+
+<bean id="requestFactory" class="com.acme.CommonsRequestFactoryBean">
+	<property name="proxyHost" value="123.0.0.1"/>
+	<property name="proxyPort" value="8080"/>
+</bean>]]></programlisting>
+    </para>
+    
+    <para>
+    	<emphasis>Spring's SimpleClientHttpRequestFactory</emphasis>
+    </para>
+    <para>
+    You can also use <classname>SimpleClientHttpRequestFactory</classname> which comes with Spring and configured it as such:
+    <programlisting language="xml"><![CDATA[<bean id="requestFactory" 
+    			class="org.springframework.http.client.SimpleClientHttpRequestFactory">
+	<property name="proxy">
+		<bean id="proxy" class="java.net.Proxy">
+			<constructor-arg>
+				<util:constant static-field="java.net.Proxy.Type.HTTP"/>
+			</constructor-arg>
+			<constructor-arg>
+				<bean class="java.net.InetSocketAddress">
+					<constructor-arg value="123.0.0.1"/>
+					<constructor-arg value="8080"/>
+				</bean>
+			</constructor-arg>
+		</bean>
+	</property>	
+</bean>]]></programlisting>
+    </para>
+    <para>
+    We may provide a namespace-based support in the future to simplify configuration
+    </para>
+ </section>
   
   <section id="http-header-mapping">
   	<title> HTTP Header Mappings</title>
