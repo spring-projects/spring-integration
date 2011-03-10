@@ -142,6 +142,35 @@
   </para>
     
   </section>
+  
+  <section id="router-implementations-exception-router">
+  	<title>Routing and Error handling</title>
+  
+  	<para>
+  	Spring Integration also provides a special type router <classname>ErrorMessageExceptionTypeRouter</classname>  for routing 
+  	Error Messages (a Message with <code>payload</code> of type <classname>Throwable</classname>).
+    <classname>ErrorMessageExceptionTypeRouter</classname> is very similar to the <classname>PayloadTypeRouter</classname>. 
+    In fact they are almost identical. The only difference is that while <classname>PayloadTypeRouter</classname> navigates 
+    the instance hierarchy of an payload instance (e.g., <code>payload.getClass().getSuperclass()</code>) to find the most 
+    specific type/channel mappings, the <classname>ErrorMessageExceptionTypeRouter</classname> navigates the hierarchy of 
+    'exception causes' (e.g., <code>payload.getCause()</code>) to find the most specific <classname>Throwable</classname> type/channel mappings.
+  	</para>
+  	<para>
+  	Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>
+  	
+  	<programlisting language="xml"><![CDATA[<router input-channel="errorChannel" default-output-channel="defaultErrorChannel">
+	<mapping value="org.FooException" channel="fooChannel" />
+	<mapping value="org.BarException" channel="barChannel" />
+	<beans:bean class="org.springframework.integration.router.ErrorMessageExceptionTypeRouter"/>
+</router>
+
+<channel id="fooChannel" />
+<channel id="barChannel" />]]></programlisting>
+  	</para>
+  	<para>
+  	In the future we'll consider a more convenient namespace based support similar to 'header-value-router' and 'payload-type-router'
+  	</para>
+  </section>
 
   <section id="router-namespace">
   	<title>Configuring Router</title>
