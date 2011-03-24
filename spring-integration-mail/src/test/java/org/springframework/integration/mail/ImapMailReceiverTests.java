@@ -46,7 +46,6 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -418,7 +417,7 @@ public class ImapMailReceiverTests {
 				public void run(){
 					try {
 						receiver.receive();
-					} catch (MessagingException e) {
+					} catch (javax.mail.MessagingException e) {
 						if (e.getCause() instanceof NullPointerException){
 							e.printStackTrace();
 							failed.getAndIncrement();

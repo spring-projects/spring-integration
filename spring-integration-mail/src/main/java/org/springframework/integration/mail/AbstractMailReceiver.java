@@ -219,7 +219,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.folder.open(this.folderOpenMode);
 	}
 	
-	public synchronized Message[] receive() {	
+	public  Message[] receive() throws javax.mail.MessagingException{	
 		synchronized (this.initializationMonitor) {
 			try {
 				this.openFolder();
@@ -280,10 +280,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					this.deleteMessages(messages);
 				}
 				return copiedMessages.toArray(new Message[]{});
-			}
-			catch (Exception e) {
-				throw new org.springframework.integration.MessagingException(
-						"failure occurred while receiving from folder", e);
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
