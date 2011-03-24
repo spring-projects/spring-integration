@@ -74,7 +74,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	public SimpleMessageStore() {
 		this(0);
 	}
-	
+
 	@ManagedAttribute
 	public int getMessageCount() {
 		return idToMessage.size();
@@ -101,7 +101,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		else
 			return null;
 	}
-	
+
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
@@ -129,7 +129,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public void removeMessageGroup(Object groupId) {
-		groupUpperBound.release();
+		if (!groupIdToMessageGroup.containsKey(groupId)) {
+			return;
+		}
+		groupUpperBound.release(groupIdToMessageGroup.get(groupId).size());
 		groupIdToMessageGroup.remove(groupId);
 	}
 

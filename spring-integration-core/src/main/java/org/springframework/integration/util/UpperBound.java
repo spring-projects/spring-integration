@@ -73,4 +73,14 @@ public final class UpperBound {
 		}
 	}
 
+	/**
+	 * Releases several locks on the underlying semaphore. This is typically not done by the same Thread
+	 * that acquired the lock, but by the thread that picked up the message.
+	 */
+	public void release(int permits) {
+		if (this.semaphore != null) {
+			this.semaphore.release(permits);
+		}
+	}
+
 }

@@ -73,7 +73,7 @@ public class SimpleMessageStoreTests {
 		store.addMessage(testMessage1);
 		store.addMessage(testMessage2);
 	}
-	
+
 	@Test
 	public void shouldListByCorrelation() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
@@ -94,6 +94,18 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
+	public void testRepeatedAddAndRemoveGroup() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore(10, 10);
+		for (int i = 0; i < 10; i++) {
+			store.addMessageToGroup("bar", MessageBuilder.withPayload("foo").build());
+			store.addMessageToGroup("bar", MessageBuilder.withPayload("foo").build());
+			store.removeMessageGroup("bar");
+			assertEquals(0, store.getMessageGroup("bar").size());
+			assertEquals(0, store.getMessageGroupCount());
+		}
+	}
+
+	@Test
 	public void shouldCopyMessageGroup() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
@@ -104,11 +116,11 @@ public class SimpleMessageStoreTests {
 	@Test
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
-		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList(new MessageGroupCallback() {
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback> asList(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
-		assertEquals(1, ((Collection<?>)ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
+		assertEquals(1, ((Collection<?>) ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
 	}
 
 	@Test
