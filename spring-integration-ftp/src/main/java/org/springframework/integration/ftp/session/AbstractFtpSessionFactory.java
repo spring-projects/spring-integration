@@ -145,7 +145,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.postProcessClientBeforeConnect(client);
 		
 		// Connect
-		client.connect(host);
+		client.connect(this.host, this.port);
 		
 		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
 			throw new MessagingException("Connecting to server [" +
