@@ -428,7 +428,7 @@
     You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure
     them using <code>expression</code> attribute:
     <programlisting language="xml"><![CDATA[xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
-    In the above case the overall result of the expression will be the result of the XPathe expression multiplied by 2.
+    In the above case the overall result of the expression will be the result of the XPath expression multiplied by 2.
     </para>
   </section>
 
