@@ -100,6 +100,14 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -174,6 +182,14 @@ inbound message was received.
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
@@ -268,6 +284,14 @@ A connection factory is needed by an outbound adapter. The connection factory mu
 			</xsd:attribute>
 			<xsd:attribute name="request-timeout" type="xsd:string"/>
 			<xsd:attribute name="reply-timeout" type="xsd:string"/>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

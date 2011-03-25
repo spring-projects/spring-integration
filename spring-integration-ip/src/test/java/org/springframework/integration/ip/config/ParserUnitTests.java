@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
+import java.util.Set;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,6 +38,8 @@ import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -49,6 +54,7 @@ import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -104,19 +110,15 @@ public class ParserUnitTests {
 	TaskExecutor taskExecutor;
 	
 	@Autowired
-	@Qualifier(value="client1")
 	AbstractConnectionFactory client1;
 
 	@Autowired
-	@Qualifier(value="client2")
 	AbstractConnectionFactory client2;
 
 	@Autowired
-	@Qualifier(value="cfC1")
 	AbstractConnectionFactory cfC1;
 
 	@Autowired
-	@Qualifier(value="cfC2")
 	AbstractConnectionFactory cfC2;
 
 	@Autowired
@@ -126,23 +128,18 @@ public class ParserUnitTests {
 	Deserializer<?> deserializer;
 
 	@Autowired
-	@Qualifier(value="server1")
 	AbstractConnectionFactory server1;
 
 	@Autowired
-	@Qualifier(value="server2")
 	AbstractConnectionFactory server2;
 
 	@Autowired
-	@Qualifier(value="cfS1")
 	AbstractConnectionFactory cfS1;
 
 	@Autowired
-	@Qualifier(value="cfS2")
 	AbstractConnectionFactory cfS2;
 
 	@Autowired
-	@Qualifier(value="cfS3")
 	AbstractConnectionFactory cfS3;
 
 	@Autowired
@@ -154,16 +151,19 @@ public class ParserUnitTests {
 	TcpSendingMessageHandler tcpNewOut2;
 
 	@Autowired
-	@Qualifier(value="tcpNewIn1")
 	TcpReceivingChannelAdapter tcpNewIn1;
 
 	@Autowired
-	@Qualifier(value="tcpNewIn2")
 	TcpReceivingChannelAdapter tcpNewIn2;
 
 	@Autowired
-	@Qualifier("errorChannel")
 	private MessageChannel errorChannel;
+	
+	@Autowired
+	private DirectChannel udpChannel;
+
+	@Autowired
+	private DirectChannel tcpChannel;
 
 	@Test
 	public void testInUdp() {
@@ -231,6 +231,7 @@ public class ParserUnitTests {
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertEquals(23, dfa.getPropertyValue("order"));
 		assertEquals("testOutUdp",udpOut.getComponentName());
 		assertEquals("ip:udp-outbound-channel-adapter", udpOut.getComponentType());
 	}
@@ -253,6 +254,19 @@ public class ParserUnitTests {
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals(55, dfa.getPropertyValue("timeToLive"));
+		assertEquals(12, dfa.getPropertyValue("order"));		
+	}
+	
+	@Test
+	public void testUdpOrder() {
+		@SuppressWarnings("unchecked")
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+				.getPropertyValue(
+						TestUtils.getPropertyValue(this.udpChannel, "dispatcher"),
+						"handlers");
+		Iterator<MessageHandler> iterator = handlers.iterator();
+		assertSame(this.udpOutMulticast, iterator.next());
+		assertSame(this.udpOut, iterator.next());
 	}
 
 	@Test
@@ -262,6 +276,7 @@ public class ParserUnitTests {
 		assertEquals("testOutTcpNio",tcpOut.getComponentName());
 		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
 		assertFalse(cfC1.isLookupHost());
+		assertEquals(35, dfa.getPropertyValue("order"));
 	}
 
 	@Test
@@ -294,6 +309,7 @@ public class ParserUnitTests {
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 		assertTrue(cfC2.isLookupHost());
+		assertEquals(24, dfa.getPropertyValue("order"));		
 	}
 
 	@Test
@@ -380,12 +396,14 @@ public class ParserUnitTests {
 	public void testNewOut1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut1);
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
+		assertEquals(25, dfa.getPropertyValue("order"));
 	}
 	
 	@Test
 	public void testNewOut2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut2);
 		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
+		assertEquals(15, dfa.getPropertyValue("order"));		
 	}
 	
 	@Test
@@ -401,4 +419,18 @@ public class ParserUnitTests {
 		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
 	}
 	
+	@Test
+	public void testtCPOrder() {
+		@SuppressWarnings("unchecked")
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+				.getPropertyValue(
+						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
+						"handlers");
+		Iterator<MessageHandler> iterator = handlers.iterator();
+		assertSame(this.tcpNewOut2, iterator.next());			//15 
+		assertSame(this.tcpOutboundGateway, iterator.next());	//24
+		assertSame(this.tcpNewOut1, iterator.next());			//25
+		assertSame(this.tcpOut, iterator.next());				//35
+	}
+
 }

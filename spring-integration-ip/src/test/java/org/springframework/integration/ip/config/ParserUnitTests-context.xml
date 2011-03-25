@@ -73,7 +73,8 @@
 		so-send-buffer-size="53"
 		so-timeout="54"
 		local-address="127.0.0.1"	
-		task-executor="externalTE"	
+		task-executor="externalTE"
+		order="23"	
 	/>
 	
 	<ip:udp-outbound-channel-adapter id="testOutUdpiMulticast" 
@@ -91,6 +92,7 @@
 		so-send-buffer-size="53"
 		so-timeout="54"
 		time-to-live="55"
+		order="12"
 	/>
 
 	<ip:tcp-connection-factory id="cfC1"
@@ -103,6 +105,7 @@
 	<ip:tcp-outbound-channel-adapter id="testOutTcpNio" 
 		channel="tcpChannel"
 		connection-factory="cfC1"
+		order="35"
 	/>
 
 	<ip:tcp-connection-factory id="cfS2"
@@ -142,6 +145,7 @@
 		connection-factory="cfC2"
 		request-timeout="234"
 		reply-timeout="567"
+		order="24"
 		/>		
 
 	<ip:tcp-connection-factory
@@ -238,11 +242,13 @@
 
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
 		channel="tcpChannel"
-		connection-factory="client1" />
+		connection-factory="client1" 
+		order="25"/>
 		
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut2"
 		channel="tcpChannel"
-		connection-factory="server1" />
+		connection-factory="server1" 
+		order="15"/>
 		
 	<ip:tcp-inbound-channel-adapter id="tcpNewIn1"
 		channel="tcpChannel"
