@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package org.springframework.integration.sftp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+
+import java.util.Iterator;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -28,6 +32,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
@@ -37,6 +43,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class OutboundChannelAdapterParserTests {
@@ -47,7 +54,8 @@ public class OutboundChannelAdapterParserTests {
 			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
 		assertTrue(consumer instanceof EventDrivenConsumer);
-		assertEquals(context.getBean("inputChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		PublishSubscribeChannel channel = context.getBean("inputChannel", PublishSubscribeChannel.class);
+		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("sftpOutboundAdapter", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
@@ -64,6 +72,16 @@ public class OutboundChannelAdapterParserTests {
 		DefaultSftpSessionFactory clientFactory = (DefaultSftpSessionFactory) TestUtils.getPropertyValue(sessionFactory, "sessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
+		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		//verify subscription order
+		@SuppressWarnings("unchecked")
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+				.getPropertyValue(
+						TestUtils.getPropertyValue(channel, "dispatcher"),
+						"handlers");
+		Iterator<MessageHandler> iterator = handlers.iterator();
+		assertSame(TestUtils.getPropertyValue(context.getBean("sftpOutboundAdapterWithExpression"), "handler"), iterator.next());
+		assertSame(handler, iterator.next());
 	}
 	
 	@Test

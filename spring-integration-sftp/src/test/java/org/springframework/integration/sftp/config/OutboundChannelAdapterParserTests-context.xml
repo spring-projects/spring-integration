@@ -18,7 +18,7 @@
 		<property name="user" value="oleg"/>
 	</bean>
 	
-	<int:channel id="inputChannel"/>
+	<int:publish-subscribe-channel id="inputChannel"/>
 	
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"
 				session-factory="sftpSessionFactory"
@@ -27,14 +27,16 @@
 				remote-filename-generator="fileNameGenerator"
 				remote-file-separator="."
 				temporary-file-suffix=".bar"
-				remote-directory="foo/bar"/>
+				remote-directory="foo/bar"
+				order="23"/>
 				
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"
 				session-factory="sftpSessionFactory"
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory-expression="'foo' + '/' + 'bar'"
-				remote-filename-generator-expression="payload.getName() + '-foo'"/>
+				remote-filename-generator-expression="payload.getName() + '-foo'"
+				order="12"/>
 							
 	<int-sftp:outbound-channel-adapter 
 				session-factory="sftpSessionFactory" 

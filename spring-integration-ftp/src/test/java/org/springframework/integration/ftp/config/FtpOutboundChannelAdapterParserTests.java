@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,16 @@ package org.springframework.integration.ftp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+
+import java.util.Iterator;
+import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
@@ -32,6 +37,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class FtpOutboundChannelAdapterParserTests {
@@ -42,7 +48,8 @@ public class FtpOutboundChannelAdapterParserTests {
 			new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = ac.getBean("ftpOutbound");
 		assertTrue(consumer instanceof EventDrivenConsumer);
-		assertEquals(ac.getBean("ftpChannel"), TestUtils.getPropertyValue(consumer, "inputChannel"));
+		PublishSubscribeChannel channel = ac.getBean("ftpChannel", PublishSubscribeChannel.class);
+		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
 		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
@@ -56,5 +63,15 @@ public class FtpOutboundChannelAdapterParserTests {
 		DefaultFtpSessionFactory sf = (DefaultFtpSessionFactory) TestUtils.getPropertyValue(cacheSf, "sessionFactory");
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
+		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+		//verify subscription order		
+		@SuppressWarnings("unchecked")
+		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
+				.getPropertyValue(
+						TestUtils.getPropertyValue(channel, "dispatcher"),
+						"handlers");
+		Iterator<MessageHandler> iterator = handlers.iterator();
+		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
+		assertSame(handler, iterator.next());
 	}
 }
