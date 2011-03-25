@@ -24,6 +24,7 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
@@ -165,6 +166,19 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		}
 	}
 
+	@Override
+	public void setComponentName(String componentName) {
+		super.setComponentName(componentName);
+		int i = 0;
+		if (this.handlers != null) {
+			for (MessageHandler messageHandler : this.handlers) {
+				if (messageHandler instanceof IntegrationObjectSupport) {
+					((IntegrationObjectSupport) messageHandler).setComponentName(componentName + "#handler#" + i);
+				}
+				i++; // increment, regardless of whether we assigned a component name
+			}
+		}
+	}
 
 	private class ReplyForwardingMessageChannel implements MessageChannel {
 

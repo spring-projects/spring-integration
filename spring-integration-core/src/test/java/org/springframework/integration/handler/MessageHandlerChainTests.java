@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.easymock.EasyMock.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.support.MessageBuilder;
@@ -169,8 +171,22 @@ public class MessageHandlerChainTests {
 		chain.afterPropertiesSet();
 	}
 
+	@Test
+	public void componentNaming() {
+		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		handlers.add(producer1);
+		handlers.add(handler1);	// this one won't be named
+		handlers.add(producer2);
+		handlers.add(producer3);
+		MessageHandlerChain chain = new MessageHandlerChain();
+		chain.setHandlers(handlers);
+		chain.setComponentName("testChain");
+		assertEquals("testChain#handler#0", producer1.getComponentName());
+		assertEquals("testChain#handler#2", producer2.getComponentName());
+		assertEquals("testChain#handler#3", producer3.getComponentName());
+	}
 
-	private static class ProducingHandlerStub implements MessageHandler, MessageProducer {
+	private static class ProducingHandlerStub extends IntegrationObjectSupport implements MessageHandler, MessageProducer {
 
 		private volatile MessageChannel output;
 
