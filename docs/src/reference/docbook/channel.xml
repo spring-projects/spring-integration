@@ -469,7 +469,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
      the <emphasis>org.springframework.integration.jdbc</emphasis> package of that module (spring-integration-jdbc).
      
      <important>
-     One thing to remember is that with any transactional persistent store (e.g., JdbcMessageStore),
+     One important feature is that with any transactional persistent store (e.g., JdbcMessageStore), as long as the poller has a transaction configured,
      a Message removed from the store will only be permanently removed if the transaction completes
      successfully, otherwise the transaction will roll back and the Message will not be lost.  
      </important>
