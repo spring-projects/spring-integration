@@ -198,6 +198,14 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:appinfo>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="filename-generator-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				Allows you to provide SpEL expression which will compute file name of 
+			    the target file (e.g., assuming payload is java.io.File "payload.getName() + '.transfered'");
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
         <xsd:attribute name="temporary-file-suffix" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
