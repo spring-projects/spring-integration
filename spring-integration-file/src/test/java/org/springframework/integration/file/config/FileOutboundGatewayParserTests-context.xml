@@ -17,7 +17,8 @@
 		request-channel="someChannel" 
 		directory="${java.io.tmpdir}"
 		auto-startup="false"
-		order="777"/> 
+		order="777"
+		filename-generator-expression="'foo.txt'"/> 
 
 	<context:property-placeholder />
 

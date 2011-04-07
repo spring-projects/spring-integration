@@ -16,21 +16,26 @@
 
 package org.springframework.integration.file.config;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.nio.charset.Charset;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.io.File;
-import java.nio.charset.Charset;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -66,7 +71,11 @@ public class FileOutboundChannelAdapterParserTests {
         File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
         assertEquals(".foo", handler.getTemporaryFileSuffix());
         assertThat(actual, is(expected));
-        assertThat(handlerAccessor.getPropertyValue("fileNameGenerator"), is(DefaultFileNameGenerator.class));
+        DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
+        assertNotNull(fileNameGenerator);
+        String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+        assertNotNull(expression);
+        assertEquals("'foo.txt'", expression);
         assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
     }
 

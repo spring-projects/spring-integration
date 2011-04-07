@@ -21,11 +21,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -47,6 +50,11 @@ public class FileOutboundGatewayParserTests {
         assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
         DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
         assertEquals(777, handlerAccessor.getPropertyValue("order"));
+        DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
+        assertNotNull(fileNameGenerator);
+        String expression = (String) TestUtils.getPropertyValue(fileNameGenerator, "expression");
+        assertNotNull(expression);
+        assertEquals("'foo.txt'", expression);
     }
 
 }

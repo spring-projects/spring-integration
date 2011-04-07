@@ -18,7 +18,8 @@
 	<file:outbound-channel-adapter id="simpleAdapter"
 								   channel="testChannel"
 								   directory="${java.io.tmpdir}"
-								   temporary-file-suffix=".foo"/>
+								   temporary-file-suffix=".foo"
+								   filename-generator-expression="'foo.txt'"/>
 
 	<file:outbound-channel-adapter id="adapterWithCustomNameGenerator"
 								   channel="testChannel"
