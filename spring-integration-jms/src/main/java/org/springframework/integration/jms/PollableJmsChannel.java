@@ -23,6 +23,7 @@ import org.springframework.jms.core.JmsTemplate;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class PollableJmsChannel extends AbstractJmsChannel implements PollableChannel {
@@ -33,14 +34,22 @@ public class PollableJmsChannel extends AbstractJmsChannel implements PollableCh
 
 
 	public Message<?> receive() {
+		if (!this.getInterceptors().preReceive(this)) {
+ 			return null;
+ 		}
 		Object object = this.getJmsTemplate().receiveAndConvert();
+		
 		if (object == null) {
 			return null;
 		}
+		Message<?> replyMessage = null;
 		if (object instanceof Message<?>) {
-			return (Message<?>) object;
+			replyMessage = (Message<?>) object;
 		}
-		return MessageBuilder.withPayload(object).build();
+		else {
+			replyMessage = MessageBuilder.withPayload(object).build();
+		}
+		return this.getInterceptors().postReceive(replyMessage, this) ;
 	}
 
 	public Message<?> receive(long timeout) {
