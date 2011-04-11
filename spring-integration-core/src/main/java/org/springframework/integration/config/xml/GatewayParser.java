@@ -53,6 +53,10 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 	protected String getBeanClassName(Element element) {
 		return IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.GatewayProxyFactoryBean";
 	}
+	
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
