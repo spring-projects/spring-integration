@@ -95,6 +95,11 @@ By default the HTTP request will be generated using an instance of <classname>Si
   <classname>HttpURLConnection</classname>.  Use of the Apache Commons HTTP Client is also supported through the provided
   <classname>CommonsClientHttpRequestFactory</classname> which can be injected as shown above.
     </para>
+    <para>
+    	<note>
+In the case of the Outbound Gateway, the reply message produced by the gateway will contain all Message Headers present in the request message.
+    	</note>
+    </para>
   </section>
 
   <section id="http-namespace">
