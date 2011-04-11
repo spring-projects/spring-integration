@@ -101,7 +101,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		boolean success = false;
 		Iterator<MessageHandler> handlerIterator = this.getHandlerIterator(message);
 		if (!handlerIterator.hasNext()) {
-			throw new IllegalStateException("Dispatcher has no subscribers.");
+			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
 		List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
 		while (success == false && handlerIterator.hasNext()) {

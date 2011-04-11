@@ -15,23 +15,27 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 
 /**
@@ -123,7 +127,7 @@ public class RoundRobinDispatcherConcurrentTests {
 					dispatcher.dispatch(message);
 					fail("this shouldn't happen");
 				}
-				catch (IllegalStateException e) {
+				catch (MessagingException e) {
 					// expected
 				}
 				allDone.countDown();

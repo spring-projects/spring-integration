@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
@@ -133,7 +134,7 @@ public class FailOverDispatcherTests {
 		assertEquals(6, counter.get());
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void removeConsumerLastTargetCausesDeliveryException() {
 		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
