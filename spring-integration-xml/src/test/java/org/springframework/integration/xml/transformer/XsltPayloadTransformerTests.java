@@ -155,6 +155,15 @@ public class XsltPayloadTransformerTests {
         assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
     }
 
+    @Test
+    public void docInStringOut() throws Exception {
+        transformer = new XsltPayloadTransformer(getXslResourceThatOutputsText());
+        transformer.setResultFactory(new StringResultFactory());
+        transformer.setAlwaysUseResultFactory(true);
+        Object returned = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
+        assertEquals("Wrong type of return ", StringResult.class, returned.getClass());
+        assertEquals("Wrong content in string", "hello world", returned.toString());
+    }
 
     protected Message<?> buildMessage(Object payload) {
         return MessageBuilder.withPayload(payload).build();
@@ -162,6 +171,11 @@ public class XsltPayloadTransformerTests {
 
     private Resource getXslResource() throws Exception {
         String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
+        return new ByteArrayResource(xsl.getBytes("UTF-8"));
+    }
+
+    private Resource getXslResourceThatOutputsText() throws Exception {
+        String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:output method=\"text\" encoding=\"UTF-8\" /><xsl:template match=\"order\">hello world</xsl:template></xsl:stylesheet>";
         return new ByteArrayResource(xsl.getBytes("UTF-8"));
     }
 
