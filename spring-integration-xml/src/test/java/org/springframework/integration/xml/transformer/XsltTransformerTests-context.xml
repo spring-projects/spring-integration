@@ -47,6 +47,13 @@
         <int-xml:xslt-param name="testParam3" value="hello"/>
     </int-xml:xslt-transformer>
 
+    <int-xml:xslt-transformer id="outputAsString"
+                              input-channel="outputAsStringChannel"
+                              output-channel="output" result-type="StringResult" result-transformer="resultToStringTransformer"
+                              xsl-resource="classpath:org/springframework/integration/xml/transformer/transform-tostring.xsl">
+    </int-xml:xslt-transformer>
+
+    <bean id="resultToStringTransformer" class="org.springframework.integration.xml.transformer.ResultToStringTransformer" />
 
 
 
