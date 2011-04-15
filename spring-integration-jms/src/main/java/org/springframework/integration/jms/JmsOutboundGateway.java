@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import java.util.Map;
 import java.util.UUID;
 
 import javax.jms.Connection;
@@ -37,6 +38,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.support.JmsUtils;
@@ -323,6 +325,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected Object handleRequestMessage(final Message<?> message) {
 		if (!this.initialized) {
@@ -342,7 +345,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
 				}
 			}
-			return result;
+			Map<String, Object> jmsReplyHeaders = (Map<String, Object>) this.headerMapper.toHeaders(jmsReply);
+			Message<?> replyMessage = null;
+			if (result instanceof Message){
+				replyMessage = MessageBuilder.fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders).build();
+			}
+			else {
+				replyMessage = MessageBuilder.withPayload(result).copyHeaders(jmsReplyHeaders).build();
+			}
+			return replyMessage;
 		}
 		catch (JMSException e) {
 			throw new MessageHandlingException(requestMessage, e);

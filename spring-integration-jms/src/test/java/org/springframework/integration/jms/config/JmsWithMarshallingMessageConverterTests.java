@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.oxm.Marshaller;
@@ -53,6 +55,10 @@ public class JmsWithMarshallingMessageConverterTests {
 		PollableChannel output = ac.getBean("output", PollableChannel.class);
 		input.send(new GenericMessage<String>("hello"));
 		Message<String> replyMessage = (Message<String>) output.receive();
+		MessageHeaders headers = replyMessage.getHeaders();
+		// check for couple of JMS headers, make sure they are present
+		assertNotNull(headers.get("jms_redelivered"));
+		assertNotNull(headers.get("jms_correlationId"));
 		assertEquals("HELLO", replyMessage.getPayload());
 	}
 
