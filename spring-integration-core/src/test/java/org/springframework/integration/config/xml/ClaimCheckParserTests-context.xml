@@ -25,6 +25,24 @@
 	<claim-check-out id="checkout"
 			input-channel="checkoutChannel"
 			message-store="testMessageStore"/>
+			
+	<!-- claim with remove test -->
+	
+	<claim-check-in id="checkinA"
+			input-channel="checkinChannelA"
+			message-store="testMessageStore"
+			output-channel="checkoutChannelA"/>
+
+	<channel id="checkoutChannelA">
+		<interceptors>
+			<wire-tap channel="wiretap"/>
+		</interceptors>
+	</channel>
+
+	<claim-check-out id="checkoutWithRemove"
+			input-channel="checkoutChannelA"
+			message-store="testMessageStore"
+			remove-message="true"/>
 
 	<beans:bean id="testMessageStore"
 			class="org.springframework.integration.store.SimpleMessageStore"/>

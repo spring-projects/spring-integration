@@ -16,8 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
@@ -50,6 +54,9 @@ public class ClaimCheckParserTests {
 
 	@Autowired
 	private MessageChannel checkinChannel;
+	
+	@Autowired
+	private MessageChannel checkinChannelA;
 
 	@Autowired
 	private PollableChannel wiretap;
@@ -59,6 +66,9 @@ public class ClaimCheckParserTests {
 
 	@Autowired
 	private EventDrivenConsumer checkout;
+	
+	@Autowired
+	private MessageStore sampleMessageStore;
 
 
 	@Test
@@ -86,10 +96,27 @@ public class ClaimCheckParserTests {
 		checkinChannel.send(message);
 		Message<?> wiretapMessage = wiretap.receive(0);
 		assertNotNull(wiretapMessage);
-		assertEquals(message.getHeaders().getId(), wiretapMessage.getPayload());
+		UUID payload = (UUID) wiretapMessage.getPayload();
+		assertEquals(message.getHeaders().getId(), payload);
 		Message<?> resultMessage = replyChannel.receive(0);
 		assertNotNull(resultMessage);
 		assertEquals("test", resultMessage.getPayload());
+		assertNotNull(this.sampleMessageStore.getMessage(payload));
+	}
+	
+	@Test
+	public void integrationTestWithRemoval() {	
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test").setReplyChannel(replyChannel).build();
+		checkinChannelA.send(message);
+		Message<?> wiretapMessage = wiretap.receive(0);
+		assertNotNull(wiretapMessage);
+		UUID payload = (UUID) wiretapMessage.getPayload();
+		assertEquals(message.getHeaders().getId(), payload);
+		Message<?> resultMessage = replyChannel.receive(0);
+		assertNotNull(resultMessage);
+		assertEquals("test", resultMessage.getPayload());
+		assertNull(this.sampleMessageStore.getMessage(payload));
 	}
 
 }

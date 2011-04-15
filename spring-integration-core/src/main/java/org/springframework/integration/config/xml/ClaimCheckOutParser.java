@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  * Parser for the &lt;claim-check-out/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ClaimCheckOutParser extends AbstractTransformerParser {
@@ -39,6 +40,7 @@ public class ClaimCheckOutParser extends AbstractTransformerParser {
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String messageStoreRef = element.getAttribute("message-store");
 		Assert.hasText(messageStoreRef, "The 'message-store' attribute is required.");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "remove-message");
 		builder.addConstructorArgReference(messageStoreRef);
 	}
 

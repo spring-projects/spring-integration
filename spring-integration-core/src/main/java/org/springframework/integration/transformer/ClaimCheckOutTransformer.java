@@ -29,11 +29,14 @@ import org.springframework.util.Assert;
  * that ID can be retrieved from the given MessageStore.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ClaimCheckOutTransformer extends AbstractTransformer {
 
 	private final MessageStore messageStore;
+	
+	private volatile boolean removeMessage = false;
 
 
 	/**
@@ -43,7 +46,10 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Assert.notNull(messageStore, "MessageStore must not be null");
 		this.messageStore = messageStore;
 	}
-
+	
+	public void setRemoveMessage(boolean removeMessage) {
+		this.removeMessage = removeMessage;
+	}
 
 	@Override
 	protected Object doTransform(Message<?> message) throws Exception {
@@ -53,6 +59,10 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Message<?> retrievedMessage = this.messageStore.getMessage(id);
 		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
 				+ " within MessageStore [" + this.messageStore + "]");
+		if (this.removeMessage){
+			this.messageStore.removeMessage(id);
+			logger.debug("Message with claim-check '" + id + "' was removed from MessageStore");
+		}
 		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());

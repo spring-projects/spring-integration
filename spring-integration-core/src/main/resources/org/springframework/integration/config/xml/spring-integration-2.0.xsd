@@ -1896,7 +1896,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="claim-check-out" type="claimCheckTransformerType">
+	<xsd:element name="claim-check-out">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that accepts a Message whose payload is a UUID and
@@ -1905,6 +1905,20 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				available (else null).
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="claimCheckTransformerType">
+					<xsd:attribute name="remove-message" type="xsd:boolean" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+								If set to 'true' the Message will be removed from the MessageStore by 
+								this transformer. Useful when Message can be 'claimed' only once. DFAULT is 'false'
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="claimCheckTransformerType">
