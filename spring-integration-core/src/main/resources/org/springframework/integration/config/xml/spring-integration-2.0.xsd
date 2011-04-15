@@ -2103,6 +2103,46 @@ Name of the header whose value will be used to route messages
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:element name="exception-type-router">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+	Defines a Exception Type Router which resolves the target MessageChannel for
+    messages whose payload is an Exception. The channel resolution is based upon
+    the most specific cause of the error for which a channel mapping exists.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="exception-type-router-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:complexType name="exception-type-router-type">
+		<xsd:complexContent>
+			<xsd:extension base="channelResolvingRouterType">
+				<xsd:sequence>
+					<xsd:element name="mapping" minOccurs="1" maxOccurs="unbounded">
+						<xsd:complexType>
+							<xsd:attribute name="exception-type" type="xsd:string"/>
+							<xsd:attribute name="channel" type="xsd:string">
+								<xsd:annotation>
+									<xsd:appinfo>
+										<tool:annotation kind="ref">
+											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+										</tool:annotation>
+									</xsd:appinfo>
+								</xsd:annotation>
+							</xsd:attribute>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:element name="router">
 		<xsd:annotation>

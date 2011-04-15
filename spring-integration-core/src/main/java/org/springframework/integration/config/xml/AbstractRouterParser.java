@@ -62,14 +62,7 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 			if (childElements != null && childElements.size() > 0) {
 				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
 				for (Element childElement : childElements) {
-					String beanClassName = beanDefinition.getBeanClassName();
-					String key = null;
-					if (beanClassName.endsWith("PayloadTypeRouter")){
-						key = childElement.getAttribute("type"); 
-					} 
-					else {
-						key = childElement.getAttribute("value");
-					} 
+					String key = childElement.getAttribute(this.getMappingKeyAttributeValue());
 					channelMap.put(key, childElement.getAttribute("channel"));
 				}
 				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
@@ -79,5 +72,9 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 	}
 
 	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
+	
+	protected String getMappingKeyAttributeValue(){
+		return "value";
+	}
 
 }

@@ -22,24 +22,23 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
 /**
- * Parser for the &lt;payload-type-router/&gt; element.
+ * Parser for the &lt;exception-type-router/&gt; element.
  * 
  * @author Oleg Zhurakousky
- * @author Mark Fisher
- * @since 1.0.3
+ * @since 2.0.4
  */
-public class PayloadTypeRouterParser extends AbstractRouterParser {
+public class ErrorMessageExceptionTypeRouterParser extends AbstractRouterParser {
 	
 	@Override
 	protected BeanDefinition doParseRouter(Element element,
 			ParserContext parserContext) {
 		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.ErrorMessageExceptionTypeRouter");
 		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
 	
 	@Override
 	protected String getMappingKeyAttributeValue(){
-		return "type";
+		return "exception-type";
 	}
 }

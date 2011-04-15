@@ -34,6 +34,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("router", new DefaultRouterParser());
 		registerBeanDefinitionParser("header-value-router", new HeaderValueRouterParser());
 		registerBeanDefinitionParser("payload-type-router", new PayloadTypeRouterParser());
+		registerBeanDefinitionParser("exception-type-router", new ErrorMessageExceptionTypeRouterParser());
 		registerBeanDefinitionParser("recipient-list-router", new RecipientListRouterParser());
 		registerBeanDefinitionParser("splitter", new SplitterParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
