@@ -62,9 +62,7 @@
       the payload type of inbound Messages. It may also accept Message header values either individually or as a full
       map by using the <code>@Header</code> and <code>@Headers</code> parameter annotations respectively. The return value of the method can be
       any type. If the return value is itself a <interfacename>Message</interfacename>, that will be passed along to
-      the transformer's output channel. If the return type is a Map, and the original Message payload was
-      <emphasis>not</emphasis> a Map, the entries in that Map will be added to the Message headers of the original
-      Message (the keys must be Strings).
+      the transformer's output channel.
     </para>
     <para>
     As of Spring Integration 2.0, a Message Transformer's transformation method can no longer return <code>null</code>.
