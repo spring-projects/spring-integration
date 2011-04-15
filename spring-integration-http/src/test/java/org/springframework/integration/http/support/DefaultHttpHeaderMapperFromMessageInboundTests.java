@@ -17,6 +17,7 @@
 package org.springframework.integration.http.support;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 
@@ -31,6 +32,11 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -433,6 +439,77 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		assertNull(result.get("Location"));
 		assertEquals("abc", result.get("foobar"));
 		assertEquals(MediaType.TEXT_XML, result.get("Accept"));
+	}
+	
+	@Test
+	public void validateCustomHeadersWithNonStringValuesAndNoConverter() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		
+		HttpHeaders headers = new HttpHeaders();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("customHeaderA", 123);
+		messageHeaders.put("customHeaderB", new TestClass());
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNull(headers.get("X-customHeaderA"));
+		assertNull(headers.get("X-customHeaderB"));
+	}
+	
+	@Test
+	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterOnly() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		ConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.setConversionService(cs);
+		mapper.setBeanFactory(beanFactory);
+		mapper.afterPropertiesSet();
+		
+		HttpHeaders headers = new HttpHeaders();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("customHeaderA", 123);
+		messageHeaders.put("customHeaderB", new TestClass());
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNotNull(headers.get("X-customHeaderA"));
+		assertEquals("123", headers.get("X-customHeaderA").get(0));
+		assertNull(headers.get("X-customHeaderB"));
+	}
+	
+	@Test
+	public void validateCustomHeadersWithNonStringValuesAndDefaultConverterWithCustomConverter() throws Exception{
+		DefaultHttpHeaderMapper mapper = new DefaultHttpHeaderMapper();
+		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
+		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		cs.addConverter(new TestClassConverter());
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.setConversionService(cs);
+		mapper.setBeanFactory(beanFactory);
+		mapper.afterPropertiesSet();
+		
+		HttpHeaders headers = new HttpHeaders();
+		Map<String, Object> messageHeaders = new HashMap<String, Object>();
+		messageHeaders.put("customHeaderA", 123);
+		messageHeaders.put("customHeaderB", new TestClass());
+		
+		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+		assertNotNull(headers.get("X-customHeaderA"));
+		assertEquals("123", headers.get("X-customHeaderA").get(0));
+		assertNotNull(headers.get("X-customHeaderB"));
+		assertEquals("TestClass.class", headers.get("X-customHeaderB").get(0));
+	}
+	
+	public static class TestClass {
+		
+	}
+	
+	public static class TestClassConverter implements Converter<TestClass, String>{
+
+		public String convert(TestClass source) {
+			return "TestClass.class";
+		}
+		
 	}
 
 }

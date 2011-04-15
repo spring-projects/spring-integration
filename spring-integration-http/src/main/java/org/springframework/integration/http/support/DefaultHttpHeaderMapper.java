@@ -33,6 +33,13 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -51,9 +58,13 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
+public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanFactoryAware, InitializingBean{
 
 	private static final Log logger = LogFactory.getLog(DefaultHttpHeaderMapper.class);
+
+	private volatile ConversionService conversionService;
+	
+	private volatile BeanFactory beanFactory;
 
 	private static final String ACCEPT = "Accept";
 
@@ -230,6 +241,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
 	private volatile String userDefinedHeaderPrefix = "X-";
 
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
 
 	/**
 	 * Provide the header names that should be mapped to an HTTP request (for outbound adapters)
@@ -326,6 +340,12 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			}
 		}
 		return target;
+	}
+	
+	public void afterPropertiesSet() throws Exception {
+		if (this.beanFactory != null && this.beanFactory instanceof DefaultListableBeanFactory){
+			this.conversionService = ((DefaultListableBeanFactory)this.beanFactory).getConversionService();
+		}
 	}
 
 	private boolean containsElementIgnoreCase(String[] headerNames, String name){
@@ -690,9 +710,32 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		}
 		else if (value instanceof Iterable<?>) {
 			for (Object next : (Iterable<?>) value) {
+				String convertedValue = null;
 				if (next instanceof String) {
+					convertedValue = (String) next;				
+				}
+				else {
+					convertedValue = this.convertToString(value);
+				}
+				if (StringUtils.hasText(convertedValue)){
 					target.add(name, (String) next);
 				}
+				else {
+					logger.warn("Element of the header '" + name + "' with value '" + value + 
+							"' will not be set since it is not a String and no Converter " +
+							"is available. Consider registering a Converter with ConversionService (e.g., <int:converter>)");
+				}
+			}
+		}
+		else {
+			String convertedValue = this.convertToString(value);
+			if (StringUtils.hasText(convertedValue)){
+				target.set(name, (String) convertedValue);
+			}
+			else {
+				logger.warn("Header '" + name + "' with value '" + value + 
+						"' will not be set since it is not a String and no Converter " +
+						"is available. Consider registering a Converter with ConversionService (e.g., <int:converter>)");
 			}
 		}
 	}
@@ -778,6 +821,14 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 			target.put(name, value);
 		}
 	}
+	
+	private String convertToString(Object value){
+		if (this.conversionService != null && 
+				this.conversionService.canConvert(TypeDescriptor.forObject(value), TypeDescriptor.valueOf(String.class))){
+			return this.conversionService.convert(value, String.class);
+		}
+		return null;
+	}
 
 
 	/**
@@ -803,5 +854,4 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 		mapper.setOutboundHeaderNames(HTTP_RESPONSE_HEADER_NAMES);
 		return mapper;
 	}
-
 }
