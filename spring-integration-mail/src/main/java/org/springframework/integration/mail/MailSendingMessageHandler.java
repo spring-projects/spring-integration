@@ -84,25 +84,29 @@ public class MailSendingMessageHandler extends AbstractMessageHandler {
 	@SuppressWarnings("unchecked")
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
 		MailMessage mailMessage = null;
-		if (message.getPayload() instanceof MailMessage) {
-			mailMessage = (MailMessage) message.getPayload();
+		Object payload = message.getPayload();
+		if (payload instanceof MimeMessage) {
+			mailMessage = new MimeMailMessage((MimeMessage) payload);
 		}
-		else if (message.getPayload() instanceof byte[]) {
+		else if (payload instanceof MailMessage) {
+			mailMessage = (MailMessage) payload;
+		}
+		else if (payload instanceof byte[]) {
 			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
-		else if (message.getPayload() instanceof String) {
+		else if (payload instanceof String) {
 			String contentType = (String) message.getHeaders().get(MailHeaders.CONTENT_TYPE);
-			if (StringUtils.hasText(contentType)){
+			if (StringUtils.hasText(contentType)) {
 				mailMessage = this.createMailMessageWithContentType((Message<String>) message, contentType);
 			}
 			else {
 				mailMessage = new SimpleMailMessage();
-				mailMessage.setText((String) message.getPayload());
-			}	
+				mailMessage.setText((String) payload);
+			}
 		}
 		else {
 			throw new MessageHandlingException(message, "Unable to create MailMessage from payload type ["
-					+ message.getPayload().getClass().getName() + "], expected byte array or String.");
+					+ message.getPayload().getClass().getName() + "], expected MimeMessage, MailMessage, byte array or String.");
 		}
 		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
