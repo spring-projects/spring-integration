@@ -1111,6 +1111,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type" />
 			<xsd:element name="claim-check-in" type="claimCheckTransformerType" />
 			<xsd:element name="claim-check-out" type="claimCheckTransformerType" />
+			<xsd:element name="control-bus" type="control-bus-type" />
 			<xsd:element name="chain" type="chain-type" />
 		</xsd:choice>
 	</xsd:complexType>
@@ -2883,6 +2884,19 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:element>
 
 	<xsd:element name="control-bus">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="control-bus-type">
+					<xsd:all minOccurs="0" maxOccurs="1">
+						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="control-bus-type">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
 				Control bus that accepts messages in the form of SpEL expressions. The expressions should be provided
@@ -2894,13 +2908,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				   3) get/set or shutdown methods on configurable TaskExecutors or TaskSchedulers 
 			]]></xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:all minOccurs="0" maxOccurs="1">
-				<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-			</xsd:all>
-			<xsd:attributeGroup ref="inputOutputChannelGroup" />
-		</xsd:complexType>
-	</xsd:element>
+	</xsd:complexType>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">
 		<xsd:attribute name="id" type="xsd:ID" />
