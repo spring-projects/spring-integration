@@ -19,3 +19,4 @@ si.java.hsp
 spring-integration-jms/activemq-data/
 spring-integration-samples/loanshark/application.log*
 target
+build.log
