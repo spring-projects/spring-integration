@@ -26,34 +26,75 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Reads data in an InputStream to a byte[]; data must be preceded by
- * a 4 byte binary length (network byte order, 
- * not included in resulting byte[]). 
- * Writes a byte[] to an OutputStream after a 4 byte binary length.
+ * a binary length (network byte order, not included in resulting byte[]). 
+ * 
+ * Writes a byte[] to an OutputStream after a binary length.
  * The length field contains the length of data following the length
- * field.
- * (network byte order).
+ * field. (network byte order).
+ * 
+ * The default length field is a 4 byte signed integer. During deserialization,
+ * negative values will be rejected.
+ * Other options are an unsigned byte, and unsigned short.
+ * 
+ * For other header formats, override {@link #readHeader(InputStream)} and
+ * {@link #writeHeader(OutputStream, int)}.
  * 
  * @author Gary Russell
  * @since 2.0
  */
 public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer {
-
+	
+	
+	/**
+	 * Default length-header field, allows for data up to 2**31-1 bytes.
+	 */
+	public static final int HEADER_SIZE_INT = 4; // default
+	
+	/**
+	 * A single unsigned byte, for data up to 255 bytes.
+	 */
+	public static final int HEADER_SIZE_UNSIGNED_BYTE = 1;
+	
+	/**
+	 * An unsigned short, for data up to 2**16 bytes.
+	 */
+	public static final int HEADER_SIZE_UNSIGNED_SHORT = 2;
+	
+	private final int headerSize;
+	
 	private Log logger = LogFactory.getLog(this.getClass());
 	
 	/**
-	 * Reads a 4 byte length from the stream and then reads that length
+	 * Constructs the serializer using {@link #HEADER_SIZE_INT}
+	 */
+	public ByteArrayLengthHeaderSerializer() {
+		this(HEADER_SIZE_INT);
+	}
+	
+	/**
+	 * Constructs the serializer using the supplied header size.
+	 * Valid header sizes are {@link #HEADER_SIZE_INT} (default),
+	 * {@link #HEADER_SIZE_UNSIGNED_BYTE} and {@link #HEADER_SIZE_UNSIGNED_SHORT}
+	 * @param headerSize
+	 */
+	public ByteArrayLengthHeaderSerializer(int headerSize) {
+		if (headerSize != HEADER_SIZE_INT &&
+			headerSize != HEADER_SIZE_UNSIGNED_BYTE &&
+			headerSize != HEADER_SIZE_UNSIGNED_SHORT) {
+			throw new IllegalArgumentException("Illegal header size:" + headerSize);
+		}
+		this.headerSize = headerSize;
+	}
+	
+	/**
+	 * Reads the header from the stream and then reads the provided length
 	 * from the stream and returns the data in a byte[]. Throws an
 	 * IOException if the length field exceeds the maxMessageSize.
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed between messages.  
 	 */
 	public byte[] deserialize(InputStream inputStream) throws IOException {
-		byte[] lengthPart = new byte[4];
-		int status = read(inputStream, lengthPart, true);
-		if (status < 0) {
-			throw new SoftEndOfStreamException("Stream closed between payloads");
-		}
-		int messageLength = ByteBuffer.wrap(lengthPart).getInt();
+		int messageLength = this.readHeader(inputStream);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
 		}	
@@ -71,9 +112,7 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 	 * length in network byte order (big endian).
 	 */
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
-		ByteBuffer lengthPart = ByteBuffer.allocate(4);
-		lengthPart.putInt(bytes.length);
-		outputStream.write(lengthPart.array());
+		this.writeHeader(outputStream, bytes.length);
 		outputStream.write(bytes);
 		outputStream.flush();
 	}
@@ -110,4 +149,72 @@ public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer
 		return 0;
 	}
 
+	/**
+	 * Writes the header, according to the header format.
+	 * @param outputStream
+	 * @param length
+	 * @throws IOException 
+	 */
+	protected void writeHeader(OutputStream outputStream, int length) throws IOException {
+		ByteBuffer lengthPart = ByteBuffer.allocate(this.headerSize);
+		switch (this.headerSize) {
+		case HEADER_SIZE_INT:
+			lengthPart.putInt(length);			
+			break;
+		case HEADER_SIZE_UNSIGNED_BYTE:
+			if (length > 0xff) {
+				throw new IllegalArgumentException("Length header:"
+						+ headerSize
+						+ " too short to accommodate message length:" + length);
+			}
+			lengthPart.put((byte) length);
+			break;
+		case HEADER_SIZE_UNSIGNED_SHORT:
+			if (length > 0xffff) {
+				throw new IllegalArgumentException("Length header:"
+						+ headerSize
+						+ " too short to accommodate message length:" + length);
+			}
+			lengthPart.putShort((short) length);
+			break;
+		default:
+			throw new IllegalArgumentException("Bad header size:" + headerSize);			
+		}
+		outputStream.write(lengthPart.array());
+	}
+
+	/**
+	 * Reads the header and returns the length of the data part.
+	 * @param inputStream
+	 * @return The length of the data part
+	 * @throws IOException, {@link SoftEndOfStreamException} if socket closes
+	 * before any length data read.
+	 */
+	protected int readHeader(InputStream inputStream) throws IOException {
+		byte[] lengthPart = new byte[this.headerSize];
+		int status = read(inputStream, lengthPart, true);
+		if (status < 0) {
+			throw new SoftEndOfStreamException("Stream closed between payloads");
+		}
+		int messageLength;
+		switch (this.headerSize) {
+		case HEADER_SIZE_INT:
+			messageLength = ByteBuffer.wrap(lengthPart).getInt();
+			if (messageLength < 0) {
+				throw new IllegalArgumentException("Length header:"
+						+ messageLength 
+						+ " is negative");
+			}
+			break;
+		case HEADER_SIZE_UNSIGNED_BYTE:
+			messageLength = ByteBuffer.wrap(lengthPart).get() & 0xff;
+			break;
+		case HEADER_SIZE_UNSIGNED_SHORT:
+			messageLength = ByteBuffer.wrap(lengthPart).getShort() & 0xffff;
+			break;
+		default:
+			throw new IllegalArgumentException("Bad header size:" + headerSize);			
+		}
+		return messageLength;
+	}
 }

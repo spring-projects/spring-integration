@@ -239,11 +239,17 @@
      </para>
      <para> 
       The <classname>ByteArrayLengthHeaderSerializer</classname>,
-      converts a byte array to a stream of bytes preceded by a 4 byte binary
-      length in network byte order. This a very efficient deserializer 
+      converts a byte array to a stream of bytes preceded by a binary
+      length in network byte order (big endian). This a very efficient deserializer 
       because it does not have to parse every byte looking for a termination
       character sequence. It can also be used for payloads containing binary data;
-      the above serializers only support text in the payload.
+      the above serializers only support text in the payload. The default size of 
+      the length header is 4 bytes (Integer), allowing for messages up to 2**31-1
+      bytes. However, the length header can be a single byte (unsigned) for
+      messages up to 255 bytes, or an unsigned short (2 bytes) for messages up to
+      2**16 bytes. If you need any other format for the header, you can subclass
+      this class and provide implementations for the readHeader and writeHeader
+      methods. The absolute maximum data size supported is 2**31-1 bytes.
      </para>
      <para> 
       The <classname>ByteArrayRawSerializer</classname>,
@@ -288,7 +294,10 @@
      <para>
       To implement a custom (de)serializer pair, implement the
       <classname>org.springframework.core.serializer.Deserializer</classname> and
-      <classname>org.springframework.core.serializer.Serializer</classname> interfaces. If you do not wish to use
+      <classname>org.springframework.core.serializer.Serializer</classname> interfaces. 
+     </para>
+     <para> 
+      If you do not wish to use
       the default (de)serializer (<classname>ByteArrayCrLfSerializer</classname>), you must supply
       <classname>serializer</classname> and
       <classname>deserializer</classname> attributes on the connection factory (example below).
@@ -303,7 +312,7 @@
   <ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
-    deserializer="JavaDeserializer"
+    deserializer="javaDeserializer"
     serializer="javaSerializer"
   />]]></programlisting>
       A server connection factory that uses <classname>java.net.Socket</classname>
