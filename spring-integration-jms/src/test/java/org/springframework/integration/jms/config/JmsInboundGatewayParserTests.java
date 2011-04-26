@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -339,6 +339,17 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
 		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
+	}
+
+	@Test
+	public void gatewayWithReplyChannel() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithReplyChannel.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
+		Object replyChannel = accessor.getPropertyValue("replyChannel");
+		assertEquals(context.getBean("replies"), replyChannel);
 	}
 
 }
