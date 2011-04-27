@@ -20,6 +20,8 @@ import java.net.Socket;
 
 import javax.net.SocketFactory;
 
+import org.springframework.integration.MessagingException;
+
 /**
  * A client connection factory that creates {@link TcpNetConnection}s. 
  * @author Gary Russell

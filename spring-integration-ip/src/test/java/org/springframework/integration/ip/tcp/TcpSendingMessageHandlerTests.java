@@ -106,6 +106,7 @@ public class TcpSendingMessageHandlerTests {
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);		
+		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();

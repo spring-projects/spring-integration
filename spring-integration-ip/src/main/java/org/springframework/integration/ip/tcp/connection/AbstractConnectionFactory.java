@@ -39,6 +39,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 
@@ -100,6 +101,8 @@ public abstract class AbstractConnectionFactory
 	
 	private List<TcpConnection> connections = new LinkedList<TcpConnection>();
 
+	protected final Object lifecycleMonitor = new Object();
+	
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.
@@ -340,19 +343,28 @@ public abstract class AbstractConnectionFactory
 	 * Starts the listening process.
 	 */
 	public void start() {
-		this.active = true;
-		this.getTaskExecutor().execute(this);
+		synchronized (this.lifecycleMonitor) {
+			if (!this.active) {
+				this.active = true;
+				this.getTaskExecutor().execute(this);
+			}
+		}
 	}
 
 	/**
 	 * Creates a taskExecutor (if one was not provided). 
 	 */
 	protected Executor getTaskExecutor() {
-		if (this.taskExecutor == null) {
-			this.privateExecutor = true;
-			this.taskExecutor = Executors.newFixedThreadPool(this.poolSize);
+		synchronized (this.lifecycleMonitor) {
+			if (!this.active) {
+				throw new MessagingException("Connection Factory not started");
+			}
+			if (this.taskExecutor == null) {
+				this.privateExecutor = true;
+				this.taskExecutor = Executors.newFixedThreadPool(this.poolSize);
+			}
+			return this.taskExecutor;
 		}
-		return this.taskExecutor;
 	}
 
 	/**
@@ -369,20 +381,25 @@ public abstract class AbstractConnectionFactory
 				iterator.remove();
 			}
 		}
-		if (this.privateExecutor) {
-			ExecutorService executorService = (ExecutorService) this.taskExecutor;
-			executorService.shutdown();
-			try {
-				if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
-					logger.debug("Forcing executor shutdown");
-					executorService.shutdownNow();					
+		synchronized (this.lifecycleMonitor) {
+			if (this.privateExecutor) {
+				ExecutorService executorService = (ExecutorService) this.taskExecutor;
+				executorService.shutdown();
+				try {
 					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
-						logger.debug("Executor failed to shutdown");
+						logger.debug("Forcing executor shutdown");
+						executorService.shutdownNow();					
+						if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+							logger.debug("Executor failed to shutdown");
+						}
 					}
+				} catch (InterruptedException e) {
+					executorService.shutdownNow();
+					Thread.currentThread().interrupt();
+				} finally {
+					this.taskExecutor = null;
+					this.privateExecutor = false;
 				}
-			} catch (InterruptedException e) {
-				executorService.shutdownNow();
-				Thread.currentThread().interrupt();
 			}
 		}
 	}
@@ -534,6 +551,10 @@ public abstract class AbstractConnectionFactory
 
 	protected void addConnection(TcpConnection connection) {
 		synchronized (this.connections) {
+			if (!this.active) {
+				connection.close();
+				return;
+			}
 			this.connections.add(connection);
 		}
 	}
