@@ -157,6 +157,7 @@ public class TcpOutboundGatewayTests {
 		for (int i = 0; i < 10; i++) {
 			assertTrue(replies.remove("Reply" + i));
 		}
+		done.set(true);
 	}
 
 	@Test 
@@ -236,6 +237,7 @@ public class TcpOutboundGatewayTests {
 		for (int i = 0; i < 1; i++) {
 			assertTrue(replies.remove("Reply" + i));
 		}
+		done.set(true);
 	}
 
 

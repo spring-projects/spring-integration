@@ -24,7 +24,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -80,11 +79,7 @@ public class TcpNioClientConnectionFactory extends
 		setSocketAttributes(socketChannel.socket());
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, this.isLookupHost());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
-		if (this.taskExecutor == null) {
-			connection.setTaskExecutor(Executors.newSingleThreadExecutor());
-		} else {
-			connection.setTaskExecutor(this.taskExecutor);
-		}
+		connection.setTaskExecutor(this.getTaskExecutor());
 		TcpConnection wrappedConnection = wrapConnection(connection);
 		initializeConnection(wrappedConnection, socketChannel.socket());
 		socketChannel.configureBlocking(false);
@@ -111,6 +106,9 @@ public class TcpNioClientConnectionFactory extends
 	}
 
 	public void close() {
+		if (this.selector != null) {
+			this.selector.wakeup();
+		}
 	}
 
 	public void run() {

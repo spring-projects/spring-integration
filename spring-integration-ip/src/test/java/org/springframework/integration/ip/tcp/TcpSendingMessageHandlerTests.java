@@ -937,11 +937,11 @@ public class TcpSendingMessageHandlerTests {
 		final AtomicBoolean done = new AtomicBoolean();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
+				int i = 0;
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
 					Socket socket = server.accept();
-					int i = 0;
 					while (true) {
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 						Object in = null;
@@ -962,7 +962,7 @@ public class TcpSendingMessageHandlerTests {
 						oos.writeObject("Reply" + (++i));
 					}
 				} catch (Exception e) {
-					if (!done.get()) {
+					if (i == 0) {
 						e.printStackTrace();
 					}
 				}

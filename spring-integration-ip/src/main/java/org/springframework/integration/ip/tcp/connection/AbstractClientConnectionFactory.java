@@ -58,9 +58,6 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			connection.registerListener(this.listener);
 		}
 		if (this.listener != null || this.singleUse) {
-			if (this.taskExecutor == null) {
-				this.taskExecutor = Executors.newFixedThreadPool(this.poolSize);
-			}
 			if (this.soTimeout <= 0) {
 				try {
 					socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);

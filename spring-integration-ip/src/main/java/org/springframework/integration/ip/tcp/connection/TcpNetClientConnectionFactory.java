@@ -53,10 +53,11 @@ public class TcpNetClientConnectionFactory extends
 		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
-		this.taskExecutor.execute(connection);
+		this.getTaskExecutor().execute(connection);
 		if (!this.singleUse) {
 			this.theConnection = connection;
 		}
+		this.harvestClosedConnections();
 		return connection;
 	}
 

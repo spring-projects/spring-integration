@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
@@ -139,7 +139,7 @@ public class SOLingerTests {
 		}
 		try {
 			Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-			socket.setSoTimeout(200);
+			socket.setSoTimeout(10000);
 			String test = "Test\r\n";
 			socket.getOutputStream().write(test.getBytes());
 			byte[] buff = new byte[test.length() + 5];
@@ -149,7 +149,7 @@ public class SOLingerTests {
 				n = socket.getInputStream().read();
 				fail("Expected IOException");
 			} catch (IOException ioe) {
-				assertTrue(ioe instanceof SocketTimeoutException);
+				assertTrue(ioe instanceof SocketException);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

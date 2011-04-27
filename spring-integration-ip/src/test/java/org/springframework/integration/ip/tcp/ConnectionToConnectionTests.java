@@ -26,7 +26,9 @@ import java.util.Properties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.history.MessageHistory;
@@ -60,6 +62,20 @@ public class ConnectionToConnectionTests {
 	
 	@Autowired
 	private QueueChannel serverSideChannel;
+
+	// Test jvm shutdown
+	public static void main(String[] args) {
+		ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext(
+				ConnectionToConnectionTests.class.getPackage().getName()
+						.replaceAll("\\.", "/")
+						+ "/common-context.xml");
+		ctx.close();
+		ctx = new ClassPathXmlApplicationContext(
+				ConnectionToConnectionTests.class.getPackage().getName()
+						.replaceAll("\\.", "/")
+						+ "/ConnectionToConnectionTests-context.xml");
+		ctx.close();		
+	}
 	
 	@Test
 	public void testConnect() throws Exception {
@@ -115,4 +131,5 @@ public class ConnectionToConnectionTests {
 		assertFalse(connection.getConnectionId().contains("localhost"));
 		connection.close();
 	}
+	
 }

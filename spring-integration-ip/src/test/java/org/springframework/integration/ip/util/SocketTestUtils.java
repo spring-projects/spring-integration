@@ -131,7 +131,7 @@ public class SocketTestUtils {
 
 	private static void writeByte(OutputStream os, int b, boolean noDelay) throws Exception {
 		os.write(b);
-		logger.debug("Wrote 0x" + Integer.toHexString(b));
+		logger.trace("Wrote 0x" + Integer.toHexString(b));
 		if (noDelay) {
 			return;
 		}

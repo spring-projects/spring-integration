@@ -231,7 +231,7 @@ public class TcpInboundGatewayTests {
 	private class FailingService {
 		@SuppressWarnings("unused")
 		public String serviceMethod(byte[] bytes) {
-			throw new RuntimeException("Failed");
+			throw new RuntimeException("Planned Failure For Tests");
 		}
 	}
 

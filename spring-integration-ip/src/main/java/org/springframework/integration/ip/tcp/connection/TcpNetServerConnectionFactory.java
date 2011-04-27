@@ -75,7 +75,8 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				TcpConnection connection = new TcpNetConnection(socket, true, this.isLookupHost());
 				connection = wrapConnection(connection);
 				this.initializeConnection(connection, socket);
-				this.taskExecutor.execute(connection);
+				this.getTaskExecutor().execute(connection);
+				this.harvestClosedConnections();
 			}
 		} catch (Exception e) {
 			this.listening = false;

@@ -162,8 +162,17 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				} else {
 					this.executionControl.decrementAndGet();
 				}
-			} catch (IOException e) {
-				logger.error("Unexpected exception, exiting...", e);
+			} catch (Exception e) {
+				if (logger.isTraceEnabled()) {
+					logger.error("Read exception " +
+							 this.getConnectionId(), e);
+				} else {
+					logger.error("Read exception " +
+								 this.getConnectionId() + " " +
+								 e.getClass().getSimpleName() + 
+							     ":" + e.getCause() + ":" + e.getMessage());
+				}
+				this.closeConnection();
 				return;
 			}
 		} finally {
@@ -172,7 +181,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			// timing was such that we were the last assembler and
 			// a new one wasn't run
 			try {
-				if (dataAvailable()) {
+				if (this.isOpen() && dataAvailable()) {
 					checkForAssembler();
 				}
 			} catch (IOException e) {
@@ -191,7 +200,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * @return The Message or null if no data is available.
 	 * @throws IOException
 	 */
-	private synchronized Message<?> convert() throws IOException {
+	private synchronized Message<?> convert() throws Exception {
 		if (!dataAvailable()) {
 			return null;
 		}
@@ -206,15 +215,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				}
 			} else {
 				if (!(e instanceof SoftEndOfStreamException)) {
-					if (logger.isTraceEnabled()) {
-						logger.error("Read exception " +
-								 this.getConnectionId(), e);
-					} else {
-						logger.error("Read exception " +
-									 this.getConnectionId() + " " +
-									 e.getClass().getSimpleName() + 
-								     ":" + e.getCause() + ":" + e.getMessage());
-					}
+					throw e;
 				}
 			}
 			return null;

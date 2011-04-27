@@ -44,6 +44,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	protected boolean usingDirectBuffers;
 	
 	protected Map<SocketChannel, TcpNioConnection> connections = new HashMap<SocketChannel, TcpNioConnection>();
+
+	private Selector selector;
 	
 	/**
 	 * Listens for incoming connections on the port.
@@ -80,6 +82,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 			this.listening = true;
+			this.selector = selector;
 			doSelect(this.serverChannel, selector);
 
 		} catch (IOException e) {
@@ -116,7 +119,6 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	/**
 	 * @param selector
-	 * @param connections
 	 * @param server
 	 * @param now
 	 * @throws IOException
@@ -134,7 +136,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		if (connection == null) {
 			return;
 		}
-		connection.setTaskExecutor(this.taskExecutor);
+		connection.setTaskExecutor(this.getTaskExecutor());
 		connection.setLastRead(now);
 		connections.put(channel, connection);
 		channel.register(selector, SelectionKey.OP_READ, connection);
@@ -158,6 +160,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	}
 
 	public void close() {
+		if (this.selector != null) {
+			this.selector.wakeup();
+		}
 		if (this.serverChannel == null) {
 			return;
 		}

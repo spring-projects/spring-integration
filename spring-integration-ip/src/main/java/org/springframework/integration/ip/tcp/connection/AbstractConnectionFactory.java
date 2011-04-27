@@ -25,10 +25,15 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -74,8 +79,10 @@ public abstract class AbstractConnectionFactory
 
 	private int soTrafficClass = -1; // don't set by default
 	
-	protected Executor taskExecutor;
+	private Executor taskExecutor;
 	
+	private boolean privateExecutor;
+
 	protected Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 	
 	protected Serializer<?> serializer = new ByteArrayCrLfSerializer();
@@ -91,6 +98,8 @@ public abstract class AbstractConnectionFactory
 	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 	
 	private boolean lookupHost = true;
+	
+	private List<TcpConnection> connections = new LinkedList<TcpConnection>();
 
 	/**
 	 * Sets socket attributes on the socket.
@@ -329,15 +338,22 @@ public abstract class AbstractConnectionFactory
 	public abstract void close();
 
 	/**
-	 * Creates a taskExecutor (if one was not provided) and starts
-	 * the listening process on one of its threads.
+	 * Starts the listening process.
 	 */
 	public void start() {
+		this.active = true;
+		this.getTaskExecutor().execute(this);
+	}
+
+	/**
+	 * Creates a taskExecutor (if one was not provided). 
+	 */
+	protected Executor getTaskExecutor() {
 		if (this.taskExecutor == null) {
+			this.privateExecutor = true;
 			this.taskExecutor = Executors.newFixedThreadPool(this.poolSize);
 		}
-		this.active = true;
-		this.taskExecutor.execute(this);
+		return this.taskExecutor;
 	}
 
 	/**
@@ -346,30 +362,58 @@ public abstract class AbstractConnectionFactory
 	public void stop() {
 		this.active = false;
 		this.close();
+		synchronized (this.connections) {
+			Iterator<TcpConnection> iterator = this.connections.iterator();
+			while (iterator.hasNext()) {
+				TcpConnection connection = iterator.next();
+				connection.close();
+				iterator.remove();
+			}
+		}
+		if (this.privateExecutor) {
+			ExecutorService executorService = (ExecutorService) this.taskExecutor;
+			executorService.shutdown();
+			try {
+				if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+					logger.debug("Forcing executor shutdown");
+					executorService.shutdownNow();					
+					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+						logger.debug("Executor failed to shutdown");
+					}
+				}
+			} catch (InterruptedException e) {
+				executorService.shutdownNow();
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	protected TcpConnection wrapConnection(TcpConnection connection) throws Exception {
-		if (this.interceptorFactoryChain == null) {
-			return connection;
-		}
-		TcpConnectionInterceptorFactory[] interceptorFactories = 
-			this.interceptorFactoryChain.getInterceptorFactories();
-		if (interceptorFactories == null) {
-			return connection;
-		}
-		for (TcpConnectionInterceptorFactory factory : interceptorFactories) {
-			TcpConnectionInterceptor wrapper = factory.getInterceptor();
-			wrapper.setTheConnection(connection);
-			// if no ultimate listener or sender, register each wrapper in turn
-			if (this.listener == null) {
-				connection.registerListener(wrapper);
+		try {
+			if (this.interceptorFactoryChain == null) {
+				return connection;
 			}
-			if (this.sender == null) {
-				connection.registerSender(wrapper);
+			TcpConnectionInterceptorFactory[] interceptorFactories = 
+				this.interceptorFactoryChain.getInterceptorFactories();
+			if (interceptorFactories == null) {
+				return connection;
 			}
-			connection = wrapper;
+			for (TcpConnectionInterceptorFactory factory : interceptorFactories) {
+				TcpConnectionInterceptor wrapper = factory.getInterceptor();
+				wrapper.setTheConnection(connection);
+				// if no ultimate listener or sender, register each wrapper in turn
+				if (this.listener == null) {
+					connection.registerListener(wrapper);
+				}
+				if (this.sender == null) {
+					connection.registerSender(wrapper);
+				}
+				connection = wrapper;
+			}
+			return connection;
+		} finally {
+			this.addConnection(connection);
 		}
-		return connection;
 	}
 
 	/**
@@ -403,6 +447,7 @@ public abstract class AbstractConnectionFactory
 				}
 			}
 		}
+		this.harvestClosedConnections();
 		if (logger.isTraceEnabled()) {
 			if (host == null) {
 				logger.trace("Port " + this.port + " SelectionCount: " + selectionCount);
@@ -488,4 +533,21 @@ public abstract class AbstractConnectionFactory
 		callback.run();
 	}
 
+	protected void addConnection(TcpConnection connection) {
+		synchronized (this.connections) {
+			this.connections.add(connection);
+		}
+	}
+	
+	protected void harvestClosedConnections() {
+		synchronized (this.connections) {
+			Iterator<TcpConnection> iterator = this.connections.iterator();
+			while (iterator.hasNext()) {
+				TcpConnection connection = iterator.next();
+				if (!connection.isOpen()) {
+					iterator.remove();
+				}
+			}
+		}
+	}
 }
