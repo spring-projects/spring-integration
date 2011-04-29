@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
  * 
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.0
  */
 public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser {
@@ -51,17 +52,13 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 
 
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+
 		this.createAndRegisterGlobalPostProcessorIfNecessary(parserContext);
 		BeanDefinitionBuilder globalChannelInterceptorBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + "GlobalChannelInterceptorWrapper");
-		BeanComponentDefinition interceptorBeanDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		if (interceptorBeanDefinition != null) {
-			globalChannelInterceptorBuilder.addConstructorArgValue(interceptorBeanDefinition);
-		}
-		else {
-			String beanName = element.getAttribute(REF_ATTRIBUTE);
-			globalChannelInterceptorBuilder.addConstructorArgValue(new RuntimeBeanReference(beanName));
-		}
+			BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + "GlobalChannelInterceptorWrapper");
+		
+		globalChannelInterceptorBuilder.addConstructorArgValue(getBeanDefinitionBuilderConstructorValue(element, parserContext)); 
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, "order");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, CHANNEL_NAME_PATTERN_ATTRIBUTE, "patterns");
 
@@ -84,5 +81,15 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 			this.postProcessorCreated = true;
 		}
 	}
-
+	
+	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext){
+		BeanComponentDefinition interceptorBeanDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		if (interceptorBeanDefinition != null) {
+			return interceptorBeanDefinition;
+		}
+		else {
+			String beanName = element.getAttribute(REF_ATTRIBUTE);
+			return new RuntimeBeanReference(beanName);
+		}
+	}
 }

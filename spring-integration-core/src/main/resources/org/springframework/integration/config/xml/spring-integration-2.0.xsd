@@ -2577,7 +2577,7 @@ Name of the header whose value will be used to route messages
 					<xsd:annotation>
 						<xsd:documentation>
 						Alows you to configure a Wire Tap interceptor that will send a copy of the message to a 
-						channel identified by 'ref' attribute.
+						channel identified by 'channel' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
@@ -2786,6 +2786,25 @@ Name of the header whose value will be used to route messages
 		</xsd:complexType>
 	</xsd:element>
 
+    <xsd:element name="wire-tap">
+      <xsd:complexType>
+        <xsd:complexContent>
+           <xsd:extension base="wireTapType">
+              <xsd:attribute name="pattern" type="xsd:string" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        [REQUIRED] Channel name(s) or patterns. To specify more than one channel use
+                        ',' 
+                        (e.g.,
+                        channel-name-pattern="input*, foo, bar")
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
+           </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:element>
+    
 	<xsd:element name="channel-interceptor">
 		<xsd:annotation>
 			<xsd:documentation>

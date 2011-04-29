@@ -22,6 +22,7 @@ package org.springframework.integration.config.xml;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
+ * @author David Turanski
  */
 public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
@@ -67,6 +68,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("converter", new ConverterParser());
 		registerBeanDefinitionParser("message-history", new MessageHistoryParser());
 		registerBeanDefinitionParser("control-bus", new ControlBusParser());
+		registerBeanDefinitionParser("wire-tap", new GlobalWireTapParser());
 	}
 
 }
