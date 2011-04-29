@@ -199,7 +199,7 @@ Message&lt;Integer&gt; anotherMessage = MessageBuilder.fromMessage(importantMess
         .setHeaderIfAbsent(MessageHeaders.PRIORITY, MessagePriority.LOW)
         .build();
 
-assertEquals(MessagePriority.HIGHEST, anotherMessage.getHeaders().getPriority());
+assertEquals(MessagePriority.LOW, anotherMessage.getHeaders().getPriority());
 </programlisting>
     </para>
     <para>
