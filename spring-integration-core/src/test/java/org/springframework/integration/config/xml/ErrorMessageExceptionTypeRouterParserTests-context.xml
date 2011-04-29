@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+
+
+	<int:exception-type-router input-channel="inputChannel" default-output-channel="defaultChannel">
+		<int:mapping exception-type="java.lang.IllegalArgumentException" channel="illegalChannel"/>
+		<int:mapping exception-type="java.lang.NullPointerException" channel="npeChannel"/>
+	</int:exception-type-router>
+	
+	<int:channel id="defaultChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="illegalChannel">
+		<int:queue/>
+	</int:channel>
+
+	<int:channel id="npeChannel">
+		<int:queue/>
+	</int:channel>
+</beans>
