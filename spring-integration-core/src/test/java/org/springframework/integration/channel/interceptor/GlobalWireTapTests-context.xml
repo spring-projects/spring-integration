@@ -26,7 +26,7 @@
    <bridge input-channel="random-channel" output-channel="output"/>
    
    <!-- This wiretap targets a single channel -->
-   <wire-tap id="wiretap-single-channel" channel="wiretap-single" pattern="channel"/>
+   <wire-tap id="wiretap-single-channel" channel="wiretap-single" pattern="channel" order="0"/>
    
    <!-- This wiretap targets all channels -->
    <wire-tap id="wiretap-all-channels" channel="wiretap-all"/>

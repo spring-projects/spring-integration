@@ -2800,6 +2800,18 @@ Name of the header whose value will be used to route messages
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="order" type="xsd:integer" use="optional">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        [OPTIONAL] Specifies the order in which this interceptor will be
+                        added to the existing channel
+                        interceptors (if any).
+                        Negative value (e.g., -2) will signify BEFORE existing iinterceptors (if any). Positive
+                        value (e.g., 2)
+                        will signify AFTER existing interceptors (if any)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
            </xsd:extension>
         </xsd:complexContent>
       </xsd:complexType>

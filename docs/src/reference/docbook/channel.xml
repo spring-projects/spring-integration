@@ -585,6 +585,9 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 
     <section id="global-channel-configuration-interceptors">
     <title>Global Channel Interceptor Configuration</title>
+ 
+<titleabbrev id="global-channel-interceptor">Global Channel Interceptor</titleabbrev>
+ 
       <para>
         Channel Interceptors provide a clean and concise way of applying cross-cutting behavior per individual channel.
         If the same behavior should be applied on multiple channels, configuring the same set of interceptors for
@@ -713,18 +716,29 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
        2) it is still a "fire-and-forget" action thereby preventing any noticeable delay in the main message flow.
       </para>
   </section>
+  <section id="channel-global-wiretap">
+      <title>Global Wire Tap Configuration</title>
+        <para>It is possible to configure a global wire tap as a special case of the <xref linkend="global-channel-configuration-interceptors" endterm="global-channel-interceptor"/>. Simply configure a top level <code>wire-tap</code> element. Now, in addition to the normal <code>wire-tap</code> namespace support, the <code>pattern</code> and <code>order</code> attributes are supported and work in exactly the same way as with the <code>channel-interceptor</code>
+      <programlisting language="xml"><![CDATA[<int:wire-tap pattern="input*, bar*, foo" order="3" channel="wiretapChannel"/>]]></programlisting>
+      </para>
+     <tip>A global wire tap provides a convenient way to configure a single channel wire tap externally without modifying the existing channel configuration. Simply set the <code>pattern</code> attribute to the target channel name. For example, This technique may be used to configure a test case to verify messages on a channel.  
+     </tip>
+    </section>
 
-    <note>
+  
+  </section>
+  
+
+  <section id="channel-special-channels">
+ <title>Special Channels</title>
       <para>
-        If namespace support is enabled, there are also two special channels defined within the context by default:
+        If namespace support is enabled, there are two special channels defined within the application context by default:
         <code>errorChannel</code> and <code>nullChannel</code>. The 'nullChannel' acts like <code>/dev/null</code>,
         simply logging any Message sent to it at DEBUG level and returning immediately. Any time you face channel
-        resolution errors for a reply that you don't care about, you can set the affected component's 'output-channel'
-        to reference 'nullChannel' (the name 'nullChannel' is reserved within the context). The 'errorChannel' is
-        used internally for sending error messages, and it can be overridden with a custom configuration. It is
+        resolution errors for a reply that you don't care about, you can set the affected component's <code>output-channel</code> attribute 
+        to 'nullChannel' (the name 'nullChannel' is reserved within the application context). The 'errorChannel' is
+        used internally for sending error messages and may be overridden with a custom configuration. This is
         discussed in greater detail in <xref linkend="namespace-errorhandler"/>.
       </para>
-    </note>
   </section>
-
 </section>
