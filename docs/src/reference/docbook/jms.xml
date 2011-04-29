@@ -201,6 +201,24 @@
       Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
     </para>
   </section>
+  
+  <section id="jms-header-mapping">
+  	<title>Mapping Message Headers to/from JMS Message</title>
+  
+    <para>
+    JMS Message can contain meta-information such as  JMS API headers as well as simple properties. 
+    You can map those to/from Spring Integration Message Headers using <classname>JmsHeaderMapper</classname>.
+    The JMS API headers are passed to the appropriate setter methods (e.g. setJMSReplyTo) whereas other headers will 
+    be copied to the general properties of the JMS Message.
+
+    JMS Outbound Gateway is bootstrapped with the default implementation of JmsHeaderMapper which will map 
+    standard JMS API Headers as well as primitive/String Message Headers. Custom  header mapper could also be
+    provided via <code>header-mapper</code> attribute of inbound and outbound gateways.
+    </para>
+  
+  </section>
+  
+  
    <section id="jms-conversion-and-marshalling">
     <title>Message Conversion, Marshalling and Unmarshalling</title>
     <para>

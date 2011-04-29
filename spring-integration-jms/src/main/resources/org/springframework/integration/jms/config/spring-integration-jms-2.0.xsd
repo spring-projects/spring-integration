@@ -557,6 +557,9 @@
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 								</tool:annotation>
+								<xsd:documentation>
+								Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message. 
+								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -740,6 +743,9 @@
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
 						</tool:annotation>
+						<xsd:documentation>
+						Allows to specify custom implementation of JmsHeaderMapper to map Message Headers to JMS Message. 
+						</xsd:documentation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
