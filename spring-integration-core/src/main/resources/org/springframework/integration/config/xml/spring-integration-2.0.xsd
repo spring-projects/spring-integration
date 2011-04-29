@@ -680,7 +680,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:choice>
+				<xsd:choice minOccurs="0" maxOccurs="1" >
 					<xsd:sequence> 
 						<xsd:element name="poller" type="basePollerType" /> 
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" /> 

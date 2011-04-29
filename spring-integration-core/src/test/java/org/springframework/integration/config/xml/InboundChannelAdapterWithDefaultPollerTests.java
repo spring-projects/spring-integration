@@ -42,7 +42,7 @@ public class InboundChannelAdapterWithDefaultPollerTests {
 	private SourcePollingChannelAdapter adapter;
 
 
-	@Test @Ignore
+	@Test 
 	public void verifyDefaultPollerInUse() {
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
