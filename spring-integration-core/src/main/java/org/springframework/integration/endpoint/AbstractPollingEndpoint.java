@@ -201,7 +201,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			taskExecutor.execute(new Runnable() {
 				public void run() {
 					int count = 0;
-					while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
+					while (initialized && (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll)) {
 						try {
 							if (!pollingTask.call()) {
 								break;
