@@ -49,6 +49,10 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 	protected String getBeanClassName(Element element) {
 		return "org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor";
 	}
+	
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {

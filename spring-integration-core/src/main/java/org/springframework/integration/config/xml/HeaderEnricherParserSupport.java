@@ -17,12 +17,14 @@
 package org.springframework.integration.config.xml;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
@@ -35,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  * Base support class for 'header-enricher' parsers.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
@@ -113,18 +116,36 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					String ref = headerElement.getAttribute("ref");
 					String method = headerElement.getAttribute("method");
 					String expression = headerElement.getAttribute("expression");
-					Element expressionElement = DomUtils.getChildElementByTagName(headerElement, "expression");
-					if (StringUtils.hasText(expression) && expressionElement != null) {
-						parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
-						return;
+		
+					List<Element> subElements = DomUtils.getChildElements(headerElement);
+					
+					BeanDefinition innerComponentDefinition = null;
+					Element expressionElement = null;
+					if (subElements != null && subElements.size() == 1) {
+						Element beanElement = subElements.get(0);
+						if ("expression".equals(beanElement.getNodeName())){
+							expressionElement = beanElement;
+							if (StringUtils.hasText(expression) && expressionElement != null) {
+								parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
+								return;
+							}
+						} 
+						else if ("bean".equals(beanElement.getNodeName())){
+							innerComponentDefinition = parserContext.getDelegate().parseBeanDefinitionElement(beanElement).getBeanDefinition();
+						}
+						else {
+							innerComponentDefinition = parserContext.getDelegate().parseCustomElement(beanElement);
+						}
 					}
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
 					boolean hasMethod = StringUtils.hasText(method);
 					boolean isExpression = StringUtils.hasText(expression) || expressionElement != null;
-					if (!(isValue ^ (isRef ^ isExpression))) {
+					boolean isCustomBean = innerComponentDefinition != null;
+					
+					if (!(isValue ^ (isRef ^ (isExpression ^ isCustomBean)))) {
 						parserContext.getReaderContext().error(
-								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
+								"Exactly one of the 'ref', 'value', 'expression' or inner bean is required.", element);
 					}
 					BeanDefinitionBuilder valueProcessorBuilder = null;
 					if (isValue) {
@@ -156,6 +177,18 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 							valueProcessorBuilder.addConstructorArgValue(expression);
 						}
 						valueProcessorBuilder.addConstructorArgValue(headerType);
+					}
+					else if (isCustomBean){
+						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
+						valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
+						if (hasMethod){
+							valueProcessorBuilder.addConstructorArgValue(method);
+						} 
+						else {
+							valueProcessorBuilder.addConstructorArgValue(null);
+						}		
+						headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 					}
 					else {
 						if (StringUtils.hasText(headerElement.getAttribute("type"))) {

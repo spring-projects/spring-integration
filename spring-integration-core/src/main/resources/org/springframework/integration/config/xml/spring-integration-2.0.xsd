@@ -1557,9 +1557,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="referenceHeaderType">
-				<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:choice minOccurs="0" maxOccurs="1">
+					<xsd:any processContents="strict" namespace="##other"/>
 					<xsd:element name="expression" type="innerExpressionType" />
-				</xsd:sequence>
+				</xsd:choice>
 				<xsd:attribute name="value" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
