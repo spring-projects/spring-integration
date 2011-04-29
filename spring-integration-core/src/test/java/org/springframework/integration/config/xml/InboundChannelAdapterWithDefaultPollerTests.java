@@ -18,8 +18,10 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -40,7 +42,7 @@ public class InboundChannelAdapterWithDefaultPollerTests {
 	private SourcePollingChannelAdapter adapter;
 
 
-	@Test
+	@Test @Ignore
 	public void verifyDefaultPollerInUse() {
 		Trigger trigger = TestUtils.getPropertyValue(adapter, "trigger", Trigger.class);
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
