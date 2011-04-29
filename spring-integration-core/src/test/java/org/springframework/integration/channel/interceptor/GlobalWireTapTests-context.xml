@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/integration"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+   <message-history/>
+   
+   <channel id="channel"/>
+   
+   <channel id="wiretap-single">
+     <queue/>
+   </channel>
+   
+   <channel id="wiretap-all">
+     <queue/>
+   </channel>
+   
+   <channel id="output">
+     <queue/>
+   </channel>
+   
+   <channel id="random-channel"/>
+   
+   <bridge input-channel="channel" output-channel="output"/>
+   <bridge input-channel="random-channel" output-channel="output"/>
+   
+   <!-- This wiretap targets a single channel -->
+   <wire-tap id="wiretap-single-channel" channel="wiretap-single" pattern="channel"/>
+   
+   <!-- This wiretap targets all channels -->
+   <wire-tap id="wiretap-all-channels" channel="wiretap-all"/>
+   
+</beans:beans>
