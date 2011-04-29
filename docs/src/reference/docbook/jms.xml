@@ -211,7 +211,7 @@
     The JMS API headers are passed to the appropriate setter methods (e.g. setJMSReplyTo) whereas other headers will 
     be copied to the general properties of the JMS Message.
 
-    JMS Outbound Gateway is bootstrapped with the default implementation of JmsHeaderMapper which will map 
+    JMS Outbound Gateway is bootstrapped with the default implementation of <classname>JmsHeaderMapper</classname> which will map 
     standard JMS API Headers as well as primitive/String Message Headers. Custom  header mapper could also be
     provided via <code>header-mapper</code> attribute of inbound and outbound gateways.
     </para>
