@@ -31,8 +31,18 @@
 		<beans:property name="user" value="oleg"/>
 	</beans:bean>
 
+	<sftp:inbound-channel-adapter id="defaultAdapter"
+			session-factory="sftpSessionFactory"
+			channel="requestChannel"
+			remote-directory="/foo"
+			local-directory="file:local-test-dir"
+			auto-startup="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+
 	<sftp:inbound-channel-adapter id="cachingAdapter"
 			session-factory="sftpSessionFactory"
+			cache-sessions="true"
 			channel="requestChannel"
 			remote-directory="/foo"
 			local-directory="file:local-test-dir"

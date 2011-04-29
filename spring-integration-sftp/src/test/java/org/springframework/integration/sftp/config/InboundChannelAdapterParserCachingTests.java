@@ -35,10 +35,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class InboundChannelAdapterParserCachingTests {
 
+	@Autowired private Object defaultAdapter;
+
 	@Autowired private Object cachingAdapter;
 
 	@Autowired private Object nonCachingAdapter;
 
+
+	@Test
+	public void defaultAdapter() {
+		Object sessionFactory = TestUtils.getPropertyValue(defaultAdapter, "source.synchronizer.sessionFactory");
+		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
+	}
 
 	@Test
 	public void cachingAdapter() {
