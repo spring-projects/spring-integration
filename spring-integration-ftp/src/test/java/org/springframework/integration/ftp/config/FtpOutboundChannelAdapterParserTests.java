@@ -59,10 +59,11 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
-		CachingSessionFactory cacheSf = (CachingSessionFactory) TestUtils.getPropertyValue(handler, "sessionFactory");
-		DefaultFtpSessionFactory sf = (DefaultFtpSessionFactory) TestUtils.getPropertyValue(cacheSf, "sessionFactory");
-		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
-		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
+		Object sfProperty = TestUtils.getPropertyValue(handler, "sessionFactory");
+		assertEquals(DefaultFtpSessionFactory.class, sfProperty.getClass());
+		DefaultFtpSessionFactory sessionFactory = (DefaultFtpSessionFactory) sfProperty;
+		assertEquals("localhost", TestUtils.getPropertyValue(sessionFactory, "host"));
+		assertEquals(22, TestUtils.getPropertyValue(sessionFactory, "port"));
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
 		//verify subscription order		
 		@SuppressWarnings("unchecked")
@@ -74,4 +75,16 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
 	}
+
+	@Test
+	public void cachingByDefault() {
+		ApplicationContext ac = new ClassPathXmlApplicationContext(
+				"FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object adapter = ac.getBean("simpleAdapter");
+		Object sfProperty = TestUtils.getPropertyValue(adapter, "handler.sessionFactory");
+		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
+		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
+		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
+	}
+
 }

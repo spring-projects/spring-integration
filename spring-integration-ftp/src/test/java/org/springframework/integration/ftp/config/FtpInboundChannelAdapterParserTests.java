@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.ftp.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.ftp.filters.FtpSimplePatternFileListFilter;
 import org.springframework.integration.ftp.inbound.FtpInboundFileSynchronizer;
@@ -38,6 +40,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  */
 public class FtpInboundChannelAdapterParserTests {
 
@@ -60,12 +63,22 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
 		FtpSimplePatternFileListFilter filter = (FtpSimplePatternFileListFilter) TestUtils.getPropertyValue(fisync, "filter");
-		assertNotNull(filter);		
+		assertNotNull(filter);
+		Object sessionFactory = TestUtils.getPropertyValue(fisync, "sessionFactory");
+		assertTrue(DefaultFtpSessionFactory.class.isAssignableFrom(sessionFactory.getClass()));
 	}
-	
+
+	@Test
+	public void cachingSessionFactoryByDefault() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext(
+				"FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
+		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
+		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.sessionFactory");
+		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
+	}
+
 	@Test
 	public void testFtpInboundChannelAdapterCompleteNoId() throws Exception{
-
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
@@ -78,7 +91,8 @@ public class FtpInboundChannelAdapterParserTests {
 		assertNotNull(adapter);
 	}
 
-	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory>{
+
+	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
 		public DefaultFtpSessionFactory getObject() throws Exception {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
@@ -94,6 +108,6 @@ public class FtpInboundChannelAdapterParserTests {
 		public boolean isSingleton() {
 			return true;
 		}
-		
 	}
+
 }

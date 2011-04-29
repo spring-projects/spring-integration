@@ -37,15 +37,22 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		// build SessionFactory
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.session.CachingSessionFactory");
-		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-
-		// build MessageHandler
 		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
-		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+
+		// build the SessionFactory and provide as a constructor argument
+		String cacheSessions = element.getAttribute("cache-sessions");
+		if ("false".equalsIgnoreCase(cacheSessions)) {
+			handlerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+		}
+		else {
+			BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.file.remote.session.CachingSessionFactory");
+			sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+			handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		}
+
+		// configure MessageHandler properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 

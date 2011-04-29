@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,15 +36,22 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 
 	@Override
 	protected final BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		// build the SessionFactory
-		BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.session.CachingSessionFactory");
-		sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-
-		// build the InboundFileSynchronizer
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				this.getInboundFileSynchronizerClassname());
-		synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+
+		// build the SessionFactory and provide as a constructor argument
+		String cacheSessions = element.getAttribute("cache-sessions");
+		if ("false".equalsIgnoreCase(cacheSessions)) {
+			synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+		}
+		else {
+			BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.file.remote.session.CachingSessionFactory");
+			sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+			synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+		}
+
+		// configure the InboundFileSynchronizer properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-file-separator");
