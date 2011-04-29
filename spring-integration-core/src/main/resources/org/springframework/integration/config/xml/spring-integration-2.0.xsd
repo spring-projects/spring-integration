@@ -681,14 +681,14 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:choice>
-					<xsd:sequence>
-						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-					</xsd:sequence>
-					<xsd:sequence>
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
-					</xsd:sequence>
+					<xsd:sequence> 
+						<xsd:element name="poller" type="basePollerType" /> 
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" /> 
+					</xsd:sequence> 
+					<xsd:sequence> 
+						<xsd:element ref="beans:bean" /> 
+						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" /> 
+					</xsd:sequence> 
 				</xsd:choice>
 				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
