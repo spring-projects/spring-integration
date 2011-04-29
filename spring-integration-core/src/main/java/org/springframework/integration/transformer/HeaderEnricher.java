@@ -59,17 +59,6 @@ public class HeaderEnricher implements Transformer {
 	public HeaderEnricher() {
 		this(null);
 	}
-	
-//	public HeaderEnricher(final MessageProcessor<?> messageProcessor) {
-//		HeaderValueMessageProcessor<?> hvProcessor = new AbstractHeaderValueMessageProcessor<Object>() {
-//
-//			public Object processMessage(Message<?> message) {
-//				// TODO Auto-generated method stub
-//				return messageProcessor.processMessage(message);
-//			}
-//		};
-//		//this(hvProcessor);
-//	}
 
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
