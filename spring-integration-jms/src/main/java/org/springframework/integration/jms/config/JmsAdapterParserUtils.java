@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.StringUtils;
 
 /**
@@ -124,7 +125,13 @@ abstract class JmsAdapterParserUtils {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
+		String receiveTimeout = element.getAttribute("receive-timeout");
+		if (StringUtils.hasText(receiveTimeout)) {
+			builder.addPropertyValue("receiveTimeout", receiveTimeout);
+		}
+		else {
+			builder.addPropertyValue("receiveTimeout", JmsTemplate.RECEIVE_TIMEOUT_NO_WAIT);
+		}
 		Integer acknowledgeMode = parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
 			builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
