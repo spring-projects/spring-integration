@@ -17,7 +17,8 @@
 	
 	<int-xmpp:presence-outbound-channel-adapter id="pollingOutboundRosterAdapter" 
 					xmpp-connection="testConnection" 
-					channel="pollingChannel">
+					channel="pollingChannel"
+					order="23">
 			<int:poller fixed-rate="1000" max-messages-per-poll="1"/>
 	</int-xmpp:presence-outbound-channel-adapter>
 	
@@ -26,10 +27,12 @@
 	
 	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterAdapter" 
 					xmpp-connection="testConnection" 
-					channel="eventChannel"/>
+					channel="eventChannel"
+					order="34"/>
 					
 	<int-xmpp:presence-outbound-channel-adapter id="eventOutboundRosterChannel" 
-					xmpp-connection="testConnection"/>
+					xmpp-connection="testConnection"
+					order="45"/>
 					
 	
 </beans>
