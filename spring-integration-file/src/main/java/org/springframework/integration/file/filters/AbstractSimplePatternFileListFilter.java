@@ -42,7 +42,7 @@ public abstract class AbstractSimplePatternFileListFilter<F> extends AbstractFil
 
 
 	/**
-	 * Accept the given file its name matches the pattern,
+	 * Accepts the given file if its name matches the pattern.
 	 */
 	@Override
 	public final boolean accept(F file) {
