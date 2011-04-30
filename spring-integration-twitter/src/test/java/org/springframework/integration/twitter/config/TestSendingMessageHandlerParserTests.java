@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.twitter.outbound.DirectMessageSendingMess
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class TestSendingMessageHandlerParserTests {
@@ -38,6 +39,7 @@ public class TestSendingMessageHandlerParserTests {
 		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);
 		Object handler = TestUtils.getPropertyValue(dmAdapter, "handler");
 		assertEquals(DirectMessageSendingMessageHandler.class, handler.getClass());
+		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
 	}
 
 }
