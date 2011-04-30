@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -29,14 +28,16 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.rmi.RmiInboundGateway;
+import org.springframework.integration.rmi.RmiOutboundGateway;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class RmiOutboundGatewayParserTests {
 
 	private final QueueChannel testChannel = new QueueChannel();
-
 
 	@Before
 	@SuppressWarnings("deprecation")
@@ -48,6 +49,13 @@ public class RmiOutboundGatewayParserTests {
 		gateway.afterPropertiesSet();
 	}
 
+	@Test
+	public void testOrder() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiOutboundGatewayParserTests.xml", this.getClass());
+		RmiOutboundGateway gateway = context.getBean(RmiOutboundGateway.class);
+		assertEquals(23, TestUtils.getPropertyValue(gateway, "order"));
+	}
 
 	@Test
 	public void directInvocation() {

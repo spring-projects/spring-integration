@@ -12,6 +12,10 @@
 
 	<channel id="localChannel"/>
 
-	<rmi:outbound-gateway id="gateway" request-channel="localChannel" remote-channel="testChannel" host="localhost"/>
+	<rmi:outbound-gateway id="gateway"
+		order="23" 
+		request-channel="localChannel" 
+		remote-channel="testChannel" 
+		host="localhost"/>
 
 </beans:beans>
