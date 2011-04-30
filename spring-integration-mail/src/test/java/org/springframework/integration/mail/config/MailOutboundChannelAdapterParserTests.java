@@ -45,6 +45,7 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
+		assertEquals(23, fieldAccessor.getPropertyValue("order"));
 	}
 
 	@Test

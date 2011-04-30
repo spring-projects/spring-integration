@@ -11,6 +11,7 @@
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 
 	<mail:outbound-channel-adapter id="adapterWithMailSenderReference"
+			order="23"
 			mail-sender="mailSender"/>
 
 	<mail:outbound-channel-adapter id="adapterWithHostProperty"
