@@ -68,6 +68,14 @@
 		<xsd:attribute name="charset" type="xsd:string"/>
 		<xsd:attribute name="append-newline" type="xsd:string" default="false"/>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		<xsd:attribute name="order">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the order for invocation when this endpoint is connected as a
+					subscriber to a SubscribableChannel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>

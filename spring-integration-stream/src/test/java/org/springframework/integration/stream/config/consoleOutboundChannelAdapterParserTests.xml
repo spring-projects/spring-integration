@@ -12,11 +12,11 @@
 
 	<integration:channel id="testChannel"/>
 
-	<stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel"/>
+	<stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel" order="23"/>
 
 	<stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
 
-	<stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
+	<stderr-channel-adapter id="stderrAdapter" channel="testChannel" order="34"/>
 
 	<stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
 

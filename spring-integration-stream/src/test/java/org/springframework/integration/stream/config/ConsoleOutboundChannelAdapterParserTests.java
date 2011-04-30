@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.springframework.integration.stream.CharacterStreamWritingMessageHandl
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public class ConsoleOutboundChannelAdapterParserTests {
 
@@ -75,6 +76,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals("foo", out.toString());
 		assertEquals("", err.toString());
+		assertEquals(23, accessor.getPropertyValue("order"));
 	}
 
 	@Test
@@ -131,6 +133,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		handler.handleMessage(new GenericMessage<String>("bad"));
 		assertEquals("", out.toString());
 		assertEquals("bad", err.toString());
+		assertEquals(34, accessor.getPropertyValue("order"));		
 	}
 
     @Test
