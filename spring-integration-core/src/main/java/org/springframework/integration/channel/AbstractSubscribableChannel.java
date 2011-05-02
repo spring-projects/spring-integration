@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,22 +35,23 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
 	
-	private final AtomicInteger handlers = new AtomicInteger();
+	private final AtomicInteger handlerCounter = new AtomicInteger();
 	
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);
-		if (added){
-			int counter = handlers.incrementAndGet();
-			logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s). ");
+		if (added) {
+			int counter = handlerCounter.incrementAndGet();
+			if (logger.isInfoEnabled()) {
+				logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s).");
+			}
 		}
-		
 		return added;
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
 		if (this.getRequiredDispatcher() instanceof UnicastingDispatcher){
-			handlers.getAndDecrement();
+			handlerCounter.getAndDecrement();
 		}
 		return this.getRequiredDispatcher().removeHandler(handle);
 	}

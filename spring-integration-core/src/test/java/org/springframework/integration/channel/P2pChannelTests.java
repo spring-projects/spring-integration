@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.Executor;
@@ -41,8 +42,8 @@ public class P2pChannelTests {
 		final DirectChannel channel = new DirectChannel();
 		channel.setBeanName("directChannel");
 		
-	
 		final Log logger = mock(Log.class);
+		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {		
 			public void doWith(Field field) throws IllegalArgumentException,
 					IllegalAccessException {
@@ -64,6 +65,7 @@ public class P2pChannelTests {
 		channel.setBeanName("executorChannel");
 		
 		final Log logger = mock(Log.class);
+		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
 			
 			public void doWith(Field field) throws IllegalArgumentException,
@@ -85,6 +87,7 @@ public class P2pChannelTests {
 		channel.setBeanName("pubSubChannel");
 		
 		final Log logger = mock(Log.class);
+		when(logger.isInfoEnabled()).thenReturn(true);
 		ReflectionUtils.doWithFields(AbstractMessageChannel.class, new FieldCallback() {
 			
 			public void doWith(Field field) throws IllegalArgumentException,
