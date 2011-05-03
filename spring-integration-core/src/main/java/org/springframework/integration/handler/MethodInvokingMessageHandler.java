@@ -45,6 +45,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
 	}
 	
+	
 	public void setComponentType(String componentType) {
 		this.componentType = componentType;
 	}
@@ -58,7 +59,7 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 	
-	
+	@Override
 	public String getComponentType() {
 		return this.componentType;
 	}
