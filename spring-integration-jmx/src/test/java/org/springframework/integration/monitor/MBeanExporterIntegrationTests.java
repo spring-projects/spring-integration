@@ -18,7 +18,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
 
+import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -81,6 +83,50 @@ public class MBeanExporterIntegrationTests {
 		context = new GenericXmlApplicationContext(getClass(), "oref-factory-channel-autodetect.xml");
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
+	}
+
+	@Test
+	public void testLifecycleInEndpointWithMessageSource() throws Exception {		
+		context = new GenericXmlApplicationContext(getClass(), "lifecycle-source.xml");
+		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
+		assertNotNull(messageChannelsMonitor);
+		MBeanServer server = context.getBean(MBeanServer.class);
+		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		assertEquals(0, names.size());
+		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=explicit,*"), null);
+		assertEquals(1, names.size());
+		MBeanOperationInfo[] operations = server.getMBeanInfo(names.iterator().next()).getOperations();
+		String startName = null;
+		for (MBeanOperationInfo info : operations) {
+			String name = info.getName();
+			if (name.startsWith("start")) {
+				startName = name;
+			}
+		}
+		// Lifecycle method name
+		assertEquals("start", startName);
+	}
+
+	@Test
+	public void testLifecycleInEndpointWithoutMessageSource() throws Exception {		
+		context = new GenericXmlApplicationContext(getClass(), "lifecycle-no-source.xml");
+		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
+		assertNotNull(messageChannelsMonitor);
+		MBeanServer server = context.getBean(MBeanServer.class);
+		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		assertEquals(1, names.size());
+		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:name=gateway,*"), null);
+		assertEquals(1, names.size());
+		MBeanOperationInfo[] operations = server.getMBeanInfo(names.iterator().next()).getOperations();
+		String startName = null;
+		for (MBeanOperationInfo info : operations) {
+			String name = info.getName();
+			if (name.startsWith("start")) {
+				startName = name;
+			}
+		}
+		// Lifecycle method name
+		assertEquals("start", startName);
 	}
 
 	public static class DateFactoryBean implements FactoryBean<Date> {
@@ -164,6 +210,25 @@ public class MBeanExporterIntegrationTests {
 			Assert.state(channel != null, "A channel must be provided");
 		}
 
+	}
+
+	public static interface Service {
+		String execute() throws Exception;
+		int getCounter();
+	}
+	
+	public static class SimpleService implements Service {
+		private int counter;
+
+		public String execute() throws Exception {
+			Thread.sleep(10L); // make the duration non-zero
+			counter++;
+			return "count="+counter;
+		}
+
+		public int getCounter() {
+			return counter;
+		}
 	}
 
 }

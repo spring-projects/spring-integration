@@ -30,7 +30,6 @@ import javax.management.modelmbean.ModelMBean;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
@@ -120,6 +119,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
 	private Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
+
+	private Map<String, String> beansByEndpointName = new HashMap<String, String>();
 
 	private ClassLoader beanClassLoader;
 
@@ -374,6 +375,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		registerChannels();
 		registerHandlers();
 		registerSources();
+		registerEndpoints();
 	}
 
 	/**
@@ -444,6 +446,14 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		logger.debug("No handler found for (" + name + ")");
 		return null;
+	}
+
+	public int getSourceMessageCount(String name) {
+		if (sourcesByName.containsKey(name)) {
+			return sourcesByName.get(name).getMessageCount();
+		}
+		logger.debug("No source found for (" + name + ")");
+		return -1;
 	}
 
 	public int getChannelReceiveCount(String name) {
@@ -541,6 +551,25 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
+	private void registerEndpoints() {
+		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+		for (String name : names) {
+			if (!beansByEndpointName.values().contains(name)) {
+				AbstractEndpoint endpoint = beanFactory.getBean(name, AbstractEndpoint.class);
+				String beanKey;
+				name = endpoint.getComponentName();
+				if (name.startsWith("_org.springframework.integration")) {
+					beanKey = getEndpointBeanKey(endpoint, getInternalComponentName(name), "internal");
+				}
+				else {
+					beanKey = getEndpointBeanKey(endpoint, endpoint.getComponentName(), "endpoint");
+				}
+				ObjectName objectName = registerBeanInstance(new ManagedEndpoint(endpoint), beanKey);
+				logger.info("Registered endpoint without MessageSource: " + objectName);
+			}
+		}
+	}
+
 	private Object applyChannelInterceptor(Object bean, DirectChannelMetrics interceptor, ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		channelsAdvice.addMethodName("send");
@@ -620,6 +649,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				handler.getSource());
 	}
 
+	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
+		// This ordering of keys seems to work with default settings of JConsole
+		return String.format(domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
+	}
+
 	private String getStaticNames() {
 		if (objectNameStaticProperties.isEmpty()) {
 			return "";
@@ -644,6 +678,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
 
 		String name = null;
+		String endpointName = null;
 		String source = "endpoint";
 		Object endpoint = null;
 
@@ -658,11 +693,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			if (field == monitor.getMessageHandler()) {
 				name = beanName;
+				endpointName = beanName;
 				break;
 			}
 		}
 		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
-			name = name.substring("_org.springframework.integration".length() + 1);
+			name = getInternalComponentName(name);
 			source = "internal";
 		}
 		if (name != null && endpoint != null && name.startsWith("org.springframework.integration")) {
@@ -707,11 +743,19 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			source = "handler";
 		}
 
+		if (endpointName != null) {
+			beansByEndpointName.put(name, endpointName);
+		}
+
 		monitor.setSource(source);
 		monitor.setName(name);
 
 		return result;
 
+	}
+
+	private String getInternalComponentName(String name) {
+		return name.substring("_org.springframework.integration".length() + 1);
 	}
 
 	private MessageSourceMetrics enhanceSourceMonitor(SimpleMessageSourceMetrics monitor) {
@@ -726,6 +770,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
 
 		String name = null;
+		String endpointName = null;
 		String source = "endpoint";
 		Object endpoint = null;
 
@@ -740,11 +785,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			if (field == monitor.getMessageSource()) {
 				name = beanName;
+				endpointName = beanName;
 				break;
 			}
 		}
 		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
-			name = name.substring("_org.springframework.integration".length() + 1);
+			name = getInternalComponentName(name);
 			source = "internal";
 		}
 		if (name != null && endpoint != null && name.startsWith("org.springframework.integration")) {
@@ -787,6 +833,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		if (name == null) {
 			name = monitor.getMessageSource().toString();
 			source = "handler";
+		}
+
+		if (endpointName != null) {
+			beansByEndpointName.put(name, endpointName);
 		}
 
 		monitor.setSource(source);
