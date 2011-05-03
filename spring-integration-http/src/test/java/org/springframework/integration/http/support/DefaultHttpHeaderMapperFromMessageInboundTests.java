@@ -462,7 +462,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		mapper.setOutboundHeaderNames(new String[] {"customHeader*"});
 		ConversionService cs = ConversionServiceFactory.createDefaultConversionService();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.setConversionService(cs);
+		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
 		mapper.afterPropertiesSet();
 		
@@ -484,7 +484,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
 		cs.addConverter(new TestClassConverter());
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-		beanFactory.setConversionService(cs);
+		beanFactory.registerSingleton("integrationConversionService", cs);
 		mapper.setBeanFactory(beanFactory);
 		mapper.afterPropertiesSet();
 		

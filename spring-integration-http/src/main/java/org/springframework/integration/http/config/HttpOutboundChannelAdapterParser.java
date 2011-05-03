@@ -72,9 +72,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		else if (StringUtils.hasText(mappedRequestHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
-			if (StringUtils.hasText(mappedRequestHeaders)) {
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
-			}	
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");	
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");

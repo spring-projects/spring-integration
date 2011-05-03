@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
  * 'inbound-channel-adapter' and 'true' for the 'inbound-gateway'.  
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 

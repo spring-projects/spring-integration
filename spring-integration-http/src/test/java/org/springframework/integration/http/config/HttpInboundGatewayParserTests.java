@@ -35,12 +35,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -63,9 +60,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HttpInboundGatewayParserTests {
-	@Autowired
-	private DefaultListableBeanFactory beanFactory;
-
+	
 	@Autowired
 	@Qualifier("inboundGateway")
 	private HttpRequestHandlingMessagingGateway gateway;

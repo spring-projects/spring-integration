@@ -34,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the 'outbound-gateway' element of the http namespace.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -71,7 +72,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
-		else {//if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
+		else {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
 			headerMapperBuilder.setFactoryMethod("outboundMapper");
