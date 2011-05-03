@@ -18,7 +18,6 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -47,8 +46,8 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
 			if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
 				if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
-					throw new BeanDefinitionStoreException("at most one of 'filename-generator-expression' or 'filename-generator' " +
-							"is allowed on file outbound adapter/gateway");
+					parserContext.getReaderContext().error("at most one of 'filename-generator-expression' or 'filename-generator' " +
+							"is allowed on file outbound adapter/gateway", element);
 				}
 				if (hasRemoteFileNameGenerator) {
 					handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
