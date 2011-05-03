@@ -32,6 +32,8 @@ import org.springframework.util.Assert;
 public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 
 	private volatile MethodInvokingMessageProcessor<Object> processor;
+	
+	private volatile String componentType;
 
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		Assert.isTrue(method.getReturnType().equals(void.class),
@@ -41,6 +43,10 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
 		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
+	}
+	
+	public void setComponentType(String componentType) {
+		this.componentType = componentType;
 	}
 
 	@Override
@@ -52,7 +58,8 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 		}
 	}
 	
+	
 	public String getComponentType() {
-		return "outbound-channel-adapter";
+		return this.componentType;
 	}
 }

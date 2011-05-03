@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +25,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element.
@@ -53,6 +54,8 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageHandler");
+		
+		invokerBuilder.addPropertyValue("componentType", "outbound-channel-adapter");
 		BeanComponentDefinition innerHandlerDefinition = 
 					IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (innerHandlerDefinition == null){
