@@ -124,6 +124,13 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="managed-components" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								Comma separated list of simple patterns for component names to register (defaults to '*').
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

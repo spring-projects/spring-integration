@@ -63,6 +63,7 @@ import org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler;
 import org.springframework.jmx.export.naming.MetadataNamingStrategy;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -142,6 +143,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private final MetadataNamingStrategy namingStrategy = new MetadataNamingStrategy(attributeSource);
 
+	private String[] componentNamePatterns = { "*" };
+
 	public IntegrationMBeanExporter() {
 		super();
 		// Shouldn't be necessary, but to be on the safe side...
@@ -174,6 +177,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public void setDefaultDomain(String domain) {
 		this.domain = domain;
 		this.namingStrategy.setDefaultDomain(domain);
+	}
+
+	public void setComponentNamePatterns(String[] componentNamePatterns) {
+		Assert.notEmpty(componentNamePatterns, "componentNamePatterns must not be empty");
+		this.componentNamePatterns = componentNamePatterns;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -494,6 +502,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private void registerChannels() {
 		for (DirectChannelMetrics monitor : channels) {
 			String name = monitor.getName();
+			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+				continue;
+			}
 			// Only register once...
 			if (!channelsByName.containsKey(name)) {
 				String beanKey = getChannelBeanKey(name);
@@ -515,6 +526,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		for (SimpleMessageHandlerMetrics source : handlers) {
 			MessageHandlerMetrics monitor = enhanceHandlerMonitor(source);
 			String name = monitor.getName();
+			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+				continue;
+			}
 			// Only register once...
 			if (!handlersByName.containsKey(name)) {
 				String beanKey = getHandlerBeanKey(monitor);
@@ -535,6 +549,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		for (SimpleMessageSourceMetrics source : sources) {
 			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
 			String name = monitor.getName();
+			if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+				continue;
+			}
 			// Only register once...
 			if (!sourcesByName.containsKey(name)) {
 				String beanKey = getSourceBeanKey(monitor);
@@ -558,12 +575,19 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				AbstractEndpoint endpoint = beanFactory.getBean(name, AbstractEndpoint.class);
 				String beanKey;
 				name = endpoint.getComponentName();
+				String source;
 				if (name.startsWith("_org.springframework.integration")) {
-					beanKey = getEndpointBeanKey(endpoint, getInternalComponentName(name), "internal");
+					name = getInternalComponentName(name);
+					source = "internal";
 				}
 				else {
-					beanKey = getEndpointBeanKey(endpoint, endpoint.getComponentName(), "endpoint");
+					name = endpoint.getComponentName();
+					source = "endpoint";
 				}
+				if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
+					continue;
+				}
+				beanKey = getEndpointBeanKey(endpoint, name, source);
 				ObjectName objectName = registerBeanInstance(new ManagedEndpoint(endpoint), beanKey);
 				logger.info("Registered endpoint without MessageSource: " + objectName);
 			}

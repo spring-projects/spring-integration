@@ -129,6 +129,17 @@ public class MBeanExporterIntegrationTests {
 		assertEquals("start", startName);
 	}
 
+	@Test
+	public void testComponentNames() throws Exception {		
+		context = new GenericXmlApplicationContext(getClass(), "excluded-components.xml");
+		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
+		assertNotNull(messageChannelsMonitor);
+		MBeanServer server = context.getBean(MBeanServer.class);
+		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=*,*"), null);
+		// Only one registered (out of >2 available)
+		assertEquals(1, names.size());
+	}
+
 	public static class DateFactoryBean implements FactoryBean<Date> {
 
 		private Date date;
