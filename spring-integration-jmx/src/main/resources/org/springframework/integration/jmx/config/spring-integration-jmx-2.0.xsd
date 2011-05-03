@@ -112,7 +112,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="object-name-static-properties-ref" use="optional">
+					<xsd:attribute name="object-name-static-properties" use="optional">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">

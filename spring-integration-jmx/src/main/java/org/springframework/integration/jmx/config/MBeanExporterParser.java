@@ -52,7 +52,7 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 		Object mbeanServer = getMBeanServer(element, parserContext);
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties-ref", "objectNameStaticProperties");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "object-name-static-properties", "objectNameStaticProperties");
 		
 		builder.addPropertyValue("server", mbeanServer);
 	}
