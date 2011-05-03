@@ -53,6 +53,7 @@ import org.springframework.integration.Message;
  * @author Iwein Fuld
  * 
  */
+@SuppressWarnings("rawtypes")
 public class PayloadMatcher extends TypeSafeMatcher<Message> {
 
 	private final Matcher matcher;

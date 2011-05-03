@@ -70,6 +70,7 @@ public class PayloadMatcherTests {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void shouldMatchNonParametrizedMessage() throws Exception {
 		Message message = this.message;

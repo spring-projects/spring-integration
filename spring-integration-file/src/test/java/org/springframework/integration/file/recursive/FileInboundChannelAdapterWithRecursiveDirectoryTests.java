@@ -60,7 +60,7 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
         assertThat(files.receive(), hasPayload(file));
     }
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(timeout = 3000)
 	public void shouldReturnFilesMultipleLevels() throws IOException {
 

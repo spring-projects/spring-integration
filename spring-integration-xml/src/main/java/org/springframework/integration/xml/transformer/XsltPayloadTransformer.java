@@ -136,8 +136,6 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
     /**
      * User source factory even for directly supported payloads
-     *
-     * @return
      */
     public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
         this.alwaysUseSourceFactory = alwaysUseSourceFactory;

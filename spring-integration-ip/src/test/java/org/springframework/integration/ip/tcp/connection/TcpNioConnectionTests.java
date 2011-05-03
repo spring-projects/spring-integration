@@ -50,6 +50,7 @@ public class TcpNioConnectionTests {
 		factory.start();
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			@SuppressWarnings("unused")
 			public void run() {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
