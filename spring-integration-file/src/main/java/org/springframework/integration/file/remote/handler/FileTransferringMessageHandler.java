@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
  */
 public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	
-	public volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix =".writing";
 
 	private final SessionFactory sessionFactory;
 	

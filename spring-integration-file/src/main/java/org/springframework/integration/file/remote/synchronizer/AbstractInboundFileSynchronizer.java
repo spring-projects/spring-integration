@@ -45,6 +45,7 @@ import org.springframework.util.ObjectUtils;
  * 
  * @author Josh Long
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
@@ -53,7 +54,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
-	public volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix =".writing";
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
