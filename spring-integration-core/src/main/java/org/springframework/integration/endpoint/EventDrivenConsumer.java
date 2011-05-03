@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.util.Assert;
@@ -46,22 +47,32 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	@Override 
 	protected void doStart() {
-		if (this.handler instanceof IntegrationObjectSupport && this.inputChannel instanceof IntegrationObjectSupport){
-			String channelName = ((IntegrationObjectSupport)this.inputChannel).getComponentName();
-			String componentType = ((IntegrationObjectSupport)this.handler).getComponentType();
-			componentType = StringUtils.hasText(componentType) ? componentType : "";
-			String componentName = ((IntegrationObjectSupport)this).getComponentName();
-			componentName = (StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
-
-			logger.info("Adding {" + componentType + componentName + "} as a subscriber to the '" + channelName + "' channel");
-		}
-		
+		this.logComponentSubscriptionEvent(true);
 		this.inputChannel.subscribe(this.handler);
 	}
 
 	@Override 
 	protected void doStop() {
+		this.logComponentSubscriptionEvent(false);
 		this.inputChannel.unsubscribe(this.handler);
 	}
-
+	
+	private void logComponentSubscriptionEvent(boolean add){
+		if (this.handler instanceof NamedComponent && this.inputChannel instanceof NamedComponent){
+			String channelName = ((NamedComponent)this.inputChannel).getComponentName();
+			String componentType = ((NamedComponent)this.handler).getComponentType();
+			componentType = StringUtils.hasText(componentType) ? componentType : "";
+			String componentName = ((IntegrationObjectSupport)this).getComponentName();
+			componentName = (StringUtils.hasText(componentName) && componentName.contains("#")) ? "" : ":" + componentName;
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("{" + componentType + componentName + "} as a subscriber to the '" + channelName + "' channel");
+			if (add){
+				buffer.insert(0, "Adding ");
+			}
+			else {
+				buffer.insert(0, "Removing ");
+			}
+			logger.info(buffer.toString());
+		}
+	}
 }
