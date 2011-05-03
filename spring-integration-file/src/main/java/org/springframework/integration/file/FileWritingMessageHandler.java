@@ -57,7 +57,7 @@ import java.nio.charset.Charset;
  */
 public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	public volatile String temporaryFileSuffix =".writing";
+	private volatile String temporaryFileSuffix =".writing";
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
