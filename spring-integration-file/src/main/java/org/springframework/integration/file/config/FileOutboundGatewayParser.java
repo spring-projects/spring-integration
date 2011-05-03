@@ -51,8 +51,8 @@ public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
 		if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
 			if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
-				throw new BeanDefinitionStoreException("at most one of 'filename-generator-expression' or 'filename-generator' " +
-						"is allowed on file outbound adapter/gateway");
+				parserContext.getReaderContext().error("at most one of 'filename-generator-expression' or 'filename-generator' " +
+						"is allowed on file outbound adapter/gateway", element) ;
 			}
 			if (hasRemoteFileNameGenerator) {
 				handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
