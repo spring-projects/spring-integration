@@ -344,7 +344,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	}
 	
 	public void afterPropertiesSet() throws Exception {
-		this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+		if (this.beanFactory != null){
+			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+		}
 	}
 
 	private boolean containsElementIgnoreCase(String[] headerNames, String name){
