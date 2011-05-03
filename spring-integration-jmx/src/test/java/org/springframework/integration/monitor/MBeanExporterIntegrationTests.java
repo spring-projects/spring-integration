@@ -135,9 +135,11 @@ public class MBeanExporterIntegrationTests {
 		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
 		assertNotNull(messageChannelsMonitor);
 		MBeanServer server = context.getBean(MBeanServer.class);
-		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=*,*"), null);
+		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageChannel,*"), null);
 		// Only one registered (out of >2 available)
 		assertEquals(1, names.size());
+		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageHandler,*"), null);
+		assertEquals(0, names.size());
 	}
 
 	public static class DateFactoryBean implements FactoryBean<Date> {

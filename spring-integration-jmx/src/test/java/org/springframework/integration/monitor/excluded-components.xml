@@ -18,6 +18,10 @@
 		<int:queue />
 	</int:channel>
 
+	<int:channel id="output">
+		<int:queue />
+	</int:channel>
+
 	<int:inbound-channel-adapter id="explicit" ref="service" method="execute" channel="input">
 		<int:poller fixed-rate="200" />
 	</int:inbound-channel-adapter>

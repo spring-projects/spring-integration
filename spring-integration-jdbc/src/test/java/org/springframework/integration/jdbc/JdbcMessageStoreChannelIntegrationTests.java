@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.test.annotation.Repeat;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -73,7 +74,6 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test
-	// @Repeat(100)
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.reset(1);
 		Service.fail = true;
@@ -100,6 +100,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 	}
 
 	@Test
+	@Repeat(10)
 	public void testTransactionalSendAndReceive() throws Exception {
 
 		Service.reset(1);
