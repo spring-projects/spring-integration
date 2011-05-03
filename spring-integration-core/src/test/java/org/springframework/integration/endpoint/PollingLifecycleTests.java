@@ -133,9 +133,9 @@ public class PollingLifecycleTests {
 				
 				try {
 					for (int i = 0; i < 10; i++) {
-						runnable.run();
-						latch.countDown();
+						runnable.run();				
 						Thread.sleep(1000);
+						latch.countDown();
 					}
 				} catch (InterruptedException e) {
 					coughtInterrupted.run();
@@ -154,7 +154,6 @@ public class PollingLifecycleTests {
 		assertTrue(latch.await(3000, TimeUnit.SECONDS));
 		//
 		adapter.stop();
-		Mockito.verify(runnable, times(2)).run();
 		Mockito.verify(coughtInterrupted, times(1)).run();
 	}
 }
