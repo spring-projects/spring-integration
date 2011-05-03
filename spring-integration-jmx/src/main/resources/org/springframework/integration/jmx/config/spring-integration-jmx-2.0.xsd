@@ -120,7 +120,8 @@
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
-								Static object properties to be used for this domain.
+								Static object properties to be used for this domain.  These properties are appended to
+								the ObjectName of all MBeans registered by this component.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -128,6 +129,10 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Comma separated list of simple patterns for component names to register (defaults to '*').
+								The pattern is applied to all components before they are registered, looking for a match on
+								the 'name' property of the ObjectName.  A MessageChannel and a MessageHandler (for instance)
+								can share a name because they have a different type, so in that case they would either both
+								be included or both excluded.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
