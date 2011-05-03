@@ -71,9 +71,10 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
-		else if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
+		else {//if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+			headerMapperBuilder.setFactoryMethod("outboundMapper");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "inboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

@@ -98,6 +98,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		String headerMapper = element.getAttribute("header-mapper");
 		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
 		String mappedResponseHeaders = element.getAttribute("mapped-response-headers");
+		
+		
 		if (StringUtils.hasText(headerMapper)) {
 			if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
 				parserContext.getReaderContext().error("Neither 'mappped-request-headers' or 'mapped-response-headers' " +
@@ -105,9 +107,11 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			}
 			builder.addPropertyReference("headerMapper", headerMapper);
 		}
-		else if (StringUtils.hasText(mappedRequestHeaders) || StringUtils.hasText(mappedResponseHeaders)) {
+		else {
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+									"org.springframework.integration.http.support.DefaultHttpHeaderMapper");
+			headerMapperBuilder.setFactoryMethod("inboundMapper");
+			
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "inboundHeaderNames");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-response-headers", "outboundHeaderNames");
 			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

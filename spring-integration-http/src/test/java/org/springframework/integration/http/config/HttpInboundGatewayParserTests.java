@@ -35,8 +35,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -59,6 +63,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HttpInboundGatewayParserTests {
+	@Autowired
+	private DefaultListableBeanFactory beanFactory;
 
 	@Autowired
 	@Qualifier("inboundGateway")
@@ -67,6 +73,10 @@ public class HttpInboundGatewayParserTests {
 	@Autowired
 	@Qualifier("withMappedHeaders")
 	private HttpRequestHandlingMessagingGateway withMappedHeaders;
+	
+	@Autowired
+	@Qualifier("withMappedHeadersAndConverter")
+	private HttpRequestHandlingMessagingGateway withMappedHeadersAndConverter;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
@@ -129,6 +139,56 @@ public class HttpInboundGatewayParserTests {
 		assertTrue(headers.size() == 1);
 		List<String> abc = headers.get("X-abc");
 		assertEquals("abc", abc.get(0));
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void requestWithHeadersWithConversionService() throws Exception {
+		DefaultHttpHeaderMapper headerMapper = 
+			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("foo", "foo");
+		headers.set("bar", "bar");
+		headers.set("baz", "baz");
+		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		assertTrue(map.size() == 2);
+		assertEquals("foo", map.get("foo"));
+		assertEquals("bar", map.get("bar"));
+		
+		Map<String, Object> mapOfHeaders = new HashMap<String, Object>();
+		mapOfHeaders.put("abc", "abc");
+		Person person = new Person();
+		person.setName("Oleg");
+		mapOfHeaders.put("person", person);
+		MessageHeaders mh = new MessageHeaders(mapOfHeaders);
+		headers = new HttpHeaders();
+		headerMapper.fromHeaders(mh, headers);
+		assertTrue(headers.size() == 2);
+		List<String> abc = headers.get("X-abc");
+		assertEquals("abc", abc.get(0));
+		List<String> personHeaders = headers.get("X-person");
+		assertEquals("Oleg", personHeaders.get(0));
+	}
+	
+	public static class Person{
+		private String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+	}
+	
+	public static class PersonConverter implements Converter<Person, String>{
+
+		public String convert(Person source) {
+			return source.getName();
+		}
+		
 	}
 
 }
