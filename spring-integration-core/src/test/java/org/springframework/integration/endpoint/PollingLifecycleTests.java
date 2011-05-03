@@ -126,14 +126,12 @@ public class PollingLifecycleTests {
 		pollerMetadata.setMaxMessagesPerPoll(-1);
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
-		final Runnable runnable = mock(Runnable.class);
 		final Runnable coughtInterrupted = mock(Runnable.class);
 		MessageSource<String> source = new MessageSource<String>() {
 			public Message<String> receive() {
 				
 				try {
-					for (int i = 0; i < 10; i++) {
-						runnable.run();				
+					for (int i = 0; i < 10; i++) {			
 						Thread.sleep(1000);
 						latch.countDown();
 					}
@@ -154,6 +152,7 @@ public class PollingLifecycleTests {
 		assertTrue(latch.await(3000, TimeUnit.SECONDS));
 		//
 		adapter.stop();
+		Thread.sleep(1000);
 		Mockito.verify(coughtInterrupted, times(1)).run();
 	}
 }
