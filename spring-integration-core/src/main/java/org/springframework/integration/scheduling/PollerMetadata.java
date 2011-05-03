@@ -30,7 +30,7 @@ import org.springframework.util.ErrorHandler;
  */
 public class PollerMetadata {
 
-	public static final int MAX_MESSAGES_UNBOUNDED = -1;
+	public static final int MAX_MESSAGES_UNBOUNDED = Integer.MIN_VALUE;
 	
 	private volatile Trigger trigger;
 

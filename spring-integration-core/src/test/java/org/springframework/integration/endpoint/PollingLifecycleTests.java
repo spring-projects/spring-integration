@@ -115,4 +115,46 @@ public class PollingLifecycleTests {
 		assertNull(channel.receive(1000));
 		Mockito.verify(source, times(1)).receive();
 	}
+	
+	@Test
+	public void ensurePollerTaskStopsForAdapterWithInteraptable() throws Exception{
+		final CountDownLatch latch = new CountDownLatch(2);
+		QueueChannel channel = new QueueChannel();
+		
+		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(-1);
+		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
+		adapterFactory.setPollerMetadata(pollerMetadata);
+		final Runnable runnable = mock(Runnable.class);
+		final Runnable coughtInterrupted = mock(Runnable.class);
+		MessageSource<String> source = new MessageSource<String>() {
+			public Message<String> receive() {
+				
+				try {
+					for (int i = 0; i < 10; i++) {
+						runnable.run();
+						latch.countDown();
+						Thread.sleep(1000);
+					}
+				} catch (InterruptedException e) {
+					coughtInterrupted.run();
+				}
+				
+				return new GenericMessage<String>("hello");
+			}
+		};
+		adapterFactory.setSource(source);
+		adapterFactory.setOutputChannel(channel);
+		adapterFactory.setBeanFactory(mock(ConfigurableBeanFactory.class));
+		SourcePollingChannelAdapter adapter = adapterFactory.getObject();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		assertTrue(latch.await(3000, TimeUnit.SECONDS));
+		//
+		adapter.stop();
+		Mockito.verify(runnable, times(2)).run();
+		Mockito.verify(coughtInterrupted, times(1)).run();
+	}
 }
