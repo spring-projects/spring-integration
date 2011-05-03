@@ -1914,7 +1914,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						<xsd:annotation>
 							<xsd:documentation>
 								If set to 'true' the Message will be removed from the MessageStore by 
-								this transformer. Useful when Message can be 'claimed' only once. DFAULT is 'false'
+								this transformer. Useful when Message can be 'claimed' only once. DEFAULT is 'false'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

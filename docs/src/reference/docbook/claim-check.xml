@@ -71,12 +71,15 @@
     	</para>
     	<para><emphasis>Claim Once</emphasis></para>
     	<para>
-    	There are scenarios when a particular message must be claimed only once. Take the airplane luggage check-in/out process. 
-    	Checking-in your luggage on the departure and and then claiming it on the arrival is a classic example of such scenario. 
-    	Once the luggage was claimed it can no longer be claimed again without further check-in. To accommodate such cases we 
-    	introduced <code>remove-message</code> boolean attribute on <code>claim-check-out</code> transformer. This attribute is 
-    	set to <code>false</code> by default, however if set to <code>true</code>, the claimed Message will also be removed 
-    	from the MessageStore and can no longer be claimed again.
+    	There are scenarios when a particular message must be claimed only once. As an analogy, consider the airplane luggage check-in/out process. 
+    	Checking-in your luggage on the departure and and then claiming it on the arrival is a classic example of such a scenario. 
+    	Once the luggage was claimed it can not be claimed again without first checking it back in. To accommodate such cases we 
+    	introduced a <code>remove-message</code> boolean attribute on the <code>claim-check-out</code> transformer. This attribute is 
+    	set to <code>false</code> by default. However if set to <code>true</code>, the claimed Message will also be removed 
+    	from the MessageStore so that it can no longer be claimed again. This is also something to consider in terms of storage space,
+    	especially in the case of the in-memory Map-based <classname>SimpleMessageStore</classname> where failing to remove the Messages
+    	could ultimately lead to an <classname>OutOfMemoryException</classname>. If you don't expect multiple claims to be made, it's
+    	recommended that you set the <code>remove-message</code> attribute's value to <code>false</code>.
     	<programlisting language="xml"><![CDATA[<claim-check-out id="checkout"
         input-channel="checkoutChannel"
         message-store="testMessageStore"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 public class ClaimCheckOutTransformer extends AbstractTransformer {
 
 	private final MessageStore messageStore;
-	
+
 	private volatile boolean removeMessage = false;
 
 
@@ -59,9 +59,11 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Message<?> retrievedMessage = this.messageStore.getMessage(id);
 		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
 				+ " within MessageStore [" + this.messageStore + "]");
-		if (this.removeMessage){
+		if (this.removeMessage) {
 			this.messageStore.removeMessage(id);
-			logger.debug("Message with claim-check '" + id + "' was removed from MessageStore");
+			if (logger.isDebugEnabled()) {
+				logger.debug("Removed Message with claim-check '" + id + "' from the MessageStore.");
+			}
 		}
 		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
