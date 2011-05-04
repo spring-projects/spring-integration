@@ -180,11 +180,44 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
  	<title>HTTP Proxy configuration</title>
  
  	<para>
- 	If you are behind the proxy and need to configure proxy settings for HTTP outbound adapters/gateways you can do 
- 	so by providing custom instance of <classname>ClientHttpRequestFactory</classname>. 
-	You can provide your own implementation of <classname>ClientHttpRequestFactory</classname> strategy or you can use 
-	implementations already provided by Spring and Apache Commons.	
+ 	If you are behind the proxy and need to configure proxy settings for HTTP outbound adapters/
+	gateways you can apply several approaches.	
  	</para>
+ 	
+ 	<para>
+ 		<emphasis>Standard Java Proxy configuration</emphasis>
+    </para>
+    
+    <para>
+    There are 3 properties you can set to specify the proxy that will be used by the http protocol handler:
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>http.proxyHost</emphasis> - the host name of the proxy server. </para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>http.proxyPort</emphasis> - the port number, the default value being 80. </para>
+      </listitem>
+      
+      <listitem>
+        <para><emphasis>http.nonProxyHosts</emphasis> - a list of hosts that should be reached directly, 
+        bypassing the proxy. This is a list of patterns separated by '|'. The patterns may start or end with a '*' for wildcards. Any host matching one of these patterns will be reached through a direct connection instead of through a proxy. </para>
+      </listitem>
+    </itemizedlist>
+    
+    And for HTTPS:
+    
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>https.proxyHost</emphasis> - the host name of the proxy server. </para>
+      </listitem>
+
+      <listitem>
+        <para><emphasis>https.proxyPort</emphasis> - the port number, the default value being 80. </para>
+      </listitem> 
+    </itemizedlist>
+    For more information please refer to this document: http://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
+    </para>
  	
  	<para>
  		<emphasis>Apache Commons</emphasis>
