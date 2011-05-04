@@ -73,14 +73,16 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile Properties javaMailProperties = new Properties();
 
-	protected volatile boolean initialized;
-
-	private final Object initializationMonitor = new Object();
-
-	private Authenticator javaMailAuthenticator;
+	private volatile Authenticator javaMailAuthenticator;
 
 	private final StandardEvaluationContext context = new StandardEvaluationContext();
+
 	private volatile Expression selectorExpression;
+
+	protected volatile boolean initialized;
+
+	private final Object folderMonitor = new Object();
+
 
 	public AbstractMailReceiver() {
 		this.url = null;
@@ -219,16 +221,14 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.folder.open(this.folderOpenMode);
 	}
 	
-	public  Message[] receive() throws javax.mail.MessagingException{	
-		synchronized (this.initializationMonitor) {
+	public Message[] receive() throws javax.mail.MessagingException {	
+		synchronized (this.folderMonitor) {
 			try {
 				this.openFolder();
 				if (logger.isInfoEnabled()) {
 					logger.info("attempting to receive mail from folder [" + this.getFolder().getFullName() + "]");
 				}
 				Message[] messages = this.searchForNewMessages();
-				
-
 				if (this.maxFetchSize > 0 && messages.length > this.maxFetchSize) {
 					Message[] reducedMessages = new Message[this.maxFetchSize];
 					System.arraycopy(messages, 0, reducedMessages, 0, this.maxFetchSize);
@@ -240,12 +240,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				if (messages.length > 0) {
 					this.fetchMessages(messages);
 				}
-
 				List<Message> copiedMessages = new LinkedList<Message>();
 				logger.debug("Recieved " + messages.length + " messages");
-				
 				boolean recentFlagSupported = this.getFolder().getPermanentFlags().contains(Flags.Flag.RECENT);
-				
 				for (int i = 0; i < messages.length; i++) {
 					if (!recentFlagSupported){
 						if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
@@ -259,8 +256,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 							messages[i].setFlag(Flags.Flag.FLAGGED, true); 
 						}
 					}
-						
-					if (this.selectorExpression != null){
+					if (this.selectorExpression != null) {
 						Message message = messages[i];
 						if ((Boolean)this.selectorExpression.getValue(this.context, message)){
 							this.setAdditionalFlags(message);
@@ -315,8 +311,18 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		}
 	}
 
+	/**
+	 * Optional method allowing you to set additional flags. 
+	 * Currently only implemented in IMapMailReceiver.
+	 * 
+	 * @param message
+	 * @throws MessagingException
+	 */
+	protected void setAdditionalFlags(Message message) throws MessagingException {
+	}
+
 	public void destroy() throws Exception {
-		synchronized (this.initializationMonitor) {
+		synchronized (this.folderMonitor) {
 			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			MailTransportUtils.closeService(this.store);
 			this.folder = null;
@@ -326,25 +332,18 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 
 	@Override
-	public String toString() {
-		return this.url.toString();
-	}
-	/**
-	 * Optional method allowing you to set additional flags. 
-	 * Currently only implemented in IMapMailReceiver.
-	 * 
-	 * @param message
-	 * @throws MessagingException
-	 */
-	protected void setAdditionalFlags(Message message) throws MessagingException {}
-	
-	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
 	}
-	
-	Store getStore(){
+
+	@Override
+	public String toString() {
+		return this.url.toString();
+	}
+
+	Store getStore() {
 		return this.store;
 	}
+
 }
