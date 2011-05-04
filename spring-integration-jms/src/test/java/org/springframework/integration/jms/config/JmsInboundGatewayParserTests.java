@@ -346,9 +346,7 @@ public class JmsInboundGatewayParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithReplyChannel.xml", this.getClass());
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gateway");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
-		Object replyChannel = accessor.getPropertyValue("replyChannel");
+		Object replyChannel = TestUtils.getPropertyValue(gateway, "listener.gatewayDelegate.replyChannel");
 		assertEquals(context.getBean("replies"), replyChannel);
 	}
 
