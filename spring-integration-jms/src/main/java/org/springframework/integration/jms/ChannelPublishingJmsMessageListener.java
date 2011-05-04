@@ -412,11 +412,11 @@ public class ChannelPublishingJmsMessageListener
 	
 	private class GatewayDelegate extends MessagingGatewaySupport {
 
-		public void send(Object request) {
+		protected void send(Object request) {
 			super.send(request);
 		}
 		
-		public Message<?> sendAndReceiveMessage(Object request) {
+		protected Message<?> sendAndReceiveMessage(Object request) {
 			return super.sendAndReceiveMessage(request);
 		}
 
