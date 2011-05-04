@@ -219,53 +219,6 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     For more information please refer to this document: http://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
     </para>
  	
- 	<para>
- 		<emphasis>Apache Commons</emphasis>
-    </para>
-    <para>
-    Apache Commons gives you <classname>CommonsClientHttpRequestFactory</classname> which could be configured with 
-    <classname>Proxy</classname> aware instance of <classname>HttpClient</classname>. For simplicity you can encapsulate 
-    the construction logic behind a <classname>FactoryBean</classname> as in the example below:
-    
-    <programlisting language="java"><![CDATA[public class CommonsRequestFactoryBean implements 
-    			FactoryBean<CommonsClientHttpRequestFactory> {
-	
-	private String proxyHost;
-	private int proxyPort;
-
-	public CommonsClientHttpRequestFactory getObject() throws Exception {
-		HttpClient client = new HttpClient();
-		client.getHostConfiguration().setProxy(this.proxyHost, this.proxyPort);
-		CommonsClientHttpRequestFactory requestFactory = 
-									new CommonsClientHttpRequestFactory(client);
-		return requestFactory;
-	}
-
-	public Class<?> getObjectType() {
-		return CommonsClientHttpRequestFactory.class;
-	}
-
-	public boolean isSingleton() {
-		return true;
-	}
-	public void setProxyHost(String proxyHost) {
-		this.proxyHost = proxyHost;
-	}
-
-	public void setProxyPort(int proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-}]]></programlisting>
-    and then configure it with a simple XML configuration:
-    <programlisting language="xml"><![CDATA[<int-http:outbound-channel-adapter url="http://foo/bar" channel="requestChannel" 
-					request-factory="requestFactory"/>
-
-<bean id="requestFactory" class="com.acme.CommonsRequestFactoryBean">
-	<property name="proxyHost" value="123.0.0.1"/>
-	<property name="proxyPort" value="8080"/>
-</bean>]]></programlisting>
-    </para>
-    
     <para>
     	<emphasis>Spring's SimpleClientHttpRequestFactory</emphasis>
     </para>
