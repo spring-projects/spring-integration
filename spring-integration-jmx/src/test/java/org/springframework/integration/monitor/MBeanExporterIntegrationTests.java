@@ -30,6 +30,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 
@@ -140,6 +142,36 @@ public class MBeanExporterIntegrationTests {
 		assertEquals(1, names.size());
 		names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=MessageHandler,*"), null);
 		assertEquals(0, names.size());
+	}
+
+	@Test
+	public void testDuplicateComponentNames() throws Exception {		
+		context = new GenericXmlApplicationContext(getClass(), "duplicate-components.xml");
+		messageChannelsMonitor = context.getBean(IntegrationMBeanExporter.class);
+		assertNotNull(messageChannelsMonitor);
+		MBeanServer server = context.getBean(MBeanServer.class);
+		Set<ObjectName> names = server.queryNames(ObjectName.getInstance("org.springframework.integration:type=ManagedEndpoint,*"), null);
+		assertEquals(2, names.size());
+	}
+	
+	public static class BogusEndpoint extends AbstractEndpoint {
+		
+		@SuppressWarnings("unused")
+		private IntegrationObjectSupport parent;
+		
+		public void setParent(IntegrationObjectSupport parent) {
+			this.parent = parent;
+			setComponentName(parent.getComponentName());
+		}
+
+		@Override
+		protected void doStart() {
+		}
+
+		@Override
+		protected void doStop() {
+		}
+		
 	}
 
 	public static class DateFactoryBean implements FactoryBean<Date> {

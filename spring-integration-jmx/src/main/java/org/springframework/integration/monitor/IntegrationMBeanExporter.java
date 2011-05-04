@@ -570,6 +570,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private void registerEndpoints() {
 		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+		Set<String> endpointNames = new HashSet<String>();
 		for (String name : names) {
 			if (!beansByEndpointName.values().contains(name)) {
 				AbstractEndpoint endpoint = beanFactory.getBean(name, AbstractEndpoint.class);
@@ -587,6 +588,15 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (!PatternMatchUtils.simpleMatch(this.componentNamePatterns, name)) {
 					continue;
 				}
+				if (endpointNames.contains(name)) {
+					int count = 0;
+					String unique = name+"#"+count;
+					while (endpointNames.contains(unique)) {
+						unique = name + "#" + (++count);
+					}
+					name = unique;
+				}
+				endpointNames.add(name);
 				beanKey = getEndpointBeanKey(endpoint, name, source);
 				ObjectName objectName = registerBeanInstance(new ManagedEndpoint(endpoint), beanKey);
 				logger.info("Registered endpoint without MessageSource: " + objectName);
