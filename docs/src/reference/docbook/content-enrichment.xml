@@ -64,6 +64,24 @@
 
 }]]></programlisting>
     </para>
+    <para>
+    You can also configure your POJO as inner bean
+
+<programlisting language="xml"><![CDATA[<int:header-enricher  input-channel="inputChannel" output-channel="outputChannel">
+	<int:header name="some_header">
+            <bean class="org.MyEnricher"/>
+        </int:header>
+</int:header-enricher>]]></programlisting>
+
+as well as point to a Groovy script
+
+<programlisting language="xml"><![CDATA[<int:header-enricher  input-channel="inputChannel" output-channel="outputChannel">
+		<int:header name="some_header">
+            <int-groovy:script location="org/SampleGroovyHeaderEnricher.groovy"/>
+        </int:header>
+</int:header-enricher>]]></programlisting>
+
+    </para>
 
     <para>
     	<emphasis>SpEL Support</emphasis>
