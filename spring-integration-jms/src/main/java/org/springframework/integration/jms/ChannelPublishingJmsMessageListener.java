@@ -275,7 +275,7 @@ public class ChannelPublishingJmsMessageListener
 				MessageBuilder.fromMessage((Message<?>) result).copyHeaders(headers).build() : 
 				MessageBuilder.withPayload(result).copyHeaders(headers).build();
 		if (!this.expectReply) {
-			this.gatewayDelegate.sendAndReceive(requestMessage);
+			this.gatewayDelegate.send(requestMessage);
 		}
 		else {
 			Message<?> replyMessage = this.gatewayDelegate.sendAndReceiveMessage(requestMessage);
@@ -412,8 +412,8 @@ public class ChannelPublishingJmsMessageListener
 	
 	private class GatewayDelegate extends MessagingGatewaySupport {
 
-		public Object sendAndReceive(Object request) {
-			return super.sendAndReceive(request);
+		public void send(Object request) {
+			super.send(request);
 		}
 		
 		public Message<?> sendAndReceiveMessage(Object request) {
