@@ -117,7 +117,7 @@ public class PollingLifecycleTests {
 	}
 	
 	@Test
-	public void ensurePollerTaskStopsForAdapterWithInteraptible() throws Exception{
+	public void ensurePollerTaskStopsForAdapterWithInterruptible() throws Exception{
 		final CountDownLatch latch = new CountDownLatch(2);
 		QueueChannel channel = new QueueChannel();
 		
