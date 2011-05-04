@@ -94,7 +94,16 @@ this list can also be simple patterns to be matched against the header names (e.
 The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 						]]></xsd:documentation>
 				</xsd:annotation>
-			</xsd:attribute>		
+			</xsd:attribute>	
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>	
 		</xsd:complexType>
 	</xsd:element>
 
@@ -165,6 +174,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

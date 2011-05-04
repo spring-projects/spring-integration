@@ -16,7 +16,7 @@
 		<si:queue capacity="1"/>
 	</si:channel>
 
-	<inbound-channel-adapter id="defaultAdapter" channel="requests"/>
+	<inbound-channel-adapter id="defaultAdapter" channel="requests" error-channel="errorChannel"/>
 
 	<inbound-channel-adapter id="postOnlyAdapter" channel="requests" supported-methods="POST"/>
 
