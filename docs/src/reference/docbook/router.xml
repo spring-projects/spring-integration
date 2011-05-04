@@ -158,17 +158,13 @@
   	<para>
   	Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>
   	
-  	<programlisting language="xml"><![CDATA[<router input-channel="errorChannel" default-output-channel="defaultErrorChannel">
-	<mapping value="org.FooException" channel="fooChannel" />
-	<mapping value="org.BarException" channel="barChannel" />
-	<beans:bean class="org.springframework.integration.router.ErrorMessageExceptionTypeRouter"/>
-</router>
+  	<programlisting language="xml"><![CDATA[<int:exception-type-router input-channel="inputChannel" default-output-channel="defaultChannel">
+		<int:mapping exception-type="java.lang.IllegalArgumentException" channel="illegalChannel"/>
+		<int:mapping exception-type="java.lang.NullPointerException" channel="npeChannel"/>
+</int:exception-type-router>
 
-<channel id="fooChannel" />
-<channel id="barChannel" />]]></programlisting>
-  	</para>
-  	<para>
-  	In the future we'll consider a more convenient namespace based support similar to 'header-value-router' and 'payload-type-router'
+<channel id="illegalChannel" />
+<channel id="npeChannel" />]]></programlisting>
   	</para>
   </section>
 
