@@ -180,8 +180,10 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
  	<title>HTTP Proxy configuration</title>
  
  	<para>
- 	If you are behind the proxy and need to configure proxy settings for HTTP outbound adapters/
-	gateways you can apply several approaches.	
+ 	If you are behind a proxy and need to configure proxy settings for HTTP outbound adapters and/or
+	gateways, you can apply one of two approaches. In most cases, you can rely on the standard Java
+	System Properties that control the proxy settings. Otherwise, you can explicitly configure a
+	Spring bean for the HTTP client request factory instance.
  	</para>
  	
  	<para>
@@ -189,7 +191,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     </para>
     
     <para>
-    There are 3 properties you can set to specify the proxy that will be used by the http protocol handler:
+    There are 3 System Properties you can set to configure the proxy settings that will be used by the HTTP protocol handler:
     <itemizedlist>
       <listitem>
         <para><emphasis>http.proxyHost</emphasis> - the host name of the proxy server. </para>
@@ -223,7 +225,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     	<emphasis>Spring's SimpleClientHttpRequestFactory</emphasis>
     </para>
     <para>
-    You can also use <classname>SimpleClientHttpRequestFactory</classname> which comes with Spring and configured it as such:
+    If for any reason, you need more explicit control over the proxy configuration, you can use Spring's
+    <classname>SimpleClientHttpRequestFactory</classname> and configure its 'proxy' property as such:
     <programlisting language="xml"><![CDATA[<bean id="requestFactory" 
     			class="org.springframework.http.client.SimpleClientHttpRequestFactory">
 	<property name="proxy">
@@ -241,9 +244,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 	</property>	
 </bean>]]></programlisting>
     </para>
-    <para>
-    We may provide a namespace-based support in the future to simplify configuration
-    </para>
+
  </section>
   
   <section id="http-header-mapping">
