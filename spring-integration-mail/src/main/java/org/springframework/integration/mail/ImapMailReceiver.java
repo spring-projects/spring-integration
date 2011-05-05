@@ -125,10 +125,10 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		Flags supportedFlags = this.getFolder().getPermanentFlags();
 		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
 		Folder folder = this.getFolder();
-		if (folder.isOpen()){
+		if (folder.isOpen()) {
 			Message[] messages = searchTerm != null ? folder.search(searchTerm) : folder.getMessages();
 			for (Message message : messages) {
-				((IMAPMessage)message).setPeek(true);
+				((IMAPMessage) message).setPeek(true);
 			}
 			return messages;
 		}

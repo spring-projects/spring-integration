@@ -92,6 +92,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		this.shouldDeleteMessages = shouldDeleteMessages;
 	}
 
+	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
+		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
+	}
+
+	public Boolean isShouldMarkMessagesAsRead() {
+		return shouldMarkMessagesAsRead != null && shouldMarkMessagesAsRead;
+	}
+
 	public void setMaxFetchSize(int maxFetchSize) {
 		this.maxFetchSize = maxFetchSize;
 	}
@@ -156,13 +164,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
 		receiver.setSelectorExpression(selectorExpression);
-		
-		if (isPop3){
-			if (this.isShouldMarkMessagesAsRead()){
+
+		if (isPop3) {
+			if (this.isShouldMarkMessagesAsRead() && this.logger.isWarnEnabled()) {
 				logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
 			}
-		} else if (isImap){
-			((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+		}
+		else if (isImap) {
+			((ImapMailReceiver) receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 		}
 		receiver.afterPropertiesSet();
 		return receiver;
@@ -174,11 +183,4 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		}
 	}
 
-	public Boolean isShouldMarkMessagesAsRead() {
-		return shouldMarkMessagesAsRead != null && shouldMarkMessagesAsRead;
-	}
-
-	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
-		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
-	}
 }
