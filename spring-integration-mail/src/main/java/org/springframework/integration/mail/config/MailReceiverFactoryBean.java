@@ -40,7 +40,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
-public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean{
+public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean {
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String storeUri;
