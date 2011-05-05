@@ -143,7 +143,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="remote-file-separator" type="xsd:string">
+					<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
 						<xsd:annotation>
 							<xsd:documentation>
 							Allows you to provide remote file/directory separator character. DEFAULT: '/' 

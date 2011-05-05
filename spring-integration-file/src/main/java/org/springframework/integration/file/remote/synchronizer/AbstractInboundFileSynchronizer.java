@@ -90,7 +90,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
+		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 	
