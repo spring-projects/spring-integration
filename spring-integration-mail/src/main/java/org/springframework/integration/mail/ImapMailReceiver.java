@@ -49,9 +49,11 @@ import com.sun.mail.imap.IMAPMessage;
  * @author Oleg Zhurakousky
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
-	private volatile boolean shouldMarkMessagesAsRead = true;;
+
+	private volatile boolean shouldMarkMessagesAsRead = true;
+
 	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
-	
+
 	private volatile long connectionPingInterval = 10000;
 
 
@@ -71,23 +73,26 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
+
 	/**
-	 * Check if messages should be marked as read
+	 * Check if messages should be marked as read.
 	 */
 	public Boolean isShouldMarkMessagesAsRead() {
 		return shouldMarkMessagesAsRead;
 	}
+
 	/**
-	 * Specify is messages should be marked as read
+	 * Specify if messages should be marked as read.
 	 */
 	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
+
 	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
 	 */
-	public void waitForNewMessages() throws MessagingException{
+	public void waitForNewMessages() throws MessagingException {
 		this.openFolder();
 		Assert.state(this.getFolder() instanceof IMAPFolder,
 				"folder is not an instance of [" + IMAPFolder.class.getName() + "]");
@@ -129,8 +134,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 		throw new MessagingException("Folder is closed");
 	}
-	
-	private SearchTerm compileSearchTerms(Flags supportedFlags){
+
+	private SearchTerm compileSearchTerms(Flags supportedFlags) {
 		SearchTerm searchTerm = null;
 		boolean recentFlagSupported = false;
 		if (supportedFlags != null) {
@@ -166,30 +171,57 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				}
 			}
 		}
-	
-		if (!recentFlagSupported){	
+
+		if (!recentFlagSupported) {
 			NotTerm notFlagged = null;
-			if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
-				logger.debug("This email server does not support RECENT flag but it does support " +
-						"USER flags which will be used to prevent duplicates during email fetch");
+			if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)) {
+				logger.debug("This email server does not support RECENT flag, but it does support " +
+						"USER flags which will be used to prevent duplicates during email fetch.");
 				Flags siFlags = new Flags();
 				siFlags.add(SI_USER_FLAG);
 				notFlagged = new NotTerm(new FlagTerm(siFlags, true));			
 			}
 			else {
 				logger.debug("This email server does not support RECENT or USER flags. " +
-						"System flag 'Flag.FLAGGED' will be used to prevent duplicates during email fetch");
+						"System flag 'Flag.FLAGGED' will be used to prevent duplicates during email fetch.");
 				notFlagged = new NotTerm(new FlagTerm(new Flags(Flags.Flag.FLAGGED), true));
 			}
-			if (searchTerm == null){
+			if (searchTerm == null) {
 				searchTerm = notFlagged;
 			}
 			else {
 				searchTerm = new AndTerm(searchTerm, notFlagged);
 			}
 		}
-			
 		return searchTerm;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		this.initialized = true;
+		TaskScheduler scheduler = this.getTaskScheduler();
+		if (scheduler != null) {
+			scheduler.scheduleAtFixedRate(new Runnable() {	
+				public void run() {
+					try {
+						Store store = getStore();
+						if (initialized && store != null) {
+							store.isConnected();
+						}		
+					} 
+					catch (Throwable ignore) {
+					}
+				}
+			}, connectionPingInterval);
+		}
+	}
+
+	protected void setAdditionalFlags(Message message) throws MessagingException {
+		super.setAdditionalFlags(message);
+		if (this.shouldMarkMessagesAsRead) {
+			message.setFlag(Flag.SEEN, true);
+		}
 	}
 
 
@@ -211,37 +243,5 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			}
 		}
 	}
-	
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-//		if (this.shouldMarkMessagesAsRead){
-//			this.folderOpenMode = Folder.READ_WRITE;
-//		}
-		this.initialized = true;
-		TaskScheduler scheduler = this.getTaskScheduler();
-		if (scheduler != null){
-			scheduler.scheduleAtFixedRate(new Runnable() {	
-				public void run() {
-					try {
-						Store store = getStore();
-						if (initialized && store != null){
-							store.isConnected();
-						}		
-					} 
-					catch (Throwable ignore) {
-					}
-				}
-			}, connectionPingInterval);
-		}
-	}
-	/**
-	 * 
-	 */
-	protected void setAdditionalFlags(Message message) throws MessagingException{
-		super.setAdditionalFlags(message);
-		if (this.shouldMarkMessagesAsRead) {
-			message.setFlag(Flag.SEEN, true);
-		}
-	}
+
 }
