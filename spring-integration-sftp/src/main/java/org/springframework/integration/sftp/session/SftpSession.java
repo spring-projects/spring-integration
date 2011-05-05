@@ -21,6 +21,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.NestedIOException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
@@ -41,9 +44,10 @@ import com.jcraft.jsch.SftpException;
  * @since 2.0
  */
 class SftpSession implements Session {
-
+	private final Log logger = LogFactory.getLog(this.getClass());
+	
 	private volatile ChannelSftp channel;
-
+	
 	private final com.jcraft.jsch.Session jschSession;
 
 
@@ -133,11 +137,28 @@ class SftpSession implements Session {
 	}
 
 	public void rename(String pathFrom, String pathTo) throws IOException {
-		try {
+		try {	
 			this.channel.rename(pathFrom, pathTo);
-		} catch (SftpException e) {
-			throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, e);
+		} 
+		catch (SftpException e) {
+			try {
+				logger.debug("Initial File rename failed, possibly becouse file already exists. Will attempt to delete file: " 
+						+ pathTo + " and execute rename again.");
+				this.remove(pathTo);
+				logger.debug("Delete file: " + pathTo + " succeeded");
+			} 
+			catch (Exception ex) {
+				// ignore since the exception might be thrown
+			}
+			try {
+				// attempt to rename again
+				this.channel.rename(pathFrom, pathTo);
+			} 
+			catch (Exception e2) {
+				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, e);
+			}		
 		}
+		logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
 	}
 
 	public void mkdir(String directory) throws IOException {

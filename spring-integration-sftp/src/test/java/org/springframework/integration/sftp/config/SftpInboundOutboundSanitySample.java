@@ -55,7 +55,6 @@ public class SftpInboundOutboundSanitySample {
 		}
 		
 		new ClassPathXmlApplicationContext("SftpInboundReceiveSample-ignored.xml", this.getClass());
-		System.in.read();
 		Thread.sleep(5000);
 		fileA = new File("local-test-dir/a.test");
 		fileB = new File("local-test-dir/b.test");
