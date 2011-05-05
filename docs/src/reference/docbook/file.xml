@@ -52,7 +52,7 @@
       composition.
       <programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
       class="org.springframework.integration.file.FileReadingMessageSource"
-        p:inputDirectory="file:${input.directory}"
+        p:inputDirectory="${input.directory}"
         p:filter-ref="compositeFilter"/>
 <bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
     <constructor-arg>
