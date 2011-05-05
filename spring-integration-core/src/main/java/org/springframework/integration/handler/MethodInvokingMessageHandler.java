@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,11 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
+	public String getComponentType() {
+		return this.componentType;
+	}
+
+	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object result = processor.processMessage(message);
 		if (result != null) {
@@ -58,9 +63,5 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 					+ "have a void return, but '" + this + "' received a value: [" + result + "]");			
 		}
 	}
-	
-	@Override
-	public String getComponentType() {
-		return this.componentType;
-	}
+
 }
