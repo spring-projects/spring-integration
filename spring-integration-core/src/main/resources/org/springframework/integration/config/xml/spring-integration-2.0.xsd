@@ -1088,7 +1088,24 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 
 			<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware" />
-			<xsd:element name="splitter" type="expressionOrInnerEndpointDefinitionAware" />
+			<xsd:element name="splitter">
+				<xsd:complexType>
+					<xsd:complexContent>
+						<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+							<xsd:attribute name="apply-sequence" type="xsd:boolean" use="optional">
+								<xsd:annotation>
+									<xsd:documentation>
+										Set this flag to false to prevent adding sequence related headers in this splitter. This
+										can be
+										convenient in cases where the set sequence numbers conflict with downstream custom
+										aggregations.
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:attribute>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
 			<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware" />
 			<xsd:element name="header-enricher" type="header-enricher-type" />
 			<xsd:element name="header-filter" type="header-filter-type" />
