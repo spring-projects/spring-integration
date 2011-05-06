@@ -212,7 +212,7 @@
   	messages in the preview pane, but only flagging messages as SEEN that were actually opened and read.
   	</para>
   	<para>
-  	In Spring Integration 2.0.3 we've introduced <code>mail-filter-expression</code> attribute on <code>inbound-channel-adapter</code> and 
+  	In Spring Integration 2.0.4 we've introduced <code>mail-filter-expression</code> attribute on <code>inbound-channel-adapter</code> and 
   	<code>imap-idle-channel-adapter</code>. This attribute allows you to provide an expression which is a combination of SpEL and Regular Expression. 
   	For example if you would like to read only emails that contain 'Spring Integration' in the Subject line, you would configure <code>mail-filter-expression</code> attribute
   	like this this: <code>mail-filter-expression="subject matches '(?i).*Spring Integration.*"</code>
