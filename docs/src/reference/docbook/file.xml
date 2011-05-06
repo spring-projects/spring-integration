@@ -124,6 +124,15 @@
   </file:inbound-channel-adapter>]]>
             </programlisting>
         </para>
+      <note>
+          <para>
+              When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a
+              lock before the file is allowed to be received.
+              <strong>It will not assume the responsibility to unlock the file.</strong>
+              If you have processed the file and keeping the locks hanging around you have a memory leak. If this is
+              a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
+          </para>
+      </note>
         <para>
             When filtering and locking files is not enough it might be needed to control the way files are listed entirely. To
             implement this type of requirement you can use an implementation of <interfacename>DirectoryScanner</interfacename>.
