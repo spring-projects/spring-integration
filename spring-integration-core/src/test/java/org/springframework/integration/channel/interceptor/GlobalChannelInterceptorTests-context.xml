@@ -67,7 +67,7 @@
 
 	<int:channel id="inputWithProxy"/>
 	
-	<aop:config proxy-target-class="true">
+	<aop:config>
 		<aop:pointcut id="testPointcut" expression="bean(inputWithProxy)"/>
 		<aop:advisor advice-ref="testInterceptor" pointcut-ref="testPointcut"/>
 	</aop:config>
