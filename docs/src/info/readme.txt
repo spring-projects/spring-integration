@@ -1,4 +1,4 @@
-SPRING INTEGRATION 2.0.3 (Feb 09, 2011)
+SPRING INTEGRATION 2.0.4 (May 06, 2011)
 -----------------------------------------------------------
 
 To find out what has changed since version 1.0.x or any earlier 2.0.0
