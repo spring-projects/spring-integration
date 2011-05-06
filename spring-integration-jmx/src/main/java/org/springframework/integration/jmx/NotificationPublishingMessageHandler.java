@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class NotificationPublishingMessageHandler extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
@@ -93,13 +94,11 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		Map<String, MBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
 				(ListableBeanFactory) this.getBeanFactory(), MBeanExporter.class);
-		Assert.isTrue(exporters.size() > 0,
-				"No MBeanExporter is available in the current context (found " +
-				exporters.size() + ").");
+		Assert.isTrue(exporters.size() > 0, "No MBeanExporter is available in the current context.");
 		MBeanExporter exporter = null;
 		for (MBeanExporter exp : exporters.values()) {
 			exporter = exp;
-			if (exporter instanceof IntegrationMBeanExporter){
+			if (exporter instanceof IntegrationMBeanExporter) {
 				break;
 			}
 		}
