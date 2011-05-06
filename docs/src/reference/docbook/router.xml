@@ -147,16 +147,16 @@
   	<title>Routing and Error handling</title>
   
   	<para>
-  	Spring Integration also provides a special type router <classname>ErrorMessageExceptionTypeRouter</classname>  for routing 
-  	Error Messages (a Message with <code>payload</code> of type <classname>Throwable</classname>).
+  	Spring Integration also provides a special type-based router called <classname>ErrorMessageExceptionTypeRouter</classname> for routing 
+  	Error Messages (Messages whose <code>payload</code> is a <classname>Throwable</classname> instance).
     <classname>ErrorMessageExceptionTypeRouter</classname> is very similar to the <classname>PayloadTypeRouter</classname>. 
     In fact they are almost identical. The only difference is that while <classname>PayloadTypeRouter</classname> navigates 
-    the instance hierarchy of an payload instance (e.g., <code>payload.getClass().getSuperclass()</code>) to find the most 
+    the instance hierarchy of a payload instance (e.g., <code>payload.getClass().getSuperclass()</code>) to find the most 
     specific type/channel mappings, the <classname>ErrorMessageExceptionTypeRouter</classname> navigates the hierarchy of 
     'exception causes' (e.g., <code>payload.getCause()</code>) to find the most specific <classname>Throwable</classname> type/channel mappings.
   	</para>
   	<para>
-  	Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>
+  	Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>.
   	
   	<programlisting language="xml"><![CDATA[<int:exception-type-router input-channel="inputChannel" default-output-channel="defaultChannel">
 		<int:mapping exception-type="java.lang.IllegalArgumentException" channel="illegalChannel"/>
