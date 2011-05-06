@@ -24,6 +24,7 @@ import java.io.IOException;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.session.Session;
@@ -204,18 +205,32 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private void ensureDirectoryExists(Session session, String remoteDirectory, String originalRemoteDirectory){
 		try {
 			session.list(remoteDirectory);
-			String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
-			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, this.remoteFileSeparator);
-			String directory = remoteDirectory + this.remoteFileSeparator;
-			for (String directorySegment : directories) {
-				directory += directorySegment+this.remoteFileSeparator;
-				logger.debug("Creating '" + directory + "'");
-				session.mkdir(directory);
-			}
 		} catch (IOException e) {
-			logger.debug("Directory '" + remoteDirectory + "' does not exist");
-			remoteDirectory = remoteDirectory.substring(0, remoteDirectory.lastIndexOf(this.remoteFileSeparator));
-			this.ensureDirectoryExists(session, remoteDirectory, originalRemoteDirectory);
+			if (logger.isDebugEnabled()){
+				logger.debug("Directory '" + remoteDirectory + "' does not exist. Will attempt to auto-create it");
+			}		
+			int nextSeparatorIndex = remoteDirectory.lastIndexOf(this.remoteFileSeparator);
+			if (nextSeparatorIndex <= 0){
+				throw new MessagingException("Failed to auto-create directory '" + originalRemoteDirectory + "'");
+			}
+			else {
+				remoteDirectory = remoteDirectory.substring(0, nextSeparatorIndex);
+				this.ensureDirectoryExists(session, remoteDirectory, originalRemoteDirectory);
+			}
+		}
+		String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
+		String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, this.remoteFileSeparator);
+		String directory = remoteDirectory + this.remoteFileSeparator;
+		for (String directorySegment : directories) {
+			directory += directorySegment+this.remoteFileSeparator;
+			if (logger.isDebugEnabled()){
+				logger.debug("Creating '" + directory + "'");
+			}	
+			try {
+				session.mkdir(directory);
+			} catch (Exception e) {
+				throw new MessagingException("Failed to auto-create directory '" + directory + "'");
+			}
 		}
 	}
 }
