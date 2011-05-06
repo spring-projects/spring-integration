@@ -140,25 +140,31 @@ class SftpSession implements Session {
 		try {	
 			this.channel.rename(pathFrom, pathTo);
 		} 
-		catch (SftpException e) {
-			try {
-				logger.debug("Initial File rename failed, possibly becouse file already exists. Will attempt to delete file: " 
+		catch (SftpException sftpex) {
+			if (logger.isDebugEnabled()){
+				logger.debug("Initial File rename failed, possibly because file already exists. Will attempt to delete file: " 
 						+ pathTo + " and execute rename again.");
+			}
+			try {			
 				this.remove(pathTo);
-				logger.debug("Delete file: " + pathTo + " succeeded");
+				if (logger.isDebugEnabled()){
+					logger.debug("Delete file: " + pathTo + " succeeded. Will attempt rename again");
+				}		
 			} 
-			catch (Exception ex) {
-				// ignore since the exception might be thrown
+			catch (IOException ioex) {
+				throw new NestedIOException("Failed to delete file " + pathTo, ioex);
 			}
 			try {
 				// attempt to rename again
 				this.channel.rename(pathFrom, pathTo);
 			} 
-			catch (Exception e2) {
-				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, e);
+			catch (SftpException sftpex2) {
+				throw new NestedIOException("failed to rename from " + pathFrom + " to " + pathTo, sftpex2);
 			}		
 		}
-		logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
+		if (logger.isDebugEnabled()){
+			logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
+		}	
 	}
 
 	public void mkdir(String directory) throws IOException {
