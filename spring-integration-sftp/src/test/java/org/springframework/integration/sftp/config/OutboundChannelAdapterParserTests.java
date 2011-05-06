@@ -61,7 +61,7 @@ public class OutboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".", remoteFileSeparator);
-		assertEquals(".bar", handler.getTemporaryFileSuffix());
+		assertEquals(".bar", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
 		Expression remoteDirectoryExpression = (Expression) TestUtils.getPropertyValue(handler, "directoryExpressionProcessor.expression");
 		assertNotNull(remoteDirectoryExpression);
 		assertTrue(remoteDirectoryExpression instanceof LiteralExpression);

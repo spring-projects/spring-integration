@@ -69,7 +69,7 @@ public class FileOutboundChannelAdapterParserTests {
         DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
         File expected = new File(System.getProperty("java.io.tmpdir"));
         File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
-        assertEquals(".foo", handler.getTemporaryFileSuffix());
+        assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
         assertThat(actual, is(expected));
         DefaultFileNameGenerator fileNameGenerator = (DefaultFileNameGenerator) handlerAccessor.getPropertyValue("fileNameGenerator");
         assertNotNull(fileNameGenerator);

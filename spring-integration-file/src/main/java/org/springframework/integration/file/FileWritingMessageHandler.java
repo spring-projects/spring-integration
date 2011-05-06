@@ -93,7 +93,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 	
-	public String getTemporaryFileSuffix() {
+	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
 

@@ -121,7 +121,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		return (this.filter != null) ? this.filter.filterFiles(files) : Arrays.asList(files);
 	}
 	
-	public String getTemporaryFileSuffix() {
+	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
 

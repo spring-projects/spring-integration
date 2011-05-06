@@ -81,7 +81,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 	
-	public String getTemporaryFileSuffix() {
+	protected String getTemporaryFileSuffix() {
 		return temporaryFileSuffix;
 	}
 
