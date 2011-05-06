@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.w3c.dom.Document;
+
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
@@ -49,7 +52,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
-import org.w3c.dom.Document;
 
 /**
  * Thread safe XSLT transformer implementation which returns a transformed
@@ -70,223 +72,234 @@ import org.w3c.dom.Document;
  * payload and the {@link Result} to pass into the transformer. An instance of
  * {@link ResultTransformer} can also be provided to convert the Result prior to
  * returning.
- *
+ * 
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
 public class XsltPayloadTransformer extends AbstractTransformer {
 
-    private final Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-    private final Templates templates;
+	private final Templates templates;
 
-    private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
-    private Map<String, Expression> xslParameterMappings;
+	private Map<String, Expression> xslParameterMappings;
 
-    private final ResultTransformer resultTransformer;
+	private final ResultTransformer resultTransformer;
 
-    private volatile SourceFactory sourceFactory = new DomSourceFactory();
+	private volatile SourceFactory sourceFactory = new DomSourceFactory();
 
-    private volatile ResultFactory resultFactory = new DomResultFactory();
+	private volatile ResultFactory resultFactory = new DomResultFactory();
 
-    private volatile boolean alwaysUseSourceFactory = false;
+	private volatile boolean alwaysUseSourceFactory = false;
 
-    private volatile boolean alwaysUseResultFactory = false;
+	private volatile boolean alwaysUseResultFactory = false;
 
-    private volatile String[] xsltParamHeaders;
-
-
-    public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {
-        this(templates, null);
-    }
-
-    public XsltPayloadTransformer(Resource xslResource) throws Exception {
-        this(TransformerFactory.newInstance().newTemplates(createStreamSourceOnResource(xslResource)), null);
-    }
-
-    public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
-        this(TransformerFactory.newInstance().newTemplates(createStreamSourceOnResource(xslResource)), resultTransformer);
-    }
-
-    public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
-        this.templates = templates;
-        this.resultTransformer = resultTransformer;
-        this.evaluationContext.addPropertyAccessor(new MapAccessor());
-    }
+	private volatile String[] xsltParamHeaders;
 
 
-    /**
-     * Sets the SourceFactory.
-     */
-    public void setSourceFactory(SourceFactory sourceFactory) {
-        Assert.notNull(sourceFactory, "SourceFactory must not be null");
-        this.sourceFactory = sourceFactory;
-    }
+	public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {
+		this(templates, null);
+	}
 
-    /**
-     * Sets the ResultFactory
-     */
-    public void setResultFactory(ResultFactory resultFactory) {
-        Assert.notNull(sourceFactory, "ResultFactory must not be null");
-        this.resultFactory = resultFactory;
-    }
+	public XsltPayloadTransformer(Resource xslResource) throws Exception {
+		this(TransformerFactory.newInstance().newTemplates(
+				createStreamSourceOnResource(xslResource)), null);
+	}
 
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
+		this(TransformerFactory.newInstance().newTemplates(
+				createStreamSourceOnResource(xslResource)), resultTransformer);
+	}
 
-    /**
-     * User source factory even for directly supported payloads
-     */
-    public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
-        this.alwaysUseSourceFactory = alwaysUseSourceFactory;
-    }
+	public XsltPayloadTransformer(Templates templates, ResultTransformer resultTransformer) throws ParserConfigurationException {
+		this.templates = templates;
+		this.resultTransformer = resultTransformer;
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+	}
 
 
-    /**
-     * Always use result factory even for directly supported payload types
-     *
-     * @param alwaysUseResultFactory
-     */
-    public void setAlwaysUseResultFactory(boolean alwaysUseResultFactory) {
-        this.alwaysUseResultFactory = alwaysUseResultFactory;
-    }
+	/**
+	 * Sets the SourceFactory.
+	 */
+	public void setSourceFactory(SourceFactory sourceFactory) {
+		Assert.notNull(sourceFactory, "SourceFactory must not be null");
+		this.sourceFactory = sourceFactory;
+	}
 
-    public void setXslParameterMappings(Map<String, Expression> xslParameterMappings) {
-        this.xslParameterMappings = xslParameterMappings;
-    }
+	/**
+	 * Sets the ResultFactory
+	 */
+	public void setResultFactory(ResultFactory resultFactory) {
+		Assert.notNull(sourceFactory, "ResultFactory must not be null");
+		this.resultFactory = resultFactory;
+	}
 
-    public void setXsltParamHeaders(String[] xsltParamHeaders) {
-        this.xsltParamHeaders = xsltParamHeaders;
-    }
+	/**
+	 * Specify whether to always use source factory even for directly supported payload types.
+	 */
+	public void setAlwaysUseSourceFactory(boolean alwaysUseSourceFactory) {
+		this.alwaysUseSourceFactory = alwaysUseSourceFactory;
+	}
 
-    public String getComponentType() {
-        return "xml:xslt-transformer";
-    }
+	/**
+	 * Specify whether to always use result factory even for directly supported payload types
+	 */
+	public void setAlwaysUseResultFactory(boolean alwaysUseResultFactory) {
+		this.alwaysUseResultFactory = alwaysUseResultFactory;
+	}
 
-    @Override
-    protected Object doTransform(Message<?> message) throws Exception {
-        Transformer transformer = buildTransformer(message);
-        Object payload;
-        if (this.alwaysUseSourceFactory) {
-            payload = sourceFactory.createSource(message.getPayload());
-        } else {
-            payload = message.getPayload();
-        }
+	public void setXslParameterMappings(Map<String, Expression> xslParameterMappings) {
+		this.xslParameterMappings = xslParameterMappings;
+	}
+
+	public void setXsltParamHeaders(String[] xsltParamHeaders) {
+		this.xsltParamHeaders = xsltParamHeaders;
+	}
+
+	public String getComponentType() {
+		return "xml:xslt-transformer";
+	}
+
+	@Override
+	protected Object doTransform(Message<?> message) throws Exception {
+		Transformer transformer = buildTransformer(message);
+		Object payload;
+		if (this.alwaysUseSourceFactory) {
+			payload = sourceFactory.createSource(message.getPayload());
+		}
+		else {
+			payload = message.getPayload();
+		}
+		Object transformedPayload = null;
+		if (this.alwaysUseResultFactory) {
+			transformedPayload = transformUsingResultFactory(payload, transformer);
+		}
+		else if (payload instanceof String) {
+			transformedPayload = transformString((String) payload, transformer);
+		}
+		else if (payload instanceof Document) {
+			transformedPayload = transformDocument((Document) payload, transformer);
+		}
+		else if (payload instanceof Source) {
+			transformedPayload = transformSource((Source) payload, payload, transformer);
+		}
+		else {
+			// fall back to trying factories
+			transformedPayload = transformUsingResultFactory(payload, transformer);
+		}
+		return transformedPayload;
+	}
+
+	private Object transformUsingResultFactory(Object payload, Transformer transformer) throws TransformerException {
+		Source source;
+		if (this.alwaysUseSourceFactory) {
+			source = this.sourceFactory.createSource(payload);
+		}
+		else if (payload instanceof String) {
+			source = new StringSource((String) payload);
+		}
+		else if (payload instanceof Document) {
+			source = new DOMSource((Document) payload);
+		}
+		else if (payload instanceof Source) {
+			source = (Source) payload;
+		}
+		else {
+			source = this.sourceFactory.createSource(payload);
+		}
+		return transformSource(source, payload, transformer);
+	}
+
+	private Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
+		Result result = this.resultFactory.createResult(payload);
+		transformer.transform(source, result);
+		if (this.resultTransformer != null) {
+			return this.resultTransformer.transformResult(result);
+		}
+		return result;
+	}
+
+	private String transformString(String stringPayload, Transformer transformer) throws TransformerException {
+		StringResult result = new StringResult();
+		Source source;
+		if (this.alwaysUseSourceFactory) {
+			source = this.sourceFactory.createSource(stringPayload);
+		}
+		else {
+			source = new StringSource(stringPayload);
+		}
+		transformer.transform(source, result);
+		return result.toString();
+	}
+
+	private Document transformDocument(Document documentPayload, Transformer transformer) throws TransformerException {
+		Source source;
+		if (this.alwaysUseSourceFactory) {
+			source = this.sourceFactory.createSource(documentPayload);
+		}
+		else {
+			source = new DOMSource(documentPayload);
+		}
+		Result result = this.resultFactory.createResult(documentPayload);
+		if (!DOMResult.class.isAssignableFrom(result.getClass())) {
+			throw new MessagingException(
+					"Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");
+		}
+		DOMResult domResult = (DOMResult) result;
+		transformer.transform(source, domResult);
+		return (Document) domResult.getNode();
+	}
+
+	private Transformer buildTransformer(Message<?> message) throws TransformerException {
+		// process individual mappings
+		Transformer transformer = this.templates.newTransformer();
+		if (this.xslParameterMappings != null) {
+			for (String parameterName : this.xslParameterMappings.keySet()) {
+				Expression expression = this.xslParameterMappings.get(parameterName);
+				try {
+					Object value = expression.getValue(this.evaluationContext, message);
+					transformer.setParameter(parameterName, value);
+				}
+				catch (Exception e) {
+					if (logger.isWarnEnabled()) {
+						logger.warn("Evaluation of header expression '"
+								+ expression.getExpressionString()
+								+ "' failed. The XSLT parameter '"
+								+ parameterName + "' will be skipped.");
+					}
+				}
+			}
+		}
+		// process xslt-parameter-headers
+		MessageHeaders headers = message.getHeaders();
+		if (!ObjectUtils.isEmpty(this.xsltParamHeaders)) {
+			for (String headerName : headers.keySet()) {
+				if (PatternMatchUtils.simpleMatch(this.xsltParamHeaders, headerName)) {
+					transformer.setParameter(headerName, headers.get(headerName));
+				}
+			}
+		}
+		return transformer;
+	}
 
 
-        Object transformedPayload = null;
-        if (this.alwaysUseResultFactory) {
-            transformedPayload = transformUsingResultFactory(payload, transformer);
-        } else if (payload instanceof String) {
-            transformedPayload = transformString((String) payload, transformer);
-        } else if (payload instanceof Document) {
-            transformedPayload = transformDocument((Document) payload, transformer);
-        } else if (payload instanceof Source) {
-            transformedPayload = transformSource((Source) payload, payload, transformer);
-        } else {
-            // fall back to trying factories
-            transformedPayload = transformUsingResultFactory(payload, transformer);
-        }
-        return transformedPayload;
-    }
-
-    private Object transformUsingResultFactory(Object payload, Transformer transformer) throws TransformerException {
-        Source source;
-        if (this.alwaysUseSourceFactory) {
-            source = this.sourceFactory.createSource(payload);
-        } else if (payload instanceof String) {
-            source = new StringSource((String) payload);
-        } else if (payload instanceof Document) {
-            source = new DOMSource((Document) payload);
-        } else if (payload instanceof Source) {
-            source = (Source) payload;
-        } else {
-            source = this.sourceFactory.createSource(payload);
-        }
-        return transformSource(source, payload, transformer);
-    }
-
-    private Object transformSource(Source source, Object payload, Transformer transformer) throws TransformerException {
-        Result result = this.resultFactory.createResult(payload);
-        transformer.transform(source, result);
-        if (this.resultTransformer != null) {
-            return this.resultTransformer.transformResult(result);
-        }
-        return result;
-    }
-
-    private String transformString(String stringPayload, Transformer transformer) throws TransformerException {
-        StringResult result = new StringResult();
-        Source source;
-        if (this.alwaysUseSourceFactory) {
-            source = this.sourceFactory.createSource(stringPayload);
-        } else {
-            source = new StringSource(stringPayload);
-        }
-        transformer.transform(source, result);
-        return result.toString();
-    }
-
-    private Document transformDocument(Document documentPayload, Transformer transformer) throws TransformerException {
-        Source source;
-        if (this.alwaysUseSourceFactory) {
-            source = this.sourceFactory.createSource(documentPayload);
-        } else {
-            source = new DOMSource(documentPayload);
-        }
-        Result result = this.resultFactory.createResult(documentPayload);
-        if (!DOMResult.class.isAssignableFrom(result.getClass())) {
-            throw new MessagingException(
-                    "Document to Document conversion requires a DOMResult-producing ResultFactory implementation.");
-        }
-        DOMResult domResult = (DOMResult) result;
-        transformer.transform(source, domResult);
-        return (Document) domResult.getNode();
-    }
-
-    private Transformer buildTransformer(Message<?> message) throws TransformerException {
-        //process  individual mappings
-        Transformer transformer = this.templates.newTransformer();
-        if (this.xslParameterMappings != null) {
-            for (String parameterName : this.xslParameterMappings.keySet()) {
-                Expression expression = this.xslParameterMappings.get(parameterName);
-                try {
-                    Object value = expression.getValue(this.evaluationContext, message);
-                    transformer.setParameter(parameterName, value);
-                } catch (Exception e) {
-                    if (logger.isWarnEnabled()) {
-                        logger.warn("Evaluation of header expression '" + expression.getExpressionString() +
-                                "' failed. The XSLT parameter '" + parameterName + "' will be skipped.");
-                    }
-                }
-            }
-        }
-        // process xslt-parameter-headers
-        MessageHeaders headers = message.getHeaders();
-        if (!ObjectUtils.isEmpty(this.xsltParamHeaders)) {
-            for (String headerName : headers.keySet()) {
-                if (PatternMatchUtils.simpleMatch(this.xsltParamHeaders, headerName)) {
-                    transformer.setParameter(headerName, headers.get(headerName));
-                }
-            }
-        }
-        return transformer;
-    }
-
-
-    /**
-     * Compensate for the fact that a Resource <i>may</i> not be a File or even
-     * addressable through a URI. If it is, we want the created StreamSource to
-     * read other resources relative to the provided one. If it isn't, it loads
-     * from the default path.
-     */
-    private static StreamSource createStreamSourceOnResource(Resource xslResource) throws IOException {
-        try {
-            String systemId = xslResource.getURI().toString();
-            return new StreamSource(xslResource.getInputStream(), systemId);
-        } catch (IOException e) {
-            return new StreamSource(xslResource.getInputStream());
-        }
-    }
+	/**
+	 * Compensate for the fact that a Resource <i>may</i> not be a File or even
+	 * addressable through a URI. If it is, we want the created StreamSource to
+	 * read other resources relative to the provided one. If it isn't, it loads
+	 * from the default path.
+	 */
+	private static StreamSource createStreamSourceOnResource(Resource xslResource) throws IOException {
+		try {
+			String systemId = xslResource.getURI().toString();
+			return new StreamSource(xslResource.getInputStream(), systemId);
+		}
+		catch (IOException e) {
+			return new StreamSource(xslResource.getInputStream());
+		}
+	}
 
 }
