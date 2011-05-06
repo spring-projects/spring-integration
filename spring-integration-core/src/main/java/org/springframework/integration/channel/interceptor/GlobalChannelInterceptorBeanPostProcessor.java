@@ -25,6 +25,8 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.InitializingBean;
@@ -125,9 +127,13 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {
-		DirectFieldAccessor channelAccessor = new DirectFieldAccessor(channel);
+	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {	
 		try {
+			MessageChannel targetChannel = channel;
+			if (AopUtils.isAopProxy(channel)){
+				targetChannel = (MessageChannel) ((Advised)channel).getTargetSource().getTarget();
+			}	
+			DirectFieldAccessor channelAccessor = new DirectFieldAccessor(targetChannel);
 			Object interceptorListWrapper = channelAccessor.getPropertyValue("interceptors");
 			if (interceptorListWrapper != null) {
 				return (List<ChannelInterceptor>) new DirectFieldAccessor(interceptorListWrapper).getPropertyValue("interceptors");

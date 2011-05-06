@@ -20,9 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Test;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.Ordered;
@@ -40,12 +44,18 @@ import org.springframework.integration.test.util.TestUtils;
 public class GlobalChannelInterceptorTests {
 
 	@Test
-	public void validateGlobalInterceptor() {
+	public void validateGlobalInterceptor() throws Exception{
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class);
-		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
+		Map<String, MessageChannel> channels = applicationContext.getBeansOfType(MessageChannel.class);
 		for (String channelName : channels.keySet()) {
-			AbstractMessageChannel channel = channels.get(channelName);
+			MessageChannel channel = channels.get(channelName);
+			if (channelName.equals("nullChannel")){
+				continue;
+			}
+			if (AopUtils.isAopProxy(channel)){
+				channel = (MessageChannel) ((Advised)channel).getTargetSource().getTarget();
+			}
 			List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
 			ChannelInterceptor[] interceptors = interceptorList.toArray(new ChannelInterceptor[] {}); 
 			if (channelName.equals("inputA")){ // 328741
@@ -90,6 +100,9 @@ public class GlobalChannelInterceptorTests {
 				Assert.assertTrue(interceptors.length == 2);
 				Assert.assertEquals("interceptor-ten", interceptors[0].toString());
 				Assert.assertEquals("interceptor-eleven", interceptors[1].toString());
+			}
+			else if (channelName.equals("inputWithProxy")) {
+				Assert.assertTrue(interceptors.length == 6);
 			}
 		}
 	}
@@ -153,6 +166,14 @@ public class GlobalChannelInterceptorTests {
 		public void setOrder(int order) {
 			this.order = order;
 		}
+	}
+	
+	public static class TestInterceptor implements MethodInterceptor{
+
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			return invocation.proceed();
+		}
+		
 	}
 
 }
