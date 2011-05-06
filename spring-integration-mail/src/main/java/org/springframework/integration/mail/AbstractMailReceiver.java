@@ -258,7 +258,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					}
 					if (this.selectorExpression != null) {
 						Message message = messages[i];
-						if ((Boolean)this.selectorExpression.getValue(this.context, message)){
+						if (this.selectorExpression.getValue(this.context, message, Boolean.class)){
 							this.setAdditionalFlags(message);
 							copiedMessages.add(new MimeMessage((MimeMessage) message));
 						}	

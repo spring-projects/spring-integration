@@ -210,7 +210,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 							store.isConnected();
 						}		
 					} 
-					catch (Throwable ignore) {
+					catch (Exception ignore) {
 					}
 				}
 			}, connectionPingInterval);
