@@ -277,7 +277,7 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
     </para>
     <para>
       <important>
-    It is also important to understand that by default <emphasis>reply-timeout</emphasis> is unbounded which means that
+    It is also important to understand that by default <emphasis>reply-timeout</emphasis> is unbounded* which means that
     if not explicitly set there are several scenarios (described above) where your Gateway method invocation might
     hang indefinitely. So, make sure you analyze your flow and if there is even a remote possibility of one of these
     scenarios to occur, set the <emphasis>reply-timeout</emphasis> attribute to a 'safe' value or, even better,
@@ -294,6 +294,19 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
     you can set the <emphasis>throw-exception-on-rejection</emphasis> attribute. In both of these cases, the resulting flow will
     behave like that containing a service-activator with the 'requires-reply' attribute. In other words, it will help to ensure
     a timely response from the Gateway method invocation.
+    </para>
+    <para>
+        <note>
+            <para>
+                * <emphasis>reply-timeout</emphasis> is unbounded for <emphasis>&lt;gateway/&gt;</emphasis>
+                elements (created by the GatewayProxyFactoryBean). Inbound gateways for external integration
+                (ws, http, etc.) share many characteristics and attributes with these gateways. However, 
+                for those inbound gateways, the default <emphasis>reply-timeout</emphasis> is 1000
+                milliseconds (1 second). If a downstream async handoff is made to another thread, you may need to
+                increase this attribute to allow enough time for the flow to complete before the
+                gateway times out.
+            </para>
+        </note>
     </para>
       </important>
     </para>

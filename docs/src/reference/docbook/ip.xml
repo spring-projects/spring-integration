@@ -1152,7 +1152,8 @@
             <row>
               <entry>reply-timeout</entry>
               <entry></entry>
-              <entry>The time in milliseconds for which the gateway will wait for a reply.</entry>
+              <entry>The time in milliseconds for which the gateway will wait for a reply.
+                     Default 1000 (1 second).</entry>
             </row>
             <row>
               <entry>error-channel</entry>
@@ -1201,7 +1202,8 @@
             <row>
               <entry>reply-timeout</entry>
               <entry></entry>
-              <entry>The time in milliseconds for which the gateway will wait for a reply.</entry>
+              <entry>The time in milliseconds for which the gateway will wait for a reply.
+                     Default: 10000 (10 seconds).</entry>
             </row>
             <row>
               <entry>request-timeout</entry>
