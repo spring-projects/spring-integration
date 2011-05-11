@@ -63,17 +63,25 @@ public class Twitter4jTemplate implements TwitterOperations {
 	 * @param accessToken
 	 * @param accessTokenSecret
 	 */
+	@SuppressWarnings("deprecation")
 	public Twitter4jTemplate(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
 		Assert.hasText(consumerKey, "'consumerKey' must be provided");
 		Assert.hasText(consumerSecret, "'consumerSecret' must be provided");
 		Assert.hasText(accessToken, "'accessToken' must be provided");
 		Assert.hasText(accessTokenSecret, "'accessTokenSecret' must be provided");
+		
 		AccessToken token = new AccessToken(accessToken, accessTokenSecret);
-		Properties properties = new Properties();
-		properties.put("oauth.consumerKey", consumerKey);
-		properties.put("oauth.consumerSecret", consumerSecret);
-		Configuration configuration = new PropertyConfiguration(properties);
-		this.twitter = new TwitterFactory(configuration).getInstance(token);
+		this.twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret, token);
+		/*
+		 * We are aware of the fact that the above method is deprecated and the code should really look 
+		 * like the one below, but we are keeping the deprecated call to address backwards compatibility.
+		 * In future versions we won't be relying on Twitter4J in favor of SpringSocial API.
+		 */
+//		Properties properties = new Properties();
+//		properties.put("oauth.consumerKey", consumerKey);
+//		properties.put("oauth.consumerSecret", consumerSecret);
+//		Configuration configuration = new PropertyConfiguration(properties);
+//		this.twitter = new TwitterFactory(configuration).getInstance(token);
 	}
 
 

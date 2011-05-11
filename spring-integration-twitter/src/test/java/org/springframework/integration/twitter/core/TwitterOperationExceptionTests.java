@@ -34,15 +34,13 @@ public class TwitterOperationExceptionTests {
 	@Test
 	public void test401(){
 		// will result in exception since a,b,c,d are invalid credentials
-		Twitter4jTemplate template = new Twitter4jTemplate("a", "b", "c", "d");
+		Twitter4jTemplate template = new Twitter4jTemplate("a", "b", "1234-c", "d");
 		try {
 			template.getProfileId();
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof TwitterOperationException);
 			assertEquals(401, ((TwitterOperationException)e).getTwitterStatusCode());
-			assertTrue(e.getMessage().contains("401:Authentication credentials were missing or incorrect"));
-			System.out.println(e.getMessage());
 		}
 	}
 	@Test

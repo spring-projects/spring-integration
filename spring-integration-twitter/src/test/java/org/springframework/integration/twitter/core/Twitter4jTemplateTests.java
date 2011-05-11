@@ -61,12 +61,12 @@ public class Twitter4jTemplateTests {
 	}
 	@Test
 	public void testOauthConstructor() throws Exception{
-		template = new Twitter4jTemplate("a", "b", "c", "d");
+		template = new Twitter4jTemplate("a", "b", "1234-c", "d");
 		Twitter twitter = (Twitter) TestUtils.getPropertyValue(template, "twitter");
 		Authorization auth = twitter.getAuthorization();
 		assertTrue(twitter.getAuthorization() instanceof OAuthAuthorization);
 		AccessToken accessToken = ((OAuthAuthorization)auth).getOAuthAccessToken();
-		assertEquals("c", accessToken.getToken());
+		assertEquals("1234-c", accessToken.getToken());
 		assertEquals("d", accessToken.getTokenSecret());
 	}
 
