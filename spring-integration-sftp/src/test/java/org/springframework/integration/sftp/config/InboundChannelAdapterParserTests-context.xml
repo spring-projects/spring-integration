@@ -44,9 +44,14 @@
 			auto-create-local-directory="false"
 			remote-file-separator="."
 			temporary-file-suffix=".bar"
+			comparator="comparator"
 			delete-remote-files="false">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
+	
+	<beans:bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="java.util.Comparator"/>
+	</beans:bean>
 	
 	<sftp:inbound-channel-adapter id="sftpAdapter"
 			channel="requestChannel"

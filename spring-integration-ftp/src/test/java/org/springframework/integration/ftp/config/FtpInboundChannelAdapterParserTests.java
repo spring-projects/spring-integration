@@ -22,6 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.util.Comparator;
 import java.util.Map;
 
 import org.junit.Test;
@@ -44,11 +46,14 @@ import org.springframework.integration.test.util.TestUtils;
  */
 public class FtpInboundChannelAdapterParserTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFtpInboundChannelAdapterComplete() throws Exception{
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
+		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
+		assertNotNull(comparator);
 		assertEquals("ftpInbound", adapter.getComponentName());
 		assertEquals("ftp:inbound-channel-adapter", adapter.getComponentType());
 		assertNotNull(TestUtils.getPropertyValue(adapter, "poller"));

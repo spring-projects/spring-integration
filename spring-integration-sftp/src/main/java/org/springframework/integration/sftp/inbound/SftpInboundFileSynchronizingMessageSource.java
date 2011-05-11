@@ -16,6 +16,9 @@
 
 package org.springframework.integration.sftp.inbound;
 
+import java.io.File;
+import java.util.Comparator;
+
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizingMessageSource;
 
@@ -34,6 +37,10 @@ public class SftpInboundFileSynchronizingMessageSource extends AbstractInboundFi
 
 	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer) {
 		super(synchronizer);
+	}
+	
+	public SftpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<LsEntry> synchronizer, Comparator<File> comparator) {
+		super(synchronizer, comparator);
 	}
 
 

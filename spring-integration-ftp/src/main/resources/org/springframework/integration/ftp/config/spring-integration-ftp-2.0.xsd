@@ -116,6 +116,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			            	</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="comparator" type="xsd:string">
+		                <xsd:annotation>
+		                    <xsd:documentation><![CDATA[
+			Specify a Comparator to be used when ordering Files. If none is provided, the
+			order will be determined by the java.io.File implementation of Comparable.
+							]]></xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:attribute>
 					<xsd:attribute name="filter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

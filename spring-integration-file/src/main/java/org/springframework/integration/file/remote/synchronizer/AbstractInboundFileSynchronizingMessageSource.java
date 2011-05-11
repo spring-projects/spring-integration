@@ -19,6 +19,7 @@ package org.springframework.integration.file.remote.synchronizer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.regex.Pattern;
 
 import org.springframework.integration.Message;
@@ -51,6 +52,7 @@ import org.springframework.util.Assert;
  * delivering new {@link File}s.
  * 
  * @author Josh Long
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends MessageProducerSupport implements MessageSource<File> {
 
@@ -73,12 +75,22 @@ public abstract class AbstractInboundFileSynchronizingMessageSource<F> extends M
 	/**
 	 * The actual {@link FileReadingMessageSource} that monitors the local file system once files are synchronized.
 	 */
-	private final FileReadingMessageSource fileSource = new FileReadingMessageSource();;
+	private final FileReadingMessageSource fileSource;
 
 
 	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer) {
+		this(synchronizer, null);
+	}
+	
+	public AbstractInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<F> synchronizer, Comparator<File> comparator) {
 		Assert.notNull(synchronizer, "synchronizer must not be null");
 		this.synchronizer = synchronizer;
+		if (comparator == null){
+			this.fileSource = new FileReadingMessageSource();
+		}
+		else {
+			this.fileSource = new FileReadingMessageSource(comparator);
+		}	
 	}
 
 

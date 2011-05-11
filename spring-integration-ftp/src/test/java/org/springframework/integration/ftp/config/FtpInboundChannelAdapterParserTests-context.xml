@@ -20,10 +20,15 @@
 				filename-pattern="*.txt"
 				local-directory="."
 				remote-file-separator=""
+				comparator="comparator"
 				temporary-file-suffix=".foo"
 				remote-directory="foo/bar">
 			<int:poller fixed-rate="1000"/>
 	</int-ftp:inbound-channel-adapter>
+	
+	<bean id="comparator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="java.util.Comparator"/>
+	</bean>
 
 	<int-ftp:inbound-channel-adapter 
 				channel="ftpChannel" 

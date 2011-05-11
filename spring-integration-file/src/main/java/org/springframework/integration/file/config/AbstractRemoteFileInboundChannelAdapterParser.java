@@ -64,6 +64,10 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		// build the MessageSource
 		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getMessageSourceClassname());
 		messageSourceBuilder.addConstructorArgValue(synchronizerBuilder.getBeanDefinition());
+		String comparator = element.getAttribute("comparator");
+		if (StringUtils.hasText(comparator)){
+			messageSourceBuilder.addConstructorArgReference(comparator);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-local-directory");
 		return messageSourceBuilder.getBeanDefinition();

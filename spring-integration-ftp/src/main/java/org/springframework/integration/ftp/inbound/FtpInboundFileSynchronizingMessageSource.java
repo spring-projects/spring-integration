@@ -16,6 +16,9 @@
 
 package org.springframework.integration.ftp.inbound;
 
+import java.io.File;
+import java.util.Comparator;
+
 import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
@@ -27,12 +30,17 @@ import org.springframework.integration.file.remote.synchronizer.AbstractInboundF
  * @author Iwein Fuld
  * @author Josh Long
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class FtpInboundFileSynchronizingMessageSource extends AbstractInboundFileSynchronizingMessageSource<FTPFile> {
 
 	public FtpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<FTPFile> synchronizer) {
 		super(synchronizer);
+	}
+	
+	public FtpInboundFileSynchronizingMessageSource(AbstractInboundFileSynchronizer<FTPFile> synchronizer, Comparator<File> comparator) {
+		super(synchronizer, comparator);
 	}
 
 

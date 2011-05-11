@@ -22,6 +22,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Comparator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,6 +49,7 @@ public class InboundChannelAdapterParserTests {
 		new File("foo").delete();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testWithLocalFiles() throws Exception{
 		ApplicationContext context =
@@ -59,7 +61,8 @@ public class InboundChannelAdapterParserTests {
 		SftpInboundFileSynchronizingMessageSource source = 
 			(SftpInboundFileSynchronizingMessageSource) TestUtils.getPropertyValue(adapter, "source");
 		assertNotNull(source);
-		
+		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
+		assertNotNull(comparator);
 		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
 		assertEquals(".bar", TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class));
