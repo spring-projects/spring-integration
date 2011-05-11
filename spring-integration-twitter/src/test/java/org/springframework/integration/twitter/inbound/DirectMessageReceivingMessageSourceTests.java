@@ -73,19 +73,19 @@ public class DirectMessageReceivingMessageSourceTests {
 		
 		firstMessage = mock(DirectMessage.class);
 		when(firstMessage.getCreatedAt()).thenReturn(new Date(5555555555L));
-		when(firstMessage.getId()).thenReturn( 200);
+		when(firstMessage.getId()).thenReturn( (long) 200);
 		
 		secondMessage = mock(DirectMessage.class);
 		when(secondMessage.getCreatedAt()).thenReturn(new Date(2222222222L));
-		when(secondMessage.getId()).thenReturn( 2000);
+		when(secondMessage.getId()).thenReturn( (long) 2000);
 		
 		thirdMessage = mock(DirectMessage.class);
 		when(thirdMessage.getCreatedAt()).thenReturn(new Date(66666666666L));
-		when(thirdMessage.getId()).thenReturn( 3000);
+		when(thirdMessage.getId()).thenReturn( (long) 3000);
 		
 		fourthMessage = mock(DirectMessage.class);
 		when(fourthMessage.getCreatedAt()).thenReturn(new Date(77777777777L));
-		when(fourthMessage.getId()).thenReturn( 4000);
+		when(fourthMessage.getId()).thenReturn( (long) 4000);
 		
 		tw = mock(Twitter.class);
 		Field twField = Twitter4jTemplate.class.getDeclaredField("twitter");

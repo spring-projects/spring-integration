@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.core;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.util.Assert;
 
@@ -30,6 +31,8 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.PropertyConfiguration;
 import twitter4j.http.AccessToken;
 
 /**
@@ -66,7 +69,11 @@ public class Twitter4jTemplate implements TwitterOperations {
 		Assert.hasText(accessToken, "'accessToken' must be provided");
 		Assert.hasText(accessTokenSecret, "'accessTokenSecret' must be provided");
 		AccessToken token = new AccessToken(accessToken, accessTokenSecret);
-		this.twitter = new TwitterFactory().getOAuthAuthorizedInstance(consumerKey, consumerSecret, token);
+		Properties properties = new Properties();
+		properties.put("oauth.consumerKey", consumerKey);
+		properties.put("oauth.consumerSecret", consumerSecret);
+		Configuration configuration = new PropertyConfiguration(properties);
+		this.twitter = new TwitterFactory(configuration).getInstance(token);
 	}
 
 
