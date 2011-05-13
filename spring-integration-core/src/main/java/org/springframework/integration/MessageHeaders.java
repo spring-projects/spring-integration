@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.util.Assert;
 
 /**
  * The headers for a {@link Message}.<br>
@@ -50,12 +54,21 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Arjen Poutsma
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final long serialVersionUID = 6901029029524535147L;
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
+	
+	private static MessageIdGenerationStrategy messageIdGenerationStrategy = new DefaultIdGenerator();
+	
+	private static final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+
+	private static final WriteLock writeLock = rwl.writeLock();
+	
+	private static boolean idGenerationStrategySet;
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
@@ -89,10 +102,43 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		this.headers.put(ID, UUID.randomUUID());
+		/*
+		 * There is a possibility of the race condition when this constructor is called while 
+		 * setMessageIdGenerationStrategy(..) or reset() is invoked, but synchronizing here would be an overkill IMHO. 
+		 * Realistically there will be no messages yet until the ApplicationContext is started 
+		 * (that is when the setMessageIdGenerationStrategy(..) is called and for reset() all the adapters 
+		 * will be shut down by the time reset() is called.
+		 */
+		this.headers.put(ID, MessageHeaders.messageIdGenerationStrategy.generateId());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
+
+	public static void setMessageIdGenerationStrategy(MessageIdGenerationStrategy messageIdGenerationStrategy) {
+		writeLock.lock();
+		try {
+			Assert.state(!MessageHeaders.idGenerationStrategySet, "'MessageHeaders.messageIdGenerationStrategy' " +
+				"has already been set and can not be set again, unless reset() method is called");
+			logger.info("Message IDs will be generated using custom ID generation strategy: " + messageIdGenerationStrategy);
+			MessageHeaders.messageIdGenerationStrategy = messageIdGenerationStrategy;
+			MessageHeaders.idGenerationStrategySet = true;
+		} 
+		finally {
+			writeLock.unlock();
+		}	
+	}
+	
+	public static void reset(){
+		writeLock.lock();
+		try {
+			MessageHeaders.idGenerationStrategySet = false;
+			MessageHeaders.messageIdGenerationStrategy = new DefaultIdGenerator();
+		} 
+		finally {
+			writeLock.unlock();
+		}
+		logger.info("Message IDs genration strategy was reset to the default");
+	}
 
 	public UUID getId() {
 		return this.get(ID, UUID.class);
@@ -252,4 +298,16 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		in.defaultReadObject();
 	}
 
+	public static interface MessageIdGenerationStrategy {
+
+		UUID generateId();
+	}
+	
+	private static class DefaultIdGenerator implements MessageIdGenerationStrategy {
+
+		public UUID generateId() {
+			return UUID.randomUUID();
+		}
+		
+	}
 }

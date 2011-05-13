@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -53,12 +54,18 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			this.registerNullChannel(registry);
 			this.registerErrorChannelIfNecessary(registry);
 			this.registerTaskSchedulerIfNecessary(registry);
+			this.registerMessageIdGeneratorIfNecessary(registry);
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
 					+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME + "' and '"
 					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured.");
 		}
+	}
+	
+	private void registerMessageIdGeneratorIfNecessary(BeanDefinitionRegistry registry){
+		String listenerClassName = "org.springframework.integration.IntegrationContextRefreshListener";
+		BeanDefinitionReaderUtils.registerWithGeneratedName(new RootBeanDefinition(listenerClassName), registry);
 	}
 
 	/**
