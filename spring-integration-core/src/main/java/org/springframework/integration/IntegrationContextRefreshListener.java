@@ -50,14 +50,14 @@ public class IntegrationContextRefreshListener implements ApplicationListener<Co
 			IdGenerator idGenerationStrategy = 
 				event.getApplicationContext().getBean(IdGenerator.class);
 			if (logger.isDebugEnabled()) {
-				logger.debug("Using MessageHeaders.MessageIdGenerationStrategy [" + idGenerationStrategy + "]");
+				logger.debug("Using MessageHeaders.IdGenerator [" + idGenerationStrategy + "]");
 			}
 			MessageHeaders.setMessageIdGenerationStrategy(idGenerationStrategy);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// We need to use the default.
 			if (logger.isDebugEnabled()) {
-				logger.debug("Unable to locate MessageHeaders.MessageIdGenerationStrategy. Will use default UUID.randomUUID()");
+				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use default UUID.randomUUID()");
 			}
 		}
 	}
