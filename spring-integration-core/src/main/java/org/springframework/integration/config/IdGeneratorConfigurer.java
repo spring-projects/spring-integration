@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration;
+package org.springframework.integration.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageHeaders.IdGenerator;
 
 
@@ -29,7 +30,7 @@ import org.springframework.integration.MessageHeaders.IdGenerator;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationContextRefreshListener implements ApplicationListener<ContextRefreshedEvent>, DisposableBean{
+public class IdGeneratorConfigurer implements ApplicationListener<ContextRefreshedEvent>, DisposableBean{
 
 	private final Log logger = LogFactory.getLog(getClass());
 	

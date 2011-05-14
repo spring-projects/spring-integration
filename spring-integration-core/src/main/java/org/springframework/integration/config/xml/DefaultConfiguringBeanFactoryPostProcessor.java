@@ -64,7 +64,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 	
 	private void registerMessageIdGeneratorIfNecessary(BeanDefinitionRegistry registry){
-		String listenerClassName = "org.springframework.integration.IntegrationContextRefreshListener";
+		String listenerClassName = "org.springframework.integration.config.IdGeneratorConfigurer";
 		BeanDefinitionReaderUtils.registerWithGeneratedName(new RootBeanDefinition(listenerClassName), registry);
 	}
 
