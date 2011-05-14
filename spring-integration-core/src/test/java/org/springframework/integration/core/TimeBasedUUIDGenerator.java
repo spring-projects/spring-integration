@@ -88,7 +88,8 @@ class TimeBasedUUIDGenerator {
 			InetAddress address = InetAddress.getLocalHost();
 			NetworkInterface ni = NetworkInterface.getByInetAddress(address);
 			if (ni != null) {
-				byte[] mac = ni.getHardwareAddress();
+				//byte[] mac = ni.getHardwareAddress(); // availabe since Java 1.6
+				byte[] mac = "01:23:45:67:89:ab".getBytes();
 				//Converts array of unsigned bytes to an long
 				if (mac != null) {
 					for (int i = 0; i < mac.length; i++) {					
