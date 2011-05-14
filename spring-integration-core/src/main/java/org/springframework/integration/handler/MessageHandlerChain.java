@@ -174,7 +174,7 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		if (this.handlers != null) {
 			for (MessageHandler messageHandler : this.handlers) {
 				if (messageHandler instanceof IntegrationObjectSupport) {
-					((IntegrationObjectSupport) messageHandler).setComponentName(componentName + "#handler#" + i);
+					((IntegrationObjectSupport) messageHandler).setComponentName(componentName + ".handler#" + i);
 				}
 				i++; // increment, regardless of whether we assigned a component name
 			}

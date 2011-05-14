@@ -182,9 +182,9 @@ public class MessageHandlerChainTests {
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setHandlers(handlers);
 		chain.setComponentName("testChain");
-		assertEquals("testChain#handler#0", producer1.getComponentName());
-		assertEquals("testChain#handler#2", producer2.getComponentName());
-		assertEquals("testChain#handler#3", producer3.getComponentName());
+		assertEquals("testChain.handler#0", producer1.getComponentName());
+		assertEquals("testChain.handler#2", producer2.getComponentName());
+		assertEquals("testChain.handler#3", producer3.getComponentName());
 	}
 
 	private static class ProducingHandlerStub extends IntegrationObjectSupport implements MessageHandler, MessageProducer {
