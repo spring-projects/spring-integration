@@ -62,7 +62,7 @@ public class MessageIdGenerationTests {
 		watch.stop();
 		double defaultGeneratorElapsedTime = watch.getTotalTimeSeconds();
 		
-		MessageHeaders.setMessageIdGenerationStrategy(new IdGenerator() {
+		MessageHeaders.setIdGenerator(new IdGenerator() {
 			public UUID generateId() {
 				return TimeBasedUUIDGenerator.generateId();
 			}

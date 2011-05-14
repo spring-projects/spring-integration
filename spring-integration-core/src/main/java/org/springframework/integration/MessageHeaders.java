@@ -106,13 +106,13 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 
-	public static void setMessageIdGenerationStrategy(IdGenerator messageIdGenerationStrategy) {
+	public static void setIdGenerator(IdGenerator messageIdGenerator) {
 		Assert.state(MessageHeaders.messageIdGenerator instanceof DefaultIdGenerator, "'MessageHeaders.messageIdGenerator' " +
 			"has already been set and can not be set again, unless reset() method is called");
 		if (logger.isInfoEnabled()){
-			logger.info("Message IDs will be generated using custom ID generation strategy: " + messageIdGenerationStrategy);
+			logger.info("Message IDs will be generated using custom ID generation strategy: " + messageIdGenerator);
 		}
-		MessageHeaders.messageIdGenerator = messageIdGenerationStrategy;
+		MessageHeaders.messageIdGenerator = messageIdGenerator;
 	}
 	
 	public static void resetIdGenerator(){

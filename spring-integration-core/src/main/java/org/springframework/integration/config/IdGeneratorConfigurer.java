@@ -53,7 +53,7 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MessageHeaders.IdGenerator [" + idGenerationStrategy + "]");
 			}
-			MessageHeaders.setMessageIdGenerationStrategy(idGenerationStrategy);
+			MessageHeaders.setIdGenerator(idGenerationStrategy);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// We need to use the default.
