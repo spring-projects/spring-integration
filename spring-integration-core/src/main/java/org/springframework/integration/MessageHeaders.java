@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,13 +60,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 	
-	private static MessageIdGenerationStrategy messageIdGenerationStrategy = new DefaultIdGenerator();
-	
-	private static final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-
-	private static final WriteLock writeLock = rwl.writeLock();
-	
-	private static boolean idGenerationStrategySet;
+	private static IdGenerator messageIdGenerator = new DefaultIdGenerator();
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
@@ -109,35 +101,25 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		 * (that is when the setMessageIdGenerationStrategy(..) is called and for reset() all the adapters 
 		 * will be shut down by the time reset() is called.
 		 */
-		this.headers.put(ID, MessageHeaders.messageIdGenerationStrategy.generateId());
+		this.headers.put(ID, MessageHeaders.messageIdGenerator.generateId());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
 
-	public static void setMessageIdGenerationStrategy(MessageIdGenerationStrategy messageIdGenerationStrategy) {
-		writeLock.lock();
-		try {
-			Assert.state(!MessageHeaders.idGenerationStrategySet, "'MessageHeaders.messageIdGenerationStrategy' " +
-				"has already been set and can not be set again, unless reset() method is called");
+	public static void setMessageIdGenerationStrategy(IdGenerator messageIdGenerationStrategy) {
+		Assert.state(MessageHeaders.messageIdGenerator instanceof DefaultIdGenerator, "'MessageHeaders.messageIdGenerationStrategy' " +
+			"has already been set and can not be set again, unless reset() method is called");
+		if (logger.isInfoEnabled()){
 			logger.info("Message IDs will be generated using custom ID generation strategy: " + messageIdGenerationStrategy);
-			MessageHeaders.messageIdGenerationStrategy = messageIdGenerationStrategy;
-			MessageHeaders.idGenerationStrategySet = true;
-		} 
-		finally {
-			writeLock.unlock();
-		}	
+		}
+		MessageHeaders.messageIdGenerator = messageIdGenerationStrategy;
 	}
 	
-	public static void reset(){
-		writeLock.lock();
-		try {
-			MessageHeaders.idGenerationStrategySet = false;
-			MessageHeaders.messageIdGenerationStrategy = new DefaultIdGenerator();
-		} 
-		finally {
-			writeLock.unlock();
+	public static void resetIdGenerator(){
+		MessageHeaders.messageIdGenerator = new DefaultIdGenerator();
+		if (logger.isInfoEnabled()){
+			logger.info("Message IDs generation strategy was reset to the default");
 		}
-		logger.info("Message IDs genration strategy was reset to the default");
 	}
 
 	public UUID getId() {
@@ -298,12 +280,12 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		in.defaultReadObject();
 	}
 
-	public static interface MessageIdGenerationStrategy {
+	public static interface IdGenerator {
 
 		UUID generateId();
 	}
 	
-	private static class DefaultIdGenerator implements MessageIdGenerationStrategy {
+	private static class DefaultIdGenerator implements IdGenerator {
 
 		public UUID generateId() {
 			return UUID.randomUUID();

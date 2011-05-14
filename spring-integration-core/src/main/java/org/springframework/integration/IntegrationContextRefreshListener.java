@@ -22,7 +22,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.integration.MessageHeaders.MessageIdGenerationStrategy;
+import org.springframework.integration.MessageHeaders.IdGenerator;
 
 
 /**
@@ -34,9 +34,21 @@ public class IntegrationContextRefreshListener implements ApplicationListener<Co
 	private final Log logger = LogFactory.getLog(getClass());
 	
 	public void onApplicationEvent(ContextRefreshedEvent event) {
+		this.setIdGenerationStrategy(event);
+	}
+
+	public void destroy() throws Exception {
+		this.resetIdGenerationStrategy();
+	}
+	
+	private void resetIdGenerationStrategy(){
+		MessageHeaders.resetIdGenerator();
+	}
+	
+	private void setIdGenerationStrategy(ContextRefreshedEvent event){
 		try {
-			MessageIdGenerationStrategy idGenerationStrategy = 
-				event.getApplicationContext().getBean(MessageIdGenerationStrategy.class);
+			IdGenerator idGenerationStrategy = 
+				event.getApplicationContext().getBean(IdGenerator.class);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MessageHeaders.MessageIdGenerationStrategy [" + idGenerationStrategy + "]");
 			}
@@ -48,10 +60,6 @@ public class IntegrationContextRefreshListener implements ApplicationListener<Co
 				logger.debug("Unable to locate MessageHeaders.MessageIdGenerationStrategy. Will use default UUID.randomUUID()");
 			}
 		}
-	}
-
-	public void destroy() throws Exception {
-		MessageHeaders.reset();
 	}
 
 }

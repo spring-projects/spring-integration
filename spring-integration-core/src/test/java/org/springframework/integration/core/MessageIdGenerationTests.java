@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessageHeaders.MessageIdGenerationStrategy;
+import org.springframework.integration.MessageHeaders.IdGenerator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.StopWatch;
 
@@ -40,7 +40,7 @@ public class MessageIdGenerationTests {
 	@Test
 	public void testCustomIdGeneration(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		MessageIdGenerationStrategy idGenerator = context.getBean("idGenerator", MessageIdGenerationStrategy.class);
+		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
@@ -62,7 +62,7 @@ public class MessageIdGenerationTests {
 		watch.stop();
 		double defaultGeneratorElapsedTime = watch.getTotalTimeSeconds();
 		
-		MessageHeaders.setMessageIdGenerationStrategy(new MessageIdGenerationStrategy() {
+		MessageHeaders.setMessageIdGenerationStrategy(new IdGenerator() {
 			public UUID generateId() {
 				return TimeBasedUUIDGenerator.generateId();
 			}
@@ -80,13 +80,13 @@ public class MessageIdGenerationTests {
 		System.out.println("Generated " + times + " messages using Timebased UUID generator " +
 				"in " + timebasedGeneratorElapsedTime + " seconds");
 		
-		System.out.println(defaultGeneratorElapsedTime/timebasedGeneratorElapsedTime);
+		System.out.println("Time-based ID generator is " + defaultGeneratorElapsedTime/timebasedGeneratorElapsedTime + " times faster");
 	
 	}
 	
 
 	
-	public static class SampleIdGenerator implements MessageIdGenerationStrategy {
+	public static class SampleIdGenerator implements IdGenerator {
 
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
