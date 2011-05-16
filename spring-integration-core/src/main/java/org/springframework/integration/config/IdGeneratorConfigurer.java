@@ -70,7 +70,7 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 			ReflectionUtils.makeAccessible(idGeneratorField);
 			IdGenerator idGenerator = (IdGenerator) idGeneratorField.get(null);
 			Assert.state(idGenerator == null, "'MessageHeaders.messageIdGenerator' " +
-					"has already been set and can not be set again, unless reset() method is called");
+					"has already been set and can not be set again");
 			if (logger.isInfoEnabled()){
 				logger.info("Message IDs will be generated using custom ID generation strategy: " + idGenerationStrategy);
 			}
