@@ -48,7 +48,7 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 	
 	private void resetIdGenerationStrategy(){
 		try{
-			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "messageIdGenerator");
+			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
 			idGeneratorField.set(null, null);
 		} 
@@ -66,7 +66,7 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MessageHeaders.IdGenerator [" + idGenerationStrategy + "]");
 			}
-			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "messageIdGenerator");
+			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
 			IdGenerator idGenerator = (IdGenerator) idGeneratorField.get(null);
 			Assert.state(idGenerator == null, "'MessageHeaders.messageIdGenerator' " +
