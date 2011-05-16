@@ -35,19 +35,25 @@ import org.springframework.util.StringUtils;
 public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
-		BeanComponentDefinition consumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		String consumerRef = null;
-		if (consumerDefinition == null){
-			consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
-		} else {
-			consumerRef = consumerDefinition.getBeanName();
-		}	
-		if (element.hasAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE)) {
-			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					this.parseConsumer(element, parserContext), parserContext.getRegistry());
-		}
-		Assert.hasText(consumerRef, "Can not determine consumer for 'outbound-channel-adapter'");
-		return consumerRef;
+		AbstractBeanDefinition consumerDefinition = this.parseConsumer(element, parserContext);
+//		if (element.hasAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE)){
+//			consumerDefinition = this.parseConsumer(element, parserContext);
+//		}
+//		
+//		
+//		BeanComponentDefinition consumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+//		String consumerRef = null;
+//		if (consumerDefinition == null){
+//			consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
+//		} else {
+//			consumerRef = consumerDefinition.getBeanName();
+//		}	
+//		if (element.hasAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE)) {
+//			consumerRef = this.parseConsumer(element, parserContext);
+//		}
+//		Assert.hasText(consumerRef, "Can not determine consumer for 'outbound-channel-adapter'");
+		String consumerName = BeanDefinitionReaderUtils.registerWithGeneratedName(consumerDefinition, parserContext.getRegistry());
+		return consumerName;
 	}
 
 	@Override
@@ -66,7 +72,10 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 		} else {
 			invokerBuilder.addConstructorArgValue(innerHandlerDefinition);
 		}
-		invokerBuilder.addConstructorArgValue(element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE));
+		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
+		if (StringUtils.hasText(methodName)){
+			invokerBuilder.addConstructorArgValue(methodName);
+		}
 		String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
 		if (StringUtils.hasText(order)) {
 			invokerBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, order);

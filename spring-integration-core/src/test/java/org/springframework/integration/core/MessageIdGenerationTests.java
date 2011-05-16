@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
@@ -39,18 +40,68 @@ import org.springframework.util.StopWatch;
  */
 public class MessageIdGenerationTests {
 
+	
 	@Test
-	public void testCustomIdGeneration(){
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+	public void testCustomIdGenerationWithParentRegistrar(){
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), ctx);
+
 		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
 		reset(idGenerator);
-		context.destroy();
+		context.close();
+		new GenericMessage<Integer>(0);
+		verify(idGenerator, times(1)).generateId();
+	}
+	
+	@Test
+	public void testCustomIdGenerationWithParentRegistrarClosed(){
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), ctx);
+
+		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		inputChannel.send(new GenericMessage<Integer>(0));
+		verify(idGenerator, times(4)).generateId();
+		reset(idGenerator);
+		ctx.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 	}
+	
+	@Test
+	public void testCustomIdGenerationWithChildRegistrar(){
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), ctx);
+
+		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		inputChannel.send(new GenericMessage<Integer>(0));
+		verify(idGenerator, times(4)).generateId();
+		reset(idGenerator);
+		ctx.close();
+		new GenericMessage<Integer>(0);
+		verify(idGenerator, times(1)).generateId();
+	}
+	
+	@Test
+	public void testCustomIdGenerationWithChildRegistrarClosed(){
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), ctx);
+
+		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		inputChannel.send(new GenericMessage<Integer>(0));
+		verify(idGenerator, times(4)).generateId();
+		reset(idGenerator);
+		context.close();
+		new GenericMessage<Integer>(0);
+		verify(idGenerator, times(0)).generateId();
+	}
+	
+	
 	
 	@Test
 	@Ignore
@@ -91,6 +142,19 @@ public class MessageIdGenerationTests {
 
 	
 	public static class SampleIdGenerator implements IdGenerator {
+		public SampleIdGenerator(){
+			System.out.println("Generator");
+		}
+		public UUID generateId() {
+			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
+		}
+		
+	}
+	
+	public static class SampleIdGeneratorA implements IdGenerator {
+		public SampleIdGeneratorA(){
+			System.out.println("Generator A");
+		}
 
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());

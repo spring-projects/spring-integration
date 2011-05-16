@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -43,6 +44,10 @@ public class MethodInvokingMessageHandler extends AbstractMessageHandler {
 
 	public MethodInvokingMessageHandler(Object object, String methodName) {
 		processor = new MethodInvokingMessageProcessor<Object>(object, methodName);
+	}
+	
+	public MethodInvokingMessageHandler(Object object) {
+		processor = new MethodInvokingMessageProcessor<Object>(object, ServiceActivator.class);
 	}
 	
 	
