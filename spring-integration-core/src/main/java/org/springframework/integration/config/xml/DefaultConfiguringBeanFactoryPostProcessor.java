@@ -68,7 +68,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		String[] definitionNames = registry.getBeanDefinitionNames();
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = registry.getBeanDefinition(definitionName);
-			if (definition.getBeanClassName().equals(listenerClassName)){
+			if (listenerClassName.equals(definition.getBeanClassName())){
 				logger.warn(listenerClassName + " is already registered and will be used");
 				return;
 			}
