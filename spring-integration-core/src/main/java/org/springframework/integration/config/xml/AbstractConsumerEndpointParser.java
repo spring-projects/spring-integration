@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -101,10 +102,12 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		if (!channelExists) {
 			// create a default DirectChannel instance
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
-			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
-			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+			if (!MessageHeaders.ERROR_CHANNEL.equals(inputChannelName)){
+				BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
+				BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
+				BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+			}	
 		}
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
