@@ -133,7 +133,7 @@
   
   <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel">
 	<int:recipient channel="channel1" selector-expression="payload.equals('foo')"/>
-	<int:recipient channel="channel2" selector-expression="headers.contains('bar')"/>
+	<int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
 </int:recipient-list-router>]]></programlisting>
 
 	In the above configuration a SpEL expression identified by the <code>selector-expression</code> attribute will be evaluated to determine if this recipient 
