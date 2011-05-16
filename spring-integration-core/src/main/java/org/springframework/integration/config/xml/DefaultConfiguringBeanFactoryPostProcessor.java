@@ -54,7 +54,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			this.registerNullChannel(registry);
 			this.registerErrorChannelIfNecessary(registry);
 			this.registerTaskSchedulerIfNecessary(registry);
-			this.registerMessageIdGeneratorIfNecessary(registry);
+			this.registerMessageIdGenerator(registry);
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
@@ -63,8 +63,16 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		}
 	}
 	
-	private void registerMessageIdGeneratorIfNecessary(BeanDefinitionRegistry registry){
+	private void registerMessageIdGenerator(BeanDefinitionRegistry registry){
 		String listenerClassName = "org.springframework.integration.config.IdGeneratorConfigurer";
+		String[] definitionNames = registry.getBeanDefinitionNames();
+		for (String definitionName : definitionNames) {
+			BeanDefinition definition = registry.getBeanDefinition(definitionName);
+			if (definition.getBeanClassName().equals(listenerClassName)){
+				logger.warn(listenerClassName + " is already registered and will be used");
+				return;
+			}
+		}	
 		BeanDefinitionReaderUtils.registerWithGeneratedName(new RootBeanDefinition(listenerClassName), registry);
 	}
 

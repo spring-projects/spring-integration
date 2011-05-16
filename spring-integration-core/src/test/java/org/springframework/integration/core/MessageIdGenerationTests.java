@@ -19,6 +19,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.lang.reflect.Field;
 import java.util.UUID;
 
 import org.junit.Ignore;
@@ -29,6 +30,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageHeaders.IdGenerator;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StopWatch;
 
 /**
@@ -61,8 +63,10 @@ public class MessageIdGenerationTests {
 		}
 		watch.stop();
 		double defaultGeneratorElapsedTime = watch.getTotalTimeSeconds();
-		
-		MessageHeaders.setIdGenerator(new IdGenerator() {
+
+		Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "messageIdGenerator");
+		ReflectionUtils.makeAccessible(idGeneratorField);
+		ReflectionUtils.setField(idGeneratorField, null, new IdGenerator() {	
 			public UUID generateId() {
 				return TimeBasedUUIDGenerator.generateId();
 			}

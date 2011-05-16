@@ -32,8 +32,6 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.util.Assert;
-
 /**
  * The headers for a {@link Message}.<br>
  * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.) 
@@ -60,7 +58,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 	
-	private static IdGenerator messageIdGenerator = new DefaultIdGenerator();
+	private static volatile IdGenerator messageIdGenerator = null;
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
@@ -94,32 +92,14 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		/*
-		 * There is a possibility of the race condition when this constructor is called while 
-		 * setMessageIdGenerationStrategy(..) or reset() is invoked, but synchronizing here would be an overkill IMHO. 
-		 * Realistically there will be no messages yet until the ApplicationContext is started 
-		 * (that is when the setMessageIdGenerationStrategy(..) is called and for reset() all the adapters 
-		 * will be shut down by the time reset() is called.
-		 */
-		this.headers.put(ID, MessageHeaders.messageIdGenerator.generateId());
+		if (MessageHeaders.messageIdGenerator == null){
+			this.headers.put(ID, UUID.randomUUID());
+		}
+		else {
+			this.headers.put(ID, MessageHeaders.messageIdGenerator.generateId());
+		}
+		
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
-	}
-
-
-	public static void setIdGenerator(IdGenerator messageIdGenerator) {
-		Assert.state(MessageHeaders.messageIdGenerator instanceof DefaultIdGenerator, "'MessageHeaders.messageIdGenerator' " +
-			"has already been set and can not be set again, unless reset() method is called");
-		if (logger.isInfoEnabled()){
-			logger.info("Message IDs will be generated using custom ID generation strategy: " + messageIdGenerator);
-		}
-		MessageHeaders.messageIdGenerator = messageIdGenerator;
-	}
-	
-	public static void resetIdGenerator(){
-		MessageHeaders.messageIdGenerator = new DefaultIdGenerator();
-		if (logger.isInfoEnabled()){
-			logger.info("Message IDs generation strategy was reset to the default");
-		}
 	}
 
 	public UUID getId() {
@@ -281,15 +261,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 	public static interface IdGenerator {
-
 		UUID generateId();
-	}
-	
-	private static class DefaultIdGenerator implements IdGenerator {
-
-		public UUID generateId() {
-			return UUID.randomUUID();
-		}
-		
 	}
 }

@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.config;
 
+import java.lang.reflect.Field;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,6 +26,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageHeaders.IdGenerator;
+import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 
 /**
@@ -43,7 +47,16 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 	}
 	
 	private void resetIdGenerationStrategy(){
-		MessageHeaders.resetIdGenerator();
+		try{
+			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "messageIdGenerator");
+			ReflectionUtils.makeAccessible(idGeneratorField);
+			idGeneratorField.set(null, null);
+		} 
+		catch (Exception ex){
+			if (logger.isWarnEnabled()) {
+				logger.warn("Unexpected exception happened while accessing idGenerator of MessageHeaders.", ex);
+			}
+		}
 	}
 	
 	private void setIdGenerationStrategy(ContextRefreshedEvent event){
@@ -53,12 +66,26 @@ public class IdGeneratorConfigurer implements ApplicationListener<ContextRefresh
 			if (logger.isDebugEnabled()) {
 				logger.debug("Using MessageHeaders.IdGenerator [" + idGenerationStrategy + "]");
 			}
-			MessageHeaders.setIdGenerator(idGenerationStrategy);
+			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "messageIdGenerator");
+			ReflectionUtils.makeAccessible(idGeneratorField);
+			IdGenerator idGenerator = (IdGenerator) idGeneratorField.get(null);
+			Assert.state(idGenerator == null, "'MessageHeaders.messageIdGenerator' " +
+					"has already been set and can not be set again, unless reset() method is called");
+			if (logger.isInfoEnabled()){
+				logger.info("Message IDs will be generated using custom ID generation strategy: " + idGenerationStrategy);
+			}
+			ReflectionUtils.setField(idGeneratorField, null, idGenerationStrategy);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// We need to use the default.
 			if (logger.isDebugEnabled()) {
 				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use default UUID.randomUUID()");
+			}
+		}
+		catch (Exception e){
+			if (logger.isWarnEnabled()) {
+				logger.warn("Unexpected exception happened while accessing idGenerator of MessageHeaders." +
+						" Will use default UUID.randomUUID()", e);
 			}
 		}
 	}
