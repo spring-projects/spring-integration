@@ -58,7 +58,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 	
-	private static volatile IdGenerator messageIdGenerator = null;
+	private static volatile IdGenerator idGenerator = null;
 
 	/**
 	 * The key for the Message ID. This is an automatically generated UUID and
@@ -92,11 +92,11 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		if (MessageHeaders.messageIdGenerator == null){
+		if (MessageHeaders.idGenerator == null){
 			this.headers.put(ID, UUID.randomUUID());
 		}
 		else {
-			this.headers.put(ID, MessageHeaders.messageIdGenerator.generateId());
+			this.headers.put(ID, MessageHeaders.idGenerator.generateId());
 		}
 		
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
