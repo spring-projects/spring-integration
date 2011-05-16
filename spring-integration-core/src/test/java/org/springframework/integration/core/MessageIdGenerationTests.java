@@ -43,60 +43,60 @@ public class MessageIdGenerationTests {
 	
 	@Test
 	public void testCustomIdGenerationWithParentRegistrar(){
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), ctx);
+		ApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
-		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
 		reset(idGenerator);
-		context.close();
+		child.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithParentRegistrarClosed(){
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), ctx);
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
-		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
 		reset(idGenerator);
-		ctx.close();
+		parent.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithChildRegistrar(){
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), ctx);
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), parent);
 
-		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
 		reset(idGenerator);
-		ctx.close();
+		parent.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithChildRegistrarClosed(){
-		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), ctx);
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), parent);
 
-		IdGenerator idGenerator = context.getBean("idGenerator", IdGenerator.class);
-		MessageChannel inputChannel = context.getBean("input", MessageChannel.class);
+		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
 		verify(idGenerator, times(4)).generateId();
 		reset(idGenerator);
-		context.close();
+		child.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 	}
@@ -142,9 +142,7 @@ public class MessageIdGenerationTests {
 
 	
 	public static class SampleIdGenerator implements IdGenerator {
-		public SampleIdGenerator(){
-			System.out.println("Generator");
-		}
+		
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}
@@ -152,10 +150,7 @@ public class MessageIdGenerationTests {
 	}
 	
 	public static class SampleIdGeneratorA implements IdGenerator {
-		public SampleIdGeneratorA(){
-			System.out.println("Generator A");
-		}
-
+		
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}

@@ -71,11 +71,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
-//			IdGenerator existingIdGenerator = (IdGenerator) ReflectionUtils.getField(idGeneratorField, null);
-//			if (existingIdGenerator != null) {
-//				throw new BeanDefinitionStoreException(
-//						"'MessageHeaders.idGenerator' has already been set and can not be set again");
-//			}
+
 			if (logger.isInfoEnabled()) {
 				logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
