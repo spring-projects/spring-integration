@@ -29,7 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -102,7 +102,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		if (!channelExists) {
 			// create a default DirectChannel instance
-			if (!MessageHeaders.ERROR_CHANNEL.equals(inputChannelName)){
+			if (!IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(inputChannelName)){
 				BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
 						IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
 				BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
