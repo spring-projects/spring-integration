@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,9 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 
 	private static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
 
+
 	private Log logger = LogFactory.getLog(this.getClass());
+
 
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
@@ -54,7 +56,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			this.registerNullChannel(registry);
 			this.registerErrorChannelIfNecessary(registry);
 			this.registerTaskSchedulerIfNecessary(registry);
-			this.registerMessageIdGenerator(registry);
+			this.registerIdGeneratorConfigurer(registry);
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
@@ -62,18 +64,22 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured.");
 		}
 	}
-	
-	private void registerMessageIdGenerator(BeanDefinitionRegistry registry){
+
+	private void registerIdGeneratorConfigurer(BeanDefinitionRegistry registry) {
 		String listenerClassName = "org.springframework.integration.config.IdGeneratorConfigurer";
 		String[] definitionNames = registry.getBeanDefinitionNames();
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = registry.getBeanDefinition(definitionName);
-			if (listenerClassName.equals(definition.getBeanClassName())){
-				logger.warn(listenerClassName + " is already registered and will be used");
+			if (listenerClassName.equals(definition.getBeanClassName())) {
+				if (logger.isWarnEnabled()) {
+					logger.warn(listenerClassName + " is already registered and will be used");
+				}
 				return;
 			}
-		}	
-		BeanDefinitionReaderUtils.registerWithGeneratedName(new RootBeanDefinition(listenerClassName), registry);
+		}
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(listenerClassName);
+		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, registry);
 	}
 
 	/**
