@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ public class ErrorChannelAutoCreationTests {
 	// see INT-1899
 	@Test
 	public void testErrorChannelIsPubSub(){
-		assertTrue(errorChannel instanceof PublishSubscribeChannel);
+		assertEquals(PublishSubscribeChannel.class, errorChannel.getClass());
 	}
 	
 }

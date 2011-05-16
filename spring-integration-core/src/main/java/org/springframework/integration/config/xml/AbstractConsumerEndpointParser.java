@@ -100,14 +100,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		else {
 			channelExists = parserContext.getRegistry().containsBeanDefinition(inputChannelName);
 		}
-		if (!channelExists) {
-			// create a default DirectChannel instance
-			if (!IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(inputChannelName)){
-				BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
-				BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
-				BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-			}	
+		if (!channelExists && this.shouldAutoCreateChannel(inputChannelName)) {
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
+			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
+			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
@@ -124,6 +121,11 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
 		parserContext.popAndRegisterContainingComponent();
 		return null;
+	}
+
+	private boolean shouldAutoCreateChannel(String channelName) {
+		return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
+				&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
 	}
 
 }
