@@ -34,6 +34,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0.4
  */
 public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent> {
@@ -84,10 +85,6 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
 		}
-		catch (BeanDefinitionStoreException e) {
-			// let this propagate
-			throw e;
-		}
 		catch (NoSuchBeanDefinitionException e) {
 			// No custom IdGenerator. We will use the default.
 			if (logger.isDebugEnabled()) {
@@ -96,6 +93,7 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			return false;
 		}
 		catch (IllegalStateException e) {
+			// thrown from ReflectionUtils
 			if (logger.isWarnEnabled()) {
 				logger.warn("Unexpected exception occurred while accessing idGenerator of MessageHeaders." +
 						" Will use default: UUID.randomUUID()", e);
