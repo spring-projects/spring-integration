@@ -114,19 +114,19 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 */
 	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
-	private String region = "DEFAULT";
+	private volatile String region = "DEFAULT";
 
-	private String tablePrefix = DEFAULT_TABLE_PREFIX;
+	private volatile String tablePrefix = DEFAULT_TABLE_PREFIX;
 
-	private JdbcOperations jdbcTemplate;
+	private volatile JdbcOperations jdbcTemplate;
 
-	private DeserializingConverter deserializer;
+	private volatile DeserializingConverter deserializer;
 
-	private SerializingConverter serializer;
+	private volatile SerializingConverter serializer;
 
-	private LobHandler lobHandler = new DefaultLobHandler();
+	private volatile LobHandler lobHandler = new DefaultLobHandler();
 
-	private MessageMapper mapper = new MessageMapper();
+	private volatile MessageMapper mapper = new MessageMapper();
 
 	/**
 	 * Convenient constructor for configuration use.

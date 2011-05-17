@@ -30,7 +30,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  */
 public class BeanPropertySqlParameterSourceFactory implements SqlParameterSourceFactory {
 
-	private Map<String, Object> staticParameters;
+	private volatile Map<String, Object> staticParameters;
 
 	public BeanPropertySqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());

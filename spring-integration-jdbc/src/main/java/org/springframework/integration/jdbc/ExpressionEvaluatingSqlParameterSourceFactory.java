@@ -41,9 +41,9 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 	private static final Object ERROR = new Object();
 
-	private Map<String, ?> staticParameters;
+	private volatile Map<String, ?> staticParameters;
 
-	private Map<String, String> parameterExpressions;
+	private volatile Map<String, String> parameterExpressions;
 
 	public ExpressionEvaluatingSqlParameterSourceFactory() {
 		this.staticParameters = Collections.unmodifiableMap(new HashMap<String, Object>());
@@ -109,7 +109,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private final Object input;
 
-		private Map<String, Object> values = new HashMap<String, Object>();
+		private volatile Map<String, Object> values = new HashMap<String, Object>();
 
 		private final Map<String, String> parameterExpressions;
 
