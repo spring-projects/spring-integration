@@ -5,7 +5,7 @@ For the full detailed changelog, see:
 https://fisheye.springsource.org/changelog/spring-integration
 
 
-Changes in version 2.0.4 (May 16, 2011)
+Changes in version 2.0.4 (May 17, 2011)
 http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11828
 
 Changes in version 2.0.3 (Feb 09, 2011)
