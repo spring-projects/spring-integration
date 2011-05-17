@@ -168,7 +168,6 @@ public class MessageIdGenerationTests {
 			parent.close();
 			this.assertDestroy();
 		}
-		
 	}
 
 	// should fail because second child attempts to register another instance of IdGenerator
@@ -194,7 +193,6 @@ public class MessageIdGenerationTests {
 			parent.close();
 			this.assertDestroy();
 		}
-		
 	}
 	
 	@Test
@@ -230,20 +228,19 @@ public class MessageIdGenerationTests {
 				"in " + timebasedGeneratorElapsedTime + " seconds");
 		
 		System.out.println("Time-based ID generator is " + defaultGeneratorElapsedTime/timebasedGeneratorElapsedTime + " times faster");
-	
-	}
-	
-	private void assertDestroy() throws Exception{
-		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
-		ReflectionUtils.makeAccessible(idGenField);
-		assertNull(idGenField.get(null));
 	}
 
-	
+	private void assertDestroy() throws Exception {
+		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
+		ReflectionUtils.makeAccessible(idGenField);
+		assertNull("the idGenerator field has not been properly reset to null", idGenField.get(null));
+	}
+
+
 	public static class SampleIdGenerator implements IdGenerator {
-		
 		public UUID generateId() {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}
-		
-	}}
+	}
+
+}
