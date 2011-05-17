@@ -25,7 +25,6 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
@@ -125,7 +124,7 @@ public class MessageIdGenerationTests {
 		parent.close();
 	}
 	
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test(expected=IllegalStateException.class)
 	public void testCustomIdGenerationWithParentChileIndependentCreationTwoChildrenTwoRegistrars(){
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		
