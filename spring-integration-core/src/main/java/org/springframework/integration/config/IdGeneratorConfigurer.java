@@ -36,17 +36,15 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0.4
  */
-public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent>{
+public final class IdGeneratorConfigurer implements ApplicationListener<ApplicationContextEvent> {
+
+	private static volatile String generatorContextId;
 
 	private final Log logger = LogFactory.getLog(getClass());
-	
-	private static volatile String generatorContextId;
-	
+
 	public void onApplicationEvent(ApplicationContextEvent event) {
-		
 		ApplicationContext context = event.getApplicationContext();
-		
-		if (event instanceof ContextRefreshedEvent){
+		if (event instanceof ContextRefreshedEvent) {
 			boolean contextHasIdGenerator = context.getBeanNamesForType(IdGenerator.class).length > 0;
 			if (contextHasIdGenerator) {
 				if (this.setIdGenerator(context)) {
@@ -54,15 +52,13 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 				}
 			}
 		}
-		else if (event instanceof ContextClosedEvent){
-			if (context.getId().equals(IdGeneratorConfigurer.generatorContextId)){
+		else if (event instanceof ContextClosedEvent) {
+			if (context.getId().equals(IdGeneratorConfigurer.generatorContextId)) {
 				this.unsetIdGenerator();
 				IdGeneratorConfigurer.generatorContextId = null;
 			}
 		}	
-	
 	}
-	
 
 	private boolean setIdGenerator(ApplicationContext context) {
 		try {
@@ -72,13 +68,14 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
-			IdGenerator setGenerator = (IdGenerator) ReflectionUtils.getField(idGeneratorField, null);
-			if (setGenerator != null){
-				if (setGenerator.equals(idGeneratorBean)){
-					// already set, nothing needs to be done
+			IdGenerator currentIdGenerator = (IdGenerator) ReflectionUtils.getField(idGeneratorField, null);
+			if (currentIdGenerator != null) {
+				if (currentIdGenerator.equals(idGeneratorBean)) {
+					// same instance is already set, nothing needs to be done
 					return false;
 				}
 				else {
+					// different instance has been set, not legal
 					throw new BeanDefinitionStoreException("'MessageHeaders.idGenerator' has already been set and can not be set again");
 				}
 			}
@@ -87,11 +84,12 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
 		}
-		catch (BeanDefinitionStoreException bdse){
-			throw bdse;
+		catch (BeanDefinitionStoreException e) {
+			// let this propagate
+			throw e;
 		}
 		catch (NoSuchBeanDefinitionException e) {
-			// We will use the default.
+			// No custom IdGenerator. We will use the default.
 			if (logger.isDebugEnabled()) {
 				logger.debug("Unable to locate MessageHeaders.IdGenerator. Will use default: UUID.randomUUID()");
 			}
@@ -119,7 +117,5 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 		}
 	}
-
-	
 
 }
