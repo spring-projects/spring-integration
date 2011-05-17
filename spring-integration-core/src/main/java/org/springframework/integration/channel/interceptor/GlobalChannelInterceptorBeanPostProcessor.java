@@ -130,9 +130,12 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	private List<ChannelInterceptor> getExistingInterceptors(MessageChannel channel) {	
 		try {
 			MessageChannel targetChannel = channel;
-			if (AopUtils.isAopProxy(channel)){
-				targetChannel = (MessageChannel) ((Advised)channel).getTargetSource().getTarget();
-			}	
+			if (AopUtils.isAopProxy(channel)) {
+				Object target = ((Advised) channel).getTargetSource().getTarget();
+				if (target instanceof MessageChannel) {
+					targetChannel = (MessageChannel) target;
+				}
+			}
 			DirectFieldAccessor channelAccessor = new DirectFieldAccessor(targetChannel);
 			Object interceptorListWrapper = channelAccessor.getPropertyValue("interceptors");
 			if (interceptorListWrapper != null) {
@@ -140,7 +143,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			}
 		}
 		catch (Exception e) {
-			// interceptors not supported by this channel, will return null
+			if (logger.isDebugEnabled()) {
+				logger.debug("interceptors not supported by channel '" + channel + "'", e);
+			}
 		}
 		return null;
 	}
