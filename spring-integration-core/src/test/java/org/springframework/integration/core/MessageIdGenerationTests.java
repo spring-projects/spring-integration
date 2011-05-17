@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
@@ -123,15 +124,50 @@ public class MessageIdGenerationTests {
 		verify(idGenerator, times(0)).generateId();
 		parent.close();
 	}
-	
-	@Test(expected=IllegalStateException.class)
-	public void testCustomIdGenerationWithParentChileIndependentCreationTwoChildrenTwoRegistrars(){
+	// similar to the last test, but should not fail because child AC is closed before second child AC is started
+	@Test
+	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime(){
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		
+		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
+		childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
+		childA.setParent(parent);
+		childA.refresh();
+		
+		childA.close();
+		
+		GenericXmlApplicationContext childB = new GenericXmlApplicationContext();
+		childB.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
+		childB.setParent(parent);
+		childB.refresh();
+		
+		parent.close();
+		childB.close();
+	}
+	// should fail because both parent and child define IdGenerator instances
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testCustomIdGenerationWithParentChildIndependentCreation(){
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		
 		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
 		childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
 		childA.setParent(parent);
 		childA.refresh();
+	}
+	// should fail because second child attempts to register another instance of IdGenerator
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrars(){
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
+		
+		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
+		childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
+		childA.setParent(parent);
+		childA.refresh();
+		
+		GenericXmlApplicationContext childB = new GenericXmlApplicationContext();
+		childB.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
+		childB.setParent(parent);
+		childB.refresh();
 	}
 	
 	@Test
@@ -178,15 +214,4 @@ public class MessageIdGenerationTests {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}
 		
-	}
-	
-	public static class SampleIdGeneratorA implements IdGenerator {
-		
-		public UUID generateId() {
-			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
-		}
-		
-	}
-	
-	
-}
+	}}

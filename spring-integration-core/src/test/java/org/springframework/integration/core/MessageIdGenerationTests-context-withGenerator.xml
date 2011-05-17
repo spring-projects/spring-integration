@@ -7,7 +7,7 @@
 	
 	<bean id="idGenerator" class="org.mockito.Mockito" factory-method="spy">
 		<constructor-arg>
-			<bean class="org.springframework.integration.core.MessageIdGenerationTests.SampleIdGeneratorA"/>
+			<bean class="org.springframework.integration.core.MessageIdGenerationTests.SampleIdGenerator"/>
 		</constructor-arg>
 	</bean>
 	
