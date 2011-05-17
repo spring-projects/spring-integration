@@ -17,10 +17,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
  * Spring EL expressions. In addition the user can supply static parameters that always take precedence.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
@@ -108,7 +109,7 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 
 		private final Object input;
 
-		private Map<String, Object> values = new ConcurrentHashMap<String, Object>();
+		private Map<String, Object> values = new HashMap<String, Object>();
 
 		private final Map<String, String> parameterExpressions;
 
