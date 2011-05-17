@@ -25,8 +25,9 @@ import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageHeaders.IdGenerator;
@@ -43,7 +44,7 @@ public class MessageIdGenerationTests {
 	
 	@Test
 	public void testCustomIdGenerationWithParentRegistrar(){
-		ApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
@@ -54,11 +55,31 @@ public class MessageIdGenerationTests {
 		child.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
+		parent.close();
+	}
+	
+	@Test
+	public void testCustomIdGenerationWithParentChileIndependentCreation(){
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
+		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
+		child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context.xml");
+		child.setParent(parent);
+		child.refresh();
+
+		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
+		inputChannel.send(new GenericMessage<Integer>(0));
+		verify(idGenerator, times(4)).generateId();
+		reset(idGenerator);
+		child.close();
+		new GenericMessage<Integer>(0);
+		verify(idGenerator, times(1)).generateId();
+		parent.close();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithParentRegistrarClosed(){
-		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-a.xml", this.getClass());
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
@@ -69,12 +90,13 @@ public class MessageIdGenerationTests {
 		parent.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
+		parent.close();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithChildRegistrar(){
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), parent);
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
@@ -84,12 +106,13 @@ public class MessageIdGenerationTests {
 		parent.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
+		child.close();
 	}
 	
 	@Test
 	public void testCustomIdGenerationWithChildRegistrarClosed(){
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
-		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-a.xml"}, this.getClass(), parent);
+		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
@@ -99,9 +122,18 @@ public class MessageIdGenerationTests {
 		child.close();
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
+		parent.close();
 	}
 	
-	
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testCustomIdGenerationWithParentChileIndependentCreationTwoChildrenTwoRegistrars(){
+		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
+		
+		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
+		childA.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context-withGenerator.xml");
+		childA.setParent(parent);
+		childA.refresh();
+	}
 	
 	@Test
 	@Ignore

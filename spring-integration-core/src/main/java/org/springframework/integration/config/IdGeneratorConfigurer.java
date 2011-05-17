@@ -41,26 +41,29 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 
 	private final Log logger = LogFactory.getLog(getClass());
 	
-	private volatile String generatorContextId;
+	private static volatile String generatorContextId;
 
 
 	public void onApplicationEvent(ApplicationContextEvent event) {
+		ApplicationContext contex = event.getApplicationContext();
 		if (event instanceof ContextRefreshedEvent){
-			if (!StringUtils.hasText(generatorContextId)){
-				ApplicationContext contex = event.getApplicationContext();
+			if (!StringUtils.hasText(IdGeneratorConfigurer.generatorContextId)){
+				
 				if (this.setIdGenerator(contex)){
-					this.generatorContextId = contex.getId();
+					IdGeneratorConfigurer.generatorContextId = contex.getId();
 				}	
+			}
+			else if (contex.getBeanNamesForType(IdGenerator.class).length > 0) {
+				throw new BeanDefinitionStoreException(
+					"'MessageHeaders.idGenerator' has already been set and can not be set again");
 			}
 		}
 		else if (event instanceof ContextClosedEvent){
-			ApplicationContext contex = event.getApplicationContext();
-			if (contex.getId().equals(generatorContextId)){
+			if (contex.getId().equals(IdGeneratorConfigurer.generatorContextId)){
 				this.unsetIdGenerator();
-				this.generatorContextId = null;
+				IdGeneratorConfigurer.generatorContextId = null;
 			}
-		}
-		
+		}	
 	}
 
 	private boolean setIdGenerator(ApplicationContext context) {
@@ -71,15 +74,10 @@ public final class IdGeneratorConfigurer implements ApplicationListener<Applicat
 			}
 			Field idGeneratorField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 			ReflectionUtils.makeAccessible(idGeneratorField);
-
 			if (logger.isInfoEnabled()) {
 				logger.info("Message IDs will be generated using custom IdGenerator [" + idGeneratorBean.getClass() + "]");
 			}
 			ReflectionUtils.setField(idGeneratorField, null, idGeneratorBean);
-		}
-		catch (BeanDefinitionStoreException e) {
-			// let this one propagate
-			throw e;
 		}
 		catch (NoSuchBeanDefinitionException e) {
 			// We will use the default.
