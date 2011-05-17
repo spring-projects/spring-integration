@@ -56,7 +56,7 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		parent.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 	
 	@Test
@@ -76,7 +76,7 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		parent.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 	
 	@Test
@@ -93,7 +93,7 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 		child.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 	
 	@Test
@@ -110,7 +110,7 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		child.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 	
 	@Test
@@ -127,7 +127,7 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 		parent.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 
 	// similar to the last test, but should not fail because child AC is closed before second child AC is started
@@ -149,7 +149,7 @@ public class MessageIdGenerationTests {
 		
 		parent.close();
 		childB.close();
-		this.assertCleanup();
+		this.assertDestroy();
 	}
 
 	// should fail because both parent and child define IdGenerator instances
@@ -166,8 +166,9 @@ public class MessageIdGenerationTests {
 		finally {
 			child.close();
 			parent.close();
+			this.assertDestroy();
 		}
-		this.assertCleanup();
+		
 	}
 
 	// should fail because second child attempts to register another instance of IdGenerator
@@ -191,8 +192,9 @@ public class MessageIdGenerationTests {
 			childA.close();
 			childB.close();
 			parent.close();
+			this.assertDestroy();
 		}
-		this.assertCleanup();
+		
 	}
 	
 	@Test
@@ -231,7 +233,7 @@ public class MessageIdGenerationTests {
 	
 	}
 	
-	public void assertCleanup() throws Exception{
+	private void assertDestroy() throws Exception{
 		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGenField);
 		assertNull(idGenField.get(null));
