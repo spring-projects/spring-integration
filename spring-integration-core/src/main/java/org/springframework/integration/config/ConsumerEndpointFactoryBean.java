@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.config;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -107,8 +109,17 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		if (!this.beanName.startsWith("org.springframework") && this.handler instanceof IntegrationObjectSupport) {
-			((IntegrationObjectSupport) this.handler).setComponentName(this.beanName);
+		if (!this.beanName.startsWith("org.springframework")) {
+			MessageHandler targetHandler = this.handler;
+			if (AopUtils.isAopProxy(targetHandler)) {
+				Object target = ((Advised) targetHandler).getTargetSource().getTarget();
+				if (target instanceof MessageHandler) {
+					targetHandler = (MessageHandler) target;
+				}
+			}
+			if (targetHandler instanceof IntegrationObjectSupport) {
+				((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
+			}
 		}
 		this.initializeEndpoint();
 	}
