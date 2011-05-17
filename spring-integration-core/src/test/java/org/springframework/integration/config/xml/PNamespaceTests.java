@@ -18,11 +18,14 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,6 +55,10 @@ public class PNamespaceTests {
 	@Autowired
 	@Qualifier("tr")
 	EventDrivenConsumer transformer;
+	
+	@Autowired
+	@Qualifier("sampleChain")
+	EventDrivenConsumer sampleChain;
 
 
 	@Test
@@ -80,6 +87,15 @@ public class PNamespaceTests {
 		TestBean bean =  prepare(transformer);
 		assertEquals("paris", bean.getFname());
 		assertEquals("hilton", bean.getLname());
+	}
+	
+	@Test
+	public void testPNamespaceChain() {		
+		List<?> handlers = (List<?>) TestUtils.getPropertyValue(sampleChain, "handler.handlers");
+		CorrelatingMessageHandler handler = (CorrelatingMessageHandler) handlers.get(0);
+		SampleAggregator aggregator = 
+			(SampleAggregator) TestUtils.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
+		assertEquals("Bill", aggregator.getName());
 	}
 
 
@@ -125,4 +141,15 @@ public class PNamespaceTests {
 		}
 	}
 
+	public static class SampleAggregator {
+		private String name;
+		public SampleAggregator(){}
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+	}
 }

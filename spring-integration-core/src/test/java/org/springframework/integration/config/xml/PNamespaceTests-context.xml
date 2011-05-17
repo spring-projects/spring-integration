@@ -27,5 +27,11 @@
 		<bean class="org.springframework.integration.config.xml.PNamespaceTests$TestBean" 
 																p:fname="paris" p:lname="hilton"/>
 	</si:router>
+	
+	<si:chain id="sampleChain" input-channel="input">
+		<si:aggregator >
+			<bean class="org.springframework.integration.config.xml.PNamespaceTests.SampleAggregator" p:name="Bill"/>
+		</si:aggregator>
+	</si:chain>
 
 </beans>
