@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -222,6 +223,12 @@ public class MessageIdGenerationTests {
 	
 	}
 	
+	@After
+	public void cleanup(){
+		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
+		ReflectionUtils.makeAccessible(idGenField);
+		ReflectionUtils.setField(idGenField, null, null);
+	}
 
 	
 	public static class SampleIdGenerator implements IdGenerator {
