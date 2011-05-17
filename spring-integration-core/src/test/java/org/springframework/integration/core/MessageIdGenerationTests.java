@@ -16,6 +16,7 @@
 
 package org.springframework.integration.core;
 
+import static junit.framework.Assert.assertNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -43,7 +43,7 @@ import org.springframework.util.StopWatch;
 public class MessageIdGenerationTests {
 
 	@Test
-	public void testCustomIdGenerationWithParentRegistrar(){
+	public void testCustomIdGenerationWithParentRegistrar() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
@@ -56,10 +56,11 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		parent.close();
+		this.assertCleanup();
 	}
 	
 	@Test
-	public void testCustomIdGenerationWithParentChileIndependentCreation(){
+	public void testCustomIdGenerationWithParentChileIndependentCreation() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
 		child.load("classpath:/org/springframework/integration/core/MessageIdGenerationTests-context.xml");
@@ -75,10 +76,11 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		parent.close();
+		this.assertCleanup();
 	}
 	
 	@Test
-	public void testCustomIdGenerationWithParentRegistrarClosed(){
+	public void testCustomIdGenerationWithParentRegistrarClosed() throws Exception {
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context.xml"}, this.getClass(), parent);
 
@@ -91,10 +93,11 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 		child.close();
+		this.assertCleanup();
 	}
 	
 	@Test
-	public void testCustomIdGenerationWithChildRegistrar(){
+	public void testCustomIdGenerationWithChildRegistrar() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
@@ -107,10 +110,11 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(1)).generateId();
 		child.close();
+		this.assertCleanup();
 	}
 	
 	@Test
-	public void testCustomIdGenerationWithChildRegistrarClosed(){
+	public void testCustomIdGenerationWithChildRegistrarClosed() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
@@ -123,11 +127,12 @@ public class MessageIdGenerationTests {
 		new GenericMessage<Integer>(0);
 		verify(idGenerator, times(0)).generateId();
 		parent.close();
+		this.assertCleanup();
 	}
 
 	// similar to the last test, but should not fail because child AC is closed before second child AC is started
 	@Test
-	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime(){
+	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrarsOneAtTheTime() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		
 		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
@@ -144,11 +149,12 @@ public class MessageIdGenerationTests {
 		
 		parent.close();
 		childB.close();
+		this.assertCleanup();
 	}
 
 	// should fail because both parent and child define IdGenerator instances
 	@Test(expected=BeanDefinitionStoreException.class)
-	public void testCustomIdGenerationWithParentChildIndependentCreation(){
+	public void testCustomIdGenerationWithParentChildIndependentCreation() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context-withGenerator.xml", this.getClass());
 		
 		GenericXmlApplicationContext child = new GenericXmlApplicationContext();
@@ -161,11 +167,12 @@ public class MessageIdGenerationTests {
 			child.close();
 			parent.close();
 		}
+		this.assertCleanup();
 	}
 
 	// should fail because second child attempts to register another instance of IdGenerator
 	@Test(expected=BeanDefinitionStoreException.class)
-	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrars(){
+	public void testCustomIdGenerationWithParentChildIndependentCreationChildrenRegistrars() throws Exception{
 		ClassPathXmlApplicationContext parent = new ClassPathXmlApplicationContext("MessageIdGenerationTests-context.xml", this.getClass());
 		
 		GenericXmlApplicationContext childA = new GenericXmlApplicationContext();
@@ -185,6 +192,7 @@ public class MessageIdGenerationTests {
 			childB.close();
 			parent.close();
 		}
+		this.assertCleanup();
 	}
 	
 	@Test
@@ -223,11 +231,10 @@ public class MessageIdGenerationTests {
 	
 	}
 	
-	@After
-	public void cleanup(){
+	public void assertCleanup() throws Exception{
 		Field idGenField = ReflectionUtils.findField(MessageHeaders.class, "idGenerator");
 		ReflectionUtils.makeAccessible(idGenField);
-		ReflectionUtils.setField(idGenField, null, null);
+		assertNull(idGenField.get(null));
 	}
 
 	
