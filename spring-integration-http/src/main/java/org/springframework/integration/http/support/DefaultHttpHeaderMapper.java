@@ -729,8 +729,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		}
 		else {
 			String convertedValue = this.convertToString(value);
-			if (StringUtils.hasText(convertedValue)){
-				target.set(name, (String) convertedValue);
+			if (StringUtils.hasText(convertedValue)) {
+				target.set(name, convertedValue);
 			}
 			else {
 				logger.warn("Header '" + name + "' with value '" + value + 
