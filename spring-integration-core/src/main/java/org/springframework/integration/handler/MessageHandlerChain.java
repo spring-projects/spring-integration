@@ -19,6 +19,8 @@ package org.springframework.integration.handler;
 import java.util.HashSet;
 import java.util.List;
 
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
@@ -173,8 +175,22 @@ public class MessageHandlerChain extends AbstractMessageHandler implements Messa
 		int i = 0;
 		if (this.handlers != null) {
 			for (MessageHandler messageHandler : this.handlers) {
-				if (messageHandler instanceof IntegrationObjectSupport) {
-					((IntegrationObjectSupport) messageHandler).setComponentName(componentName + ".handler#" + i);
+				try {
+					MessageHandler targetHandler = messageHandler;
+					if (AopUtils.isAopProxy(targetHandler)) {
+						Object target = ((Advised) targetHandler).getTargetSource().getTarget();
+						if (target instanceof MessageHandler) {
+							targetHandler = (MessageHandler) target;
+						}
+					}
+					if (targetHandler instanceof IntegrationObjectSupport) {
+						((IntegrationObjectSupport) targetHandler).setComponentName(componentName + ".handler#" + i);
+					}
+				} catch (Exception e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Could not set component name for handler "
+								+ messageHandler + " for " + componentName + " :" + e.getMessage());
+					}
 				}
 				i++; // increment, regardless of whether we assigned a component name
 			}

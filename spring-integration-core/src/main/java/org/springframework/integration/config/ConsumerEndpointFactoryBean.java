@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -42,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Josh Long
+ * @author Gary Russell
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
@@ -70,6 +73,7 @@ public class ConsumerEndpointFactoryBean
 
 	private final Object handlerMonitor = new Object();
 
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
@@ -109,16 +113,23 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		if (!this.beanName.startsWith("org.springframework")) {
-			MessageHandler targetHandler = this.handler;
-			if (AopUtils.isAopProxy(targetHandler)) {
-				Object target = ((Advised) targetHandler).getTargetSource().getTarget();
-				if (target instanceof MessageHandler) {
-					targetHandler = (MessageHandler) target;
+		try {
+			if (!this.beanName.startsWith("org.springframework")) {
+				MessageHandler targetHandler = this.handler;
+				if (AopUtils.isAopProxy(targetHandler)) {
+					Object target = ((Advised) targetHandler).getTargetSource().getTarget();
+					if (target instanceof MessageHandler) {
+						targetHandler = (MessageHandler) target;
+					}
+				}
+				if (targetHandler instanceof IntegrationObjectSupport) {
+					((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
 				}
 			}
-			if (targetHandler instanceof IntegrationObjectSupport) {
-				((IntegrationObjectSupport) targetHandler).setComponentName(this.beanName);
+		} catch (Exception e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Could not set component name for handler "
+						+ this.handler + " for " + this.beanName + " :" + e.getMessage());
 			}
 		}
 		this.initializeEndpoint();
