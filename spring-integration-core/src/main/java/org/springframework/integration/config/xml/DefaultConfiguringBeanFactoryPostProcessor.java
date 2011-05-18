@@ -61,7 +61,9 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		else if (logger.isWarnEnabled()) {
 			logger.warn("BeanFactory is not a BeanDefinitionRegistry. The default '"
 					+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME + "' and '"
-					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured.");
+					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured."
+					+ " Also, any custom IdGenerator implementation configured in this BeanFactory"
+					+ " will not be recognized.");
 		}
 	}
 
@@ -71,8 +73,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		for (String definitionName : definitionNames) {
 			BeanDefinition definition = registry.getBeanDefinition(definitionName);
 			if (listenerClassName.equals(definition.getBeanClassName())) {
-				if (logger.isWarnEnabled()) {
-					logger.warn(listenerClassName + " is already registered and will be used");
+				if (logger.isInfoEnabled()) {
+					logger.info(listenerClassName + " is already registered and will be used");
 				}
 				return;
 			}
