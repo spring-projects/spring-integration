@@ -6,7 +6,7 @@ Bundle-ManifestVersion: 2
 Import-Template: 
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
  org.apache.commons.net.*;version="[2.0.0, 3.0.0)",
- org.springframework.integration.*;version="[2.0.4, 2.0.5)",
+ org.springframework.integration.*;version="[2.0.5, 2.0.6)",
  org.springframework.beans.*;version="[3.0.5, 4.0.0)",
  org.springframework.context;version="[3.0.5, 4.0.0)",
  org.springframework.core.*;version="[3.0.5, 4.0.0)",
