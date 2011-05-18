@@ -143,7 +143,8 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			}
 		}
 		catch (Exception e) {
-			if (logger.isDebugEnabled()) {
+			// interceptors not supported, will return null
+			if (logger.isDebugEnabled() && channel != null) {
 				logger.debug("interceptors not supported by channel '" + channel + "'", e);
 			}
 		}
