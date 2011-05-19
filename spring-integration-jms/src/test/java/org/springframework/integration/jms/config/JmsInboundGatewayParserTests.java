@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.JmsTransactionManager;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
@@ -343,11 +345,15 @@ public class JmsInboundGatewayParserTests {
 
 	@Test
 	public void gatewayWithReplyChannel() {
+		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithReplyChannel.xml", this.getClass());
 		JmsMessageDrivenEndpoint gateway = (JmsMessageDrivenEndpoint) context.getBean("gateway");
 		Object replyChannel = TestUtils.getPropertyValue(gateway, "listener.gatewayDelegate.replyChannel");
 		assertEquals(context.getBean("replies"), replyChannel);
+		JmsTemplate template = new JmsTemplate(context.getBean(ConnectionFactory.class));
+		template.convertAndSend("testDestination", "Hello");
+		assertNotNull(template.receive("testReplyDestination"));
 	}
 
 }

@@ -310,6 +310,14 @@ public class ChannelPublishingJmsMessageListener
 		this.gatewayDelegate.afterPropertiesSet();
 	}
 	
+	protected void start(){
+		this.gatewayDelegate.start();
+	}
+	
+	protected void stop(){
+		this.gatewayDelegate.stop();
+	}
+	
 	private void copyCorrelationIdFromRequestToReply(javax.jms.Message requestMessage, javax.jms.Message replyMessage) throws JMSException {
 		if (this.correlationKey != null) {
 			if (this.correlationKey.equals("JMSCorrelationID")) {

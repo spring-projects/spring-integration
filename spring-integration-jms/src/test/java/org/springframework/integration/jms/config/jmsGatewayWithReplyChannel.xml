@@ -10,25 +10,31 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
-	<si:channel id="requests">
-		<si:queue capacity="1"/>
-	</si:channel>
+	<si:channel id="requests"/>
 
-	<si:channel id="replies">
-		<si:queue capacity="1"/>
-	</si:channel>
+	<si:channel id="replies"/>
 
 	<jms:inbound-gateway id="gateway"
 			request-destination-name="testDestination"
+			default-reply-destination="testReplyDestination"
 			request-channel="requests"
 			reply-channel="replies"/>
+			
+	<si:service-activator input-channel="requests" output-channel="replies" expression="payload"/>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
-		<constructor-arg>
-			<bean class="org.springframework.integration.jms.StubConnection">
-				<constructor-arg value="test"/>
+	
+	<bean id="testDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="testDestination"/>
+	</bean>
+	<bean id="testReplyDestination" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="testReplyDestination"/>
+	</bean>
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>		
 			</bean>
-		</constructor-arg>
+		</property>
 	</bean>
 
 </beans>

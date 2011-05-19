@@ -63,13 +63,15 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 	}
 
 	protected void doStart() {
+		this.listener.start();
 		if (!this.listenerContainer.isRunning()) {
-			this.listenerContainer.start();
+			this.listenerContainer.start();	
 		}
 	}
 
 	protected void doStop() {
 		this.listenerContainer.stop();
+		this.listener.stop();
 	}
 
 	public void destroy() throws Exception {
