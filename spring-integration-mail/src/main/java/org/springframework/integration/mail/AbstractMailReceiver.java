@@ -242,17 +242,29 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				}
 				List<Message> copiedMessages = new LinkedList<Message>();
 				logger.debug("Recieved " + messages.length + " messages");
-				boolean recentFlagSupported = this.getFolder().getPermanentFlags().contains(Flags.Flag.RECENT);
+				
+				boolean recentFlagSupported = false;
+				
+				Flags flags = this.getFolder().getPermanentFlags();
+				
+				if (flags != null){
+					recentFlagSupported = flags.contains(Flags.Flag.RECENT);
+				}
+				
 				for (int i = 0; i < messages.length; i++) {
 					if (!recentFlagSupported){
-						if (this.getFolder().getPermanentFlags().contains(Flags.Flag.USER)){
-							logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
+						if (flags != null && flags.contains(Flags.Flag.USER)){
+							if (logger.isDebugEnabled()){
+								logger.debug("USER flags are supported by this mail server. Flagging message with '" + SI_USER_FLAG + "' user flag");
+							}		
 							Flags siFlags = new Flags();
 							siFlags.add(SI_USER_FLAG);
 							messages[i].setFlags(siFlags, true); 
 						}
 						else {
-							logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
+							if (logger.isDebugEnabled()){
+								logger.debug("USER flags are not supported by this mail server. Flagging message with system flag");
+							}	
 							messages[i].setFlag(Flags.Flag.FLAGGED, true); 
 						}
 					}
@@ -263,8 +275,10 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 							copiedMessages.add(new MimeMessage((MimeMessage) message));
 						}	
 						else {
-							logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
-									" and will not be flagged as SEEN.");
+							if (logger.isDebugEnabled()){
+								logger.debug("Fetched email with subject '" + message.getSubject() + "' will be discarded by the matching filter" +
+												" and will not be flagged as SEEN.");
+							}
 						}
 					}
 					else {
