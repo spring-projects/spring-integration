@@ -555,12 +555,14 @@
 	</para>
 	<para>
     Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic via 
-    a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute.
+    a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute. 
+    The only exception is that since ReleaseStrategy is passed the List of Messages the the root object in the SopEL
+    Evaluation context is the List itself which can be referenced as <code>#this</code>.
 	</para>
 	<para>
 	For example:
 
-	<programlisting language="xml"><![CDATA[release-strategy-expression="payload.size() gt 5"]]></programlisting>
+	<programlisting language="xml"><![CDATA[release-strategy-expression="#this.size() gt 5"]]></programlisting>
 	
 	In this example the root object of the SpEL Evaluation Context is the
     <interfacename>MessageGroup</interfacename> itself, and you are simply stating 
