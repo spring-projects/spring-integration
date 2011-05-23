@@ -16,6 +16,8 @@
 
 package org.springframework.integration.sftp.session;
 
+import java.util.Properties;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -48,11 +50,13 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	private volatile Resource privateKey;
 
 	private volatile String privateKeyPassphrase;
+	
+	private volatile Properties sessionConfig;
 
 	private final JSch jsch = new JSch();
 
 
-	public void setHost(String host) {
+	public void setHost(String host) {	
 		this.host = host;
 	}
 
@@ -78,6 +82,10 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 
 	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
 		this.privateKeyPassphrase = privateKeyPassphrase;
+	}
+	
+	public void setSessionConfig(Properties sessionConfig) {
+		this.sessionConfig = sessionConfig;
 	}
 
 	public Session getSession() {
@@ -118,6 +126,9 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 			}
 		}
 		com.jcraft.jsch.Session jschSession = this.jsch.getSession(this.user, this.host, this.port);
+		if (this.sessionConfig != null){
+			jschSession.setConfig(this.sessionConfig);
+		}		
 		if (StringUtils.hasText(this.password)) {
 			jschSession.setPassword(this.password);
 		}

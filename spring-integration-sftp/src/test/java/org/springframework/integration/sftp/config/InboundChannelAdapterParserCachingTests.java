@@ -16,7 +16,10 @@
 
 package org.springframework.integration.sftp.config;
 
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+
+import java.util.Properties;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,12 +43,15 @@ public class InboundChannelAdapterParserCachingTests {
 	@Autowired private Object cachingAdapter;
 
 	@Autowired private Object nonCachingAdapter;
-
+	
 
 	@Test
 	public void defaultAdapter() {
 		Object sessionFactory = TestUtils.getPropertyValue(defaultAdapter, "source.synchronizer.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
+		Properties sessionConfig = TestUtils.getPropertyValue(sessionFactory, "sessionFactory.sessionConfig", Properties.class);
+		assertNotNull(sessionConfig);
+		assertEquals("no", sessionConfig.getProperty("StrictHostKeyChecking"));
 	}
 
 	@Test

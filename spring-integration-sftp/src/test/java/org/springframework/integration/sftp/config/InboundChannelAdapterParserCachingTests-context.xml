@@ -29,8 +29,12 @@
 		<beans:property name="password" value="hello"/>
 		<beans:property name="port" value="2222"/>
 		<beans:property name="user" value="oleg"/>
+		<beans:property name="sessionConfig" ref="sessionConfig"/>
 	</beans:bean>
 
+	<util:properties id="sessionConfig">
+		<beans:prop key="StrictHostKeyChecking">no</beans:prop>
+	</util:properties>
 	<sftp:inbound-channel-adapter id="defaultAdapter"
 			session-factory="sftpSessionFactory"
 			channel="requestChannel"
