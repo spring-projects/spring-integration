@@ -248,7 +248,7 @@
      <note>
      Note, however, that when you provide your own MessageConverter instance, it will still
      be wrapped within the HeaderMappingMessageConverter. This means that the 'extract-request-payload'
-     and 'extract-reply-payload' properties may effect what actual objects are passed to your converter. The
+     and 'extract-reply-payload' properties may affect what actual objects are passed to your converter. The
      HeaderMappingMessageConverter itself simply delegates to a target MessageConverter while also mapping the
      Spring Integration MessageHeaders to JMS Message properties and vice-versa.
      </note>
