@@ -16,7 +16,6 @@
 package org.springframework.integration.file.config;
 
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
