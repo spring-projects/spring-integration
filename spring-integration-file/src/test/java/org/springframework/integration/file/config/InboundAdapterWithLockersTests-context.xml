@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <int-file:inbound-channel-adapter id="inputWithLockerA" 
+    					     channel="input"
+                             directory="${java.io.tmpdir}"         
+                             auto-startup="false">
+        <int-file:locker ref="locker"/>
+        <int:poller fixed-rate="5000"/>
+    </int-file:inbound-channel-adapter>
+    
+    <int-file:inbound-channel-adapter id="inputWithLockerB" 
+    						 channel="input"
+                             directory="${java.io.tmpdir}"         
+                             auto-startup="false">      
+        <int:poller fixed-rate="5000"/>
+        <int-file:locker ref="locker"/>
+    </int-file:inbound-channel-adapter>
+    
+    <int-file:inbound-channel-adapter id="inputWithLockerC" 
+    						 channel="input"
+                             directory="${java.io.tmpdir}"         
+                             auto-startup="false">
+        <int-file:nio-locker/>
+        <int:poller fixed-rate="5000"/>
+    </int-file:inbound-channel-adapter>
+    
+    <int-file:inbound-channel-adapter id="inputWithLockerD" 
+    						 channel="input"
+                             directory="${java.io.tmpdir}"         
+                             auto-startup="false">      
+        <int:poller fixed-rate="5000"/>
+        <int-file:nio-locker/>
+    </int-file:inbound-channel-adapter>
+    
+    <int:channel id="input"/>
+    
+     <bean id="locker" class="org.mockito.Mockito" factory-method="mock">
+    	<constructor-arg value="org.springframework.integration.file.locking.AbstractFileLockerFilter"/>
+    </bean>
+</beans>

@@ -26,13 +26,22 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
-            <xsd:choice>
-                <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-                <xsd:choice minOccurs="0" maxOccurs="1">
-                    <xsd:element ref="locker" minOccurs="0" maxOccurs="1"/>
-                    <xsd:element ref="nio-locker" minOccurs="0" maxOccurs="1"/>
-                </xsd:choice>
-            </xsd:choice>
+            <xsd:sequence>
+            	<xsd:choice>
+            		<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+	                <xsd:choice minOccurs="0" maxOccurs="1">
+	            		<xsd:element ref="locker" minOccurs="0" maxOccurs="1"/>
+	           		    <xsd:element ref="nio-locker" minOccurs="0" maxOccurs="1"/>
+	        		</xsd:choice>
+            	</xsd:choice>
+                <xsd:choice>
+	                <xsd:choice minOccurs="0" maxOccurs="1">
+	            		<xsd:element ref="locker" minOccurs="0" maxOccurs="1"/>
+	           		    <xsd:element ref="nio-locker" minOccurs="0" maxOccurs="1"/>
+	        		</xsd:choice>
+	        		<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+            	</xsd:choice>
+            </xsd:sequence>
             <xsd:attribute name="id" type="xsd:string"/>
             <xsd:attribute name="channel" type="xsd:string">
                 <xsd:annotation>
