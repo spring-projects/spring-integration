@@ -17,8 +17,7 @@
 package org.springframework.integration.core;
 
 import static junit.framework.Assert.assertNull;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
@@ -26,6 +25,7 @@ import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -40,6 +40,7 @@ import org.springframework.util.StopWatch;
 /**
  * @author Oleg Zhurakousky
  */
+
 public class MessageIdGenerationTests {
 
 	@Test
@@ -50,11 +51,8 @@ public class MessageIdGenerationTests {
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, times(4)).generateId();
-		reset(idGenerator);
+		verify(idGenerator, atLeastOnce()).generateId();
 		child.close();
-		new GenericMessage<Integer>(0);
-		verify(idGenerator, times(1)).generateId();
 		parent.close();
 		this.assertDestroy();
 	}
@@ -70,11 +68,8 @@ public class MessageIdGenerationTests {
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, times(4)).generateId();
-		reset(idGenerator);
+		verify(idGenerator, atLeastOnce()).generateId();
 		child.close();
-		new GenericMessage<Integer>(0);
-		verify(idGenerator, times(1)).generateId();
 		parent.close();
 		this.assertDestroy();
 	}
@@ -87,11 +82,8 @@ public class MessageIdGenerationTests {
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, times(4)).generateId();
-		reset(idGenerator);
+		verify(idGenerator, atLeastOnce()).generateId();
 		parent.close();
-		new GenericMessage<Integer>(0);
-		verify(idGenerator, times(0)).generateId();
 		child.close();
 		this.assertDestroy();
 	}
@@ -102,13 +94,11 @@ public class MessageIdGenerationTests {
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		Mockito.reset(idGenerator);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, times(4)).generateId();
-		reset(idGenerator);
+		verify(idGenerator, atLeastOnce()).generateId();
 		parent.close();
-		new GenericMessage<Integer>(0);
-		verify(idGenerator, times(1)).generateId();
 		child.close();
 		this.assertDestroy();
 	}
@@ -119,13 +109,11 @@ public class MessageIdGenerationTests {
 		ClassPathXmlApplicationContext child = new ClassPathXmlApplicationContext(new String[]{"MessageIdGenerationTests-context-withGenerator.xml"}, this.getClass(), parent);
 
 		IdGenerator idGenerator = child.getBean("idGenerator", IdGenerator.class);
+		Mockito.reset(idGenerator);
 		MessageChannel inputChannel = child.getBean("input", MessageChannel.class);
 		inputChannel.send(new GenericMessage<Integer>(0));
-		verify(idGenerator, times(4)).generateId();
-		reset(idGenerator);
+		verify(idGenerator, atLeastOnce()).generateId();
 		child.close();
-		new GenericMessage<Integer>(0);
-		verify(idGenerator, times(0)).generateId();
 		parent.close();
 		this.assertDestroy();
 	}
@@ -242,5 +230,4 @@ public class MessageIdGenerationTests {
 			return UUID.nameUUIDFromBytes(((System.currentTimeMillis() - System.nanoTime()) + "").getBytes());
 		}
 	}
-
 }
