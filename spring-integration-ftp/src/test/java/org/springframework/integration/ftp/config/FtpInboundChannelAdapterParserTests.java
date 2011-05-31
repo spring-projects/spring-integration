@@ -80,6 +80,11 @@ public class FtpInboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter = ac.getBean("simpleAdapter", SourcePollingChannelAdapter.class);
 		Object sessionFactory = TestUtils.getPropertyValue(adapter, "source.synchronizer.sessionFactory");
 		assertEquals(CachingSessionFactory.class, sessionFactory.getClass());
+		FtpInboundFileSynchronizer fisync = 
+			TestUtils.getPropertyValue(adapter, "source.synchronizer", FtpInboundFileSynchronizer.class);
+		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
+		assertNotNull(remoteFileSeparator);
+		assertEquals("/", remoteFileSeparator);
 	}
 
 	@Test
@@ -89,7 +94,7 @@ public class FtpInboundChannelAdapterParserTests {
 		Map<String, SourcePollingChannelAdapter> spcas = ac.getBeansOfType(SourcePollingChannelAdapter.class);
 		SourcePollingChannelAdapter adapter = null;
 		for (String key : spcas.keySet()) {
-			if (!key.equals("ftpInbound")){
+			if (!key.equals("ftpInbound") && !key.equals("simpleAdapter")){
 				adapter = spcas.get(key);
 			}
 		}

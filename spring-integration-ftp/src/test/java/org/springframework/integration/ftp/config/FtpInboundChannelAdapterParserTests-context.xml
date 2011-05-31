@@ -30,7 +30,7 @@
 		<constructor-arg value="java.util.Comparator"/>
 	</bean>
 
-	<int-ftp:inbound-channel-adapter 
+	<int-ftp:inbound-channel-adapter
 				channel="ftpChannel" 
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
