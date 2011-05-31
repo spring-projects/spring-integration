@@ -24,6 +24,7 @@ import org.springframework.util.Assert;
  * Transformer that removes Message headers.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class HeaderFilter implements Transformer {
@@ -38,10 +39,8 @@ public class HeaderFilter implements Transformer {
 
 
 	public Message<?> transform(Message<?> message) {
-		MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-		for (String headerName : headersToRemove) {
-			builder.removeHeader(headerName);
-		}
+		MessageBuilder<?> builder = MessageBuilder.fromMessage(message);	
+		builder.removeHeaders(headersToRemove);
 		return builder.build();
 	}
 

@@ -113,36 +113,44 @@ public final class MessageBuilder<T> {
 		}
 		return this;
 	}
-
+	/**
+	 * Removes all headers provided via array of 'headerPatterns'. As the name suggests the array
+	 * may contain simple matching patterns for header names. Supported pattern styles are: 
+	 * "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
+	 * 
+	 * @param headerPatterns
+	 */
+	public MessageBuilder<T> removeHeaders(String... headerPatterns) {
+		List<String> headersToRemove = new ArrayList<String>();
+		for (String pattern : headerPatterns) {		
+			if (StringUtils.hasLength(pattern)){
+				if (pattern.contains("*")){
+					for (String headerName : this.headers.keySet()) {
+						if (PatternMatchUtils.simpleMatch(pattern, headerName)){
+							headersToRemove.add(headerName);
+						}
+					}
+				}
+				else {
+					headersToRemove.add(pattern);
+				}
+			}
+		}
+		for (String headerToRemove : headersToRemove) {
+			this.removeHeader(headerToRemove);
+		}
+		return this;
+	}
 	/**
 	 * Remove the value for the given header name.
 	 */
 	public MessageBuilder<T> removeHeader(String headerName) {
-		if (StringUtils.hasLength(headerName)){
-			if (headerName.contains("*")){
-				List<String> headersToRemove = new ArrayList<String>();
-				for (String hdrName : this.headers.keySet()) {
-					if (PatternMatchUtils.simpleMatch(headerName, hdrName)){
-						headersToRemove.add(hdrName);
-					}
-				}
-				for (String headerToRemove : headersToRemove) {
-					this.doRemoveHeader(headerToRemove);
-				}
-			}
-			else {
-				this.doRemoveHeader(headerName);
-			}
-		}
-		return this;
-	}
-	
-	private void doRemoveHeader(String headerName){
 		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID)
 				&& !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.modified = true;
 			this.headers.remove(headerName);
 		}
+		return this;
 	}
 
 	/**
