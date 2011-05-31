@@ -32,6 +32,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -117,12 +118,31 @@ public final class MessageBuilder<T> {
 	 * Remove the value for the given header name.
 	 */
 	public MessageBuilder<T> removeHeader(String headerName) {
+		if (StringUtils.hasLength(headerName)){
+			if (headerName.contains("*")){
+				List<String> headersToRemove = new ArrayList<String>();
+				for (String hdrName : this.headers.keySet()) {
+					if (PatternMatchUtils.simpleMatch(headerName, hdrName)){
+						headersToRemove.add(hdrName);
+					}
+				}
+				for (String headerToRemove : headersToRemove) {
+					this.doRemoveHeader(headerToRemove);
+				}
+			}
+			else {
+				this.doRemoveHeader(headerName);
+			}
+		}
+		return this;
+	}
+	
+	private void doRemoveHeader(String headerName){
 		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID)
 				&& !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.modified = true;
 			this.headers.remove(headerName);
 		}
-		return this;
 	}
 
 	/**

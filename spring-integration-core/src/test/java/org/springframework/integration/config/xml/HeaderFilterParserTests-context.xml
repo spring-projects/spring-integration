@@ -7,6 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<header-filter input-channel="input" header-names="a,d, c"/>
+	<header-filter input-channel="inputA" header-names="a,d, c"/>
+	
+	
+	<header-filter input-channel="inputB" header-names="*"/>
+	
+	
+	<header-filter input-channel="inputC" header-names="ba*, *oo"/>
 
 </beans:beans>

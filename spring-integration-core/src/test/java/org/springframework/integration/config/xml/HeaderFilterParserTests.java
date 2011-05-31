@@ -40,7 +40,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class HeaderFilterParserTests {
 
 	@Autowired
-	private MessageChannel input;
+	private MessageChannel inputA;
+	
+	@Autowired
+	private MessageChannel inputB;
+	
+	@Autowired
+	private MessageChannel inputC;
 
 	@Test
 	public void verifyHeadersRemoved() {
@@ -53,7 +59,7 @@ public class HeaderFilterParserTests {
 				.setHeader("d", 4)
 				.setHeader("e", 5)
 				.build();
-		input.send(message);
+		inputA.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -61,6 +67,50 @@ public class HeaderFilterParserTests {
 		assertNull(result.getHeaders().get("c"));
 		assertNull(result.getHeaders().get("d"));
 		assertNotNull(result.getHeaders().get("b"));
+		assertNotNull(result.getHeaders().get("e"));
+	}
+	
+	@Test
+	public void verifyHeadersRemovedWithSingleWildcard() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setReplyChannel(replyChannel)
+				.setHeader("a", 1)
+				.setHeader("b", 2)
+				.setHeader("c", 3)
+				.setHeader("d", 4)
+				.setHeader("e", 5)
+				.build();
+		inputB.send(message);
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
+		assertNull(result.getHeaders().get("a"));
+		assertNull(result.getHeaders().get("c"));
+		assertNull(result.getHeaders().get("d"));
+		assertNull(result.getHeaders().get("b"));
+		assertNull(result.getHeaders().get("e"));
+	}
+	
+	@Test
+	public void verifyHeadersRemovedWithNamePatterns() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setReplyChannel(replyChannel)
+				.setHeader("bar", 1)
+				.setHeader("baz", 2)
+				.setHeader("foo", 3)
+				.setHeader("goo", 4)
+				.setHeader("e", 5)
+				.build();
+		inputC.send(message);
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
+		assertNull(result.getHeaders().get("bar"));
+		assertNull(result.getHeaders().get("baz"));
+		assertNull(result.getHeaders().get("foo"));
+		assertNull(result.getHeaders().get("goo"));
 		assertNotNull(result.getHeaders().get("e"));
 	}
 
