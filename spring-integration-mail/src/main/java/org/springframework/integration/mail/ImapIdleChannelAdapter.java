@@ -23,6 +23,7 @@ import java.util.concurrent.ScheduledFuture;
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -54,7 +55,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private volatile int reconnectDelay = 10000; // seconds
 	
 	private volatile ScheduledFuture<?> scheduledFuture;
-
+	
+	private volatile ResubmittingTask task;
+	
+	private volatile long connectionPingInterval = 10000;
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
 		Assert.notNull(mailReceiver, "mailReceiver must not be null");
@@ -90,14 +94,37 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	protected void doStart() {
 		TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
-		ResubmittingTask task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
+		this.task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
+		this.task.start();
 		task.setTaskExecutor(taskExecutor);
 		scheduledFuture = scheduler.schedule(task, new Date());
+		scheduler = this.getTaskScheduler();
+		if (scheduler != null) {
+			scheduler.scheduleAtFixedRate(new Runnable() {	
+				public void run() {
+					try {
+						Store store = mailReceiver.getStore();
+						if (store != null) {
+							store.isConnected();
+						}		
+					} 
+					catch (Exception ignore) {
+					}
+				}
+			}, connectionPingInterval);
+		}
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
 		scheduledFuture.cancel(true);
+		this.task.stop();
+		try {
+			mailReceiver.destroy();
+		} catch (Exception e) {
+			throw new IllegalStateException("Failure during the destruction of " + mailReceiver, e);
+		}
+		
 	}
 
 	private class IdleTask implements Runnable {
@@ -108,14 +135,16 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					logger.debug("waiting for mail");
 				}
 				mailReceiver.waitForNewMessages();
-				Message[] mailMessages = mailReceiver.receive();
-				if (logger.isDebugEnabled()) {
-					logger.debug("received " + mailMessages.length + " mail messages");
-				}
-				for (Message mailMessage : mailMessages) {
-					MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
-					sendMessage(MessageBuilder.withPayload(copied).build());
-				}
+				if (task.isRunning()){
+					Message[] mailMessages = mailReceiver.receive();
+					if (logger.isDebugEnabled()) {
+						logger.debug("received " + mailMessages.length + " mail messages");
+					}
+					for (Message mailMessage : mailMessages) {
+						MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
+						sendMessage(MessageBuilder.withPayload(copied).build());
+					}
+				}			
 			} catch (MessagingException e) {
 				ImapIdleChannelAdapter.this.handleMailMessagingException(e);
 				if (shouldReconnectAutomatically){

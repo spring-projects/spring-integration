@@ -35,12 +35,14 @@ import org.springframework.scheduling.TaskScheduler;
  * with reconnection logic 
  * Currently only used to manage IDLE task of ImapIdleChannelAdapter
  */
-class ResubmittingTask implements Runnable {
+class ResubmittingTask implements Runnable{
 	private static final Log logger = LogFactory.getLog(ResubmittingTask.class);
 	private final Runnable targetTask;
 	private final TaskScheduler scheduler;
 	private final long delay;
 	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
+	
+	private volatile boolean running;
 	
 	public ResubmittingTask(Runnable targetTask, TaskScheduler scheduler, long delay) {
 		this.targetTask = targetTask;
@@ -60,15 +62,37 @@ class ResubmittingTask implements Runnable {
 		});	
 	}
 	
+	protected void stop(){
+		this.running = false;
+	}
+	
+	protected void start(){
+		this.running = true;
+	}
+	
+	protected boolean isRunning(){
+		return this.running;
+	}
+	
 	private void invokeTask(){
 		try {
 			targetTask.run();
-			logger.debug("Task completed successfully. Re-scheduling it again right away");
-			scheduler.schedule(this, new Date());
+			if (this.running){
+				if (logger.isDebugEnabled()){
+					logger.debug("Task completed successfully. Re-scheduling it again right away");
+				}
+				scheduler.schedule(this, new Date());
+			}
+			else {
+				if (logger.isDebugEnabled()){
+					logger.debug("IDLE Task is stopped");
+				}
+			}
+			
 		}
 		catch (IllegalStateException e) { //run again after a delay
 			logger.warn("Failed to execute IDLE task. Will atempt to resubmit in " + delay + " milliseconds", e);
-			scheduler.schedule(this, new Date(System.currentTimeMillis() + delay));
+			scheduler.schedule(this, new Date(System.currentTimeMillis() + delay));	
 		}
 	}
 }

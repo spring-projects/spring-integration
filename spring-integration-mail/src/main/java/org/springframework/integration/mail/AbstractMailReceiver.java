@@ -349,6 +349,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	protected void onInit() throws Exception {
 		super.onInit();
 		this.folderOpenMode = Folder.READ_WRITE;
+		this.initialized = true;
 	}
 
 	@Override
