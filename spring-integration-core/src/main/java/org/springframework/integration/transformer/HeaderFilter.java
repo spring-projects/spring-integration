@@ -31,7 +31,7 @@ public class HeaderFilter implements Transformer {
 
 	private final String[] headersToRemove;
 	
-	private volatile boolean patternMatch;
+	private volatile boolean patternMatch = true;
 
 
 	public HeaderFilter(String... headersToRemove) {
