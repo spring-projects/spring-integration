@@ -26,6 +26,7 @@ import org.springframework.util.StringUtils;
  * Parser for the 'header-filter' element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class HeaderFilterParser extends AbstractTransformerParser {
@@ -42,7 +43,6 @@ public class HeaderFilterParser extends AbstractTransformerParser {
 			parserContext.getReaderContext().error("The 'header-names' attribute must not be empty.",
 					parserContext.extractSource(element));
 		}
-		String pattern = element.getAttribute("pattern-match");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pattern-match");
 		builder.addConstructorArgValue(headerNames);
 	}
