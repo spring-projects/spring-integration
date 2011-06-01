@@ -14,5 +14,11 @@
 	
 	
 	<header-filter input-channel="inputC" header-names="ba*, *oo"/>
+	
+	
+	<header-filter input-channel="inputD" header-names="bar*, *oo"/>
+	
+	
+	<header-filter input-channel="inputE" pattern-match="false" header-names="bar*, foo"/>
 
 </beans:beans>

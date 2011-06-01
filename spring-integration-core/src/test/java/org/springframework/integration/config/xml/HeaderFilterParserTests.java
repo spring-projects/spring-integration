@@ -47,6 +47,12 @@ public class HeaderFilterParserTests {
 	
 	@Autowired
 	private MessageChannel inputC;
+	
+	@Autowired
+	private MessageChannel inputD;
+	
+	@Autowired
+	private MessageChannel inputE;
 
 	@Test
 	public void verifyHeadersRemoved() {
@@ -111,6 +117,50 @@ public class HeaderFilterParserTests {
 		assertNull(result.getHeaders().get("baz"));
 		assertNull(result.getHeaders().get("foo"));
 		assertNull(result.getHeaders().get("goo"));
+		assertNotNull(result.getHeaders().get("e"));
+	}
+	
+	@Test
+	public void verifyHeadersRemovedWhereHeaderNameContainsWildCard() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setReplyChannel(replyChannel)
+				.setHeader("bar*", 1)
+				.setHeader("bart", 2)
+				.setHeader("foo", 3)
+				.setHeader("goo", 4)
+				.setHeader("e", 5)
+				.build();
+		inputD.send(message);
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
+		assertNull(result.getHeaders().get("bar*"));
+		assertNull(result.getHeaders().get("bart"));
+		assertNull(result.getHeaders().get("foo"));
+		assertNull(result.getHeaders().get("goo"));
+		assertNotNull(result.getHeaders().get("e"));
+	}
+	
+	@Test
+	public void verifyHeadersRemovedWhereHeaderNameIsLiteral() {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setReplyChannel(replyChannel)
+				.setHeader("bar*", 1)
+				.setHeader("bart", 2)
+				.setHeader("foo", 3)
+				.setHeader("goo", 4)
+				.setHeader("e", 5)
+				.build();
+		inputE.send(message);
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
+		assertNull(result.getHeaders().get("bar*"));
+		assertNotNull(result.getHeaders().get("bart"));
+		assertNull(result.getHeaders().get("foo"));
+		assertNotNull(result.getHeaders().get("goo"));
 		assertNotNull(result.getHeaders().get("e"));
 	}
 

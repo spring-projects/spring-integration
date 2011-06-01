@@ -1669,6 +1669,17 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="pattern-match" type="xsd:boolean" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Boolean flag that specifies whether values provided in 'header-names' should be treated as 
+					match patterns or literal values. For example header-names='foo*' would mean remove all 
+					headers that begin with 'foo' including the header named 'foo*'. However if you want to 
+					treat '*' as literal value setting this flag to FALSE will not perform pattern match and 
+					the only header that will be removed is that has an exact match
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="transformer">

@@ -30,6 +30,8 @@ import org.springframework.util.Assert;
 public class HeaderFilter implements Transformer {
 
 	private final String[] headersToRemove;
+	
+	private volatile boolean patternMatch;
 
 
 	public HeaderFilter(String... headersToRemove) {
@@ -37,10 +39,20 @@ public class HeaderFilter implements Transformer {
 		this.headersToRemove = headersToRemove;
 	}
 
+	public void setPatternMatch(boolean patternMatch) {
+		this.patternMatch = patternMatch;
+	}
 
 	public Message<?> transform(Message<?> message) {
 		MessageBuilder<?> builder = MessageBuilder.fromMessage(message);	
-		builder.removeHeaders(headersToRemove);
+		if (this.patternMatch){
+			builder.removeHeaders(headersToRemove);
+		}
+		else {
+			for (String headerToRemove : headersToRemove) {
+				builder.removeHeader(headerToRemove);
+			}
+		}
 		return builder.build();
 	}
 
