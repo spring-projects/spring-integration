@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,12 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	 */
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
+		if (this.channel.equals(channel)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("WireTap is refusing to intercept its own channel '" + this.channel + "'");
+			}
+			return message;
+		}
 		if (this.running && (this.selector == null || this.selector.accept(message))) {
 			boolean sent = (this.timeout >= 0)
 					? this.channel.send(message, this.timeout)

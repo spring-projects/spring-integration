@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,6 +109,13 @@ public class WireTapTests {
 		assertEquals(originalAttribute, interceptedAttribute);
 	}
 
+	@Test
+	public void wireTapDoesNotInterceptItsOwnChannel() {
+		QueueChannel wireTapChannel = new QueueChannel();
+		wireTapChannel.addInterceptor(new WireTap(wireTapChannel));
+		// would throw a StackOverflowException if not working:
+		wireTapChannel.send(MessageBuilder.withPayload("test").build());
+	}
 
 	private static class TestSelector implements MessageSelector {
 
