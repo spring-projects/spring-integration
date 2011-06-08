@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -96,7 +97,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate;
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private final StandardEvaluationContext evaluationContext;
 
 
 	/**
@@ -122,7 +123,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.restTemplate = (restTemplate == null ? new RestTemplate() : restTemplate);
 		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
 		this.uri = uri;
+		StandardEvaluationContext sec = new StandardEvaluationContext();
+		sec.addPropertyAccessor(new MapAccessor());
+		this.evaluationContext = sec;
 	}
+
 
 	/**
 	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
