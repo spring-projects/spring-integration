@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -181,19 +181,6 @@ public abstract class IpAdapterParserUtils {
 			multicast = "false";
 		}
 		return multicast;
-	}
-
-	/**
-	 * Gets the use-nio attribute, if present; if not returns 'false'.
-	 * @param element
-	 * @return The value of the attribute or false.
-	 */
-	static String getUseNio(Element element) {
-		String useNio = element.getAttribute(IpAdapterParserUtils.USING_NIO);
-		if (!StringUtils.hasText(useNio)) {
-			useNio = "false";
-		}
-		return useNio;
 	}
 
 	/**

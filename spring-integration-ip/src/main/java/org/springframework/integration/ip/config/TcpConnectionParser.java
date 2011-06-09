@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,42 +31,29 @@ import org.w3c.dom.Element;
  */
 public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 	
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp.connection";
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.config";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element,
 			ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
-		String useNio = IpAdapterParserUtils.getUseNio(element);
 		String type = element.getAttribute(IpAdapterParserUtils.TCP_CONNECTION_TYPE);
 		if (!StringUtils.hasText(type)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
 					" is required for a tcp connection", element);
-		}
-		if (type.equals("client")) {
-			if (useNio.equals("true")) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
-						".TcpNioClientConnectionFactory");
-				IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);				
-			} else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-						".TcpNetClientConnectionFactory");
-				IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);	
-			}
-		} else if (type.equals("server")) {
-			if (useNio.equals("true")) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-						".TcpNioServerConnectionFactory");
-				IpAdapterParserUtils.addPortToConstructor(element, builder, parserContext);
-			} else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-						".TcpNetServerConnectionFactory");
-				IpAdapterParserUtils.addPortToConstructor(element, builder, parserContext);
-			}
-		} else {
+		} else if (!"server".equals(type) && !"client".equals(type)) {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
 					" must be 'client' or 'server' for a TCP Connection Factory", element);
-		}
+		}		
+		builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
+				".TcpConnectionFactoryFactoryBean");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.HOST);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.PORT);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.USING_NIO);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
