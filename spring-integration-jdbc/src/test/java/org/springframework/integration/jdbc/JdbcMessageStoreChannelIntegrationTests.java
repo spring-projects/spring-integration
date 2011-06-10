@@ -100,7 +100,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		});
 	}
 
-	@Test @Ignore
+	@Test 
 	@Repeat(10)
 	public void testTransactionalSendAndReceive() throws Exception {
 
@@ -130,8 +130,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 
 		assertTrue("Could not send message", result);
 
-		// So no activation
-		assertEquals(0, Service.messages.size());
+		waitForMessage();
 
 		StopWatch stopWatch = new StopWatch();
 		try {
@@ -145,6 +144,18 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		// If the poll blocks in the RDBMS there is no way for the queue to respect the timeout
 		assertTrue("Timed out waiting for receive", stopWatch.getTotalTimeMillis() < 10000);
 
+	}
+
+	protected void waitForMessage() throws InterruptedException {
+		int n = 0;
+		while (Service.messages.size() == 0) {
+			if (n++ > 200) {
+				fail("Message not received by Service");
+			}
+			Thread.sleep(50);
+		}
+		
+		assertEquals(1, Service.messages.size());
 	}
 
 	@Test
