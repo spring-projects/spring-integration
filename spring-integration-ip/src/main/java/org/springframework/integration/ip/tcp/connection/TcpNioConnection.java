@@ -258,25 +258,27 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 
 		this.writingToPipe = true;
-		if (this.taskExecutor == null) {
-			this.taskExecutor = Executors.newSingleThreadExecutor();
-		}
-		// If there is no assembler running, start one
-		checkForAssembler();
-		this.rawBuffer.clear();
-		int len = this.socketChannel.read(this.rawBuffer);
-		if (len < 0) {
+		try {
+			if (this.taskExecutor == null) {
+				this.taskExecutor = Executors.newSingleThreadExecutor();
+			}
+			// If there is no assembler running, start one
+			checkForAssembler();
+			this.rawBuffer.clear();
+			int len = this.socketChannel.read(this.rawBuffer);
+			if (len < 0) {
+				this.writingToPipe = false;
+				this.closeConnection();
+			}
+			this.rawBuffer.flip();
+			if (logger.isDebugEnabled()) {
+				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
+			}
+			this.pipedOutputStream.write(this.rawBuffer.array(), 0, this.rawBuffer.limit());
+			this.pipedOutputStream.flush();
+		} finally {
 			this.writingToPipe = false;
-			this.closeConnection();
 		}
-		this.rawBuffer.flip();
-		if (logger.isDebugEnabled()) {
-			logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
-		}
-		this.pipedOutputStream.write(this.rawBuffer.array(), 0, this.rawBuffer.limit());
-		this.pipedOutputStream.flush();
-		this.writingToPipe = false;
-		
 	}
 
 	private void checkForAssembler() {
