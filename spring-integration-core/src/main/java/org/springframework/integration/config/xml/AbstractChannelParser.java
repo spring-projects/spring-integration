@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -26,9 +24,9 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base class for channel parsers.
@@ -53,15 +51,7 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		}
 		String datatypeAttr = element.getAttribute("datatype");
 		if (StringUtils.hasText(datatypeAttr)) {
-			// TODO: remove this once the editor fallback is working (3.0 GA)
-			//       it should be replaced with: builder.addPropertyValue("datatypes", datatypeAttr);
-			String[] classnames = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
-			Class<?>[] datatypes = new Class<?>[classnames.length];
-			int i = 0;
-			for (String classname : classnames) {
-				datatypes[i++] = ClassUtils.resolveClassName(classname.trim(), this.getClass().getClassLoader());
-			}
-			builder.addPropertyValue("datatypes", datatypes);
+			builder.addPropertyValue("datatypes", datatypeAttr);
 		}
 		builder.addPropertyValue("interceptors", interceptors);
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
