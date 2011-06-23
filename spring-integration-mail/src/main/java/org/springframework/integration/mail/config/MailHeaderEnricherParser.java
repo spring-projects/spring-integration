@@ -34,6 +34,8 @@ public class MailHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("from", MailHeaders.FROM);
 		this.addElementToHeaderMapping("reply-to", MailHeaders.REPLY_TO);
 		this.addElementToHeaderMapping("content-type", MailHeaders.CONTENT_TYPE);
+		this.addElementToHeaderMapping("attachment-file-name", MailHeaders.ATTACHMENT_FILENAME);
+		this.addElementToHeaderMapping("multipart-mode", MailHeaders.MULTIPART_MODE);
 	}
 
 }

@@ -14,6 +14,8 @@
 		<from value="test.from"/>
 		<reply-to value="test.reply-to"/>
 		<subject value="test.subject"/>
+		<attachment-file-name value="foo.txt"/>
+		<multipart-mode value="1"/>
 	</header-enricher>
 
 	<header-enricher input-channel="expressionsInput">

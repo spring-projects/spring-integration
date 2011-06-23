@@ -273,6 +273,8 @@
 						<xsd:element name="from" type="headerType"/>
 						<xsd:element name="reply-to" type="headerType"/>
 						<xsd:element name="content-type" type="headerType"/>
+						<xsd:element name="attachment-file-name" type="headerType"/>
+						<xsd:element name="multipart-mode" type="headerType"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>

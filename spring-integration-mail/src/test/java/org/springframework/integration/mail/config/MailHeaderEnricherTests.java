@@ -57,6 +57,8 @@ public class MailHeaderEnricherTests {
 		assertEquals("test.from", headers.get(MailHeaders.FROM));
 		assertEquals("test.reply-to", headers.get(MailHeaders.REPLY_TO));
 		assertEquals("test.subject", headers.get(MailHeaders.SUBJECT));
+		assertEquals("foo.txt", headers.get(MailHeaders.ATTACHMENT_FILENAME));
+		assertEquals("1", headers.get(MailHeaders.MULTIPART_MODE));
 	}
 
 	@Test
