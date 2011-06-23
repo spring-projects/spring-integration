@@ -196,10 +196,17 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			this.ensureDirectoryExists(session, remoteDirectory, remoteDirectory);
 		}
 		
-		session.write(fileInputStream, tempFilePath);
-		fileInputStream.close();
-		// then rename it to its final name
-		session.rename(tempFilePath, remoteFilePath);
+		try {
+			session.write(fileInputStream, tempFilePath);
+			// then rename it to its final name
+			session.rename(tempFilePath, remoteFilePath);
+		} 
+		catch (Exception e) {
+			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
+		}
+		finally {
+			fileInputStream.close();
+		}
 	}
 
 	private void ensureDirectoryExists(Session session, String remoteDirectory, String originalRemoteDirectory){
