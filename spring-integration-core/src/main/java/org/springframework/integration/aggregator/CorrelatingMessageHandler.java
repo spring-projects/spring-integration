@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Iwein Fuld
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class CorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
@@ -71,6 +72,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private volatile MessageChannel discardChannel = new NullChannel();
 
 	private boolean sendPartialResultOnExpiry = false;
+	
+	private final Object correlationLocksMonitor = new Object();
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
@@ -166,7 +169,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 		// TODO: INT-1117 - make the lock global?
 		Object lock = getLock(correlationKey);
-		Assert.notNull(lock, "Based on correlationKey '" + correlationKey + "' the returned lock is null"); // see comments in INT-1940
+
 		synchronized (lock) {
 			MessageGroup group = messageStore.getMessageGroup(correlationKey);
 			if (group.canAdd(message)) {
@@ -243,8 +246,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private Object getLock(Object correlationKey) {
-		locks.putIfAbsent(correlationKey, correlationKey);
-		return locks.get(correlationKey);
+		synchronized(correlationLocksMonitor){
+			locks.putIfAbsent(correlationKey, correlationKey);
+			return locks.get(correlationKey);
+		}
 	}
 
 	private void mark(MessageGroup group) {
@@ -262,7 +267,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		messageStore.removeMessageGroup(correlationKey);
-		locks.remove(correlationKey);
+		synchronized(correlationLocksMonitor){
+			locks.remove(correlationKey);
+		}
 	}
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
