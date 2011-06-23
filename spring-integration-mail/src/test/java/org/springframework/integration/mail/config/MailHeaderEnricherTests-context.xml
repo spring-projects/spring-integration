@@ -14,7 +14,7 @@
 		<from value="test.from"/>
 		<reply-to value="test.reply-to"/>
 		<subject value="test.subject"/>
-		<attachment-file-name value="foo.txt"/>
+		<attachment-filename value="foo.txt"/>
 		<multipart-mode value="1"/>
 	</header-enricher>
 
