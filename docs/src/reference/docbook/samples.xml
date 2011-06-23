@@ -55,7 +55,7 @@
    <para>
    As mentioned earlier, Spring Integration <emphasis>samples</emphasis> have a dedicated JIRA Issue tracking system.
    To submit new sample requests or to submit an actual sample (as an attachment), please visit our JIRA Issue Tracking system:
-   <link linkend="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springsource.org/browse/INTSAMPLES</link> 
+   <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
    </para>
  </section>
  <section id="samples-structure">
