@@ -247,7 +247,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private Object getLock(Object correlationKey) {
 		synchronized(correlationLocksMonitor){
-			locks.putIfAbsent(correlationKey, correlationKey);
+			locks.putIfAbsent(correlationKey, new Object());
 			return locks.get(correlationKey);
 		}
 	}
