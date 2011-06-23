@@ -166,6 +166,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 		// TODO: INT-1117 - make the lock global?
 		Object lock = getLock(correlationKey);
+		Assert.notNull(lock, "Based on correlationKey '" + correlationKey + "' the returned lock is null"); // see INT-1940
 		synchronized (lock) {
 			MessageGroup group = messageStore.getMessageGroup(correlationKey);
 			if (group.canAdd(message)) {
