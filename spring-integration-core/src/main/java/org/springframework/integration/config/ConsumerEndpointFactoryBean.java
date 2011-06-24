@@ -185,6 +185,8 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
 				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
 				
+				pollingConsumer.setErrorHandler(this.pollerMetadata.getErrorHandler());
+				
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
 				pollingConsumer.setBeanClassLoader(beanClassLoader);
 				pollingConsumer.setBeanFactory(beanFactory);

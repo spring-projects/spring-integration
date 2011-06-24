@@ -26,10 +26,13 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Oleg Zhurakousky
@@ -85,6 +88,16 @@ public class PollerWithErrorChannelTests {
 		PollableChannel errorChannel = ac.getBean("errChannel", PollableChannel.class);
 		assertNotNull(errorChannel.receive(1000));
 		adapter.stop();
+	}
+	
+	@Test 
+	// INT-1952
+	public void testWithErrorChannelAndPollingConsumer() throws Exception{
+		ApplicationContext ac = new ClassPathXmlApplicationContext("PollerWithErrorChannel-context.xml", this.getClass());
+		MessageChannel serviceWithPollerChannel = ac.getBean("serviceWithPollerChannel", MessageChannel.class);
+		QueueChannel errChannel = ac.getBean("serviceErrorChannel", QueueChannel.class);
+		serviceWithPollerChannel.send(new GenericMessage<String>(""));
+		assertNotNull(errChannel.receive(1000));
 	}
 	
 	public static class SampleService{

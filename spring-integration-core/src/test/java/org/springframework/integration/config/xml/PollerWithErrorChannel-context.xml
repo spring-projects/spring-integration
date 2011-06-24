@@ -33,11 +33,23 @@
 	
 	<int:service-activator input-channel="serviceChannel" expression="payload/0"/>
 	
+	<int:channel id="serviceWithPollerChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:service-activator input-channel="serviceWithPollerChannel" expression="5/0">
+		<int:poller fixed-rate="1000" error-channel="serviceErrorChannel"/>
+	</int:service-activator>
+	
 	<int:channel id="eChannel">
 		<int:queue/>
 	</int:channel>
 	
 	<int:channel id="errChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="serviceErrorChannel">
 		<int:queue/>
 	</int:channel>
 </beans>
