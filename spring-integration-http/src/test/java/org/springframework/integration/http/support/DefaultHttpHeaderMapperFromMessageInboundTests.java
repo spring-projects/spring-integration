@@ -174,11 +174,11 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 	public void validateETag(){
 		HeaderMapper<HttpHeaders> mapper  = DefaultHttpHeaderMapper.inboundMapper();
 		Map<String, Object> messageHeaders = new HashMap<String, Object>();
-		messageHeaders.put("ETag", "\"1234\"");
+		messageHeaders.put("ETag", "1234");
 		HttpHeaders headers = new HttpHeaders();
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals("\"1234\"", headers.getETag());
+		assertEquals("1234", headers.getETag());
 	}
 	
 	// Expires tests
