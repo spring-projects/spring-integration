@@ -19,7 +19,9 @@ package org.springframework.integration.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -517,7 +519,15 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 				}
 				else if (Iterator.class.isAssignableFrom(parameterType)) {
 					if (canProcessMessageList) {
-						if (parameterTypeDescriptor.getElementType()!=null && Message.class.isAssignableFrom(parameterTypeDescriptor.getElementType())) {
+						Type type =  method.getGenericParameterTypes()[0];
+						Type parameterizedType = null;
+						if (type instanceof ParameterizedType){
+							parameterizedType = ((ParameterizedType)type).getActualTypeArguments()[0];
+							if (parameterizedType instanceof ParameterizedType){
+								parameterizedType = ((ParameterizedType) parameterizedType).getRawType();
+							}
+						}
+						if (parameterizedType != null && Message.class.isAssignableFrom((Class<?>)parameterizedType)){
 							sb.append("messages.iterator()");
 						}
 						else {

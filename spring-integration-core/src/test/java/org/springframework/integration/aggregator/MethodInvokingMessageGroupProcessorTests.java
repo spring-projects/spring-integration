@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -277,6 +278,32 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
+	}
+	
+	@Test
+	public void shouldFindFittingMethodForIteratorOfMessages() {
+
+		@SuppressWarnings("unused")
+		class UnannotatedAggregator {
+			public Iterator<?> and(Iterator<Message<?>> flags) {
+
+				return flags;
+			}
+
+			public void voidMethodShouldBeIgnored(List<Integer> flags) {
+				fail("this method should not be invoked");
+			}
+
+			public String methodAcceptingNoCollectionShouldBeIgnored(String irrelevant) {
+				fail("this method should not be invoked");
+				return null;
+			}
+		}
+
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
+		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertTrue(((Message<?>)result).getPayload() instanceof Iterator<?>);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

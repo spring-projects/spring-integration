@@ -92,13 +92,13 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		String[] argumentNames = this.resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
-			Map<String, Object> argumentMap = new HashMap<String, Object>();
+			Map<Object, Object> argumentMap = new HashMap<Object, Object>();
 			for (int i = 0; i < argumentNames.length; i++) {
 				if (invocation.getArguments().length <= i) {
 					break;
 				}
 				Object argValue = invocation.getArguments()[i];
-				argumentMap.put("" + i, argValue);
+				argumentMap.put(i, argValue);
 				argumentMap.put(argumentNames[i], argValue);
 			}
 			context.setVariable(PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME, argumentMap);

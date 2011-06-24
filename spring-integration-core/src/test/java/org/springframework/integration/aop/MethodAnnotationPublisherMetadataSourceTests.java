@@ -73,8 +73,8 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		Map<String, String> headerMap = source.getHeaderExpressions(method);
 		assertNotNull(headerMap);
 		assertEquals(2, headerMap.size());
-		assertEquals("#args['1']", headerMap.get("foo"));
-		assertEquals("#args['2']", headerMap.get("bar"));
+		assertEquals("#args[1]", headerMap.get("foo"));
+		assertEquals("#args[2]", headerMap.get("bar"));
 	}
 
 	@Test

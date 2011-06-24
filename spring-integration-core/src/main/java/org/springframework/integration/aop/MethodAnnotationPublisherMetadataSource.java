@@ -114,7 +114,7 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 					if (!StringUtils.hasText(name)) {
 						name = parameterNames[i];
 					}
-					headerExpressions.put(name, "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "['" + i + "']");
+					headerExpressions.put(name, "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]");
 				}
 			}
 		}
