@@ -2853,9 +2853,7 @@ Name of the header whose value will be used to route messages
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:choice minOccurs="0" maxOccurs="1">
-					<xsd:element ref="beans:bean" />
-				</xsd:choice>
+			    <xsd:any namespace="##any" processContents="strict" minOccurs="0" maxOccurs="1" />				
 			</xsd:sequence>
 			<xsd:attribute name="pattern" type="xsd:string" use="optional">
 				<xsd:annotation>

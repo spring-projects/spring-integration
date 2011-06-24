@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -35,9 +38,11 @@ import org.w3c.dom.Element;
  * @author David Turanski
  * @since 2.0
  */
-public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser {
+public class GlobalChannelInterceptorParser extends
+		AbstractBeanDefinitionParser {
 
-	private static final String BASE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.interceptor.";
+	private static final String BASE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE
+			+ ".channel.interceptor.";
 
 	private static final String CHANNEL_NAME_PATTERN_ATTRIBUTE = "pattern";
 
@@ -45,50 +50,82 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 
 	private static final String GLOBAL_POST_PROCESSOR_CLASSNAME = "GlobalChannelInterceptorBeanPostProcessor";
 
-
 	private final ManagedList<RuntimeBeanReference> globalInterceptors = new ManagedList<RuntimeBeanReference>();
 
 	private volatile boolean postProcessorCreated;
 
+	int ICOUNT = 0;
 
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected AbstractBeanDefinition parseInternal(Element element,
+			ParserContext parserContext) {
 
 		this.createAndRegisterGlobalPostProcessorIfNecessary(parserContext);
-		BeanDefinitionBuilder globalChannelInterceptorBuilder =
-			BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + "GlobalChannelInterceptorWrapper");
-		
-		globalChannelInterceptorBuilder.addConstructorArgValue(getBeanDefinitionBuilderConstructorValue(element, parserContext)); 
+		BeanDefinitionBuilder globalChannelInterceptorBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(BASE_PACKAGE
+						+ "GlobalChannelInterceptorWrapper");
 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, "order");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(globalChannelInterceptorBuilder, element, CHANNEL_NAME_PATTERN_ATTRIBUTE, "patterns");
+		Object childBeanDefinition = getBeanDefinitionBuilderConstructorValue(
+				element, parserContext, globalChannelInterceptorBuilder);
+		globalChannelInterceptorBuilder
+				.addConstructorArgValue(childBeanDefinition);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(
+				globalChannelInterceptorBuilder, element, "order");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(
+				globalChannelInterceptorBuilder, element,
+				CHANNEL_NAME_PATTERN_ATTRIBUTE, "patterns");
 
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(
-				globalChannelInterceptorBuilder.getBeanDefinition(), parserContext.getRegistry());
-		parserContext.registerBeanComponent(new BeanComponentDefinition(globalChannelInterceptorBuilder.getBeanDefinition(), beanName));
+				globalChannelInterceptorBuilder.getBeanDefinition(),
+				parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(
+				globalChannelInterceptorBuilder.getBeanDefinition(), beanName));
 		this.globalInterceptors.add(new RuntimeBeanReference(beanName));
 		return null;
 	}
 
-	private void createAndRegisterGlobalPostProcessorIfNecessary(ParserContext parserContext) {
+	private void createAndRegisterGlobalPostProcessorIfNecessary(
+			ParserContext parserContext) {
 		if (!this.postProcessorCreated) {
-			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					BASE_PACKAGE + GLOBAL_POST_PROCESSOR_CLASSNAME);
-			postProcessorBuilder.addConstructorArgValue(this.globalInterceptors);
+			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(BASE_PACKAGE
+							+ GLOBAL_POST_PROCESSOR_CLASSNAME);
+			postProcessorBuilder
+					.addConstructorArgValue(this.globalInterceptors);
 			BeanDefinition beanDef = postProcessorBuilder.getBeanDefinition();
-			String beanName =  BeanDefinitionReaderUtils.generateBeanName(
+			String beanName = BeanDefinitionReaderUtils.generateBeanName(
 					beanDef, parserContext.getRegistry());
-			parserContext.registerBeanComponent(new BeanComponentDefinition(beanDef, beanName));
+			parserContext.registerBeanComponent(new BeanComponentDefinition(
+					beanDef, beanName));
 			this.postProcessorCreated = true;
 		}
 	}
-	
-	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext){
-		BeanComponentDefinition interceptorBeanDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+
+	protected Object getBeanDefinitionBuilderConstructorValue(Element element,
+			ParserContext parserContext, BeanDefinitionBuilder parentBuilder) {
+		BeanComponentDefinition interceptorBeanDefinition = IntegrationNamespaceUtils
+				.parseInnerHandlerDefinition(element, parserContext);
 		if (interceptorBeanDefinition != null) {
 			return interceptorBeanDefinition;
-		}
-		else {
-			String beanName = element.getAttribute(REF_ATTRIBUTE);
+		} else {
+			String beanName = null;
+			if (element.hasAttribute(REF_ATTRIBUTE)) {
+				beanName = element.getAttribute(REF_ATTRIBUTE);
+			
+			} else {	
+				List<Element> els = DomUtils.getChildElements(element);
+				if (els.isEmpty()) {
+					parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
+				} else {
+					Element child = els.get(0);
+					if ("wire-tap".equals(child.getLocalName())){
+						 beanName = new WireTapParser().parse(child, parserContext);
+					}else {
+					   BeanDefinition beanDef = parserContext.getDelegate().parseCustomElement(child);	
+					   beanName = BeanDefinitionReaderUtils.generateBeanName(beanDef, parserContext.getRegistry());
+				    }   
+				} 
+			}
 			return new RuntimeBeanReference(beanName);
 		}
 	}

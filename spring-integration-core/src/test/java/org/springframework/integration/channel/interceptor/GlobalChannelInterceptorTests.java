@@ -16,6 +16,9 @@
 
 package org.springframework.integration.channel.interceptor;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,30 +27,36 @@ import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Assert;
 import org.junit.Test;
-
+import org.junit.runner.RunWith;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
- * @author Dave Turanski
+ * @author David Turanski
  * @since 2.0
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class GlobalChannelInterceptorTests {
-
+	@Autowired
+	ApplicationContext applicationContext;
+	
 	@Test
 	public void validateGlobalInterceptor() throws Exception{
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class);
-		Map<String, MessageChannel> channels = applicationContext.getBeansOfType(MessageChannel.class);
+ 		Map<String, MessageChannel> channels = applicationContext.getBeansOfType(MessageChannel.class);
 		for (String channelName : channels.keySet()) {
 			MessageChannel channel = channels.get(channelName);
 			if (channelName.equals("nullChannel")){
@@ -107,12 +116,14 @@ public class GlobalChannelInterceptorTests {
 		}
 	}
 
+	
+	@Autowired
+	@Qualifier("inpuC")
+	MessageChannel inpuCchannel;
 	@Test
 	public void testWildCardPatternMatch() {
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class);
-		AbstractMessageChannel channel = applicationContext.getBean("inpuC", AbstractMessageChannel.class);
-		List<?> interceptorList = TestUtils.getPropertyValue(channel, "interceptors.interceptors", List.class);
+		 
+		List<?> interceptorList = TestUtils.getPropertyValue(inpuCchannel, "interceptors.interceptors", List.class);
 		List<String> interceptorNames = new ArrayList<String>();
 		for (Object interceptor : interceptorList) {
 			interceptorNames.add(interceptor.toString());
@@ -121,7 +132,7 @@ public class GlobalChannelInterceptorTests {
 		Assert.assertTrue(interceptorNames.contains("interceptor-eleven"));
 	}
 
-
+	
 	public static class SampleInterceptor implements ChannelInterceptor {
 
 		private String testIdentifier;

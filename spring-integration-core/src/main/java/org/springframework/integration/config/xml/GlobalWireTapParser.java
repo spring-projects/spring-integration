@@ -13,6 +13,7 @@
 package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
 
@@ -24,7 +25,7 @@ import org.w3c.dom.Element;
  */
 public class GlobalWireTapParser extends GlobalChannelInterceptorParser {
 	@Override
-	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext){
+	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext, BeanDefinitionBuilder parentBuilder){
 		String wireTapBeanName = new WireTapParser().parse(element, parserContext);
 		return new RuntimeBeanReference(wireTapBeanName);
 	}
