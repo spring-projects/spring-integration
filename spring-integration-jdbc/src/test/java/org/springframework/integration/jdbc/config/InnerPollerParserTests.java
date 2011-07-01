@@ -34,6 +34,7 @@ public class InnerPollerParserTests {
 
 	@Test
 	public void testRefGood() {
+		// Just load the context to test the parse of a 'good' inner parser
 		new ClassPathXmlApplicationContext("InnerPollerParserTests-context.xml", InnerPollerParserTests.class);
 	}
 
