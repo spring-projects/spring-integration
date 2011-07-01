@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
  * @author Marius Bogoevici
  * @author Alex Peters
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -148,9 +149,18 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder,
 			ParserContext parserContext) {
 		if (pollerElement.hasAttribute("ref")) {
-			if (pollerElement.getAttributes().getLength() != 1) {
-				parserContext.getReaderContext().error(
-						"A 'poller' element that provides a 'ref' must have no other attributes.", pollerElement);
+			int numberOfAttributes = pollerElement.getAttributes().getLength();
+			if (numberOfAttributes != 1) {
+				/*
+				 * When importing the core namespace, e.g. into jdbc, we get a 'default="false"' attribute,
+				 * even if not explicitly declared.
+				 */
+				if (!(numberOfAttributes == 2 &&
+						pollerElement.hasAttribute("default") &&
+						pollerElement.getAttribute("default").equals("false"))) {
+					parserContext.getReaderContext().error(
+							"A 'poller' element that provides a 'ref' must have no other attributes.", pollerElement);
+				}
 			}
 			if (pollerElement.getChildNodes().getLength() != 0) {
 				parserContext.getReaderContext().error(
