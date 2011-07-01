@@ -12,7 +12,7 @@
 	<int:channel id="someChannel"/>
 
 	<int-jdbc:inbound-channel-adapter channel="someChannel" jdbc-operations="ops" 
-			query="select 1">
+			query="select 1" auto-startup="false">
 		<int:poller ref="outer"/>
 	</int-jdbc:inbound-channel-adapter>
 
