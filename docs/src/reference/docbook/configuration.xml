@@ -94,15 +94,16 @@
   <section id="namespace-taskscheduler">
     <title>Configuring the Task Scheduler</title>
     <para>
+   
       In Spring Integration, the ApplicationContext plays the central role of a Message Bus, and there are only a
       couple configuration options to be aware of. First, you may want to control the central TaskScheduler instance.
       You can do so by providing a single bean with the name "taskScheduler". This is also defined as a constant:
       <programlisting><![CDATA[ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
-      By default Spring Integration uses the <classname>SimpleTaskScheduler</classname> implementation. That in turn
-      just delegates to any instance of Spring's <interfacename>TaskExecutor</interfacename> abstraction. Therefore,
+      By default Spring Integration relies on default Task Scheduler via  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink> provided by the Spring Framework 
+      That in turn just delegates to an instance of Spring's <interfacename>TaskExecutor</interfacename> abstraction. Therefore,
       it's rather trivial to supply your own configuration. The "taskScheduler" bean is then responsible for managing
       all pollers. The TaskScheduler will startup automatically by default. If you provide your own instance of
-      SimpleTaskScheduler however, you can set the 'autoStartup' property to <emphasis>false</emphasis> instead.
+      Task Scheduler however, you can set the 'autoStartup' property to <emphasis>false</emphasis> instead.
     </para>
     <para>
       When Polling Consumers provide an explicit task-executor reference in their configuration, the invocation of
