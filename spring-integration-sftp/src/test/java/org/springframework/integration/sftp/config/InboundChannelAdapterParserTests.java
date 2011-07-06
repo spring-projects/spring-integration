@@ -48,6 +48,15 @@ public class InboundChannelAdapterParserTests {
 	public void prepare(){
 		new File("foo").delete();
 	}
+	
+	@Test
+	public void testAutoStartup() throws Exception{
+		ApplicationContext context =
+			new ClassPathXmlApplicationContext("SftpInboundAutostartup-context.xml", this.getClass());
+		
+		SourcePollingChannelAdapter adapter = context.getBean("sftpAutoStartup", SourcePollingChannelAdapter.class);
+		assertFalse(adapter.isRunning());
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test
