@@ -150,8 +150,8 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
   	That means upon restart you may end up with duplicate entries. If you need to persist metadata between Application Context 
   	restarts, you may use the <classname>PropertiesPersistingMetadataStore</classname> (which is backed by a properties file, and a persister
     strategy), or you may create your own custom implementation of the <classname>MetadataStore</classname> interface (e.g., JdbcMetadatStore)
-    and configure it as bean within the Application Context.
-  	<programlisting language="java"><![CDATA[<bean class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
+    and configure it as bean named 'metadataStore' within the Application Context.
+  	<programlisting language="java"><![CDATA[<bean id="metadataStore" class="org.springframework.integration.store.PropertiesPersistingMetadataStore"/>
 ]]></programlisting>
 The Poller that is configured as part of any Inbound Twitter Adapter (see below) will simply poll from this MetadataStore to determine the latest tweet
 received.
