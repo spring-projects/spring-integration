@@ -242,4 +242,20 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	</para>
  
   </section>
+  <section id="ftp-session-caching">
+  	<title>FTP Session Caching</title>
+  	<para>
+  	One of the optimization implemented by FTP adapters is session caching. Similar to JDBC connection polling FTP Adapters maintain a 
+  	default session poll. However there are times when this behavior is not desired (e.g., security etc.). 
+  	To disable session caching you can set <code>cache-sessions</code> attribute to <code>false</code> (default is <code>true</code>)
+<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter id="ftpInbound"
+				channel="ftpChannel" 
+				. . .
+				cache-sessions="false"
+                . . . 
+</int-ftp:inbound-channel-adapter>]]></programlisting>	
+
+The same attriibute could be used with Outbound Channel Adapters
+  	</para>
+  </section>
 </chapter>
