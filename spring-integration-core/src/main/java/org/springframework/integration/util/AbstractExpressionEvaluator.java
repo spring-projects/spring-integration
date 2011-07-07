@@ -13,6 +13,9 @@
 
 package org.springframework.integration.util;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.BeanFactoryResolver;
@@ -30,10 +33,13 @@ import org.springframework.integration.MessageHandlingException;
 /**
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * 
  * @since 2.0
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
+	
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -81,10 +87,16 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
+			if (this.logger.isDebugEnabled()){
+				logger.debug("SpEL Expressioin failed with EvaluationException and Message: " + e.getMessage());
+			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), cause == null ? e : cause);
 		}
 		catch (Exception e) {
+			if (this.logger.isDebugEnabled()){
+				logger.debug("SpEL Expressioin failed with Exception and Message: " + e.getMessage());
+			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), e);
 		}
