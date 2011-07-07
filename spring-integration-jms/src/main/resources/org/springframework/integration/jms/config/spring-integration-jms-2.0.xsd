@@ -416,6 +416,7 @@
 					</xsd:attribute>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
+					<xsd:attribute name="cache-level" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
 					<xsd:attribute name="recovery-interval" type="xsd:string"/>
@@ -614,6 +615,7 @@
 					</xsd:attribute>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
+					<xsd:attribute name="cache-level" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
 					<xsd:attribute name="recovery-interval" type="xsd:string"/>

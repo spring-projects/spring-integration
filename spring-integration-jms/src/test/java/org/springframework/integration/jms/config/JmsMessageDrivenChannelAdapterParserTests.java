@@ -111,6 +111,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
 				new DirectFieldAccessor(gateway).getPropertyValue("listenerContainer");
 		assertEquals(33, new DirectFieldAccessor(container).getPropertyValue("idleConsumerLimit"));
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("cacheLevel"));
 		gateway.stop();
 	}
 

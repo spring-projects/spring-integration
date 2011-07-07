@@ -58,7 +58,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		"concurrent-consumers", "max-concurrent-consumers",
 		"max-messages-per-task", "selector",
 		"receive-timeout", "recovery-interval",
-		"idle-consumer-limit", "idle-task-execution-limit"
+		"idle-consumer-limit", "idle-task-execution-limit",
+		"cache-level"
 	};
 
 
@@ -147,6 +148,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-consumer-limit");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "cache-level");
 		builder.addPropertyValue("autoStartup", false);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}

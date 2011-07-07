@@ -8,7 +8,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jms
-			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd">
 
 	<jms:message-driven-channel-adapter id="adapterWithReceiveTimeout"
 					 	 connection-factory="testConnectionFactory"
@@ -32,7 +32,8 @@
 					 	 connection-factory="testConnectionFactory"
 		 			 	 destination-name="testQueue"
 		 				 idle-consumer-limit="33"
-		 				 auto-startup="false"/>
+		 				 cache-level="3"
+		 				 auto-startup="false" />
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
