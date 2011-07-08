@@ -165,14 +165,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="auto-create-local-directory" type="xsd:boolean">
+					<xsd:attribute name="auto-create-local-directory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 							Tells this adapter if local directory must be auto-created if it doesn''t exist. Default is TRUE.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="delete-remote-files" type="xsd:boolean">
+					<xsd:attribute name="delete-remote-files" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								Specify whether to delete the remote source file after copying.
@@ -201,7 +201,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="cache-sessions" type="xsd:boolean" default="true">
+		<xsd:attribute name="cache-sessions" type="xsd:string" default="true">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 				Specify whether the Sessions should be cached. Default is true.

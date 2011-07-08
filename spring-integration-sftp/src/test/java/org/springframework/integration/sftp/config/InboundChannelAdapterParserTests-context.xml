@@ -17,6 +17,8 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
+	<context:property-placeholder location="classpath:org/springframework/integration/sftp/config/sftp.properties"/>
+
 	<channel id="requestChannel">
 		<queue/>
 	</channel>
@@ -45,7 +47,7 @@
 			remote-file-separator="."
 			temporary-file-suffix=".bar"
 			comparator="comparator"
-			delete-remote-files="false">
+			delete-remote-files="${delete.remote.files}">
 		<poller fixed-rate="1000"/>
 	</sftp:inbound-channel-adapter>
 	
