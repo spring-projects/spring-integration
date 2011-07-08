@@ -52,7 +52,7 @@
       <programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer"
       class="org.springframework.integration.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
-        <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
+        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
         <property name="contextPath" value="org.example" />
         </bean>
     </constructor-arg>
@@ -70,7 +70,7 @@
       <programlisting language="xml"><![CDATA[<bean id="marshallingTransformer"
       class="org.springframework.integration.xml.transformer.MarshallingTransformer">
     <constructor-arg>
-        <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
+        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
             <property name="contextPath" value="org.example" />
         </bean>
     </constructor-arg>
