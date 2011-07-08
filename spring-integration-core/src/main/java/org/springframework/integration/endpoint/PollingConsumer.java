@@ -16,6 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
@@ -30,6 +33,8 @@ import org.springframework.util.Assert;
  */
 public class PollingConsumer extends AbstractPollingEndpoint {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+	
 	private final PollableChannel inputChannel;
 
 	private final MessageHandler handler;
@@ -53,7 +58,13 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		Message<?> message = (this.receiveTimeout >= 0)
 				? this.inputChannel.receive(this.receiveTimeout)
 				: this.inputChannel.receive();
+		if (this.logger.isDebugEnabled()){
+			this.logger.debug("Poll resulted in Message: " + message);
+		}
 		if (message == null) {
+			if (this.logger.isDebugEnabled()){
+				this.logger.debug("Received no Message during the poll, returning 'false'");
+			}
 			return false;
 		}
 		this.handler.handleMessage(message);

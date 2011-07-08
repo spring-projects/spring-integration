@@ -16,6 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.NamedComponent;
@@ -33,6 +36,8 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
+	
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile MessageSource<?> source;
 
@@ -87,12 +92,18 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	@Override
 	protected boolean doPoll() {
 		Message<?> message = this.source.receive();
+		if (this.logger.isDebugEnabled()){
+			this.logger.debug("Poll resulted in Message: " + message);
+		}
 		if (message != null) {
 			if (this.shouldTrack) {
 				message = MessageHistory.write(message, this);
 			}
 			this.messagingTemplate.send(this.outputChannel, message);
 			return true;
+		}
+		if (this.logger.isDebugEnabled()){
+			this.logger.debug("Received no Message during the poll, returning 'false'");
 		}
 		return false;
 	}
