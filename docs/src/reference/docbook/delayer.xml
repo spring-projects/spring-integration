@@ -47,7 +47,7 @@
     </para>
     <para>
       The delayer delegates to an instance of Spring's <interfacename>TaskScheduler</interfacename> abstraction.
-      The default scheduler is a <classname>ThreadPoolTaskScheduler</classname> instance with a pool size of 1.
+      The default scheduler is a <classname>ThreadPoolTaskScheduler</classname> instance with a pool size of 10.
       If you want to delegate to a different scheduler, you can provide a reference through the delayer element's
       'scheduler' attribute:
       <programlisting language="xml"><![CDATA[ <delayer input-channel="input" output-channel="output"
