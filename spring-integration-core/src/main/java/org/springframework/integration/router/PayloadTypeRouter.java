@@ -87,7 +87,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		Class<?>[] interfaces = type.getInterfaces();
 		List<String> matchedInterfaces = new ArrayList<String>();
 		
-		this.doInitrospect(interfaces, matchedInterfaces);
+		this.doIntrospect(interfaces, matchedInterfaces);
 		
 		if (matchedInterfaces.isEmpty()){
 			return null;
@@ -104,14 +104,14 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		}
 	}
 	
-	public void doInitrospect(Class<?>[] interfaces, List<String> matchedInterfaces){
+	private void doIntrospect(Class<?>[] interfaces, List<String> matchedInterfaces){
 		for (Class<?> extendedInterface : interfaces) {
 			String currentChannelName = this.channelIdentifierMap.get(extendedInterface.getName());
 			if (StringUtils.hasText(currentChannelName)) {
 				matchedInterfaces.add(extendedInterface.getName());
 			}
 			Class<?>[] extendedInterfaces = extendedInterface.getInterfaces();
-			this.doInitrospect(extendedInterfaces, matchedInterfaces);
+			this.doIntrospect(extendedInterfaces, matchedInterfaces);
 		}
 	}
 
