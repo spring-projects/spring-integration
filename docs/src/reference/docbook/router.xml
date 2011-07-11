@@ -208,12 +208,23 @@
     Sometimes the routing logic may be simple and writing a separate class for it and configuring it as a bean may seem 
     like overkill. As of Spring Integration 2.0 we offer an alternative where you can now use 
     <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.htm">SpEL</ulink> 
-    to implement simple computations that previously required a custom POJO router.
+    to implement simple computations that previously required a custom POJO router. Generally a SpEL expression is evaluated and the 
+    result is mapped to a channel:
+   <programlisting language="xml"><![CDATA[
+   <int:router input-channel="inChannel" expression="payload.paymentType">
+        <int:mapping value="CASH" channel="cashPaymentChannel"/>
+        <int:mapping value="CREDIT" channel="authorizePaymentChannel"/>
+        <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>             
+   </int:router>
+]]></programlisting>
+    
+    To simplify things even more, the SpEL expression may evaluate to a channel name:
     
     <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="payload + 'Channel'"/>]]></programlisting>
     In the above configuration the result channel will be computed by the SpEL expression which simply concatenates the value 
     of the <code>payload</code> with the literal String 'Channel'.  
     </para>
+
     
     <para>
     Another value of SpEL for configuring routers is that an expression can actually return a <classname>Collection</classname>, 
