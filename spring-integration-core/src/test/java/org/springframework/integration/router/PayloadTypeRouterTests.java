@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -171,6 +172,31 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result);
 		assertEquals(99, result.getPayload());
 		assertNull(defaultChannel.receive(0));
+	}
+	
+	@Test
+	public void extendedInterfaceMatch() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel bChannel = new QueueChannel();
+		bChannel.setBeanName("bChannel");
+		
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		beanFactory.registerSingleton("bChannel", bChannel);
+			
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(B.class.getName(), "bChannel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+			
+		router.setBeanFactory(beanFactory);
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Foo> message = new GenericMessage<Foo>(new Foo());
+		router.handleMessage(message);
+		Message<?> result = bChannel.receive(0);
+		assertNotNull(result);
 	}
 
 	@Test
@@ -335,4 +361,13 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result2);
 		assertEquals(123, result2.getPayload());
 	}
+	
+	@SuppressWarnings("serial")
+	public static class Foo implements Bar, A {}
+
+	public interface Bar extends Serializable {}
+
+	public interface A extends B {}
+
+	public interface B {}
 }

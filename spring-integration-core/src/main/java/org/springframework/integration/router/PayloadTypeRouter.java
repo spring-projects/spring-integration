@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -68,29 +69,50 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			if (StringUtils.hasText(channelName)) {
 				return channelName;
 			}
-			// next, check for interfaces of this type
-			Class<?> matchedInterface = null;
-			Class<?>[] interfaces = type.getInterfaces();
-			for (Class<?> currentInterface : interfaces) {
-				String currentChannelName = this.channelIdentifierMap.get(currentInterface.getName());
-				if (StringUtils.hasText(currentChannelName)) {
-					if (matchedInterface != null) {
-						throw new MessageHandlingException(message,
-								"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() +
-								"]. Candidate types [" + matchedInterface.getName() + "] and [" +
-								currentInterface.getName() + "] have equal weight.");
-					}
-					matchedInterface = currentInterface;
-					channelName = currentChannelName;
-				}
-			}
+			// next, check for interfaces (super inluded) of this type 
+		
+			channelName = this.introspectInterfaces(type, message);
+			
 			if (channelName != null) {
 				return channelName;
-			}
+			} 
+			
 			// finally, continue up the hierarchy
 			type = type.getSuperclass();
 		}
 		return null;
+	}
+	
+	private String introspectInterfaces(Class<?> type, Message<?> message){
+		Class<?>[] interfaces = type.getInterfaces();
+		List<String> matchedInterfaces = new ArrayList<String>();
+		
+		this.doInitrospect(interfaces, matchedInterfaces);
+		
+		if (matchedInterfaces.isEmpty()){
+			return null;
+		}
+		else {
+			if (matchedInterfaces.size() > 1){
+				throw new MessageHandlingException(message,
+						"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() +
+						"]. Candidate types " + matchedInterfaces +  " have equal weight.");
+			}
+			else {
+				return matchedInterfaces.get(0);
+			}			
+		}
+	}
+	
+	public void doInitrospect(Class<?>[] interfaces, List<String> matchedInterfaces){
+		for (Class<?> extendedInterface : interfaces) {
+			String currentChannelName = this.channelIdentifierMap.get(extendedInterface.getName());
+			if (StringUtils.hasText(currentChannelName)) {
+				matchedInterfaces.add(extendedInterface.getName());
+			}
+			Class<?>[] extendedInterfaces = extendedInterface.getInterfaces();
+			this.doInitrospect(extendedInterfaces, matchedInterfaces);
+		}
 	}
 
 }
