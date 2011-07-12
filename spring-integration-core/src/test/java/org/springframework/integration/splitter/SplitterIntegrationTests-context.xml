@@ -19,13 +19,14 @@
 
 	<splitter input-channel="inDefault" output-channel="out" />
 
+	<splitter input-channel="inDelimiters" output-channel="out" delimiters=",;/ " />
+
 	<beans:bean id="splitterBeanXmlConfig"
 		class="org.springframework.integration.splitter.SplitterIntegrationTests$TestSplitter" />
 
 	<beans:bean id="splitterBeanAnnotationConfig"
 		class="org.springframework.integration.splitter.SplitterIntegrationTests$TestSplitter" />
 
-	<beans:bean
-		class="org.springframework.integration.splitter.SplitterIntegrationTests$Receiver" />
+	<beans:bean class="org.springframework.integration.splitter.SplitterIntegrationTests$Receiver" />
 
 </beans:beans>

@@ -39,6 +39,8 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	private volatile boolean applySequence = true;
 
+	private volatile String delimiters;
+
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
@@ -54,6 +56,10 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
+	}
+
+	public void setDelimiters(String delimiters) {
+		this.delimiters = delimiters;
 	}
 
 	@Override
@@ -94,6 +100,11 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	private AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
 		if (this.sendTimeout != null) {
 			splitter.setSendTimeout(sendTimeout);
+		}
+		if (this.delimiters != null) {
+			Assert.isTrue(splitter instanceof DefaultMessageSplitter, "The 'delimiters' property is only available" +
+					" for a Splitter definition where no 'ref', 'expression', or inner bean has been provided.");
+			((DefaultMessageSplitter) splitter).setDelimiters(this.delimiters);
 		}
 		splitter.setRequiresReply(requiresReply);
 		splitter.setApplySequence(applySequence);

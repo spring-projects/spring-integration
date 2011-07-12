@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,20 @@
 
 package org.springframework.integration.splitter;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -40,23 +43,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Iwein Fuld
  * @author Alexander Peters
+ * @author Mark Fisher
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class SplitterIntegrationTests {
 
 	@Autowired
-	@Qualifier("inAnnotated")
 	MessageChannel inAnnotated;
 
 	@Autowired
-	@Qualifier("inMethodInvoking")
 	MessageChannel inMethodInvoking;
 
 	@Autowired
-	@Qualifier("inDefault")
 	MessageChannel inDefault;
-	
+
+	@Autowired
+	MessageChannel inDelimiters;
+
 	@Autowired
 	MethodInvokingSplitter splitter;
 
@@ -67,9 +71,13 @@ public class SplitterIntegrationTests {
 	@Autowired
 	Receiver receiver;
 
+	@Before
+	public void clearWords() {
+		receiver.receivedWords.clear();
+	}
+
 	@MessageEndpoint
 	public static class Receiver {
-
 		private List<String> receivedWords = new ArrayList<String>();
 
 		@ServiceActivator(inputChannel = "out")
@@ -113,7 +121,55 @@ public class SplitterIntegrationTests {
 		assertTrue(receiver.receivedWords.containsAll(words));
 		assertTrue(words.containsAll(receiver.receivedWords));
 	}
-	
+
+	@Test
+	public void delimiterSplitter() throws Exception {
+		inDelimiters.send(new GenericMessage<String>("one,two, three; four/five"));
+		assertTrue(receiver.receivedWords.containsAll(Arrays.asList("one", "two", "three", "four", "five")));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void delimitersNotAllowedWithRef() throws Throwable {
+		try {
+			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidRef.xml", SplitterIntegrationTests.class);
+		}
+		catch (BeanCreationException e) {
+			Throwable cause = e.getMostSpecificCause();
+			assertNotNull(cause);
+			assertTrue(cause instanceof IllegalArgumentException);
+			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			throw cause;
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void delimitersNotAllowedWithInnerBean() throws Throwable {
+		try {
+			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidInnerBean.xml", SplitterIntegrationTests.class);
+		}
+		catch (BeanCreationException e) {
+			Throwable cause = e.getMostSpecificCause();
+			assertNotNull(cause);
+			assertTrue(cause instanceof IllegalArgumentException);
+			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			throw cause;
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void delimitersNotAllowedWithExpression() throws Throwable {
+		try {
+			new ClassPathXmlApplicationContext("SplitterIntegrationTests-invalidExpression.xml", SplitterIntegrationTests.class);
+		}
+		catch (BeanCreationException e) {
+			Throwable cause = e.getMostSpecificCause();
+			assertNotNull(cause);
+			assertTrue(cause instanceof IllegalArgumentException);
+			assertTrue(cause.getMessage().contains("'delimiters' property is only available"));
+			throw cause;
+		}
+	}
+
 	@Test
 	public void channelResolver_isNotNull() throws Exception {
 		splitter.setOutputChannel(null);

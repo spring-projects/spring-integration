@@ -1088,24 +1088,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
 
 			<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware" />
-			<xsd:element name="splitter">
-				<xsd:complexType>
-					<xsd:complexContent>
-						<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
-							<xsd:attribute name="apply-sequence" type="xsd:boolean" use="optional">
-								<xsd:annotation>
-									<xsd:documentation>
-										Set this flag to false to prevent adding sequence related headers in this splitter. This
-										can be
-										convenient in cases where the set sequence numbers conflict with downstream custom
-										aggregations.
-									</xsd:documentation>
-								</xsd:annotation>
-							</xsd:attribute>
-						</xsd:extension>
-					</xsd:complexContent>
-				</xsd:complexType>
-			</xsd:element>
+			<xsd:element name="splitter" type="splitter-type" />
 			<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware" />
 			<xsd:element name="header-enricher" type="header-enricher-type" />
 			<xsd:element name="header-filter" type="header-filter-type" />
@@ -2356,33 +2339,47 @@ Name of the header whose value will be used to route messages
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+				<xsd:extension base="splitter-type">
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
-					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specify whether the splitter method must return a non-null value. This value will be
-								FALSE by
-								default, but if set to TRUE, a MessageHandlingException will be thrown when
-								the underlying service method (or
-								expression) returns a NULL value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="apply-sequence" type="xsd:boolean" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Set this flag to false to prevent adding sequence related headers in this splitter. This
-								can be
-								convenient in cases where the set sequence numbers conflict with downstream custom
-								aggregations.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="splitter-type">
+		<xsd:complexContent>
+			<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+				<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Specify whether the splitter method must return a non-null value. This value will be
+							FALSE by default, but if set to TRUE, a MessageHandlingException will be thrown when
+							the underlying service method (or expression) returns a NULL value.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="apply-sequence" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Set this flag to false to prevent adding sequence related headers in this splitter.
+							This can be convenient in cases where the set sequence numbers conflict with downstream
+							custom aggregations.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="delimiters" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Provide one or more delimiters (as a single String value, e.g. delimiters=",;:") for
+							tokenizing String-typed payload values. This attribute is only allowed if no 'ref' or
+							'expression' have been provided since that is when the DefaultMessageSplitter would
+							be used, and it's the implementation that contains the "delimiters" property.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:element name="aggregator">
 		<xsd:annotation>
