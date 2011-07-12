@@ -60,6 +60,7 @@ public final class MessageBuilder<T> {
 		this.originalMessage = originalMessage;
 		if (originalMessage != null) {
 			this.copyHeaders(originalMessage.getHeaders());
+			this.modified = (!this.payload.equals(originalMessage.getPayload()));
 		}
 	}
 
@@ -93,12 +94,17 @@ public final class MessageBuilder<T> {
 		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID)
 				&& !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.verifyType(headerName, headerValue);
-			this.modified = true;
 			if (headerValue == null) {
-				this.headers.remove(headerName);
+				Object removedValue = this.headers.remove(headerName);
+				if (removedValue != null) {
+					this.modified = true;
+				}
 			}
 			else {
-				this.headers.put(headerName, headerValue);
+				Object replacedValue = this.headers.put(headerName, headerValue);
+				if (!headerValue.equals(replacedValue)) {
+					this.modified = true;
+				}
 			}
 		}
 		return this;
@@ -113,6 +119,7 @@ public final class MessageBuilder<T> {
 		}
 		return this;
 	}
+
 	/**
 	 * Removes all headers provided via array of 'headerPatterns'. As the name suggests the array
 	 * may contain simple matching patterns for header names. Supported pattern styles are: 
@@ -147,8 +154,10 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> removeHeader(String headerName) {
 		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID)
 				&& !headerName.equals(MessageHeaders.TIMESTAMP)) {
-			this.modified = true;
-			this.headers.remove(headerName);
+			Object removedValue = this.headers.remove(headerName);
+			if (removedValue != null) {
+				this.modified = true;
+			}
 		}
 		return this;
 	}

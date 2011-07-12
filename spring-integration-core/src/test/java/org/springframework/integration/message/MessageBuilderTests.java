@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -106,7 +108,7 @@ public class MessageBuilderTests {
 	public void createIdRegenerated() {
 		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = MessageBuilder.fromMessage(message1).build();
+		Message<String> message2 = MessageBuilder.fromMessage(message1).setHeader("another", 1).build();
 		assertEquals("bar", message2.getHeaders().get("foo"));
 		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
 	}
@@ -200,6 +202,42 @@ public class MessageBuilderTests {
 		assertTrue(message2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
 		Message<Integer> message3 = MessageBuilder.fromMessage(message2).popSequenceDetails().build();
 		assertFalse(message3.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+	}
+
+	@Test
+	public void testNotModifiedSameMessage() throws Exception {
+		Message<?> original = MessageBuilder.withPayload("foo").build();
+		Message<?> result = MessageBuilder.fromMessage(original).build();
+		assertEquals(original, result);
+	}
+
+	@Test
+	public void testContainsHeaderNotModifiedSameMessage() throws Exception {
+		Message<?> original = MessageBuilder.withPayload("foo").setHeader("bar", 42).build();
+		Message<?> result = MessageBuilder.fromMessage(original).build();
+		assertEquals(original, result);
+	}
+
+	@Test
+	public void testSameHeaderValueAddedNotModifiedSameMessage() throws Exception {
+		Message<?> original = MessageBuilder.withPayload("foo").setHeader("bar", 42).build();
+		Message<?> result = MessageBuilder.fromMessage(original).setHeader("bar", 42).build();
+		assertEquals(original, result);
+	}
+
+	@Test
+	public void testCopySameHeaderValuesNotModifiedSameMessage() throws Exception {
+		Date current = new Date();
+		Map<String, Object> originalHeaders = new HashMap<String, Object>();
+		originalHeaders.put("b", "xyz");
+		originalHeaders.put("c", current);
+		Message<?> original = MessageBuilder.withPayload("foo").setHeader("a", 123).copyHeaders(originalHeaders).build();
+		Map<String, Object> newHeaders = new HashMap<String, Object>();
+		newHeaders.put("a", 123);
+		newHeaders.put("b", "xyz");
+		newHeaders.put("c", current);		
+		Message<?> result = MessageBuilder.fromMessage(original).copyHeaders(newHeaders).build();
+		assertEquals(original, result);
 	}
 
 }
