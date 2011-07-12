@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,8 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 					this.getClass().getName() + " expects a Serializable payload type " +
 					"but encountered [" + message.getPayload().getClass().getName() + "]");
 		}
-		Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
+		Message<?> requestMessage = MessageBuilder.withPayload(message.getPayload())
+				.copyHeaders(message.getHeaders()).build();
 		try {
 			Message<?> reply = this.proxy.exchange(requestMessage);
 			if (reply != null) {
