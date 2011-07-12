@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,8 +152,20 @@ public class JdbcMessageStoreTests {
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).build();
 		Message<String> result = messageStore.addMessage(copy);
+		assertEquals(copy, result);
+		assertEquals(saved, result);
+		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
+	}
+
+	@Test
+	@Transactional
+	public void testAddAndUpdateWithChange() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		Message<String> saved = messageStore.addMessage(message);
+		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
+		Message<String> result = messageStore.addMessage(copy);
 		assertNotSame(copy, result);
-		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY));
+		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY, "newHeader"));
 		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
 	}
 
