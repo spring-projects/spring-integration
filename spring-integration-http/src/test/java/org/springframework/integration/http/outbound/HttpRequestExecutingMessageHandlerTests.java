@@ -16,6 +16,7 @@
 package org.springframework.integration.http.outbound;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -72,6 +73,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
+		assertNotNull(request.getHeaders().getContentType());
 		assertTrue(body instanceof MultiValueMap<?, ?>);
 		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
 		assertEquals("1", map.get("a").iterator().next());
@@ -526,6 +528,81 @@ public class HttpRequestExecutingMessageHandlerTests {
 		Object body = request.getBody();
 		assertTrue(body instanceof Source);
 		assertEquals(MediaType.TEXT_XML, request.getHeaders().getContentType());
+	}
+	
+	@Test
+	public void contentTypeIsNotSet() throws Exception {
+		//GET
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.GET);
+		
+		Message<?> message = MessageBuilder.withPayload(mock(Source.class)).build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		assertNull(request.getHeaders().getContentType());
+		
+		//HEAD
+		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.HEAD);
+		
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		request = template.lastRequestEntity.get();
+		assertNull(request.getHeaders().getContentType());
+		
+		//DELETE
+		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.DELETE);
+		
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		request = template.lastRequestEntity.get();
+		assertNull(request.getHeaders().getContentType());
+		
+		//TRACE
+		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.TRACE);
+		
+		message = MessageBuilder.withPayload(mock(Source.class)).build();
+		exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		request = template.lastRequestEntity.get();
+		assertNull(request.getHeaders().getContentType());
 	}
 	
 	public static class City{

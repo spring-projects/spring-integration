@@ -282,11 +282,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
 		Object payload = requestMessage.getPayload();
-		if (httpHeaders.getContentType() == null) {
-			MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-					: this.resolveContentType(payload);
-			httpHeaders.setContentType(contentType);
+		
+		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
+			if (httpHeaders.getContentType() == null) {
+				MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+						: this.resolveContentType(payload);
+				httpHeaders.setContentType(contentType);
+			}
 		}
+		
 		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
 				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
 			if (!(payload instanceof MultiValueMap)) {
@@ -300,9 +304,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(new MediaType("application", "x-java-serialized-object"));
-		return new HttpEntity<Object>(requestMessage, headers);
+		HttpHeaders httpHeaders = new HttpHeaders();
+		
+		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
+			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
+		}
+		
+		return new HttpEntity<Object>(requestMessage, httpHeaders);
 	}
 
 	@SuppressWarnings("unchecked")
