@@ -54,7 +54,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	
 	private volatile int reconnectDelay = 10000; // seconds
 	
-	private volatile ScheduledFuture<?> scheduledFuture;
+	private volatile ScheduledFuture<?> receivingTask;
+	private volatile ScheduledFuture<?> pingTask;
 	
 	private volatile ResubmittingTask task;
 	
@@ -95,30 +96,29 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
 		this.task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
-		this.task.start();
 		task.setTaskExecutor(taskExecutor);
-		scheduledFuture = scheduler.schedule(task, new Date());
-		scheduler = this.getTaskScheduler();
-		if (scheduler != null) {
-			scheduler.scheduleAtFixedRate(new Runnable() {	
-				public void run() {
-					try {
-						Store store = mailReceiver.getStore();
-						if (store != null) {
-							store.isConnected();
-						}		
-					} 
-					catch (Exception ignore) {
-					}
+		
+		receivingTask = scheduler.schedule(task, new Date());
+		
+		pingTask = scheduler.scheduleAtFixedRate(new Runnable() {	
+			public void run() {
+				try {
+					Store store = mailReceiver.getStore();
+					if (store != null) {
+						store.isConnected();
+					}		
+				} 
+				catch (Exception ignore) {
 				}
-			}, connectionPingInterval);
-		}
+			}
+		}, connectionPingInterval);
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		scheduledFuture.cancel(true);
-		this.task.stop();
+		this.task.requestStop();
+		receivingTask.cancel(true);
+		pingTask.cancel(true);		
 		try {
 			mailReceiver.destroy();
 		} catch (Exception e) {
@@ -135,7 +135,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					logger.debug("waiting for mail");
 				}
 				mailReceiver.waitForNewMessages();
-				if (task.isRunning()){
+				if (!task.isStopRequested()){
 					Message[] mailMessages = mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");

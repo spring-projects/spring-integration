@@ -35,14 +35,14 @@ import org.springframework.scheduling.TaskScheduler;
  * with reconnection logic 
  * Currently only used to manage IDLE task of ImapIdleChannelAdapter
  */
-class ResubmittingTask implements Runnable{
+class ResubmittingTask implements Runnable {
 	private static final Log logger = LogFactory.getLog(ResubmittingTask.class);
 	private final Runnable targetTask;
 	private final TaskScheduler scheduler;
 	private final long delay;
 	private Executor taskExecutor = new SimpleAsyncTaskExecutor();
 	
-	private volatile boolean running;
+	private volatile boolean stopRequested = false;
 	
 	public ResubmittingTask(Runnable targetTask, TaskScheduler scheduler, long delay) {
 		this.targetTask = targetTask;
@@ -62,22 +62,18 @@ class ResubmittingTask implements Runnable{
 		});	
 	}
 	
-	protected void stop(){
-		this.running = false;
+	protected void requestStop(){
+		this.stopRequested = true;
 	}
-	
-	protected void start(){
-		this.running = true;
-	}
-	
-	protected boolean isRunning(){
-		return this.running;
+
+	protected boolean isStopRequested(){
+		return this.stopRequested;
 	}
 	
 	private void invokeTask(){
 		try {
 			targetTask.run();
-			if (this.running){
+			if (!this.stopRequested){
 				if (logger.isDebugEnabled()){
 					logger.debug("Task completed successfully. Re-scheduling it again right away");
 				}
