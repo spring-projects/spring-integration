@@ -554,10 +554,10 @@
 	which is going to be used to correlate messages.
 	</para>
 	<para>
-    Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic via 
+    Likewise, for the <interfacename>ReleaseStrategy</interfacename> you can implement your release logic as 
     a SpEL expression and configure it via the <code>release-strategy-expression</code> attribute. 
-    The only exception is that since ReleaseStrategy is passed the List of Messages the the root object in the SopEL
-    Evaluation context is the List itself which can be referenced as <code>#this</code>.
+    The only difference is that since ReleaseStrategy is passed the List of Messages, the root object in the SpEL
+    evaluation context is the List itself. That List can be referenced as <code>#this</code> within the expression.
 	</para>
 	<para>
 	For example:
