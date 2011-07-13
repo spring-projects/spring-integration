@@ -17,7 +17,6 @@
 package org.springframework.integration.util;
 
 import java.beans.PropertyEditor;
-import java.util.Collection;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.SimpleTypeConverter;
@@ -28,7 +27,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Dave Syer
@@ -98,11 +96,6 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
 		if (targetType.getType() == Void.class || targetType.getType() == Void.TYPE) {
 			return null;
-		}
-		if (value instanceof Collection<?> 
-				&& CollectionUtils.isEmpty((Collection<?>) value) 
-				&& Collection.class.isAssignableFrom(targetType.getObjectType())){
-			return value;
 		}
 		if (conversionService.canConvert(sourceType, targetType)) {
 			return conversionService.convert(value, sourceType, targetType);

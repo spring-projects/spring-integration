@@ -25,9 +25,8 @@ public class BeanFactoryTypeConverterTests {
 	public void testEmptyCollectionConversion(){
 		BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 		List<String> sourceObject = new ArrayList<String>();
-		// source type doesn't even matter
 		ArrayList<BeanFactoryTypeConverterTests> convertedCollection = 
-			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject, null, TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
+			(ArrayList<BeanFactoryTypeConverterTests>) typeConverter.convertValue(sourceObject, TypeDescriptor.forObject(sourceObject), TypeDescriptor.forObject(new ArrayList<BeanFactoryTypeConverterTests>()));
 		assertEquals(sourceObject, convertedCollection);
 	}
 
