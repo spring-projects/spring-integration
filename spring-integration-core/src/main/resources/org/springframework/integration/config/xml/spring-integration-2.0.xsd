@@ -1659,7 +1659,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					match patterns or literal values. For example header-names='foo*' would mean remove all 
 					headers that begin with 'foo' including the header named 'foo*'. However if you want to 
 					treat '*' as literal value setting this flag to FALSE will not perform pattern match and 
-					the only header that will be removed is that has an exact match
+					the only header that will be removed is the one that is an exact match.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
