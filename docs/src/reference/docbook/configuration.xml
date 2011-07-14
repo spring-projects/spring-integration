@@ -96,14 +96,13 @@
     <para>
    
       In Spring Integration, the ApplicationContext plays the central role of a Message Bus, and there are only a
-      couple configuration options to be aware of. First, you may want to control the central TaskScheduler instance.
+      couple configuration options to consider. First, you may want to control the central TaskScheduler instance.
       You can do so by providing a single bean with the name "taskScheduler". This is also defined as a constant:
       <programlisting><![CDATA[ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
-      By default Spring Integration relies on default Task Scheduler via  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink> provided by the Spring Framework 
-      That in turn just delegates to an instance of Spring's <interfacename>TaskExecutor</interfacename> abstraction. Therefore,
-      it's rather trivial to supply your own configuration. The "taskScheduler" bean is then responsible for managing
-      all pollers. The TaskScheduler will startup automatically by default with default thread pool of 10. If you provide your own instance of
-      Task Scheduler however, you can set the 'autoStartup' property to <emphasis>false</emphasis> instead.
+      By default Spring Integration relies on an instance of ThreadPoolTaskScheduler as described in the <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/scheduling.html">Task Execution and Scheduling</ulink>
+      section of the Spring Framework reference manual. That default TaskScheduler will startup automatically with a
+      pool of 10 threads. If you provide your own TaskScheduler instance instead, you can set the 'autoStartup' property
+      to <emphasis>false</emphasis>, and/or you can provide your own pool size value.
     </para>
     <para>
       When Polling Consumers provide an explicit task-executor reference in their configuration, the invocation of
