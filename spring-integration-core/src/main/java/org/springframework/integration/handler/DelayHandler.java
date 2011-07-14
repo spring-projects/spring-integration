@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,10 +92,6 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 
-	@Override
-	public String getComponentType() {
-		return "delayer";
-	}
 	/**
 	 * Create a DelayHandler with the given default delay. The sending of Messages after
 	 * the delay will be handled by a scheduled thread pool with a size of 1.
@@ -175,6 +171,11 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	public int getOrder() {
 		return this.order;
+	}
+
+	@Override
+	public String getComponentType() {
+		return "delayer";
 	}
 
 	protected void onInit() throws Exception{
