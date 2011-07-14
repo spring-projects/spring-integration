@@ -107,7 +107,7 @@
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Reference to a TaskExecutor which will be used to send inbound Mail to a MessageChannel.
+	[DEPRECATED as of 2.0.5]
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">

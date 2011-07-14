@@ -54,7 +54,6 @@ public class ImapIdleChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Object channel = context.getBean("channel");
 		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
@@ -74,7 +73,6 @@ public class ImapIdleChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Object channel = context.getBean("channel");
 		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
@@ -94,7 +92,6 @@ public class ImapIdleChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Object channel = context.getBean("channel");
 		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
@@ -114,7 +111,6 @@ public class ImapIdleChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Object channel = context.getBean("channel");
 		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
