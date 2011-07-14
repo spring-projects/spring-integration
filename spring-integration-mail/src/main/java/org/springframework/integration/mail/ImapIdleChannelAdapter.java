@@ -57,8 +57,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private volatile ScheduledFuture<?> receivingTask;
 	private volatile ScheduledFuture<?> pingTask;
 	
-	private volatile ResubmittingTask task;
-	
 	private volatile long connectionPingInterval = 10000;
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
@@ -73,7 +71,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	public void setShouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
-
+    
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
@@ -93,12 +91,25 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		TaskScheduler scheduler =  this.getTaskScheduler();
+		final TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
-		this.task = new ResubmittingTask(this.idleTask, scheduler, reconnectDelay);
-		task.setTaskExecutor(taskExecutor);
 		
-		receivingTask = scheduler.schedule(task, new Date());
+		receivingTask = scheduler.scheduleAtFixedRate(new Runnable(){
+
+			public void run() {
+				try {
+					idleTask.run();
+					if (logger.isDebugEnabled()){
+						logger.debug("Task completed successfully. Re-scheduling it again right away");
+					}
+				}
+				catch (IllegalStateException e) { //run again after a delay
+					logger.warn("Failed to execute IDLE task. Will atempt to resubmit in " + reconnectDelay + " milliseconds", e);
+					scheduler.scheduleAtFixedRate(this, new Date(System.currentTimeMillis() + reconnectDelay), 1);	
+				}
+			}
+			
+		}, 1);
 		
 		pingTask = scheduler.scheduleAtFixedRate(new Runnable() {	
 			public void run() {
@@ -116,7 +127,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		this.task.requestStop();
 		receivingTask.cancel(true);
 		pingTask.cancel(true);		
 		try {
@@ -135,14 +145,23 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					logger.debug("waiting for mail");
 				}
 				mailReceiver.waitForNewMessages();
-				if (!task.isStopRequested()){
+				if (mailReceiver.getFolder().isOpen()){
 					Message[] mailMessages = mailReceiver.receive();
 					if (logger.isDebugEnabled()) {
 						logger.debug("received " + mailMessages.length + " mail messages");
 					}
 					for (Message mailMessage : mailMessages) {
-						MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
-						sendMessage(MessageBuilder.withPayload(copied).build());
+						final MimeMessage copied = new MimeMessage((MimeMessage) mailMessage);
+						if (taskExecutor != null){
+							taskExecutor.execute(new Runnable() {		
+								public void run() {
+									sendMessage(MessageBuilder.withPayload(copied).build());
+								}
+							});
+						}
+						else {
+							sendMessage(MessageBuilder.withPayload(copied).build());
+						}
 					}
 				}			
 			} catch (MessagingException e) {
