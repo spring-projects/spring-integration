@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -87,15 +87,15 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
-			if (this.logger.isDebugEnabled()){
-				logger.debug("SpEL Expressioin failed with EvaluationException and Message: " + e.getMessage());
+			if (this.logger.isDebugEnabled()) {
+				logger.debug("SpEL Expression evaluation failed with EvaluationException.", e);
 			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), cause == null ? e : cause);
 		}
 		catch (Exception e) {
-			if (this.logger.isDebugEnabled()){
-				logger.debug("SpEL Expressioin failed with Exception and Message: " + e.getMessage());
+			if (this.logger.isDebugEnabled()) {
+				logger.debug("SpEL Expression evaluation failed with Exception." + e);
 			}
 			throw new MessageHandlingException(message, "Expression evaluation failed: "
 					+ expression.getExpressionString(), e);
