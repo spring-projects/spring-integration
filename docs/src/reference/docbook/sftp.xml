@@ -187,9 +187,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   <section id="sftp-session-caching">
   	<title>SFTP Session Caching</title>
   	<para>
-  	One of the optimization implemented by SFTP adapters is session caching. Similar to JDBC connection polling SFTP Adapters maintain a 
-  	default session poll. However there are times when this behavior is not desired (e.g., security etc.). 
-  	To disable session caching you can set <code>cache-sessions</code> attribute to <code>false</code> (default is <code>true</code>)
+  	One of the optimizations implemented by the SFTP adapters is session caching. Similar to JDBC pooling of Connections, the SFTP Adapters maintain a 
+  	pool of Sessions by default. However there are times when this behavior is not desired (e.g., security etc.). 
+  	To disable session caching you can set the <code>cache-sessions</code> attribute to <code>false</code> (the default value is <code>true</code>).
 <programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="ftpInbound"
 				channel="sftpChannel" 
 				. . .
@@ -197,7 +197,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
                 . . . 
 </int-sftp:inbound-channel-adapter>]]></programlisting>	
 
-The same attriibute could be used with Outbound Channel Adapters
+The same attribute can also be used with Outbound Channel Adapters.
   	</para>
   </section>
 </chapter>
