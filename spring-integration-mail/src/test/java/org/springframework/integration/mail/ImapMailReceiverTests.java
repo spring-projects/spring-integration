@@ -362,6 +362,11 @@ public class ImapMailReceiverTests {
 		when(folder.getPermanentFlags()).thenReturn(new Flags(Flags.Flag.USER));
 		folderField.set(receiver, folder);
 		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return true;
+			}
+		}).when(folder).isOpen();
 		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
