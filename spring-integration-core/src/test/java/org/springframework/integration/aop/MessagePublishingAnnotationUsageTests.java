@@ -94,7 +94,6 @@ public class MessagePublishingAnnotationUsageTests {
 
 		@Publisher(channel="messagePublishingAnnotationUsageTestChannel")
 		public String argumentAsPayload(@Payload String fname, @Header String lname) {
-			System.out.println("###### INVOKING");
 			return fname + " " + lname;
 		}
 	}
