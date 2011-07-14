@@ -411,12 +411,12 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-datatype-channel">
     	<title>Datatype Channel Configuration</title>
     	<para>
-    	There are times when a consumer can only process a particular type of payload and you need to ensure the payload type of the input Message. 
+    	There are times when a consumer can only process a particular type of payload and you need to therefore ensure the payload type of input Messages. 
     	Of course the first thing that comes to mind is Message Filter. However all that Message Filter will do is filter out Messages that are not compliant with 
-    	the requirements of the consumer. Another way would be to use a Content Based Routing and route Messages with incompliant data-type to specific 
-    	Transformers to ensure transformation/conversion to the required data-type. This of course would work, but there is a simpler way of accomplishing this if 
-    	you apply <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> pattern.
-        You can use separate Datatype Channel for a specific data-type of the payload.
+    	the requirements of the consumer. Another way would be to use a Content Based Router and route Messages with non-compliant data-types to specific 
+    	Transformers to enforce transformation/conversion to the required data-type. This of course would work, but a simpler way of accomplishing the
+        same thing is to apply the <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> pattern.
+        You can use separate Datatype Channels for each specific payload data-type.
     	</para>
     	<para>
 	      To create a Datatype Channel that only
@@ -432,20 +432,20 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	      <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting>
 	    </para>
 	    <para>
-	    So the 'numberChannel' above  will only accept Messages with data-type of <classname>java.lang.Number</classname> regardless of what was 
-	    the payload type of the Message that was sent to this channel. But what happens if the payload of the Message is not of the required type? 
-	    In this case the Datatype Channel will attempt to convert the type of the payload to the required type using Spring's 
-	    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>  where 
-	    you can register custom converters. For example:
+	    So the 'numberChannel' above will only accept Messages with a data-type of <classname>java.lang.Number</classname>. But what happens
+	    if the payload of the Message is not of the required type? It depends on whether you have defined a bean named "integrationConversionService"
+	    that is an instance of Spring's <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/validation.html#core-convert-ConversionService-API">Conversion Service</ulink>.
+	    If not, then an Exception would be thrown immediately, but if you do have an "integrationConversionService" bean defined, it will be used
+	    in an attempt to convert the Message's payload to the acceptable type.
 	    </para>
 	    <para>
-	    Let's say you are sending a Message with a String payload to the 'numberChannel' we configured above.
+	    You can even register custom converters. For example, let's say you are sending a Message with a String payload to the 'numberChannel' we configured above.
 		<programlisting language="java"><![CDATA[
 MessageChannel inChannel = context.getBean("inChannel", MessageChannel.class);
 inChannel.send(new GenericMessage<String>("5"));
 		]]></programlisting> 
 		
-        Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation will be exception:
+        Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation would generate an exception:
 
 		<programlisting language="java"><![CDATA[
 Exception in thread "main" org.springframework.integration.MessageDeliveryException: Channel 'inChannel' 
@@ -453,18 +453,19 @@ expected one of the following datataypes [class java.lang.Number], but received 
 . . .
 		]]></programlisting> 
 		And rightfully so since we are requiring the payload type to be a Number while sending a String. So we need something to convert String to a Number.
-All we need to do is implement a Converter
+All we need to do is implement a Converter.
 <programlisting language="java"><![CDATA[public static class StringToIntegerConverter implements Converter<String, Integer> {
 	public Integer convert(String source) {
 		return Integer.parseInt(source);
 	}	
 }]]></programlisting> 
-Register it as a converter with Integration Conversion Service
+Then, register it as a Converter with the Integration Conversion Service:
 <programlisting language="java"><![CDATA[<int:converter ref="strToInt"/>
 	
-<bean id="strToInt" class="org.springframework.integration.util.Demo.StringToIntegerConverter"/>]]></programlisting> 
-And now the send operation will be successful since our Datatype Channel will use this converter to convert String to Integer.
-
+<bean id="strToInt" class="org.springframework.integration.util.Demo.StringToIntegerConverter"/>]]></programlisting>
+When the 'converter' element is parsed, it will create the "integrationConversionService" bean on-demand if one is not already defined.
+With that Converter in place, the send operation would now be successful since the Datatype Channel will use that Converter to convert the String
+payload to an Integer.
 	    </para>
     </section>
     
