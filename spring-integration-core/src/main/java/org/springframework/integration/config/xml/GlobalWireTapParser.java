@@ -10,12 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
 import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.xml.ParserContext;
 
 /**
  * Parser for the top level 'wire-tap' element
@@ -24,9 +25,11 @@ import org.w3c.dom.Element;
  *
  */
 public class GlobalWireTapParser extends GlobalChannelInterceptorParser {
+
 	@Override
-	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext, BeanDefinitionBuilder parentBuilder){
+	protected Object getBeanDefinitionBuilderConstructorValue(Element element, ParserContext parserContext) {
 		String wireTapBeanName = new WireTapParser().parse(element, parserContext);
 		return new RuntimeBeanReference(wireTapBeanName);
 	}
+
 }
