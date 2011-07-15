@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2011 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.twitter.core;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 import org.springframework.util.Assert;
 
@@ -31,8 +30,6 @@ import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.PropertyConfiguration;
 import twitter4j.http.AccessToken;
 
 /**
