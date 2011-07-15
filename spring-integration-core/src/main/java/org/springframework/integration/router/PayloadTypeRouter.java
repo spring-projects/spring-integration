@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@ import java.util.List;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * A Message Router that resolves the {@link MessageChannel} based on the
@@ -34,6 +32,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  */
 public class PayloadTypeRouter extends AbstractMessageRouter {
+
+	private static final String ARRAY_SUFFIX = "[]";
 
 	/**
 	 * Selects the most appropriate channel name matching channel identifiers which are the
@@ -51,68 +51,81 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	}
 
 	private String getChannelName(Message<?> message) {
-		Class<?> type = message.getPayload().getClass();
-		boolean array = type.isArray();
-		if (array){
-			type = type.getComponentType();
-		}
-		while (type != null && !CollectionUtils.isEmpty(this.channelIdentifierMap)) {
-
-			String mappingName = null;
-			if (array){		
-				mappingName = type.getName()+"[]";
-			}
-			else {
-				mappingName = type.getName();
-			}
-			String channelName = this.channelIdentifierMap.get(mappingName);
-			if (StringUtils.hasText(channelName)) {
-				return channelName;
-			}
-			// next, check for interfaces (super inluded) of this type 
-		
-			channelName = this.introspectInterfaces(type, message);
-			
-			if (channelName != null) {
-				return channelName;
-			} 
-			
-			// finally, continue up the hierarchy
-			type = type.getSuperclass();
-		}
-		return null;
-	}
-	
-	private String introspectInterfaces(Class<?> type, Message<?> message){
-		Class<?>[] interfaces = type.getInterfaces();
-		List<String> matchedInterfaces = new ArrayList<String>();
-		
-		this.doIntrospect(interfaces, matchedInterfaces);
-		
-		if (matchedInterfaces.isEmpty()){
+		if (CollectionUtils.isEmpty(this.channelIdentifierMap)) {
 			return null;
 		}
-		else {
-			if (matchedInterfaces.size() > 1){
-				throw new MessageHandlingException(message,
-						"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() +
-						"]. Candidate types " + matchedInterfaces +  " have equal weight.");
-			}
-			else {
-				return matchedInterfaces.get(0);
-			}			
+		Class<?> type = message.getPayload().getClass();
+		boolean isArray = type.isArray();
+		if (isArray) {
+			type = type.getComponentType();
 		}
+		return this.findClosestMatch(type, isArray);
 	}
-	
-	private void doIntrospect(Class<?>[] interfaces, List<String> matchedInterfaces){
-		for (Class<?> extendedInterface : interfaces) {
-			String currentChannelName = this.channelIdentifierMap.get(extendedInterface.getName());
-			if (StringUtils.hasText(currentChannelName)) {
-				matchedInterfaces.add(extendedInterface.getName());
+
+	private String findClosestMatch(Class<?> type, boolean isArray) {
+		int minTypeDiffWeight = Integer.MAX_VALUE;
+		String closestMatch = null;
+		boolean ambiguityAtClosestMatchLevel = false;
+		for (String candidate : this.channelIdentifierMap.keySet()) {
+			if (isArray) {
+				if (!candidate.endsWith(ARRAY_SUFFIX)) {
+					continue;
+				}
+				// trim the suffix
+				candidate = candidate.substring(0, candidate.length() - ARRAY_SUFFIX.length());
 			}
-			Class<?>[] extendedInterfaces = extendedInterface.getInterfaces();
-			this.doIntrospect(extendedInterfaces, matchedInterfaces);
+			else if (candidate.endsWith(ARRAY_SUFFIX)) {
+				continue;
+			}
+			int typeDiffWeight = determineTypeDifferenceWeight(candidate, type, 0);
+			if (typeDiffWeight < minTypeDiffWeight) {
+				minTypeDiffWeight = typeDiffWeight;
+				closestMatch = (isArray) ? candidate + ARRAY_SUFFIX : candidate;
+				ambiguityAtClosestMatchLevel = false;
+			}
+			else if (typeDiffWeight == minTypeDiffWeight && typeDiffWeight != Integer.MAX_VALUE) {
+				ambiguityAtClosestMatchLevel = true;
+			}
 		}
+		if (ambiguityAtClosestMatchLevel) {
+			throw new IllegalStateException(
+					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "].");
+		}
+		if (closestMatch == null) {
+			return null;
+		}
+		return this.channelIdentifierMap.get(closestMatch);		
+	}
+
+	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {
+		if (type.getName().equals(candidate)) {
+			return level;
+		}
+		List<String> matchingIntefaces = new ArrayList<String>();
+		for (Class<?> iface : type.getInterfaces()) {
+			if (iface.getName().equals(candidate)) {
+				matchingIntefaces.add(candidate);
+			}
+			if (matchingIntefaces.size() > 1) {
+				throw new IllegalStateException("Found more than one matching interface at the same level of " +
+						"the hierarchy while attempting to find closest match for [" + type.getName() + "].");
+			}
+			if (matchingIntefaces.size() == 1) {
+				return level + 1;
+			}
+			// check interface hierarchy
+			for (Class<?> superInterface : iface.getInterfaces()) {
+				int weight = this.determineTypeDifferenceWeight(candidate, superInterface, level + 2);
+				if (weight < Integer.MAX_VALUE) {
+					return weight;
+				}
+			}
+		}
+		if (type.getSuperclass() == null) {
+			// exhausted hierarchy and found no match
+			return Integer.MAX_VALUE;
+		}
+		return this.determineTypeDifferenceWeight(candidate, type.getSuperclass(), level + 2);
 	}
 
 }
