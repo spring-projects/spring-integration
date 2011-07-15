@@ -178,24 +178,86 @@ public class PayloadTypeRouterTests {
 	public void extendedInterfaceMatch() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
-		QueueChannel bChannel = new QueueChannel();
-		bChannel.setBeanName("bChannel");
+		QueueChannel i2Channel = new QueueChannel();
+		i2Channel.setBeanName("i2Channel");
 		
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("defaultChannel", defaultChannel);
-		beanFactory.registerSingleton("bChannel", bChannel);
+		beanFactory.registerSingleton("bChannel", i2Channel);
 			
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-		payloadTypeChannelMap.put(B.class.getName(), "bChannel");
+		payloadTypeChannelMap.put(I2.class.getName(), "bChannel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
 		router.setChannelIdentifierMap(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
-		Message<Foo> message = new GenericMessage<Foo>(new Foo());
+		Message<C1> message = new GenericMessage<C1>(new C1());
 		router.handleMessage(message);
-		Message<?> result = bChannel.receive(0);
+		Message<?> result = i2Channel.receive(0);
+		assertNotNull(result);
+	}
+	
+	@Test
+	public void higherWeightInterface() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		
+		QueueChannel serializableChannel = new QueueChannel();
+		serializableChannel.setBeanName("serializableChannel");
+		
+		QueueChannel i3Channel = new QueueChannel();
+		i3Channel.setBeanName("i3Channel");
+		
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		beanFactory.registerSingleton("serializableChannel", serializableChannel);
+		beanFactory.registerSingleton("i3Channel", i3Channel);
+			
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(Serializable.class.getName(), "serializableChannel");
+		payloadTypeChannelMap.put(I3.class.getName(), "i3Channel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+			
+		router.setBeanFactory(beanFactory);
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<C1> message = new GenericMessage<C1>(new C1());
+		router.handleMessage(message);
+		Message<?> result = serializableChannel.receive(0);
+		assertNotNull(result);
+	}
+	
+	@Test
+	public void directInterfaceOverTwoHopSuperclass() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		
+		QueueChannel c3Channel = new QueueChannel();
+		c3Channel.setBeanName("c3Channel");
+		
+		QueueChannel i1AChannel = new QueueChannel();
+		i1AChannel.setBeanName("i1AChannel");
+		
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		beanFactory.registerSingleton("c3Channel", c3Channel);
+		beanFactory.registerSingleton("i1AChannel", i1AChannel);
+			
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(C3.class.getName(), "c3Channel");
+		payloadTypeChannelMap.put(I1A.class.getName(), "i1AChannel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+			
+		router.setBeanFactory(beanFactory);
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<C1> message = new GenericMessage<C1>(new C1());
+		router.handleMessage(message);
+		Message<?> result = i1AChannel.receive(0);
 		assertNotNull(result);
 	}
 
@@ -363,11 +425,17 @@ public class PayloadTypeRouterTests {
 	}
 	
 	@SuppressWarnings("serial")
-	public static class Foo implements Bar, A {}
+	public static class C1 extends C2 implements I1A, I1B {}
 
-	public interface Bar extends Serializable {}
+	public interface I1A extends Serializable {}
 
-	public interface A extends B {}
+	public interface I1B extends I2 {}
 
-	public interface B {}
+	public interface I2 extends I3 {}
+	
+	public interface I3 {}
+
+	public static class C2 extends C3{}
+	
+	public static class C3{}
 }
