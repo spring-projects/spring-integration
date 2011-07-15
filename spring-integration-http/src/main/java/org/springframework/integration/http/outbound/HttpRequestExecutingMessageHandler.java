@@ -268,50 +268,96 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
-		return (this.extractPayload) ? this.createHttpEntityWithPayloadAsBody(message)
-				: this.createHttpEntityWithMessageAsBody(message);
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes"})
-	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
-		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
-			return (HttpEntity<?>) requestMessage.getPayload();
-		}
-		HttpHeaders httpHeaders = new HttpHeaders();
-		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
-		Object payload = requestMessage.getPayload();
+		HttpEntity<?> httpEntity = null;
 		
-		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
-			if (httpHeaders.getContentType() == null) {
-				MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-						: this.resolveContentType(payload);
-				httpHeaders.setContentType(contentType);
+		if (this.extractPayload){
+			
+			Object payload = message.getPayload();
+			if (payload instanceof HttpEntity<?>) {
+				httpEntity = (HttpEntity<?>) payload;
+			}
+			else {
+				HttpHeaders httpHeaders = new HttpHeaders();
+				this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+				
+				if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { 
+					
+					if (httpHeaders.getContentType() == null) {
+						MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+								: this.resolveContentType(payload);
+						httpHeaders.setContentType(contentType);
+					}
+					
+					if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
+							MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
+						if (!(payload instanceof MultiValueMap)) {
+							payload = this.convertToMultiValueMap((Map) payload);
+						}
+					}
+					httpEntity = new HttpEntity<Object>(payload, httpHeaders);
+				}
+				else {
+					httpEntity = new HttpEntity<Object>(httpHeaders);
+				}
 			}
 		}
-		
-		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
-				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
-			if (!(payload instanceof MultiValueMap)) {
-				payload = this.convertToMultiValueMap((Map) payload);
-			}
-		}
-		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
-			return new HttpEntity<Object>(payload, httpHeaders);
-		}
-		return new HttpEntity<Object>(httpHeaders);
-	}
-
-	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {
-		HttpHeaders httpHeaders = new HttpHeaders();
-		
-		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
+		else {
+			HttpHeaders httpHeaders = new HttpHeaders();
+			this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
+			if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { 
+				httpEntity = new HttpEntity<Object>(message, httpHeaders);
+			}
+			else {
+				httpEntity = new HttpEntity<Object>(httpHeaders);
+			}
 		}
-		
-		return new HttpEntity<Object>(requestMessage, httpHeaders);
+		return httpEntity;
 	}
+	
+	
+	
+//	@SuppressWarnings({ "unchecked", "rawtypes"})
+//	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
+//		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
+//			return (HttpEntity<?>) requestMessage.getPayload();
+//		}
+//		HttpHeaders httpHeaders = new HttpHeaders();
+//		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
+//		Object payload = requestMessage.getPayload();
+//		
+//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
+//			if (httpHeaders.getContentType() == null) {
+//				MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+//						: this.resolveContentType(payload);
+//				httpHeaders.setContentType(contentType);
+//			}
+//		}
+//		
+//		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
+//				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
+//			if (!(payload instanceof MultiValueMap)) {
+//				payload = this.convertToMultiValueMap((Map) payload);
+//			}
+//		}
+//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
+//			return new HttpEntity<Object>(payload, httpHeaders);
+//		}
+//		return new HttpEntity<Object>(httpHeaders);
+//	}
+//
+//	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {
+//		HttpHeaders httpHeaders = new HttpHeaders();
+//		
+//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
+//			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
+//		}
+//		
+//		return new HttpEntity<Object>(requestMessage, httpHeaders);
+//	}
 
 	@SuppressWarnings("unchecked")
 	private MediaType resolveContentType(Object content) {
