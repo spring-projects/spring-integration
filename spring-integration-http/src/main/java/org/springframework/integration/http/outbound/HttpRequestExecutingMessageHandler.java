@@ -113,6 +113,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	public HttpRequestExecutingMessageHandler(String uri) {
 		this(uri, null);
 	}
+
 	/**
 	 * Create a handler that will send requests to the provided URI using a provided RestTemplate
 	 * @param uri
@@ -268,96 +269,47 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
-		HttpEntity<?> httpEntity = null;
-		
-		if (this.extractPayload){
-			
-			Object payload = message.getPayload();
-			if (payload instanceof HttpEntity<?>) {
-				httpEntity = (HttpEntity<?>) payload;
-			}
-			else {
-				HttpHeaders httpHeaders = new HttpHeaders();
-				this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
-				
-				if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { 
-					
-					if (httpHeaders.getContentType() == null) {
-						MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-								: this.resolveContentType(payload);
-						httpHeaders.setContentType(contentType);
-					}
-					
-					if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
-							MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
-						if (!(payload instanceof MultiValueMap)) {
-							payload = this.convertToMultiValueMap((Map) payload);
-						}
-					}
-					httpEntity = new HttpEntity<Object>(payload, httpHeaders);
-				}
-				else {
-					httpEntity = new HttpEntity<Object>(httpHeaders);
-				}
-			}
-		}
-		else {
-			HttpHeaders httpHeaders = new HttpHeaders();
-			this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
-			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
-			if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { 
-				httpEntity = new HttpEntity<Object>(message, httpHeaders);
-			}
-			else {
-				httpEntity = new HttpEntity<Object>(httpHeaders);
-			}
-		}
-		return httpEntity;
+		return (this.extractPayload) ? this.createHttpEntityFromPayload(message)
+				: this.createHttpEntityFromMessage(message);
 	}
-	
-	
-	
-//	@SuppressWarnings({ "unchecked", "rawtypes"})
-//	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
-//		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
-//			return (HttpEntity<?>) requestMessage.getPayload();
-//		}
-//		HttpHeaders httpHeaders = new HttpHeaders();
-//		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
-//		Object payload = requestMessage.getPayload();
-//		
-//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
-//			if (httpHeaders.getContentType() == null) {
-//				MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
-//						: this.resolveContentType(payload);
-//				httpHeaders.setContentType(contentType);
-//			}
-//		}
-//		
-//		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
-//				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
-//			if (!(payload instanceof MultiValueMap)) {
-//				payload = this.convertToMultiValueMap((Map) payload);
-//			}
-//		}
-//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
-//			return new HttpEntity<Object>(payload, httpHeaders);
-//		}
-//		return new HttpEntity<Object>(httpHeaders);
-//	}
-//
-//	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {
-//		HttpHeaders httpHeaders = new HttpHeaders();
-//		
-//		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) { //INT-1951
-//			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
-//		}
-//		
-//		return new HttpEntity<Object>(requestMessage, httpHeaders);
-//	}
+
+	private HttpEntity<?> createHttpEntityFromPayload(Message<?> message) {
+		Object payload = message.getPayload();
+		if (payload instanceof HttpEntity<?>) {
+			// payload is already an HttpEntity, just return it as-is
+			return (HttpEntity<?>) payload;
+		}
+		HttpHeaders httpHeaders = new HttpHeaders();
+		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		if (!shouldIncludeRequestBody()) {
+			return new HttpEntity<Object>(httpHeaders);
+		}
+		// otherwise, we are creating a request with a body and need to deal with the content-type header as well
+		if (httpHeaders.getContentType() == null) {
+			MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+					: this.resolveContentType(payload);
+			httpHeaders.setContentType(contentType);
+		}
+		if (MediaType.APPLICATION_FORM_URLENCODED.equals(httpHeaders.getContentType()) ||
+				MediaType.MULTIPART_FORM_DATA.equals(httpHeaders.getContentType())) {
+			if (!(payload instanceof MultiValueMap)) {
+				payload = this.convertToMultiValueMap((Map<?,?>) payload);
+			}
+		}
+		return new HttpEntity<Object>(payload, httpHeaders);
+	}
+
+	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		if (shouldIncludeRequestBody()) {
+			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
+			return new HttpEntity<Object>(message, httpHeaders);
+		}
+		return new HttpEntity<Object>(httpHeaders);
+	}
 
 	@SuppressWarnings("unchecked")
 	private MediaType resolveContentType(Object content) {
@@ -386,11 +338,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return contentType;
 	}
 
+	private boolean shouldIncludeRequestBody() {
+		return !HttpMethod.GET.equals(this.httpMethod);
+	}
+
 	private MediaType resolveContentType(String content, String charset) {
 		return new MediaType("text", "plain", Charset.forName(charset));
 	}
 
-	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<Object, Object> simpleMap) {
+	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<?, ?> simpleMap) {
 		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
 		for (Object key : simpleMap.keySet()) {
 			Object value = simpleMap.get(key);

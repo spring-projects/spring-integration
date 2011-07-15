@@ -531,7 +531,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	}
 	
 	@Test
-	public void contentTypeIsNotSet() throws Exception {
+	public void contentTypeIsNotSetForGetRequest() throws Exception {
 		//GET
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
@@ -550,6 +550,11 @@ public class HttpRequestExecutingMessageHandlerTests {
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		assertNull(request.getHeaders().getContentType());
 		
+		/* TODO: reconsider the inclusion of content-type for various HttpMethods (only ignoring for GET as of 2.0.5)
+		 *       uncomment code below accordingly (see INT-1951)
+		 */ 
+		
+		/*
 		//HEAD
 		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		template = new MockRestTemplate();
@@ -603,6 +608,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		request = template.lastRequestEntity.get();
 		assertNull(request.getHeaders().getContentType());
+		*/
 	}
 	
 	public static class City{
