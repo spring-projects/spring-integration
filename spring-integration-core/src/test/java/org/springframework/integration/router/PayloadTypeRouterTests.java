@@ -199,7 +199,7 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result);
 	}
 	
-	@Test
+	@Test 
 	public void higherWeightInterface() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
@@ -226,7 +226,36 @@ public class PayloadTypeRouterTests {
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
 		router.handleMessage(message);
-		Message<?> result = serializableChannel.receive(0);
+	}
+	
+	@Test
+	public void superclassWinsOverDstantInterface() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		
+		QueueChannel c3Channel = new QueueChannel();
+		c3Channel.setBeanName("c3Channel");
+		
+		QueueChannel i4Channel = new QueueChannel();
+		i4Channel.setBeanName("i4Channel");
+		
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		beanFactory.registerSingleton("c3Channel", c3Channel);
+		beanFactory.registerSingleton("i4Channel", i4Channel);
+			
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(C3.class.getName(), "c3Channel");
+		payloadTypeChannelMap.put(I4.class.getName(), "i4Channel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+			
+		router.setBeanFactory(beanFactory);
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<C1> message = new GenericMessage<C1>(new C1());
+		router.handleMessage(message);
+		Message<?> result = c3Channel.receive(0);
 		assertNotNull(result);
 	}
 	
@@ -433,9 +462,12 @@ public class PayloadTypeRouterTests {
 
 	public interface I2 extends I3 {}
 	
-	public interface I3 {}
+	public interface I3 extends I4 {}
+	
+	public interface I4 {}
 
 	public static class C2 extends C3{}
 	
 	public static class C3{}
+
 }

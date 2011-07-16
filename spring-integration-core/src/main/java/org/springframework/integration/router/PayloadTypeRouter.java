@@ -115,7 +115,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			}
 			// check interface hierarchy
 			for (Class<?> superInterface : iface.getInterfaces()) {
-				int weight = this.determineTypeDifferenceWeight(candidate, superInterface, level + 2);
+				int weight = this.determineTypeDifferenceWeight(candidate, superInterface, level + 3);
 				if (weight < Integer.MAX_VALUE) {
 					return weight;
 				}

@@ -63,10 +63,10 @@ public class PayloadTypeRouterParserTests {
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		PollableChannel chanel3 = (PollableChannel) context.getBean("channel3");
 		PollableChannel chanel4 = (PollableChannel) context.getBean("channel4");
-		assertTrue(chanel1.receive(0).getPayload() instanceof String);
-		assertTrue(chanel2.receive(0).getPayload() instanceof Integer);	
-		assertTrue(chanel3.receive(0).getPayload().getClass().isArray());	
-		assertTrue(chanel4.receive(0).getPayload().getClass().isArray());
+		assertTrue(chanel1.receive(100).getPayload() instanceof String);
+		assertTrue(chanel2.receive(100).getPayload() instanceof Integer);	
+		assertTrue(chanel3.receive(100).getPayload().getClass().isArray());	
+		assertTrue(chanel4.receive(100).getPayload().getClass().isArray());
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
