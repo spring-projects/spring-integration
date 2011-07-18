@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-jmx</artifactId>
-  <version>2.0.5.RELEASE</version>
+  <version>2.0.6.BUILD-SNAPSHOT</version>
   <name>Spring Integration JMX Support</name>
   <licenses>
     <license>
@@ -107,22 +107,10 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.0.5.RELEASE</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjweaver</artifactId>
       <version>1.6.8</version>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.0.5.RELEASE</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -149,6 +137,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.0.6.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>3.0.5.RELEASE</version>
@@ -170,6 +164,12 @@
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
       <version>1.6.8</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.0.6.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

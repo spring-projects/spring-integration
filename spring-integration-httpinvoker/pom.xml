@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-httpinvoker</artifactId>
-  <version>2.0.5.RELEASE</version>
+  <version>2.0.6.BUILD-SNAPSHOT</version>
   <name>Spring Integration HttpInvoker Support</name>
   <licenses>
     <license>
@@ -125,12 +125,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.0.5.RELEASE</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
@@ -165,6 +159,12 @@
       <artifactId>cglib-nodep</artifactId>
       <version>2.2</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.0.6.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
