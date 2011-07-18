@@ -10,6 +10,12 @@
     demand.
   </para>
   <para>
+  As you can see from above by using <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container Spring Integration relies on Spring's JMS support.
+  This is important to understand since most of the attributes exposed on these adapters will configure the underlying Spring's <classname>JmsTemplate</classname> and/or 
+  <classname>MessageListener</classname> container. For more details about <classname>JmsTemplate</classname> and <classname>MessageListener</classname> container please refer to 
+  <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jms.html">Spring JMS documentation</ulink>.
+  </para>
+  <para>
     Whereas the JMS Channel Adapters are intended for unidirectional Messaging (send-only or receive-only), Spring
     Integration also provides inbound and outbound JMS Gateways for request/reply operations. The inbound gateway
     relies on one of Spring's MessageListener container implementations for Message-driven reception that is also

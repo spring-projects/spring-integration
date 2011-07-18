@@ -368,7 +368,15 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="destination-name" type="xsd:string"/>
-					<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
+					<xsd:attribute name="pub-sub-domain" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The boolean property used to configure the JmsTemplate with knowledge of what JMS domain is being used. By default the value of this property is 'false'', 
+	indicating that the point-to-point domain, Queues, will be used. This property used by JmsTemplate determines the behavior of dynamic destination resolution 
+	via implementations of the DestinationResolver interface.			
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
