@@ -76,9 +76,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	}
 
 	/**
-	 * @deprecated As of releae 2.0.5
+	 * @deprecated As of release 2.0.5
 	 * @param taskExecutor
 	 */
+	@Deprecated
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
