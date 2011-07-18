@@ -487,6 +487,39 @@ public class PayloadTypeRouterTests {
 		assertNotNull(c2Channel.receive(100));
 	}
 	
+	@Test(expected=MessageHandlingException.class) // same as above but C3 is the payload of the Message
+	public void classLosesOverAmbiguateInterfacesFewLevelsDown() throws Exception {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		
+		QueueChannel i4aChannel = new QueueChannel();
+		i4aChannel.setBeanName("i4aChannel");
+		QueueChannel i4bChannel = new QueueChannel();
+		i4bChannel.setBeanName("i4bChannel");
+		
+		QueueChannel c2Channel = new QueueChannel();
+		c2Channel.setBeanName("c2Channel");
+		
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("defaultChannel", defaultChannel);
+		beanFactory.registerSingleton("i4aChannel", i4aChannel);
+		beanFactory.registerSingleton("i4bChannel", i4aChannel);
+		beanFactory.registerSingleton("c2Channel", c2Channel);
+		
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(I4A.class.getName(), "i4aChannel");
+		payloadTypeChannelMap.put(I4B.class.getName(), "i4bChannel");
+		payloadTypeChannelMap.put(C2.class.getName(), "c2Channel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		
+		router.setBeanFactory(beanFactory);
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<C3> message = new GenericMessage<C3>(new C3());
+		router.handleMessage(message);
+	}
+	
 	@Test(expected=MessageHandlingException.class)
 	public void classLosingOverAmbiguateInterfacesSameLevel() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
@@ -537,6 +570,6 @@ public class PayloadTypeRouterTests {
 
 	public static class C2 extends C3{}
 	
-	public static class C3{}
+	public static class C3 implements I4{}
 
 }
