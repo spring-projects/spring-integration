@@ -101,19 +101,20 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		if (type.getName().equals(candidate)) {
 			return level;
 		}
-		List<String> matchingIntefaces = new ArrayList<String>();
+		List<String> matchingInterfaces = new ArrayList<String>();
 		for (Class<?> iface : type.getInterfaces()) {
 			if (iface.getName().equals(candidate)) {
-				matchingIntefaces.add(candidate);
+				matchingInterfaces.add(candidate);
 			}
-			if (matchingIntefaces.size() > 1) {
+			if (matchingInterfaces.size() > 1) {
 				throw new IllegalStateException("Found more than one matching interface at the same level of " +
 						"the hierarchy while attempting to find closest match for [" + type.getName() + "].");
 			}
-			if (matchingIntefaces.size() == 1) {
-				return level + 1;
+			if (matchingInterfaces.size() == 1) {
+				// if level is odd, the base type is an interface
+				return (level % 2 == 1) ? level + 2 : level + 1; 
 			}
-			// check interface hierarchy
+			// no match at this level, continue up the hierarchy
 			for (Class<?> superInterface : iface.getInterfaces()) {
 				int weight = this.determineTypeDifferenceWeight(candidate, superInterface, level + 3);
 				if (weight < Integer.MAX_VALUE) {
