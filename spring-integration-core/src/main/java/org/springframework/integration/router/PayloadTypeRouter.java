@@ -18,9 +18,7 @@ package org.springframework.integration.router;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -66,10 +64,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
-		String closestMatch = null;
-		int ambiguityAtClosestMatchLevel = 0;
-		Map<Integer, List<String>> weightedMatches = new HashMap<Integer, List<String>>();
-		
+		List<String> matches = new ArrayList<String>();
 		for (String candidate : this.channelIdentifierMap.keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
@@ -81,41 +76,34 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			else if (candidate.endsWith(ARRAY_SUFFIX)) {
 				continue;
 			}
-			
 			int typeDiffWeight = determineTypeDifferenceWeight(candidate, type, 0);
-			List<String> weightedMatch = weightedMatches.get(typeDiffWeight);
-			if (weightedMatch == null){
-				weightedMatch = new ArrayList<String>();
-				weightedMatches.put(typeDiffWeight, weightedMatch);
-			}
-			weightedMatch.add(candidate);
-			
 			if (typeDiffWeight < minTypeDiffWeight) {
 				minTypeDiffWeight = typeDiffWeight;
-				closestMatch = (isArray) ? candidate + ARRAY_SUFFIX : candidate;
-				ambiguityAtClosestMatchLevel = 0;
+				// new winner, start accumulating matches from scratch
+				matches.clear();
+				matches.add((isArray) ? candidate + ARRAY_SUFFIX : candidate);
 			}
 			else if (typeDiffWeight == minTypeDiffWeight && typeDiffWeight != Integer.MAX_VALUE) {
-				ambiguityAtClosestMatchLevel = typeDiffWeight;
+				// candidate tied with current winner, keep track
+				matches.add(candidate);
 			}
 		}
-		if (ambiguityAtClosestMatchLevel > 0) {
+		if (matches.size() > 1) { // ambiguity
 			throw new IllegalStateException(
-					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]. Found: " + weightedMatches.get(ambiguityAtClosestMatchLevel));
+					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]. Found: " + matches);
 		}
-		if (closestMatch == null) {
+		if (CollectionUtils.isEmpty(matches)) { // no match
 			return null;
 		}
-		return this.channelIdentifierMap.get(closestMatch);		
+		// we have a winner
+		return this.channelIdentifierMap.get(matches.get(0));		
 	}
 
 	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {
 		if (type.getName().equals(candidate)) {
 			return level;
 		}
-
 		for (Class<?> iface : type.getInterfaces()) {
-	
 			if (iface.getName().equals(candidate)) {
 				return (level % 2 == 1) ? level + 2 : level + 1; 
 			}
@@ -133,4 +121,5 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		}
 		return this.determineTypeDifferenceWeight(candidate, type.getSuperclass(), level + 2);
 	}
+
 }
