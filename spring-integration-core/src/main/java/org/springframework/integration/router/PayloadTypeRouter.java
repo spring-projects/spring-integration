@@ -101,7 +101,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		}
 		if (ambiguityAtClosestMatchLevel > 0) {
 			throw new IllegalStateException(
-					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]." + weightedMatches.get(ambiguityAtClosestMatchLevel));
+					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]. Found: " + weightedMatches.get(ambiguityAtClosestMatchLevel));
 		}
 		if (closestMatch == null) {
 			return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ public class PayloadTypeRouterTests {
 		beanFactory.registerSingleton("stringChannel", stringChannel);
 		beanFactory.registerSingleton("integerChannel", integerChannel);
 		
-		
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
 		payloadTypeChannelMap.put(String.class.getName(), "stringChannel");
 		payloadTypeChannelMap.put(Integer.class.getName(), "integerChannel");
@@ -68,16 +67,19 @@ public class PayloadTypeRouterTests {
 		router.setChannelMapping(String.class.getName(), "newChannel");
 		assertEquals(1, router.getChannelIdentifiers(message1).size());
 		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
+		
 		// validate nothing happens if mappings were removed and resolutionRequires = false
 		router.removeChannelMapping(String.class.getName());
 		router.removeChannelMapping(Integer.class.getName());
 		router.handleMessage(message1);
+
 		// validate exception is thrown if mappings were removed and resolutionRequires = true
 		router.setResolutionRequired(true);
 		try {
 			router.handleMessage(message1);
 			fail();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// ignore
 		}
 	}
@@ -116,7 +118,7 @@ public class PayloadTypeRouterTests {
 	}
 
 	@Test
-	public void exactMatchFavoredOverSuperClass() {
+	public void exactMatchFavoredOverSuperclass() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		QueueChannel numberChannel = new QueueChannel();
@@ -183,10 +185,10 @@ public class PayloadTypeRouterTests {
 		
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("defaultChannel", defaultChannel);
-		beanFactory.registerSingleton("bChannel", i2Channel);
+		beanFactory.registerSingleton("i2Channel", i2Channel);
 			
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-		payloadTypeChannelMap.put(I2.class.getName(), "bChannel");
+		payloadTypeChannelMap.put(I2.class.getName(), "i2Channel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
@@ -226,10 +228,12 @@ public class PayloadTypeRouterTests {
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
 		router.handleMessage(message);
+		assertNotNull(serializableChannel.receive(0));
+		assertNull(i3Channel.receive(0));
 	}
 	
 	@Test
-	public void superclassWinsOverDstantInterface() {
+	public void superclassWinsOverDistantInterface() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		
@@ -291,7 +295,7 @@ public class PayloadTypeRouterTests {
 	}
 
 	@Test
-	public void directInterfaceFavoredOverSuperClass() {
+	public void directInterfaceFavoredOverSuperclass() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		QueueChannel numberChannel = new QueueChannel();
@@ -359,7 +363,7 @@ public class PayloadTypeRouterTests {
 	}
 
 	@Test
-	public void superClassFavoredOverIndirectInterface() {
+	public void superclassFavoredOverIndirectInterface() {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		QueueChannel numberChannel = new QueueChannel();
@@ -372,9 +376,7 @@ public class PayloadTypeRouterTests {
 		beanFactory.registerSingleton("numberChannel", numberChannel);
 		beanFactory.registerSingleton("serializableChannel", serializableChannel);
 		
-		
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-		
 		payloadTypeChannelMap.put(Number.class.getName(), "numberChannel");
 		payloadTypeChannelMap.put(Serializable.class.getName(), "serializableChannel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
@@ -432,7 +434,6 @@ public class PayloadTypeRouterTests {
 		beanFactory.registerSingleton("stringChannel", stringChannel);
 		beanFactory.registerSingleton("defaultChannel", defaultChannel);
 		
-		
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
 		payloadTypeChannelMap.put(String.class.getName(), "stringChannel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
@@ -454,27 +455,27 @@ public class PayloadTypeRouterTests {
 	}
 	
 	@Test
-	public void classWinningOverAmbiguateInterfacesFewLevelsDown() throws Exception {
+	public void classWinsOverMoreDistantAmbiguousInterfaces() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		
-		QueueChannel i4aChannel = new QueueChannel();
-		i4aChannel.setBeanName("i4aChannel");
-		QueueChannel i4bChannel = new QueueChannel();
-		i4bChannel.setBeanName("i4bChannel");
+		QueueChannel i5aChannel = new QueueChannel();
+		i5aChannel.setBeanName("i5aChannel");
+		QueueChannel i5bChannel = new QueueChannel();
+		i5bChannel.setBeanName("i5bChannel");
 		
 		QueueChannel c2Channel = new QueueChannel();
 		c2Channel.setBeanName("c2Channel");
 		
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("defaultChannel", defaultChannel);
-		beanFactory.registerSingleton("i4aChannel", i4aChannel);
-		beanFactory.registerSingleton("i4bChannel", i4aChannel);
+		beanFactory.registerSingleton("i5aChannel", i5aChannel);
+		beanFactory.registerSingleton("i5bChannel", i5bChannel);
 		beanFactory.registerSingleton("c2Channel", c2Channel);
 		
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-		payloadTypeChannelMap.put(I4A.class.getName(), "i4aChannel");
-		payloadTypeChannelMap.put(I4B.class.getName(), "i4bChannel");
+		payloadTypeChannelMap.put(I5A.class.getName(), "i5aChannel");
+		payloadTypeChannelMap.put(I5B.class.getName(), "i5bChannel");
 		payloadTypeChannelMap.put(C2.class.getName(), "c2Channel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
@@ -487,41 +488,41 @@ public class PayloadTypeRouterTests {
 		assertNotNull(c2Channel.receive(100));
 	}
 	
-	@Test(expected=MessageHandlingException.class) // same as above but C3 is the payload of the Message
-	public void classLosesOverAmbiguateInterfacesFewLevelsDown() throws Exception {
+	@Test(expected=MessageHandlingException.class)
+	public void classLosesOverLessDistantAmbiguousInterfaces() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		
-		QueueChannel i4aChannel = new QueueChannel();
-		i4aChannel.setBeanName("i4aChannel");
-		QueueChannel i4bChannel = new QueueChannel();
-		i4bChannel.setBeanName("i4bChannel");
+		QueueChannel i2Channel = new QueueChannel();
+		i2Channel.setBeanName("i2Channel");
+		QueueChannel serializableChannel = new QueueChannel();
+		serializableChannel.setBeanName("serializableChannel");
 		
-		QueueChannel c2Channel = new QueueChannel();
-		c2Channel.setBeanName("c2Channel");
+		QueueChannel c3Channel = new QueueChannel();
+		c3Channel.setBeanName("c3Channel");
 		
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("defaultChannel", defaultChannel);
-		beanFactory.registerSingleton("i4aChannel", i4aChannel);
-		beanFactory.registerSingleton("i4bChannel", i4aChannel);
-		beanFactory.registerSingleton("c2Channel", c2Channel);
+		beanFactory.registerSingleton("i2Channel", i2Channel);
+		beanFactory.registerSingleton("serializableChannel", serializableChannel);
+		beanFactory.registerSingleton("c3Channel", c3Channel);
 		
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-		payloadTypeChannelMap.put(I4A.class.getName(), "i4aChannel");
-		payloadTypeChannelMap.put(I4B.class.getName(), "i4bChannel");
-		payloadTypeChannelMap.put(C2.class.getName(), "c2Channel");
+		payloadTypeChannelMap.put(I2.class.getName(), "i2Channel");
+		payloadTypeChannelMap.put(Serializable.class.getName(), "serializableChannel");
+		payloadTypeChannelMap.put(C3.class.getName(), "c3Channel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
 		router.setChannelIdentifierMap(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
-		Message<C3> message = new GenericMessage<C3>(new C3());
+		Message<C1> message = new GenericMessage<C1>(new C1());
 		router.handleMessage(message);
 	}
 	
 	@Test(expected=MessageHandlingException.class)
-	public void classLosingOverAmbiguateInterfacesSameLevel() throws Exception {
+	public void classLosesOverAmbiguousInterfacesAtSameLevel() throws Exception {
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
 		
@@ -561,15 +562,17 @@ public class PayloadTypeRouterTests {
 	public interface I1B extends I2 {}
 
 	public interface I2 extends I3 {}
-	
-	public interface I3 extends I4 {}
-	
-	public interface I4 extends I4A, I4B{}
-	public interface I4A {}
-	public interface I4B {}
 
-	public static class C2 extends C3{}
-	
-	public static class C3 implements I4{}
+	public interface I3 extends I4 {}
+
+	public interface I4 extends I5A, I5B {}
+
+	public interface I5A {}
+
+	public interface I5B {}
+
+	public static class C2 extends C3 {}
+
+	public static class C3 implements I4 {}
 
 }
