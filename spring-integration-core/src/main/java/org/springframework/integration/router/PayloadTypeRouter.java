@@ -18,7 +18,9 @@ package org.springframework.integration.router;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -65,7 +67,9 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		String closestMatch = null;
-		boolean ambiguityAtClosestMatchLevel = false;
+		int ambiguityAtClosestMatchLevel = 0;
+		Map<Integer, List<String>> weightedMatches = new HashMap<Integer, List<String>>();
+		
 		for (String candidate : this.channelIdentifierMap.keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
@@ -77,19 +81,27 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			else if (candidate.endsWith(ARRAY_SUFFIX)) {
 				continue;
 			}
+			
 			int typeDiffWeight = determineTypeDifferenceWeight(candidate, type, 0);
+			List<String> weightedMatch = weightedMatches.get(typeDiffWeight);
+			if (weightedMatch == null){
+				weightedMatch = new ArrayList<String>();
+				weightedMatches.put(typeDiffWeight, weightedMatch);
+			}
+			weightedMatch.add(candidate);
+			
 			if (typeDiffWeight < minTypeDiffWeight) {
 				minTypeDiffWeight = typeDiffWeight;
 				closestMatch = (isArray) ? candidate + ARRAY_SUFFIX : candidate;
-				ambiguityAtClosestMatchLevel = false;
+				ambiguityAtClosestMatchLevel = 0;
 			}
 			else if (typeDiffWeight == minTypeDiffWeight && typeDiffWeight != Integer.MAX_VALUE) {
-				ambiguityAtClosestMatchLevel = true;
+				ambiguityAtClosestMatchLevel = typeDiffWeight;
 			}
 		}
-		if (ambiguityAtClosestMatchLevel) {
+		if (ambiguityAtClosestMatchLevel > 0) {
 			throw new IllegalStateException(
-					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "].");
+					"Unresolvable ambiguity while attempting to find closest match for [" + type.getName() + "]." + weightedMatches.get(ambiguityAtClosestMatchLevel));
 		}
 		if (closestMatch == null) {
 			return null;
@@ -101,17 +113,10 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		if (type.getName().equals(candidate)) {
 			return level;
 		}
-		List<String> matchingInterfaces = new ArrayList<String>();
+
 		for (Class<?> iface : type.getInterfaces()) {
+	
 			if (iface.getName().equals(candidate)) {
-				matchingInterfaces.add(candidate);
-			}
-			if (matchingInterfaces.size() > 1) {
-				throw new IllegalStateException("Found more than one matching interface at the same level of " +
-						"the hierarchy while attempting to find closest match for [" + type.getName() + "].");
-			}
-			if (matchingInterfaces.size() == 1) {
-				// if level is odd, the base type is an interface
 				return (level % 2 == 1) ? level + 2 : level + 1; 
 			}
 			// no match at this level, continue up the hierarchy
@@ -128,5 +133,4 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		}
 		return this.determineTypeDifferenceWeight(candidate, type.getSuperclass(), level + 2);
 	}
-
 }
