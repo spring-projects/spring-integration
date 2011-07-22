@@ -241,16 +241,6 @@ project('spring-integration-http') {
     }
 }
 
-project('spring-integration-httpinvoker') {
-    description = 'Spring Integration HttpInvoker Support'
-    dependencies {
-        compile project(":spring-integration-core")
-        compile "org.springframework:spring-aop:$springVersion"
-        compile "org.springframework:spring-web:$springVersion"
-        compile("javax.servlet:servlet-api:2.4") { provided = true }
-    }
-}
-
 project('spring-integration-ip') {
     description = 'Spring Integration IP Support'
     dependencies {

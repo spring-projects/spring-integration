@@ -1,3 +1,0 @@
-http\://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-1.0.xsd=org/springframework/integration/httpinvoker/config/spring-integration-httpinvoker-1.0.xsd
-http\://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-2.0.xsd=org/springframework/integration/httpinvoker/config/spring-integration-httpinvoker-2.0.xsd
-http\://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker.xsd=org/springframework/integration/httpinvoker/config/spring-integration-httpinvoker-2.0.xsd

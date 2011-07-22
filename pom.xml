@@ -15,7 +15,6 @@
     <module>spring-integration-ftp</module>
     <module>spring-integration-groovy</module>
     <module>spring-integration-http</module>
-    <module>spring-integration-httpinvoker</module>
     <module>spring-integration-ip</module>
     <module>spring-integration-jdbc</module>
     <module>spring-integration-jms</module>

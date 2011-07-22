@@ -1,4 +1,0 @@
-# Tooling related information for the integration httpinvoker namespace
-http\://www.springframework.org/schema/integration/httpinvoker@name=integration httpinvoker Namespace
-http\://www.springframework.org/schema/integration/httpinvoker@prefix=int-httpinvoker
-http\://www.springframework.org/schema/integration/httpinvoker@icon=org/springframework/integration/httpinvoker/config/spring-integration-httpinvoker.gif
