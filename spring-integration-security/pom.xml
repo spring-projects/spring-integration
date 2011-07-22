@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-security</artifactId>
-  <version>2.0.6.BUILD-SNAPSHOT</version>
+  <version>2.1.0.BUILD-SNAPSHOT</version>
   <name>Spring Integration Security Support</name>
   <licenses>
     <license>
@@ -101,6 +101,12 @@
   </repositories>
   <dependencies>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
       <version>3.0.5.RELEASE</version>
@@ -177,12 +183,6 @@
           <groupId>org.springframework</groupId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.0.6.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
