@@ -16,8 +16,10 @@
 
 package org.springframework.integration.amqp.config;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.amqp.rabbit.connection.SingleConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class OutboundGatewayIntegrationTests {
 
 	@Test
+	@Ignore // comment this out to test when a RabbitMQ broker is available
 	public void run() throws Exception {
 		SingleConnectionFactory connectionFactory = new SingleConnectionFactory();
 		RabbitTemplate template = new RabbitTemplate(connectionFactory);
