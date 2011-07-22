@@ -5,11 +5,11 @@ Bundle-Version: ${version}
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.springframework.integration.*;version="[2.1.0, 2.1.1)",
- org.springframework.beans.*;version="[3.0.5, 4.0.0)",
- org.springframework.context;version="[3.0.5, 4.0.0)",
- org.springframework.core.*;version="[3.0.5, 4.0.0)",
- org.springframework.mail.*;version="[3.0.5, 4.0.0)",
- org.springframework.util.*;version="[3.0.5, 4.0.0)",
+ org.springframework.beans.*;version="[3.1.0, 4.0.0)",
+ org.springframework.context;version="[3.1.0, 4.0.0)",
+ org.springframework.core.*;version="[3.1.0, 4.0.0)",
+ org.springframework.mail.*;version="[3.1.0, 4.0.0)",
+ org.springframework.util.*;version="[3.1.0, 4.0.0)",
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
  javax.mail.*;version="[1.4.0, 2.0.0)",
  com.sun.mail.imap.*;version="[1.4.0, 2.0.0)";resolution:=optional,

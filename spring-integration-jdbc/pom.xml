@@ -105,27 +105,27 @@
   </repositories>
   <dependencies>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jdbc</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-test</artifactId>
       <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>3.0.5.RELEASE</version>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -167,7 +167,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>3.0.5.RELEASE</version>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -178,20 +178,14 @@
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-tx</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>compile</scope>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.5.RELEASE</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -205,6 +199,12 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
