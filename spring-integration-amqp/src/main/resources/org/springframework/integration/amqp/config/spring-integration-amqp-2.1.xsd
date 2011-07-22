@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/amqp"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/amqp"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" />
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures an endpoint that will publish an AMQP Message to the provided Exchange.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Unique ID for this adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="exchange-name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="routing-key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The fixed routing-key to use when sending Messages. By default, this will be an empty String.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="routing-key-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The routing-key to use when sending Messages evealuated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amqp-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures an endpoint that will receive AMQP Messages sent to a given queue and then forward those messages to a Message Channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Unique ID for this adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="acknowledge-mode">
+				<xsd:annotation>
+					<xsd:documentation>
+	Acknowledge Mode for the MessageListenerContainer.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="AUTO"/>
+						<xsd:enumeration value="MANUAL"/>
+						<xsd:enumeration value="NONE"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="advice-chain" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Collection" />
+						</tool:annotation>
+						<xsd:documentation>
+	Array of AOP Advice instances to be applied to the MessageListener.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which converted Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel-transacted" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Flag to indicate that channels created by this component will be transactional.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="concurrent-consumers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify the number of concurrent consumers to create. Default is 1.
+	Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in
+	from a queue. However, note that any ordering guarantees are lost once multiple consumers are registered. In
+	general, stick with 1 consumer for low-volume queues.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which error Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expose-listener-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	Set whether to expose the listener Rabbit Channel to a registered ChannelAwareMessageListener as well as
+	to RabbitTemplate calls.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="header-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	HeaderMapper to use when receiving AMQP Messages.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="listener-container" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to the MessageListener container to use for receiving AMQP Messages. If this attribute is provided,
+	then no other attribute related to the listener container configuration should be provided. In other words, by
+	setting this reference, you must take full responsibility of the listener container configuration. The only
+	exception is the MessageListener itself. Since that is actually the core responsibility of this Channel Adapter
+	implementation, the referenced listener container must NOT already have its own MessageListener configured.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	MessageConverter to use when receiving AMQP Messages.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.support.converter.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-properties-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	MessagePropertiesConverter to use when receiving AMQP Messages.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.support.MessagePropertiesConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="phase" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The lifeycle phase determining the start/stop order of the underlying listener container.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="prefetch-count" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	Specifies how many messages to send to each consumer in a single request. Often this can be set quite high
+	to improve throughput. It should be greater than or equal to the tx-size value.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue-names" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="receive-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The timeout for each attempt by a consumer to receive the next message.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="recovery-interval" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The interval between recovery attempts, in milliseconds. The default is 5000 ms, that is, 5 seconds.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="shutdown-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The time to wait for workers in milliseconds after the container is stopped, and before the connection is forced closed.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>	
+			<xsd:attribute name="tx-size" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	How many messages to process in a single transaction (if the channel is transactional). For best results it should be
+	less than or equal to the prefetch count.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	Reference to the Executor to be used for running Consumer threads.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.concurrent.Executor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="transaction-attribute" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The TransactionAttribute to use when the Consumer receives the AMQP Message and the Listener is invoked
+	within a transaction. This is only applicable when a TransactionManager has been configured.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.transaction.interceptor.TransactionAttribute"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="transaction-manager" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+	The PlatformTransactionManager to use when the Consumer receives the AMQP Message and the Listener is invoked.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures a gateway that will publish an AMQP Message to the provided Exchange
+	and expect a reply Message.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Unique ID for this gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which replies should be sent after being received from an AQMP Queue and converted.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="exchange-name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="routing-key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The routing-key to use when sending Messages. By default, this will be an empty String.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="routing-key-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The routing-key to use when sending Messages evealuated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="amqp-template" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures a gateway that will receive AMQP Messages sent to a given queue and then forward those messages to a Message Channel.
+	If a reply Message is returned, it will also send that to the 'replyTo' provide by the AMQP request Message.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Unique ID for this adapter.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel to which converted Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Message Channel where reply Messages will be expected.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="queue-names" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="concurrent-consumers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify the number of concurrent consumers to create. Default is 1.
+	Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in
+	from a queue. However, note that any ordering guarantees are lost once multiple consumers are registered. In
+	general, stick with 1 consumer for low-volume queues.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="advice-chain" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Collection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

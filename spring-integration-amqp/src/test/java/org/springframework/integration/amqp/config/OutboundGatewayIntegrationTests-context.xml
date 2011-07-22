@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:console="http://www.springframework.org/schema/integration/stream"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<rabbit:admin connection-factory="connectionFactory" />
+
+	<rabbit:queue name="si.test.queue" />
+
+	<rabbit:direct-exchange name="si.test.exchange">
+		<rabbit:bindings>
+			<rabbit:binding queue="si.test.queue" key="si.test.binding"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
+
+	<console:stdout-channel-adapter id="fromRabbit" append-newline="true"/>
+
+	<console:stdin-channel-adapter channel="toRabbit">
+		<poller fixed-delay="1000" max-messages-per-poll="1"/>
+	</console:stdin-channel-adapter>
+
+	<channel id="toRabbit"/>
+
+	<amqp:outbound-gateway request-channel="toRabbit"
+		reply-channel="fromRabbit"
+		exchange-name="si.test.exchange"
+		routing-key="si.test.binding"
+		amqp-template="amqpTemplate"/>
+
+	<amqp:inbound-gateway request-channel="amqpIn"
+		connection-factory="connectionFactory"
+		queue-names="si.test.queue"/>
+
+	<transformer input-channel="amqpIn" expression="payload.toUpperCase()"/>
+
+	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
+
+	<rabbit:connection-factory id="connectionFactory"/>
+
+</beans:beans>

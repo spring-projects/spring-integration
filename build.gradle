@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,7 @@ configure(javaprojects) {
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
     springVersion = '3.1.0.M2'
+    springAmqpVersion = '1.0.0.RC2'
     springSecurityVersion = '3.0.5.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
@@ -164,6 +165,15 @@ configure(javaprojects) {
 //
 // @see configure(javaprojects) above for general config
 // -----------------------------------------------------------------------------
+project('spring-integration-amqp') {
+    description = 'Spring Integration AMQP Support'
+    dependencies {
+        compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.amqp:spring-rabbit:$springAmqpVersion"
+    }
+}
+
 project('spring-integration-core') {
     description = 'Spring Integration Core'
     dependencies {
