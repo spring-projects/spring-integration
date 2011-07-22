@@ -171,6 +171,7 @@ project('spring-integration-amqp') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.amqp:spring-rabbit:$springAmqpVersion"
+        testCompile project(":spring-integration-stream")
     }
 }
 

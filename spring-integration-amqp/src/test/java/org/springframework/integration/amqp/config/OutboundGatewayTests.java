@@ -20,8 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
-import org.springframework.core.io.ClassPathResource;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -31,18 +31,18 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class OutboundGatewayTests {
 
-	private XmlBeanFactory beanFactory = new XmlBeanFactory(new ClassPathResource(getClass().getSimpleName()+"-context.xml", getClass()));
+	private ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 
 	@Test
 	public void testVanillaConfiguration() throws Exception {
-		assertTrue(beanFactory.containsBeanDefinition("vanilla"));
-		beanFactory.getBean("vanilla");
+		assertTrue(context.getBeanFactory().containsBeanDefinition("vanilla"));
+		context.getBean("vanilla");
 	}
 
 	@Test
 	public void testExpressionBasedConfiguration() throws Exception {
-		assertTrue(beanFactory.containsBeanDefinition("expression"));
-		Object target = beanFactory.getBean("expression");
+		assertTrue(context.getBeanFactory().containsBeanDefinition("expression"));
+		Object target = context.getBean("expression");
 		assertNotNull(ReflectionTestUtils.getField(ReflectionTestUtils.getField(target, "handler"), "routingKeyGenerator"));
 	}
 

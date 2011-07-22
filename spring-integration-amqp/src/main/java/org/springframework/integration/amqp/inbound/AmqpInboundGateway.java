@@ -23,9 +23,8 @@ import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -44,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public class AmqpInboundGateway extends MessagingGatewaySupport {
 
-	private final SimpleMessageListenerContainer messageListenerContainer;
+	private final AbstractMessageListenerContainer messageListenerContainer;
 
 	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -53,25 +52,19 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	private final RabbitTemplate amqpTemplate;
 
 
-	public AmqpInboundGateway(ConnectionFactory connectionFactory) {
-		Assert.notNull(connectionFactory, "ConnectionFactory must not be null");
-		this.messageListenerContainer = new SimpleMessageListenerContainer(connectionFactory);
+	public AmqpInboundGateway(AbstractMessageListenerContainer listenerContainer) {
+		Assert.notNull(listenerContainer, "listenerContainer must not be null");
+		Assert.isNull(listenerContainer.getMessageListener(), "The listenerContainer provided to an AMQP inbound Gateway " +
+				"must not have a MessageListener configured since the adapter needs to configure its own listener implementation.");
+		this.messageListenerContainer = listenerContainer;
 		this.messageListenerContainer.setAutoStartup(false);
-		this.amqpTemplate = new RabbitTemplate(connectionFactory);
+		this.amqpTemplate = new RabbitTemplate(this.messageListenerContainer.getConnectionFactory());
 	}
 
-
-	public void setQueueNames(String queueName) {
-		this.messageListenerContainer.setQueueNames(queueName);
-	}
 
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
-	}
-
-	public void setConcurrentConsumers(int concurrentConsumers) {
-		this.messageListenerContainer.setConcurrentConsumers(concurrentConsumers);
 	}
 
 	@Override
