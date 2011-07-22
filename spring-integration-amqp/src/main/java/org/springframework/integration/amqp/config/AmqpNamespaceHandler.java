@@ -26,7 +26,6 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  */
 public class AmqpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
-	@Override
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new AmqpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("inbound-gateway", new AmqpInboundGatewayParser());
