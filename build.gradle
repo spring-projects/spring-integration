@@ -331,6 +331,7 @@ project('spring-integration-mongodb') {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
         compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
+        testCompile project(":spring-integration-test")
     }
 }
 
@@ -341,6 +342,7 @@ project('spring-integration-redis') {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
         compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
+        testCompile project(":spring-integration-test")
     }
 }
 
