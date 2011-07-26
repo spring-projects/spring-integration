@@ -45,6 +45,7 @@ public class RedisPublishingMessageHandlerTests {
 		final CountDownLatch latch = new CountDownLatch(numToTest);
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPort(7379);
 		connectionFactory.afterPropertiesSet();
 
 		MessageListenerAdapter listener = new MessageListenerAdapter();

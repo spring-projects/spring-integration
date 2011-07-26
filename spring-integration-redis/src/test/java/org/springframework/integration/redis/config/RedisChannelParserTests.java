@@ -35,7 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
  */
 public class RedisChannelParserTests {
 	
-	@Test @Ignore // requires redis-server instance
+	@Test 
 	public void testPubSubChannelConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);

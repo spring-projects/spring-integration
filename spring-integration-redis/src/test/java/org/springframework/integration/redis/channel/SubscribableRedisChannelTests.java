@@ -15,11 +15,6 @@
  */
 package org.springframework.integration.redis.channel;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
@@ -27,13 +22,17 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class SubscribableRedisChannelTests {
 
-	@Test //@Ignore // requires instance of redis-server
+	@Test 
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);

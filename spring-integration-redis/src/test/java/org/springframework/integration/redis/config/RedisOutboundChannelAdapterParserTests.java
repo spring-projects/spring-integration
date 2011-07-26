@@ -56,7 +56,7 @@ public class RedisOutboundChannelAdapterParserTests {
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
 
-	@Test @Ignore // requires redis-server instance
+	@Test
 	public void testOutboundChannelAdapterMessaging(){
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));

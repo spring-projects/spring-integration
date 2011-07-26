@@ -33,13 +33,14 @@ import org.springframework.integration.channel.QueueChannel;
  */
 public class RedisInboundChannelAdapterTests {
 
-	@Test @Ignore
+	@Test 
 	public void testRedisInboundChannelAdapter() throws Exception {
 		int numToTest = 100;
 		String redisChannelName = "si.test.channel";
 		QueueChannel channel = new QueueChannel();
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPort(7379);
 		connectionFactory.afterPropertiesSet();
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);

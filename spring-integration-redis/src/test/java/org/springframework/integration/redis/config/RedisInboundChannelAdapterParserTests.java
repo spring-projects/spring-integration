@@ -54,9 +54,10 @@ public class RedisInboundChannelAdapterParserTests {
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
 
-	@Test @Ignore
+	@Test 
 	public void testInboundChannelAdapterMessaging() {
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPort(7379);
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);

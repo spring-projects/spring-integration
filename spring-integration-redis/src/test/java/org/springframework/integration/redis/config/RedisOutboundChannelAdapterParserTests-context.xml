@@ -20,7 +20,9 @@
 		<int:queue/>
 	</int:channel>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
 
 	<bean id="testConverter" class="org.springframework.integration.redis.config.RedisOutboundChannelAdapterParserTests$TestMessageConverter"/>
 

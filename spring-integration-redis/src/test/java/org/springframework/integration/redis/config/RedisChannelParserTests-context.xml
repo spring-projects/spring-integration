@@ -12,5 +12,7 @@
 	
 	<int-redis:publish-subscribe-channel id="redisChannel" topic-name="si.test.topic"/>
 
-	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"/>
+	<bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<property name="port" value="7379"/>
+	</bean>
 </beans>
