@@ -16,9 +16,7 @@
 
 package org.springframework.integration.mongodb.store;
 
-import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -26,19 +24,17 @@ import com.mongodb.Mongo;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MongoMessageStoreTests {
 
-	@Test @Ignore
+	@Test 
 	public void addAndRemove() throws Exception {
 		Mongo mongo = new Mongo();
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");
 		Message<?> message = MessageBuilder.withPayload("UUID again and again").build();
 		Message<?> claimCheck = store.addMessage(message);
-		System.out.println("added: " + claimCheck);
-		//Thread.sleep(10000);
 		message = store.removeMessage(message.getHeaders().getId());
-		System.out.println("removed: " + message);
 	}
 
 }
