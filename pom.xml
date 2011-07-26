@@ -8,6 +8,7 @@
   <packaging>pom</packaging>
   <name>Spring Integration</name>
   <modules>
+    <module>spring-integration-amqp</module>
     <module>spring-integration-core</module>
     <module>spring-integration-event</module>
     <module>spring-integration-feed</module>
@@ -20,6 +21,7 @@
     <module>spring-integration-jms</module>
     <module>spring-integration-jmx</module>
     <module>spring-integration-mail</module>
+    <module>spring-integration-mongodb</module>
     <module>spring-integration-rmi</module>
     <module>spring-integration-security</module>
     <module>spring-integration-sftp</module>
