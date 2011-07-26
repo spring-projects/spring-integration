@@ -36,6 +36,7 @@ public class SubscribableRedisChannelTests {
 	@Test //@Ignore // requires instance of redis-server
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPort(7379);
 		connectionFactory.afterPropertiesSet();
 
 		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel");
