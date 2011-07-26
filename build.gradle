@@ -125,6 +125,7 @@ configure(javaprojects) {
     springAmqpVersion = '1.0.0.RC2'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
+    springDataRedisVersion = '1.0.0.BUILD-SNAPSHOT'
     springSecurityVersion = '3.0.5.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
@@ -329,6 +330,16 @@ project('spring-integration-mongodb') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
+        compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
+    }
+}
+
+project('spring-integration-redis') {
+    description = 'Spring Integration Redis Support'
+    dependencies {
+        compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
         compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
     }
 }

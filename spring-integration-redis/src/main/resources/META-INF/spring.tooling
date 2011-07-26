@@ -1,0 +1,4 @@
+# Tooling related information for the integration redis namespace
+http\://www.springframework.org/schema/integration/redis@name=integration redis Namespace
+http\://www.springframework.org/schema/integration/redis@prefix=int-redis
+http\://www.springframework.org/schema/integration/redis@icon=org/springframework/integration/redis/config/spring-integration-redis.gif
