@@ -33,7 +33,7 @@ import org.springframework.integration.message.GenericMessage;
  */
 public class SubscribableRedisChannelTests {
 
-	@Test @Ignore // requires instance of redis-server
+	@Test //@Ignore // requires instance of redis-server
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.afterPropertiesSet();
