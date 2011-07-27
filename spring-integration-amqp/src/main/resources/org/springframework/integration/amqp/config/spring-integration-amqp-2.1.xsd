@@ -353,7 +353,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="reply-channel" use="required" type="xsd:string">
+			<xsd:attribute name="reply-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 	Message Channel to which replies should be sent after being received from an AQMP Queue and converted.
