@@ -124,6 +124,9 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		this.headerMapper.fromHeaders(requestMessage.getHeaders(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpReplyMessage = this.amqpTemplate.sendAndReceive(this.exchangeName, routingKey, amqpMessage);
+		if (amqpReplyMessage == null) {
+			return null;
+		}
 		Object replyObject = converter.fromMessage(amqpReplyMessage);
 		MessageBuilder<?> builder = (replyObject instanceof Message)
 				? MessageBuilder.fromMessage((Message<?>) replyObject)
