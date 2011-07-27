@@ -56,7 +56,7 @@ public class JdbcMessageStoreChannelTests {
 	public void testSendAndActivate() throws Exception {
 		Service.reset(1);
 		input.send(new GenericMessage<String>("foo"));
-		Service.await(1000);
+		Service.await(10000);
 		assertEquals(1, Service.messages.size());
 		assertEquals(0, messageStore.getMessageGroup("input-queue").size());
 	}
@@ -66,7 +66,7 @@ public class JdbcMessageStoreChannelTests {
 		Service.reset(1);
 		Service.fail = true;
 		input.send(new GenericMessage<String>("foo"));
-		Service.await(1000);
+		Service.await(10000);
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
 		assertEquals(1, messageStore.getMessageGroup("input-queue").size());
@@ -80,7 +80,7 @@ public class JdbcMessageStoreChannelTests {
 		input.send(new GenericMessage<String>("foo"));
 		// This will time out because the transaction has not committed yet
 		try {
-			Service.await(1000);
+			Service.await(10000);
 			fail("Expected timeout");
 		} catch (IllegalStateException e) {
 			// expected
