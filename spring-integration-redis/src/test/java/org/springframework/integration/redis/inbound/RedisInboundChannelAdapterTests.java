@@ -33,7 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
  */
 public class RedisInboundChannelAdapterTests {
 
-	@Test 
+	@Test @Ignore
 	public void testRedisInboundChannelAdapter() throws Exception {
 		int numToTest = 100;
 		String redisChannelName = "si.test.channel";
