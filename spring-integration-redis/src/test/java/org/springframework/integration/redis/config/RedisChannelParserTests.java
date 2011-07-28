@@ -35,7 +35,7 @@ import org.springframework.integration.test.util.TestUtils;
  */
 public class RedisChannelParserTests {
 	
-	@Test 
+	@Test @Ignore
 	public void testPubSubChannelConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
@@ -46,7 +46,7 @@ public class RedisChannelParserTests {
 	}
 
 	@Test
-	@Ignore
+	@Ignore 
 	public void testPubSubChannelUsage(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);

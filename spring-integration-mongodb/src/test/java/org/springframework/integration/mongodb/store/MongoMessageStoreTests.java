@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mongodb.store;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -31,7 +32,7 @@ import com.mongodb.Mongo;
  */
 public class MongoMessageStoreTests {
 
-	@Test 
+	@Test @Ignore
 	public void addGetWithStringPayload() throws Exception {
 		Mongo mongo = new Mongo();
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");
@@ -41,8 +42,8 @@ public class MongoMessageStoreTests {
 		assertNotNull(store.getMessage(message.getHeaders().getId()));
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Test 
+	
+	@Test @Ignore
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
 		Mongo mongo = new Mongo();
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");

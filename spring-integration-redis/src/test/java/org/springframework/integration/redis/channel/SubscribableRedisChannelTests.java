@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.redis.channel;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.verify;
  */
 public class SubscribableRedisChannelTests {
 
-	@Test 
+	@Test @Ignore
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);

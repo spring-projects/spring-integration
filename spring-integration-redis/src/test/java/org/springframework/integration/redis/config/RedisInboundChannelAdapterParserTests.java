@@ -42,7 +42,7 @@ public class RedisInboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
-	@Test 
+	@Test @Ignore
 	public void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		assertEquals("adapter", adapter.getComponentName());
@@ -54,7 +54,7 @@ public class RedisInboundChannelAdapterParserTests {
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
 
-	@Test 
+	@Test @Ignore
 	public void testInboundChannelAdapterMessaging() {
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);

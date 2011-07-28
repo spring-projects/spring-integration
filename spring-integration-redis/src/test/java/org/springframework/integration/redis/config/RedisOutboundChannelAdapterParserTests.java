@@ -44,7 +44,7 @@ public class RedisOutboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
-	@Test
+	@Test @Ignore
 	public void validateConfiguration() {
 		EventDrivenConsumer adapter = context.getBean("outboundAdapter", EventDrivenConsumer.class);
 		RedisPublishingMessageHandler handler = (RedisPublishingMessageHandler)
@@ -55,8 +55,8 @@ public class RedisOutboundChannelAdapterParserTests {
 		Object converterBean = context.getBean("testConverter");
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
-
-	@Test
+ 
+	@Test @Ignore
 	public void testOutboundChannelAdapterMessaging(){
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));
