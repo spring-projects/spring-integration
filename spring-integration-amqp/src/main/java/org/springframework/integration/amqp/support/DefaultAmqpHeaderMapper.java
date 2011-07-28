@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * Constants for the AMQP header keys are defined in {@link AmqpHeaders}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 
@@ -165,20 +166,22 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			// now map to the user-defined headers, if any, within the AMQP MessageProperties
 			Set<String> headerNames = headers.keySet();
 			for (String headerName : headerNames) {
-				if (StringUtils.hasText(headerName) && !headerName.startsWith(AmqpHeaders.PREFIX)) {
-					Object value = headers.get(headerName);
-					if (value != null) {
-						try {
-							String key = this.fromHeaderName(headerName);
-							amqpMessageProperties.setHeader(key, value);
-						}
-						catch (Exception e) {
-							if (logger.isWarnEnabled()) {
-								logger.warn("failed to map Message header '" + headerName + "' to AMQP header", e);
+				if (this.shoudlMapHeader(headerName)){
+					if (StringUtils.hasText(headerName) && !headerName.startsWith(AmqpHeaders.PREFIX)) {
+						Object value = headers.get(headerName);
+						if (value != null) {
+							try {
+								String key = this.fromHeaderName(headerName);
+								amqpMessageProperties.setHeader(key, value);
+							}
+							catch (Exception e) {
+								if (logger.isWarnEnabled()) {
+									logger.warn("failed to map Message header '" + headerName + "' to AMQP header", e);
+								}
 							}
 						}
 					}
-				}
+				}		
 			}
 		}
 		catch (Exception e) {
@@ -186,6 +189,13 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 				logger.warn("error occurred while mapping from MessageHeaders to AMQP properties", e);
 			}
 		}
+	}
+	
+	private boolean shoudlMapHeader(String headerName){
+		return !headerName.equals(MessageHeaders.ERROR_CHANNEL) && 
+			   !headerName.equals(MessageHeaders.REPLY_CHANNEL) &&
+			   !headerName.equals(MessageHeaders.ID) &&
+			   !headerName.equals(MessageHeaders.TIMESTAMP);
 	}
 
 	/**

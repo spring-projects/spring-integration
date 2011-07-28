@@ -56,6 +56,8 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
 	private final MongoTemplate template;
+	
+	private volatile String collectionName = DEFAULT_COLLECTION_NAME;
 
 	//private final MongoConverter mongoConverter = new MessageReadingMongoConverter();
 	private final MongoConverter mongoConverter = null;
@@ -76,8 +78,7 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 
 	public void setCollectionName(String collectionName) {
 		Assert.hasText(collectionName, "collectionName must not be empty");
-		//this.template.setDefaultCollectionName(collectionName);
-		this.template.createCollection(collectionName);
+		this.collectionName = collectionName;
 	}
 
 //	public void setUsername(String username) {
@@ -94,12 +95,12 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 	}
 
 	public <T> Message<T> addMessage(Message<T> message) {
-		this.template.insert(message, "messages");
+		this.template.insert(message, collectionName);
 		return message;
 	}
 
 	public Message<?> getMessage(UUID id) {
-		return this.template.findOne(this.idQuery(id), Message.class);
+		return this.template.findOne(this.idQuery(id), Message.class, this.collectionName);
 	}
 
 	public int getMessageCount() {
@@ -108,11 +109,10 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 	}
 
 	public Message<?> removeMessage(UUID id) {
-		return this.template.findAndRemove(idQuery(id), Message.class, "messages");
+		return this.template.findAndRemove(idQuery(id), Message.class, this.collectionName);
 	}
 
 	private Query idQuery(UUID id) {
-		System.out.println(id.toString());
 		return new Query(where("_id").is(id.toString()));
 	}
 
@@ -141,14 +141,17 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 		public void write(Object source, DBObject target) {
 			if (source instanceof Message) {
 				String payloadType = ((Message<?>) source).getPayload().getClass().getName();
-				target.put("_payloadType", payloadType);
+				//target.put("_payloadType", payloadType);
 				target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
+				//target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
 			}
 			
 //			// TODO: fix this (the base class should handle it via converters?)
 //			if (source instanceof UUID) {
+//				System.out.println("Converting to UUID");
 //				target.put("uuid", ((UUID)source).toString());
 //			}
+			
 			super.write(source, target);
 		}
 

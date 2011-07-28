@@ -17,6 +17,9 @@
 package org.springframework.integration.mongodb.store;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -29,12 +32,47 @@ import com.mongodb.Mongo;
 public class MongoMessageStoreTests {
 
 	@Test 
-	public void addAndRemove() throws Exception {
+	public void addGetWithStringPayload() throws Exception {
 		Mongo mongo = new Mongo();
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");
-		Message<?> message = MessageBuilder.withPayload("UUID again and again").build();
-		Message<?> claimCheck = store.addMessage(message);
-		message = store.removeMessage(message.getHeaders().getId());
+		Message<?> message = MessageBuilder.withPayload("Hello").build();
+		System.out.println(message);
+		store.addMessage(message);
+		assertNotNull(store.getMessage(message.getHeaders().getId()));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test 
+	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
+		Mongo mongo = new Mongo();
+		MongoMessageStore store = new MongoMessageStore(mongo, "test");
+		Person p = new Person();
+		p.setFname("John");
+		p.setLname("Doe");
+		
+		Message<?> message = MessageBuilder.withPayload(p).build();
+		System.out.println(message);
+		store.addMessage(message);
+		Message<?> m =  store.getMessage(message.getHeaders().getId());
+		assertNotNull(m);
+		//assertEquals("John", m.getPayload().getFname());
+	}
+	
+	public static class Person{
+		private String fname;
+		private String lname;
+		public String getFname() {
+			return fname;
+		}
+		public void setFname(String fname) {
+			this.fname = fname;
+		}
+		public String getLname() {
+			return lname;
+		}
+		public void setLname(String lname) {
+			this.lname = lname;
+		}
 	}
 
 }
