@@ -71,8 +71,8 @@
       <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:integration="http://www.springframework.org/schema/integration"
-  xmlns:file="http://www.springframework.org/schema/integration/file"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-file="http://www.springframework.org/schema/integration/file"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
       http://www.springframework.org/schema/integration
@@ -82,20 +82,20 @@
 </beans>]]></programlisting>
       Within this namespace you can reduce the FileReadingMessageSource and wrap
       it in an inbound Channel Adapter like this:
-      <programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn1"
-       directory="file:${input.directory}" prevent-duplicates="true"/>
+      <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn1"
+           directory="file:${input.directory}" prevent-duplicates="true"/>
 
- <file:inbound-channel-adapter id="filesIn2"
-        directory="file:${input.directory}"
-        filter="customFilterBean" />
+ <int-file:inbound-channel-adapter id="filesIn2"
+           directory="file:${input.directory}"
+           filter="customFilterBean" />
 
- <file:inbound-channel-adapter id="filesIn3"
-        directory="file:${input.directory}"
-        filename-pattern="test*" />
+ <int-file:inbound-channel-adapter id="filesIn3"
+           directory="file:${input.directory}"
+           filename-pattern="test*" />
 
- <file:inbound-channel-adapter id="filesIn4"
-	        directory="file:${input.directory}"
-	        filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
+ <int-file:inbound-channel-adapter id="filesIn4"
+           directory="file:${input.directory}"
+           filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
       The first channel adapter is relying on the default filter that just prevents
       duplication, the second is using a custom filter, the third is using the
       <emphasis>filename-pattern</emphasis> attribute to add an <classname>AntPathMatcher</classname>
@@ -112,23 +112,23 @@
             them from being picked up concurrently. To do this you can use a <interfacename>FileLocker</interfacename>.
             There is a java.nio based implementation available out of the box, but it is also possible to implement your
             own locking scheme. The nio locker can be injected as follows
-            <programlisting><![CDATA[ <file:inbound-channel-adapter id="filesIn"
-       directory="file:${input.directory}" prevent-duplicates="true">
-    <file:nio-locker/>
-  </file:inbound-channel-adapter>]]>
+            <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
+         directory="file:${input.directory}" prevent-duplicates="true">
+     <int-file:nio-locker/>
+ </int-file:inbound-channel-adapter>]]>
             </programlisting>
             A custom locker you can configure like this:
-             <programlisting><![CDATA[ <file:inbound-channel-adapter id="filesIn"
-       directory="file:${input.directory}" prevent-duplicates="true">
-    <file:locker ref="customLocker"/>
-  </file:inbound-channel-adapter>]]>
+             <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
+         directory="file:${input.directory}" prevent-duplicates="true">
+     <int-file:locker ref="customLocker"/>
+ </int-file:inbound-channel-adapter>]]>
             </programlisting>
         </para>
       <note>
           <para>
               When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a
               lock before the file is allowed to be received.
-              <strong>It will not assume the responsibility to unlock the file.</strong>
+              <emphasis role="bold">It will not assume the responsibility to unlock the file.</emphasis>
               If you have processed the file and keeping the locks hanging around you have a memory leak. If this is
               a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
           </para>
@@ -140,7 +140,7 @@
             that Spring Integration uses internally to wire FileListFilters FileLocker to the FileReadingMessageSource.
             A custom DirectoryScanner can be injected into the &lt;file:inbound-channel-adapter/&gt; on the <code>scanner</code>
             attribute.
-            <programlisting><![CDATA[ <file:inbound-channel-adapter id="filesIn"
+            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
        directory="file:${input.directory}" prevent-duplicates="true" scanner="customDirectoryScanner"/>]]>
             </programlisting>
             This gives you full freedom to choose the ordering, listing and locking strategies.
@@ -166,13 +166,13 @@
     <para>
       To make things easier you can configure the FileWritingMessageHandler as
       part of an outbound channel adapter using the namespace.
-      <programlisting language="xml"><![CDATA[ <file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut" directory="${input.directory.property}"/>]]></programlisting>
     </para>
     <para>
     The namespace based configuration also supports a <code>delete-source-files</code> attribute.
     If set to <code>true</code>, it will trigger deletion of the original source files after writing
     to a destination. The default value for that flag is <code>false</code>.
-    <programlisting language="xml"><![CDATA[ <file:outbound-channel-adapter id="filesOut"
+    <programlisting language="xml"><![CDATA[ <int-file:outbound-channel-adapter id="filesOut"
              directory="${output.directory}"
              delete-source-files="true"/>]]></programlisting>
     <note>
@@ -188,13 +188,13 @@
       the <code>outbound-gateway</code> instead. It plays a very similar role as the
       <code>outbound-channel-adapter</code>. However after writing the File, it will also send it
       to the reply channel as the payload of a Message.
-    <programlisting language="xml"><![CDATA[ <file:outbound-gateway id="mover" request-channel="moveInput"
+    <programlisting language="xml"><![CDATA[ <int-file:outbound-gateway id="mover" request-channel="moveInput"
             reply-channel="output"
             directory="${output.directory}"
             delete-source-files="true"/>]]></programlisting>
     </para>
     <note>
-      The 'outbound-gateway' works well in cases where you want to first move a File and then send it
+      The 'outbound-gateway' works well in cases where you want to first move a file and then send it
       through a processing pipeline. In such cases, you may connect the file namespace's
       'inbound-channel-adapter' element to the 'outbound-gateway' and then connect that gateway's
       reply-channel to the beginning of the pipeline.
@@ -229,10 +229,10 @@
     </para>
     <para>
       To configure File specific transformers you can use the appropriate elements from the file namespace.
-      <programlisting language="xml"><![CDATA[ <file-to-bytes-transformer input-channel="input" output-channel="output"
+      <programlisting language="xml"><![CDATA[ <int-file:file-to-bytes-transformer  input-channel="input" output-channel="output"
              delete-files="true"/>
 
- <file:file-to-string-transformer input-channel="input" output-channel="output
+ <int-file:file-to-string-transformer input-channel="input" output-channel="output"
              delete-files="true" charset="UTF-8"/>]]></programlisting>
       The <emphasis>delete-files</emphasis> option signals to the transformer that it should delete
       the inbound File after the transformation is complete. This is in no way a replacement for using the
