@@ -54,15 +54,16 @@
       class="org.springframework.integration.file.FileReadingMessageSource"
         p:inputDirectory="${input.directory}"
         p:filter-ref="compositeFilter"/>
-<bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
-    <constructor-arg>
-        <list>
-            <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
-            <bean class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
-                <constructor-arg value="^test.*$"/>
-            </bean>
-        </list>
-    </constructor-arg>
+<bean id="compositeFilter" 
+      class="org.springframework.integration.file.filters.CompositeFileListFilter">
+  <constructor-arg>
+    <list>
+      <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter"/>
+      <bean class="org.springframework.integration.file.filters.RegexPatternFileListFilter">
+        <constructor-arg value="^test.*$"/>
+      </bean>
+    </list>
+  </constructor-arg>
 </bean>]]></programlisting>
     </para>
     <para>
@@ -74,12 +75,14 @@
   xmlns:int="http://www.springframework.org/schema/integration"
   xmlns:int-file="http://www.springframework.org/schema/integration/file"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-      http://www.springframework.org/schema/integration
-      http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-      http://www.springframework.org/schema/integration/file
-      http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd">
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+    http://www.springframework.org/schema/integration/file
+    http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd">
 </beans>]]></programlisting>
+    </para>
+        <para>
       Within this namespace you can reduce the FileReadingMessageSource and wrap
       it in an inbound Channel Adapter like this:
       <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn1"
@@ -96,6 +99,8 @@
  <int-file:inbound-channel-adapter id="filesIn4"
            directory="file:${input.directory}"
            filename-regex="test[0-9]+\.txt" />              ]]></programlisting>
+    </para>
+        <para>           
       The first channel adapter is relying on the default filter that just prevents
       duplication, the second is using a custom filter, the third is using the
       <emphasis>filename-pattern</emphasis> attribute to add an <classname>AntPathMatcher</classname>
@@ -115,34 +120,33 @@
             <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
          directory="file:${input.directory}" prevent-duplicates="true">
      <int-file:nio-locker/>
- </int-file:inbound-channel-adapter>]]>
-            </programlisting>
+ </int-file:inbound-channel-adapter>]]></programlisting>
+    </para>
+        <para> 
             A custom locker you can configure like this:
              <programlisting  language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
          directory="file:${input.directory}" prevent-duplicates="true">
      <int-file:locker ref="customLocker"/>
- </int-file:inbound-channel-adapter>]]>
-            </programlisting>
+ </int-file:inbound-channel-adapter>]]></programlisting>
         </para>
       <note>
-          <para>
-              When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a
-              lock before the file is allowed to be received.
-              <emphasis role="bold">It will not assume the responsibility to unlock the file.</emphasis>
-              If you have processed the file and keeping the locks hanging around you have a memory leak. If this is
-              a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
-          </para>
+            When a file inbound adapter is configured with a locker, it will take the responsibility to acquire a
+            lock before the file is allowed to be received.
+            <emphasis role="bold">It will not assume the responsibility to unlock the file.</emphasis>
+            If you have processed the file and keeping the locks hanging around you have a memory leak. If this is
+            a problem in your case you should call FileLocker.unlock(File file) yourself at the appropriate time.
       </note>
         <para>
             When filtering and locking files is not enough it might be needed to control the way files are listed entirely. To
             implement this type of requirement you can use an implementation of <interfacename>DirectoryScanner</interfacename>.
             This scanner allows you to determine entirely what files are listed each poll. This is also the interface
             that Spring Integration uses internally to wire FileListFilters FileLocker to the FileReadingMessageSource.
-            A custom DirectoryScanner can be injected into the &lt;file:inbound-channel-adapter/&gt; on the <code>scanner</code>
+            A custom DirectoryScanner can be injected into the &lt;int-file:inbound-channel-adapter/&gt; on the <code>scanner</code>
             attribute.
-            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn"
-       directory="file:${input.directory}" prevent-duplicates="true" scanner="customDirectoryScanner"/>]]>
-            </programlisting>
+            <programlisting language="xml"><![CDATA[ <int-file:inbound-channel-adapter id="filesIn" directory="file:${input.directory}" 
+       prevent-duplicates="true" scanner="customDirectoryScanner"/>]]></programlisting>
+        </para> 
+        <para>   
             This gives you full freedom to choose the ordering, listing and locking strategies.
         </para>
   </section>
@@ -176,11 +180,9 @@
              directory="${output.directory}"
              delete-source-files="true"/>]]></programlisting>
     <note>
-      <para>
-        The <code>delete-source-files</code> attribute will only have an effect if the inbound
-        Message has a File payload or if the <classname>FileHeaders.ORIGINAL_FILE</classname> header
-        value contains either the source File instance or a String representing the original file path.
-      </para>
+      The <code>delete-source-files</code> attribute will only have an effect if the inbound
+      Message has a File payload or if the <classname>FileHeaders.ORIGINAL_FILE</classname> header
+      value contains either the source File instance or a String representing the original file path.
     </note>
     </para>
     <para>
@@ -234,6 +236,8 @@
 
  <int-file:file-to-string-transformer input-channel="input" output-channel="output"
              delete-files="true" charset="UTF-8"/>]]></programlisting>
+    </para>
+    <para>             
       The <emphasis>delete-files</emphasis> option signals to the transformer that it should delete
       the inbound File after the transformation is complete. This is in no way a replacement for using the
       <classname>AcceptOnceFileListFilter</classname> when the FileReadingMessageSource is being used in a
