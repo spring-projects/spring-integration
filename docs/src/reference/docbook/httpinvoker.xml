@@ -82,7 +82,7 @@
   </para>
     <para>
     To configure the inbound gateway you can choose to use the namespace support for it. The following code snippet shows the different configuration options that are supported.
-    <programlisting language="xml"><![CDATA[<httpinvoker:inbound-gateway id="inboundGateway"
+    <programlisting language="xml"><![CDATA[<int-httpinvoker:inbound-gateway id="inboundGateway"
                              request-channel="requestChannel"
                              request-timeout="10000"
                              expect-reply="false"
@@ -94,7 +94,7 @@
     </para>
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration for an outbound HttpInvoker gateway. Only the 'url' and 'request-channel' are required.
-    <programlisting language="xml"><![CDATA[<httpinvoker:outbound-gateway id="outboundGateway"
+    <programlisting language="xml"><![CDATA[<int-httpinvoker:outbound-gateway id="outboundGateway"
                               url="http://localhost:8080/example"
                               request-channel="requestChannel"
                               request-timeout="5000"

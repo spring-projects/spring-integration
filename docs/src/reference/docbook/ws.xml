@@ -68,7 +68,7 @@ as per standard Spring Web Services configuration.
     <title>Web Service Namespace Support</title>
     <para>
       To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
-      <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="simpleGateway"
+      <programlisting language="xml"><![CDATA[<int-ws:outbound-gateway id="simpleGateway"
                      request-channel="inputChannel"
                      uri="http://example.org"/>]]></programlisting>
       <note>
@@ -91,17 +91,17 @@ as per standard Spring Web Services configuration.
     </tip>
 
       To set up an inbound Web Service Gateway, use the "inbound-gateway":
-      <programlisting language="xml"><![CDATA[<ws:inbound-gateway id="simpleGateway"
+      <programlisting language="xml"><![CDATA[<int-ws:inbound-gateway id="simpleGateway"
                     request-channel="inputChannel"/>]]></programlisting>
 
       To use Spring OXM Marshallers and/or Unmarshallers, provide bean references. For outbound:
-      <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="marshallingGateway"
+      <programlisting language="xml"><![CDATA[<int-ws:outbound-gateway id="marshallingGateway"
                      request-channel="requestChannel"
                      uri="http://example.org"
                      marshaller="someMarshaller"
                      unmarshaller="someUnmarshaller"/>]]></programlisting>
       And for inbound:
-      <programlisting language="xml"><![CDATA[<ws:inbound-gateway id="marshallingGateway"
+      <programlisting language="xml"><![CDATA[<int-ws:inbound-gateway id="marshallingGateway"
                     request-channel="requestChannel"
                     marshaller="someMarshaller"
                     unmarshaller="someUnmarshaller"/>]]></programlisting>

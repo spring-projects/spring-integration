@@ -26,8 +26,8 @@
     definition of one or more channel name patterns in conjunction with a definition of the security configuration for send and receive.  The pattern
     is a <interfacename>java.util.regexp.Pattern</interfacename>.
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration"
-   xmlns:si-security="http://www.springframework.org/schema/integration/security"
+<beans:beans xmlns:int="http://www.springframework.org/schema/integration"
+   xmlns:int-security="http://www.springframework.org/schema/integration/security"
   xmlns:beans="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:security="http://www.springframework.org/schema/security"
@@ -40,21 +40,21 @@
       http://www.springframework.org/schema/integration/security
       http://www.springframework.org/schema/integration/security/spring-integration-security-2.0.xsd">
 
-<si-security:secured-channels>
-    <si-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
-    <si-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
-</si-security:secured-channels>]]>
+<int-security:secured-channels>
+    <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
+    <int-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
+</int-security:secured-channels>]]>
   </programlisting>
 
   By default the secured-channels namespace element expects a bean named <emphasis>authenticationManager</emphasis> which implements
   <interfacename>AuthenticationManager</interfacename> and a bean named <emphasis>accessDecisionManager</emphasis> which implements
   <interfacename>AccessDecisionManager</interfacename>.  Where this is not the case references to the appropriate beans can be configured
   as attributes of the <emphasis>secured-channels</emphasis> element as below.
-  <programlisting language="xml"><![CDATA[<si-security:secured-channels access-decision-manager="customAccessDecisionManager"
+  <programlisting language="xml"><![CDATA[<int-security:secured-channels access-decision-manager="customAccessDecisionManager"
                               authentication-manager="customAuthenticationManager">
-    <si-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
-    <si-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
-</si-security:secured-channels>]]>
+    <int-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
+    <int-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
+</int-security:secured-channels>]]>
   </programlisting>
 
     </para>

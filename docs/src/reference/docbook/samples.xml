@@ -249,13 +249,13 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       XML <emphasis>&lt;gateway&gt;</emphasis> element or via annotation and use it as any other Spring bean. SI will take care of
       delegating and mapping method invocations to the Messaging infrastructure by generating a <emphasis>Message</emphasis> (payload is mapped to an
       input parameter of the method) and sending it to the designated channel.
-      <programlisting language="xml"><![CDATA[<gateway id="loanBrokerGateway"
+      <programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway"
   default-request-channel="loanBrokerPreProcessingChannel"
   service-interface="org.springframework.integration.samples.loanbroker.LoanBrokerGateway">
-  <method name="getBestLoanQuote">
-    <header name="RESPONSE_TYPE" value="BEST"/>
-  </method>
-</gateway>]]></programlisting>
+  <int:method name="getBestLoanQuote">
+    <int:header name="RESPONSE_TYPE" value="BEST"/>
+  </int:method>
+</int:gateway>]]></programlisting>
       </para>
       <para>
       Our current <emphasis>Gateway</emphasis> provides two methods that could be invoked. One that will return the best single quote and another one that
@@ -334,11 +334,11 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       An <emphasis>Aggregator</emphasis> pattern describes an endpoint which groups related <emphasis>Messages</emphasis> into a single
       <emphasis>Message</emphasis>. Criteria and rules can be provided to determine an aggregation and correlation strategy.
       SI provides several implementations of the <emphasis>Aggregator</emphasis> pattern as well as a convenient name-space based configuration.
-      <programlisting language="xml"><![CDATA[<aggregator id="quotesAggregator"
+      <programlisting language="xml"><![CDATA[<int:aggregator id="quotesAggregator"
       input-channel="quotesAggregationChannel"
       method="aggregateQuotes">
   <beans:bean class="org.springframework.integration.samples.loanbroker.LoanQuoteAggregator"/>
-</aggregator>]]></programlisting>
+</int:aggregator>]]></programlisting>
       </para>
 
       <para>
@@ -412,10 +412,10 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
         Here is the XML configuration:
         <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-  <beans:beans xmlns="http://www.springframework.org/schema/integration"
+  <beans:beans xmlns:int="http://www.springframework.org/schema/integration"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:beans="http://www.springframework.org/schema/beans"
-      xmlns:stream="http://www.springframework.org/schema/integration/stream"
+      xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
       xsi:schemaLocation="http://www.springframework.org/schema/beans
               http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
               http://www.springframework.org/schema/integration
@@ -423,31 +423,31 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
               http://www.springframework.org/schema/integration/stream
               http://www.springframework.org/schema/integration/stream/spring-integration-stream-2.0.xsd">
 
-      <gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
+      <int:gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
-      <channel id="orders"/>
-      <splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
+      <int:channel id="orders"/>
+      <int:splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
 
-      <channel id="drinks"/>
-      <router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
+      <int:channel id="drinks"/>
+      <int:router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
 
-      <channel id="coldDrinks">
-          <queue capacity="10"/>
-      </channel>
-      <service-activator input-channel="coldDrinks" ref="barista"
+      <int:channel id="coldDrinks">
+          <int:queue capacity="10"/>
+      </int:channel>
+      <int:service-activator input-channel="coldDrinks" ref="barista"
                          method="prepareColdDrink" output-channel="preparedDrinks"/>
 
-      <channel id="hotDrinks">
-          <queue capacity="10"/>
-      </channel>
-      <service-activator input-channel="hotDrinks" ref="barista"
+      <int:channel id="hotDrinks">
+          <int:queue capacity="10"/>
+      </int:channel>
+      <int:service-activator input-channel="hotDrinks" ref="barista"
                          method="prepareHotDrink" output-channel="preparedDrinks"/>
 
-      <channel id="preparedDrinks"/>
-      <aggregator input-channel="preparedDrinks" ref="waiter"
+      <int:channel id="preparedDrinks"/>
+      <int:aggregator input-channel="preparedDrinks" ref="waiter"
                   method="prepareDelivery" output-channel="deliveries"/>
 
-      <stream:stdout-channel-adapter id="deliveries"/>
+      <int-stream:stdout-channel-adapter id="deliveries"/>
 
       <beans:bean id="orderSplitter"
                   class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
@@ -459,7 +459,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
 
       <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
-      <poller id="poller" default="true" fixed-rate="1000"/>
+      <int:poller id="poller" default="true" fixed-rate="1000"/>
 
   </beans:beans>]]></programlisting>
         As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
@@ -576,18 +576,18 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         This is to be expected based on their respective delays of 1000 and 5000 milliseconds. However, by configuring a
         poller with a concurrent task executor, you can dramatically change the results. For example, you could use a
         thread pool executor with 5 workers for the hot drink barista while keeping the cold drink barista as it is:
-        <programlisting language="xml"><![CDATA[<service-activator input-channel="hotDrinks"
+        <programlisting language="xml"><![CDATA[<int:service-activator input-channel="hotDrinks"
                      ref="barista"
                      method="prepareHotDrink"
                      output-channel="preparedDrinks"/>
 
-  <service-activator input-channel="hotDrinks"
+  <int:service-activator input-channel="hotDrinks"
                      ref="barista"
                      method="prepareHotDrink"
                      output-channel="preparedDrinks">
-      ]]><emphasis><![CDATA[<poller task-executor="pool" fixed-rate="1000"/>
+      ]]><emphasis><![CDATA[<int:poller task-executor="pool" fixed-rate="1000"/>
           ]]></emphasis><![CDATA[
-  </service-activator>
+  </int:service-activator>
 
   ]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>
       </para>
@@ -613,10 +613,11 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
       First the order is split into a number of messages, each one representing a single order item using
         the XPath splitter component.
-          <programlisting language="xml"><![CDATA[<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
+          <programlisting language="xml"><![CDATA[<int-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel"
               output-channel="stockCheckerChannel" create-documents="true">
-      <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" namespace-map="orderNamespaceMap" />
-  </si-xml:xpath-splitter>
+      <int-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" 
+                                namespace-map="orderNamespaceMap" />
+  </int-xml:xpath-splitter>
   ]]></programlisting>
       </para>
       <para>
@@ -624,9 +625,10 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
         from the stock checker about order item stock level.  This enriched order item message is then used to route the message.  In the
         case where the order item is in stock the message is routed to the warehouse.  The XPath router makes use of the default
         <classname>ChannelResolver</classname> strategy which maps the XPath evaluation result to a channel reference in the <classname>ApplicationContext</classname>.
-        <programlisting language="xml"><![CDATA[<si-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver"
+        <programlisting language="xml"><![CDATA[<int-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver"
           input-channel="orderRoutingChannel" resolution-required="true">
-      <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap"  />
+      <int-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" 
+                                namespace-map="orderNamespaceMap"  />
   </si-xml:xpath-router>
 
   ]]></programlisting>
@@ -634,8 +636,9 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
         Where the order item is not in stock the message is transformed using
         xslt into a format suitable for sending to the supplier.
-          <programlisting language="xml"><![CDATA[<si-xml:xslt-transformer input-channel="outOfStockChannel" output-channel="resupplyOrderChannel"
-       xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
+          <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer input-channel="outOfStockChannel" 
+  output-channel="resupplyOrderChannel"
+  xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
   ]]></programlisting>
       </para>
     </section>

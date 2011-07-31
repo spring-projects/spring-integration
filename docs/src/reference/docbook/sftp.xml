@@ -21,7 +21,7 @@
     <emphasis>Inbound Channel Adapters</emphasis> and <emphasis>Outbound Channel Adapters</emphasis> as well as convenient 
     namespace configuration to define these <emphasis>client</emphasis>s.
     
-    <programlisting language="xml"><![CDATA[xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
+    <programlisting language="xml"><![CDATA[xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp 
 	http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd" 
 ]]></programlisting>
@@ -71,7 +71,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   	The <emphasis>SFTP Inbound Channel Adapter</emphasis> is a special listener that will connect to the server and listen for 
   	the remote directory events (e.g., new file created) at which point it will initiate a file transfer.
   	
-  	<programlisting language="xml"><![CDATA[<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
+  	<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
   			session-factory="sftpSessionFactory"
 			channel="requestChannel"
 			filename-pattern="*.txt"
@@ -79,8 +79,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			local-directory="file:target/foo"
 			auto-create-local-directory="true"
 			delete-remote-files="false">
-		<poller fixed-rate="1000"/>
-</sftp:inbound-channel-adapter>]]></programlisting>
+		<int:poller fixed-rate="1000"/>
+</int-sftp:inbound-channel-adapter>]]></programlisting>
 
 	As you can see from the configuration above you can configure the <emphasis>SFTP Inbound Channel Adapter</emphasis> via the
 	<code>inbound-channel-adapter</code> element while also providing values for various attributes such as <code>local-directory</code> 

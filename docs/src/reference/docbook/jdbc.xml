@@ -37,7 +37,7 @@
     defines an inbound Channel Adapter with an update query and a
     <classname>DataSource</classname> reference.
 
-    <programlisting language="xml"><![CDATA[<jdbc:inbound-channel-adapter query="select * from item where status=2"
+    <programlisting language="xml"><![CDATA[<int-jdbc:inbound-channel-adapter query="select * from item where status=2"
     channel="target" data-source="dataSource"
     update="update item set status=10 where id in (:id)" />]]></programlisting>
     <note>
@@ -55,12 +55,12 @@
       controlled. A very important feature of the poller for JDBC usage is the
       option to wrap the poll operation in a transaction, for example:</para>
 
-      <programlisting language="xml"><![CDATA[<jdbc:inbound-channel-adapter query="..."
+      <programlisting language="xml"><![CDATA[<int-jdbc:inbound-channel-adapter query="..."
         channel="target" data-source="dataSource" update="...">
-    <poller fixed-rate="1000">
-        <transactional/>
-    </poller>
-</jdbc:inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-rate="1000">
+        <int:transactional/>
+    </int:poller>
+</int-jdbc:inbound-channel-adapter>]]></programlisting>
 
       <para><note>
            If a poller is not explicitly specified, a default value will be used (and as per normal with Spring Integration can be defined as a top level bean).
@@ -84,7 +84,7 @@
     payload and headers are available by default as input parameters to the
     query, for instance:
 
-    <programlisting language="xml"><![CDATA[<jdbc:outbound-channel-adapter
+    <programlisting language="xml"><![CDATA[<int-jdbc:outbound-channel-adapter
     query="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
     data-source="dataSource"
     channel="input"/>]]></programlisting>
@@ -116,7 +116,7 @@
     SQL query and then respond with the result sending it to a reply channel.
     The message payload and headers are available by default as input
     parameters to the query, for instance:
-    <programlisting language="xml"><![CDATA[<jdbc:outbound-gateway
+    <programlisting language="xml"><![CDATA[<int-jdbc:outbound-gateway
     update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
     request-channel="input" reply-channel="output" data-source="dataSource" />]]></programlisting></para>
 
@@ -130,7 +130,7 @@
     the default because it is not supported by some database platforms). For
     example:</para>
 
-    <programlisting language="xml"><![CDATA[<jdbc:outbound-gateway
+    <programlisting language="xml"><![CDATA[<int-jdbc:outbound-gateway
     update="insert into foos (status, name) values (0, :payload[foo])"
     request-channel="input" reply-channel="output" data-source="dataSource"
     keys-generated="true"/>]]></programlisting>
@@ -139,7 +139,7 @@
     provide a select query to execute and generate a reply message from the result
     (like the inbound adapter), e.g:</para>
 
-    <programlisting language="xml"><![CDATA[<jdbc:outbound-gateway
+    <programlisting language="xml"><![CDATA[<int-jdbc:outbound-gateway
     update="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
     query="select * from foos where id=:headers[$id]"
     request-channel="input" reply-channel="output" data-source="dataSource"/>]]></programlisting>
@@ -168,7 +168,7 @@
     implemented by the JdbcMessageStore, and there is also support for
     configuring store instances in XML. For example:</para>
 
-    <programlisting language="xml"><![CDATA[<jdbc:message-store id="messageStore" data-source="dataSource"/>
+    <programlisting language="xml"><![CDATA[<int-jdbc:message-store id="messageStore" data-source="dataSource"/>
 ]]></programlisting>
 
     <para>A <classname>JdbcTemplate</classname> can be specified instead of a
@@ -176,7 +176,7 @@
 
     <para>Other optional attributes are show in the next example:</para>
 
-    <para><programlisting language="xml"><![CDATA[<jdbc:message-store id="messageStore" data-source="dataSource"
+    <para><programlisting language="xml"><![CDATA[<int-jdbc:message-store id="messageStore" data-source="dataSource"
     lob-handler="lobHandler" table-prefix="MY_INT_"/>]]></programlisting>
 
     Here we have specified a <classname>LobHandler</classname> for dealing with

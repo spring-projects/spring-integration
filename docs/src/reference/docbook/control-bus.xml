@@ -14,7 +14,7 @@
   Integration we build upon the adapters described above so that it's possible
   to send Messages as a means of invoking exposed operations.</para>
 
-  <programlisting language="xml">&lt;control-bus input-channel="operationChannel"/&gt;</programlisting>
+  <programlisting language="xml">&lt;int:control-bus input-channel="operationChannel"/&gt;</programlisting>
 
   <para>The Control Bus has an input channel that can be accessed for invoking
   operations on the beans in the application context. It also has all the

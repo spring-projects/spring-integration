@@ -23,10 +23,10 @@
       As with the other endpoints, you can provide the "input-channel" and "output-channel" attributes,
       but the delayer also requires at least the 'default-delay' attribute with the number of milliseconds
       that each Message should be delayed.
-      <programlisting language="xml"><![CDATA[ <delayer input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" default-delay="3000" output-channel="output"/>]]></programlisting>
       If you need per-Message determination of the delay, then you can also provide the name of a header
       within the 'delay-header-name' attribute:
-      <programlisting language="xml"><![CDATA[ <delayer input-channel="input" output-channel="output"
+      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" output-channel="output"
           default-delay="3000" delay-header-name="delay"/>]]></programlisting>
       In the example above the 3 second delay would only apply in the case that the header value is
       not present for a given inbound Message. If you only want to apply a delay to Messages that have
@@ -50,7 +50,7 @@
       The default scheduler used by the delayer is a <classname>ThreadPoolTaskScheduler</classname> instance with a pool size of 1.
       If you want to delegate to a different scheduler, you can provide a reference through the delayer element's
       'scheduler' attribute:
-      <programlisting language="xml"><![CDATA[ <delayer input-channel="input" output-channel="output"
+      <programlisting language="xml"><![CDATA[ <int:delayer input-channel="input" output-channel="output"
           default-delay="0" delay-header-name="delay"
           scheduler="exampleTaskScheduler"/>
 

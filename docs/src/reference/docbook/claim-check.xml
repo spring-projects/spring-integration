@@ -59,7 +59,7 @@
     	<para>
     	An <emphasis>Outgoing Claim Check Transformer</emphasis> allows you to transform a Message with a Claim Check payload
     	into a Message with the original content as its payload.
-    	<programlisting language="xml"><![CDATA[<claim-check-out id="checkout"
+    	<programlisting language="xml"><![CDATA[<int:claim-check-out id="checkout"
         input-channel="checkoutChannel"
         message-store="testMessageStore"
         output-channel="output"/>]]></programlisting>
@@ -80,7 +80,7 @@
     	especially in the case of the in-memory Map-based <classname>SimpleMessageStore</classname> where failing to remove the Messages
     	could ultimately lead to an <classname>OutOfMemoryException</classname>. If you don't expect multiple claims to be made, it's
     	recommended that you set the <code>remove-message</code> attribute's value to <code>false</code>.
-    	<programlisting language="xml"><![CDATA[<claim-check-out id="checkout"
+    	<programlisting language="xml"><![CDATA[<int:claim-check-out id="checkout"
         input-channel="checkoutChannel"
         message-store="testMessageStore"
         output-channel="output"

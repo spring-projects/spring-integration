@@ -36,7 +36,7 @@
     The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "<code>input-channel</code>
       and <code>output-channel</code> attributes, it requires a <code>ref</code>. The <code>ref</code> may point to a 
       <interfacename>MessageSelector</interfacename> implementation:
-      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector" output-channel="output"/>
+      <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" ref="selector" output-channel="output"/>
 
  <bean id="selector" class="example.MessageSelectorImpl"/>]]></programlisting>
     </para>
@@ -45,7 +45,7 @@
       The referenced method may expect either the <interfacename>Message</interfacename> type or the payload type of
       inbound Messages. The method must return a boolean value. If the method returns 'true',
       the Message <emphasis>will</emphasis> be sent to the output-channel.
-      <programlisting language="xml"><![CDATA[ <filter input-channel="input" output-channel="output"
+      <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" output-channel="output"
          ref="exampleObject" method="someBooleanReturningMethod"/>
 
  <bean id="exampleObject" class="example.SomeObject"/>]]></programlisting>
@@ -55,10 +55,10 @@
       handling of the rejected Message. By default (if configured like the example above), rejected Messages will
       be silently dropped. If rejection should instead result in an error condition, then set the
       <code>throw-exception-on-rejection</code> attribute to <code>true</code>:
-      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
+      <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" ref="selector"
       output-channel="output" throw-exception-on-rejection="true"/> ]]></programlisting>
     If you want rejected messages to be routed to a specific channel, provide that reference as the <code>discard-channel</code>:
-      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
+      <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" ref="selector"
       output-channel="output" discard-channel="rejectedMessages"/> ]]></programlisting>
     </para>
     <note>
@@ -72,7 +72,7 @@
       Using a <code>ref</code> attribute is generally recommended if the custom filter implementation is referenced in other
       <code>&lt;filter&gt;</code> definitions. However if the custom filter implementation is scoped to a
       single <code>&lt;filter&gt;</code> element, provide an inner bean definition:
-<programlisting language="xml"><![CDATA[<filter method="someMethod" input-channel="inChannel" output-channel="outChannel">
+<programlisting language="xml"><![CDATA[<int:filter method="someMethod" input-channel="inChannel" output-channel="outChannel">
   <beans:bean class="org.foo.MyCustomFilter"/>
 </filter>]]></programlisting>
     </para>
@@ -86,7 +86,7 @@
       With the introduction of SpEL support, Spring Integration added the <code>expression</code> attribute to the filter
       element. It can be used to avoid Java entirely for simple filters.
       <programlisting language="xml">
-        <![CDATA[<filter input-channel="input" expression="payload.equals('nonsense')"/>]]>
+        <![CDATA[<int:filter input-channel="input" expression="payload.equals('nonsense')"/>]]>
       </programlisting>
       The string passed as the expression attribute will be evaluated as a SpEL expression with the Message available in
       the evaluation context.
@@ -96,7 +96,7 @@
         SpEL reference documentation
       </ulink>.
       <programlisting language="xml">
-        <![CDATA[<filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
+        <![CDATA[<int:filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
       </programlisting>
       If the Expression itself needs to be dynamic, then an 'expression' sub-element may be used. That provides a level of
       indirection for resolving the Expression by its key from an ExpressionSource. That is a strategy interface that you
@@ -107,9 +107,9 @@
       <code>source</code> attribute on the &lt;expression&gt; element, but in this case it's shown for completeness.
       <programlisting language="xml">
         <![CDATA[
-  <filter input-channel="input" output-channel="output">
-      <expression key="filterPatterns.example" source="myExpressions"/>
-  </filter>
+  <int:filter input-channel="input" output-channel="output">
+      <int:expression key="filterPatterns.example" source="myExpressions"/>
+  </int:filter>
 
   <beans:bean id="myExpressions" id="myExpressions"
           class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource">

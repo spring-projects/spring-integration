@@ -70,7 +70,7 @@
       locations.<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:mail="http://www.springframework.org/schema/integration/mail"
+    xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
             http://www.springframework.org/schema/integration/mail
@@ -78,10 +78,10 @@
     </para>
     <para>
       To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
-      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+      <programlisting language="xml"><![CDATA[<int-mail:outbound-channel-adapter channel="outboundMail"
                               mail-sender="mailSender"/>]]></programlisting>
       Alternatively, provide the host, username, and password:
-      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+      <programlisting language="xml"><![CDATA[<int-mail:outbound-channel-adapter channel="outboundMail"
                               host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
       <note>
         Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a
@@ -183,7 +183,7 @@
       When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
       This simplifies the application of the headers mentioned above to any Message prior to sending to the
       Mail-sending Channel Adapter.
-      <programlisting language="xml"><![CDATA[<mail:header-enricher subject="Example Mail"
+      <programlisting language="xml"><![CDATA[<int-mail:header-enricher subject="Example Mail"
                      to="to@example.org"
                      cc="cc@example.org"
                      bcc="bcc@example.org"

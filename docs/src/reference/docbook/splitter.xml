@@ -84,15 +84,15 @@
 		 <section>
     <title>Configuring a Splitter using XML</title>
 
-    <para>A splitter can be configured through XML as follows:<programlisting language="xml">&lt;channel id="inputChannel"/&gt;
+    <para>A splitter can be configured through XML as follows:<programlisting language="xml">&lt;int:channel id="inputChannel"/&gt;
 
-&lt;splitter id="splitter" <co id="split1" />
+&lt;int:splitter id="splitter" <co id="split1" />
   ref="splitterBean" <co id="split2" />
   method="split" <co id="split3" />
   input-channel="inputChannel" <co id="split4" />
   output-channel="outputChannel" <co id="split5" />/&gt;
 
-&lt;channel id="outputChannel"/&gt;
+&lt;int:channel id="outputChannel"/&gt;
 
 &lt;beans:bean id="splitterBean" class="sample.PojoSplitter"/&gt;</programlisting><calloutlist>
         <callout arearefs="split1">
@@ -133,14 +133,14 @@
         Using a <code>ref</code> attribute is generally recommended if the custom splitter implementation may be referenced in other
         <code>&lt;splitter&gt;</code> definitions. However if the custom splitter handler implementation should be scoped to a
         single definition of the <code>&lt;splitter&gt;</code>, configure an inner bean definition:
-<programlisting language="xml"><![CDATA[<splitter id="testSplitter" input-channel="inChannel" method="split"
+<programlisting language="xml"><![CDATA[<int:splitter id="testSplitter" input-channel="inChannel" method="split"
                 output-channel="outChannel">
   <beans:bean class="org.foo.TestSplitter"/>
-</spliter>]]></programlisting>
+</int:spliter>]]></programlisting>
     </para>
     <note>
     <para>
-       Using both a <code>ref</code> attribute and an inner handler definition in the same <code>&lt;splitter&gt;</code>
+       Using both a <code>ref</code> attribute and an inner handler definition in the same <code>&lt;int:splitter&gt;</code>
        configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
     </para>
     </note>

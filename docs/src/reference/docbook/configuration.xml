@@ -28,14 +28,14 @@
       namespace reference and schema mapping in your top-level 'beans' element:
       <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       ]]><emphasis>xmlns:integration="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
+       ]]><emphasis>xmlns:int="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
            ]]><emphasis>http://www.springframework.org/schema/integration
            http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"</emphasis>&gt;</programlisting>
     </para>
     <para>
-      You can choose any name after "xmlns:"; <emphasis>integration</emphasis> is used here for clarity, but you might
+      You can choose any name after "xmlns:"; <emphasis>int</emphasis> is used here for clarity, but you might
       prefer a shorter abbreviation. Of course if you are using an XML-editor or IDE support, then the availability of
       auto-completion may convince you to keep the longer name for clarity. Alternatively, you can create configuration
       files that use the Spring Integration schema as the primary namespace:
@@ -64,12 +64,12 @@
       <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:integration="http://www.springframework.org/schema/integration"
-    xmlns:file="http://www.springframework.org/schema/integration/file"
-    xmlns:jms="http://www.springframework.org/schema/integration/jms"
-    xmlns:mail="http://www.springframework.org/schema/integration/mail"
-    xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
-    xmlns:ws="http://www.springframework.org/schema/integration/ws"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:int-file="http://www.springframework.org/schema/integration/file"
+    xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
+    xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+    xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
+    xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
             http://www.springframework.org/schema/integration
@@ -159,9 +159,9 @@
       Whenever relying on Spring Integration's XML namespace support, a default "errorChannel" bean will be
       created behind the scenes. However, you can just as easily define your own if you want to control the
       settings.
-      <programlisting language="xml"><![CDATA[ <channel id="errorChannel">
-     <queue capacity="500"/>
- </channel>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int:channel id="errorChannel">
+     <int:queue capacity="500"/>
+ </int:channel>]]></programlisting>
       <note>
         The default "errorChannel" is a PublishSubscribeChannel.
       </note>
@@ -438,9 +438,9 @@ Below are some of the examples of ambiguous conditions which result in an Except
       could be mapped to 'str'  and Message Headers could be mapped to 'm'. The second method could easily also be a candidate where
       only Message Headers are mapped to 'm'. To make meters worse both methods have the same name which at first might look very
       ambiguous considering the following configuration:</para>
-      <programlisting language="xml"><![CDATA[<si:service-activator input-channel="input" output-channel="output" method="foo">
+      <programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" output-channel="output" method="foo">
   <bean class="org.bar.Foo"/>
-</si:service-activator>]]></programlisting>
+</int:service-activator>]]></programlisting>
       <para>At this point it would be important to understand Spring Integration mapping Conventions where at the very core,
       mappings are based on Payload first and everything else next. In other words the method whose argument could be mapped
       to a Payload will take precedence over all other methods.</para>
@@ -460,9 +460,9 @@ However if the method names were different you could influence the mapping with 
 
   public String bar(String str);
 }</programlisting>
-      <programlisting language="xml"><![CDATA[<si:service-activator input-channel="input" output-channel="output" method="bar">
+      <programlisting language="xml"><![CDATA[<int:service-activator input-channel="input" output-channel="output" method="bar">
   <bean class="org.bar.Foo"/>
-</si:service-activator>]]></programlisting>
+</int:service-activator>]]></programlisting>
 
       <para>Now there is no ambiguity since the configuration explicitly maps to the 'bar' method which has no name conflicts.</para>
   </section>

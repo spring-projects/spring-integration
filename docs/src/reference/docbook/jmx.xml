@@ -18,7 +18,7 @@
     <para>The Notification-listening Channel Adapter requires a JMX ObjectName
     for the MBean that publishes Notifications to which this listener should
     be registered. A very simple configuration might look like this:
-    <programlisting language="xml"> &lt;jmx:notification-listening-channel-adapter id="adapter"
+    <programlisting language="xml"> &lt;int-jmx:notification-listening-channel-adapter id="adapter"
                    channel="channel"
                    object-name="example.domain:name=publisher"/&gt;</programlisting>
     <tip> The <emphasis>notification-listening-channel-adapter</emphasis>
@@ -30,7 +30,7 @@
     "handback" Object to provide some context that is passed back with each
     Notification. Both of those attributes are optional. Extending the above
     example to include those attributes as well as an explicit MBeanServer
-    bean name would produce the following: <programlisting language="xml"> &lt;jmx:notification-listening-channel-adapter id="adapter"
+    bean name would produce the following: <programlisting language="xml"> &lt;int-jmx:notification-listening-channel-adapter id="adapter"
                    channel="channel"
                    mbean-server="someServer"
                    object-name="example.domain:name=somePublisher"
@@ -48,7 +48,7 @@
     only requires a JMX ObjectName in its configuration as shown below.
     <programlisting language="xml"> &lt;context:mbean:export/&gt;
 
- &lt;jmx:notification-publishing-channel-adapter id="adapter"
+ &lt;int-jmx:notification-publishing-channel-adapter id="adapter"
                               channel="channel"
                               object-name="example.domain:name=publisher"/&gt;</programlisting>
     It does also require that an MBeanExporter be present in the context. That
@@ -68,7 +68,7 @@
     fallback "default-notification-type" attribute provided in the
     configuration. <programlisting language="xml"> &lt;context:mbean:export/&gt;
 
- &lt;jmx:notification-publishing-channel-adapter id="adapter"
+ &lt;int-jmx:notification-publishing-channel-adapter id="adapter"
                               channel="channel"
                               object-name="example.domain:name=publisher"
                               default-notification-type="some.default.type"/&gt;</programlisting></para>
@@ -85,12 +85,12 @@
     An MBeanServer reference is also required, but it will automatically check
     for a bean named "mbeanServer" by default just like the
     notification-listening-channel-adapter described above. <programlisting
-    language="xml"> &lt;jmx:attribute-polling-channel-adapter id="adapter"
+    language="xml"> &lt;int-jmx:attribute-polling-channel-adapter id="adapter"
                 channel="channel"
                 object-name="example.domain:name=someService"
                 attribute-name="InvocationCount"&gt;
-     &lt;si:poller max-messages-per-poll="1" fixed-rate="5000"/&gt;
- &lt;/jmx:attribute-polling-channel-adapter&gt;</programlisting></para>
+     &lt;int:poller max-messages-per-poll="1" fixed-rate="5000"/&gt;
+ &lt;/int-jmx:attribute-polling-channel-adapter&gt;</programlisting></para>
   </section>
 
   <section id="jmx-operation-invoking-channel-adapter">
@@ -100,7 +100,7 @@
     Message-driven invocation of any managed operation exposed by an MBean.
     Each invocation requires the operation name to be invoked and the
     ObjectName of the target MBean. Both of these must be explicitly provided
-    via adapter configuration: <programlisting language="xml"> &lt;jmx:operation-invoking-channel-adapter id="adapter"
+    via adapter configuration: <programlisting language="xml"> &lt;int-jmx:operation-invoking-channel-adapter id="adapter"
                 object-name="example.domain:name=TestBean"
                 operation-name="ping"/&gt;</programlisting> Then the adapter
     only needs to be able to discover the "mbeanServer" bean. If a different
@@ -128,7 +128,7 @@
     <emphasis>operation-invoking-outbound-gateway</emphasis> which could be
     used when dealing with non-void operations and return value is required.
     Such return value will be sent as message payload to the 'reply-channel'
-    specified by this Gateway. <programlisting language="xml"> &lt;jmx:operation-invoking-outbound-gateway request-channel="requestChannel"
+    specified by this Gateway. <programlisting language="xml"> &lt;int-jmx:operation-invoking-outbound-gateway request-channel="requestChannel"
    reply-channel="replyChannel"
    object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
    operation-name="testWithReturn"/&gt;</programlisting> Another way of
@@ -145,7 +145,7 @@
     create an instance of the <classname>IntegrationMBeanExporter</classname>,
     define a bean and provide a reference to an MBeanServer and a domain name
     (if desired). The domain can be left out in which case the default domain
-    is "org.springframework.integration". <programlisting language="xml"> &lt;jmx:mbean-exporter default-domain="my.company.domain" server="mbeanServer"/&gt;
+    is "org.springframework.integration". <programlisting language="xml"> &lt;int-jmx:mbean-exporter default-domain="my.company.domain" server="mbeanServer"/&gt;
 
  &lt;bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"&gt;
      &lt;property name="locateExistingServerIfPossible" value="true"/&gt;

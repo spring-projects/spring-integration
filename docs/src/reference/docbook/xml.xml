@@ -119,8 +119,8 @@
       <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:integration="http://www.springframework.org/schema/integration"
-       xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
            http://www.springframework.org/schema/integration
@@ -131,17 +131,17 @@
     The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
     Since the namespace is now creating an endpoint instance rather than a transformer,
     a poller can also be nested within the element to control the polling of the input channel.
-    <programlisting language="xml"><![CDATA[<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
+    <programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input"
     output-channel="output"
     unmarshaller="unmarshaller"/>
 
-<si-xml:unmarshalling-transformer id="unmarshallerWithPoller"
+<int-xml:unmarshalling-transformer id="unmarshallerWithPoller"
     input-channel="input"
     output-channel="output"
     unmarshaller="unmarshaller">
-    <si:poller fixed-rate="2000"/>
-<si-xml:unmarshalling-transformer/>
+    <int:poller fixed-rate="2000"/>
+<int-xml:unmarshalling-transformer/>
     ]]></programlisting>
     </para>
 
@@ -152,13 +152,13 @@
     reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
     to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
     specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
-    <programlisting language="xml"><![CDATA[<si-xml:marshalling-transformer
+    <programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
      output-channel="output"
      marshaller="marshaller"
      result-type="StringResult" />
 
-<si-xml:marshalling-transformer
+<int-xml:marshalling-transformer
     input-channel="marshallingTransformerWithResultTransformer"
     output-channel="output"
     marshaller="marshaller"
@@ -175,11 +175,11 @@
     be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
     be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
     is required before sending.
-  <programlisting language="xml"><![CDATA[<si-xml:xslt-transformer id="xsltTransformerWithResource"
+  <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
     input-channel="withResourceIn"
     output-channel="output"
     xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
-<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
+<int-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
     input-channel="withTemplatesAndResultTransformerIn"
     output-channel="output"
     xsl-templates="templates"
@@ -189,7 +189,7 @@
     Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
       and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
         Spring Integration provides two convenient ways to accomplish this. Just look at the following XML snippet.
-<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer id="paramHeadersCombo"
+<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="paramHeadersCombo"
       input-channel="paramHeadersComboChannel"
     output-channel="output"
     xsl-resource="classpath:transformer.xslt"
@@ -245,9 +245,9 @@
       allowing you to create a Message Endpoint with an input channel but no output channel
       since the output channel(s) is determined dynamically.  
       <programlisting language="xml"><![CDATA[
-<si-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
+<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
     <si-xml:xpath-expression expression="/order/type"/>
-</si-xml:xpath-router>	
+</int-xml:xpath-router>	
 ]]></programlisting>
     </para>
     
@@ -261,20 +261,20 @@
 	  the message will be sent to all of those channels.
 	  
 	  <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
-<si-xml:xpath-router id="responderRouter" input-channel="orderChannel">
-    <si-xml:xpath-expression expression="/request/responders"/>
-</si-xml:xpath-router>	
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+</int-xml:xpath-router>	
 ]]></programlisting>
 
     If the returned values do not represent the channel names additional mapping could be specified. For example if 
     the <code>/request/responders</code> expression results in two values <code>responderA</code> and <code>responderB</code> but 
     you don't want to couple the responder names to channel names you may provide additional mapping as such:
     <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
-<si-xml:xpath-router id="responderRouter" input-channel="orderChannel">
-    <si-xml:xpath-expression expression="/request/responders"/>
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
     <int-xml:mapping value="responderA" channel="channelA"/>	
     <int-xml:mapping value="responderB" channel="channelB"/>	
-</si-xml:xpath-router>	
+</int-xml:xpath-router>	
 ]]></programlisting>
     </para>
     
@@ -345,7 +345,7 @@
     </para>
     <para>
     Let's look at the following transformer configuration:
-    <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
       xpath-expression="/person/@name" />]]></programlisting>
 
     . . . and Message
@@ -366,10 +366,10 @@
     <para>
     You can configure the desired type by simply using <code>evaluation-type</code>
     attribute of the &lt;xpath-transformer/&gt; element.
-    <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
     evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
-<xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'"
+<int-xml:xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'"
     evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
 ]]></programlisting>
     </para>
@@ -381,7 +381,7 @@
     implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by
     <classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a
     reference to a <classname>NodeMapper</classname> simply use <code>node-mapper</code> attribute:
-    <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
     node-mapper="testNodeMapper" output-channel="output"/>
 ]]></programlisting>
 . . . and Sample NodeMapper implementation:
@@ -397,7 +397,7 @@
     <para>
     You can also use implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
     provide more granular transformation:
-    <programlisting language="xml"><![CDATA[<xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type"
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type"
     converter="testXmlPayloadConverter" output-channel="output"/>
 ]]></programlisting>
 . . . and Sample XmlPayloadConverter implementation:
@@ -427,7 +427,7 @@
     <para>
     You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure
     them using <code>expression</code> attribute:
-    <programlisting language="xml"><![CDATA[xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[int-xml:xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
     In the above case the overall result of the expression will be the result of the XPath expression multiplied by 2.
     </para>
   </section>
@@ -441,32 +441,32 @@
     &lt;xpath-expression/&gt; element.  So the following configurations of an xpath-selector are all valid and represent the general
     form of XPath namespace support.  All forms of XPath expression result in the creation of an
     <interfacename>XPathExpression</interfacename> using the Spring <classname>XPathExpressionFactory</classname>
-    <programlisting language="xml"><![CDATA[<si-xml:xpath-selector id="xpathRefSelector"
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-selector id="xpathRefSelector"
                        xpath-expression="refToXpathExpression"
                        evaluation-result-type="boolean" />
 
-<si-xml:xpath-selector id="selectorWithNoNS" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/name"/>
-</si-xml:xpath-selector>
+<int-xml:xpath-selector id="selectorWithNoNS" evaluation-result-type="boolean" >
+    <int-xml:xpath-expression expression="/name"/>
+</int-xml:xpath-selector>
 
-<si-xml:xpath-selector id="selectorWithOneNS" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/ns1:name"
+<int-xml:xpath-selector id="selectorWithOneNS" evaluation-result-type="boolean" >
+    <int-xml:xpath-expression expression="/ns1:name"
                              ns-prefix="ns1" ns-uri="www.example.org" />
-</si-xml:xpath-selector>
+</int-xml:xpath-selector>
 
-<si-xml:xpath-selector id="selectorWithTwoNS" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/ns1:name/ns2:type">
+<int-xml:xpath-selector id="selectorWithTwoNS" evaluation-result-type="boolean" >
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type">
         <map>
             <entry key="ns1" value="www.example.org/one" />
             <entry key="ns2" value="www.example.org/two" />
         </map>
-    </si-xml:xpath-expression>
-</si-xml:xpath-selector>
+    </int-xml:xpath-expression>
+</int-xml:xpath-selector>
 
-<si-xml:xpath-selector id="selectorWithNamespaceMapRef" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/ns1:name/ns2:type"
+<int-xml:xpath-selector id="selectorWithNamespaceMapRef" evaluation-result-type="boolean" >
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type"
                              namespace-map="defaultNamespaces"/>
-</si-xml:xpath-selector>
+</int-xml:xpath-selector>
 
 <util:map id="defaultNamespaces">
     <util:entry key="ns1" value="www.example.org/one" />
@@ -476,20 +476,20 @@
     <para>
       XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
       <programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
-<si-xml:xpath-splitter id="orderItemSplitter"
+<int-xml:xpath-splitter id="orderItemSplitter"
                        input-channel="orderChannel"
                        output-channel="orderItemsChannel">
-    <si-xml:xpath-expression expression="/order/items"/>
-</si-xml:xpath-splitter>
+    <int-xml:xpath-expression expression="/order/items"/>
+</int-xml:xpath-splitter>
 
 <!-- Split the order into items creating a new document for each item-->
-<si-xml:xpath-splitter id="orderItemDocumentSplitter"
+<int-xml:xpath-splitter id="orderItemDocumentSplitter"
                        input-channel="orderChannel"
                        output-channel="orderItemsChannel"
                        create-documents="true">
-    <si-xml:xpath-expression expression="/order/items"/>
-    <si:poller fixed-rate="2000"/>
-</si-xml:xpath-splitter>]]></programlisting>
+    <int-xml:xpath-expression expression="/order/items"/>
+    <int:poller fixed-rate="2000"/>
+</int-xml:xpath-splitter>]]></programlisting>
     </para>
   </section>
 

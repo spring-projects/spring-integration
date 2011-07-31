@@ -22,7 +22,7 @@ public interface Cafe {
      
       Namespace support is also
       provided which allows you to configure such an interface as a service as demonstrated by the following example.
-      <programlisting language="xml"><![CDATA[<gateway id="cafeService"
+      <programlisting language="xml"><![CDATA[<int:gateway id="cafeService"
          service-interface="org.cafeteria.Cafe"
          default-request-channel="requestChannel"
          default-reply-channel="replyChannel"/>]]></programlisting>
@@ -82,12 +82,12 @@ public interface Cafe {
     <para>
     If you prefer the XML approach of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements
     to the gateway configuration.
-     <programlisting language="xml"><![CDATA[<si:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
+     <programlisting language="xml"><![CDATA[<int:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
       default-request-channel="inputC">
-  <si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
-      <si:method name="echoUpperCase" request-channel="inputB"/>
-      <si:method name="echoViaDefault"/>
-</si:gateway>]]></programlisting>
+  <int:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+      <int:method name="echoUpperCase" request-channel="inputB"/>
+      <int:method name="echoViaDefault"/>
+</int:gateway>]]></programlisting>
     </para>
     <para>
       You can also provide individual headers per method invocation via XML.
@@ -123,12 +123,12 @@ public interface Cafe {
     that a 'transformer' is used to create a reply Message from the Exception.
     </para>
     <para>
-<programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
+<programlisting language="xml"><![CDATA[<int:gateway id="sampleGateway"
     default-request-channel="gatewayChannel"
     service-interface="foo.bar.SimpleGateway"
     error-channel="exceptionTransformationChannel"/>
 
-<si:transformer input-channel="exceptionTransformationChannel"
+<int:transformer input-channel="exceptionTransformationChannel"
         ref="exceptionTransformer" method="createErrorResponse"/>
 ]]></programlisting>
 

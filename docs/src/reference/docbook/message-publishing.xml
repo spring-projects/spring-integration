@@ -125,7 +125,7 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
     <programlisting language="xml">&lt;bean class="org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor"/&gt;</programlisting>
       You can instead use namespace support for a more concise configuration:
 
-<programlisting language="xml">&lt;si:annotation-config default-publisher-channel="defaultChannel"/&gt;</programlisting>
+<programlisting language="xml">&lt;int:annotation-config default-publisher-channel="defaultChannel"/&gt;</programlisting>
        </para>
 
        <para>
@@ -327,39 +327,39 @@ static class BankingOperationsImpl implements BankingOperations {
         </para>
        <para>
 
-       <programlisting language="xml"><![CDATA[<inbound-channel-adapter id="fixedDelayProducer"
+       <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter id="fixedDelayProducer"
        expression="'fixedDelayTest'"
        channel="fixedDelayChannel">
-    <poller fixed-delay="1000"/>
-</inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-delay="1000"/>
+</int:inbound-channel-adapter>]]></programlisting>
 
        In the above example an inbound Channel Adapter will be created which will construct a Message with its payload being the result of the expression 
       defined in the <code>expression</code> attribute. Such messages will be created and sent every time the delay specified by the <code>fixed-delay</code> attribute occurs.
 
-       <programlisting language="xml"><![CDATA[<inbound-channel-adapter id="fixedRateProducer"
+       <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter id="fixedRateProducer"
        expression="'fixedRateTest'"
        channel="fixedRateChannel">
-    <poller fixed-rate="1000"/>
-</inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-rate="1000"/>
+</int:inbound-channel-adapter>]]></programlisting>
 
        This example is very similar to the previous one, except that we are using the <code>fixed-rate</code> attribute which will allow us to send messages at a fixed rate (measuring from the start time of each task).
 
-       <programlisting language="xml"><![CDATA[<inbound-channel-adapter id="cronProducer"
+       <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter id="cronProducer"
        expression="'cronTest'"
        channel="cronChannel">
-    <poller cron="7 6 5 4 3 ?"/>
-</inbound-channel-adapter>]]></programlisting>
+    <int:poller cron="7 6 5 4 3 ?"/>
+</int:inbound-channel-adapter>]]></programlisting>
 
        This example demonstrates how you can apply a Cron trigger with a value specified in the <code>cron</code> attribute.
 
-       <programlisting language="xml"><![CDATA[<inbound-channel-adapter id="headerExpressionsProducer"
+       <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter id="headerExpressionsProducer"
        expression="'headerExpressionsTest'"
        channel="headerExpressionsChannel"
        auto-startup="false">
-    <poller fixed-delay="5000"/>
-    <header name="foo" expression="6 * 7"/>
-    <header name="bar" value="x"/>
-</inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-delay="5000"/>
+    <int:header name="foo" expression="6 * 7"/>
+    <int:header name="bar" value="x"/>
+</int:inbound-channel-adapter>]]></programlisting>
 
        Here you can see that in a way very similar to the Message publishing feature we are enriching a newly constructed Message with
        extra Message headers which can take scalar values or the results of evaluating Spring expressions.
@@ -369,10 +369,10 @@ static class BankingOperationsImpl implements BankingOperations {
        If you need to implement your own custom trigger you can use the <code>trigger</code> attribute to provide a reference to any spring configured
        bean which implements the <classname>org.springframework.scheduling.Trigger</classname> interface.
 
-       <programlisting language="xml"><![CDATA[<inbound-channel-adapter id="triggerRefProducer"
+       <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter id="triggerRefProducer"
        expression="'triggerRefTest'" channel="triggerRefChannel">
-    <poller trigger="customTrigger"/>
-</inbound-channel-adapter>
+    <int:poller trigger="customTrigger"/>
+</int:inbound-channel-adapter>
 
 <beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
     <beans:constructor-arg value="9999"/>

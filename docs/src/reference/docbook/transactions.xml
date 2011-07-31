@@ -106,7 +106,7 @@
       <title>Poller Transaction Support</title>
         <para>
         Any time you configure a Poller you can provide transactional configuration via the <emphasis>transactional</emphasis> sub-element and its attributes:
-        <programlisting language="xml"><![CDATA[<poller max-messages-per-poll="1" fixed-rate="1000">
+        <programlisting language="xml"><![CDATA[<int:poller max-messages-per-poll="1" fixed-rate="1000">
     <transactional transaction-manager="txManager" 
                    isolation="DEFAULT"
                    propagation="REQUIRED" 
@@ -134,7 +134,7 @@
     The rationale behind this is that if you need more than one advice, and one of them is Transaction advice, then you can simply
     include it in the <emphasis>&lt;advice-chain&gt;</emphasis> with the same convenience as before but with much more control
     since you now have an option to position any advice in the desired order.
- <programlisting language="xml"><![CDATA[<poller max-messages-per-poll="1" fixed-rate="10000">
+ <programlisting language="xml"><![CDATA[<int:poller max-messages-per-poll="1" fixed-rate="10000">
   <advice-chain>
     <ref bean="txAdvice"/>
     <ref bean="someAotherAdviceBean" />

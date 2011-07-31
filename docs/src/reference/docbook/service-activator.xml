@@ -19,19 +19,19 @@
     <title>Configuring Service Activator</title>
     <para>
       To create a Service Activator, use the 'service-activator' element with the 'input-channel' and 'ref' attributes:
-      <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>
+      <programlisting language="xml">&lt;int:service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>
     </para>
     <para>
       The configuration above assumes that "exampleHandler" either contains a single method annotated with the
       @ServiceActivator annotation or that it contains only one public method at all. To delegate to an explicitly
       defined method of any object, simply add the "method" attribute.
-      <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/&gt;</programlisting>
+      <programlisting language="xml">&lt;int:service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/&gt;</programlisting>
     </para>
     <para>
       In either case, when the service method returns a non-null value, the endpoint will attempt to send the reply
       message to an appropriate reply channel. To determine the reply channel, it will first check if an
       "output-channel" was provided in the endpoint configuration:
-      <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
+      <programlisting language="xml">&lt;int:service-activator input-channel="exampleChannel" output-channel="replyChannel"
                    ref="somePojo" method="someMethod"/&gt;</programlisting>
       If no "output-channel" is available, it will then check the Message's <literal>replyChannel</literal> header
       value. If that value is available, it will then check its type. If it is a
@@ -57,10 +57,10 @@
       Using a "ref" attribute is generally recommended if the custom Service Activator handler implementation can be reused
       in other <code>&lt;service-activator&gt;</code> definitions. However if the custom Service Activator handler implementation
       is only used within a single definition of the <code>&lt;service-activator&gt;</code>, you can provide an inner bean definition:
-<programlisting language="xml"><![CDATA[<service-activator id="exampleServiceActivator" input-channel="inChannel"
+<programlisting language="xml"><![CDATA[<int:service-activator id="exampleServiceActivator" input-channel="inChannel"
             output-channel = "outChannel" method="foo">
     <beans:bean class="org.foo.ExampleServiceActivator"/>
-</service-activator>]]></programlisting>
+</int:service-activator>]]></programlisting>
     </para>
     <note>
     <para>

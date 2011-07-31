@@ -27,7 +27,7 @@
     <para>
     Spring Integration provides a convenient namespace configuration to define Twitter artifacts. You can enable it by adding
 the following within your XML header.
-    <programlisting language="xml"><![CDATA[xmlns:twitter="http://www.springframework.org/schema/integration/twitter"
+    <programlisting language="xml"><![CDATA[xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter 
 	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.0.xsd"]]></programlisting>
     </para>
@@ -160,11 +160,11 @@ received.
   		<title>Inbound Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive updates from everyone you follow. It's essentially the "Timeline Update" adapter.
-  		<programlisting language="xml"><![CDATA[<twitter:inbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:inbound-channel-adapter 
   		twitter-template="twitterTemplate" 
   		channel="inChannel">
-    <poller fixed-rate="5000" max-messages-per-poll="3"/>
-</twitter:inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-rate="5000" max-messages-per-poll="3"/>
+</int-twitter:inbound-channel-adapter>]]></programlisting>
   		</para>
   	</section>
   	
@@ -172,11 +172,11 @@ received.
   		<title>Direct Inbound  Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive Direct Messages that were sent to you from other Twitter users.
-  		<programlisting language="xml"><![CDATA[<twitter:dm-inbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:dm-inbound-channel-adapter 
   		twitter-template="twiterTemplate" 
   		channel="inboundDmChannel">
-    <poller fixed-rate="5000" max-messages-per-poll="3"/>
-</twitter:dm-inbound-channel-adapter>]]></programlisting>
+    <int-poller fixed-rate="5000" max-messages-per-poll="3"/>
+</int-twitter:dm-inbound-channel-adapter>]]></programlisting>
   		</para>
   	</section>
   	
@@ -184,11 +184,11 @@ received.
   		<title>Mentions Inbound Message Channel Adapter</title>
   		<para>
   		This adapter allows you to receive Twitter Messages that Mention you via @user syntax.
-  		<programlisting language="xml"><![CDATA[<twitter:mentions-inbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:mentions-inbound-channel-adapter 
   		twitter-template="twiterTemplate" 
 		channel="inboundMentionsChannel">
-    <poller fixed-rate="5000" max-messages-per-poll="3"/>
-</twitter:mentions-inbound-channel-adapter>]]></programlisting>
+    <int:poller fixed-rate="5000" max-messages-per-poll="3"/>
+</int-twitter:mentions-inbound-channel-adapter>]]></programlisting>
   		</para>
   	</section>
   	
@@ -197,11 +197,11 @@ received.
   		<para>
   		This adapter allows you to perform searches. As you can see it is not necessary to define twitter-template 
   		since a search can be performed anonymously, however you must define a search query.
-  		<programlisting language="xml"><![CDATA[<twitter:search-inbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:search-inbound-channel-adapter 
   		query="#springintegration" 
 		channel="inboundMentionsChannel">
-     <poller fixed-rate="5000" max-messages-per-poll="3"/>
-</twitter:search-inbound-channel-adapter>]]></programlisting>
+     <int:poller fixed-rate="5000" max-messages-per-poll="3"/>
+</int-twitter:search-inbound-channel-adapter>]]></programlisting>
 		
   		</para>
   		<para>
@@ -240,7 +240,7 @@ received.
   		<para>
   		This adapter allows you to send regular status updates by simply sending a Message to the channel 
   		identified by the <code>channel</code> attribute. 
-  		<programlisting language="xml"><![CDATA[<twitter:outbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:outbound-channel-adapter 
   		twitter-template="twitterTemplate" 
   		channel="twitterChannel"/>]]></programlisting>
   		The only extra configuration that is required for this adapter is the <code>twitter-template</code> reference.
@@ -252,7 +252,7 @@ received.
   		<para>
   		This adapter allows you to send Direct Twitter Messages (i.e., @user) by simply sending a Message to the channel 
   		identified by the <code>channel</code> attribute. 
-  		<programlisting language="xml"><![CDATA[<twitter:dm-outbound-channel-adapter 
+  		<programlisting language="xml"><![CDATA[<int-twitter:dm-outbound-channel-adapter 
   		twitter-template="twitterTemplate" 
   		channel="twitterChannel"/>]]></programlisting>
   		The only extra configuration that is required for this adapter is the <code>twitter-template</code> reference.
@@ -269,16 +269,16 @@ received.
   		<para>
   		The above approach works well if you are creating the Message programmatically. However it's more common to
         provide the header value within a messaging flow. The value can be provided by an upstream &lt;header-enricher&gt;.
-        <programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
-    <header name="twitter_dmTargetUserId" value="z_oleg"/> 
-</header-enricher>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+    <int:header name="twitter_dmTargetUserId" value="z_oleg"/> 
+</int:header-enricher>]]></programlisting>
         </para>
 
         <para>It's quite common that the value must be determined dynamically. For those cases you can take advantage
         of SpEL support within the &lt;header-enricher&gt;.
-  		<programlisting language="xml"><![CDATA[<header-enricher input-channel="in" output-channel="out">
-    <header name="twitter_dmTargetUserId" expression="@twitterIdService.lookup(headers.username)"/> 
-</header-enricher>]]></programlisting>
+  		<programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+    <int:header name="twitter_dmTargetUserId" expression="@twitterIdService.lookup(headers.username)"/> 
+</int:header-enricher>]]></programlisting>
   		</para>
   	</section>
 

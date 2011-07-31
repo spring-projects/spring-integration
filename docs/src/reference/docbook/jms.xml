@@ -32,9 +32,9 @@
       instance or both <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
       (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines an
       inbound Channel Adapter with a <classname>Destination</classname> reference.
-      <programlisting language="xml"><![CDATA[ <jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel">
-     <integration:poller fixed-rate="30000"/>
- </jms:inbound-channel-adapter>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int-jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel">
+     <int:poller fixed-rate="30000"/>
+ </int-jms:inbound-channel-adapter>]]></programlisting>
       <tip>
         Notice from the configuration that the inbound-channel-adapter is a Polling Consumer. That means that
         it invokes receive() when triggered. This should only be used in situations where polling is done relatively
@@ -55,12 +55,12 @@
       String-based payload, a JMS BytesMessage will produce a byte array payload, and a JMS ObjectMessage's
       Serializable instance will become the Spring Integration Message's payload. If instead you prefer to have
       the raw JMS Message as the Spring Integration Message's payload, then set 'extract-payload' to false.
-      <programlisting language="xml"><![CDATA[ <jms:inbound-channel-adapter id="jmsIn"
+      <programlisting language="xml"><![CDATA[ <int-jms:inbound-channel-adapter id="jmsIn"
                               destination="inQueue"
                               channel="exampleChannel"
                               extract-payload="false"/>
-     <integration:poller fixed-rate="30000"/>
- </jms:inbound-channel-adapter>]]></programlisting>
+     <int:poller fixed-rate="30000"/>
+ </int-jms:inbound-channel-adapter>]]></programlisting>
     </para>
   </section>
 
@@ -72,7 +72,7 @@
       <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
       (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines a
       message-driven Channel Adapter with a <classname>Destination</classname> reference.
-      <programlisting language="xml"><![CDATA[ <jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
       <note>
         The Message-Driven adapter also accepts several properties that pertain to the MessageListener container.
         These values are only considered if you do not provide an actual 'container' reference. In that case,
@@ -91,7 +91,7 @@
     </para>
     <para>Finally, the &lt;message-driven-channel-adapter&gt; also accepts the 'error-channel' attribute. This
       provides the same basic functionality as described in <xref linkend="gateway-proxy"/>.
-<programlisting language="xml"><![CDATA[ <jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" 
+<programlisting language="xml"><![CDATA[ <int-jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" 
          channel="exampleChannel"
          error-channel="exampleErrorChannel"/>
 ]]></programlisting>
@@ -113,7 +113,7 @@
       inbound Channel Adapter, the easiest way to configure this adapter is with the namespace support. The following
       configuration will produce an adapter that receives Spring Integration Messages from the "exampleChannel" and then
       converts those into JMS Messages and sends them to the JMS Destination reference whose bean name is "outQueue".
-      <programlisting language="xml"><![CDATA[<jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="exampleChannel"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int-jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="exampleChannel"/>]]></programlisting>
     </para>
     <para>
       As with the inbound Channel Adapters, there is an 'extract-payload' property. However, the meaning is reversed
@@ -141,7 +141,7 @@
       <interfacename>ConnectionFactory</interfacename>, and a request <interfacename>Destination</interfacename> (or
       'requestDestinationName'). The following example defines a JMS "inbound-gateway" that receives from the JMS
       queue referenced by the bean id "inQueue" and sends to the Spring Integration channel named "exampleChannel".
-      <programlisting language="xml"><![CDATA[ <jms:inbound-gateway id="jmsInGateway"
+      <programlisting language="xml"><![CDATA[ <int-jms:inbound-gateway id="jmsInGateway"
                       request-destination="inQueue"
                       request-channel="exampleChannel"/>]]></programlisting>
     </para>
@@ -174,7 +174,7 @@
           request-channel="jmsinputchannel"
           error-channel="errorTransformationChannel"/>
 
-<si:transformer input-channel="exceptionTransformationChannel"
+<int:transformer input-channel="exceptionTransformationChannel"
         ref="exceptionTransformer" method="createErrorResponse"/>
 ]]></programlisting>
       You might notice that this example looks very similar to that included
@@ -193,7 +193,7 @@
       'request-destination'. It will then handle the JMS reply Message either by using a selector to
       receive from the 'reply-destination' that you configure, or if no 'reply-destination' is provided,
       it will create JMS TemporaryQueues. Notice that the "reply-channel" is also provided.
-      <programlisting language="xml"><![CDATA[ <jms:outbound-gateway id="jmsOutGateway"
+      <programlisting language="xml"><![CDATA[ <int-jms:outbound-gateway id="jmsOutGateway"
                        request-destination="outQueue"
                        request-channel="outboundJmsRequests"
                        reply-channel="jmsReplies"/>]]></programlisting>
@@ -280,7 +280,7 @@
       required even though conceptually the goal is to have a single Message Channel. A better option is
       supported as of Spring Integration version 2.0. Now it is possible to define a single "channel" when
       using the JMS namespace.
-      <programlisting language="xml"><![CDATA[ <jms:channel id="jmsChannel" queue="exampleQueue"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int-jms:channel id="jmsChannel" queue="exampleQueue"/>]]></programlisting>
     </para>
     <para>
       The channel in the above example will behave much like a normal &lt;channel/&gt; element from the main
@@ -304,11 +304,11 @@
       Since the example above is referencing a JMS Queue instance, it will act as a point-to-point channel. If
       on the other hand, publish/subscribe behavior is needed, then a separate element can be used, and a JMS
       Topic can be referenced instead.
-      <programlisting language="xml"><![CDATA[ <jms:publish-subscribe-channel id="jmsChannel" topic="exampleTopic"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int-jms:publish-subscribe-channel id="jmsChannel" topic="exampleTopic"/>]]></programlisting>
     </para>
     <para>
       For either type of JMS-backed channel, the name of the destination may be provided instead of a reference.
-      <programlisting language="xml"><![CDATA[ <jms:channel id="jmsQueueChannel" queue-name="exampleQueueName"/>
+      <programlisting language="xml"><![CDATA[ <int-jms:channel id="jmsQueueChannel" queue-name="exampleQueueName"/>
 
  <jms:publish-subscribe-channel id="jmsTopicChannel" topic-name="exampleTopicName"/>]]></programlisting>
     </para>
@@ -319,7 +319,7 @@
       <interfacename>ConnectionFactory</interfacename> is a required property of the channel, but by default
       the expected bean name would be "connectionFactory". The example below provides both a custom instance
       for resolution of the JMS Destination names and a different name for the ConnectionFactory.
-      <programlisting language="xml"><![CDATA[ <jms:channel id="jmsChannel" queue-name="exampleQueueName"
+      <programlisting language="xml"><![CDATA[ <int-jms:channel id="jmsChannel" queue-name="exampleQueueName"
               destination-resolver="customDestinationResolver"
               connection-factory="customConnectionFactory"/>]]></programlisting>
     </para>

@@ -44,7 +44,7 @@
   <section id="udp-adapters">
     <title>UDP Adapters</title>
     <para>
-      <programlisting language="xml"><![CDATA[ <ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[ <int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
@@ -62,7 +62,7 @@
       short the contain the packet, the packet can be truncated. The length header provides a mechanism to detect this.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[  <ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[  <int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
@@ -80,7 +80,7 @@
       must send an acknowledgment to the sender within a specified time.
     </para>
     <para>
-      <programlisting language="xml"><![CDATA[  <ip:udp-outbound-channel-adapter id="udpOut"
+      <programlisting language="xml"><![CDATA[  <int-ip:udp-outbound-channel-adapter id="udpOut"
     host="somehost"
     port="11111"
     multicast="false"
@@ -105,7 +105,7 @@
       For even more reliable networking, TCP can be used.
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[  <ip:udp-inbound-channel-adapter id="udpReceiver"
+    <programlisting language="xml"><![CDATA[  <int-ip:udp-inbound-channel-adapter id="udpReceiver"
     channel="udpOutChannel"
     port="11111"
     receive-buffer-size="500"
@@ -114,7 +114,7 @@
       A basic unicast inbound udp channel adapter.
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[  <ip:udp-inbound-channel-adapter id="udpReceiver"
+    <programlisting language="xml"><![CDATA[  <int-ip:udp-inbound-channel-adapter id="udpReceiver"
     channel="udpOutChannel"
     port="11111"
     receive-buffer-size="500"
@@ -176,7 +176,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-connection-factory id="server"
+  <int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
   />]]></programlisting>
@@ -185,7 +185,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-connection-factory id="server"
+  <int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
     using-nio="true"
@@ -195,7 +195,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-connection-factory id="client"
+  <int-ip:tcp-connection-factory id="client"
     type="client"
     host="localhost"
     port="1234"
@@ -207,7 +207,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-connection-factory id="client"
+  <int-ip:tcp-connection-factory id="client"
     type="client"
     host="localhost"
     port="1234"
@@ -309,7 +309,7 @@
   <bean id="javaDeserializer"
         class="org.springframework.core.serializer.DefaultDeserializer" />
 
-  <ip:tcp-connection-factory id="server"
+  <int-ip:tcp-connection-factory id="server"
     type="server"
     port="1234"
     deserializer="javaDeserializer"
@@ -497,7 +497,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-inbound-gateway id="inGateway"
+  <int-ip:tcp-inbound-gateway id="inGateway"
     request-channel="tcpChannel"
     reply-channel="replyChannel"
     connection-factory="cfServer"
@@ -509,7 +509,7 @@
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
-  <ip:tcp-outbound-gateway id="outGateway"
+  <int-ip:tcp-outbound-gateway id="outGateway"
     request-channel="tcpChannel"
     reply-channel="replyChannel"
     connection-factory="cfClient"

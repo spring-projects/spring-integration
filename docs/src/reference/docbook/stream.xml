@@ -62,7 +62,7 @@
   <para>
     To reduce the configuration needed for stream related channel adapters there is a namespace defined. The following schema locations are needed to use it.
     <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration/stream"
+<beans:beans xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:beans="http://www.springframework.org/schema/beans"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
@@ -72,19 +72,19 @@
   </para>
     <para>
     To configure the inbound channel adapter the following code snippet shows the different configuration options that are supported.
-    <programlisting language="xml"><![CDATA[<stdin-channel-adapter id="adapterWithDefaultCharset"/>
+    <programlisting language="xml"><![CDATA[<int-stream:stdin-channel-adapter id="adapterWithDefaultCharset"/>
 
-<stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>]]></programlisting>
+<int-stream:stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>]]></programlisting>
     </para>
     <para>
     To configure the outbound channel adapter you can use the namespace support as well. The following code snippet shows the different configuration for an outbound channel adapters.
-    <programlisting language="xml"><![CDATA[<stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel"/>
+    <programlisting language="xml"><![CDATA[<int-stream:stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel"/>
 
-<stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
+<int-stream:stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
 
-<stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
+<int-stream:stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
 
-<stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
+<int-stream:stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
     ]]></programlisting>
     </para>
   </section>

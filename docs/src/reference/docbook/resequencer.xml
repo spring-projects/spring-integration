@@ -32,11 +32,11 @@
 
     <para>A sample resequencer configuration is shown below.</para>
 
-    <programlisting language="xml"><![CDATA[<channel id="inputChannel"/>
+    <programlisting language="xml"><![CDATA[<int:channel id="inputChannel"/>
 
-<channel id="outputChannel"/>
+<int:channel id="outputChannel"/>
 
-<resequencer id="completelyDefinedResequencer" ]]><co id="resxml1-co"
+<int:resequencer id="completelyDefinedResequencer" ]]><co id="resxml1-co"
         linkends="resxml1" /><![CDATA[
   input-channel="inputChannel" ]]><co id="resxml2-co" linkends="resxml2" /><![CDATA[
   output-channel="outputChannel" ]]><co id="resxml3-co" linkends="resxml3" /><![CDATA[

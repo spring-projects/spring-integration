@@ -32,7 +32,7 @@
     convenient namespace-based configuration. 
     To configure the XMPP namespace, include the following elements in the headers of your XML configuration file:
     
-    <programlisting language="xml"><![CDATA[xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+    <programlisting language="xml"><![CDATA[xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp 
 	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp-2.0.xsd"]]></programlisting>
 	
@@ -48,7 +48,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
 
       To create a basic XMPP connection, you can utilize the convenience of the namespace.
 
-      <programlisting lang="xml"><![CDATA[<xmpp:xmpp-connection
+      <programlisting lang="xml"><![CDATA[<int-xmpp:xmpp-connection
   id="myConnection"
   user="user"
   password="password"
@@ -85,7 +85,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
         when configuring an adapter.
         Configuration support for the XMPP <emphasis>Inbound Message Channel Adapter</emphasis> is provided via the <code>inbound-channel-adapter</code> element.
         
-        <programlisting language="xml"><![CDATA[<xmpp:inbound-channel-adapter id="xmppInboundAdapter" 
+        <programlisting language="xml"><![CDATA[<int-xmpp:inbound-channel-adapter id="xmppInboundAdapter" 
 	channel="xmppInbound" 
 	xmpp-connection="testConnection" 
 	extract-payload="false" 

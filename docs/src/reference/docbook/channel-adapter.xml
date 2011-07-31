@@ -21,13 +21,13 @@
       poller will be scheduled with the <interfacename>TaskScheduler</interfacename> according to the provided
       configuration. To configure the polling interval or cron expression for an individual channel-adapter,
       provide a 'poller' element with one of the scheduling attributes, such as 'fixed-rate' or 'cron'.
-      <programlisting language="xml"><![CDATA[<inbound-channel-adapter ref="source1" method="method1" channel="channel1">
-    <poller fixed-rate="5000"/>
-</inbound-channel-adapter>
+      <programlisting language="xml"><![CDATA[<int:inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <int:poller fixed-rate="5000"/>
+</int:inbound-channel-adapter>
 
-<inbound-channel-adapter ref="source2" method="method2" channel="channel2">
-    <poller cron="30 * 9-17 * * MON-FRI"/>
-</channel-adapter>]]></programlisting>
+<int:inbound-channel-adapter ref="source2" method="method2" channel="channel2">
+    <int:poller cron="30 * 9-17 * * MON-FRI"/>
+</int:channel-adapter>]]></programlisting>
     </para>
     <note>
       <para>
@@ -45,16 +45,16 @@
     	</para>
     	<para>For example:
     	
-    	<programlisting language="xml"><![CDATA[<poller max-messages-per-poll="1" fixed-rate="1000"/>
+    	<programlisting language="xml"><![CDATA[<int:poller max-messages-per-poll="1" fixed-rate="1000"/>
 
-<poller max-messages-per-poll="10" fixed-rate="1000"/>]]></programlisting>
+<int:poller max-messages-per-poll="10" fixed-rate="1000"/>]]></programlisting>
 		In the the first configuration the polling task will be invoked once per poll and during such task (poll) 
 		the method (which results in the production of the Message) will be invoked once based on the 
 		<code>max-messages-per-poll</code> attribute value. In the second configuration the polling task will be invoked 
 		10 times per poll or until it returns 'null' thus possibly producing 10 Messages per poll while each poll happens 
 		at 1 second intervals.
 		However what if the configuration looks like this:
-		<programlisting language="xml"><![CDATA[<poller fixed-rate="1000"/>]]></programlisting>
+		<programlisting language="xml"><![CDATA[<int:poller fixed-rate="1000"/>]]></programlisting>
 		Note there is no <code>max-messages-per-poll</code> specified. As you'll learn later the identical poller configuration 
 		in the <classname>PollingConsumer</classname> (e.g., service-activator, filter, router etc.) would have a default 
 		value of -1 for <code>max-messages-per-poll</code> which means "execute poling task non-stop unless polling method 
@@ -71,7 +71,7 @@
     	However if you are sure that your method can return null and you need the behavior where you want to poll 
     	for as many sources as available per each poll, then you should explicitly set <code>max-messages-per-poll</code> 
     	to negative value.
-		<programlisting language="xml"><![CDATA[<poller max-messages-per-poll="-1" fixed-rate="1000"/>]]></programlisting>
+		<programlisting language="xml"><![CDATA[<int:poller max-messages-per-poll="-1" fixed-rate="1000"/>]]></programlisting>
 
     	</para>
     	
@@ -83,16 +83,16 @@
     <para>
       An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any POJO consumer
       method that should be invoked with the payload of Messages sent to that channel.
-      <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel1" ref="target" method="handle"/>
+      <programlisting language="xml"><![CDATA[<int:outbound-channel-adapter channel="channel1" ref="target" method="handle"/>
 
 <beans:bean id="target" class="org.Foo"/>]]>
 </programlisting>
 
       If the channel being adapted is a <interfacename>PollableChannel</interfacename>, provide a poller sub-element:
-        <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel2" ref="target" method="handle">
-    ]]><emphasis><![CDATA[<poller fixed-rate="3000"/>
+        <programlisting language="xml"><![CDATA[<int:outbound-channel-adapter channel="channel2" ref="target" method="handle">
+    ]]><emphasis><![CDATA[<int:poller fixed-rate="3000"/>
 ]]></emphasis><![CDATA[
-</outbound-channel-adapter>
+</int:outbound-channel-adapter>
 
 <beans:bean id="target" class="org.Foo"/>
 ]]></programlisting>
@@ -102,10 +102,10 @@
       in other <code>&lt;outbound-channel-adapter&gt;</code> definitions. However if the consumer implementation
       is only referenced by a single definition of the <code>&lt;outbound-channel-adapter&gt;</code>, you
       can define it as inner bean:
-        <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel" method="handle">
+        <programlisting language="xml"><![CDATA[<int:outbound-channel-adapter channel="channel" method="handle">
         <beans:bean class="org.Foo"/>
     ]]><![CDATA[
-</outbound-channel-adapter>
+</int:outbound-channel-adapter>
 ]]></programlisting>
     </para>
     <note>

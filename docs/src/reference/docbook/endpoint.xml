@@ -166,20 +166,20 @@ consumer.setTransactionManager(txManager);</programlisting>
       referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
       respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
       element's "poller" sub-element and its attributes. For example, a simple interval-based poller with a 1-second interval would be
-      configured like this: <programlisting language="xml"><![CDATA[ <transformer input-channel="pollable"
+      configured like this: <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
-     <poller fixed-rate="1000"/>
-</transformer>]]></programlisting>
+     <int:poller fixed-rate="1000"/>
+</int:transformer>]]></programlisting>
 	  As an alternative to 'fixed-rate' you can also use the 'fixed-delay' attribute.
 	  </para>
 	  <para>
       For a poller based on a Cron expression, use the "cron" attribute instead:
-      <programlisting language="xml"><![CDATA[ <transformer input-channel="pollable"
+      <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
-     <poller cron="*/10 * * * * MON-FRI"/>
- </transformer>]]></programlisting>
+     <int:poller cron="*/10 * * * * MON-FRI"/>
+ </int:transformer>]]></programlisting>
     </para>
     <para>
       If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
@@ -190,13 +190,13 @@ consumer.setTransactionManager(txManager);</programlisting>
      </para>
      <para> 
       It is also possible to create top-level pollers in which case only a "ref" is required:
-      <programlisting language="xml"><![CDATA[ <poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
+      <programlisting language="xml"><![CDATA[ <int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
    
- <transformer input-channel="pollable"
+ <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
-    <poller ref="weekdayPoller"/>
- </transformer>]]></programlisting>
+    <int:poller ref="weekdayPoller"/>
+ </int:transformer>]]></programlisting>
  	<note>
  	The "ref" attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level 
  	poller will result in a configuration exception thrown during initialization of the Application Context.
@@ -205,25 +205,25 @@ consumer.setTransactionManager(txManager);</programlisting>
       an ApplicationContext may have the <code>default</code> attribute with a value of "true". In that case, any
       endpoint with a PollableChannel for its input-channel that is defined within the same ApplicationContext and has
       no explicitly configured 'poller' sub-element will use that default.
-      <programlisting language="xml"><![CDATA[ <poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
+      <programlisting language="xml"><![CDATA[ <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
     
  <!-- No <poller/> sub-element is necessary since there is a default -->
- <transformer input-channel="pollable"
-              ref="transformer"
-              output-channel="output"/>]]></programlisting>
+ <int:transformer input-channel="pollable"
+                  ref="transformer"
+                  output-channel="output"/>]]></programlisting>
     </para>
     <para>
       Spring Integration also provides transaction support for the pollers so that each receive-and-forward
       operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply add the
       &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone who has
       experience with Spring's Transaction management:
-      <programlisting language="xml"><![CDATA[<poller fixed-delay="1000">
-    <transactional transaction-manager="txManager"
-                   propagation="REQUIRED"
-                   isolation="REPEATABLE_READ"
-                   timeout="10000"
-                   read-only="false"/>
-</poller>]]></programlisting> 
+      <programlisting language="xml"><![CDATA[<int:poller fixed-delay="1000">
+    <int:transactional transaction-manager="txManager"
+                       propagation="REQUIRED"
+                       isolation="REPEATABLE_READ"
+                       timeout="10000"
+                       read-only="false"/>
+</int:poller>]]></programlisting> 
 
 	</para>
 	<para>
@@ -234,16 +234,16 @@ consumer.setTransactionManager(txManager);</programlisting>
 	behavior of the message flow initiated by the poler, some times there is a need to provide extra Advice(s) to handle other 
 	cross cutting behavior associated with the poller. For that poller defines an 'advice-chain' element allowing you to add 
 	more advices - class that  implements <classname>MethodInterceptor</classname> interface.. 
-	<programlisting language="xml"><![CDATA[<service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
+	<programlisting language="xml"><![CDATA[<int:service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
-	<poller max-messages-per-poll="1" fixed-rate="10000">
-		<transactional transaction-manager="txManager" />
-		 <advice-chain>
+	<int:poller max-messages-per-poll="1" fixed-rate="10000">
+		<int:transactional transaction-manager="txManager" />
+		 <int:advice-chain>
 			<ref bean="adviceA" />
 			<beans:bean class="org.bar.SampleAdvice"/>
-		</advice-chain>
-	</poller>
-</service-activator>]]></programlisting> 
+		</int:advice-chain>
+	</int:poller>
+</int:service-activator>]]></programlisting> 
 For more information on how to implement MethodInterceptor please refer to AOP sections of Spring 
 reference manual (section 7 and 8). Advice chain can also be applied on the poller that does not have 
 any transaction configuration essentially allowing you to enhance the behavior of the message flow initiated by the poller.
@@ -258,7 +258,7 @@ any transaction configuration essentially allowing you to enhance the behavior o
       (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
       concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
       reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
-      <programlisting language="xml"><![CDATA[ <poller task-executor="pool" fixed-rate="1000"/>
+      <programlisting language="xml"><![CDATA[ <int:poller task-executor="pool" fixed-rate="1000"/>
     
  <task:executor id="pool"
                 pool-size="5-25"
@@ -280,11 +280,11 @@ any transaction configuration essentially allowing you to enhance the behavior o
         hand when using Spring Integration's own queue-based channels, the timeout value does have a chance to
         participate. The following example demonstrates how a Polling Consumer will receive Messages nearly
         instantaneously.
-      <programlisting language="xml"><![CDATA[ <service-activator input-channel="someQueueChannel"
+      <programlisting language="xml"><![CDATA[ <int:service-activator input-channel="someQueueChannel"
         output-channel="output">  
-     <poller receive-timeout="30000" fixed-rate="10"/>
+     <int:poller receive-timeout="30000" fixed-rate="10"/>
         
- </service-activator>]]></programlisting>
+ </int:service-activator>]]></programlisting>
       Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread
       which does not require nearly as much CPU resource usage as a thrashing, infinite while loop for example.
     </para>
@@ -333,7 +333,7 @@ any transaction configuration essentially allowing you to enhance the behavior o
 
       <programlisting language="xml"><![CDATA[<int:service-activator input-channel="publishChannel" ref="myService">
 		<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
-</si:service-activator>
+</int:service-activator>
 	
 <task:executor id="taskExecutor" pool-size="20" queue-capacity="20"/>]]></programlisting>
       

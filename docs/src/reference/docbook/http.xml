@@ -113,12 +113,12 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
     To configure an inbound http channel adapter which is an instance of <classname>HttpInboundEndpoint</classname> configured
     not to expect a response.
-    <programlisting language="xml"><![CDATA[<http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" 
+    <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" 
     supported-methods="PUT, DELETE"/>]]></programlisting>
     </para>
     <para>
     To configure an inbound http gateway which expects a response.
-    <programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" 
+    <programlisting language="xml"><![CDATA[ <int-http:inbound-gateway id="inboundGateway" 
     request-channel="requests" 
     reply-channel="responses"/>]]></programlisting>
     </para>
@@ -127,7 +127,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would only
     contain the status code (e.g. 200) as long as it's a successful status (non-successful status codes will throw Exceptions). If you are expecting a different
     type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
-    <programlisting language="xml"><![CDATA[<http:outbound-gateway id="example"
+    <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="example"
     request-channel="requests"
     url="http://localhost/test"
     http-method="POST"
@@ -141,7 +141,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   <para>If your outbound adapter is to be used in a unidirectional way, then you can use an outbound-channel-adapter instead. This means that
     a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
     status code, it will throw an exception. The configuration looks very similar to the gateway:
-    <programlisting language="xml"><![CDATA[<http:outbound-channel-adapter id="example"
+    <programlisting language="xml"><![CDATA[<int-http:outbound-channel-adapter id="example"
       url="http://localhost/example"
       http-method="GET"
       channel="requests"
@@ -159,13 +159,13 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in 
   <emphasis>Http Outbound Gateway</emphasis> configuration.
   
-  <programlisting language="xml"><![CDATA[<http:outbound-gateway id="trafficGateway"
+  <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="trafficGateway"
     url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}" 
 		              request-channel="trafficChannel" 
 		              http-method="GET" 
 		              expected-response-type="java.lang.String">
-		<http:uri-variable name="zipCode" expression="payload.getZip()"/>
-</http:outbound-gateway>]]></programlisting>
+		<int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
+</int-http:outbound-gateway>]]></programlisting>
   
   The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use 
   the <code>value</code> attribute for literal values, but if the value you are trying to inject is dynamic and requires 

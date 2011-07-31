@@ -58,13 +58,13 @@
       The &lt;chain&gt; element provides an <code>input-channel</code> attribute, and if the last element in the chain is capable
       of producing reply messages (optional), it also supports an <code>output-channel</code> attribute. The sub-elements are then
       filters, transformers, splitters, and service-activators. The last element may also be a router.
-      <programlisting language="xml"><![CDATA[ <chain input-channel="input" output-channel="output">
-     <filter ref="someSelector" throw-exception-on-rejection="true"/>
-     <header-enricher>
-         <header name="foo" value="bar"/>
-     </header-enricher>
-     <service-activator ref="someService" method="someMethod"/>
- </chain>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <int:chain input-channel="input" output-channel="output">
+     <int:filter ref="someSelector" throw-exception-on-rejection="true"/>
+     <int:header-enricher>
+         <int:header name="foo" value="bar"/>
+     </int:header-enricher>
+     <int:service-activator ref="someService" method="someMethod"/>
+ </int:chain>]]></programlisting>
     </para>
   <para>
     The &lt;header-enricher&gt; element used in the above example will set a message header named "foo" with a value
@@ -78,34 +78,34 @@
   back and continue execution within the original chain.
     To accomplish this you can utilize a Messaging Gateway by including a &lt;gateway&gt; element.
     For example:
-    <programlisting language="xml"><![CDATA[  <si:chain id="main-chain" input-channel="in" output-channel="out">
-    <si:header-enricher>
-      <si:header name="name" value="Many" />
-    </si:header-enricher>
-    <si:service-activator>
+    <programlisting language="xml"><![CDATA[  <int:chain id="main-chain" input-channel="in" output-channel="out">
+    <int:header-enricher>
+      <int:header name="name" value="Many" />
+    </int:header-enricher>
+    <int:service-activator>
       <bean class="org.foo.SampleService" />
-    </si:service-activator>
-    <si:gateway request-channel="inputA"/>  
-  </si:chain>
+    </int:service-activator>
+    <int:gateway request-channel="inputA"/>  
+  </int:chain>
 
-  <si:chain id="nested-chain-a" input-channel="inputA">
-    <si:header-enricher>
-      <si:header name="name" value="Moe" />
-    </si:header-enricher>
-    <si:gateway request-channel="inputB"/> 
-    <si:service-activator>
+  <int:chain id="nested-chain-a" input-channel="inputA">
+    <int:header-enricher>
+      <int:header name="name" value="Moe" />
+    </int:header-enricher>
+    <int:gateway request-channel="inputB"/> 
+    <int:service-activator>
       <bean class="org.foo.SampleService" />
-    </si:service-activator>
-  </si:chain>
+    </int:service-activator>
+  </int:chain>
 
-  <si:chain id="nested-chain-b" input-channel="inputB">
-    <si:header-enricher>
-      <si:header name="name" value="Jack" />
-    </si:header-enricher>
-    <si:service-activator>
+  <int:chain id="nested-chain-b" input-channel="inputB">
+    <int:header-enricher>
+      <int:header name="name" value="Jack" />
+    </int:header-enricher>
+    <int:service-activator>
       <bean class="org.foo.SampleService" />
-    </si:service-activator>
-  </si:chain>]]></programlisting>
+    </int:service-activator>
+  </int:chain>]]></programlisting>
 
     In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of
     <emphasis>main-chain</emphasis> processing by the 'gateway' element configured there. While in

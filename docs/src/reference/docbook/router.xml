@@ -33,10 +33,10 @@
       The example below demonstrates a <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using the namespace support:
       </para>
       <para>
-      <programlisting language="xml"><![CDATA[<payload-type-router input-channel="routingChannel">
-  <mapping type="java.lang.String" channel="stringChannel" />
-  <mapping type="java.lang.Integer" channel="integerChannel" />
-</payload-type-router>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:payload-type-router input-channel="routingChannel">
+  <int:mapping type="java.lang.String" channel="stringChannel" />
+  <int:mapping type="java.lang.Integer" channel="integerChannel" />
+</int:payload-type-router>]]></programlisting>
   </para>
     </section>
     <section id="router-implementations-headervaluerouter">
@@ -60,10 +60,10 @@
       </para>
       <para><emphasis>1. Configuration where mapping of header values to channels is required</emphasis> </para>
       <para>
-      <programlisting language="xml"><![CDATA[<header-value-router input-channel="routingChannel" header-name="testHeader">
-  <mapping value="someHeaderValue" channel="channelA" />
-  <mapping value="someOtherHeaderValue" channel="channelB" />
-</header-value-router>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader">
+  <int:mapping value="someHeaderValue" channel="channelA" />
+  <int:mapping value="someOtherHeaderValue" channel="channelB" />
+</int:header-value-router>]]></programlisting>
   </para>
   <para>
   During the resolution process this router may encounter channel resolution failures, causing an
@@ -78,7 +78,7 @@
   <para> <emphasis>2. Configuration where mapping of header values to channel names 
   is not required since header values themselves represent channel names</emphasis> </para>
       <para>
-      <programlisting language="xml"><![CDATA[<header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
   </para>
   
   <note>
@@ -112,13 +112,13 @@
       as the example below demonstrates.
       </para>
       <para>
-      <programlisting language="xml"><![CDATA[<recipient-list-router id="customRouter" input-channel="routingChannel"
+      <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel"
         timeout="1234"
         ignore-send-failures="true"
         apply-sequence="true">
-  <recipient channel="channel1"/>
-  <recipient channel="channel2"/>
-</recipient-list-router>]]></programlisting>
+  <int:recipient channel="channel1"/>
+  <int:recipient channel="channel2"/>
+</int:recipient-list-router>]]></programlisting>
   </para>
   <note>
       The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel,
@@ -176,24 +176,24 @@
     The "router" element provides a simple way to connect a router to an input channel and also accepts the
       optional <code>default-output-channel</code> attribute. The <code>ref</code> attribute references the bean name of a custom Router implementation
       (extending <classname>AbstractMessageRouter</classname>):
-      <programlisting language="xml"><![CDATA[<router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
+      <programlisting language="xml"><![CDATA[<int:router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
 
-<router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>
+<int:router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>
 
-<router ref="customRouter" input-channel="input3" default-output-channel="defaultOutput3"/>
+<int:router ref="customRouter" input-channel="input3" default-output-channel="defaultOutput3"/>
 
 <beans:bean id="customRouterBean class="org.foo.MyCustomRouter"/>]]></programlisting>
 
       Alternatively, <code>ref</code> may point to a simple POJO that contains the @Router annotation (see below), or the
       <code>ref</code> may be combined with an explicit <code>method</code> name. Specifying a <code>method</code> applies the same behavior 
       described in the @Router annotation section below.
-      <programlisting language="xml"><![CDATA[<router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[<int:router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
       Using a <code>ref</code> attribute is generally recommended if the custom router implementation is referenced in other
       <code>&lt;router&gt;</code> definitions. However if the custom router implementation should be scoped to a
       single definition of the <code>&lt;router&gt;</code>, you may provide an inner bean definition:
-<programlisting language="xml"><![CDATA[<router method="someMethod" input-channel="input3" default-output-channel="defaultOutput3">
+<programlisting language="xml"><![CDATA[<int:router method="someMethod" input-channel="input3" default-output-channel="defaultOutput3">
   <beans:bean class="org.foo.MyCustomRouter"/>
-</router>]]></programlisting>
+</int:router>]]></programlisting>
     </para>
     <note>
       <para>
@@ -343,10 +343,10 @@ public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</prog
     <emphasis>Payload Type Router</emphasis>
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[<payload-type-router input-channel="routingChannel">
-  <mapping type="java.lang.String" channel="channel1" />
-  <mapping type="java.lang.Integer" channel="channel2" />
-</payload-type-router>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int:payload-type-router input-channel="routingChannel">
+  <int:mapping type="java.lang.String"  channel="channel1" />
+  <int:mapping type="java.lang.Integer" channel="channel2" />
+</int:payload-type-router>]]></programlisting>
     </para>
     <para>
     Within the context of the Payload Type Router the 3 steps mentioned above would be realized as:
@@ -373,10 +373,10 @@ public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</prog
     <emphasis>Header Value Router</emphasis>
     </para>
     <para>
-    <programlisting language="xml"><![CDATA[<header-value-router input-channel="inputChannel" header-name="testHeader">
-  <mapping value="foo" channel="fooChannel" />
-  <mapping value="bar" channel="barChannel" />
-</header-value-router>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">
+  <int:mapping value="foo" channel="fooChannel" />
+  <int:mapping value="bar" channel="barChannel" />
+</int:header-value-router>]]></programlisting>
     </para>
     <para>
     Similar to the PayloadTypeRouter:
@@ -402,7 +402,7 @@ public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</prog
     The above two configurations of two different router types look almost identical.
     However if we look at the alternate configuration of the <classname>HeaderValueRouter</classname> we clearly see that
     there is no <code>mapping</code> sub element:
-    <programlisting language="xml"><![CDATA[<header-value-router input-channel="inputChannel" header-name="testHeader">]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">]]></programlisting>
     But the configuration is still perfectly valid. So the natural question is what about the mapping in the Step 2?
     </para>
     <para>

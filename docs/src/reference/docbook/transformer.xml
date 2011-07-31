@@ -38,7 +38,7 @@
       and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
       @Transformer annotation on a single method (see below) or it may be combined with an explicit method name value
       provided via the "method" attribute.
-      <programlisting language="xml"><![CDATA[<transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel"
+      <programlisting language="xml"><![CDATA[<int:transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel"
              method="transform" output-channel="outChannel"/>
 <beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />]]></programlisting>
     </para>
@@ -46,7 +46,7 @@
       Using a "ref" attribute is generally recommended if the custom transformer handler implementation can be reused in
       other <code>&lt;transformer&gt;</code> definitions. However if the custom transformer handler implementation should
       be scoped to a single definition of the <code>&lt;transformer&gt;</code>, you can define an inner bean definition:
-<programlisting language="xml"><![CDATA[<transformer id="testTransformer" input-channel="inChannel" method="transform"
+<programlisting language="xml"><![CDATA[<int:transformer id="testTransformer" input-channel="inChannel" method="transform"
                 output-channel="outChannel">
   <beans:bean class="org.foo.TestTransformer"/>
 </transformer>]]></programlisting>
@@ -101,7 +101,7 @@
     <classname>ObjectToStringTransformer</classname> whose output is a Message with a String payload. That String
     is the result of invoking the toString() operation on the inbound Message's payload.
 
-    <programlisting language="xml"><![CDATA[ <object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[ <int:object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
 
     A potential example for this would be sending some arbitrary object to the 'outbound-channel-adapter' in the
     <emphasis>file</emphasis> namespace. Whereas that Channel Adapter only supports String, byte-array, or
@@ -120,9 +120,9 @@
     by default, but you can provide an implementation of Spring 3.0's Serializer or Deserializer strategies via the
     'serializer' and 'deserializer' attributes, respectively.
 
-      <programlisting language="xml"><![CDATA[ <payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
+      <programlisting language="xml"><![CDATA[ <int:payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
- <payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
+ <int:payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
   </para>
     <para>
     <emphasis>Object-to-Map Transformer</emphasis>
@@ -171,7 +171,7 @@ public class Kid {
     <para>
     To configure these transformers, Spring Integration provides namespace support
     Object-to-Map:
-<programlisting language="xml"><![CDATA[<object-to-map-transformer input-channel="directInput" output-channel="output"/>]]></programlisting>
+<programlisting language="xml"><![CDATA[<int:object-to-map-transformer input-channel="directInput" output-channel="output"/>]]></programlisting>
     Map-to-Object
 <programlisting language="xml"><![CDATA[<int:map-to-object-transformer input-channel="input" 
                          output-channel="output" 

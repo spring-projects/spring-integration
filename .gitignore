@@ -20,3 +20,4 @@ spring-integration-jms/activemq-data/
 spring-integration-samples/loanshark/application.log*
 target
 build.log
+.DS_Store
