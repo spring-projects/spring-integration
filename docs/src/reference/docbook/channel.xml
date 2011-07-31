@@ -17,6 +17,8 @@
 
     boolean send(Message message, long timeout);
 }]]></programlisting>
+    </para>
+    <para>
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>.
     </para>
@@ -34,6 +36,8 @@
     Message&lt;?&gt; receive(long timeout);
 
 }</programlisting>
+      </para>
+      <para>
         Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
         case of a timeout or interrupt.
       </para>
@@ -87,6 +91,8 @@
         Message sent to that channel. It provides a default no-argument constructor (providing an essentially unbounded
         capacity of <code>Integer.MAX_VALUE</code>) as well as a constructor that accepts the queue capacity:
         <programlisting language="java">public QueueChannel(int capacity)</programlisting>
+      </para>
+      <para>
         A channel that has not reached its capacity limit will store messages in its internal queue, and the
         <methodname>send()</methodname> method will return immediately even if no receiver is ready to handle the
         message. If the queue has reached capacity, then the sender will block until room is available. Or, if using
@@ -349,6 +355,8 @@
       <programlisting language="java">MessagingTemplate template = new MessagingTemplate();
 
 Message reply = template.sendAndReceive(someChannel, new GenericMessage("test"));</programlisting>
+    </para>
+    <para>
       In that example, a temporary anonymous channel would be created internally by the template. The
       'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange
       types are also supported.
@@ -424,7 +432,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	      channel element's <literal>datatype</literal> attribute:
 	      
 	      <programlisting language="xml"><![CDATA[<int:channel id="numberChannel" datatype="java.lang.Number"/>]]></programlisting>
-	      
+        </para>
+        <para>	      
 	      Note that the type check passes for any type that is <emphasis>assignable</emphasis> to the channel's
 	      datatype. In other words, the "numberChannel" above would accept messages whose payload is
 	      <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
@@ -440,29 +449,34 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	    </para>
 	    <para>
 	    You can even register custom converters. For example, let's say you are sending a Message with a String payload to the 'numberChannel' we configured above.
-		<programlisting language="java"><![CDATA[
-MessageChannel inChannel = context.getBean("numberChannel", MessageChannel.class);
-inChannel.send(new GenericMessage<String>("5"));
-		]]></programlisting> 
-		
+		<programlisting language="java"><![CDATA[MessageChannel inChannel = context.getBean("numberChannel", MessageChannel.class);
+inChannel.send(new GenericMessage<String>("5"));]]></programlisting> 
+        </para>
+        <para>		
         Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation would generate an exception:
 
-		<programlisting language="java"><![CDATA[
-Exception in thread "main" org.springframework.integration.MessageDeliveryException: Channel 'numberChannel' 
-expected one of the following datataypes [class java.lang.Number], but received [class java.lang.String]
-. . .
-		]]></programlisting> 
+		<programlisting language="java"><![CDATA[Exception in thread "main" org.springframework.integration.MessageDeliveryException: 
+Channel 'numberChannel' 
+expected one of the following datataypes [class java.lang.Number], 
+but received [class java.lang.String]
+…]]></programlisting>
+        </para>
+        <para>
 		And rightfully so since we are requiring the payload type to be a Number while sending a String. So we need something to convert String to a Number.
 All we need to do is implement a Converter.
 <programlisting language="java"><![CDATA[public static class StringToIntegerConverter implements Converter<String, Integer> {
 	public Integer convert(String source) {
 		return Integer.parseInt(source);
 	}	
-}]]></programlisting> 
+}]]></programlisting>
+        </para>
+        <para>
 Then, register it as a Converter with the Integration Conversion Service:
 <programlisting language="java"><![CDATA[<int:converter ref="strToInt"/>
 	
 <bean id="strToInt" class="org.springframework.integration.util.Demo.StringToIntegerConverter"/>]]></programlisting>
+        </para>
+        <para>
 When the 'converter' element is parsed, it will create the "integrationConversionService" bean on-demand if one is not already defined.
 With that Converter in place, the send operation would now be successful since the Datatype Channel will use that Converter to convert the String
 payload to an Integer.
