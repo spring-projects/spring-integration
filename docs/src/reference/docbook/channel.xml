@@ -370,12 +370,12 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <title>Configuring Message Channels</title>
     <para>
       To create a Message Channel instance, you can use the &lt;channel/&gt; element:
-      <programlisting language="xml">&lt;channel id="exampleChannel"/&gt;</programlisting>
+      <programlisting language="xml">&lt;int:channel id="exampleChannel"/&gt;</programlisting>
     </para>
     <para>
       The default channel type is <emphasis>Point to Point</emphasis>. To create a
       <emphasis>Publish Subscribe</emphasis> channel, use the &lt;publish-subscribe-channel/&gt; element:
-      <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
+      <programlisting language="xml">&lt;int:publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
     </para>
     <para>
       When using the &lt;channel/&gt; element without any sub-elements, it will create a <classname>DirectChannel</classname>
@@ -390,20 +390,20 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <title>DirectChannel Configuration</title>
       <para>
         As mentioned above, <classname>DirectChannel</classname> is the default type.
-        <programlisting language="xml"><![CDATA[<channel id="directChannel"/>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:channel id="directChannel"/>]]></programlisting>
       </para>
       <para>
         A default channel will have a <emphasis>round-robin</emphasis> load-balancer and will also have
         failover enabled (See the discussion in <xref linkend="channel-implementations-directchannel"/>
         for more detail). To disable one or both of these, add a &lt;dispatcher/&gt; sub-element and
         configure the attributes:
-        <programlisting language="xml"><![CDATA[<channel id="failFastChannel">
+        <programlisting language="xml"><![CDATA[<int:channel id="failFastChannel">
     <dispatcher failover="false"/>
 </channel>
 
-<channel id="channelWithFixedOrderSequenceFailover">
-    <dispatcher load-balancer="none"/>
-</channel>
+<int:channel id="channelWithFixedOrderSequenceFailover">
+    <int:dispatcher load-balancer="none"/>
+</int:channel>
 ]]></programlisting>
       </para>
     </section>
@@ -429,7 +429,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	      datatype. In other words, the "numberChannel" above would accept messages whose payload is
 	      <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
 	      provided as a comma-delimited list:
-	      <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting>
+	      <programlisting language="xml"><![CDATA[<int:channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting>
 	    </para>
 	    <para>
 	    So the 'numberChannel' above will only accept Messages with a data-type of <classname>java.lang.Number</classname>. But what happens
@@ -441,14 +441,14 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	    <para>
 	    You can even register custom converters. For example, let's say you are sending a Message with a String payload to the 'numberChannel' we configured above.
 		<programlisting language="java"><![CDATA[
-MessageChannel inChannel = context.getBean("inChannel", MessageChannel.class);
+MessageChannel inChannel = context.getBean("numberChannel", MessageChannel.class);
 inChannel.send(new GenericMessage<String>("5"));
 		]]></programlisting> 
 		
         Typically this would be a perfectly legal operation, however since we are using Datatype Channel the result of such operation would generate an exception:
 
 		<programlisting language="java"><![CDATA[
-Exception in thread "main" org.springframework.integration.MessageDeliveryException: Channel 'inChannel' 
+Exception in thread "main" org.springframework.integration.MessageDeliveryException: Channel 'numberChannel' 
 expected one of the following datataypes [class java.lang.Number], but received [class java.lang.String]
 . . .
 		]]></programlisting> 
@@ -474,9 +474,9 @@ payload to an Integer.
       <para>
         To create a <classname>QueueChannel</classname>, use the &lt;queue/&gt; sub-element.
         You may specify the channel's capacity:
-        <programlisting language="xml">&lt;channel id="queueChannel"&gt;
+        <programlisting language="xml">&lt;int:channel id="queueChannel"&gt;
     &lt;queue capacity="25"/&gt;
-&lt;/channel&gt;</programlisting>
+&lt;/int:channel&gt;</programlisting>
         <note>
           If you do not provide a value for the 'capacity' attribute on this &lt;queue/&gt; sub-element,
           the resulting queue will be unbounded. To avoid issues such as OutOfMemoryErrors, it is highly
@@ -534,14 +534,14 @@ payload to an Integer.
         To create a <classname>PublishSubscribeChannel</classname>, use the &lt;publish-subscribe-channel/&gt; element.
         When using this element, you can also specify the <code>task-executor</code> used for publishing
         Messages (if none is specified it simply publishes in the sender's thread):
-        <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/&gt;</programlisting>
+        <programlisting language="xml">&lt;int:publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/&gt;</programlisting>
         If you are providing a <emphasis>Resequencer</emphasis> or <emphasis>Aggregator</emphasis> downstream
         from a <classname>PublishSubscribeChannel</classname>, then you can set the 'apply-sequence' property
         on the channel to <code>true</code>. That will indicate that the channel should set the sequence-size
         and sequence-number Message headers as well as the correlation id prior to passing the Messages along.
         For example, if there are 5 subscribers, the sequence-size would be set to 5, and the Messages would
         have sequence-number header values ranging from 1 to 5.
-        <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" apply-sequence="true"/&gt;</programlisting>
+        <programlisting language="xml">&lt;int:publish-subscribe-channel id="pubsubChannel" apply-sequence="true"/&gt;</programlisting>
         <note>
           The <code>apply-sequence</code> value is <code>false</code> by default so that a Publish Subscribe Channel
           can send the exact same Message instances to multiple outbound channels. Since Spring Integration
@@ -561,36 +561,36 @@ payload to an Integer.
         between sender and receiver so that any active transaction context will not be shared by the invocation
         of the handler (i.e. the handler may throw an Exception, but the send invocation has already returned
         successfully).
-        <programlisting language="xml"><![CDATA[<channel id="executorChannel">
-    <dispatcher task-executor="someExecutor"/>
-</channel>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:channel id="executorChannel">
+    <int:dispatcher task-executor="someExecutor"/>
+</int:channel>]]></programlisting>
       </para>
       <note>
         The <code>load-balancer</code> and <code>failover</code> options are also both available on the &lt;dispatcher/&gt; sub-element
         as described above in <xref linkend="channel-configuration-directchannel"/>. The same defaults
         apply as well. So, the channel will have a round-robin load-balancing strategy with failover
         enabled unless explicit configuration is provided for one or both of those attributes.
-        <programlisting language="xml"><![CDATA[<channel id="executorChannelWithoutFailover">
-    <dispatcher task-executor="someExecutor" failover="false"/>
-</channel>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:channel id="executorChannelWithoutFailover">
+    <int:dispatcher task-executor="someExecutor" failover="false"/>
+</int:channel>]]></programlisting>
       </note>
     </section>
     <section id="channel-configuration-prioritychannel">
       <title>PriorityChannel Configuration</title>
       <para>
         To create a <classname>PriorityChannel</classname>, use the &lt;priority-queue/&gt; sub-element:
-        <programlisting language="xml"><![CDATA[<channel id="priorityChannel">
-    <priority-queue capacity="20"/>
-</channel>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:channel id="priorityChannel">
+    <int:priority-queue capacity="20"/>
+</int:channel>]]></programlisting>
         By default, the channel will consult the <classname>MessagePriority</classname> header of the
         message. However, a custom <interfacename>Comparator</interfacename> reference may be
         provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
         does support the <code>datatype</code> attribute. As with the QueueChannel, it also supports a <code>capacity</code> attribute.
         The following example demonstrates all of these:
-        <programlisting language="xml"><![CDATA[<channel id="priorityChannel" datatype="example.Widget">
-    <priority-queue comparator="widgetComparator"
+        <programlisting language="xml"><![CDATA[<int:channel id="priorityChannel" datatype="example.Widget">
+    <int:priority-queue comparator="widgetComparator"
                     capacity="10"/>
-</channel>
+</int:channel>
 ]]></programlisting>
       </para>
     </section>
@@ -601,9 +601,9 @@ payload to an Integer.
         a &lt;rendezvous-queue&gt;. It does not provide any additional configuration options to
         those described above, and its queue does not accept any capacity value since it is a
         0-capacity direct handoff queue.
-        <programlisting language="xml"><![CDATA[<channel id="rendezvousChannel"/>
-    <rendezvous-queue/>
-</channel>
+        <programlisting language="xml"><![CDATA[<int:channel id="rendezvousChannel"/>
+    <int:rendezvous-queue/>
+</int:channel>
 ]]></programlisting>
       </para>
     </section>
@@ -611,7 +611,7 @@ payload to an Integer.
       <title>Scoped Channel Configuration</title>
       <para>
         Any channel can be configured with a "scope" attribute.
-        <programlisting language="xml"><![CDATA[<channel id="threadLocalChannel" scope="thread"/>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:channel id="threadLocalChannel" scope="thread"/>]]></programlisting>
       </para>
     </section>
 
@@ -622,11 +622,11 @@ payload to an Integer.
         &lt;interceptors/&gt; sub-element can be added within &lt;channel/&gt; (or the more specific element
         types). Provide the <code>ref</code> attribute to reference any Spring-managed object that implements the
         <interfacename>ChannelInterceptor</interfacename> interface:
-        <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
-    ]]><emphasis><![CDATA[<interceptors>
+        <programlisting language="xml"><![CDATA[<int:channel id="exampleChannel">
+    ]]><emphasis><![CDATA[<int:interceptors>
         <ref bean="trafficMonitoringInterceptor"/>
-    </interceptors>]]></emphasis><![CDATA[
-</channel>]]></programlisting>
+    </int:interceptors>]]></emphasis><![CDATA[
+</int:channel>]]></programlisting>
         In general, it is a good idea to define the interceptor implementations in a separate location since they
         usually provide common behavior that can be reused across multiple channels.
       </para>
@@ -688,13 +688,13 @@ payload to an Integer.
     As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
     the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an &lt;interceptors/&gt; element. 
     This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
-    Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <channel id="in">
-     <interceptors>
-         <wire-tap channel="logger"/>
-     </interceptors>
- </channel>
+    Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <int:channel id="in">
+     <int:interceptors>
+         <int:wire-tap channel="logger"/>
+     </int:interceptors>
+ </int:channel>
 
- <logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
+ <int:logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
         <tip>
       The 'logging-channel-adapter' also accepts an 'expression' attribute so that you can evaluate           
       a SpEL expression against 'payload' and/or 'headers' variables. Alternatively, to simply log   
