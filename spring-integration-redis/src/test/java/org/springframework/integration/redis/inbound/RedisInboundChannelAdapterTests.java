@@ -38,7 +38,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
 		int numToTest = 100;
-		String redisChannelName = "si.test.channel";
+		String redisChannelName = "testRedisInboundChannelAdapterChannel";
 		QueueChannel channel = new QueueChannel();
 
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
@@ -46,7 +46,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		connectionFactory.afterPropertiesSet();
 
 		RedisInboundChannelAdapter adapter = new RedisInboundChannelAdapter(connectionFactory);
-		adapter.setTopics("si.test.channel");
+		adapter.setTopics("testRedisInboundChannelAdapterChannel");
 		adapter.setOutputChannel(channel);
 		adapter.afterPropertiesSet();
 		adapter.start();
