@@ -163,8 +163,8 @@
 		<int:mapping exception-type="java.lang.NullPointerException" channel="npeChannel"/>
 </int:exception-type-router>
 
-<channel id="illegalChannel" />
-<channel id="npeChannel" />]]></programlisting>
+<int:channel id="illegalChannel" />
+<int:channel id="npeChannel" />]]></programlisting>
   	</para>
   </section>
 

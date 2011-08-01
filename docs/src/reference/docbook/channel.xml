@@ -406,7 +406,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         for more detail). To disable one or both of these, add a &lt;dispatcher/&gt; sub-element and
         configure the attributes:
         <programlisting language="xml"><![CDATA[<int:channel id="failFastChannel">
-    <dispatcher failover="false"/>
+    <int:dispatcher failover="false"/>
 </channel>
 
 <int:channel id="channelWithFixedOrderSequenceFailover">
