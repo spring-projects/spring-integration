@@ -16,9 +16,6 @@
 
 package org.springframework.integration.redis.config;
 
-import static junit.framework.Assert.assertEquals;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
@@ -32,6 +29,8 @@ import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky

@@ -57,6 +57,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 			redisTemplate.convertAndSend(redisChannelName, "test-" + i);
 		}
 		int counter = 0;
+		Thread.sleep(2000);
 		for (int i = 0; i < numToTest; i++) {
 			Message<?> message = channel.receive(5000);
 			assertNotNull(message);
