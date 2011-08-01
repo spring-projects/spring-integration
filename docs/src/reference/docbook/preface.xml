@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preface xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0" xml:id="preface">
+  <title>Preface</title>
+ 
+	<section id="code-conventions">
+		<title>Code Conventions</title>
+		<para>
+		The Spring Framework 2.0 introduced support for namespaces, which 
+		simplifies the Xml configuration of the application context, and consequently 
+		Spring Integration provides broad namespace support. This reference guide 
+		applies the following conventions for all code examples that use namespace 
+		support: 
+		</para>
+		<para>
+		The <emphasis role="bold">int</emphasis> namespace prefix will be used for 
+		Spring Integration's core namespace support. Each Spring Integration adapter 
+		type (module) will provide its own namespace, which is configured using the
+		following convention:
+        </para>
+        <para>		
+			<emphasis role="bold">int-</emphasis> followed by the name of the module, e.g. 
+			<emphasis role="bold">int-twitter</emphasis>, 
+			<emphasis role="bold">int-stream</emphasis>, …
+			
+			<programlisting  language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
+  xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+  xsi:schemaLocation="
+   http://www.springframework.org/schema/beans 
+   http://www.springframework.org/schema/beans/spring-beans.xsd
+   http://www.springframework.org/schema/integration 
+   http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+   http://www.springframework.org/schema/integration/twitter 
+   http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd  
+   http://www.springframework.org/schema/integration/stream 
+   http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+…
+</beans>]]></programlisting>
+		</para>
+        <para>      
+		For a detailed explanation regarding Spring Integration's namespace support
+		see <emphasis><xref linkend="configuration-namespace"/></emphasis>.
+		<note>
+		   Please note that the namespace prefix can be freely chosen. You may 
+		   even choose not to use any namespace prefixes at all. Therefore, 
+		   apply the convention that suits your application needs best. Be aware, 
+		   though, that SpringSource Tool Suite™ (STS) uses the same namespace 
+		   conventions for Spring Integration as used in this reference guide. 
+		</note>
+		</para>
+		
+	</section>
+</preface>

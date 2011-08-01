@@ -64,6 +64,8 @@
 
   <toc></toc>
  
+  <xi:include href="./preface.xml"/>
+ 
   <part id="whats-new-in-2-part">
     <title>What's new in Spring Integration 2.0</title>
     <partintro id="spring-integration-intro">
