@@ -16,25 +16,26 @@
 
 package org.springframework.integration.mongodb.store;
 
-import org.junit.Ignore;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import org.springframework.integration.Message;
+import org.springframework.integration.mongodb.rules.MongodbAvailable;
+import org.springframework.integration.mongodb.rules.MongodbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class MongoMessageStoreTests {
+public class MongoMessageStoreTests extends MongodbAvailableTests{
 
-	@Test @Ignore
+	@Test 
+	@MongodbAvailable
 	public void addGetWithStringPayload() throws Exception {
-		Mongo mongo = new Mongo();
+		Mongo mongo = new Mongo();		
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");
 		Message<?> message = MessageBuilder.withPayload("Hello").build();
 		System.out.println(message);
@@ -43,7 +44,8 @@ public class MongoMessageStoreTests {
 	}
 	
 	
-	@Test @Ignore
+	@Test 
+	@MongodbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
 		Mongo mongo = new Mongo();
 		MongoMessageStore store = new MongoMessageStore(mongo, "test");
@@ -56,7 +58,6 @@ public class MongoMessageStoreTests {
 		store.addMessage(message);
 		Message<?> m =  store.getMessage(message.getHeaders().getId());
 		assertNotNull(m);
-		//assertEquals("John", m.getPayload().getFname());
 	}
 	
 	public static class Person{
