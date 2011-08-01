@@ -58,7 +58,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		}
 		int counter = 0;
 		for (int i = 0; i < numToTest; i++) {
-			Message<?> message = channel.receive(1000);
+			Message<?> message = channel.receive(5000);
 			assertNotNull(message);
 			assertTrue(message.getPayload().toString().startsWith("test-"));
 			counter++;
