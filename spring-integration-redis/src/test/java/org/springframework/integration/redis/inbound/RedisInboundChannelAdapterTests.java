@@ -16,24 +16,26 @@
 
 package org.springframework.integration.redis.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
  * @since 2.1
  */
-public class RedisInboundChannelAdapterTests {
+public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
 		int numToTest = 100;
 		String redisChannelName = "si.test.channel";

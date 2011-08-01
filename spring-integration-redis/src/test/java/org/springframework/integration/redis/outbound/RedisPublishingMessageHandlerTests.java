@@ -16,13 +16,10 @@
 
 package org.springframework.integration.redis.outbound;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -30,15 +27,20 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Mark Fisher
  * @since 2.1
  */
-public class RedisPublishingMessageHandlerTests {
+public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void testRedisPublishingMessageHandler() throws Exception {
 		int numToTest = 100;
 		String topic = "si.test.channel";

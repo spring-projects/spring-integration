@@ -15,9 +15,6 @@
  */
 package org.springframework.integration.redis.config;
 
-import static junit.framework.Assert.assertEquals;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -27,15 +24,20 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.test.util.TestUtils;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-public class RedisChannelParserTests {
+public class RedisChannelParserTests extends RedisAvailableTests{
 	
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void testPubSubChannelConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
@@ -46,7 +48,7 @@ public class RedisChannelParserTests {
 	}
 
 	@Test
-	@Ignore 
+	@RedisAvailable
 	public void testPubSubChannelUsage(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);

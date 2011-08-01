@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.redis.channel;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
@@ -23,6 +22,8 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -31,9 +32,11 @@ import static org.mockito.Mockito.verify;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class SubscribableRedisChannelTests {
+public class SubscribableRedisChannelTests extends RedisAvailableTests{
+	
 
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void pubSubChanneTest() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);
@@ -49,7 +52,7 @@ public class SubscribableRedisChannelTests {
 		channel.send(new GenericMessage<String>("1"));
 		channel.send(new GenericMessage<String>("2"));
 		channel.send(new GenericMessage<String>("3"));
-		Thread.sleep(100);
+		Thread.sleep(1000);
 		verify(handler, times(3)).handleMessage(Mockito.any(Message.class));
 	}
 }

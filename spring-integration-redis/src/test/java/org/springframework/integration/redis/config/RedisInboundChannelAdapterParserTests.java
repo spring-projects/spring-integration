@@ -27,6 +27,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,12 +39,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RedisInboundChannelAdapterParserTests {
+public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Autowired
 	private ApplicationContext context;
 
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void validateConfiguration() {
 		RedisInboundChannelAdapter adapter = context.getBean("adapter", RedisInboundChannelAdapter.class);
 		assertEquals("adapter", adapter.getComponentName());
@@ -54,7 +57,8 @@ public class RedisInboundChannelAdapterParserTests {
 		assertEquals(converterBean, accessor.getPropertyValue("messageConverter"));
 	}
 
-	@Test @Ignore
+	@Test 
+	@RedisAvailable
 	public void testInboundChannelAdapterMessaging() {
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);
