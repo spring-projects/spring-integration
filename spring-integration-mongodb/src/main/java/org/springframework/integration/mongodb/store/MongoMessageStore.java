@@ -125,13 +125,6 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 				target.put("_payloadType", payloadType);
 				target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
 			}
-			
-//			// TODO: fix this (the base class should handle it via converters?)
-//			if (source instanceof UUID) {
-//				System.out.println("Converting to UUID");
-//				target.put("uuid", ((UUID)source).toString());
-//			}
-			
 			super.write(source, target);
 		}
 
