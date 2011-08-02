@@ -16,6 +16,9 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -26,8 +29,6 @@ import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -41,14 +42,14 @@ public class MongoMessageStoreTests extends MongoDbAvailableTests{
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
-		//System.out.println("before: " + messageToStore);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
-		//System.out.println("after: " + retrievedMessage);
 		assertNotNull(retrievedMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(messageToStore, retrievedMessage);
 	}
-	
-	
+
 	@Test 
 	@MongoDbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
@@ -58,11 +59,12 @@ public class MongoMessageStoreTests extends MongoDbAvailableTests{
 		p.setFname("John");
 		p.setLname("Doe");
 		Message<?> messageToStore = MessageBuilder.withPayload(p).build();
-		//System.out.println("before: " + messageToStore);
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
-		//System.out.println("after: " + retrievedMessage);
 		assertNotNull(retrievedMessage);
+		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
+		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
+		assertEquals(messageToStore, retrievedMessage);
 	}
 
 
@@ -86,6 +88,46 @@ public class MongoMessageStoreTests extends MongoDbAvailableTests{
 
 		public void setLname(String lname) {
 			this.lname = lname;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((fname == null) ? 0 : fname.hashCode());
+			result = prime * result + ((lname == null) ? 0 : lname.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Person other = (Person) obj;
+			if (fname == null) {
+				if (other.fname != null) {
+					return false;
+				}
+			}
+			else if (!fname.equals(other.fname)) {
+				return false;
+			}
+			if (lname == null) {
+				if (other.lname != null) {
+					return false;
+				}
+			}
+			else if (!lname.equals(other.lname)) {
+				return false;
+			}
+			return true;
 		}
 	}
 
