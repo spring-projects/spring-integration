@@ -60,6 +60,9 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		Thread.sleep(2000);
 		for (int i = 0; i < numToTest; i++) {
 			Message<?> message = channel.receive(5000);
+			if (message == null){
+				throw new RuntimeException("Failed to receive message # " + i);
+			}
 			assertNotNull(message);
 			assertTrue(message.getPayload().toString().startsWith("test-"));
 			counter++;
