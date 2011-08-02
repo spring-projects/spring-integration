@@ -21,8 +21,8 @@ import org.junit.Test;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
-import org.springframework.integration.mongodb.rules.MongodbAvailable;
-import org.springframework.integration.mongodb.rules.MongodbAvailableTests;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
+import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
@@ -33,10 +33,10 @@ import static org.junit.Assert.assertNotNull;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class MongoMessageStoreTests extends MongodbAvailableTests{
+public class MongoMessageStoreTests extends MongoDbAvailableTests{
 
 	@Test 
-	@MongodbAvailable
+	@MongoDbAvailable
 	public void addGetWithStringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
@@ -50,7 +50,7 @@ public class MongoMessageStoreTests extends MongodbAvailableTests{
 	
 	
 	@Test 
-	@MongodbAvailable
+	@MongoDbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);

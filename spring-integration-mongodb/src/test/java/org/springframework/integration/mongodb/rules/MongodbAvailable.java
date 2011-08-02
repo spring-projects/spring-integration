@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mongodb.rules;
 
 import java.lang.annotation.ElementType;
@@ -21,11 +22,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Annotation used for any test method that requires a running MongoDb process.
+ * 
  * @author Oleg Zhurakousky
- *
+ * @since 2.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
-public @interface MongodbAvailable {
+public @interface MongoDbAvailable {
 
 }

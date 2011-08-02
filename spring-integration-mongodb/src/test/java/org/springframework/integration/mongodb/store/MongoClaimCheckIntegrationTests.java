@@ -20,8 +20,8 @@ import org.junit.Test;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
-import org.springframework.integration.mongodb.rules.MongodbAvailable;
-import org.springframework.integration.mongodb.rules.MongodbAvailableTests;
+import org.springframework.integration.mongodb.rules.MongoDbAvailable;
+import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.ClaimCheckInTransformer;
 import org.springframework.integration.transformer.ClaimCheckOutTransformer;
@@ -33,10 +33,10 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Mark Fisher
  */
-public class MongoClaimCheckIntegrationTests extends MongodbAvailableTests{
+public class MongoClaimCheckIntegrationTests extends MongoDbAvailableTests{
 
 	@Test 
-	@MongodbAvailable
+	@MongoDbAvailable
 	public void stringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);		
@@ -55,7 +55,7 @@ public class MongoClaimCheckIntegrationTests extends MongodbAvailableTests{
 	}
 
 	@Test 
-	@MongodbAvailable
+	@MongoDbAvailable
 	public void objectPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
 		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);

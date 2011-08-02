@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mongodb.rules;
 
 import org.junit.Rule;
 
 /**
+ * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
+ * 
  * @author Oleg Zhurakousky
- *
+ * @since 2.1
  */
-public class MongodbAvailableTests {
+public abstract class MongoDbAvailableTests {
+
 	@Rule
-	public MongodbAvailableRule redisAvailableRule = new MongodbAvailableRule();
+	public MongoDbAvailableRule redisAvailableRule = new MongoDbAvailableRule();
+
 }
