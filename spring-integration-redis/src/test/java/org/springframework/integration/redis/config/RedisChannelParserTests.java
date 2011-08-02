@@ -16,6 +16,7 @@
 package org.springframework.integration.redis.config;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -49,16 +50,25 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 
 	@Test
 	@RedisAvailable
-	public void testPubSubChannelUsage(){
+	public void testPubSubChannelUsage() throws Exception {
 		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
-		redisChannel.subscribe(new MessageHandler() {
-			
+		final Message<?> m = new GenericMessage<String>("Hello Redis");
+		
+		final Marker marker = Mockito.mock(Marker.class);
+		redisChannel.subscribe(new MessageHandler() {		
 			public void handleMessage(Message<?> message) throws MessagingException {
-				System.out.println("Message: " + message);
+				assertEquals(m.getPayload(), message.getPayload());
+				marker.mark();
 			}
 		});
-		redisChannel.send(new GenericMessage<String>("Hello Redis"));
+		redisChannel.send(m);
+		Thread.sleep(1000);
+		Mockito.verify(marker, Mockito.times(1)).mark();
+		System.out.println("done");
 	}
 	
+	interface Marker {
+		void mark();
+	}
 }

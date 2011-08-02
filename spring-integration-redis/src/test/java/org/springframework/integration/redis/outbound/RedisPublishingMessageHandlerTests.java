@@ -42,7 +42,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 	@Test 
 	@RedisAvailable
 	public void testRedisPublishingMessageHandler() throws Exception {
-		int numToTest = 100;
+		int numToTest = 10;
 		String topic = "si.test.channel";
 		final CountDownLatch latch = new CountDownLatch(numToTest);
 
@@ -59,7 +59,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 		container.afterPropertiesSet();
 		container.addMessageListener(listener, Collections.<Topic>singletonList(new ChannelTopic(topic)));
 		container.start();
-		Thread.sleep(500);
+		Thread.sleep(1000);
 
 		final RedisPublishingMessageHandler handler = new RedisPublishingMessageHandler(connectionFactory);
 		handler.setDefaultTopic(topic);

@@ -37,7 +37,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 	@Test 
 	@RedisAvailable
 	public void testRedisInboundChannelAdapter() throws Exception {
-		int numToTest = 100;
+		int numToTest = 10;
 		String redisChannelName = "testRedisInboundChannelAdapterChannel";
 		QueueChannel channel = new QueueChannel();
 

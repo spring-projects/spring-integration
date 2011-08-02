@@ -58,11 +58,12 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Test 
 	@RedisAvailable
-	public void testInboundChannelAdapterMessaging() {
+	public void testInboundChannelAdapterMessaging() throws Exception{
 		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
 		connectionFactory.setPort(7379);
 		connectionFactory.afterPropertiesSet();
 		connectionFactory.getConnection().publish("foo".getBytes(), "Hello Redis from foo".getBytes());
+		Thread.sleep(1000);
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		assertEquals("Hello Redis from foo", receiveChannel.receive(1000).getPayload());
 		connectionFactory.getConnection().publish("bar".getBytes(), "Hello Redis from bar".getBytes());

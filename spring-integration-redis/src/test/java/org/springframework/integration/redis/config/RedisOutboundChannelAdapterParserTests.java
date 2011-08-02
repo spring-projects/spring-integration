@@ -60,9 +60,10 @@ public class RedisOutboundChannelAdapterParserTests extends RedisAvailableTests{
  
 	@Test 
 	@RedisAvailable
-	public void testOutboundChannelAdapterMessaging(){
+	public void testOutboundChannelAdapterMessaging() throws Exception{
 		MessageChannel sendChannel = context.getBean("sendChannel", MessageChannel.class);
 		sendChannel.send(new GenericMessage<String>("Hello Redis"));
+		Thread.sleep(1000);
 		QueueChannel receiveChannel = context.getBean("receiveChannel", QueueChannel.class);
 		assertEquals("Hello Redis", receiveChannel.receive(1000).getPayload());
 	}
