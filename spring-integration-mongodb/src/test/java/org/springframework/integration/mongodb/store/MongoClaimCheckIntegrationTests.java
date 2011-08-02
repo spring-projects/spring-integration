@@ -69,9 +69,9 @@ public class MongoClaimCheckIntegrationTests extends MongoDbAvailableTests{
 		Message<?> claimCheckMessage = checkin.transform(originalMessage);
 		assertEquals(originalMessage.getHeaders().getId(), claimCheckMessage.getPayload());
 		Message<?> checkedOutMessage = checkout.transform(claimCheckMessage);
-//		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
+		assertEquals(originalMessage.getPayload(), checkedOutMessage.getPayload());
 		assertEquals(claimCheckMessage.getPayload(), checkedOutMessage.getHeaders().getId());
-//		assertEquals(originalMessage, checkedOutMessage);
+		assertEquals(originalMessage, checkedOutMessage);
 	}
 
 

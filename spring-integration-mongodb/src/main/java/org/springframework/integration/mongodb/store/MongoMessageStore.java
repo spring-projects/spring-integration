@@ -18,9 +18,9 @@ package org.springframework.integration.mongodb.store;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -29,6 +29,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.CustomConversions;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
@@ -111,20 +112,18 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 		@Override
 		public void afterPropertiesSet() {
 			super.afterPropertiesSet();
-			Set<Converter<?, ?>> customConverters = new HashSet<Converter<?,?>>();
+			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
 			customConverters.add(new UuidToStringConverter());
 			customConverters.add(new StringToUuidConverter());
-			//this.setCustomConverters(customConverters);
+			this.setCustomConversions(new CustomConversions(customConverters));
 		}
-
-		
+	
 		@Override
 		public void write(Object source, DBObject target) {
 			if (source instanceof Message) {
-				//String payloadType = ((Message<?>) source).getPayload().getClass().getName();
-				//target.put("_payloadType", payloadType);
+				String payloadType = ((Message<?>) source).getPayload().getClass().getName();
+				target.put("_payloadType", payloadType);
 				target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
-				//target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
 			}
 			
 //			// TODO: fix this (the base class should handle it via converters?)
