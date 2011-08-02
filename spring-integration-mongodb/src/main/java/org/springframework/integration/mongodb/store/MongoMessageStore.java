@@ -23,16 +23,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bson.types.ObjectId;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
-import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
@@ -45,7 +42,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import com.mongodb.DBObject;
-import com.mongodb.Mongo;
 
 /**
  * @author Mark Fisher
@@ -55,39 +51,26 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
-	private final MongoTemplate template;
-	
-	private volatile String collectionName = DEFAULT_COLLECTION_NAME;
 
-	//private final MongoConverter mongoConverter = new MessageReadingMongoConverter();
-	private final MongoConverter mongoConverter = null;
+	private final MongoTemplate template;
+
+	private final String collectionName;
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 
-	public MongoMessageStore(Mongo mongo, String databaseName) {
-		Assert.notNull(mongo, "mongo must not be null");
-		Assert.hasText(databaseName, "databaseName must not be empty");
-		MongoDbFactory mongoFactory = new SimpleMongoDbFactory(mongo, databaseName);
-		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoFactory, new MongoMappingContext());
-		this.template = new MongoTemplate(mongoFactory, converter);
-//		this.template.setDefaultCollectionName(DEFAULT_COLLECTION_NAME);
-//		this.template.createCollection(DEFAULT_COLLECTION_NAME);
+	public MongoMessageStore(MongoDbFactory mongoDbFactory) {
+		this(mongoDbFactory, null);
 	}
 
-
-	public void setCollectionName(String collectionName) {
-		Assert.hasText(collectionName, "collectionName must not be empty");
-		this.collectionName = collectionName;
+	public MongoMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
+		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
+		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
+		this.template = new MongoTemplate(mongoDbFactory, converter);
+		this.collectionName = (collectionName != null) ? collectionName : DEFAULT_COLLECTION_NAME;
+		//this.template.createCollection(collectionName);
 	}
 
-//	public void setUsername(String username) {
-//		template.setUsername(username);
-//	}
-//
-//	public void setPassword(String password) {
-//		template.setPassword(password);
-//	}
 
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		Assert.notNull(classLoader, "classLoader must not be null");
@@ -119,11 +102,9 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 
 	private class MessageReadingMongoConverter extends MappingMongoConverter {
 
-		public MessageReadingMongoConverter(
-				MongoDbFactory mongoDbFactory,
+		public MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
 				MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext) {
 			super(mongoDbFactory, mappingContext);
-			// TODO Auto-generated constructor stub
 		}
 
 
@@ -140,7 +121,7 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 		@Override
 		public void write(Object source, DBObject target) {
 			if (source instanceof Message) {
-				String payloadType = ((Message<?>) source).getPayload().getClass().getName();
+				//String payloadType = ((Message<?>) source).getPayload().getClass().getName();
 				//target.put("_payloadType", payloadType);
 				target.put("_id", ((Message<?>) source).getHeaders().getId().toString());
 				//target.put("_id", ((Message<?>) source).getHeaders().getId().toString());

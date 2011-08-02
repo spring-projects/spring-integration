@@ -17,6 +17,8 @@
 package org.springframework.integration.mongodb.store;
 
 import org.junit.Test;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.mongodb.rules.MongodbAvailable;
 import org.springframework.integration.mongodb.rules.MongodbAvailableTests;
@@ -36,8 +38,8 @@ public class MongoClaimCheckIntegrationTests extends MongodbAvailableTests{
 	@Test 
 	@MongodbAvailable
 	public void stringPayload() throws Exception {
-		Mongo mongo = new Mongo();
-		MongoMessageStore messageStore = new MongoMessageStore(mongo, "test");		
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);		
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
@@ -55,8 +57,8 @@ public class MongoClaimCheckIntegrationTests extends MongodbAvailableTests{
 	@Test 
 	@MongodbAvailable
 	public void objectPayload() throws Exception {
-		Mongo mongo = new Mongo();
-		MongoMessageStore messageStore = new MongoMessageStore(mongo, "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Beverage payload = new Beverage();

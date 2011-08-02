@@ -17,6 +17,9 @@
 package org.springframework.integration.mongodb.store;
 
 import org.junit.Test;
+
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.mongodb.rules.MongodbAvailable;
 import org.springframework.integration.mongodb.rules.MongodbAvailableTests;
@@ -35,43 +38,52 @@ public class MongoMessageStoreTests extends MongodbAvailableTests{
 	@Test 
 	@MongodbAvailable
 	public void addGetWithStringPayload() throws Exception {
-		Mongo mongo = new Mongo();		
-		MongoMessageStore store = new MongoMessageStore(mongo, "test");
-		Message<?> message = MessageBuilder.withPayload("Hello").build();
-		System.out.println(message);
-		store.addMessage(message);
-		assertNotNull(store.getMessage(message.getHeaders().getId()));
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
+		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
+		//System.out.println("before: " + messageToStore);
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		//System.out.println("after: " + retrievedMessage);
+		assertNotNull(retrievedMessage);
 	}
 	
 	
 	@Test 
 	@MongodbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
-		Mongo mongo = new Mongo();
-		MongoMessageStore store = new MongoMessageStore(mongo, "test");
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
-		
-		Message<?> message = MessageBuilder.withPayload(p).build();
-		System.out.println(message);
-		store.addMessage(message);
-		Message<?> m =  store.getMessage(message.getHeaders().getId());
-		assertNotNull(m);
+		Message<?> messageToStore = MessageBuilder.withPayload(p).build();
+		//System.out.println("before: " + messageToStore);
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		//System.out.println("after: " + retrievedMessage);
+		assertNotNull(retrievedMessage);
 	}
-	
-	public static class Person{
+
+
+	public static class Person {
+
 		private String fname;
+
 		private String lname;
+
 		public String getFname() {
 			return fname;
 		}
+
 		public void setFname(String fname) {
 			this.fname = fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
+
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
