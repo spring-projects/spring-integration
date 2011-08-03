@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:script="http://www.springframework.org/schema/integration/script"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/script http://www.springframework.org/schema/integration/script.xsd">
+
+	<service-activator input-channel="referencedScriptInput">
+		<script:script 
+				lang="ruby"
+				location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.rb">
+			<script:variable name="foo" value="foo"/>
+			<script:variable name="bar" value="bar"/>
+			<script:variable name="date" ref="date"/>
+		</script:script>
+	</service-activator>
+	
+	
+	<service-activator input-channel="withScriptVariableGenerator">
+		<script:script lang="ruby" location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.rb"
+					   script-variable-generator="scriptVarSource"/>
+	</service-activator>
+	
+	
+	
+	<beans:bean id="scriptVarSource" 
+		class="org.springframework.integration.scripting.config.jsr223.Jsr223ServiceActivatorTests.SampleScriptVariSource"/>
+
+	<service-activator input-channel="inlineScriptInput">
+		<script:script lang="ruby">
+			<![CDATA[
+				"inline-#{$payload}"
+			]]>
+		</script:script>
+	</service-activator>
+
+	<beans:bean id="date" class="java.util.Date" scope="prototype">
+		<aop:scoped-proxy/>
+	</beans:bean>
+	
+</beans:beans>

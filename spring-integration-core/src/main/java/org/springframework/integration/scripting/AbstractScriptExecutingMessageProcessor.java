@@ -40,7 +40,7 @@ public abstract class AbstractScriptExecutingMessageProcessor<T> implements Mess
 		Assert.notNull(scriptVariableGenerator, "scriptVariableGenerator must not be null");
 		this.scriptVariableGenerator = scriptVariableGenerator;
 	}
-
+	
 
 	/**
 	 * Executes the script and returns the result.

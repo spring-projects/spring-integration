@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.integration.scripting.RefreshableResourceScriptSource;
 
 /**
  * @author Dave Syer

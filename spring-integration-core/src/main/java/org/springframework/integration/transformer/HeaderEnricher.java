@@ -96,7 +96,14 @@ public class HeaderEnricher implements Transformer {
 				if (shouldOverwrite == null) {
 					shouldOverwrite = this.defaultOverwrite;
 				}
-				Object value = valueProcessor.processMessage(message);
+				/**
+				 * Only evaluate value if necessary
+				 */
+				Object value = null;
+				if (headerMap.get(key) == null || shouldOverwrite || !this.shouldSkipNulls){
+					value = valueProcessor.processMessage(message);
+				}
+				
 				if ((value != null && shouldOverwrite) || headerMap.get(key) == null || (value == null && !this.shouldSkipNulls)) {
 					headerMap.put(key, value);
 				}

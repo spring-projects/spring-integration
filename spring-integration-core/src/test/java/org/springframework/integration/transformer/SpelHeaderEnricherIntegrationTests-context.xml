@@ -18,6 +18,10 @@
 	<header-enricher input-channel="beanResolvingInput" output-channel="output">
 		<header name="num" expression="headers.num ^ @testBean.value" overwrite="true"/>
 	</header-enricher>
+	
+	<header-enricher input-channel="expressionNotExecutedInput" output-channel="output">
+		<header name="num" expression="headers.num / 0" />
+	</header-enricher>
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelHeaderEnricherIntegrationTests$TestBean"/>
 

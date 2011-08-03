@@ -360,6 +360,15 @@ project('spring-integration-rmi') {
     compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 }
 
+project('spring-integration-scripting') {
+    description = 'Spring Integration Scripting Support'
+    dependencies {
+        compile project(":spring-integration-core")
+        testCompile project(":spring-integration-test")
+        testCompile("org.jruby:jruby:1.6.3")
+        testCompile("org.codehaus.groovy:groovy-all:1.7.5")
+    }
+}
 
 project('spring-integration-security') {
     description = 'Spring Integration Security Support'

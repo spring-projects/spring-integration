@@ -42,6 +42,9 @@ public class SpelHeaderEnricherIntegrationTests {
 
 	@Autowired
 	private MessageChannel beanResolvingInput;
+	
+	@Autowired
+	private MessageChannel expressionNotExecutedInput;
 
 	@Autowired @Qualifier("output")
 	private PollableChannel output;
@@ -61,6 +64,14 @@ public class SpelHeaderEnricherIntegrationTests {
 		this.beanResolvingInput.send(message);
 		Message<?> result = output.receive(0);
 		assertEquals(243, result.getHeaders().get("num"));
+	}
+	
+	@Test
+	public void suppressBeanExecution(){
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
+		this.expressionNotExecutedInput.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals(3, result.getHeaders().get("num"));
 	}
 
 

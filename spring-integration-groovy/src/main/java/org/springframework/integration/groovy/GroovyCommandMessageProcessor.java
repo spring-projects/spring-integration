@@ -87,5 +87,4 @@ public class GroovyCommandMessageProcessor extends AbstractScriptExecutingMessag
 		// Don't use the same script (class) name for all invocations by default
 		return getClass().getSimpleName() + message.getHeaders().getId().toString().replaceAll("-", "");
 	}
-
 }

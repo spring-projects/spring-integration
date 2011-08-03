@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/integration/script-2.1.xsd=org/springframework/integration/script/config/spring-integration-script-2.1.xsd
+http\://www.springframework.org/schema/integration/script.xsd=org/springframework/integration/script/config/spring-integration-script-2.1.xsd
