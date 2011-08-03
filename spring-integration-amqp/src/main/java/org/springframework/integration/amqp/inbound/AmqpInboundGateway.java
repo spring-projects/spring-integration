@@ -78,7 +78,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 				final org.springframework.integration.Message<?> reply = sendAndReceiveMessage(request);
 				if (reply != null) {
 					// TODO: fallback to a reply address property of this gateway
-					Address replyTo = message.getMessageProperties().getReplyTo();
+					Address replyTo = message.getMessageProperties().getReplyToAddress();
 					Assert.notNull(replyTo, "The replyTo header must not be null on a " +
 							"request Message being handled by the AMQP inbound gateway.");
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),

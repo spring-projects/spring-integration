@@ -123,7 +123,7 @@ configure(javaprojects) {
     mockitoVersion = '1.8.4'
     //springVersion = '3.1.0.M2'
     springVersion = '3.0.6.BUILD-SNAPSHOT'
-    springAmqpVersion = '1.0.0.RC2'
+    springAmqpVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
     springDataRedisVersion = '1.0.0.BUILD-SNAPSHOT'

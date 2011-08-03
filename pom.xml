@@ -22,7 +22,9 @@
     <module>spring-integration-jmx</module>
     <module>spring-integration-mail</module>
     <module>spring-integration-mongodb</module>
+    <module>spring-integration-redis</module>
     <module>spring-integration-rmi</module>
+    <module>spring-integration-scripting</module>
     <module>spring-integration-security</module>
     <module>spring-integration-sftp</module>
     <module>spring-integration-stream</module>

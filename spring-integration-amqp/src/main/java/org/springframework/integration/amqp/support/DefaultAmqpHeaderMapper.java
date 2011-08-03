@@ -23,8 +23,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.integration.MessageHeaders;
@@ -147,7 +145,7 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			if (redelivered != null) {
 				amqpMessageProperties.setRedelivered(redelivered);
 			}
-			Address replyTo = getHeaderIfAvailable(headers, AmqpHeaders.REPLY_TO, Address.class);
+			String replyTo = getHeaderIfAvailable(headers, AmqpHeaders.REPLY_TO, String.class);
 			if (replyTo != null) {
 				amqpMessageProperties.setReplyTo(replyTo);
 			}
@@ -265,7 +263,7 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			if (redelivered != null) {
 				headers.put(AmqpHeaders.REDELIVERED, redelivered);
 			}
-			Address replyTo = amqpMessageProperties.getReplyTo();
+			String replyTo = amqpMessageProperties.getReplyTo();
 			if (replyTo != null) {
 				headers.put(AmqpHeaders.REPLY_TO, replyTo);
 			}
