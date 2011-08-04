@@ -14,7 +14,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 	Configures an endpoint that will publish an AMQP Message to the provided Exchange.
-            </xsd:documentation>
+			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:string">
@@ -54,7 +54,7 @@
 			<xsd:attribute name="routing-key-expression" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	The routing-key to use when sending Messages evealuated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
+	The routing-key to use when sending Messages evaluated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -70,7 +70,7 @@
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	The order for this consumer when multiple consumers are regsitered thereby enabling load-balancing and/or failover. 
+	The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -406,7 +406,7 @@
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	The order for this consumer when multiple consumers are regsitered thereby enabling load-balancing and/or failover. 
+	The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
