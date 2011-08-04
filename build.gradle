@@ -174,7 +174,12 @@ project('spring-integration-amqp') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
-        compile "org.springframework.amqp:spring-rabbit:$springAmqpVersion"
+        compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
+            exclude group: 'org.springframework', module: 'spring-beans'
+            exclude group: 'org.springframework', module: 'spring-core'
+            exclude group: 'org.springframework', module: 'spring-context'
+            exclude group: 'org.springframework', module: 'spring-tx'
+        }
         testCompile project(":spring-integration-stream")
     }
 }
