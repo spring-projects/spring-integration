@@ -41,6 +41,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 import com.mongodb.DBObject;
 
@@ -68,7 +69,7 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, converter);
-		this.collectionName = (collectionName != null) ? collectionName : DEFAULT_COLLECTION_NAME;
+		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 		//this.template.createCollection(collectionName);
 	}
 
