@@ -107,20 +107,14 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
+      <artifactId>spring-context</artifactId>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.derby</groupId>
@@ -135,12 +129,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.12</version>
@@ -150,12 +138,6 @@
       <groupId>cglib</groupId>
       <artifactId>cglib-nodep</artifactId>
       <version>2.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -171,9 +153,33 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-aop</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
       <version>2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -195,15 +201,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-tx</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

@@ -101,12 +101,6 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-commons-core</artifactId>
       <version>1.2.0.BUILD-SNAPSHOT</version>
@@ -121,7 +115,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -137,12 +131,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>2.3</version>
@@ -152,6 +140,24 @@
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
       <version>2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -165,12 +171,6 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

@@ -14,6 +14,7 @@
     <module>spring-integration-feed</module>
     <module>spring-integration-file</module>
     <module>spring-integration-ftp</module>
+    <module>spring-integration-gemfire</module>
     <module>spring-integration-groovy</module>
     <module>spring-integration-http</module>
     <module>spring-integration-ip</module>

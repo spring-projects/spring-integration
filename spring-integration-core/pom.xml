@@ -102,27 +102,15 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
+      <artifactId>spring-context</artifactId>
+      <version>3.1.0.M2</version>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjweaver</artifactId>
       <version>1.6.8</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -143,6 +131,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-aop</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
       <version>2.3</version>
@@ -154,6 +148,12 @@
       <version>1.4.3</version>
       <scope>compile</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -168,17 +168,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
       <version>1.6.8</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-tx</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

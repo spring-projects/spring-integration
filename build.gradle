@@ -121,12 +121,12 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    //springVersion = '3.1.0.M2'
-    springVersion = '3.0.6.BUILD-SNAPSHOT'
+    springVersion = '3.1.0.M2'
     springAmqpVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
     springDataRedisVersion = '1.0.0.BUILD-SNAPSHOT'
+    springGemfireVersion = '1.0.1.RELEASE'
     springSecurityVersion = '3.0.5.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
@@ -230,6 +230,19 @@ project('spring-integration-ftp') {
         compile "org.springframework:spring-context-support:$springVersion"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
+    }
+}
+
+project('spring-integration-gemfire') {
+    description = 'Spring Integration GemFire Support'
+    dependencies {
+        compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion"
+        testCompile project(":spring-integration-stream")
+    }
+    repositories {
+        mavenRepo urls: 'http://dist.gemstone.com/maven/release' // for gemfire
     }
 }
 

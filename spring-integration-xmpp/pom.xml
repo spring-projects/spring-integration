@@ -101,18 +101,6 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-stream</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib-nodep</artifactId>
       <version>2.2</version>
@@ -122,12 +110,6 @@
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.12</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -143,6 +125,24 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-stream</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>1.1.1</version>
@@ -156,6 +156,18 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+      <version>3.1.0.M2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>jivesoftware</groupId>
       <artifactId>smackx</artifactId>
       <version>3.1.0</version>
@@ -166,18 +178,6 @@
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context-support</artifactId>
-      <version>3.0.6.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
