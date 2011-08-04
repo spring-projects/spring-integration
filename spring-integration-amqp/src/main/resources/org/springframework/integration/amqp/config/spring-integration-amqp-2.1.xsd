@@ -67,6 +67,13 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The order for this consumer when multiple consumers are regsitered thereby enabling load-balancing and/or failover. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -394,6 +401,13 @@
 							<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate"/>
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The order for this consumer when multiple consumers are regsitered thereby enabling load-balancing and/or failover. 
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
