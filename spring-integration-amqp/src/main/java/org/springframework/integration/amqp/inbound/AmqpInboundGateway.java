@@ -84,7 +84,9 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
 							new MessagePostProcessor() {
 								public Message postProcessMessage(Message message) throws AmqpException {
-									headerMapper.fromHeaders(reply.getHeaders(), message.getMessageProperties());									
+									headerMapper.fromHeaders(reply.getHeaders(), message.getMessageProperties());
+									// clear the replyTo from the original message since we are using it now
+									message.getMessageProperties().setReplyTo(null);
 									return message;
 								}
 							});
