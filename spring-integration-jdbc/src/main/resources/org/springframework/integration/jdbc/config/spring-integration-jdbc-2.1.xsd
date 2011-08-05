@@ -1,0 +1,554 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/jdbc" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration" targetNamespace="http://www.springframework.org/schema/integration/jdbc"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd" />
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's JDBC components.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="message-store">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a MessageStore (and MessageGroupStore)
+				backed by a database.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="data-source" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a data source to use to access
+								the database. Either this or the jdbc-operations
+								must be
+								specified (but not both).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.sql.DataSource" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="jdbc-operations" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a JdbcOperations. Either
+									this or
+									the data-source must be
+									specified (but not both).
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jdbc.core.JdbcOperations" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="region" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Unique string to use as a partition for the
+								data in this store, so that
+								multiple instances can
+								share the same
+								database tables. The default
+								is "DEFAULT".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="table-prefix" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Prefix for the table names in the database
+								(e.g. so that a schema can be specified, or to avoid
+								a clash
+								with
+								other tables). The default is "INT_".
+					</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="lob-handler" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							Reference to a lob handler (optional).  Only override if using Oracle and
+							the database type is not being detected for some reason.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jdbc.support.lob.LobHandler" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="serializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							Reference to an OutputStreamingConverter .  Defaults to using java.io native serialization.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.serializer.Serializer" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="deserializer" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							Reference to an InputStreamingConverter.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.serializer.Deserializer" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an inbound Channel Adapter for polling a
+				database.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="selectType">
+					<xsd:sequence>
+						<xsd:element name="update" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<xsd:documentation>
+										An update query to execute when a message is
+										polled. If the poll is in a transaction then the
+										update will
+										roll back if the transaction does.
+									</xsd:documentation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+					<xsd:attribute name="id" type="xsd:ID" use="optional"/>
+					<xsd:attribute name="update" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									An update query to execute when a message is
+									polled. If the poll is in a transaction then the
+									update will
+									roll back if the transaction does. The update can also be specified as a nested element.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="update-per-row" type="xsd:boolean" default="false">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate whether the update query
+									should be executed per message, or per row (in the
+									case that a
+									message contains multiple rows).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="max-rows-per-poll" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Limits the number of rows extracted per query (otherwise all rows
+									are extracted into the
+									outgoing message).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Channel to which polled messages will be
+									sent.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate that the poller should start automatically on startup (default true).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="update-sql-parameter-source-factory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a SqlParameterSourceFactory. The input is the result of the
+									query. The
+									default factory creates a parameter source that treats a List in a special
+									way: the parameter name is used as an expression and projected onto the list,
+									so for instance "update foos set status=1 where id in (:id)" will generate
+									an in clause from the properties "id" of the input list elements.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="select-sql-parameter-source" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a static SqlParameterSource for the SELECT query used for polling. If
+									that query has
+									placeholders (e.g. "SELECT * from FOO where KEY=:key") they
+									will be bound from this source by name.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jdbc.core.namedparam.SqlParameterSource" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Channel Adapter for updating a
+				database.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="queryType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="sql-parameter-source-factory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a SqlParameterSourceFactory. The input is the whole 
+									outgoing message. The
+									default factory creates a bean
+									property parameter source so the query can specify named
+									parameters like :payload and :headers[foo].
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="id" type="xsd:ID" use="optional"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Channel from which messages will be output.
+									When a message is sent to this channel it will
+									cause the query
+									to be executed.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="keys-generated" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate whether primary keys are generated by the query.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate that the poller should start automatically on startup (default true).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Channel Gateway for updating a
+				database in response to a message on the request
+				channel and getting a response
+				on the reply channel.  The response can be created from a query
+				supplied here, or (if keys-generated="true") can be the
+				primary keys generated from an auto-increment, or else just a
+				count of the number of rows affected by the update.  The response
+				is in general a case insensitive Map (or list of maps if multi-valued), unless 
+				a select query and a row-mapper is provided.  If the update count is
+				returned then the map key is "UPDATE".
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="selectType">
+					<xsd:sequence>
+						<xsd:element name="update" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<xsd:documentation>
+										An update query to execute when a message is
+										received. If this is in a transaction then the
+										update will
+										roll back when the transaction does.
+									</xsd:documentation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="id" type="xsd:ID" use="optional"/>
+					<xsd:attribute name="update" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									An update query to execute when a message is
+									received. If this is in a transaction then the
+									update will
+									roll back when the transaction does. The update can also be specified as a nested element.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-sql-parameter-source-factory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a SqlParameterSourceFactory. The input is the whole 
+									outgoing message. The
+									default factory creates a bean
+									property parameter source so the query can specify named
+									parameters like :payload and :headers[foo].
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-sql-parameter-source-factory" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a SqlParameterSourceFactory. The input is the whole 
+									outgoing message. The
+									default factory creates a bean
+									property parameter source so the query can specify named
+									parameters like :payload and :headers[foo].
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-timeout" type="xsd:string" />
+					<xsd:attribute name="keys-generated" type="xsd:boolean">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate whether primary keys are generated by the query.  If they are then
+									they can be used as a reply payload instead of providing a select query.  A single
+									valued result is extracted before returning (the usual case), so the payload of the reply message
+									can be a Map (column name to value) or a list of maps.
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Flag to indicate that the poller should start automatically on startup (default true).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="jdbcType">
+		<xsd:attribute name="data-source" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a data source to use to access
+					the
+					database. Either this or the
+					simple-jdbc-operations
+					must be
+					specified
+					(but not both).
+							</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.sql.DataSource" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="jdbc-operations" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+						Reference to a JdbcOperations. Either
+						this or
+						the
+						data-source must be
+						specified (but not both).
+					</xsd:documentation>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jdbc.core.JdbcOperations" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="queryType">
+		<xsd:complexContent>
+			<xsd:extension base="jdbcType">
+				<xsd:sequence>
+					<xsd:element name="query" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									A select query to execute when a message is
+									polled. In general
+									the query can return multiple
+									rows, because
+									the result will be a List (of type determined by the
+									row
+									mapper).
+									</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+				<xsd:attribute name="query" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								A select query to execute when a message is
+								polled. In general the query can return multiple
+								rows, because
+								the result will be a List (of type determined by the row
+								mapper). The query can also be specified as
+								a nested element.
+					</xsd:documentation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="selectType">
+		<xsd:complexContent>
+			<xsd:extension base="queryType">
+				<xsd:attribute name="row-mapper" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<xsd:documentation>
+								Reference to a row mapper to use to convert
+								JDBC result set rows to message payloads.
+								Optional
+								with default
+								that maps
+								result set row to a map (column name to column value).
+								Other simple
+								use cases can
+								be handled
+								with out-of-the box
+								implementations from Spring JDBC. Others require a custom row
+								mapper.
+								</xsd:documentation>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.jdbc.core.RowMapper" />
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+</xsd:schema>

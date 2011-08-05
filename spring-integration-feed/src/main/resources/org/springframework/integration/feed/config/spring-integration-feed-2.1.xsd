@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/feed"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/feed"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd" />
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				This adapter takes a feed URL (either RSS or ATOM) and responds to updates.
+				Each Message will be sent to the provided channel with a feed entry as its payload.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" />
+			<xsd:attribute name="url" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						The URL for an RSS or ATOM feed.
+            		</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+	            </xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="feed-fetcher" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a FeedFetcher instance for retrieveing Feeds from the provided URL.
+						By default, the HTTP protocol is supported. For any other protocols or general
+						customizations, provide a reference to a different implementation. 
+                	</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.sun.syndication.FeedFetcher" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="metadata-store" use="optional" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a MetadataStore instance for storing metadata associated with
+						the retrieved feeds. If the implementation is persistent, it can help to
+						prevent duplicates between restarts. If shared, it can help coordinate multiple
+						instances of an adapter across different processes.
+                	</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.context.metadata.MetadataStore" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+					Lifecycle attribute signaling if this component should be started during Application Context startup.
+					Default is 'true'
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

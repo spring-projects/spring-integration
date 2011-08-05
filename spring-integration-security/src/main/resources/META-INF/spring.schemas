@@ -1,3 +1,4 @@
 http\://www.springframework.org/schema/integration/security/spring-integration-security-1.0.xsd=org/springframework/integration/security/config/spring-integration-security-1.0.xsd
 http\://www.springframework.org/schema/integration/security/spring-integration-security-2.0.xsd=org/springframework/integration/security/config/spring-integration-security-2.0.xsd
-http\://www.springframework.org/schema/integration/security/spring-integration-security.xsd=org/springframework/integration/security/config/spring-integration-security-2.0.xsd
+http\://www.springframework.org/schema/integration/security/spring-integration-security-2.1.xsd=org/springframework/integration/security/config/spring-integration-security-2.1.xsd
+http\://www.springframework.org/schema/integration/security/spring-integration-security.xsd=org/springframework/integration/security/config/spring-integration-security-2.1.xsd
