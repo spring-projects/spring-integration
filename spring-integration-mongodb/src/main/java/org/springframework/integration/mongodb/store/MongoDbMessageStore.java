@@ -48,8 +48,9 @@ import com.mongodb.DBObject;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @since 2.1
  */
-public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
+public class MongoDbMessageStore implements MessageStore, BeanClassLoaderAware {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -61,11 +62,11 @@ public class MongoMessageStore implements MessageStore, BeanClassLoaderAware {
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
 
-	public MongoMessageStore(MongoDbFactory mongoDbFactory) {
+	public MongoDbMessageStore(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
 	}
 
-	public MongoMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
+	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, converter);

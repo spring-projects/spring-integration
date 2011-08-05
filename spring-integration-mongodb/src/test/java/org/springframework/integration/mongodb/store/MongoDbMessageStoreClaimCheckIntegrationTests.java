@@ -33,13 +33,13 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Mark Fisher
  */
-public class MongoClaimCheckIntegrationTests extends MongoDbAvailableTests{
+public class MongoDbMessageStoreClaimCheckIntegrationTests extends MongoDbAvailableTests{
 
 	@Test 
 	@MongoDbAvailable
 	public void stringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);		
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);		
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Message<?> originalMessage = MessageBuilder.withPayload("test1").build();
@@ -58,7 +58,7 @@ public class MongoClaimCheckIntegrationTests extends MongoDbAvailableTests{
 	@MongoDbAvailable
 	public void objectPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoMessageStore messageStore = new MongoMessageStore(mongoDbFactory);
+		MongoDbMessageStore messageStore = new MongoDbMessageStore(mongoDbFactory);
 		ClaimCheckInTransformer checkin = new ClaimCheckInTransformer(messageStore);
 		ClaimCheckOutTransformer checkout = new ClaimCheckOutTransformer(messageStore);
 		Beverage payload = new Beverage();

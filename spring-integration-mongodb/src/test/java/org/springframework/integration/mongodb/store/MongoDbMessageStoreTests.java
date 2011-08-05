@@ -34,13 +34,13 @@ import com.mongodb.Mongo;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class MongoMessageStoreTests extends MongoDbAvailableTests{
+public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 
 	@Test 
 	@MongoDbAvailable
 	public void addGetWithStringPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
 		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
 		store.addMessage(messageToStore);
 		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
@@ -54,7 +54,7 @@ public class MongoMessageStoreTests extends MongoDbAvailableTests{
 	@MongoDbAvailable
 	public void addGetWithObjectDefaultConstructorPayload() throws Exception {
 		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
-		MongoMessageStore store = new MongoMessageStore(mongoDbFactory);
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
 		Person p = new Person();
 		p.setFname("John");
 		p.setLname("Doe");
