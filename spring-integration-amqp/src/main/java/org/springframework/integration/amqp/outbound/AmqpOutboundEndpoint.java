@@ -132,8 +132,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 				? MessageBuilder.fromMessage((Message<?>) replyObject)
 				: MessageBuilder.withPayload(replyObject);
 		Map<String, ?> headers = this.headerMapper.toHeaders(amqpReplyMessage.getMessageProperties());
-		// TODO: copyHeadersIfAbsent has <String, Object> instead of <String, ?>
-		builder.copyHeaders(headers);
+		builder.copyHeadersIfAbsent(headers);
 		return builder.build();
 	}
 
