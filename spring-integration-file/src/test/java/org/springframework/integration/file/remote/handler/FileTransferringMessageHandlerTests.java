@@ -15,16 +15,8 @@
  */
 package org.springframework.integration.file.remote.handler;
 
-import static junit.framework.Assert.assertFalse;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.InputStream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -36,6 +28,13 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+
+import static junit.framework.Assert.assertFalse;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -88,30 +87,5 @@ public class FileTransferringMessageHandlerTests {
 		handler.handleMessage(message);
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
 	}
-	
-	@SuppressWarnings("rawtypes")
-	@Test
-	@Ignore
-	public void testWithNonString() throws Exception{
-		SessionFactory sf = mock(SessionFactory.class);
-		Session session = mock(Session.class);
-		
-		when(sf.getSession()).thenReturn(session);
-		doAnswer(new Answer() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				String path =  (String) invocation.getArguments()[1];
-				assertFalse(path.startsWith("/"));
-				return null;
-			}
-		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
-		ExpressionParser parser = new SpelExpressionParser();
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sf);
-		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
-		handler.afterPropertiesSet();
-		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", new Foo()).build();
-		handler.handleMessage(message);
-		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
-	}
-	
-	private static class Foo{}
+
 }
