@@ -454,7 +454,11 @@ project('spring-integration-ws') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-expression:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
-        compile "org.springframework.ws:spring-ws-core:$springWsVersion"
+        compile ("org.springframework.ws:spring-ws-core:$springWsVersion"){
+            exclude group: 'org.springframework', module: 'spring-webmvc'
+        	exclude group: 'org.springframework', module: 'spring-web'
+        	exclude group: 'org.springframework', module: 'spring-context-support'
+        }
         compile("javax.xml.soap:saaj-api:1.3") {
             optional = true
             exclude group: 'javax.activation', module: 'activation'
@@ -475,7 +479,10 @@ project('spring-integration-xml') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
-        compile "org.springframework.ws:spring-xml:$springWsVersion"
+        compile ("org.springframework.ws:spring-xml:$springWsVersion") {
+        	exclude group: 'org.springframework', module: 'spring-beans'
+        	exclude group: 'org.springframework', module: 'spring-core'
+        }
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
         testCompile "javax.xml:jaxb-api:2.0EA3"
