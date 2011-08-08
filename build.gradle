@@ -184,6 +184,7 @@ project('spring-integration-amqp') {
             exclude group: 'org.springframework', module: 'spring-tx'
         }
         testCompile project(":spring-integration-stream")
+        testCompile project(":spring-integration-test")
     }
 }
 
