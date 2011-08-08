@@ -260,7 +260,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-payload" type="xsd:boolean"/>
+			<xsd:attribute name="extract-payload" type="xsd:string"/>
 			<xsd:attribute name="header-mapper">
 				<xsd:annotation>
 					<xsd:documentation>

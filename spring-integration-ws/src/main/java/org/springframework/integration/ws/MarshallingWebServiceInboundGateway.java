@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,25 @@
 
 package org.springframework.integration.ws;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.SmartLifecycle;
-import org.springframework.expression.ExpressionException;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.Message;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint;
+import org.springframework.util.Assert;
+import org.springframework.ws.WebServiceMessage;
+import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.support.MarshallingUtils;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 1.0.2
  */
-public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayloadEndpoint
-		implements BeanNameAware, BeanFactoryAware, InitializingBean, SmartLifecycle, TrackableComponent {
+public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInboundGateway {
+	
+	private volatile Marshaller marshaller;
 
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
-
-	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
-
-	private volatile int phase = 0;
-
+	private volatile Unmarshaller unmarshaller;
 
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code>.
@@ -68,161 +56,55 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	 * @see #MarshallingWebServiceInboundGateway(Marshaller, Unmarshaller)
 	 */
 	public MarshallingWebServiceInboundGateway(Marshaller marshaller) {
-		super(marshaller);
+		Assert.notNull(marshaller, "'marshaller' must no be null");
+		Assert.isInstanceOf(Unmarshaller.class, marshaller, "When using this constructor the provided " +
+				"Marshaller must also implement Unmarshaller");
+		this.marshaller = marshaller;
+		this.unmarshaller = unmarshaller;
 	}
 
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code> with the given marshaller and unmarshaller.
 	 */
 	public MarshallingWebServiceInboundGateway(Marshaller marshaller, Unmarshaller unmarshaller) {
-		super(marshaller, unmarshaller);
+		Assert.notNull(marshaller, "'marshaller' must no be null");
+		Assert.notNull(unmarshaller, "'unmarshaller' must no be null");
+		this.marshaller = marshaller;
+		this.unmarshaller = unmarshaller;
 	}
 
+	public void setMarshaller(Marshaller marshaller) {
+		Assert.notNull(marshaller, "'marshaller' must no be null");
+		this.marshaller = marshaller;
+	}	
 
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.gatewayDelegate.setRequestChannel(requestChannel);
-	}
-
-	public void setRequestTimeout(long requestTimeout) {
-		this.gatewayDelegate.setRequestTimeout(requestTimeout);
+	public void setUnmarshaller(Unmarshaller unmarshaller) {
+		Assert.notNull(unmarshaller, "'unmarshaller' must no be null");
+		this.unmarshaller = unmarshaller;
 	}
 	
-	public void setErrorChannel(MessageChannel errorChannel) {
-		this.gatewayDelegate.setErrorChannel(errorChannel);
+	protected void onInit() throws Exception {
+		super.onInit();
+		Assert.notNull(marshaller, "This implementation requires Marshaller");
+		Assert.notNull(unmarshaller, "This implementation requires Unmarshaller");
 	}
-
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.gatewayDelegate.setReplyChannel(replyChannel);
-	}
-
-	public void setReplyTimeout(long replyTimeout) {
-		this.gatewayDelegate.setReplyTimeout(replyTimeout);
-	}
-
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		this.gatewayDelegate.setTaskScheduler(taskScheduler);
-	}
-
-	public void setShouldTrack(boolean shouldTrack) {
-		this.gatewayDelegate.setShouldTrack(shouldTrack);
-	}
-
-	public String getComponentName() {
-		return this.gatewayDelegate.getComponentName();
-	}
-
-	public String getComponentType() {
-		return this.gatewayDelegate.getComponentType();
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.gatewayDelegate.setAutoStartup(autoStartup);
-	}
-
-	public boolean isAutoStartup() {
-		return this.gatewayDelegate.isAutoStartup();
-	}
-
-	public void setPhase(int phase) {
-		this.phase = phase;
-	}
-
-	public int getPhase() {
-		return this.phase;
-	}
-
-	public void setBeanName(String beanName) {
-		this.gatewayDelegate.setBeanName(beanName);
-	}
-
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.gatewayDelegate.setBeanFactory(beanFactory);
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		super.afterPropertiesSet();
-		this.gatewayDelegate.afterPropertiesSet();
-	}
-
 
 	@Override
-	protected Object invokeInternal(Object requestObject) throws Exception {
-		try {
-			return this.gatewayDelegate.sendAndReceive(requestObject);
-		}
-		catch (Exception e) {
-			while ((e instanceof MessagingException || e instanceof ExpressionException) &&
-					e.getCause() instanceof Exception) {
-				e = (Exception) e.getCause();
-			}
-			throw e;
-		}
+	protected void doInvoke(MessageContext messageContext) throws Exception{
+		WebServiceMessage request = messageContext.getRequest();
+		Assert.notNull(request, "Invalid message context: request was null.");
+		Object requestObject = MarshallingUtils.unmarshal(unmarshaller, request);
+		MessageBuilder<?> builder = MessageBuilder.withPayload(requestObject);
+		
+		this.fromSoapHeaders(messageContext, builder);
+		
+		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
+		
+		if (replyMessage != null) {
+			WebServiceMessage response = messageContext.getResponse();
+			this.toSoapHeaders(response, replyMessage);
+
+			MarshallingUtils.marshal(marshaller, replyMessage.getPayload(), response);
+		}		
 	}
-
-
-	// Lifecycle implementation
-
-	public boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.gatewayDelegate.isRunning();
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	public void start() {
-		this.lifecycleLock.lock();
-		try {
-			if (!this.gatewayDelegate.isRunning()) {
-				this.gatewayDelegate.start();
-				if (logger.isInfoEnabled()) {
-					logger.info("started " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	public void stop() {
-		this.lifecycleLock.lock();
-		try {
-			if (gatewayDelegate.isRunning()) {
-				this.gatewayDelegate.stop();
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped " + this);
-				}
-			}
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	public void stop(Runnable callback) {
-		this.lifecycleLock.lock();
-		try {
-			this.stop();
-			callback.run();
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-
-	private static class GatewayDelegate extends MessagingGatewaySupport {
-
-		public Object sendAndReceive(Object request) {
-			return super.sendAndReceive(request);
-		}
-
-		public String getComponentType() {
-			return "ws:outbound-gateway";
-		}
-	}
-
 }

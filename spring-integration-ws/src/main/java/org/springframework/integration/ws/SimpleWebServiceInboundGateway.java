@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,91 +16,48 @@
 
 package org.springframework.integration.ws;
 
-import java.util.Map;
-
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Document;
-
-import org.springframework.expression.ExpressionException;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
-import org.springframework.ws.server.endpoint.MessageEndpoint;
-import org.springframework.ws.soap.SoapHeader;
-import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
+import org.w3c.dom.Document;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.2
  */
-public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
+public class SimpleWebServiceInboundGateway extends AbstractWebServiceInboundGateway {
 
 	private final TransformerSupportDelegate transformerSupportDelegate = new TransformerSupportDelegate();
 
 	private volatile boolean extractPayload = true;
 
-	private volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper();
-
-
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
 	}
 
-	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {
-		Assert.notNull(headerMapper, "headerMapper must not be null");
-		this.headerMapper = headerMapper;
-	}
-
-	public String getComponentType() {
-		return "ws:outbound-gateway";
-	}
-
-	public void invoke(MessageContext messageContext) throws Exception {
-		try {
-			this.doInvoke(messageContext);
-		}
-		catch (Exception e) {
-			while ((e instanceof MessagingException || e instanceof ExpressionException) &&
-					e.getCause() instanceof Exception) {
-				e = (Exception) e.getCause();
-			}
-			throw e;
-		}
-	}
-
-	private void doInvoke(MessageContext messageContext) throws Exception {
-		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
+	protected void doInvoke(MessageContext messageContext) throws Exception {
+		
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
+		
 		MessageBuilder<?> builder = MessageBuilder.withPayload(
 				(this.extractPayload) ? request.getPayloadSource() : request);
-		String[] propertyNames = messageContext.getPropertyNames();
-		if (propertyNames != null) {
-			for (String propertyName : propertyNames) {
-				builder.setHeader(propertyName, messageContext.getProperty(propertyName));
-			}
-		}
-		if (request instanceof SoapMessage) {
-			SoapMessage soapMessage = (SoapMessage) request;
-			Map<String, ?> headers = this.headerMapper.toHeaders(soapMessage.getSoapHeader());
-			if (!CollectionUtils.isEmpty(headers)) {
-				builder.copyHeaders(headers);
-			}
-		}
+		
+		this.fromSoapHeaders(messageContext, builder);
+
 		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
-		if (replyMessage != null && replyMessage.getPayload() != null) {
+		
+		if (replyMessage != null) {
 			Object replyPayload = replyMessage.getPayload();
 			Source responseSource = null;
 			if (replyPayload instanceof Source) {
@@ -119,11 +76,10 @@ public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport impl
 						+ replyPayload.getClass().getName() + "]");
 			}
 			WebServiceMessage response = messageContext.getResponse();
-			if (response instanceof SoapMessage) {
-				this.headerMapper.fromHeaders(
-						replyMessage.getHeaders(), ((SoapMessage) response).getSoapHeader());
-			}
 			this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
+			
+			this.toSoapHeaders(response, replyMessage);
+			
 		}
 	}
 

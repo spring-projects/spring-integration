@@ -117,6 +117,7 @@ public class WebServiceInboundGatewayParserTests {
 
 	//marshalling
 	@Autowired
+	@Qualifier("marshalling")
 	MarshallingWebServiceInboundGateway marshallingGateway;
 	
 	@Autowired
@@ -131,10 +132,10 @@ public class WebServiceInboundGatewayParserTests {
 				is(marshaller));
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
 		
-		MessagingGatewaySupport mgs = (MessagingGatewaySupport) accessor.getPropertyValue("gatewayDelegate");
-		DirectFieldAccessor mgsAccessor = new DirectFieldAccessor(mgs);
+		//MessagingGatewaySupport mgs = (MessagingGatewaySupport) accessor.getPropertyValue("gatewayDelegate");
+		//DirectFieldAccessor mgsAccessor = new DirectFieldAccessor(mgs);
 		assertThat(
-				(MessageChannel) mgsAccessor.getPropertyValue("errorChannel"),
+				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
 	}
 
