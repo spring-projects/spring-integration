@@ -102,7 +102,7 @@ public class WebServiceOutboundGatewayParserTests {
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
+		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
 		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
 	}
 
@@ -138,7 +138,7 @@ public class WebServiceOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
-		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
+		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());

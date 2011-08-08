@@ -38,21 +38,22 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * An outbound Messaging Gateway for invoking a Web Service.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
-	private final SourceExtractor sourceExtractor;
+	private final SourceExtractor<?> sourceExtractor;
 
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
 		this(destinationProvider, null, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor sourceExtractor) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor) {
 		this(destinationProvider, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -83,11 +84,11 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	}
 
 
-	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor {
+	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
 
-		public Object extractData(Source source) throws IOException, TransformerException {
+		public DOMSource extractData(Source source) throws IOException, TransformerException {
 			if (source instanceof DOMSource) {
-				return source;
+				return (DOMSource)source;
 			}
 			DOMResult result = new DOMResult();
 			this.transform(source, result);

@@ -26,7 +26,7 @@ import org.springframework.ws.client.core.SourceExtractor;
 /**
  * @author Mark Fisher
  */
-public class StubSourceExtractor implements SourceExtractor {
+public class StubSourceExtractor implements SourceExtractor<Object> {
 
 	public Object extractData(Source source) throws IOException, TransformerException {
 		return "test";
