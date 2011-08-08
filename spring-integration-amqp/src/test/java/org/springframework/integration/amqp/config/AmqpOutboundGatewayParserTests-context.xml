@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp-2.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<amqp:outbound-gateway id="rabbitGateway" request-channel="toRabbit"
+		reply-channel="fromRabbit"
+		exchange-name="si.test.exchange"
+		routing-key="si.test.binding"
+		amqp-template="amqpTemplate" 
+		order="5"/>
+		
+	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
+	
+	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
+	</bean>
+		
+	<int:channel id="toRabbit"/>
+	<int:channel id="fromRabbit"/>
+
+</beans>

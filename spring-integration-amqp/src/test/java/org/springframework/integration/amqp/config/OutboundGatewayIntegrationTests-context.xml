@@ -32,7 +32,8 @@
 		reply-channel="fromRabbit"
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
-		amqp-template="amqpTemplate"/>
+		amqp-template="amqpTemplate"
+		order="1"/>
 
 	<amqp:inbound-gateway request-channel="amqpIn"
 		connection-factory="connectionFactory"
