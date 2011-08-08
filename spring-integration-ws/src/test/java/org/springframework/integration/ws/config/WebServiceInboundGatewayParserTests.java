@@ -16,14 +16,6 @@
 
 package org.springframework.integration.ws.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -33,7 +25,6 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,7 +32,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
@@ -54,6 +44,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.soap.SoapHeader;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.junit.Assert.assertThat;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Iwein Fuld
@@ -131,9 +131,7 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
 				is(marshaller));
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
-		
-		//MessagingGatewaySupport mgs = (MessagingGatewaySupport) accessor.getPropertyValue("gatewayDelegate");
-		//DirectFieldAccessor mgsAccessor = new DirectFieldAccessor(mgs);
+
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
