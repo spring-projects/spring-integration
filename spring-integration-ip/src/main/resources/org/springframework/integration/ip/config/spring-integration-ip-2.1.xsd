@@ -115,7 +115,7 @@ task executors such as a WorkManagerTaskExecutor.
 
 	<xsd:element name="tcp-inbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="id" type="xsd:string"/>		
 			<xsd:attribute name="connection-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -159,7 +159,7 @@ adapter.
 
 	<xsd:element name="tcp-outbound-channel-adapter">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="id" type="xsd:string"/>		
 			<xsd:attribute name="connection-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -197,7 +197,7 @@ inbound message was received.
 
 	<xsd:element name="tcp-inbound-gateway">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="id" type="xsd:string"/>		
 			<xsd:attribute name="connection-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -251,7 +251,7 @@ A connection factory is needed by an inbound adapter. The connection factory mus
 
 	<xsd:element name="tcp-outbound-gateway">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="id" type="xsd:string"/>		
 			<xsd:attribute name="connection-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -297,7 +297,7 @@ A connection factory is needed by an outbound adapter. The connection factory mu
 
 	<xsd:element name="tcp-connection-factory">
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="type">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -461,7 +461,7 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 	</xsd:complexType>
 
 	<xsd:complexType name="common-attributes">
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="port" type="xsd:string" />
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />

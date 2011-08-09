@@ -58,7 +58,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:ID" use="required">
+		<xsd:attribute name="id" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
 	ID for this channel. Required.
@@ -266,7 +266,7 @@
 	Common configuration for Redis adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="connection-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

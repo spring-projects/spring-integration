@@ -368,7 +368,7 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="evaluate-as-string" type="xsd:boolean" default="false">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -445,7 +445,7 @@
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -477,7 +477,7 @@
 			<xsd:sequence>
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" use="optional"/>
+			<xsd:attribute name="id" type="xsd:string" use="optional"/>
 			<xsd:attribute name="expression" type="xsd:string" use="optional"/>
 			<xsd:attribute name="ns-prefix" type="xsd:string" use="optional"/>
 			<xsd:attribute name="ns-uri" type="xsd:string" use="optional"/>
@@ -531,7 +531,7 @@
 			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="input-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -583,7 +583,7 @@
 		<xsd:sequence>
 			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="input-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

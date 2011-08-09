@@ -170,7 +170,7 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="mbeanServerIdentifyerType">
-		<xsd:attribute name="id" type="xsd:ID" use="optional" />
+		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="server" type="xsd:string" default="mbeanServer">
 			<xsd:annotation>
 				<xsd:documentation>

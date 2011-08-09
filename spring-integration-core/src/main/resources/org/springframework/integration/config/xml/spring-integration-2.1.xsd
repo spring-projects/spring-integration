@@ -384,7 +384,7 @@
 				Defines a message channel.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID" use="required" />
+		<xsd:attribute name="id" type="xsd:string" use="required" />
 		<xsd:attribute name="scope" type="xsd:string" />
 		<xsd:attribute name="datatype" type="xsd:string">
 			<xsd:annotation>
@@ -517,7 +517,7 @@
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" use="optional" />
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>	
@@ -816,7 +816,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="channelAdapterAttributes">
-		<xsd:attribute name="id" type="xsd:ID" />
+		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -1125,7 +1125,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="basePollerType">
-					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="id" type="xsd:string" />
 					<xsd:attribute name="default" type="xsd:boolean" default="false" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1307,7 +1307,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:element name="selector" type="selectorType" />
 				<xsd:element ref="selector-chain" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="voting-strategy" default="ALL">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -2617,7 +2617,7 @@ Name of the header whose value will be used to route messages
 				Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID" use="optional" />
+		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -2795,7 +2795,7 @@ Name of the header whose value will be used to route messages
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="id" type="xsd:string" use="required" />
 			<xsd:attribute name="default-channel" type="xsd:string" default="nullChannel">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -2966,7 +2966,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">
-		<xsd:attribute name="id" type="xsd:ID" />
+		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="output-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>

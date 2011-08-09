@@ -24,7 +24,7 @@
             </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID" use="optional" />
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -84,7 +84,7 @@
 			<xsd:all>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:all>
-			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

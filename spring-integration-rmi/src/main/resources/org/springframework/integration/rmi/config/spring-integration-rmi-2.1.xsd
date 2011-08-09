@@ -79,7 +79,7 @@
 	Defines common configuration for gateway adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="name" type="xsd:string"/>
 		<xsd:attribute name="request-channel" type="xsd:string" use="required">
 			<xsd:annotation>

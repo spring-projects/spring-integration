@@ -20,7 +20,7 @@
 					Defines an inbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="name" type="xsd:string" />
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
@@ -224,7 +224,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:sequence>
 				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="id" type="xsd:string" />
 			<xsd:attribute name="url" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -512,7 +512,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				Defines common configuration for gateway adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID" />
+		<xsd:attribute name="id" type="xsd:string" />
 		<xsd:attribute name="request-channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
