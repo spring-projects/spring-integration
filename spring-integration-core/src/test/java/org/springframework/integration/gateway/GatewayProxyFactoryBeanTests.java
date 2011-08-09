@@ -16,9 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
@@ -28,12 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -45,6 +41,9 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.ReflectionUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -70,7 +69,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
-		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService cs = new DefaultConversionService();
 		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
 			public byte[] convert(String source) {
 				return source.getBytes();

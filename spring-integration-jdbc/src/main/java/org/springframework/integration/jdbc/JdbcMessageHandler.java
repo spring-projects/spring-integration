@@ -26,9 +26,9 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcOperations;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.util.LinkedCaseInsensitiveMap;
@@ -50,7 +50,7 @@ import org.springframework.util.LinkedCaseInsensitiveMap;
  */
 public class JdbcMessageHandler extends AbstractMessageHandler {
 
-	private final SimpleJdbcOperations jdbcOperations;
+	private final NamedParameterJdbcOperations jdbcOperations;
 
 	private volatile String updateSql;
 
@@ -66,7 +66,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param updateSql query to execute
 	 */
 	public JdbcMessageHandler(DataSource dataSource, String updateSql) {
-		this.jdbcOperations = new SimpleJdbcTemplate(dataSource);
+		this.jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
 		this.updateSql = updateSql;
 	}
 
@@ -78,7 +78,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 	 * @param updateSql query to execute
 	 */
 	public JdbcMessageHandler(JdbcOperations jdbcOperations, String updateSql) {
-		this.jdbcOperations = new SimpleJdbcTemplate(jdbcOperations);
+		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations);
 		this.updateSql = updateSql;
 	}
 
@@ -116,7 +116,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 		}
 		if (keysGenerated) {
 			KeyHolder keyHolder = new GeneratedKeyHolder();
-			this.jdbcOperations.getNamedParameterJdbcOperations().update(this.updateSql, updateParameterSource,
+			this.jdbcOperations.update(this.updateSql, updateParameterSource,
 					keyHolder);
 			return keyHolder.getKeyList();
 		}

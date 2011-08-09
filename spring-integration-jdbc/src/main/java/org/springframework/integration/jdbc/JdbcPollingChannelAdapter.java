@@ -33,9 +33,9 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.RowMapperResultSetExtractor;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcOperations;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 
 /**
  * A polling channel adapter that creates messages from the payload returned by
@@ -48,7 +48,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  */
 public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
-	private final SimpleJdbcOperations jdbcOperations;
+	private final NamedParameterJdbcOperations jdbcOperations;
 
 	private final String selectQuery;
 
@@ -72,7 +72,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
-		this.jdbcOperations = new SimpleJdbcTemplate(dataSource);
+		this.jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
 		this.selectQuery = selectQuery;
 	}
 
@@ -84,7 +84,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 	 * @param selectQuery query to execute
 	 */
 	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
-		this.jdbcOperations = new SimpleJdbcTemplate(jdbcOperations);
+		this.jdbcOperations = new NamedParameterJdbcTemplate(jdbcOperations);
 		this.selectQuery = selectQuery;
 	}
 
@@ -192,7 +192,7 @@ public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implemen
 		}
 
 		if (sqlQueryParameterSource != null) {
-			payload = this.jdbcOperations.getNamedParameterJdbcOperations().query(this.selectQuery,
+			payload = this.jdbcOperations.query(this.selectQuery,
 					sqlQueryParameterSource, resultSetExtractor);
 		}
 		else {

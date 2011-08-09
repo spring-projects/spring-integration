@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -194,7 +194,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
-			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
+			this.setConversionService(new DefaultConversionService());
 		}
 		return this.getConversionService();
 	}

@@ -13,9 +13,6 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -32,7 +29,10 @@ import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+
+import static junit.framework.Assert.assertTrue;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
@@ -44,7 +44,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  */
 public class JdbcMessageHandlerParserTests {
 
-	private SimpleJdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 	
 	private MessageChannel channel;
 	
@@ -125,7 +125,7 @@ public class JdbcMessageHandlerParserTests {
 	
 	public void setUp(String name, Class<?> cls){
 		context = new ClassPathXmlApplicationContext(name, cls);
-		jdbcTemplate = new SimpleJdbcTemplate(this.context.getBean("dataSource",DataSource.class));
+		jdbcTemplate = new JdbcTemplate(this.context.getBean("dataSource",DataSource.class));
 		channel = this.context.getBean("target", MessageChannel.class);
 	}
 	

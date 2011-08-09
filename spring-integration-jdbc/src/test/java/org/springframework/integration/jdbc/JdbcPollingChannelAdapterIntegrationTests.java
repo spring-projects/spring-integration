@@ -16,10 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -32,12 +28,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jonas Partner
@@ -48,7 +48,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 
 	private EmbeddedDatabase embeddedDatabase;
 
-	private SimpleJdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 
 	@Before
 	public void setUp() {
@@ -58,7 +58,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 				.addScript(
 						"classpath:org/springframework/integration/jdbc/pollingChannelAdapterIntegrationTest.sql");
 		this.embeddedDatabase = builder.build();
-		this.jdbcTemplate = new SimpleJdbcTemplate(this.embeddedDatabase);
+		this.jdbcTemplate = new JdbcTemplate(this.embeddedDatabase);
 	}
 
 	@After

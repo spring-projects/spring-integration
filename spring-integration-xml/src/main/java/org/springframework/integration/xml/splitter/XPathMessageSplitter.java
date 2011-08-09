@@ -132,7 +132,6 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		return splitStrings;
 	}
 
-	@SuppressWarnings("unchecked")
 	private List<Node> splitNode(Node node) throws ParserConfigurationException {
 		List<Node> nodeList = this.xpathExpression.evaluateAsNodeList(node);
 		if (nodeList.size() == 0) {

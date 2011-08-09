@@ -21,9 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -32,6 +29,8 @@ import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
 /**
  * Message Router that uses {@link XPathExpression} evaluation to determine channel names.
@@ -41,7 +40,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathRouter extends AbstractMessageRouter {
 
-	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
+	private volatile NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
 
 	private final XPathExpression xPathExpression;
 
@@ -114,7 +113,6 @@ public class XPathRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
 		if (this.evaluateAsString){		
@@ -126,7 +124,7 @@ public class XPathRouter extends AbstractMessageRouter {
 	}
 
 
-	private static class TextContentNodeMapper implements NodeMapper {
+	private static class TextContentNodeMapper implements NodeMapper<Object> {
 
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();

@@ -16,11 +16,6 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -36,12 +31,17 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 // Not transactional because the poller threads need access to the data
 // @Transactional
@@ -49,7 +49,7 @@ public class JdbcPollingChannelAdapterParserTests {
 
 	final long receiveTimeout = 5000;
 
-	private SimpleJdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 
 	private MessagingTemplate messagingTemplate;
 
@@ -171,7 +171,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	}
 
 	protected void setupJdbcTemplate() {
-		this.jdbcTemplate = new SimpleJdbcTemplate(this.appCtx.getBean("dataSource", DataSource.class));
+		this.jdbcTemplate = new JdbcTemplate(this.appCtx.getBean("dataSource", DataSource.class));
 	}
 
 	protected void setupTransactionManager() {

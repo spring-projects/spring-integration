@@ -137,7 +137,7 @@ public class XPathTransformerTests {
 	}
 
 
-	private static class TestNodeMapper implements NodeMapper {
+	private static class TestNodeMapper implements NodeMapper<Object> {
 
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";

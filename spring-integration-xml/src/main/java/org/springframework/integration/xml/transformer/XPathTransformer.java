@@ -50,7 +50,7 @@ public class XPathTransformer extends AbstractTransformer {
 
 	private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
-	private volatile NodeMapper nodeMapper;
+	private volatile NodeMapper<?> nodeMapper;
 
 
 	/**
@@ -84,7 +84,7 @@ public class XPathTransformer extends AbstractTransformer {
 	 * but if explicitly set, type determination is the responsibility of the NodeMapper, taking precedence
 	 * over any configured evaluationType.
 	 */
-	public void setNodeMapper(NodeMapper nodeMapper) {
+	public void setNodeMapper(NodeMapper<?> nodeMapper) {
 		this.nodeMapper = nodeMapper;
 	}
 

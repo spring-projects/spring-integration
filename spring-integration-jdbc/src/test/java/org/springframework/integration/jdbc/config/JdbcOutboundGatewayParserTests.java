@@ -12,10 +12,6 @@
  */
 package org.springframework.integration.jdbc.config;
 
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,7 +19,6 @@ import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,7 +30,11 @@ import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+
+import static junit.framework.Assert.assertTrue;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Dave Syer
@@ -46,7 +45,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  */
 public class JdbcOutboundGatewayParserTests {
 
-	private SimpleJdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 
 	private MessageChannel channel;
 
@@ -133,7 +132,7 @@ public class JdbcOutboundGatewayParserTests {
 
 	public void setUp(String name, Class<?> cls) {
 		context = new ClassPathXmlApplicationContext(name, cls);
-		jdbcTemplate = new SimpleJdbcTemplate(this.context.getBean("dataSource", DataSource.class));
+		jdbcTemplate = new JdbcTemplate(this.context.getBean("dataSource", DataSource.class));
 		channel = this.context.getBean("target", MessageChannel.class);
 		setupMessagingTemplate();
 	}

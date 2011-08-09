@@ -33,6 +33,7 @@ import org.springframework.integration.store.MessageGroup;
  * @author Josh Long
  * @since 2.1
  */
+@SuppressWarnings("serial")
 public class KeyValueMessageGroup implements MessageGroup, Serializable {
 
 	/**
