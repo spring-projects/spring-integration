@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.redis.store;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -23,6 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
+import org.springframework.integration.store.MessageStoreException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -63,6 +65,31 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertEquals("Hello Redis", storedMessage.getPayload());
 	}
 	
+	@Test
+	@RedisAvailable
+	public void testAddSerializableObjectMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		Address address = new Address();
+		address.setAddress("1600 Pennsylvania Av, Washington, DC");
+		Person person = new Person(address, "Barak Obama");
+		
+		Message<Person> objectMessage = new GenericMessage<Person>(person);
+		Message<Person> storedMessage =  store.addMessage(objectMessage);
+		assertNotSame(objectMessage, storedMessage);
+		assertEquals("Barak Obama", storedMessage.getPayload().getName());
+	}
+	
+	@Test(expected=MessageStoreException.class)
+	@RedisAvailable
+	public void testAddNonSerializableObjectMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		
+		Message<Foo> objectMessage = new GenericMessage<Foo>(new Foo());
+		store.addMessage(objectMessage);
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	@RedisAvailable
@@ -88,11 +115,50 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertEquals("Hello Redis", retrievedMessage.getPayload());
 		assertNull(store.getMessage(stringMessage.getHeaders().getId()));
 	}
+	
 	@Test(expected=IllegalArgumentException.class)
 	@RedisAvailable
 	public void testRemoveNonExistingMessage(){	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		store.removeMessage(UUID.randomUUID());
+	}
+	
+	@SuppressWarnings("serial")
+	public static class Person implements Serializable{
+		private Address address;
+		public Address getAddress() {
+			return address;
+		}
+		public void setAddress(Address address) {
+			this.address = address;
+		}
+		public String getName() {
+			return name;
+		}
+		public void setName(String name) {
+			this.name = name;
+		}
+		private String name;
+		public Person(Address address, String name){
+			this.address = address;
+			this.name = name;
+		}
+	}
+	@SuppressWarnings("serial")
+	public static class Address implements Serializable{
+		private String address;
+
+		public String getAddress() {
+			return address;
+		}
+
+		public void setAddress(String address) {
+			this.address = address;
+		}
+	}
+	
+	public static class Foo{
+		
 	}
 }

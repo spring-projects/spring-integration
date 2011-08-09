@@ -29,6 +29,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.MessageStoreException;
 import org.springframework.util.Assert;
 
 /**
@@ -63,7 +64,14 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
 		BoundValueOperations<UUID, Message<?>> ops = redisTemplate.boundValueOps(message.getHeaders().getId());	
-		ops.set(message);
+		try {
+			ops.set(message);
+		} catch (SerializationException e) {
+			throw new MessageStoreException(message, "It seems like while relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
+					"the Message contains data that is not Serializable. Either make it Serializable or provide your own implementation of " +
+					"RedisSerializer via 'setValueSerializer(..)'", e);
+		}
+		
 		return (Message<T>) ops.get();
 	}
 
