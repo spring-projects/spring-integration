@@ -16,13 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static junit.framework.Assert.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,10 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Aggregator;
@@ -52,6 +44,15 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+
+import static junit.framework.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
@@ -239,7 +240,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
+		GenericConversionService conversionService = new DefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
 			public Iterator<?> convert(ArrayList<?> source) {
 				return source.iterator();
