@@ -17,28 +17,82 @@ package org.springframework.integration.redis.store;
 
 import java.util.UUID;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.redis.rules.RedisAvailable;
+import org.springframework.integration.redis.rules.RedisAvailableTests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
  *
  */
-public class RedisMessageStoreTests {
+public class RedisMessageStoreTests extends RedisAvailableTests {
 
 	@Test
-	@Ignore
-	public void testGetNonExistingMessage(){
-		
-		JedisConnectionFactory jcf = new JedisConnectionFactory();
-		jcf.setPort(6379);
-		jcf.afterPropertiesSet();
+	@RedisAvailable
+	public void testGetNonExistingMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
 		Message<?> message = store.getMessage(UUID.randomUUID());
 		assertNull(message);
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testGetMessageCountWhenEmpty(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		assertEquals(0, store.getMessageCount());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testAddStringMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
+		Message<String> storedMessage =  store.addMessage(stringMessage);
+		assertNotSame(stringMessage, storedMessage);
+		assertEquals("Hello Redis", storedMessage.getPayload());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	@RedisAvailable
+	public void testAddAndGetStringMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
+		store.addMessage(stringMessage);
+		Message<String> retrievedMessage = (Message<String>) store.getMessage(stringMessage.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertEquals("Hello Redis", retrievedMessage.getPayload());
+	}
+	@SuppressWarnings("unchecked")
+	@Test
+	@RedisAvailable
+	public void testAddAndRemoveStringMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		Message<String> stringMessage = new GenericMessage<String>("Hello Redis");
+		store.addMessage(stringMessage);
+		Message<String> retrievedMessage = (Message<String>) store.removeMessage(stringMessage.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertEquals("Hello Redis", retrievedMessage.getPayload());
+		assertNull(store.getMessage(stringMessage.getHeaders().getId()));
+	}
+	@Test(expected=IllegalArgumentException.class)
+	@RedisAvailable
+	public void testRemoveNonExistingMessage(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		store.removeMessage(UUID.randomUUID());
 	}
 }

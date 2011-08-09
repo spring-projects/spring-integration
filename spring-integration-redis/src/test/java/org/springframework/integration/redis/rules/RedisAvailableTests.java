@@ -15,7 +15,15 @@
  */
 package org.springframework.integration.redis.rules;
 
+import java.util.UUID;
+
 import org.junit.Rule;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.integration.Message;
 
 /**
  * @author Oleg Zhurakousky
@@ -24,4 +32,22 @@ import org.junit.Rule;
 public class RedisAvailableTests {
 	@Rule
 	public RedisAvailableRule redisAvailableRule = new RedisAvailableRule();
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public JedisConnectionFactory getConnectionFactoryForTest(){
+		JedisConnectionFactory jcf = new JedisConnectionFactory();
+		jcf.setPort(7379);
+		jcf.afterPropertiesSet();
+		RedisTemplate rt = new RedisTemplate<UUID, Message<?>>();
+		rt.setConnectionFactory(jcf);
+		rt.execute(new RedisCallback() {
+
+			public Object doInRedis(RedisConnection connection)
+					throws DataAccessException {
+				connection.flushDb();
+				return null;
+			}
+		});
+		return jcf;
+	}
 }
