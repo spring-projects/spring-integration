@@ -116,7 +116,7 @@ configure(javaprojects) {
     cglibVersion = '2.2'
     commonsNetVersion = '2.0'
     easymockVersion = '2.3'
-    jacksonVersion = '1.4.3'
+    jacksonVersion = '1.8.3'
     javaxActivationVersion = '1.1.1'
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
@@ -363,8 +363,17 @@ project('spring-integration-redis') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
-        compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
-        compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
+        compile "org.springframework:spring-dao:2.0.3"
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") 
+        compile("org.codehaus.jackson:jackson-core-asl:$jacksonVersion") 
+        compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion"){
+            exclude group: 'org.springframework', module: 'spring-beans'
+            exclude group: 'org.springframework', module: 'spring-tx'
+        }
+        compile ("org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"){
+            exclude group: 'org.springframework', module: 'spring-beans'
+            exclude group: 'org.springframework', module: 'spring-tx'
+        }
         testCompile project(":spring-integration-test")
     }
 }
