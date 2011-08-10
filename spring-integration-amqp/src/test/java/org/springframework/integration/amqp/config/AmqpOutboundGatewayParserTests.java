@@ -15,13 +15,15 @@
  */
 package org.springframework.integration.amqp.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
@@ -34,6 +36,7 @@ public class AmqpOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("AmqpOutboundGatewayParserTests-context.xml", this.getClass());
 		AmqpOutboundEndpoint gateway = context.getBean(AmqpOutboundEndpoint.class);
 		assertEquals(5, gateway.getOrder());
+		assertTrue(context.containsBean("rabbitGateway"));
 		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
 	}
 }
