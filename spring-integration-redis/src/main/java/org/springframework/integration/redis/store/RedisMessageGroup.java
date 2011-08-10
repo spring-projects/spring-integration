@@ -12,8 +12,8 @@
  */
 package org.springframework.integration.redis.store;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.data.redis.core.BoundSetOperations;
@@ -43,7 +43,10 @@ class RedisMessageGroup implements MessageGroup {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+	/**
+	 * 
+	 * @param message
+	 */
 	public void add(Message<?> message) {
 		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
 		String key = message.getHeaders().getId().toString();
@@ -51,7 +54,9 @@ class RedisMessageGroup implements MessageGroup {
 		BoundValueOperations<String, Object> bvOps = this.redisTemplate.boundValueOps(key);
 		bvOps.set(message);
 	}
-	
+	/**
+	 * 
+	 */
 	public void destroy(){
 		// delete unmarked
 		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
@@ -68,7 +73,16 @@ class RedisMessageGroup implements MessageGroup {
 	}
 	
 	public void markAll() {
-		
+		BoundSetOperations<String, Object> unmarkedGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
+		long uSize = unmarkedGroupOps.size();
+		String destinationKey = UNMARKED_PREFIX + this.groupId.toString();
+	
+		for (Object messageId : unmarkedGroupOps.members()) {
+			unmarkedGroupOps.move(destinationKey, messageId);
+		}
+		BoundSetOperations<String, Object> markedGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
+		long mSize = markedGroupOps.size();
+		Assert.isTrue(mSize == uSize, "Failed to mark ALl messages in the message group");
 	}
 
 	
@@ -110,11 +124,18 @@ class RedisMessageGroup implements MessageGroup {
 		return mGroupOps.members().size();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.store.MessageGroup#getOne()
-	 */
+	
 	public Message<?> getOne() {
-		// TODO Auto-generated method stub
+		List<Message<?>> messages = (List<Message<?>>) this.getUnmarked();
+		if (messages.isEmpty()){
+			messages = (List<Message<?>>) this.getMarked();
+			if (!messages.isEmpty()){
+				return messages.get(0);
+			}
+		}
+		else {
+			return messages.get(0);
+		}
 		return null;
 	}
 
@@ -127,7 +148,7 @@ class RedisMessageGroup implements MessageGroup {
 	}
 	
 	private Collection<Message<?>> getMessages(BoundSetOperations<String, Object> mGroupOps){
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new LinkedList<Message<?>>();
 		for (Object messageId : mGroupOps.members()) {
 			BoundValueOperations<String, Object> bvOps = this.redisTemplate.boundValueOps(messageId.toString());
 			Object message = bvOps.get();
