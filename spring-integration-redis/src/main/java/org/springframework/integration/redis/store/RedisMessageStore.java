@@ -15,12 +15,16 @@
  */
 package org.springframework.integration.redis.store;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,6 +32,8 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.integration.Message;
+import org.springframework.integration.store.AbstractMessageGroupStore;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.MessageStoreException;
 import org.springframework.util.Assert;
@@ -37,24 +43,28 @@ import org.springframework.util.Assert;
  * @since 2.1
  *
  */
-public class RedisMessageStore implements MessageStore, InitializingBean{
+public class RedisMessageStore extends AbstractMessageGroupStore implements MessageStore, InitializingBean{
+	
+	private final String MESSAGE_GROUPS_KEY = "MESSAGE_GROUPS";
 
-	private final RedisTemplate<UUID, Message<?>> redisTemplate;
+	private final RedisTemplate<String, Object> redisTemplate;
 	
 	private volatile RedisSerializer<?> valueSerializer = new JdkSerializationRedisSerializer();
 	
 	public RedisMessageStore(RedisConnectionFactory connectionFactory){
-		this.redisTemplate = new RedisTemplate<UUID, Message<?>>();
+		this.redisTemplate = new RedisTemplate<String, Object>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
-		this.redisTemplate.setKeySerializer(new UuidSerializer());	
+		this.redisTemplate.setKeySerializer(new KeySerializer());	
 		this.redisTemplate.setValueSerializer(this.valueSerializer);	
 	}
 
 	public Message<?> getMessage(final UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		if (this.messageExists(id)){
-			BoundValueOperations<UUID, Message<?>> ops = redisTemplate.boundValueOps(id);		
-			return ops.get();
+		if (this.keyExists(id)){
+			BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(id.toString());	
+			Object result = ops.get();
+			Assert.isInstanceOf(Message.class, result, "Return value is not an instace of Message");
+			return (Message<?>) result;
 		}
 		return null;	
 	}
@@ -63,7 +73,7 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		BoundValueOperations<UUID, Message<?>> ops = redisTemplate.boundValueOps(message.getHeaders().getId());	
+		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(message.getHeaders().getId().toString());	
 		try {
 			ops.set(message);
 		} catch (SerializationException e) {
@@ -71,8 +81,9 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 					"the Message contains data that is not Serializable. Either make it Serializable or provide your own implementation of " +
 					"RedisSerializer via 'setValueSerializer(..)'", e);
 		}
-		
-		return (Message<T>) ops.get();
+		Object result = ops.get();
+		Assert.isInstanceOf(Message.class, result, "Return value is not an instace of Message");
+		return (Message<T>) result;
 	}
 
 	
@@ -80,7 +91,7 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 		Assert.notNull(id, "'id' must not be null");
 		Message<?> message = this.getMessage(id);
 		if (message != null){
-			this.redisTemplate.delete(id);
+			this.redisTemplate.delete(id.toString());
 			return message;
 		}
 		else {
@@ -104,7 +115,7 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 		this.valueSerializer = valueSerializer;
 	}
 	
-	private boolean messageExists(final UUID id){
+	private boolean keyExists(final UUID id){
 		return redisTemplate.execute(new RedisCallback<Boolean>() {
 			public Boolean doInRedis(RedisConnection connection)
 					throws DataAccessException {
@@ -113,19 +124,79 @@ public class RedisMessageStore implements MessageStore, InitializingBean{
 		});
 	}
 	
-	private static class UuidSerializer implements RedisSerializer<UUID> {
+	private static class KeySerializer implements RedisSerializer<String> {
 
-		public byte[] serialize(UUID t) throws SerializationException {
-			return t.toString().getBytes();
+		public byte[] serialize(String value) throws SerializationException {
+			return value.getBytes();
 		}
 
-		public UUID deserialize(byte[] bytes) throws SerializationException {
-			return UUID.fromString(new String(bytes));
+		public String deserialize(byte[] bytes) throws SerializationException {
+			return new String(bytes);
 		}
 		
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.valueSerializer, "'valueSerializer' must not be null");
+	}
+	/**
+	 * 
+	 */
+	public MessageGroup getMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		
+		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
+		if (!mGroupsOps.isMember(groupId)){
+			mGroupsOps.add(groupId);
+		}
+		return new RedisMessageGroup(this.redisTemplate, groupId);
+	}
+	/**
+	 * 
+	 */
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");	
+		Assert.notNull(message, "'message' must not be null");
+		
+		MessageGroup mg = this.getMessageGroup(groupId);
+		
+		Assert.isInstanceOf(RedisMessageGroup.class, mg, "MessageGroup is not an instance of RedisMessageGroup");
+		((RedisMessageGroup)mg).add(message);
+		return mg;
+	}
+
+	public MessageGroup markMessageGroup(MessageGroup group) {
+		Assert.isInstanceOf(RedisMessageGroup.class, group, "MessageGroup is not an instance of RedisMessageGroup");
+		((RedisMessageGroup)group).markAll();
+		return group;
+	}
+
+	public MessageGroup removeMessageFromGroup(Object key,
+			Message<?> messageToRemove) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public MessageGroup markMessageFromGroup(Object key,
+			Message<?> messageToMark) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void removeMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		RedisMessageGroup messageGroup = (RedisMessageGroup) this.getMessageGroup(groupId);
+		messageGroup.destroy();
+		this.redisTemplate.delete(groupId.toString());
+	}
+
+	@Override
+	public Iterator<MessageGroup> iterator() {
+		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
+		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
+		for (Object msgGroupId : mGroupsOps.members()) {
+			messageGroups.add(new RedisMessageGroup(this.redisTemplate, msgGroupId));
+		}
+		return messageGroups.iterator();
 	}
 }

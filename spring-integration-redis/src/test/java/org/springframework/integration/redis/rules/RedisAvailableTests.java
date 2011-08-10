@@ -23,7 +23,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.integration.Message;
 
 /**
  * @author Oleg Zhurakousky
@@ -38,7 +37,7 @@ public class RedisAvailableTests {
 		JedisConnectionFactory jcf = new JedisConnectionFactory();
 		jcf.setPort(7379);
 		jcf.afterPropertiesSet();
-		RedisTemplate rt = new RedisTemplate<UUID, Message<?>>();
+		RedisTemplate rt = new RedisTemplate<UUID, Object>();
 		rt.setConnectionFactory(jcf);
 		rt.execute(new RedisCallback() {
 
