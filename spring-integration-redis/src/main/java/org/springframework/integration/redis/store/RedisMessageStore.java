@@ -149,7 +149,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		if (!mGroupsOps.isMember(groupId)){
 			mGroupsOps.add(groupId);
 		}
-		return new RedisMessageGroup(this.redisTemplate, groupId);
+		return new RedisMessageGroup(this, this.redisTemplate, groupId);
 	}
 	/**
 	 * 
@@ -195,7 +195,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
 		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
 		for (Object msgGroupId : mGroupsOps.members()) {
-			messageGroups.add(new RedisMessageGroup(this.redisTemplate, msgGroupId));
+			messageGroups.add(new RedisMessageGroup(this, this.redisTemplate, msgGroupId));
 		}
 		return messageGroups.iterator();
 	}

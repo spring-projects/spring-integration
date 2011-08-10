@@ -15,12 +15,14 @@ package org.springframework.integration.redis.store;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
 /**
@@ -33,10 +35,12 @@ class RedisMessageGroup implements MessageGroup {
 	
 	private final Object groupId;
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final MessageStore messageStore;
 	
-	public RedisMessageGroup(RedisTemplate<String, Object> redisTemplate,  Object groupId){
+	public RedisMessageGroup(MessageStore messageStore, RedisTemplate<String, Object> redisTemplate,  Object groupId){
 		this.groupId = groupId;
 		this.redisTemplate = redisTemplate;
+		this.messageStore = messageStore;
 	}
 
 	public boolean canAdd(Message<?> message) {
@@ -44,15 +48,14 @@ class RedisMessageGroup implements MessageGroup {
 		return false;
 	}
 	/**
-	 * 
+	 * Will add message to this MessageGroup, b
 	 * @param message
 	 */
 	public void add(Message<?> message) {
 		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
 		String key = message.getHeaders().getId().toString();
 		mGroupOps.add(key);
-		BoundValueOperations<String, Object> bvOps = this.redisTemplate.boundValueOps(key);
-		bvOps.set(message);
+		this.messageStore.addMessage(message);
 	}
 	/**
 	 * 
@@ -61,13 +64,15 @@ class RedisMessageGroup implements MessageGroup {
 		// delete unmarked
 		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
 		for (Object messageId : mGroupOps.members()) {
-			this.redisTemplate.delete(messageId.toString());
+			this.messageStore.removeMessage(UUID.fromString(messageId.toString()));
+			//this.redisTemplate.delete(messageId.toString());
 		}
 		this.redisTemplate.delete(UNMARKED_PREFIX + this.groupId.toString());
 		// delete marked
 		mGroupOps = this.redisTemplate.boundSetOps(MARKED_PREFIX + this.groupId.toString());
 		for (Object messageId : mGroupOps.members()) {
-			this.redisTemplate.delete(messageId.toString());
+			//this.redisTemplate.delete(messageId.toString());
+			this.messageStore.removeMessage(UUID.fromString(messageId.toString()));
 		}
 		this.redisTemplate.delete(MARKED_PREFIX + this.groupId.toString());
 	}
@@ -150,9 +155,7 @@ class RedisMessageGroup implements MessageGroup {
 	private Collection<Message<?>> getMessages(BoundSetOperations<String, Object> mGroupOps){
 		List<Message<?>> messages = new LinkedList<Message<?>>();
 		for (Object messageId : mGroupOps.members()) {
-			BoundValueOperations<String, Object> bvOps = this.redisTemplate.boundValueOps(messageId.toString());
-			Object message = bvOps.get();
-			Assert.isInstanceOf(Message.class, message, "Retrieved object is not an instance of Message");
+			Message<?> message = this.messageStore.getMessage(UUID.fromString(messageId.toString()));
 			messages.add((Message<?>) message);
 		}
 		return messages;
