@@ -17,8 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.BoundSetOperations;
-import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
@@ -48,14 +48,24 @@ class RedisMessageGroup implements MessageGroup {
 		return false;
 	}
 	/**
-	 * Will add message to this MessageGroup, b
-	 * @param message
+	 * Will add message to this MessageGroup. This particular implementation will first add the Message ID to the Redis set of 
+	 * Unmarked IDs and than will use the underlying MessageStore to add the actual Message.
 	 */
-	public void add(Message<?> message) {
+	protected void add(Message<?> message) {
+		BoundListOperations<String, Object> mGroupListOps = this.redisTemplate.boundListOps("L" + UNMARKED_PREFIX + this.groupId.toString());
 		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
 		String key = message.getHeaders().getId().toString();
 		mGroupOps.add(key);
+		mGroupListOps.rightPush(key);
+		System.out.println("Members: " + mGroupOps.members());
 		this.messageStore.addMessage(message);
+	}
+	
+	protected void remove(Message<?> message) {
+		BoundSetOperations<String, Object> mGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
+		String key = message.getHeaders().getId().toString();
+		mGroupOps.remove(key);
+		this.messageStore.removeMessage(message.getHeaders().getId());
 	}
 	/**
 	 * 
@@ -71,7 +81,6 @@ class RedisMessageGroup implements MessageGroup {
 		// delete marked
 		mGroupOps = this.redisTemplate.boundSetOps(MARKED_PREFIX + this.groupId.toString());
 		for (Object messageId : mGroupOps.members()) {
-			//this.redisTemplate.delete(messageId.toString());
 			this.messageStore.removeMessage(UUID.fromString(messageId.toString()));
 		}
 		this.redisTemplate.delete(MARKED_PREFIX + this.groupId.toString());
@@ -80,14 +89,18 @@ class RedisMessageGroup implements MessageGroup {
 	public void markAll() {
 		BoundSetOperations<String, Object> unmarkedGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
 		long uSize = unmarkedGroupOps.size();
-		String destinationKey = UNMARKED_PREFIX + this.groupId.toString();
-	
-		for (Object messageId : unmarkedGroupOps.members()) {
-			unmarkedGroupOps.move(destinationKey, messageId);
-		}
-		BoundSetOperations<String, Object> markedGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
+		String destiinationKey = MARKED_PREFIX + this.groupId.toString();
+		unmarkedGroupOps.rename(destiinationKey);
+
+		BoundSetOperations<String, Object> markedGroupOps = this.redisTemplate.boundSetOps(destiinationKey);
 		long mSize = markedGroupOps.size();
-		Assert.isTrue(mSize == uSize, "Failed to mark ALl messages in the message group");
+		Assert.isTrue(mSize == uSize, "Failed to mark All messages in the message group");
+	}
+	
+	protected void markMessage(String messageId) {
+		BoundSetOperations<String, Object> unmarkedGroupOps = this.redisTemplate.boundSetOps(UNMARKED_PREFIX + this.groupId.toString());
+		String destinationKey = MARKED_PREFIX + this.groupId.toString();
+		unmarkedGroupOps.move(destinationKey, messageId);
 	}
 
 	
@@ -131,17 +144,20 @@ class RedisMessageGroup implements MessageGroup {
 
 	
 	public Message<?> getOne() {
-		List<Message<?>> messages = (List<Message<?>>) this.getUnmarked();
-		if (messages.isEmpty()){
-			messages = (List<Message<?>>) this.getMarked();
-			if (!messages.isEmpty()){
-				return messages.get(0);
-			}
-		}
-		else {
-			return messages.get(0);
-		}
-		return null;
+		BoundListOperations<String, Object> mGroupListOps = this.redisTemplate.boundListOps("L" + UNMARKED_PREFIX + this.groupId.toString());
+		Object id = mGroupListOps.leftPop();
+		return this.messageStore.getMessage(UUID.fromString(id.toString()));
+//		List<Message<?>> messages = (List<Message<?>>) this.getUnmarked();
+//		if (messages.isEmpty()){
+//			messages = (List<Message<?>>) this.getMarked();
+//			if (!messages.isEmpty()){
+//				return messages.get(0);
+//			}
+//		}
+//		else {
+//			return messages.get(0);
+//		}
+		//return null;
 	}
 
 	/* (non-Javadoc)

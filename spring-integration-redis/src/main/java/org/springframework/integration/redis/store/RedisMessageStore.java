@@ -173,14 +173,16 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 
 	public MessageGroup removeMessageFromGroup(Object key,
 			Message<?> messageToRemove) {
-		// TODO Auto-generated method stub
-		return null;
+		RedisMessageGroup messageGroup = (RedisMessageGroup) this.getMessageGroup(key);
+		messageGroup.remove(messageToRemove);
+		return messageGroup;
 	}
 
 	public MessageGroup markMessageFromGroup(Object key,
 			Message<?> messageToMark) {
-		// TODO Auto-generated method stub
-		return null;
+		RedisMessageGroup messageGroup = (RedisMessageGroup) this.getMessageGroup(key);
+		messageGroup.markMessage(messageToMark.getHeaders().getId().toString());
+		return messageGroup;
 	}
 
 	public void removeMessageGroup(Object groupId) {

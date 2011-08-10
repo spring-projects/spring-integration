@@ -95,9 +95,29 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("1"));
 		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("2"));
 		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("3"));
+		assertEquals(3, messageGroup.getUnmarked().size());
+		assertEquals(0, messageGroup.getMarked().size());
 		((RedisMessageGroup)messageGroup).markAll();
-		// No need to assert for anything here.
-		// Assertion is done within the method itself and the exception would be thrown if move did not succeed
+		assertEquals(0, messageGroup.getUnmarked().size());
+		assertEquals(3, messageGroup.getMarked().size());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testMarkMessageInMessageGroup(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> messageToMark = new GenericMessage<String>("1");
+		((RedisMessageGroup)messageGroup).add(messageToMark);
+		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("2"));
+		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("3"));
+		assertEquals(3, messageGroup.getUnmarked().size());
+		assertEquals(0, messageGroup.getMarked().size());
+		store.markMessageFromGroup(1, messageToMark);
+		assertEquals(2, messageGroup.getUnmarked().size());
+		assertEquals(1, messageGroup.getMarked().size());
 	}
 	
 	@Test
