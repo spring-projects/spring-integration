@@ -76,7 +76,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	@ManagedAttribute
-	public int getMessageCount() {
+	public long getMessageCount() {
 		return idToMessage.size();
 	}
 

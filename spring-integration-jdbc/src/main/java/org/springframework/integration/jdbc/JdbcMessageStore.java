@@ -249,7 +249,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@ManagedAttribute
-	public int getMessageCount() {
+	public long getMessageCount() {
 		return jdbcTemplate.queryForInt(getQuery(GET_MESSAGE_COUNT), region);
 	}
 
