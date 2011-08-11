@@ -38,6 +38,7 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.MessageStoreException;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 
 /**
@@ -105,7 +106,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		}
 	}
 
-	
+	@ManagedAttribute
 	public long getMessageCount() {
 		return redisTemplate.execute(new RedisCallback<Integer>() {
 			public Integer doInRedis(RedisConnection connection)

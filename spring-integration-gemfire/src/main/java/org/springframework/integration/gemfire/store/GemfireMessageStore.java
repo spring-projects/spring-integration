@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Region;
@@ -50,6 +51,7 @@ public class GemfireMessageStore implements MessageStore {
 		return this.region.remove(id);
 	}
 
+	@ManagedAttribute
 	public long getMessageCount() {
 		return this.region.size();
 	}
