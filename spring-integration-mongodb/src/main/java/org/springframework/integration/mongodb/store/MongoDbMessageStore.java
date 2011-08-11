@@ -89,7 +89,7 @@ public class MongoDbMessageStore implements MessageStore, BeanClassLoaderAware {
 		return this.template.findOne(this.idQuery(id), Message.class, this.collectionName);
 	}
 
-	public int getMessageCount() {
+	public long getMessageCount() {
 		// TODO: long to int
 		return new Long(this.template.getCollection(DEFAULT_COLLECTION_NAME).getCount()).intValue();
 	}

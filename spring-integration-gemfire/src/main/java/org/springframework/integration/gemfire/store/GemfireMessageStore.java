@@ -50,7 +50,7 @@ public class GemfireMessageStore implements MessageStore {
 		return this.region.remove(id);
 	}
 
-	public int getMessageCount() {
+	public long getMessageCount() {
 		return this.region.size();
 	}
 
