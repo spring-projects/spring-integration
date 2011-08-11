@@ -22,9 +22,11 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -87,6 +89,23 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	
 	@Test
 	@RedisAvailable
+	public void testRemoveMessageFromTheGroup(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("2");
+		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("1"));
+		((RedisMessageGroup)messageGroup).add(message);
+		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("3"));
+		assertEquals(3, messageGroup.size());
+		
+		store.removeMessageFromGroup(1, message);
+		assertEquals(2, messageGroup.size());
+	}
+	
+	@Test
+	@RedisAvailable
 	public void testMarkAllMessagesInMessageGroup(){	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);
@@ -132,6 +151,71 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		((RedisMessageGroup)messageGroup).add(new GenericMessage<String>("3"));
 		Message<?> message =  messageGroup.getOne(); 
 		assertEquals("1", message.getPayload());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testAddToMessageGroup(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		
+		store.addMessageToGroup(1, new GenericMessage<String>("1"));
+		assertEquals(1, messageGroup.size());
+		store.addMessageToGroup(1, new GenericMessage<String>("2"));
+		assertEquals(2, messageGroup.size());
+		store.addMessageToGroup(1, new GenericMessage<String>("3"));
+		assertEquals(3, messageGroup.size());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testCanAddToMessageGroup(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1).build();
+		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1).build();
+		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
+		
+		if (messageGroup.canAdd(m1)){
+			store.addMessageToGroup(1, m1);
+		}
+		assertEquals(1, messageGroup.size());
+		
+		if (messageGroup.canAdd(m2)){
+			store.addMessageToGroup(1, m2);
+		}
+		assertEquals(2, messageGroup.size());
+		
+		if (messageGroup.canAdd(m3)){
+			store.addMessageToGroup(1, m3);
+		}
+		assertEquals(3, messageGroup.size());
+		
+		if (messageGroup.canAdd(m3)){
+			store.addMessageToGroup(1, m3);
+		}
+		assertEquals(3, messageGroup.size());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testSameInstance(){	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		MessageGroup mg1 = store.getMessageGroup(1);
+		MessageGroup mg2 = store.getMessageGroup(1);
+		
+		assertEquals(mg1, mg2);
+		
+		store.removeMessageGroup(1);
+		
+		mg2 = store.getMessageGroup(1);
+		assertNotSame(mg1, mg2);
 	}
 	
 }

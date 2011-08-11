@@ -16,8 +16,10 @@
 package org.springframework.integration.redis.store;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -49,7 +51,11 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 
 	private final RedisTemplate<String, Object> redisTemplate;
 	
+	private final Map<Object, RedisMessageGroup> messageGroups = new HashMap<Object, RedisMessageGroup>();
+	
 	private volatile RedisSerializer<?> valueSerializer = new JdkSerializationRedisSerializer();
+	
+	private final Object lock = new Object();
 	
 	public RedisMessageStore(RedisConnectionFactory connectionFactory){
 		this.redisTemplate = new RedisTemplate<String, Object>();
@@ -144,12 +150,19 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	 */
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		
-		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
-		if (!mGroupsOps.isMember(groupId)){
-			mGroupsOps.add(groupId);
+		RedisMessageGroup group = this.messageGroups.get(groupId);
+		if (group == null){
+			synchronized (lock) {
+				BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
+				if (!mGroupsOps.isMember(groupId)){
+					mGroupsOps.add(groupId);
+					group = new RedisMessageGroup(this, this.redisTemplate, groupId);
+					this.messageGroups.put(groupId, group);
+				}
+			}
 		}
-		return new RedisMessageGroup(this, this.redisTemplate, groupId);
+		
+		return group;
 	}
 	/**
 	 * 
@@ -188,8 +201,13 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		RedisMessageGroup messageGroup = (RedisMessageGroup) this.getMessageGroup(groupId);
-		messageGroup.destroy();
-		this.redisTemplate.delete(groupId.toString());
+		synchronized (messageGroup) {
+			messageGroup.destroy();
+			BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
+			mGroupsOps.remove(groupId);
+			this.redisTemplate.delete(groupId.toString());
+			this.messageGroups.remove(groupId);
+		}
 	}
 
 	@Override
