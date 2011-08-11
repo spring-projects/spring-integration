@@ -106,7 +106,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	}
 
 	
-	public int getMessageCount() {
+	public long getMessageCount() {
 		return redisTemplate.execute(new RedisCallback<Integer>() {
 			public Integer doInRedis(RedisConnection connection)
 					throws DataAccessException {

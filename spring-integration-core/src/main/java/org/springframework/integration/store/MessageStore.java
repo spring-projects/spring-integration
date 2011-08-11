@@ -61,6 +61,6 @@ public interface MessageStore {
 	 * @throws UnsupportedOperationException if not implemented
 	 */
 	@ManagedAttribute
-	int getMessageCount();
+	long getMessageCount();
 
 }
