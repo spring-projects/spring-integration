@@ -19,6 +19,7 @@ package org.springframework.integration.mongodb.store;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,6 +39,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.store.AbstractMessageGroupStore;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
@@ -51,7 +54,7 @@ import com.mongodb.DBObject;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class MongoDbMessageStore implements MessageStore, BeanClassLoaderAware {
+public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
 
@@ -171,6 +174,45 @@ public class MongoDbMessageStore implements MessageStore, BeanClassLoaderAware {
 		public UUID convert(String source) {
 			return UUID.fromString(source);
 		}
+	}
+
+
+	public MessageGroup getMessageGroup(Object groupId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public MessageGroup markMessageGroup(MessageGroup group) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public MessageGroup removeMessageFromGroup(Object key,
+			Message<?> messageToRemove) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public MessageGroup markMessageFromGroup(Object key,
+			Message<?> messageToMark) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void removeMessageGroup(Object groupId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Iterator<MessageGroup> iterator() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
