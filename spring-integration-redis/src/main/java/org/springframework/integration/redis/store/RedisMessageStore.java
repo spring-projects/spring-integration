@@ -156,9 +156,9 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 				BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
 				if (!mGroupsOps.isMember(groupId)){
 					mGroupsOps.add(groupId);
-					group = new RedisMessageGroup(this, this.redisTemplate, groupId);
-					this.messageGroups.put(groupId, group);
 				}
+				group = new RedisMessageGroup(this, this.redisTemplate, groupId);
+				this.messageGroups.put(groupId, group);
 			}
 		}
 		

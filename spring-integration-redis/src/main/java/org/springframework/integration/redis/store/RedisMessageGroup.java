@@ -45,6 +45,9 @@ class RedisMessageGroup implements MessageGroup {
 		this.groupId = groupId;
 		this.redisTemplate = redisTemplate;
 		this.messageStore = messageStore;
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
+		this.rebuildLocalCache(unmarkedOps, markedOps);
 	}
 
 	public boolean canAdd(Message<?> message) {
@@ -230,7 +233,6 @@ class RedisMessageGroup implements MessageGroup {
 	}
 	
 	private void rebuildLocalCache(BoundListOperations<String, Object> unmarkedOps, BoundListOperations<String, Object> markedOps){
-		
 		
 		if (unmarkedOps != null){
 			this.unmarked.clear();

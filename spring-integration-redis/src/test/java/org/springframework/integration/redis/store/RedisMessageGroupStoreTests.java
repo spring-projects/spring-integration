@@ -16,8 +16,11 @@
 package org.springframework.integration.redis.store;
 
 import org.junit.Test;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -27,6 +30,7 @@ import org.springframework.integration.support.MessageBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -216,6 +220,32 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		
 		mg2 = store.getMessageGroup(1);
 		assertNotSame(mg1, mg2);
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testWithAggregatorWithShutdown(){	
+		this.getConnectionFactoryForTest(); // for this test it only ensures that DB was flushed before test
+		
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
+		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
+		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
+		
+		Message<?> m1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setSequenceSize(3).setCorrelationId(1).build();
+		Message<?> m2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setSequenceSize(3).setCorrelationId(1).build();
+		input.send(m1);
+		assertNull(output.receive(1000));
+		input.send(m2);
+		assertNull(output.receive(1000));
+		context.close();
+		
+		context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
+		input = context.getBean("inputChannel", MessageChannel.class);
+		output = context.getBean("outputChannel", QueueChannel.class);
+		
+		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
+		input.send(m3);
+		assertNotNull(output.receive(1000));
 	}
 	
 }
