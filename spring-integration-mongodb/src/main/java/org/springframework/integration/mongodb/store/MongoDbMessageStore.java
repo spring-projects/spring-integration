@@ -39,6 +39,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -89,9 +90,9 @@ public class MongoDbMessageStore implements MessageStore, BeanClassLoaderAware {
 		return this.template.findOne(this.idQuery(id), Message.class, this.collectionName);
 	}
 
+	@ManagedAttribute
 	public long getMessageCount() {
-		// TODO: long to int
-		return new Long(this.template.getCollection(DEFAULT_COLLECTION_NAME).getCount()).intValue();
+		return this.template.getCollection(DEFAULT_COLLECTION_NAME).getCount();
 	}
 
 	public Message<?> removeMessage(UUID id) {
