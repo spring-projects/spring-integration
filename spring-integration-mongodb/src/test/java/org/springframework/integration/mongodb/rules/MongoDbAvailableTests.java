@@ -17,6 +17,11 @@
 package org.springframework.integration.mongodb.rules;
 
 import org.junit.Rule;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+
+import com.mongodb.Mongo;
 
 /**
  * Convenience base class that enables unit test methods to rely upon the {@link MongoDbAvailable} annotation.
@@ -28,5 +33,13 @@ public abstract class MongoDbAvailableTests {
 
 	@Rule
 	public MongoDbAvailableRule redisAvailableRule = new MongoDbAvailableRule();
+	
+	
+	protected MongoDbFactory prepareMongoFactory() throws Exception{
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoTemplate template = new MongoTemplate(mongoDbFactory);
+		template.dropCollection("messages");
+		return mongoDbFactory;
+	}
 
 }
