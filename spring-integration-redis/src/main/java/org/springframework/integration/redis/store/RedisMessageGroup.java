@@ -32,9 +32,6 @@ class RedisMessageGroup implements MessageGroup {
 	private final String MARKED_PREFIX = "MARKED_";
 	private final String UNMARKED_PREFIX = "UNMARKED_";
 	
-	private final String unmarkedId;
-	private final String markedId;
-	
 	private final List<Message<?>> unmarked = new LinkedList<Message<?>>();
 	private final List<Message<?>> marked = new LinkedList<Message<?>>();
 	
@@ -48,10 +45,8 @@ class RedisMessageGroup implements MessageGroup {
 		this.groupId = groupId;
 		this.redisTemplate = redisTemplate;
 		this.messageStore = messageStore;
-		this.unmarkedId = UNMARKED_PREFIX + groupId;
-		this.markedId = MARKED_PREFIX + groupId;
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(markedId);
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
 		this.rebuildLocalCache(unmarkedOps, markedOps);
 	}
 
@@ -90,19 +85,19 @@ class RedisMessageGroup implements MessageGroup {
 	}
 
 	public int size() {
-		synchronized (lock) {
-			return marked.size() + unmarked.size();
-		}
+		BoundListOperations<String, Object> mGroupOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		long usize = mGroupOps.size();
+		mGroupOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
+		long msize = mGroupOps.size();
+		return (int)(usize + msize);
 	}
 
 	public Message<?> getOne() {
-		synchronized (lock) {
-			Message<?> one = unmarked.get(0);
-			if (one == null) {
-				one = marked.get(0);
-			}
-			return one;
+		Message<?> one = unmarked.get(0);
+		if (one == null) {
+			one = marked.get(0);
 		}
+		return one;
 	}
 
 	public long getTimestamp() {
@@ -110,12 +105,13 @@ class RedisMessageGroup implements MessageGroup {
 	}
 	
 	protected void markAll() {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(markedId);
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
 		long uSize = unmarkedOps.size();
+		String destiinationKey = MARKED_PREFIX + this.groupId.toString();
 		
 		synchronized (lock) {
-			unmarkedOps.rename(markedId);
+			unmarkedOps.rename(destiinationKey);
 			this.unmarked.clear();
 			this.rebuildLocalCache(null, markedOps);
 		}
@@ -125,15 +121,17 @@ class RedisMessageGroup implements MessageGroup {
 	}
 	
 	protected void markMessage(String messageId) {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
 		List<Object> messageIds = unmarkedOps.range(0, unmarkedOps.size()-1);
 
 		synchronized (lock) {
 			for (Object id : messageIds) {
 				if (messageId.equals(id)){
-					BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(markedId);
+					BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
 					markedOps.rightPush(id);
+					System.out.println(unmarkedOps.size());
 					unmarkedOps.remove(0, id);
+					System.out.println(unmarkedOps.size());
 					this.rebuildLocalCache(unmarkedOps, markedOps);
 					return;
 				}
@@ -147,7 +145,7 @@ class RedisMessageGroup implements MessageGroup {
 	 */
 	protected void add(Message<?> message) {
 		String messageId = message.getHeaders().getId().toString();
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
 		synchronized (lock) {
 			unmarkedOps.rightPush(messageId);
 			this.messageStore.addMessage(message);
@@ -157,8 +155,8 @@ class RedisMessageGroup implements MessageGroup {
 	
 	protected void remove(Message<?> message) {
 		UUID messageId = message.getHeaders().getId();
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(markedId);
+		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
 		
 		synchronized (lock) {
 			unmarkedOps.remove(0, messageId.toString());		
@@ -172,20 +170,19 @@ class RedisMessageGroup implements MessageGroup {
 	 * 
 	 */
 	protected void destroy(){
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(unmarkedId);
-		List<Object> messageIds =  unmarkedOps.range(0, unmarkedOps.size()-1);
+		BoundListOperations<String, Object> mGroupListOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
+		List<Object> messageIds =  mGroupListOps.range(0, mGroupListOps.size()-1);
 		for (Object messageId : messageIds) {
 			this.messageStore.removeMessage(UUID.fromString(messageId.toString()));
 		}
-		this.redisTemplate.delete(unmarkedId);
+		this.redisTemplate.delete(UNMARKED_PREFIX + this.groupId.toString());
 		
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(markedId);
-		messageIds =  markedOps.range(0, markedOps.size()-1);
+		mGroupListOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
+		messageIds =  mGroupListOps.range(0, mGroupListOps.size()-1);
 		for (Object messageId : messageIds) {
 			this.messageStore.removeMessage(UUID.fromString(messageId.toString()));
 		}
-		this.redisTemplate.delete(markedId);
-		this.rebuildLocalCache(unmarkedOps, markedOps);
+		this.redisTemplate.delete(MARKED_PREFIX + this.groupId.toString());
 	}
 	
 	private Collection<Message<?>> buildMessageList(BoundListOperations<String, Object> mGroupOps){
@@ -211,9 +208,9 @@ class RedisMessageGroup implements MessageGroup {
 			else {
 				synchronized (lock) {
 					
-					BoundListOperations<String, Object> mGroupOps = this.redisTemplate.boundListOps(unmarkedId);
+					BoundListOperations<String, Object> mGroupOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + this.groupId.toString());
 					Collection<Message<?>> unmarked = this.buildMessageList(mGroupOps);
-					mGroupOps = this.redisTemplate.boundListOps(markedId);
+					mGroupOps = this.redisTemplate.boundListOps(MARKED_PREFIX + this.groupId.toString());
 					Collection<Message<?>> marked = this.buildMessageList(mGroupOps);
 					if (containsSequenceNumber(unmarked, messageSequenceNumber)
 							|| containsSequenceNumber(marked, messageSequenceNumber)) {

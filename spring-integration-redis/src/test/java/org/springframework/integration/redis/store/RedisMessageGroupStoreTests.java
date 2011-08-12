@@ -88,8 +88,6 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		
 		store.removeMessageGroup(1);
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(0, messageGroup.getMarked().size());
-		assertEquals(0, messageGroup.getUnmarked().size());
 		assertEquals(0, messageGroup.size());
 	}
 	
@@ -223,7 +221,6 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		mg2 = store.getMessageGroup(1);
 		assertNotSame(mg1, mg2);
 	}
-	
 	
 	@Test
 	@RedisAvailable
