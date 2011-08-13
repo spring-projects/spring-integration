@@ -184,7 +184,162 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+                Builds an outbound gateway used to issue sftp commands.
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="session-factory" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.sftp.session.SftpSessionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+					 Reference to a [org.springframework.integration.sftp.session.SftpSessionFactory] bean.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="cache-sessions" type="xsd:boolean" default="true">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+				Specify whether the Sessions should be cached. Default is true.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="command" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					sftp command - ls, get or rm
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="command-options" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					sftp command options; for ls, -1 means just return the file names (otherwise file
+					metadata is returned, -dirs means include directories (not included by default),
+					-links means include links (not included by default); for get, -P means preserve
+					timestamp from remote file.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="expression" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					SpEL expression representing the path in the command (e.g. ls path to
+					list the files in directory path).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+					Lifecycle attribute signaling if this component should be started during Application Context startup.
+					Default is 'true'
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="temporary-file-suffix" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Extension used when downloading files. We change it right after we know it's downloaded.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Identifies the request channel attached to this gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Identifies the reply channel attached to this gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Allows you to specify a reference to
+						[org.springframework.integration.file.filters.FileListFilter] bean.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filename-pattern" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to provide file name pattern to determine the file names retrieved by the ls command
+						and is based on simple pattern matching algorithm (e.g., "*.txt, fo*.txt" etc.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filename-regex" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to provide Regular Expression to determine the file names retrieved by the ls command.
+						(e.g., "f[o]+\.txt" etc.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
+				<xsd:annotation>
+					<xsd:documentation>
+					Allows you to provide remote file/directory separator character. DEFAULT: '/'
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="local-directory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Identifies directory path (e.g., "/local/mytransfers") where file will be transferred TO.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-create-local-directory" type="xsd:boolean">
+				<xsd:annotation>
+					<xsd:documentation>
+					Tells this adapter if local directory must be auto-created if it doesn''t exist. Default is TRUE.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+subscriber to a channel. This is particularly relevant when that channel
+is using a "failover" dispatching strategy, or when a failure in the delivery to one subscriber should signal that
+the message should not be sent to subscribers with a higher 'order' attribute. It has no effect when this
+endpoint itself is a Polling Consumer for a channel with a queue.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="base-ftp-adapter-type">
 		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="session-factory" type="xsd:string" use="required">
