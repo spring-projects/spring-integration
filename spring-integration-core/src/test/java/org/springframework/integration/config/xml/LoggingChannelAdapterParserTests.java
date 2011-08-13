@@ -14,51 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.config.xml;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.handler.LoggingHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
- * @since 2.0
+ * @since 2.0.6
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class LoggingHandlerTests {
+public class LoggingChannelAdapterParserTests {
 
 	@Autowired
-	MessageChannel input;
+	private LoggingHandler loggingHandler;
+
 
 	@Test
-	public void logWithExpression() {
-		TestBean bean = new TestBean("test", 55);
-		input.send(MessageBuilder.withPayload(bean).setHeader("foo", "bar").build());
-	}
-
-	public static class TestBean {
-
-		private final String name;
-
-		private int age;
-
-		public TestBean(String name, int age) {
-			this.name = name;
-			this.age = age;
-		}
-
-		public String getName() {
-			return this.name;
-		}
-
-		public int getAge() {
-			return this.age;
-		}
+	public void verifyLoggerName() {
+		assertEquals("org.springframework.integration.test.logger", TestUtils.getPropertyValue(loggingHandler, "messageLogger.name"));
 	}
 
 }
