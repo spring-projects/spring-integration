@@ -42,7 +42,7 @@ public class MessageStoreTests {
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MessageStore:type=SimpleMessageStore,*"), null);
 		assertEquals(1, names.size());
 		ObjectName name = names.iterator().next();
-		assertEquals(0, server.getAttribute(name, "MessageCount"));
+		assertEquals(0L, server.getAttribute(name, "MessageCount"));
 		assertEquals(0, server.getAttribute(name, "MessageGroupCount"));
 		assertEquals(0, server.getAttribute(name, "MessageCountForAllMessageGroups"));
 		assertEquals(0, server.getAttribute(name, "MarkedMessageCountForAllMessageGroups"));
