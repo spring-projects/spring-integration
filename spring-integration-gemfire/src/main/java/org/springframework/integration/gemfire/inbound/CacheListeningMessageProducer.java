@@ -29,6 +29,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
+import com.gemstone.gemfire.cache.CacheClosedException;
 import com.gemstone.gemfire.cache.CacheListener;
 import com.gemstone.gemfire.cache.EntryEvent;
 import com.gemstone.gemfire.cache.Region;
@@ -42,6 +43,7 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
  * payloadExpression is provided, the {@link EntryEvent} itself will be the payload.
  * 
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.1
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -60,11 +62,10 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 
-
 	public CacheListeningMessageProducer(Region<?, ?> region) {
 		Assert.notNull(region, "region must not be null");
 		this.region = region;
-		this.listener = new MessageProducingCacheListener();
+		this.listener = new MessageProducingCacheListener();   
 	}
 
 
@@ -95,9 +96,16 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 		if (logger.isInfoEnabled()) {
 			logger.info("removing MessageProducingCacheListener from GemFire Region '" + this.region.getName() + "'");
 		}
-		this.region.getAttributesMutator().removeCacheListener(this.listener);
+		try { 
+			this.region.getAttributesMutator().removeCacheListener(this.listener);
+		} catch (CacheClosedException e) {
+			if (logger.isDebugEnabled()){
+				logger.debug(e.getMessage(),e);
+			}
+		}
+		 
 	}
-
+	
 
 	private class MessageProducingCacheListener extends CacheListenerAdapter {
 
@@ -143,5 +151,7 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 			sendMessage(MessageBuilder.withPayload(payload).build());
 		}
 	}
+	
+	
 
 }

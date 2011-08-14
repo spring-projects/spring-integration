@@ -126,7 +126,7 @@ configure(javaprojects) {
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
     springDataRedisVersion = '1.0.0.BUILD-SNAPSHOT'
-    springGemfireVersion = '1.0.1.RELEASE'
+    springGemfireVersion = '1.1.0.BUILD-SNAPSHOT'
     springSecurityVersion = '3.0.5.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
@@ -249,6 +249,7 @@ project('spring-integration-gemfire') {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion"
         testCompile project(":spring-integration-stream")
+        testCompile project(":spring-integration-test")
     }
     repositories {
         mavenRepo urls: 'http://dist.gemstone.com/maven/release' // for gemfire
@@ -444,6 +445,7 @@ project('spring-integration-test') {
         compile "junit:junit-dep:$junitVersion"
         compile "org.mockito:mockito-all:$mockitoVersion"
         compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-test:$springVersion"
     }
 }
 

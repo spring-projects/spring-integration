@@ -137,5 +137,4 @@ public class CacheListeningMessageProducerTests {
 		assertNotNull(message2);
 		assertEquals("foo was abc", message2.getPayload());		
 	}
-
 }
