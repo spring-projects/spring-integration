@@ -55,6 +55,7 @@ public class MessageSourceMonitoringIntegrationTests {
 
 			int before = service.getCounter();
 			channel.receive(1000L);
+			channel.receive(1000L);
 			assertTrue(before < service.getCounter());
 
 			int count = exporter.getSourceMessageCount(monitor);
