@@ -1,0 +1,61 @@
+/*
+ * Copyright 2002-2011 the original author or authors.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+package org.springframework.integration.gemfire.config.xml;
+
+import java.util.Map;
+
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+
+/**
+ * @author David Turanski
+ * @since 2.1
+ *
+ */
+public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+	 
+	private static final String CACHE_ENTRIES_PROPERTY = "cacheEntries";
+
+	private static final String CACHE_ENTRIES_ELEMENT = "cache-entries";
+
+	private static final String REGION_ATTRIBUTE = "region";
+	
+	private static final String GEMFIRE_OUTBOUND_CACHE_WRITING_MESSAGE_HANDLER = "org.springframework.integration.gemfire.outbound.CacheWritingMessageHandler";
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser#parseConsumer(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
+	 */
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder cacheWritingMessageHandler = BeanDefinitionBuilder.genericBeanDefinition(
+				GEMFIRE_OUTBOUND_CACHE_WRITING_MESSAGE_HANDLER);
+		if (!StringUtils.hasText(REGION_ATTRIBUTE)){
+			parserContext.getReaderContext().error("'region' attribute is required.",element);
+		}
+		 
+		cacheWritingMessageHandler.addConstructorArgReference(element.getAttribute(REGION_ATTRIBUTE));
+		
+		Element cacheEntries = DomUtils.getChildElementByTagName(element,CACHE_ENTRIES_ELEMENT);
+		if (cacheEntries != null) {
+			Map<?,?> map = parserContext.getDelegate().parseMapElement(cacheEntries,cacheWritingMessageHandler.getBeanDefinition());
+			cacheWritingMessageHandler.addPropertyValue(CACHE_ENTRIES_PROPERTY, map);
+		}
+		
+		return cacheWritingMessageHandler.getBeanDefinition();
+	}
+}
