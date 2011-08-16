@@ -752,6 +752,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</xsd:restriction>
 						</xsd:simpleType>
 					</xsd:attribute>
+					<xsd:attribute name="logger-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Provide a name for the logger. This is useful when there are multiple logging Channel Adapters configured,
+	and you would like to differentiate them within the actual log. By default the logger name will be the
+	fully qualified class name of the LoggingHandler implementation. 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="expression">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
