@@ -287,15 +287,14 @@
     </section>
   </section>
 
-	<section id="aggregator-config">
-		<title>Configuring Aggregator</title>
-		
-		<section id="aggregator-xml">
-    <title>Configuring an Aggregator with XML</title>
+  <section id="aggregator-config">
+    <title>Configuring Aggregator</title>
+	<section id="aggregator-xml">
+      <title>Configuring an Aggregator with XML</title>
 
-    <para>Spring Integration supports the configuration of an aggregator via
-    XML through the &lt;aggregator/&gt; element. Below you can see an example
-    of an aggregator.</para>
+      <para>Spring Integration supports the configuration of an aggregator via
+      XML through the &lt;aggregator/&gt; element. Below you can see an example
+      of an aggregator.</para>
 
     <programlisting lang="xml"><![CDATA[<channel id="inputChannel"/>
 
