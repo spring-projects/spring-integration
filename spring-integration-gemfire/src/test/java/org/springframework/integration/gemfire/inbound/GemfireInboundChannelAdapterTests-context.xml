@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/scripting/spring-integration-gemfire.xsd
+		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<gfe:cache id="gemfire-cache-2"/>
+	<gfe:replicated-region id="region1" cache-ref="gemfire-cache-2"/>
+	
+	<gfe:replicated-region id="region2" cache-ref="gemfire-cache-2"/>
+	
+	<gfe:replicated-region id="region3" cache-ref="gemfire-cache-2"/>
+	
+	<int-gfe:inbound-channel-adapter id="channel1" region="region1" cache-events="CREATED" expression="newValue"/>
+	 
+	<int-gfe:inbound-channel-adapter id="channel2" region="region2"/>
+	
+	<int-gfe:inbound-channel-adapter id="channel3" region="region3" error-channel="errorChannel"/>
+	 
+</beans>
