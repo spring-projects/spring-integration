@@ -10,8 +10,8 @@ To check out the project and build from source, do the following:
     ./gradlew build
 
 > Note: the **<code>--recursive</code>** switch above is important, as spring-integration uses
-> git submodules, which must themselves be cloned and initialized. If **<code>--recursive</code>**
-> is omitted, doing so becomes a multi-step process.
+> *git submodules*, which must themselves be cloned and initialized. If **<code>--recursive</code>**
+> is omitted, the checkout becomes a multi-step process.
 
 If you encounter heap space errors during the build, increase the heap size for Gradle:
 
