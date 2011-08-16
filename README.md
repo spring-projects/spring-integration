@@ -1,43 +1,50 @@
-============================== Spring Integration =============================
+Spring Integration
+==================
+
+# Checking out and Building
+
 To check out the project and build from source, do the following:
 
- git clone --recursive git://git.springsource.org/spring-integration/spring-integration.git
- cd spring-integration
- ./gradlew build
+    git clone --recursive git://github.com/SpringSource/spring-integration.git
+    cd spring-integration
+    ./gradlew build
 
-Note: the --recursive switch above is important, as spring-integration uses
-git submodules, which must themselves be cloned and initialized. If --recursive
-is omitted, doing so becomes a multi-step process.
+> Note: the **<code>--recursive</code>** switch above is important, as spring-integration uses
+> *git submodules*, which must themselves be cloned and initialized. If **<code>--recursive</code>**
+> is omitted, the checkout becomes a multi-step process.
 
-If you encounter heap space errors during the build, increase the heap size for
-gradle:
- GRADLE_OPTS="-Xmx1024m"
+If you encounter heap space errors during the build, increase the heap size for Gradle:
 
--------------------------------------------------------------------------------
+    GRADLE_OPTS="-Xmx1024m"
+
+# Using Eclipse
+
 To generate Eclipse metadata (.classpath and .project files), do the following:
 
- ./gradlew eclipse
+    ./gradlew eclipse
 
 Once complete, you may then import the projects into Eclipse as usual:
 
- File -> Import -> Existing projects into workspace
+ *File -> Import -> Existing projects into workspace*
 
-Browse to the 'spring-integration' root directory. All projects should import
+Browse to the *'spring-integration'* root directory. All projects should import
 free of errors.
 
--------------------------------------------------------------------------------
+# Using IntelliJ IDEA
+
 To generate IDEA metadata (.iml and .ipr files), do the following:
 
- ./gradlew idea
+    ./gradlew idea
 
--------------------------------------------------------------------------------
+# Generating JavaDoc
+
 To build the JavaDoc, do the following from within the root directory:
 
- ./gradlew :docs:api
+    ./gradlew :docs:api
 
-The result will be available in 'docs/build/api'.
+The result will be available in **'docs/build/api'**.
 
-###### OSGI Notes ######
+# OSGI Notes
 
 1. Dependency on Third Party Bundles
     Some adapters depend on third party libraries (bundles).
@@ -59,4 +66,7 @@ The result will be available in 'docs/build/api'.
     For example:
         org.osgi.framework.bootdelegation=com.sun.*,org.w3c.*. . . .
 
-===============================================================================
+
+# Resources
+
+For more information, please visit the Spring Integration website at: [http://www.springsource.org/spring-integration](http://www.springsource.org/spring-integration)
