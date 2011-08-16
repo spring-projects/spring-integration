@@ -187,14 +187,18 @@
   <section id="annotations">
     <title>Annotation Support</title>
     <para>
-      In addition to the XML namespace support for configuring Message Endpoints, it is also possible to use
-      annotations. First, Spring Integration provides the class-level <interfacename>@MessageEndpoint</interfacename>
-      as a <emphasis>stereotype</emphasis> annotation meaning that is itself annotated with Spring's @Component
-      annotation and therefore is recognized automatically as a bean definition when using Spring component-scanning.
+      In addition to the XML namespace support for configuring Message Endpoints, 
+      it is also possible to use annotations. First, Spring Integration provides 
+      the class-level <interfacename>@MessageEndpoint</interfacename> as a 
+      <emphasis>stereotype</emphasis> annotation, meaning that it is itself 
+      annotated with Spring's <interfacename>@Component</interfacename> annotation 
+      and is therefore recognized automatically as a bean definition when using 
+      Spring component-scanning.
     </para>
     <para>
-      Even more importantly are the various Method-level annotations that indicate the annotated method is capable of
-      handling a message. The following example demonstrates both:
+      Even more important are the various method-level annotations that indicate 
+      the annotated method is capable of handling a message. The following example 
+      demonstrates both:
       <programlisting language="java">@MessageEndpoint
 public class FooService {
 
@@ -205,19 +209,32 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
-      Exactly what it means for the method to "handle" the Message depends on the particular annotation. The following
-      are available with Spring Integration, and the behavior of each is described in its own chapter or section within
-      this reference: @Transformer, @Router, @Splitter, @Aggregator, @ServiceActivator, and @ChannelAdapter.
+      Exactly what it means for the method to "handle" the Message depends on the 
+      particular annotation. The following annotations are available in Spring Integration: 
+      <itemizedlist>
+        <listitem>@Aggregator</listitem>
+        <listitem>@ChannelAdapter</listitem>
+        <listitem>@Filter</listitem>
+		<listitem>@Router</listitem>
+		<listitem>@ServiceActivator</listitem>
+		<listitem>@Splitter</listitem>
+		<listitem>@Transformer</listitem>
+      </itemizedlist>
     </para>
+    <para>The behavior of each is described in its own chapter or section within
+      this reference.</para>
     <note>
-      The @MessageEndpoint is not required if using XML configuration in combination with annotations. If you want to
-      configure a POJO reference from the "ref" attribute of a &lt;service-activator/&gt; element, it is sufficient to
-      provide the method-level annotations. In that case, the annotation prevents ambiguity even when no "method"
-      attribute exists on the &lt;service-activator/&gt; element.
+      If you are using XML configuration in combination with annotations, the 
+      <interfacename>@MessageEndpoint</interfacename> annotation is not required. 
+      If you want to configure a POJO reference from  the "ref" attribute of a 
+      &lt;service-activator/&gt; element, it is  sufficient to provide the 
+      method-level annotations. In that case, the annotation prevents ambiguity 
+      even when no "method" attribute exists on the &lt;service-activator/&gt; element.
     </note>
     <para>
-      In most cases, the annotated handler method should not require the <classname>Message</classname> type as its
-      parameter. Instead, the method parameter type can match the message's payload type.
+      In most cases, the annotated handler method should not require the 
+      <classname>Message</classname> type as its parameter. Instead, the method 
+      parameter type can match the message's payload type.
       <programlisting language="java">public class FooService {
 
     @ServiceActivator
