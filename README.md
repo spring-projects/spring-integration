@@ -5,12 +5,12 @@ Spring Integration
 
 To check out the project and build from source, do the following:
 
-    git clone --recursive git://git.springsource.org/spring-integration/spring-integration.git
+    git clone --recursive git://github.com/SpringSource/spring-integration.git
     cd spring-integration
     ./gradlew build
 
-> Note: the --recursive switch above is important, as spring-integration uses
-> git submodules, which must themselves be cloned and initialized. If --recursive
+> Note: the **<code>--recursive</code>** switch above is important, as spring-integration uses
+> git submodules, which must themselves be cloned and initialized. If **<code>--recursive</code>**
 > is omitted, doing so becomes a multi-step process.
 
 If you encounter heap space errors during the build, increase the heap size for Gradle:
