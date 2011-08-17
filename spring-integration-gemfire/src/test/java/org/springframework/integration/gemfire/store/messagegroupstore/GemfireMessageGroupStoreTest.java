@@ -12,11 +12,14 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Tests the Gemfire {@link org.springframework.integration.store.MessageGroupStore} implementation, {@link org.springframework.integration.gemfire.store.GemfireMessageGroupStore}
+ * Tests the Gemfire {@link org.springframework.integration.store.MessageGroupStore} implementation,
+ * {@link org.springframework.integration.gemfire.store.GemfireMessageGroupStore}.
  *
+ * It tests the {@link org.springframework.integration.store.MessageGroupStore} by sending 10 batches of letters (all of the same width),
+ * and then counting on the other end that indeed all 10 batches arrived and that all letters expected are there.
+ *                                                                                                               *
  * @author Josh Long
  */
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class, classes = {GemfireMessageGroupStoreTestConfiguration.class})
 public class GemfireMessageGroupStoreTest {

@@ -89,7 +89,7 @@ public class CqClientConfiguration {
 			@ServiceActivator
 			public void handleMessage(Message<CqEvent> eventMessage) throws MessagingException {
 				CqEvent cqEvent = eventMessage.getPayload();
-				log.info("Received an event from the continuous query adapter: " + cqEvent);
+				System.out.println("Received an event from the continuous query adapter: " + cqEvent)  ;
 			}
 		};
 	}
