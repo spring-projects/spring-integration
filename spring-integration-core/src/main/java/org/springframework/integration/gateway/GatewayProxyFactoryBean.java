@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -310,14 +311,20 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private void rethrowExceptionInThrowsClauseIfPossible(Throwable originalException, Method method) throws Throwable {
 		List<Class<?>> exceptionTypes = Arrays.asList(method.getExceptionTypes());
 		Throwable t = originalException;
-		while (t != null) {
-			if (exceptionTypes.contains(t.getClass())) {
+		while (t instanceof MessagingException || t instanceof UndeclaredThrowableException) {
+			t = t.getCause();
+		}
+		if (t instanceof RuntimeException) {
+			throw t;
+		}
+		for (Class<?> exceptionType : exceptionTypes) {
+			if (exceptionType.isAssignableFrom(t.getClass())) {
 				throw t;
 			}
-			t = t.getCause();
 		}
 		throw originalException;
 	}
+
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
