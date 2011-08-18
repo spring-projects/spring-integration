@@ -269,15 +269,29 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:attribute>
         <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
             <xsd:annotation>
-                <xsd:documentation>
-                    Specify whether to automatically create the destination directory if it does not yet exist when this
+                <xsd:documentation><![CDATA[Specify whether to automatically create the destination directory if it does not yet exist when this
                     adapter is being initialized. The default value is 'true'. If set to 'false' and the directory does
-                    not exist upon initialization, an Exception will be thrown.
+                    not exist upon initialization, an Exception will be thrown.]]>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="auto-startup" type="xsd:string"/>
-        <xsd:attribute name="charset" type="xsd:string"/>
+        <xsd:attribute name="auto-startup" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <![CDATA[Lifecycle attribute signaling if this component should be started during Application Context startup.]]>
+                    </xsd:documentation>
+                </xsd:annotation>            
+            </xsd:attribute>        
+            <xsd:attribute name="charset" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <![CDATA[Set the charset name to use when writing a File from a String-based 
+                        Message payload, e.g. charset="UTF-8". If not set, the default charset of this 
+                        Java virtual machine is used.
+                        ]]>
+                    </xsd:documentation>
+                </xsd:annotation>            
+            </xsd:attribute>        
     </xsd:complexType>
 
     <xsd:element name="file-to-string-transformer">
