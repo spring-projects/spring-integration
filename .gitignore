@@ -21,3 +21,6 @@ spring-integration-samples/loanshark/application.log*
 target
 build.log
 .DS_Store
+vf.gf.dmn-events.cfg
+vf.gf.dmn-license.cfg
+out
