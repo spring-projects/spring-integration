@@ -16,8 +16,11 @@
 
 package org.springframework.integration.gemfire.store.messagegroupstore;
 
-import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,12 +46,14 @@ import org.springframework.integration.gemfire.store.KeyValueMessageGroupStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import com.gemstone.gemfire.cache.Cache;
+import com.gemstone.gemfire.cache.Region;
 
 /**
- * Our aggregator needs a {@link org.springframework.integration.gemfire.store.KeyValueMessageGroupStore}.
- * This handles configuration of the ancillary objects.
- *
+ * Our aggregator needs a
+ * {@link org.springframework.integration.gemfire.store.KeyValueMessageGroupStore}
+ * . This handles configuration of the ancillary objects.
+ * 
  * @author Josh Long
  * @since 2.1
  */
@@ -69,7 +74,6 @@ public class GemfireMessageGroupStoreTestConfiguration {
 		cacheFactoryBean.afterPropertiesSet();
 		return cacheFactoryBean.getObject();
 	}
-
 
 	@Bean
 	public Region<Object, KeyValueMessageGroup> messageGroupRegion() throws Throwable {
@@ -98,7 +102,6 @@ public class GemfireMessageGroupStoreTestConfiguration {
 		return regionFactoryBean.getObject();
 	}
 
-
 	@Bean(name = "messageGroupStoreActivator")
 	public FakeMessageConsumer serviceActivator() {
 		return new FakeMessageConsumer();
@@ -126,9 +129,9 @@ public class GemfireMessageGroupStoreTestConfiguration {
 
 	static public class FakeMessageConsumer {
 
-		private Set<Collection<Object>> batches = new HashSet<Collection<Object>>();
+		private List<Collection<Object>> batches = new ArrayList<Collection<Object>>();
 
-		public Set<Collection<Object>> getBatches() {
+		public List<Collection<Object>> getBatches() {
 			return this.batches;
 		}
 
@@ -136,6 +139,7 @@ public class GemfireMessageGroupStoreTestConfiguration {
 		public void activateAsMessagesArriveInBatches(Message<Collection<Object>> msg) throws Throwable {
 			Collection<Object> payloads = msg.getPayload();
 			batches.add(payloads);
+
 			if (log.isDebugEnabled()) {
 				log.debug(payloads);
 			}
@@ -146,17 +150,20 @@ public class GemfireMessageGroupStoreTestConfiguration {
 
 	static public class FakeMessageProducer implements InitializingBean, SmartLifecycle {
 		public boolean isAutoStartup() {
-			return true;
+			return false;
 		}
 
 		public void stop(Runnable callback) {
+			stop();
+			callback.run();
 		}
 
 		public int getPhase() {
 			return 0;
 		}
 
-		@Autowired @Qualifier("i")
+		@Autowired
+		@Qualifier("i")
 		private MessageChannel messageChannel;
 
 		private MessagingTemplate messagingTemplate = new MessagingTemplate();
@@ -172,35 +179,32 @@ public class GemfireMessageGroupStoreTestConfiguration {
 			int ctr = 0;
 			int size = lines.size();
 			for (String l : lines) {
-				Message<?> msg = MessageBuilder.withPayload(l)
-						                 .setCorrelationId(this.correlationHeader)
-						                 .setHeader(this.correlationHeader, correlationValue)
-						                 .setSequenceNumber(++ctr)
-						                 .setSequenceSize(size)
-						                 .build();
+				Message<?> msg = MessageBuilder.withPayload(l).setCorrelationId(this.correlationHeader)
+						.setHeader(this.correlationHeader, correlationValue).setSequenceNumber(++ctr)
+						.setSequenceSize(size).build();
 				this.messagingTemplate.send(msg);
 			}
 		}
-
 
 		public void afterPropertiesSet() throws Exception {
 			this.messagingTemplate.setDefaultChannel(this.messageChannel);
 		}
 
-
 		public void start() {
+			running = true;
 			for (int i = 0; i < 10; i++) {
 				try {
-					running = true;
 					sendManyMessages(i, LIST_OF_STRINGS);
-					running = false;
-				} catch (Throwable throwable) {
+				}
+				catch (Throwable throwable) {
 					throw new RuntimeException(throwable);
 				}
 			}
+
 		}
 
 		public void stop() {
+			running = false;
 		}
 
 		public boolean isRunning() {
