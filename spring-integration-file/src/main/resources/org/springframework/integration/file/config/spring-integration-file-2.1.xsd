@@ -227,6 +227,11 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="directory" type="xsd:string" use="required"/>
         <xsd:attribute name="filename-generator" type="xsd:string">
             <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[Allows you to provide a reference to the FileNameGenerator strategy 
+                    to use when generating the destination file's name. If not specified the
+                    DefaultFileNameGenerator is being used.]]>
+                </xsd:documentation>            
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
