@@ -86,6 +86,12 @@
             </xsd:attribute>
             <xsd:attribute name="filter" type="xsd:string">
                 <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+					    Specify a FileListFilter to be used. By default, an AcceptOnceFileListFilter is used, 
+					    which ensures files are picked up only once from the directory.
+					    
+					    You can also apply multiple filters by referencing a CompositeFileListFilter.
+					]]></xsd:documentation>                
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.file.entries.EntryListFilter"/>
