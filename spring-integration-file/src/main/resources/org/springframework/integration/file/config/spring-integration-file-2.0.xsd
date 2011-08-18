@@ -333,6 +333,9 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="id" type="xsd:string"/>
         <xsd:attribute name="input-channel" type="xsd:string">
             <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[The input channel of the transformer.]]>
+                </xsd:documentation>                
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -342,6 +345,11 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:attribute>
         <xsd:attribute name="output-channel" type="xsd:string">
             <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[The channel to which the transformer will send the transformed message. 
+                    Optional, because incoming messages can specify a reply channel using the 'replyChannel' 
+                    message header value themselves.]]>
+                </xsd:documentation>                  
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -363,6 +371,11 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:complexType>
             <xsd:attribute name="ref" type="xsd:string">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        <![CDATA[When multiple processes are reading from the same 
+                        directory it can be desirable to lock files to prevent them 
+                        from being picked up concurrently. To do this you can specify a reference to a FileLocker.]]>
+                    </xsd:documentation>                     
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.file.locking.FileLocker"/>
@@ -373,6 +386,14 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:complexType>
     </xsd:element>
 
-    <xsd:element name="nio-locker"/>
+    <xsd:element name="nio-locker">
+        <xsd:annotation>
+            <xsd:documentation>
+           <![CDATA[When multiple processes are reading from the same directory 
+           it can be desirable to lock files to prevent them from being picked up 
+           concurrently. This is a java.nio based implementation available out of the box.]]>
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:element>
 
 </xsd:schema>
