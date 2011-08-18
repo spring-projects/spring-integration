@@ -16,30 +16,22 @@
 
 package org.springframework.integration.gemfire.inbound;
 
+import com.gemstone.gemfire.cache.Region;
+import com.gemstone.gemfire.cache.client.Pool;
+import com.gemstone.gemfire.cache.query.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.cache.client.Pool;
-import com.gemstone.gemfire.cache.query.CqAttributes;
-import com.gemstone.gemfire.cache.query.CqAttributesFactory;
-import com.gemstone.gemfire.cache.query.CqEvent;
-import com.gemstone.gemfire.cache.query.CqException;
-import com.gemstone.gemfire.cache.query.CqListener;
-import com.gemstone.gemfire.cache.query.CqQuery;
-import com.gemstone.gemfire.cache.query.QueryService;
-
 /**
  * Responds to a continuous query (set using the #queryString field) that is
  * constantly evaluated against a cache {@link com.gemstone.gemfire.cache.Region}.
  * This is much faster than re-querying the cache manually.
- * 
+ *
  * @author Josh Long
  * @since 2.1
  */
@@ -96,7 +88,7 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport {
 	 * the adapter requires a query string to continuously evaluate as well as a
 	 * {@link com.gemstone.gemfire.cache.Region} against which to evaluate the
 	 * query.
-	 * 
+	 *
 	 * @param region
 	 *            the region against which the query should be evaluated
 	 * @param queryString
@@ -114,7 +106,7 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport {
 	/**
 	 * whether or not the query is durable (that is, whether or not this query
 	 * should live beyond the registered query)
-	 * 
+	 *
 	 * @param durable
 	 *            whether or not the query is registered and saved and
 	 *            subsequently retrievable by a query name.
