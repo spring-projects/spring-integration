@@ -235,7 +235,12 @@ Only files matching this regular expression will be picked up by this adapter.
             <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:string"/>
-        <xsd:attribute name="directory" type="xsd:string" use="required"/>
+        <xsd:attribute name="directory" type="xsd:string" use="required">
+	        <xsd:annotation>
+	            <xsd:documentation><![CDATA[Specifies the output directory, e.g.:
+	            directory="file:/absolute/output" or directory="file:relative/output"]]></xsd:documentation>
+	        </xsd:annotation>        
+        </xsd:attribute>
         <xsd:attribute name="filename-generator" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
@@ -285,14 +290,19 @@ Only files matching this regular expression will be picked up by this adapter.
         </xsd:attribute>
         <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
             <xsd:annotation>
-                <xsd:documentation>
-                    Specify whether to automatically create the destination directory if it does not yet exist when this
+                <xsd:documentation><![CDATA[Specify whether to automatically create the destination directory if it does not yet exist when this
                     adapter is being initialized. The default value is 'true'. If set to 'false' and the directory does
-                    not exist upon initialization, an Exception will be thrown.
+                    not exist upon initialization, an Exception will be thrown.]]>
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="auto-startup" type="xsd:string"/>
+        <xsd:attribute name="auto-startup" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[Lifecycle attribute signaling if this component should be started during Application Context startup.]]>
+                </xsd:documentation>
+            </xsd:annotation>           
+        </xsd:attribute>
         <xsd:attribute name="charset" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
