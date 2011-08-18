@@ -306,12 +306,12 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:complexType>
 
     <xsd:element name="file-to-string-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                Creates a Transformer that converts a File payload to a String.
+            </xsd:documentation>
+        </xsd:annotation>    
         <xsd:complexType>
-            <xsd:annotation>
-                <xsd:documentation>
-                    Creates a Transformer that converts a File payload to a String.
-                </xsd:documentation>
-            </xsd:annotation>
             <xsd:complexContent>
                 <xsd:extension base="transformerType">
                     <xsd:attribute name="charset" type="xsd:string"/>
@@ -321,12 +321,12 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:element>
 
     <xsd:element name="file-to-bytes-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                Creates a Transformer that converts a File payload to an array of bytes.
+            </xsd:documentation>
+        </xsd:annotation>    
         <xsd:complexType>
-            <xsd:annotation>
-                <xsd:documentation>
-                    Creates a Transformer that converts a File payload to an array of bytes.
-                </xsd:documentation>
-            </xsd:annotation>
             <xsd:complexContent>
                 <xsd:extension base="transformerType"/>
             </xsd:complexContent>
@@ -372,13 +372,18 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:complexType>
 
     <xsd:element name="locker">
+        <xsd:annotation>
+		<xsd:documentation>
+		    <![CDATA[When multiple processes are reading from the same 
+		    directory it can be desirable to lock files to prevent them 
+		    from being picked up concurrently. To do this you can specify a reference to a FileLocker.]]>
+		</xsd:documentation>    
+        </xsd:annotation>                  
         <xsd:complexType>
             <xsd:attribute name="ref" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <![CDATA[When multiple processes are reading from the same 
-                        directory it can be desirable to lock files to prevent them 
-                        from being picked up concurrently. To do this you can specify a reference to a FileLocker.]]>
+                        <![CDATA[The reference to the FileLocker.]]>
                     </xsd:documentation>                     
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
