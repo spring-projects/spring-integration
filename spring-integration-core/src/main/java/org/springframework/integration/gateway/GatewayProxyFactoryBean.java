@@ -20,9 +20,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -270,7 +268,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			return this.invokeGatewayMethod(invocation);
 		}
 		catch (Throwable e) {
-			this.rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
+			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
 			return null; // preceding call should always throw something
 		}
 	}
@@ -308,23 +306,23 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		return (response != null) ? this.convert(response, returnType) : null;
 	}
 
-	private void rethrowExceptionInThrowsClauseIfPossible(Throwable originalException, Method method) throws Throwable {
-		List<Class<?>> exceptionTypes = Arrays.asList(method.getExceptionTypes());
+	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable {
+		Class<?>[] exceptionTypes = method.getExceptionTypes();
 		Throwable t = originalException;
-		while (t instanceof MessagingException || t instanceof UndeclaredThrowableException) {
-			t = t.getCause();
-		}
-		if (t instanceof RuntimeException) {
-			throw t;
-		}
-		for (Class<?> exceptionType : exceptionTypes) {
-			if (exceptionType.isAssignableFrom(t.getClass())) {
+		while (t != null) {
+			for (Class<?> exceptionType : exceptionTypes) {
+				if (exceptionType.isAssignableFrom(t.getClass())) {
+					throw t;
+				}
+			}
+			if ((t instanceof RuntimeException) &&
+					!(t instanceof MessagingException) && !(t instanceof UndeclaredThrowableException)) {
 				throw t;
 			}
+			t = t.getCause();
 		}
 		throw originalException;
 	}
-
 
 	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
