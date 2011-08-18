@@ -44,9 +44,25 @@
 		        	</xsd:sequence>
             	</xsd:choice>
             </xsd:sequence>
-            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="id" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (SourcePollingChannelAdapter)
+                        
+                        Keep in mind that if no "channel" attribute is defined, then the "id" attribute is required.
+                        In that case the "id" attribute's value will be used as the channel name and ".adapter" will be
+                        appended to the "id" value of the underlying bean definition.
+                        ]]></xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
             <xsd:attribute name="channel" type="xsd:string">
                 <xsd:annotation>
+                    <xsd:documentation><![CDATA[Defines the message channel to which the payload shall be forwarded to.
+                        
+                        Keep in mind that any Channel Adapter can be created without a "channel" reference in which case 
+                        it will implicitly create an instance of DirectChannel. The created channel's name will match 
+                        the "id" attribute of the <inbound-channel-adapter/> element. Therefore, if the "channel" attribute
+                        is not provided, then the "id" attribute is required.
+                        ]]></xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -54,7 +70,12 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
-            <xsd:attribute name="directory" type="xsd:string" use="required"/>
+            <xsd:attribute name="directory" type="xsd:string" use="required">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[Specifies the input directory (The directory to poll from) e.g.:
+                    directory="file:/absolute/input" or directory="file:relative/input"]]></xsd:documentation>
+                </xsd:annotation>            
+            </xsd:attribute>
             <xsd:attribute name="comparator" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[
@@ -90,14 +111,12 @@ Only files matching this regular expression will be picked up by this adapter.
             </xsd:attribute>
             <xsd:attribute name="scanner" type="xsd:string">
                 <xsd:annotation>
+                    <xsd:documentation><![CDATA[Reference to a custom DirectoryScanner implementation.]]></xsd:documentation>
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
                             <tool:expected-type
                                     type="org.springframework.integration.file.DirectoryScanner"/>
                         </tool:annotation>
-                        <xsd:documentation>
-                            Reference to a custom DirectoryScanner implementation.
-                        </xsd:documentation>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
