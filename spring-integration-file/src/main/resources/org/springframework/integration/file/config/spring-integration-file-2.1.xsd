@@ -180,6 +180,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:extension base="outboundFileBaseType">
                     <xsd:attribute name="channel" type="xsd:string">
                         <xsd:annotation>
+                            <xsd:documentation>The channel through which outgoing messages will arrive.</xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
                                     <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -234,7 +235,11 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:sequence>
             <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:string"/>
+        <xsd:attribute name="id" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (EventDrivenConsumer)]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="directory" type="xsd:string" use="required">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[Specifies the output directory, e.g.:
@@ -324,7 +329,15 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:complexType>
             <xsd:complexContent>
                 <xsd:extension base="transformerType">
-                    <xsd:attribute name="charset" type="xsd:string"/>
+                    <xsd:attribute name="charset" type="xsd:string">
+			            <xsd:annotation>
+			                <xsd:documentation>
+			                    <![CDATA[Set the charset name to use when converting a File 
+			                    payload to a String, e.g. charset="UTF-8". If not set, the default charset of this 
+			                    Java virtual machine is used.]]>
+			                </xsd:documentation>
+			            </xsd:annotation>                       
+                    </xsd:attribute>
                 </xsd:extension>
             </xsd:complexContent>
         </xsd:complexType>
@@ -344,7 +357,11 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:element>
 
     <xsd:complexType name="transformerType">
-        <xsd:attribute name="id" type="xsd:string"/>
+        <xsd:attribute name="id" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[Identifies the underlying Spring bean definition (EventDrivenConsumer)]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="input-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
