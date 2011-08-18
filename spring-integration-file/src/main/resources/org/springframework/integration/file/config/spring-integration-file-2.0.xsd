@@ -349,7 +349,14 @@ Only files matching this regular expression will be picked up by this adapter.
                 </xsd:appinfo>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="delete-files" type="xsd:string"/>
+        <xsd:attribute name="delete-files" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[The delete-files option signals to the transformer that it should delete the 
+                    inbound File after the transformation is complete.]]>
+                </xsd:documentation>            
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
 
     <xsd:element name="locker">
