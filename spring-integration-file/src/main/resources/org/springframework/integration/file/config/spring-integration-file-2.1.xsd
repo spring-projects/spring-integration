@@ -213,6 +213,10 @@ Only files matching this regular expression will be picked up by this adapter.
                     </xsd:attribute>
                     <xsd:attribute name="reply-channel" type="xsd:string">
                         <xsd:annotation>
+                            <xsd:documentation>
+                                <![CDATA[After writing the File, it will be send it to the specified reply channel as the payload of a Message. 
+                                         Another way of provideing the 'reply-channel' is by setting the MessageHeaders.REPLY_CHANNEL Message Header]]>
+                            </xsd:documentation>                         
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
                                     <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
