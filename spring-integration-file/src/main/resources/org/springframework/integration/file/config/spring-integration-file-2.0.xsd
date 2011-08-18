@@ -205,6 +205,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:extension base="outboundFileBaseType">
                     <xsd:attribute name="request-channel" type="xsd:string" use="required">
                         <xsd:annotation>
+                            <xsd:documentation>The channel through which outgoing messages will arrive.</xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
                                     <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
