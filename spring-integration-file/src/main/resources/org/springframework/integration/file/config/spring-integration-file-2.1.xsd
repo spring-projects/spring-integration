@@ -170,12 +170,12 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:element>
 
     <xsd:element name="outbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures an outbound Channel Adapter that writes Message payloads to a File.
+            </xsd:documentation>
+        </xsd:annotation>    
         <xsd:complexType>
-            <xsd:annotation>
-                <xsd:documentation>
-                    Configures an outbound Channel Adapter that writes Message payloads to a File.
-                </xsd:documentation>
-            </xsd:annotation>
             <xsd:complexContent>
                 <xsd:extension base="outboundFileBaseType">
                     <xsd:attribute name="channel" type="xsd:string">
@@ -193,13 +193,13 @@ Only files matching this regular expression will be picked up by this adapter.
     </xsd:element>
 
     <xsd:element name="outbound-gateway">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures an outbound Gateway that writes request Message payloads to a File and then generates a
+                reply Message containing the newly written File as its payload.
+            </xsd:documentation>
+        </xsd:annotation>    
         <xsd:complexType>
-            <xsd:annotation>
-                <xsd:documentation>
-                    Configures an outbound Gateway that writes request Message payloads to a File and then generates a
-                    reply Message containing the newly written File as its payload.
-                </xsd:documentation>
-            </xsd:annotation>
             <xsd:complexContent>
                 <xsd:extension base="outboundFileBaseType">
                     <xsd:attribute name="request-channel" type="xsd:string" use="required">
