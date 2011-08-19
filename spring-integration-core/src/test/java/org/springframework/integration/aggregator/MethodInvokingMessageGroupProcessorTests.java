@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Aggregator;
@@ -240,7 +240,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		GenericConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		conversionService.addConverter(new Converter<ArrayList<?>, Iterator<?>>() {
 			public Iterator<?> convert(ArrayList<?> source) {
 				return source.iterator();

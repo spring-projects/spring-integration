@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -194,7 +194,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
-			this.setConversionService(new DefaultConversionService());
+			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
 		}
 		return this.getConversionService();
 	}
