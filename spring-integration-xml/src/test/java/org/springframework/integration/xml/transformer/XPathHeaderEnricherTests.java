@@ -34,6 +34,7 @@ import org.springframework.integration.xml.xpath.XPathEvaluationType;
 
 /**
  * @author Jonas Partner
+ * @author David Turanski
  * @since 2.0
  */
 public class XPathHeaderEnricherTests {
@@ -72,6 +73,7 @@ public class XPathHeaderEnricherTests {
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		enricher.setShouldSkipNulls(false);
+		enricher.setDefaultOverwrite(true);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).setHeader("two", "x").build());
 		MessageHeaders headers = result.getHeaders();
 		assertNull(headers.get("two"));

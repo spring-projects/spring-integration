@@ -2,10 +2,8 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<channel id="output">
 		<queue/>
@@ -21,6 +19,15 @@
 	
 	<header-enricher input-channel="expressionNotExecutedInput" output-channel="output">
 		<header name="num" expression="headers.num / 0" />
+	</header-enricher>
+	
+	<header-enricher input-channel="headerNotRemovedInput" should-skip-nulls="false" output-channel="output">
+		<header name="num" expression="null" overwrite="false"/>
+	</header-enricher>
+	
+	<header-enricher input-channel="headerRemovedInput" should-skip-nulls="false" output-channel="output"
+		default-overwrite="true">
+		<header name="num" expression="null"/>
 	</header-enricher>
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelHeaderEnricherIntegrationTests$TestBean"/>
