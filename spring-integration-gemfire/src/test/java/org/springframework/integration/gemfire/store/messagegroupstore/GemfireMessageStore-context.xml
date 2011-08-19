@@ -22,7 +22,6 @@
 
     <int:service-activator input-channel="o" ref="messageGroupStoreActivator" />
 
-
     <util:properties id="props" location="org/springframework/integration/gemfire/inbound/cq/gfe-cache.properties"/>
 
 	<gfe:cache properties-ref="props" id="c"/>
