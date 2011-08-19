@@ -121,7 +121,7 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    springVersion = '3.1.0.M2'
+    springVersion = '3.0.5.RELEASE'
     springAmqpVersion = '1.0.0.RC3'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
