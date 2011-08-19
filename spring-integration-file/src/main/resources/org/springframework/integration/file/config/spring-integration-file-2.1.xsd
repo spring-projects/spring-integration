@@ -216,9 +216,9 @@ Only files matching this regular expression will be picked up by this adapter.
                     <xsd:attribute name="reply-channel" type="xsd:string">
                         <xsd:annotation>
                             <xsd:documentation>
-                                <![CDATA[After writing the File, it will be send it to the specified reply channel as the payload of a Message. 
-                                         Another way of provideing the 'reply-channel' is by setting the MessageHeaders.REPLY_CHANNEL Message Header]]>
-                            </xsd:documentation>                         
+                                <![CDATA[After writing the File, it will be sent to the specified reply channel as the payload of a Message. 
+                                         Another way of providing the 'reply-channel' is by setting the MessageHeaders.REPLY_CHANNEL Message Header]]>
+                            </xsd:documentation>
                             <xsd:appinfo>
                                 <tool:annotation kind="ref">
                                     <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -251,7 +251,7 @@ Only files matching this regular expression will be picked up by this adapter.
                 <xsd:documentation>
                     <![CDATA[Allows you to provide a reference to the FileNameGenerator strategy 
                     to use when generating the destination file's name. If not specified the
-                    DefaultFileNameGenerator is being used.]]>
+                    DefaultFileNameGenerator is used.]]>
                 </xsd:documentation>            
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
@@ -263,15 +263,15 @@ Only files matching this regular expression will be picked up by this adapter.
         <xsd:attribute name="filename-generator-expression" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-				Allows you to provide SpEL expression which will compute file name of 
-			    the target file (e.g., assuming payload is java.io.File "payload.getName() + '.transfered'");
+				Allows you to provide a SpEL expression which will compute the file name of 
+			    the target file (e.g., assuming payload is java.io.File "payload.name + '.transferred'");
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
         <xsd:attribute name="temporary-file-suffix" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-					Extension used when uploading files. We change it right after we know it's uploaded.
+					Extension used when uploading files. We change it after we know it's uploaded.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
