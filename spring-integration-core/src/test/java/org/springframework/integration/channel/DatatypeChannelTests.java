@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -59,7 +59,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void unsupportedTypeButConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
-		ConversionService conversionService = new DefaultConversionService();
+		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		channel.setConversionService(conversionService);
 		assertTrue(channel.send(new GenericMessage<String>("123")));
 	}
@@ -67,7 +67,7 @@ public class DatatypeChannelTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void unsupportedTypeAndConversionServiceDoesNotSupport() {
 		QueueChannel channel = createChannel(Integer.class);
-		ConversionService conversionService = new DefaultConversionService();
+		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		channel.setConversionService(conversionService);
 		assertTrue(channel.send(new GenericMessage<Boolean>(Boolean.TRUE)));
 	}
@@ -75,7 +75,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void unsupportedTypeButCustomConversionServiceSupports() {
 		QueueChannel channel = createChannel(Integer.class);
-		GenericConversionService conversionService = new DefaultConversionService();
+		GenericConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		conversionService.addConverter(new Converter<Boolean, Integer>() {
 			public Integer convert(Boolean source) {
 				return source ? 1 : 0;
@@ -115,7 +115,7 @@ public class DatatypeChannelTests {
 				return source ? 1 : 0;
 			}
 		};
-		GenericConversionService customConversionService = new DefaultConversionService();
+		GenericConversionService customConversionService = ConversionServiceFactory.createDefaultConversionService();
 		customConversionService.addConverter(new Converter<Boolean, Integer>() {
 			public Integer convert(Boolean source) {
 				return source ? 99 : -99;
