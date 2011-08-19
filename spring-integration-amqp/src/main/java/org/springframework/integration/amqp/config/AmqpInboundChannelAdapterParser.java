@@ -38,7 +38,6 @@ public class AmqpInboundChannelAdapterParser extends AbstractAmqpInboundAdapterP
 	@Override
 	protected void configureChannels(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 	}
 
 }
