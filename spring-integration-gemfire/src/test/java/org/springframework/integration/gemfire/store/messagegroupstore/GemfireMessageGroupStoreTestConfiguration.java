@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
@@ -58,7 +57,6 @@ import com.gemstone.gemfire.cache.Region;
  * @since 2.1
  */
 @Configuration
-@ImportResource("org/springframework/integration/gemfire/store/messagegroupstore/GemfireMessageGroupStoreTest-context.xml")
 public class GemfireMessageGroupStoreTestConfiguration {
 
 	public static List<String> LIST_OF_STRINGS = Arrays.asList("1,2,3,4,5".split(","));
