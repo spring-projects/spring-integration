@@ -43,7 +43,7 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport imple
 	
 	private final String query;
 	private final QueryListenerContainer queryListenerContainer;
-	private volatile String name;
+	private volatile String queryName;
 	private boolean durable;
 	
 	/**
@@ -60,10 +60,10 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport imple
 	
 	/**
 	 * 
-	 * @param name optional query name
+	 * @param queryName optional query name
 	 */
-	public void setName(String name) {
-		this.name = name;
+	public void setQueryName(String queryName) {
+		this.queryName = queryName;
 	}
 	
 	/**
@@ -77,10 +77,10 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport imple
 	@Override
 	protected void onInit() {
 		super.onInit();
-		if (name == null){
+		if (queryName == null){
 			queryListenerContainer.addListener(new CqQueryDefinition(this.query, this, this.durable));
 		} else {
-			queryListenerContainer.addListener(new CqQueryDefinition(this.name, this.query, this, this.durable));
+			queryListenerContainer.addListener(new CqQueryDefinition(this.queryName, this.query, this, this.durable));
 		}
 	}
 	
