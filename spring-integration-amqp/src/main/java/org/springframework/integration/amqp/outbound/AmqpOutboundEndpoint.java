@@ -91,6 +91,11 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
+	public String getComponentType() {
+		return expectReply ? "amqp:outbound-channel-adapter" : "amqp:outbound-gateway";
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String routingKey = this.routingKey;
 		if (this.routingKeyGenerator!=null) {
