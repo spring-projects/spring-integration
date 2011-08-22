@@ -38,6 +38,7 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
 /**
@@ -341,6 +342,18 @@ public class JmsInboundGatewayParserTests {
 		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
 		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
+	}
+
+	@Test
+	public void gatewayWithDurableSubscription() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"inboundGatewayWithDurableSubscription.xml", this.getClass());
+		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
+		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		assertEquals(Boolean.TRUE, container.isPubSubDomain());
+		assertEquals(Boolean.TRUE, container.isSubscriptionDurable());
+		assertEquals("testDurableSubscriptionName", container.getDurableSubscriptionName());
+		assertEquals("testClientId", container.getClientId());
 	}
 
 	@Test
