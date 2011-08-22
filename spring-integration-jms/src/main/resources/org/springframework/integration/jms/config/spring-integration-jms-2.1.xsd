@@ -377,6 +377,35 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="subscription-durable" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean property indicating whether to make the subscription durable. The durable subscription name to be used can be specified
+	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
+	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
+	subscription name). Only makes sense when listening to a topic (pub-sub domain).	
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
+					<xsd:attribute name="durable-subscription-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
+	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
+	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
+	for each durable subscription.	
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="client-id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The JMS client id for a shared Connection created and used by this container. Note that client ids need to be unique among all
+	active Connections of the underlying JMS provider. Furthermore, a client id can only be assigned if the original ConnectionFactory
+	hasn't already assigned one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -619,6 +648,35 @@
 									<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription-durable" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean property indicating whether to make the subscription durable. The durable subscription name to be used can be specified
+	through the "durableSubscriptionName" property. Default is "false". Set this to "true" to register a durable subscription,
+	typically in combination with a "durableSubscriptionName" value (unless your message listener class name is good enough as
+	subscription name). Only makes sense when listening to a topic (pub-sub domain).	
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
+					<xsd:attribute name="durable-subscription-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The name of a durable subscription to create. To be applied in case of a topic (pub-sub domain) with subscription durability
+	activated. The durable subscription name needs to be unique within this client's JMS client id. Default is the class name of the
+	specified message listener. Note: Only 1 concurrent consumer (which is the default of this message listener container) is allowed
+	for each durable subscription.	
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="client-id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The JMS client id for a shared Connection created and used by this container. Note that client ids need to be unique among all
+	active Connections of the underlying JMS provider. Furthermore, a client id can only be assigned if the original ConnectionFactory
+	hasn't already assigned one.
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
