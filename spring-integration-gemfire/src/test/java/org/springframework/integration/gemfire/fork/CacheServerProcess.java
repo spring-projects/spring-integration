@@ -31,14 +31,18 @@ import com.gemstone.gemfire.distributed.DistributedSystem;
 
 /**
  * @author Costin Leau
+ * @author David Turanski
+ * 
+ * Runs as a standalone Java app.
+ * Modified from SGF implementation for testing client/server CQ features
  */
 public class CacheServerProcess {
 
 	public static void main(String[] args) throws Exception {
 
 		Properties props = new Properties();
-		props.setProperty("name", "CqServer");
-		props.setProperty("log-level", "warning");
+		props.setProperty("name", "CacheServer");
+		props.setProperty("log-level", "info");
 
 		System.out.println("\nConnecting to the distributed system and creating the cache.");
 		DistributedSystem ds = DistributedSystem.connect(props);
@@ -48,28 +52,20 @@ public class CacheServerProcess {
 		AttributesFactory factory = new AttributesFactory();
 		factory.setDataPolicy(DataPolicy.REPLICATE);
 		factory.setScope(Scope.DISTRIBUTED_ACK);
-		Region testRegion = cache.createRegion("test-cq", factory.create());
+		Region testRegion = cache.createRegion("test", factory.create());
 		System.out.println("Test region, " + testRegion.getFullPath() + ", created in cache.");
 
 		// Start Cache Server.
 		CacheServer server = cache.addCacheServer();
 		server.setPort(40404);
 		server.setNotifyBySubscription(true);
+		System.out.println("Starting server");
 		server.start();
 
-
-		System.out.println("Waiting for signal");
-		// wait for signal
+		System.out.println("Waiting for shutdown");
+	 
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
 		bufferedReader.readLine();
 
-		System.out.println("Received signal");
-
-		testRegion.put("one", 1);
-		testRegion.put("two", 2);
-		testRegion.put("three", 3);
-
-		System.out.println("Waiting for shutdown");
-		bufferedReader.readLine();
 	}
 }

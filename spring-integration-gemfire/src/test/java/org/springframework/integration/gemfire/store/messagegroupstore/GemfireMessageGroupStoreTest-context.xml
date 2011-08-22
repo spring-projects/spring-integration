@@ -11,7 +11,7 @@
 
 	<bean class="org.springframework.integration.gemfire.store.messagegroupstore.GemfireMessageGroupStoreTestConfiguration"/>
 
-    <context:property-placeholder location="org/springframework/integration/gemfire/inbound/cq/common.properties"/>
+    <context:property-placeholder location="org/springframework/integration/gemfire/store/messagegroupstore/common.properties"/>
 
     <int:channel id="i"/>
 
@@ -21,6 +21,6 @@
 
     <int:service-activator input-channel="o" ref="messageGroupStoreActivator" />
 
-    <util:properties id="props" location="org/springframework/integration/gemfire/inbound/cq/gfe-cache.properties"/>
+    <util:properties id="props" location="org/springframework/integration/gemfire/store/messagegroupstore/gfe-cache.properties"/>
 
 </beans>
