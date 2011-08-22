@@ -116,14 +116,6 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertNull(store.getMessage(stringMessage.getHeaders().getId()));
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
-	@RedisAvailable
-	public void testRemoveNonExistingMessage(){	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-		store.removeMessage(UUID.randomUUID());
-	}
-	
 	@SuppressWarnings("serial")
 	public static class Person implements Serializable{
 		private Address address;
