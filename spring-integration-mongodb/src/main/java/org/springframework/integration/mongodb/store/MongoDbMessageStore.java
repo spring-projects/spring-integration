@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -35,6 +36,7 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
@@ -42,13 +44,13 @@ import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.DBObject;
+import com.mongodb.WriteConcern;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -57,9 +59,13 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
+public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware, InitializingBean {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
+	
+	private final static String MESSAGE_GROUP_HEADER = "message_group";
+	
+	private final static String MESSAGE_GROUP_MARKED = "message_group_marked";
 	
 	private final MongoTemplate template;
 
@@ -68,31 +74,22 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 	
 	private final Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
+	
+	private final Object lock = new Object();
 
 
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
 	}
 
-	@SuppressWarnings("rawtypes")
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
 		this.template = new MongoTemplate(mongoDbFactory, converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
+		this.template.setWriteConcern(new WriteConcern(true));
 		//this.template.createCollection(collectionName);
-		
-		List<Message> groupedMessages = this.template.find(this.groupedMessagesQuery(), Message.class, DEFAULT_COLLECTION_NAME);
-		
-		for (Message<?> groupedMessage : groupedMessages) {
-			Object messageGroupId = groupedMessage.getHeaders().get("message_group");
-			SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.messageGroups.get(messageGroupId);
-			if (messageGroup == null){
-				messageGroup = new SimpleMessageGroup(messageGroupId);
-				this.messageGroups.put(messageGroupId, messageGroup);
-			}
-			messageGroup.add(groupedMessage);
-		}
+
 	}
 
 
@@ -102,17 +99,19 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	public <T> Message<T> addMessage(Message<T> message) {
+		Assert.notNull(message, "'message' must not be null");
 		this.template.insert(message, collectionName);
 		return message;
 	}
 
 	public Message<?> getMessage(UUID id) {
-		try {
-			return this.template.findOne(this.idQuery(id), Message.class, this.collectionName);
-		} catch (Exception e) {
-			// ignore, but should be removed once https://jira.springsource.org/browse/DATADOC-239 is fixed
+		Assert.notNull(id, "'id' must not be null");
+		Message<?> message = this.template.findOne(this.idQuery(id), Message.class, this.collectionName);
+		if (message != null){
+			this.normalizeMessage(message);
 		}
-		return null;
+		
+		return message;
 	}
 
 	@ManagedAttribute
@@ -121,7 +120,115 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	public Message<?> removeMessage(UUID id) {
+		Assert.notNull(id, "'id' must not be null");
 		return this.template.findAndRemove(idQuery(id), Message.class, this.collectionName);
+	}
+	
+	public MessageGroup getMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		MessageGroup messageGroup = null;
+		
+		synchronized (lock) {
+			if (this.messageGroups.containsKey(groupId)){
+				messageGroup = this.messageGroups.get(groupId);
+			}
+			else {
+				messageGroup = new SimpleMessageGroup(groupId);
+				this.messageGroups.put(groupId, messageGroup);
+			}
+		}
+		
+		return messageGroup;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(message, "'message' must not be null");
+		SimpleMessageGroup messageGroup = this.getValidMessageGroupInstance(this.getMessageGroup(groupId));
+		synchronized (lock) {
+			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");	
+			innerMap.put(MESSAGE_GROUP_HEADER, groupId);
+			this.addMessage(message);
+			messageGroup.add(message);
+		}
+	
+		return messageGroup;
+	}
+
+	public MessageGroup markMessageGroup(MessageGroup group) {
+		Assert.notNull(group, "'group' must not be null");
+		SimpleMessageGroup messageGroup = this.getValidMessageGroupInstance(group);
+		
+		synchronized (lock) {
+			for (Message<?> messageToMark : messageGroup.getUnmarked()) {
+				this.markMessageFromGroup(messageGroup.getGroupId(), messageToMark);
+			}
+			messageGroup.markAll();
+		}
+		return messageGroup;
+	}
+
+	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
+		SimpleMessageGroup messageGroup = this.getValidMessageGroupInstance(this.getMessageGroup(groupId));
+		synchronized (lock) {
+			this.removeMessage(messageToRemove.getHeaders().getId());
+			messageGroup.remove(messageToRemove);
+		}
+		return messageGroup;
+	}
+
+	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
+		SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
+		synchronized (lock) {
+			Update update = Update.update("headers." + MESSAGE_GROUP_MARKED, true);
+			Query q = this.idQuery(messageToMark.getHeaders().getId());
+			this.template.updateFirst(q, update, DEFAULT_COLLECTION_NAME);
+			messageGroup.mark(messageToMark);
+		}	
+		return messageGroup;
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void removeMessageGroup(Object groupId) {
+		synchronized (lock) {
+			List<Message> groupedMessages = this.template.find(this.messagesForGroupQuery(groupId.toString()), Message.class, DEFAULT_COLLECTION_NAME);
+			for (Message<?> groupedMessage : groupedMessages) {
+				this.removeMessageFromGroup(groupId, groupedMessage);
+			}
+			this.messageGroups.remove(groupId);
+		}	
+	}
+
+	@Override
+	public Iterator<MessageGroup> iterator() {
+		return this.messageGroups.values().iterator();
+	}
+
+	@SuppressWarnings("rawtypes")
+	public void afterPropertiesSet() throws Exception {
+		List<Message> groupedMessages = this.template.find(this.groupedMessagesQuery(), Message.class, DEFAULT_COLLECTION_NAME);
+		for (Message groupedMessage : groupedMessages) {
+			Object groupId = groupedMessage.getHeaders().get(MESSAGE_GROUP_HEADER);
+			SimpleMessageGroup messageGroup = null;
+			if (this.messageGroups.containsKey(groupId)){
+				messageGroup = (SimpleMessageGroup) this.messageGroups.get(groupId);
+			}
+			else {
+				messageGroup = new SimpleMessageGroup(groupId);
+				this.messageGroups.put(groupId, messageGroup);
+			}
+			Map innerMap = (Map) new DirectFieldAccessor(groupedMessage.getHeaders()).getPropertyValue("headers");	
+			boolean marked = innerMap.containsKey(MESSAGE_GROUP_MARKED);
+			innerMap.remove(MESSAGE_GROUP_HEADER);
+			innerMap.remove(MESSAGE_GROUP_MARKED);
+			messageGroup.add(groupedMessage);
+			if (marked){
+				messageGroup.mark(groupedMessage);
+			}
+		}
 	}
 
 	private Query idQuery(UUID id) {
@@ -129,15 +236,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 	
 	private Query groupedMessagesQuery() {
-		return new Query(where("message_group").exists(true));
+		return new Query(where("headers." + MESSAGE_GROUP_HEADER).exists(true));
 	}
 	private Query messagesForGroupQuery(String groupId) {
-		return new Query(where("message_group").is(groupId));
+		return new Query(where("headers." + MESSAGE_GROUP_HEADER).is(groupId));
 	}
 	
-	
-
-
+	/**
+	 */
 	private class MessageReadingMongoConverter extends MappingMongoConverter {
 
 		public MessageReadingMongoConverter(MongoDbFactory mongoDbFactory,
@@ -172,24 +278,28 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			if (!Message.class.equals(clazz)) {
 				return super.read(clazz, source);
 			}
-			Map<String, Object> headers = (Map<String, Object>) source.get("headers");
-			Object payload = source.get("payload");
-			Object payloadType = source.get("_payloadType");
-			if (payloadType != null && payload instanceof DBObject) {
-				try {
-					Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
-					payload = this.read(payloadClass, (DBObject) payload);
+			if (source != null){
+				Map<String, Object> headers = (Map<String, Object>) source.get("headers");
+				Object payload = source.get("payload");
+				Object payloadType = source.get("_payloadType");
+				if (payloadType != null && payload instanceof DBObject) {
+					try {
+						Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
+						payload = this.read(payloadClass, (DBObject) payload);
+					}
+					catch (Exception e) {
+						throw new IllegalStateException("failed to load class: " + payloadType, e);
+					}
 				}
-				catch (Exception e) {
-					throw new IllegalStateException("failed to load class: " + payloadType, e);
-				}
+
+				GenericMessage message = new GenericMessage(payload, headers);
+				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+				// TODO: unpick this mess
+				innerMap.put(MessageHeaders.ID, UUID.fromString(source.get("_id").toString()));
+				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
+				return (S) message;
 			}
-			GenericMessage message = new GenericMessage(payload, headers);
-			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-			// TODO: unpick this mess
-			innerMap.put(MessageHeaders.ID, UUID.fromString(source.get("_id").toString()));
-			innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-			return (S) message;
+			return null;
 		}
 	}
 
@@ -206,65 +316,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			return UUID.fromString(source);
 		}
 	}
-
-
-	public MessageGroup getMessageGroup(Object groupId) {
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.messageGroups.get(groupId);
-		if (messageGroup == null){
-			messageGroup = new SimpleMessageGroup(groupId);
-			this.messageGroups.put(groupId, messageGroup);
-		}
-		return messageGroup;
+	
+	@SuppressWarnings({ "rawtypes", "unused" })
+	private void normalizeMessage(Message<?> message) {
+		Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");	
+		boolean marked = innerMap.containsKey(MESSAGE_GROUP_MARKED);
+		innerMap.remove(MESSAGE_GROUP_HEADER);
+		innerMap.remove(MESSAGE_GROUP_MARKED);
 	}
-
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-		HashMap<String, Object> headers = new HashMap<String, Object>(message.getHeaders());
-		
-		headers.put("message_group", groupId);
-		MessageHeaders h = new MessageHeaders(headers);
-		//Message<?> groupedMessage = MessageBuilder.fromMessage(message).setHeader("message_group", groupId).build();
-		DirectFieldAccessor haccessor = new DirectFieldAccessor(h);
-		haccessor.setPropertyValue("headers", headers);
-		DirectFieldAccessor maccessor = new DirectFieldAccessor(message);
-		maccessor.setPropertyValue("headers", h);
-		messageGroup.add(message);
-		this.addMessage(message);
-		return messageGroup;
+	
+	private SimpleMessageGroup getValidMessageGroupInstance(MessageGroup messageGroup) {
+		Assert.notNull(messageGroup, "'messageGroup' must not null");
+		Assert.isInstanceOf(SimpleMessageGroup.class, messageGroup, "MessageGroup must be an instance of SimpleMessageGroup");
+		return (SimpleMessageGroup) messageGroup;
 	}
-
-	public MessageGroup markMessageGroup(MessageGroup group) {
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) group;
-		messageGroup.markAll();
-		return messageGroup;
-	}
-
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-		messageGroup.remove(messageToRemove);
-		this.removeMessage(messageToRemove.getHeaders().getId());
-		return messageGroup;
-	}
-
-	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-		messageGroup.mark(messageToMark);
-		return messageGroup;
-	}
-
-	@SuppressWarnings("rawtypes")
-	public void removeMessageGroup(Object groupId) {
-		
-		List<Message> groupedMessages = this.template.find(this.messagesForGroupQuery(groupId.toString()), Message.class, DEFAULT_COLLECTION_NAME);
-		for (Message<?> groupedMessage : groupedMessages) {
-			this.removeMessageFromGroup(groupId, groupedMessage);
-		}
-		this.messageGroups.remove(groupId);
-	}
-
-	@Override
-	public Iterator<MessageGroup> iterator() {
-		return this.messageGroups.values().iterator();
-	}
-
 }
