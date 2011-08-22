@@ -24,10 +24,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="channel" use="required" type="xsd:string">
+			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 	Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+	If this attribute is not provided, the ID will be used to create a new DirectChannel, and then instead of using that
+	ID as the bean name of the EventDrivenConsumer instance that hosts the MessageHandler responsible for publishing the
+	AMQP Messages, that EventDrivenConsumer's bean name will be the ID plus the added suffix: ".adapter"
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -86,10 +89,12 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inboundType">
-					<xsd:attribute name="channel" use="required" type="xsd:string">
+					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Message Channel to which converted Messages should be sent.
+	Message Channel to which converted Messages should be sent. If this attribute is not provided, the ID will
+	be used to create a new DirectChannel, and then instead of using that ID as the bean name of the Channel Adapter
+	instance, the bean name will be the ID plus the added suffix: ".adapter"
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
