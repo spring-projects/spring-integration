@@ -11,16 +11,16 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
-	<gfe:cache/>
+	<gfe:cache use-bean-factory-locator="false" id="client-cache"/>
 	
 	<gfe:pool id="client-pool" subscription-enabled="true" >
 		<gfe:server host="localhost" port="40404"/>
 	</gfe:pool>
 	
-	<gfe:client-region id="test" pool-name="client-pool" data-policy="EMPTY"/>
+	<gfe:client-region id="test" cache-ref="client-cache" pool-name="client-pool" data-policy="EMPTY"/>
 	
 	<bean id="queryListenerContainer" class="org.springframework.data.gemfire.listener.QueryListenerContainer">
-		<property name="cache" ref="gemfire-cache"/>
+		<property name="cache" ref="client-cache"/>
 	</bean>
 	
 	<bean class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
