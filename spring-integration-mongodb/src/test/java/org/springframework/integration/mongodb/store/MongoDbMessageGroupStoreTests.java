@@ -15,7 +15,11 @@
  */
 package org.springframework.integration.mongodb.store;
 
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -47,14 +51,11 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testNonExistingEmptyMessageGroup() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
 		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
 		assertTrue(messageGroup instanceof SimpleMessageGroup);
 		assertEquals(0, messageGroup.size());
-		MessageGroup messageGroupA = store.getMessageGroup(1);
-		assertEquals(messageGroup, messageGroupA);
 	}
 	
 	@Test
@@ -62,13 +63,12 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testMessageGroupWithAddedMessage() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
-
+		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);
-		store.addMessageToGroup(1, messageB);
+		messageGroup = store.addMessageToGroup(1, messageB);
 		assertEquals(2, messageGroup.size());
 		Message<?> retrievedMessage = store.getMessage(messageA.getHeaders().getId());
 		assertNotNull(retrievedMessage);
@@ -82,23 +82,22 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testMessageGroupMarkingMessage() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
-
+		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);
-		store.addMessageToGroup(1, messageB);
+		messageGroup = store.addMessageToGroup(1, messageB);
 		assertEquals(0, messageGroup.getMarked().size());
 		assertEquals(2, messageGroup.getUnmarked().size());
 		
-		store.markMessageFromGroup(1, messageA);
+		messageGroup = store.markMessageFromGroup(1, messageA);
 		assertEquals(1, messageGroup.getMarked().size());
 		assertEquals(1, messageGroup.getUnmarked().size());
 		
 		// validate that the updates were propagated to Mongo as well
 		store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
+		
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.getMarked().size());
 		assertEquals(1, messageGroup.getUnmarked().size());
@@ -109,12 +108,11 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testRemoveMessageGroup() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
-
+		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		UUID id = message.getHeaders().getId();
-		store.addMessageToGroup(1, message);
+		messageGroup = store.addMessageToGroup(1, message);
 		assertEquals(1, messageGroup.size());
 		message = store.getMessage(id);
 		assertNotNull(message);
@@ -131,17 +129,16 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testRemoveMessageFromTheGroup() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
-
+		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
 		store.addMessageToGroup(1, new GenericMessage<String>("1"));
 		store.addMessageToGroup(1, message);
-		store.addMessageToGroup(1, new GenericMessage<String>("3"));
+		messageGroup = store.addMessageToGroup(1, new GenericMessage<String>("3"));
 	
 		assertEquals(3, messageGroup.size());
 		
-		store.removeMessageFromGroup(1, message);
+		messageGroup = store.removeMessageFromGroup(1, message);
 		assertEquals(2, messageGroup.size());
 	}
 	
@@ -150,24 +147,23 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	public void testMarkAllMessagesInMessageGroup() throws Exception {	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
 		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		
 		store.addMessageToGroup(1, new GenericMessage<String>("1"));
 		store.addMessageToGroup(1, new GenericMessage<String>("2"));
-		store.addMessageToGroup(1, new GenericMessage<String>("3"));
+		messageGroup = store.addMessageToGroup(1, new GenericMessage<String>("3"));
 		
 		assertEquals(3, messageGroup.getUnmarked().size());
 		assertEquals(0, messageGroup.getMarked().size());
 		
-		store.markMessageGroup(messageGroup);
+		messageGroup = store.markMessageGroup(messageGroup);
 
 		assertEquals(0, messageGroup.getUnmarked().size());
 		assertEquals(3, messageGroup.getMarked().size());
 		
 		store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
+		
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(0, messageGroup.getUnmarked().size());
 		assertEquals(3, messageGroup.getMarked().size());
@@ -175,20 +171,93 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testGetOneFromMessageGroup() throws Exception{	
+	public void testMultipleMessageStores() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		store.afterPropertiesSet();
+		MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
+		MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 
-		store.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store.addMessageToGroup(1, new GenericMessage<String>("1"));
+		Message<?> message = new GenericMessage<String>("1");
+		store1.addMessageToGroup(1, message);
+		store2.addMessageToGroup(1, new GenericMessage<String>("2"));
+		store1.addMessageToGroup(1, new GenericMessage<String>("3"));
 		
-		MessageGroup messageGroup = store.getMessageGroup(1);
+		MongoDbMessageStore store3 = new MongoDbMessageStore(mongoDbFactory);
 		
-		Message<?> message =  messageGroup.getOne(); 
-		assertEquals("1", message.getPayload());
+		MessageGroup messageGroup = store3.getMessageGroup(1);
+		
+		assertEquals(3, messageGroup.getUnmarked().size());
+		
+		store3.removeMessageFromGroup(1, message);
+		
+		messageGroup = store2.getMessageGroup(1);
+		assertEquals(2, messageGroup.getUnmarked().size());
 	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testMessageGroupIterator() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
+		MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
+		
+		Message<?> message = new GenericMessage<String>("1");
+		store2.addMessageToGroup(1, message);
+		store1.addMessageToGroup(2, new GenericMessage<String>("2"));
+		store2.addMessageToGroup(3, new GenericMessage<String>("3"));
+		
+		MongoDbMessageStore store3 = new MongoDbMessageStore(mongoDbFactory);
+		
+		Iterator<MessageGroup> iterator = store3.iterator();
+		int counter = 0;
+		while (iterator.hasNext()) {
+			iterator.next();
+			counter++;
+		}
+		assertEquals(3, counter);
+		
+		store2.removeMessageFromGroup(1, message);
+		
+		iterator = store3.iterator();
+		counter = 0;
+		while (iterator.hasNext()) {
+			iterator.next();
+			counter++;
+		}
+		assertEquals(2, counter);
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testConcurrentModifications() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
+		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
+		
+		final Message<?> message = new GenericMessage<String>("1"); 
+		
+		ExecutorService executor = Executors.newCachedThreadPool();
+		executor.execute(new Runnable() {	
+			public void run() {
+				for (int i = 0; i < 10000; i++) {
+					MessageGroup group = store1.addMessageToGroup(1, message);
+					assertEquals(1, group.getUnmarked().size());
+				}			
+			}
+		});
+		executor.execute(new Runnable() {	
+			public void run() {
+				for (int i = 0; i < 10000; i++) {
+					MessageGroup group = store2.removeMessageFromGroup(1, message);
+					assertEquals(0, group.getUnmarked().size());
+				}			
+			}
+		});
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
+		
+		System.out.println("done");
+	}
+		
 	
 	@Test
 	@MongoDbAvailable
