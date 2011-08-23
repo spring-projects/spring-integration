@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:gfe="http://www.springframework.org/schema/gemfire"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/scripting/spring-integration-gemfire.xsd
+		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire-1.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	<gfe:cache/>
+	
+	<gfe:pool id="client-pool" subscription-enabled="true" >
+		<gfe:server host="localhost" port="40404"/>
+	</gfe:pool>
+	
+	<gfe:client-region id="test" pool-name="client-pool" data-policy="EMPTY"/>
+	
+	<bean id="queryListenerContainer" class="org.springframework.data.gemfire.listener.QueryListenerContainer">
+		<property name="cache" ref="gemfire-cache"/>
+	</bean>
+	
+	<bean class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
+		<constructor-arg ref="queryListenerContainer"/>
+		<constructor-arg value="select * from /test"/>
+		<property name="outputChannel" ref="outputChannel"/>
+		<property name="durable" value="true"/>
+	</bean>
+	
+	<int:channel id="outputChannel">
+		<int:queue/>
+	</int:channel>
+</beans>
