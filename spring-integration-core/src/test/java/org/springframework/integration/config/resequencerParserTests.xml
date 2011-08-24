@@ -53,7 +53,7 @@
 	<resequencer id="resequencerWithReleaseStrategy"
 		input-channel="inputChannel6"
 		release-strategy="pojoReleaseStrategy"
-		release-strategy-method="checkCompleteness"/>
+		release-strategy-method="checkCompletenessAsList"/>
 
 	<beans:bean id="testComparator"
 		class="org.springframework.integration.config.ResequencerParserTests$TestComparator"/>
