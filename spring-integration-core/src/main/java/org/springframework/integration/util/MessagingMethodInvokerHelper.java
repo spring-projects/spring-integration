@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -56,6 +55,8 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
@@ -126,6 +127,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 	}
 
 	public T process(Collection<Message<?>> messages, Map<String, ?> headers) throws Exception {
+		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
+		return processInternal(parameters);
+	}
+	
+	public T process(MessageGroup messages, Map<String, ?> headers) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
 	}
@@ -649,6 +655,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			this.messages = messages;
 			this.headers = headers;
 			this.message = null;
+		}
+		
+		public ParametersWrapper(MessageGroup messages, Map<String, ?> headers) {
+			this.message = MessageBuilder.withPayload(messages).build();
+			this.payload = message.getPayload();
+			this.headers = message.getHeaders();
+			this.messages = messages.getUnmarked();
 		}
 
 		public Object getPayload() {

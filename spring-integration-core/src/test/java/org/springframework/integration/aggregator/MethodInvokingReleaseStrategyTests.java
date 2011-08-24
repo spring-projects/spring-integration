@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
@@ -32,6 +33,7 @@ import org.springframework.integration.store.SimpleMessageGroup;
 /**
  * @author Marius Bogoevici
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  */
 public class MethodInvokingReleaseStrategyTests {
 
@@ -141,7 +143,7 @@ public class MethodInvokingReleaseStrategyTests {
 		new MethodInvokingReleaseStrategy(new TestReleaseStrategy(), "methodThatDoesNotExist");
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = SpelEvaluationException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
 		class TestReleaseStrategy {
 			@SuppressWarnings("unused")
