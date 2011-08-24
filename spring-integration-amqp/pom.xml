@@ -139,7 +139,7 @@
     <dependency>
       <groupId>org.springframework.amqp</groupId>
       <artifactId>spring-rabbit</artifactId>
-      <version>1.0.0.RC3</version>
+      <version>1.0.0.RELEASE</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
