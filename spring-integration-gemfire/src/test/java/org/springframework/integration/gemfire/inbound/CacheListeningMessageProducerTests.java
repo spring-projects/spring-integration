@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
@@ -40,7 +39,7 @@ public class CacheListeningMessageProducerTests {
 	public void receiveNewValuePayloadForCreateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cache);
@@ -63,7 +62,7 @@ public class CacheListeningMessageProducerTests {
 	public void receiveNewValuePayloadForUpdateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
 		regionFactoryBean.setCache(cache);
@@ -90,7 +89,7 @@ public class CacheListeningMessageProducerTests {
 	public void receiveOldValuePayloadForDestroyEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
@@ -116,7 +115,7 @@ public class CacheListeningMessageProducerTests {
 	public void receiveOldValuePayloadForInvalidateEvent() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
