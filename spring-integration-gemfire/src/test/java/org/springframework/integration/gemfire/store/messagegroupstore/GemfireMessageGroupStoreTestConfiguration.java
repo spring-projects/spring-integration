@@ -70,7 +70,7 @@ public class GemfireMessageGroupStoreTestConfiguration {
 	public Cache cache() throws Throwable {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		return cacheFactoryBean.getObject();
+		return (Cache)cacheFactoryBean.getObject();
 	}
 
 	@Bean
