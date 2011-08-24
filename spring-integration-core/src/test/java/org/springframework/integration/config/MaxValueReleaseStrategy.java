@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.config;
 
+import java.util.Collection;
 import java.util.List;
 
 public class MaxValueReleaseStrategy {
@@ -26,7 +27,15 @@ public class MaxValueReleaseStrategy {
 		this.maxValue = maxValue;
 	}
 	
-	public boolean checkCompleteness(List<Long> numbers) {
+	public boolean checkCompletenessAsList(List<Long> numbers) {
+		int sum = 0;
+		for (long number: numbers) {
+			sum += number;
+		}
+		return sum >= maxValue;
+	}
+	
+	public boolean checkCompletenessAsCollection(Collection<Long> numbers) {
 		int sum = 0;
 		for (long number: numbers) {
 			sum += number;

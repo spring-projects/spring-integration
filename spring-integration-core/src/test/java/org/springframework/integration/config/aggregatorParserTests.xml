@@ -52,7 +52,16 @@
 		ref="adderBean"
 		method="add"
 		release-strategy="pojoReleaseStrategy"
-		release-strategy-method="checkCompleteness"/>
+		release-strategy-method="checkCompletenessAsList"/>
+		
+	<channel id="aggregatorWithPojoReleaseStrategyInputAsCollection"/>
+	<aggregator id="aggregatorWithPojoReleaseStrategyAsCollection"
+		input-channel="aggregatorWithPojoReleaseStrategyInputAsCollection"
+		output-channel="outputChannel"
+		ref="adderBean"
+		method="add"
+		release-strategy="pojoReleaseStrategy"
+		release-strategy-method="checkCompletenessAsCollection"/>
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
