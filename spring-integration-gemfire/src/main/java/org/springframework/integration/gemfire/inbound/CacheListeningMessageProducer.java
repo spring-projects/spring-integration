@@ -22,10 +22,6 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -47,7 +43,7 @@ import com.gemstone.gemfire.cache.util.CacheListenerAdapter;
  * @since 2.1
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class CacheListeningMessageProducer extends MessageProducerSupport {
+public class CacheListeningMessageProducer extends SpelMessageProducerSupport {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -58,9 +54,6 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 	private volatile Set<EventType> supportedEventTypes =
 			new HashSet<EventType>(Arrays.asList(EventType.CREATED, EventType.UPDATED));
 
-	private volatile Expression payloadExpression;
-
-	private final SpelExpressionParser parser = new SpelExpressionParser();
 
 	public CacheListeningMessageProducer(Region<?, ?> region) {
 		Assert.notNull(region, "region must not be null");
@@ -74,14 +67,6 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 		this.supportedEventTypes = new HashSet<EventType>(Arrays.asList(eventTypes));
 	}
 
-	public void setPayloadExpression(String payloadExpression) {
-		if (payloadExpression == null) {
-			this.payloadExpression = null;
-		}
-		else {
-			this.payloadExpression = this.parser.parseExpression(payloadExpression);
-		}
-	}
 
 	@Override
 	protected void doStart() {
@@ -105,8 +90,7 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 		}
 		 
 	}
-	
-
+ 
 	private class MessageProducingCacheListener extends CacheListenerAdapter {
 
 		@Override
@@ -137,14 +121,9 @@ public class CacheListeningMessageProducer extends MessageProducerSupport {
 			}
 		}
 
-		private void processEvent(EntryEvent event) {
-			if (payloadExpression != null) {
-				Object evaluationResult = payloadExpression.getValue(event);
-				this.publish(evaluationResult);
-			}
-			else {
-				this.publish(event);
-			}
+		private void processEvent(EntryEvent event) { 
+				this.publish(evaluationResult(event));
+			 
 		}
 
 		private void publish(Object payload) {

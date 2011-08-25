@@ -23,7 +23,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

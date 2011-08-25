@@ -16,15 +16,15 @@
 
 package org.springframework.integration.gemfire.inbound;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.data.gemfire.listener.CqQueryDefinition;
 import org.springframework.data.gemfire.listener.QueryListener;
 import org.springframework.data.gemfire.listener.QueryListenerContainer;
 import org.springframework.integration.Message;
-import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import com.gemstone.gemfire.cache.query.CqEvent;
 
 /**
@@ -38,7 +38,7 @@ import com.gemstone.gemfire.cache.query.CqEvent;
  * @since 2.1
  * 
  */
-public class ContinuousQueryMessageProducer extends MessageProducerSupport implements QueryListener {
+public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport implements QueryListener {
 	private static Log logger = LogFactory.getLog(ContinuousQueryMessageProducer.class);
 	
 	private final String query;
@@ -95,7 +95,7 @@ public class ContinuousQueryMessageProducer extends MessageProducerSupport imple
 		if (logger.isDebugEnabled()){
 			logger.debug(String.format("processing cq event key [%s] event [%s]",event.getBaseOperation().toString(),event.getKey()));
 		}
-		Message<CqEvent> cqEventMessage = MessageBuilder.withPayload(event).build();
+		Message<?> cqEventMessage = MessageBuilder.withPayload(evaluationResult(event)).build();
 		sendMessage(cqEventMessage);
 	}
 
