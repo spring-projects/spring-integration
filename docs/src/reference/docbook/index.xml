@@ -135,7 +135,8 @@
 	  <xi:include href="./ws.xml"/>	 
 	  <xi:include href="./xml.xml"/>	 
 	  <xi:include href="./xmpp.xml"/> 
-                          <xi:include href="./amqp.xml"/> 
+      <xi:include href="./amqp.xml"/> 
+      <xi:include href="./gemfire.xml"/> 
   </part>
   <part id="spring-integration-appendices">
     <title>Appendices</title>
