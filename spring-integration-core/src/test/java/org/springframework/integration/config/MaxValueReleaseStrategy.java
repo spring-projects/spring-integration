@@ -18,6 +18,9 @@ package org.springframework.integration.config;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.store.MessageGroup;
+
 public class MaxValueReleaseStrategy {
 
 	private long maxValue;
@@ -38,6 +41,16 @@ public class MaxValueReleaseStrategy {
 	public boolean checkCompletenessAsCollection(Collection<Long> numbers) {
 		int sum = 0;
 		for (long number: numbers) {
+			sum += number;
+		}
+		return sum >= maxValue;
+	}
+	
+	public boolean checkCompletenessAsMessageGroup(MessageGroup numbers) {
+		int sum = 0;
+		Collection<Message<?>> messages = numbers.getUnmarked();
+		for (Message<?> numberMessage: messages) {
+			long number = (Long) numberMessage.getPayload();
 			sum += number;
 		}
 		return sum >= maxValue;

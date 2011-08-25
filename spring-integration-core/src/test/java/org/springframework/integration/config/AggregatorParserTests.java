@@ -210,6 +210,31 @@ public class AggregatorParserTests {
 		Assert.assertNotNull(reply);
 		assertEquals(11l, reply.getPayload());
 	}
+	
+	@Test // see INT-2009
+	public void testAggregatorWithPojoReleaseStrategyAsMessageGroup() {
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInputAsMessageGroup");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategyAsMessageGroup");
+		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
+				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
+		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
+				.getPropertyValue("adapter")).getPropertyValue("delegate"));
+		Map<?, ?> map = (Map<?, ?>) releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
+		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
+				.contains("checkCompleteness"));
+		input.send(createMessage(1l, "correllationId", 4, 0, null));
+		input.send(createMessage(2l, "correllationId", 4, 1, null));
+		input.send(createMessage(3l, "correllationId", 4, 2, null));
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
+		Message<?> reply = outputChannel.receive(0);
+		Assert.assertNull(reply);
+		input.send(createMessage(5l, "correllationId", 4, 3, null));
+		reply = outputChannel.receive(0);
+		Assert.assertNotNull(reply);
+		assertEquals(11l, reply.getPayload());
+	}
 
 	@Test(expected = BeanCreationException.class)
 	public void testAggregatorWithInvalidReleaseStrategyMethod() {
