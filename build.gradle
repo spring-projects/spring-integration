@@ -62,14 +62,15 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        mavenRepo urls: 'http://maven.springframework.org/snapshot'
+        mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
+        mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
         mavenCentral()
-        mavenRepo urls: 'http://maven.springframework.org/release'
-        mavenRepo urls: 'http://maven.springframework.org/milestone'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/external'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/release'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/milestone'
-        mavenRepo urls: 'http://download.java.net/maven/2' // for javax.mail 1.4.3
+        // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
+        mavenRepo name: 'SpringSource Release Repository', urls: 'http://maven.springframework.org/release'
+        // needed for bundlor:
+        mavenRepo name: 'SpringSource Release Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/release'
+        // needed for external dependencies required by bundlor:
+        mavenRepo name: 'SpringSource External Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/external'
     }
 }
 
