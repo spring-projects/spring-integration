@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="mongodb"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>MongoDb Support</title>
+  <para>
+    Since version 2.1 Spring Integration introduces support for <ulink url="http://www.mongodb.org/">MongoDb</ulink> database - <emphasis>"high-performance, open source, document-oriented database" </emphasis>
+    This support comes in the form of MongoDb-based MessageStore.
+  </para>
+  <section id="mongodb-intro">
+    <title>Introduction</title>
+    <para>
+      To download, install and run MongoDb please refer to <ulink url="http://www.mongodb.org/downloads">MongoDb documentation</ulink>
+    </para>
+  </section>
+ 
+  <section id="mongodb-connection">
+    <title>Connecting to MongoDb</title>
+    
+    <para>To begin interacting with MongoDb you first need to connect to it. Spring Integration uses support provided by another Spring project - 
+    <ulink url="http://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink> which uses an all familiar Spring's <classname>ConnectionFactory</classname>. 
+    abstraction to simplify integration with MongoDB Client API. 
+    
+    <para><emphasis>MongoDbFactory</emphasis> </para>
+    
+    <para>
+    To connect to MongoDb you would use one of the implementations of <classname>MongoDbFactory</classname> interface
+
+      <programlisting lang="java"><![CDATA[public interface MongoDbFactory {
+
+	/**
+	 * Creates a default {@link DB} instance.
+	 * 
+	 * @return
+	 * @throws DataAccessException
+	 */
+	DB getDb() throws DataAccessException;
+	
+	/**
+	 * Creates a {@link DB} instance to access the database with the given name.
+	 * 
+	 * @param dbName must not be {@literal null} or empty.
+	 * @return
+	 * @throws DataAccessException
+	 */
+	DB getDb(String dbName) throws DataAccessException;
+}]]></programlisting>
+    </para>
+    
+    <para>Example below shows how to create <classname>SimpleMongoDbFactory</classname> </para>
+    
+    <para>In Java:
+    <programlisting lang="java"><![CDATA[MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");]]></programlisting>
+    </para>
+    
+    <para>Or as Spring configuration::
+    <programlisting lang="xml"><![CDATA[<bean id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoDbFactory">
+	<constructor-arg>
+		<bean class="com.mongodb.Mongo"
+	</constructor-arg>
+	<constructor-arg value="test"/>
+</bean>]]></programlisting>
+    </para>
+    
+    <para>
+    As you can see <classname>SimpleMongoDbFactory</classname> takes two arguments; A connection object <classname>Mongo</classname> and String specifying the name of the database.
+If you need to specify properties such as <code>host</code>, <code>port</code> etc, you can pass those using one of the constructors provided by Mongo. 
+For more information on how to configure please refer to <ulink url="http://static.springsource.org/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference documentation.
+
+    </para>
+   
+  </section>
+  
+  <section id="mongodb-message-store">
+    <title>MongoDb Message Store</title>
+	
+	<para>
+	As described in the EIP <ulink url="http://www.eaipatterns.com/MessageStore.html">MessageStore</ulink>  allows you to persist Messages which can be very useful when dealing 
+	with components that have capability to buffer messages (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>) if reliability is a concern as well as patterns such as 
+	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> 
+	</para>
+	
+	<para>
+	Spring Integration MongoDb module provides <classname>MongoDbMessageStore</classname> which is the implementation of both <classname>MessageStore</classname> strategy 
+	(mainly used by <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis> patterns) as well as <classname>MessageGroupStore</classname> strategy 
+	(mainly used by <emphasis>Aggregator</emphasis> and <emphasis>Resequencer</emphasis> patterns)
+	</para>
+	
+	<para>
+	<programlisting lang="xml"><![CDATA[<bean id="mongoDbMessageStore" class="org.springframework.integration.redis.store.RedisMessageStore">
+	<constructor-arg ref="redisConnectionFactory"/>
+</bean>
+
+<int:channel id="somePersistentQueueChannel">
+    <int:queue message-store="redisMessageStore"/>
+<int:channel>
+
+<int:aggregator input-channel="inputChannel" output-channel="outputChannel"
+         message-store="redisMessageStore"/>]]></programlisting>
+	</para>
+	<para>
+	Above is a sample <classname>RedisMessageStore</classname> configuration as well as its usage (<emphasis>QueueChannel</emphasis> and <emphasis>Aggregator</emphasis>). As you can see it is a simple 
+	bean configuration injected with <classname>RedisConnectionFactory</classname> via constructor.
+	</para>
+	
+	<para>By default <classname>RedisMessageStore</classname> will use Java serialization to serialize the Message, however if you want to use different serialization technique (e.g., JSON) 
+	you can provide your own serializer via <code>valueSerializer</code> property of <classname>RedisMessageStore</classname>.</para>
+  </section>
+
+</chapter>
