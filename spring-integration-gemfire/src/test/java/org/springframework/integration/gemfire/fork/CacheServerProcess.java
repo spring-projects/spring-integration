@@ -61,7 +61,7 @@ public class CacheServerProcess {
 		server.setNotifyBySubscription(true);
 		System.out.println("Starting server");
 		server.start();
-
+		ForkUtil.createControlFile(CacheServerProcess.class.getName());
 		System.out.println("Waiting for shutdown");
 	 
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));

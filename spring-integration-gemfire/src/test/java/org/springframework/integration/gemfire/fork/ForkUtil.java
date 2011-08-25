@@ -17,11 +17,11 @@
 package org.springframework.integration.gemfire.fork;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 /**
  * Utility for forking Java processes. Modified from the SGF version for SI
@@ -33,21 +33,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class ForkUtil {
 
+	private static String TEMP_DIR = System.getProperty("java.io.tmpdir");
+
 	public static OutputStream cloneJVM(String argument) {
 		String cp = System.getProperty("java.class.path");
 		String home = System.getProperty("java.home");
 
 		Process proc = null;
-		String java = home + "/bin/java ".replace("\\","/");;
+		String java = home + "/bin/java ".replace("\\", "/");
+		;
 		String argCp = "-cp " + cp;
 		String argClass = argument;
 
 		String cmd = java + argCp + " " + argClass;
 		try {
-			//ProcessBuilder builder = new ProcessBuilder(cmd, argCp, argClass);
-			//builder.redirectErrorStream(true);
+			// ProcessBuilder builder = new ProcessBuilder(cmd, argCp,
+			// argClass);
+			// builder.redirectErrorStream(true);
 			proc = Runtime.getRuntime().exec(cmd);
-		} catch (IOException ioe) {
+		}
+		catch (IOException ioe) {
 			throw new IllegalStateException("Cannot start command " + cmd, ioe);
 		}
 
@@ -68,14 +73,15 @@ public class ForkUtil {
 						}
 						Thread.sleep(200);
 					} while (run.get());
-				} catch (Exception ex) {
+				}
+				catch (Exception ex) {
 					// ignore and exit
 				}
 			}
 		});
 
 		reader.start();
-		
+
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
@@ -86,7 +92,8 @@ public class ForkUtil {
 
 				try {
 					p.waitFor();
-				} catch (InterruptedException e) {
+				}
+				catch (InterruptedException e) {
 					// ignore
 				}
 				System.out.println("Fork stopped");
@@ -97,12 +104,43 @@ public class ForkUtil {
 	}
 
 	public static OutputStream cacheServer() {
-		OutputStream os = cloneJVM("org.springframework.integration.gemfire.fork.CacheServerProcess");
-		try {
-			Thread.sleep(8000);
-		} catch (InterruptedException ex) {
-			// ignore and move on
+		String className = "org.springframework.integration.gemfire.fork.CacheServerProcess";
+		if (controlFileExists(className)) {
+			deleteControlFile(className);
+		}
+		OutputStream os = cloneJVM(className);
+		int maxTime = 30000;
+		int time = 0;
+		while (!controlFileExists(className) && time < maxTime) {
+			try {
+				Thread.sleep(500);
+				time += 500;
+			}
+			catch (InterruptedException ex) {
+				// ignore and move on
+			}
+		}
+		if (controlFileExists(className)){
+			System.out.println("Started cache server");
+		} else {
+			throw new RuntimeException("could not fork cache server");
 		}
 		return os;
 	}
+
+	public static boolean deleteControlFile(String name) {
+		String path = TEMP_DIR + File.separator + name;
+		return new File(path).delete();
+	}
+
+	public static boolean createControlFile(String name) throws IOException {
+		String path = TEMP_DIR + File.separator + name;
+		return new File(path).createNewFile();
+	}
+
+	public static boolean controlFileExists(String name) {
+		String path = TEMP_DIR + File.separator + name;
+		return new File(path).exists();
+	}
+
 }
