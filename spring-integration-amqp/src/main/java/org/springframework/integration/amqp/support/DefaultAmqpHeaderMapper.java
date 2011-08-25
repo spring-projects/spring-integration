@@ -23,11 +23,13 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,8 +45,17 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @since 2.1
  */
 public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
+
+	private static final String[] TRANSIENT_HEADER_NAMES = new String[] {
+		MessageHeaders.ID,
+		MessageHeaders.ERROR_CHANNEL,
+		MessageHeaders.REPLY_CHANNEL,
+		MessageHeaders.TIMESTAMP
+	};
+
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -164,22 +175,24 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			// now map to the user-defined headers, if any, within the AMQP MessageProperties
 			Set<String> headerNames = headers.keySet();
 			for (String headerName : headerNames) {
-				if (this.shouldMapHeader(headerName)){
-					if (StringUtils.hasText(headerName) && !headerName.startsWith(AmqpHeaders.PREFIX)) {
-						Object value = headers.get(headerName);
-						if (value != null) {
-							try {
-								String key = this.fromHeaderName(headerName);
+				if (this.shouldMapOutboundHeader(headerName)) {
+					Object value = headers.get(headerName);
+					if (value != null) {
+						try {
+							String key = this.fromHeaderName(headerName);
+							// do not overwrite an existing header with the same key
+							// TODO: do we need to expose a boolean 'overwrite' flag?
+							if (!amqpMessageProperties.getHeaders().containsKey(key)) {
 								amqpMessageProperties.setHeader(key, value);
 							}
-							catch (Exception e) {
-								if (logger.isWarnEnabled()) {
-									logger.warn("failed to map Message header '" + headerName + "' to AMQP header", e);
-								}
+						}
+						catch (Exception e) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("failed to map Message header '" + headerName + "' to AMQP header", e);
 							}
 						}
 					}
-				}		
+				}
 			}
 		}
 		catch (Exception e) {
@@ -187,13 +200,6 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 				logger.warn("error occurred while mapping from MessageHeaders to AMQP properties", e);
 			}
 		}
-	}
-	
-	private boolean shouldMapHeader(String headerName){
-		return !headerName.equals(MessageHeaders.ERROR_CHANNEL) && 
-			   !headerName.equals(MessageHeaders.REPLY_CHANNEL) &&
-			   !headerName.equals(MessageHeaders.ID) &&
-			   !headerName.equals(MessageHeaders.TIMESTAMP);
 	}
 
 	/**
@@ -284,7 +290,9 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 				for (Map.Entry<String, Object> entry : amqpHeaders.entrySet()) {
 					try {
 						String headerName = this.toHeaderName(entry.getKey());
-						headers.put(headerName, entry.getValue());
+						if (!ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName)) {
+							headers.put(headerName, entry.getValue());
+						}
 					}
 					catch (Exception e) {
 						if (logger.isWarnEnabled()) {
@@ -301,6 +309,12 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			}
 		}
 		return headers;
+	}
+
+	private boolean shouldMapOutboundHeader(String headerName) {
+		return StringUtils.hasText(headerName)
+				&& !headerName.startsWith(AmqpHeaders.PREFIX)
+				&& !ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName);
 	}
 
 	private <T> T getHeaderIfAvailable(MessageHeaders headers, String name, Class<T> type) {
