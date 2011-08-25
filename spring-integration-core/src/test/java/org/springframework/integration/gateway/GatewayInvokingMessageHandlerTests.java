@@ -104,8 +104,8 @@ public class GatewayInvokingMessageHandlerTests {
 			gatewayWithError.process("echoWithRuntimeExceptionChannel");
 			Assert.fail();
 		}
-		catch (MessageHandlingException e) {
-			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getFailedMessage().getPayload());
+		catch (SampleRuntimeException e) {
+			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getMessage());
 		}
 		
 		try {
@@ -133,7 +133,7 @@ public class GatewayInvokingMessageHandlerTests {
 			Assert.fail();
 		}
 		catch (Exception e) {
-			Assert.assertTrue(e instanceof MessageHandlingException);
+			Assert.assertEquals(SampleRuntimeException.class, e.getClass());
 		}
 	}
 	
@@ -164,27 +164,38 @@ public class GatewayInvokingMessageHandlerTests {
 
 
 	public static class SimpleService {
+
 		public String echo(String value) {
 			return "echo:" + value;
 		}
-		public RuntimeException echoWithRuntimeException(String value) {
-			throw new RuntimeException(value);
+
+		public String echoWithRuntimeException(String value) {
+			throw new SampleRuntimeException(value);
 		}
 
-		public MessageHandlingException echoWithMessagingException(String value) {
+		public String echoWithMessagingException(String value) {
 			throw new MessageHandlingException(new GenericMessage<String>(value));
 		}
-		public RuntimeException echoWithErrorAsync(String value) {
-			throw new RuntimeException(value);
+
+		public String echoWithErrorAsync(String value) {
+			throw new SampleRuntimeException(value);
 		}
 	}
 
 
 	@SuppressWarnings("serial")
 	public static class SampleCheckedException extends Exception {
-		public SampleCheckedException(String message){
+		public SampleCheckedException(String message) {
 			super(message);
 		}
+	}
+
+
+	@SuppressWarnings("serial")
+	public static class SampleRuntimeException extends RuntimeException {
+		public SampleRuntimeException(String message) {
+			super(message);
+		}		
 	}
 
 }

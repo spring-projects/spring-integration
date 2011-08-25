@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@ package org.springframework.integration.gateway;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -269,7 +268,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			return this.invokeGatewayMethod(invocation);
 		}
 		catch (Throwable e) {
-			this.rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
+			this.rethrowExceptionCauseIfPossible(e, invocation.getMethod());
 			return null; // preceding call should always throw something
 		}
 	}
@@ -307,11 +306,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		return (response != null) ? this.convert(response, returnType) : null;
 	}
 
-	private void rethrowExceptionInThrowsClauseIfPossible(Throwable originalException, Method method) throws Throwable {
-		List<Class<?>> exceptionTypes = Arrays.asList(method.getExceptionTypes());
+	private void rethrowExceptionCauseIfPossible(Throwable originalException, Method method) throws Throwable {
+		Class<?>[] exceptionTypes = method.getExceptionTypes();
 		Throwable t = originalException;
 		while (t != null) {
-			if (exceptionTypes.contains(t.getClass())) {
+			for (Class<?> exceptionType : exceptionTypes) {
+				if (exceptionType.isAssignableFrom(t.getClass())) {
+					throw t;
+				}
+			}
+			if ((t instanceof RuntimeException) &&
+					!(t instanceof MessagingException) && !(t instanceof UndeclaredThrowableException)) {
 				throw t;
 			}
 			t = t.getCause();
