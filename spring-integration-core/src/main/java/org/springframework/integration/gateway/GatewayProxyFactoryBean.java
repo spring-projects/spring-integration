@@ -315,8 +315,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 					throw t;
 				}
 			}
-			if ((t instanceof RuntimeException) &&
-					!(t instanceof MessagingException) && !(t instanceof UndeclaredThrowableException)) {
+			if (t instanceof RuntimeException
+					&& !(t instanceof MessagingException)
+					&& !(t instanceof UndeclaredThrowableException)
+					&& !(t instanceof IllegalStateException && ("Unexpected exception thrown").equals(t.getMessage()))) {
 				throw t;
 			}
 			t = t.getCause();
