@@ -19,18 +19,18 @@
 	
 	<gfe:client-region id="test" cache-ref="client-cache" pool-name="client-pool" data-policy="EMPTY"/>
 	
-	<bean id="queryListenerContainer" class="org.springframework.data.gemfire.listener.QueryListenerContainer">
+	<bean id="queryListenerContainer" class="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer">
 		<property name="cache" ref="client-cache"/>
 	</bean>
 	
-	<int-gfe:cq-inbound-channel-adapter query-listener-container="queryListenerContainer" 
+	<int-gfe:cq-inbound-channel-adapter cq-listener-container="queryListenerContainer" 
 		query="select * from /test" channel="outputChannel1" durable="true"/>
 	
 	<int:channel id="outputChannel1">
 		<int:queue/>
 	</int:channel>
 	
-	<int-gfe:cq-inbound-channel-adapter query-listener-container="queryListenerContainer" 
+	<int-gfe:cq-inbound-channel-adapter cq-listener-container="queryListenerContainer" 
 		query="select * from /test" channel="outputChannel2" expression="newValue" query-events="CREATED"/>
 	
 	 
