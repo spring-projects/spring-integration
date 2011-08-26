@@ -18,7 +18,7 @@
     
     <para>To begin interacting with MongoDb you first need to connect to it. Spring Integration uses support provided by another Spring project - 
     <ulink url="http://www.springsource.org/spring-data/mongodb">Spring Data MongoDB</ulink> which uses an all familiar Spring's <classname>ConnectionFactory</classname>. 
-    abstraction to simplify integration with MongoDB Client API. 
+    abstraction to simplify integration with MongoDB Client API. </para>
     
     <para><emphasis>MongoDbFactory</emphasis> </para>
     
@@ -63,8 +63,9 @@
     
     <para>
     As you can see <classname>SimpleMongoDbFactory</classname> takes two arguments; A connection object <classname>Mongo</classname> and String specifying the name of the database.
-If you need to specify properties such as <code>host</code>, <code>port</code> etc, you can pass those using one of the constructors provided by Mongo. 
-For more information on how to configure please refer to <ulink url="http://static.springsource.org/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference documentation.
+If you need to specify properties such as <code>host</code>, <code>port</code> etc, you can pass those using one of the constructors provided by <classname>Mongo</classname>. 
+For more information on how to configure please refer to 
+<ulink url="http://static.springsource.org/spring-data/data-document/docs/current/reference/html/">Spring-Data-Document</ulink> reference documentation.
 
     </para>
    
@@ -86,24 +87,21 @@ For more information on how to configure please refer to <ulink url="http://stat
 	</para>
 	
 	<para>
-	<programlisting lang="xml"><![CDATA[<bean id="mongoDbMessageStore" class="org.springframework.integration.redis.store.RedisMessageStore">
-	<constructor-arg ref="redisConnectionFactory"/>
+	<programlisting lang="xml"><![CDATA[<bean id="mongoDbMessageStore" class="org.springframework.integration.mongodb.store.MongoDbMessageStore">
+	<constructor-arg ref="mongoDbFactory"/>
 </bean>
 
 <int:channel id="somePersistentQueueChannel">
-    <int:queue message-store="redisMessageStore"/>
+    <int:queue message-store="mongoDbMessageStore"/>
 <int:channel>
 
 <int:aggregator input-channel="inputChannel" output-channel="outputChannel"
-         message-store="redisMessageStore"/>]]></programlisting>
+         message-store="mongoDbMessageStore"/>]]></programlisting>
 	</para>
 	<para>
-	Above is a sample <classname>RedisMessageStore</classname> configuration as well as its usage (<emphasis>QueueChannel</emphasis> and <emphasis>Aggregator</emphasis>). As you can see it is a simple 
-	bean configuration injected with <classname>RedisConnectionFactory</classname> via constructor.
+	Above is a sample <classname>MongoDbMessageStore</classname> configuration as well as its usage (<emphasis>QueueChannel</emphasis> and <emphasis>Aggregator</emphasis>). As you can see it is a simple 
+	bean configuration injected with <classname>SimpleMongoDbFactory</classname> via constructor.
 	</para>
-	
-	<para>By default <classname>RedisMessageStore</classname> will use Java serialization to serialize the Message, however if you want to use different serialization technique (e.g., JSON) 
-	you can provide your own serializer via <code>valueSerializer</code> property of <classname>RedisMessageStore</classname>.</para>
   </section>
 
 </chapter>
