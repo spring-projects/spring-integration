@@ -17,6 +17,7 @@ package org.springframework.integration.redis.store;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,7 +70,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 
 	public Message<?> getMessage(final UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		if (this.keyExists(id)){
+		if (this.redisTemplate.hasKey(id.toString())){
 			BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(id.toString());	
 			Object result = ops.get();
 			Assert.isInstanceOf(Message.class, result, "Return value is not an instace of Message");
@@ -137,7 +138,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 
 		Collection<Message<?>> unmarkedMessages = this.buildMessageList(this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId));
 		Collection<Message<?>> markedMessages = this.buildMessageList(this.redisTemplate.boundListOps(MARKED_PREFIX + groupId));
-		this.onMessageGroupCreate(groupId);
+		this.doMessageGroupCreate(groupId);
 		
 		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, timestamp);
 	}
@@ -150,7 +151,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		Assert.notNull(message, "'message' must not be null");
 		
 		synchronized (groupId) {
-			this.onAddMessageToGroup(message, groupId);
+			this.doAddMessageToGroup(message, groupId);
 			this.addMessage(message);
 			return this.getMessageGroup(groupId);
 		}
@@ -165,7 +166,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		Object groupId = group.getGroupId();
 		
 		synchronized (groupId) {				
-			this.onMarkMessageGroup(groupId);
+			this.doMarkMessageGroup(groupId);
 			return this.getMessageGroup(groupId);
 		}	
 	}
@@ -179,7 +180,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		
 		UUID messageId = messageToRemove.getHeaders().getId();
 		synchronized (groupId) {
-			this.onRemoveMessageFromGroup(groupId, messageId);
+			this.doRemoveMessageFromGroup(groupId, messageId);
 			this.removeMessage(messageId);
 			return this.getMessageGroup(groupId);
 		}	
@@ -195,7 +196,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		String strMessageId = messageToMark.getHeaders().getId().toString();
 	
 		synchronized (groupId) {
-			this.onMarkMessageFromGroup(strMessageId, groupId);		
+			this.doMarkMessageFromGroup(strMessageId, groupId);		
 			return this.getMessageGroup(groupId);
 		}	
 	}
@@ -206,7 +207,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		synchronized (groupId) {
-			this.onRemoveMessageGroup(groupId);
+			this.doRemoveMessageGroup(groupId);
 		}	
 	}
 
@@ -221,17 +222,11 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		return messageGroups.iterator();
 	}
 	
-	private boolean keyExists(final UUID id){
-		return redisTemplate.execute(new RedisCallback<Boolean>() {
-			public Boolean doInRedis(RedisConnection connection)
-					throws DataAccessException {
-				return connection.exists(id.toString().getBytes());
-			}
-		});
-	}
-	
 	private Collection<Message<?>> buildMessageList(BoundListOperations<String, Object> mGroupOps){
 		List<Message<?>> messages = new LinkedList<Message<?>>();
+		if (mGroupOps.size() == 0){
+			return Collections.emptyList();
+		}
 		List<Object> messageIds = mGroupOps.range(0, mGroupOps.size()-1);
 		for (Object messageId : messageIds) {
 			Message<?> message = this.getMessage(UUID.fromString(messageId.toString()));
@@ -242,27 +237,27 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		return messages;
 	}
 	
-	// ***
+	// *** candidates for future abstract methods
 	
-	private void onMessageGroupCreate(Object groupId){
+	private void doMessageGroupCreate(Object groupId){
 		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
 		if (!mGroupsOps.members().contains(groupId)){
 			mGroupsOps.add(groupId);
 		}	
 	}
 	
-	private void onAddMessageToGroup(Message<?> message, Object groupId){
+	private void doAddMessageToGroup(Message<?> message, Object groupId){
 		String messageId = message.getHeaders().getId().toString();
 		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
 		unmarkedOps.rightPush(messageId);
 	}
 	
-	private void onMarkMessageGroup(Object groupId){
+	private void doMarkMessageGroup(Object groupId){
 		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
 		unmarkedOps.rename(MARKED_PREFIX + groupId);		
 	}
 	
-	private void onRemoveMessageFromGroup(Object groupId, UUID messageId){
+	private void doRemoveMessageFromGroup(Object groupId, UUID messageId){
 		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
 		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
 		
@@ -270,32 +265,36 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		markedOps.remove(0, messageId.toString());
 	}
 	
-	private void onMarkMessageFromGroup(String strMessageId, Object groupId){
+	private void doMarkMessageFromGroup(String strMessageId, Object groupId){
 		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		List<Object> messageIds = unmarkedOps.range(0, unmarkedOps.size()-1);
-		int objectIndex = messageIds.indexOf(strMessageId);
-		if (objectIndex > -1){
-			BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
-			markedOps.rightPush(strMessageId);
-			unmarkedOps.remove(0, strMessageId);		
+		if (unmarkedOps.size() > 0){
+			List<Object> messageIds = unmarkedOps.range(0, unmarkedOps.size()-1);
+			int objectIndex = messageIds.indexOf(strMessageId);
+			if (objectIndex > -1){
+				BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
+				markedOps.rightPush(strMessageId);
+				unmarkedOps.remove(0, strMessageId);		
+			}
 		}
 	}
 	
-	private void onRemoveMessageGroup(Object groupId){
+	private void doRemoveMessageGroup(Object groupId){
 		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		List<Object> messageIds =  unmarkedOps.range(0, unmarkedOps.size()-1);
-		for (Object messageId : messageIds) {
-			this.removeMessage(UUID.fromString(messageId.toString()));
-		}
-		this.redisTemplate.delete(UNMARKED_PREFIX + groupId);
-		
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
-		messageIds =  markedOps.range(0, markedOps.size()-1);
-		for (Object messageId : messageIds) {
-			this.removeMessage(UUID.fromString(messageId.toString()));
-		}
-		this.redisTemplate.delete(MARKED_PREFIX + groupId);
-		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
-		mGroupsOps.remove(groupId);
+		if (unmarkedOps.size() > 0){
+			List<Object> messageIds =  unmarkedOps.range(0, unmarkedOps.size()-1);
+			for (Object messageId : messageIds) {
+				this.removeMessage(UUID.fromString(messageId.toString()));
+			}
+			this.redisTemplate.delete(UNMARKED_PREFIX + groupId);
+			
+			BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
+			messageIds =  markedOps.range(0, markedOps.size()-1);
+			for (Object messageId : messageIds) {
+				this.removeMessage(UUID.fromString(messageId.toString()));
+			}
+			this.redisTemplate.delete(MARKED_PREFIX + groupId);
+			BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
+			mGroupsOps.remove(groupId);
+		}	
 	}
 }
