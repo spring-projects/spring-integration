@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mongodb.store;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,6 +43,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -50,9 +53,10 @@ import org.springframework.util.StringUtils;
 
 import com.mongodb.DBObject;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 /**
+ * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
+ * strategies that relies upon MongoDB for persistence.
+ * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.1
@@ -60,28 +64,37 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
 
 	private final static String DEFAULT_COLLECTION_NAME = "messages";
-	
-	private final static String MESSAGE_GROUP_HEADER = "_groupId";
-	
-	private final static String MESSAGE_GROUP_MARKED = "_marked";
-	
-	private final static String PAYLOAD_TYPE = "_payloadType";
-	
-	private final static String MESSAGE_ID = "_id";
-	
+
+	private final static String GROUP_ID_KEY = "_groupId";
+
+	private final static String MARKED_KEY = "_marked";
+
+	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
+
+	private final static String MESSAGE_ID_KEY = "_id";
+
+
 	private final MongoTemplate template;
 
 	private final String collectionName;
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
+
+	/**
+	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory}.and the default collection name.
+	 */
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory) {
 		this(mongoDbFactory, null);
 	}
 
+	/**
+	 * Create a MongoDbMessageStore using the provided {@link MongoDbFactory} and collection name.
+	 */
 	public MongoDbMessageStore(MongoDbFactory mongoDbFactory, String collectionName) {
 		Assert.notNull(mongoDbFactory, "mongoDbFactory must not be null");
 		MessageReadingMongoConverter converter = new MessageReadingMongoConverter(mongoDbFactory, new MongoMappingContext());
+		converter.afterPropertiesSet();
 		this.template = new MongoTemplate(mongoDbFactory, converter);
 		this.collectionName = (StringUtils.hasText(collectionName)) ? collectionName : DEFAULT_COLLECTION_NAME;
 	}
@@ -100,12 +113,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public Message<?> getMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		MessageWrapper messageWrapper = this.template.findOne(this.queryByMessageId(id), MessageWrapper.class, this.collectionName);
-		if (messageWrapper != null){
-			return messageWrapper.getMessage();
-		}
-
-		return null;
+		MessageWrapper messageWrapper = this.template.findOne(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
+		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
 
 	@ManagedAttribute
@@ -115,37 +124,29 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		MessageWrapper messageWrapper =  this.template.findAndRemove(queryByMessageId(id), MessageWrapper.class, this.collectionName);
-		if (messageWrapper != null){
-			return messageWrapper.getMessage();
-		}
-		return null;
+		MessageWrapper messageWrapper =  this.template.findAndRemove(whereMessageIdIs(id), MessageWrapper.class, this.collectionName);
+		return (messageWrapper != null) ? messageWrapper.getMessage() : null;
 	}
-	
+
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-	
-		List<MessageWrapper> messageWrappers = this.template.find(this.queryByGroupId(groupId), MessageWrapper.class, this.collectionName);
+		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> unmarkedMessages = new ArrayList<Message<?>>();
 		List<Message<?>> markedMessages = new ArrayList<Message<?>>();
-		
 		for (MessageWrapper messageWrapper : messageWrappers) {
-			if (messageWrapper.isMarked()){
+			if (messageWrapper.isMarked()) {
 				markedMessages.add(messageWrapper.getMessage());
 			}
 			else {
 				unmarkedMessages.add(messageWrapper.getMessage());
 			}
 		}
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, System.currentTimeMillis());
-		
-		return messageGroup;
+		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, System.currentTimeMillis());
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-
 		synchronized (groupId) {
 			MessageWrapper wrapper = new MessageWrapper(message, groupId, false);
 			this.template.insert(wrapper, this.collectionName);
@@ -156,9 +157,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup markMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "'group' must not be null");
 		Object groupId = group.getGroupId();
-		
 		synchronized (groupId) {
-			List<MessageWrapper> messageWrappers = this.template.find(this.queryByGroupId(groupId), MessageWrapper.class, this.collectionName);
+			List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 			for (MessageWrapper messageWrapper : messageWrappers) {
 				this.markMessageFromGroup(groupId, messageWrapper.getMessage());
 			}
@@ -169,7 +169,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-	
 		synchronized (groupId) {
 			this.removeMessage(messageToRemove.getHeaders().getId());
 			return this.getMessageGroup(groupId);
@@ -177,10 +176,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
-		Update update = Update.update(MESSAGE_GROUP_MARKED, true);
-		Query q = this.queryByMessageId(messageToMark.getHeaders().getId());
-		
-		synchronized (groupId) {	
+		Update update = Update.update(MARKED_KEY, true);
+		Query q = whereMessageIdIs(messageToMark.getHeaders().getId());
+		synchronized (groupId) {
 			this.template.updateFirst(q, update, this.collectionName);
 			return this.getMessageGroup(groupId);
 		}	    
@@ -188,7 +186,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public void removeMessageGroup(Object groupId) {
 		synchronized (groupId) {
-			List<MessageWrapper> messageWrappers = this.template.find(this.queryByGroupId(groupId), MessageWrapper.class, this.collectionName);
+			List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 			for (MessageWrapper messageWrapper : messageWrappers) {
 				this.removeMessageFromGroup(groupId, messageWrapper.getMessage());
 			}
@@ -197,29 +195,33 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		List<MessageWrapper> groupedMessages = this.template.find(this.queryOfAllMessageGroups(), MessageWrapper.class, this.collectionName);
+		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
 		for (MessageWrapper groupedMessage : groupedMessages) {
 			Object groupId = groupedMessage.getGroupId();
-			if (!messageGroups.containsKey(groupId)){
+			if (!messageGroups.containsKey(groupId)) {
 				messageGroups.put(groupId, this.getMessageGroup(groupId));
 			}
 		}
 		return messageGroups.values().iterator();
 	}
 
-	private Query queryByMessageId(UUID id) {
-		return new Query(where("_id").is(id.toString()));
+	private static Query whereMessageIdIs(UUID id) {
+		//return new Query(where("_id").is(id.toString()));
+		return new Query(where("headers.id").is(id.toString()));
 	}
-	
-	private Query queryOfAllMessageGroups() {
-		return new Query(where(MESSAGE_GROUP_HEADER).exists(true));
+
+	private static Query whereGroupIdIs(Object groupId) {
+		return new Query(where(GROUP_ID_KEY).is(groupId));
 	}
-	private Query queryByGroupId(Object groupId) {
-		return new Query(where(MESSAGE_GROUP_HEADER).is(groupId));
+
+	private static Query whereGroupIdExists() {
+		return new Query(where(GROUP_ID_KEY).exists(true));
 	}
-	
+
+
 	/**
+	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */
 	private class MessageReadingMongoConverter extends MappingMongoConverter {
 
@@ -228,42 +230,40 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			super(mongoDbFactory, mappingContext);
 		}
 
-
 		@Override
 		public void afterPropertiesSet() {
-			super.afterPropertiesSet();
 			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
 			customConverters.add(new UuidToStringConverter());
 			customConverters.add(new StringToUuidConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
+			super.afterPropertiesSet();
 		}
-	
+
 		@Override
 		public void write(Object source, DBObject target) {
 			Message<?> message = null;
 			Object groupId = null;
 			boolean marked = false;
-			if (source instanceof MessageWrapper){
+			if (source instanceof MessageWrapper) {
 				MessageWrapper wrapper = (MessageWrapper) source;
 				message = wrapper.getMessage();
 				groupId = wrapper.getGroupId();
 				marked = wrapper.isMarked();
 			}
 			else {
-				throw new IllegalArgumentException("Unrecognized source. Should either be MessageWrapper");
+				Class<?> sourceType = (source != null) ? source.getClass() : null;
+				throw new IllegalArgumentException("Unexpected source type [" + sourceType + "]. Should be a MessageWrapper.");
 			}
-			String payloadType = message.getPayload().getClass().getName();
-			target.put(PAYLOAD_TYPE, payloadType);
-			target.put(MESSAGE_ID, message.getHeaders().getId().toString());
-			if (groupId != null){
-				target.put(MESSAGE_GROUP_HEADER, groupId);
+			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
+			target.put(MESSAGE_ID_KEY, message.getHeaders().getId().toString());
+			if (groupId != null) {
+				target.put(GROUP_ID_KEY, groupId);
 			}
-			if (marked){
-				target.put(MESSAGE_GROUP_MARKED, marked);
+			if (marked) {
+				target.put(MARKED_KEY, marked);
 			}
 			super.write(message, target);
 		}
-
 
 		@Override
 		@SuppressWarnings({"unchecked", "rawtypes"})
@@ -271,10 +271,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			if (!MessageWrapper.class.equals(clazz)) {
 				return super.read(clazz, source);
 			}
-			if (source != null){
+			if (source != null) {
 				Map<String, Object> headers = (Map<String, Object>) source.get("headers");
 				Object payload = source.get("payload");
-				Object payloadType = source.get(PAYLOAD_TYPE);
+				Object payloadType = source.get(PAYLOAD_TYPE_KEY);
 				if (payloadType != null && payload instanceof DBObject) {
 					try {
 						Class<?> payloadClass = ClassUtils.forName(payloadType.toString(), classLoader);
@@ -284,15 +284,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 						throw new IllegalStateException("failed to load class: " + payloadType, e);
 					}
 				}
-				
 				GenericMessage message = new GenericMessage(payload, headers);
 				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
-				// TODO: unpick this mess
-				innerMap.put(MessageHeaders.ID, UUID.fromString(source.get(MESSAGE_ID).toString()));
+				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
+				innerMap.put(MessageHeaders.ID, UUID.fromString(source.get(MESSAGE_ID_KEY).toString()));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-				
-				MessageWrapper wrapper = new MessageWrapper(message, source.get(MESSAGE_GROUP_HEADER), source.get(MESSAGE_GROUP_MARKED) != null);
-				
+				MessageWrapper wrapper = new MessageWrapper(message, source.get(GROUP_ID_KEY), source.get(MARKED_KEY) != null);
 				return (S) wrapper;
 			}
 			return null;
@@ -313,19 +310,21 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-	private class MessageWrapper {
-		
+
+	private static final class MessageWrapper {
+
 		private final Object groupId;
 
 		private final boolean marked;
-		
+
 		private final Message<?> message;
-		
-		public MessageWrapper(Message<?> message, Object groupId, boolean marked){
+
+		public MessageWrapper(Message<?> message, Object groupId, boolean marked) {
 			this.marked = marked;
 			this.message = message;
 			this.groupId = groupId;
 		}
+
 		public Object getGroupId() {
 			return groupId;
 		}
@@ -338,4 +337,5 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			return message;
 		}
 	}
+
 }
