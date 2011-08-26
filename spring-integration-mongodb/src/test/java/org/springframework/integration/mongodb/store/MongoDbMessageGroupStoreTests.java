@@ -15,11 +15,15 @@
  */
 package org.springframework.integration.mongodb.store;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import junit.framework.AssertionFailedError;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -226,6 +230,38 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		assertEquals(2, counter);
 	}
 	
+//	@Test
+//	@MongoDbAvailable
+//	public void testConcurrentModifications() throws Exception{	
+//		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+//		final MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
+//		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
+//		
+//		final Message<?> message = new GenericMessage<String>("1"); 
+//		
+//		ExecutorService executor = Executors.newCachedThreadPool();
+//		executor.execute(new Runnable() {	
+//			public void run() {
+//				for (int i = 0; i < 100; i++) {
+//					MessageGroup group = store1.addMessageToGroup(1, message);
+//					assertEquals(1, group.getUnmarked().size());
+//				}			
+//			}
+//		});
+//		executor.execute(new Runnable() {	
+//			public void run() {
+//				for (int i = 0; i < 100; i++) {
+//					MessageGroup group = store2.removeMessageFromGroup(1, message);
+//					assertEquals(0, group.getUnmarked().size());
+//				}			
+//			}
+//		});
+//		executor.shutdown();
+//		executor.awaitTermination(10, TimeUnit.SECONDS);
+//		
+//		System.out.println("done");
+//	}
+	
 	@Test
 	@MongoDbAvailable
 	public void testConcurrentModifications() throws Exception{	
@@ -234,28 +270,38 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		final MongoDbMessageStore store2 = new MongoDbMessageStore(mongoDbFactory);
 		
 		final Message<?> message = new GenericMessage<String>("1"); 
+
+		ExecutorService executor = null;
 		
-		ExecutorService executor = Executors.newCachedThreadPool();
-		executor.execute(new Runnable() {	
-			public void run() {
-				for (int i = 0; i < 100; i++) {
+		final List<Object> failures = new ArrayList<Object>();
+		
+		for (int i = 0; i < 100; i++) {
+			executor = Executors.newCachedThreadPool();
+			
+			executor.execute(new Runnable() {	
+				public void run() {			
 					MessageGroup group = store1.addMessageToGroup(1, message);
-					assertEquals(1, group.getUnmarked().size());
-				}			
-			}
-		});
-		executor.execute(new Runnable() {	
-			public void run() {
-				for (int i = 0; i < 100; i++) {
+					if (group.getUnmarked().size() != 1){
+						failures.add("ADD");
+						throw new AssertionFailedError("Failed on ADD");
+					}	
+				}
+			});
+			executor.execute(new Runnable() {	
+				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
-					assertEquals(0, group.getUnmarked().size());
-				}			
-			}
-		});
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-		
-		System.out.println("done");
+					if (group.getUnmarked().size() != 0){
+						failures.add("REMOVE");
+						throw new AssertionFailedError("Failed on Remove");
+					}	
+				}
+			});
+			
+			executor.shutdown();
+			executor.awaitTermination(10, TimeUnit.SECONDS);
+			store2.removeMessageFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
+		}
+		assertTrue(failures.size() == 0);
 	}
 		
 	
