@@ -16,7 +16,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  
 /**
  * @author David Turanski
- *
+ * @since 2.1
  */
 public class GemfireIntegrationNamespaceHandler extends AbstractIntegrationNamespaceHandler{
 
@@ -25,8 +25,8 @@ public class GemfireIntegrationNamespaceHandler extends AbstractIntegrationNames
 	 */
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new GemfireInboundChannelAdapterParser());
+		registerBeanDefinitionParser("cq-inbound-channel-adapter", new GemfireCqInboundChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new GemfireOutboundChannelAdapterParser());
-		
 	}
 
 }

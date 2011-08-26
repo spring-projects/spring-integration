@@ -23,24 +23,17 @@
 		<property name="cache" ref="client-cache"/>
 	</bean>
 	
-	<bean id="cqMessageProducer" class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
-		<constructor-arg ref="queryListenerContainer"/>
-		<constructor-arg value="select * from /test"/>
-		<property name="outputChannel" ref="outputChannel1"/>
-		<property name="durable" value="true"/>
-	</bean>
+	<int-gfe:cq-inbound-channel-adapter query-listener-container="queryListenerContainer" 
+		query="select * from /test" channel="outputChannel1" durable="true"/>
 	
 	<int:channel id="outputChannel1">
 		<int:queue/>
 	</int:channel>
 	
-	<bean id="spelCqMessageProducer" class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
-		<constructor-arg ref="queryListenerContainer"/>
-		<constructor-arg value="select * from /test"/>
-		<property name="outputChannel" ref="outputChannel2"/>
-		<property name="payloadExpression" value="newValue"/>
-	</bean>
+	<int-gfe:cq-inbound-channel-adapter query-listener-container="queryListenerContainer" 
+		query="select * from /test" channel="outputChannel2" expression="newValue" query-events="CREATED"/>
 	
+	 
 	<int:channel id="outputChannel2">
 		<int:queue/>
 	</int:channel>
