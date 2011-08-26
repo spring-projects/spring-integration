@@ -35,6 +35,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -62,7 +63,7 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public RedisMessageStore(RedisConnectionFactory connectionFactory){
 		this.redisTemplate = new RedisTemplate<String, Object>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
-		this.redisTemplate.setKeySerializer(new KeySerializer());	
+		this.redisTemplate.setKeySerializer(new StringRedisSerializer());	
 		this.redisTemplate.setValueSerializer(this.valueSerializer);	
 	}
 
@@ -227,18 +228,6 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 				return connection.exists(id.toString().getBytes());
 			}
 		});
-	}
-	
-	private static class KeySerializer implements RedisSerializer<String> {
-
-		public byte[] serialize(String value) throws SerializationException {
-			return value.getBytes();
-		}
-
-		public String deserialize(byte[] bytes) throws SerializationException {
-			return new String(bytes);
-		}
-		
 	}
 	
 	private Collection<Message<?>> buildMessageList(BoundListOperations<String, Object> mGroupOps){

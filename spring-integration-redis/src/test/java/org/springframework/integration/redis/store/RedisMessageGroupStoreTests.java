@@ -271,14 +271,14 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		
 		final List<Object> failures = new ArrayList<Object>();
 		
-		for (int i = 0; i < 10000; i++) {
+		for (int i = 0; i < 100; i++) {
 			executor = Executors.newCachedThreadPool();
 			
 			executor.execute(new Runnable() {	
 				public void run() {			
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					if (group.getUnmarked().size() != 1){
-						failures.add("GET");
+						failures.add("ADD");
 						throw new AssertionFailedError("Failed on ADD");
 					}	
 				}
@@ -297,7 +297,6 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.awaitTermination(10, TimeUnit.SECONDS);
 			store2.removeMessageFromGroup(1, message); // ensures that if ADD thread executed after REMOVE, the store is empty for the next cycle
 		}
-		System.out.println(failures);
 		assertTrue(failures.size() == 0);
 	}
 	
