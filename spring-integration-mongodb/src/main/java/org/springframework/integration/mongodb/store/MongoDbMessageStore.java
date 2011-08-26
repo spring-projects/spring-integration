@@ -71,8 +71,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
 
-	private final static String MESSAGE_ID_KEY = "_id";
-
 
 	private final MongoTemplate template;
 
@@ -206,8 +204,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return messageGroups.values().iterator();
 	}
 
+
+	/*
+	 * Common Queries
+	 */
+
 	private static Query whereMessageIdIs(UUID id) {
-		//return new Query(where("_id").is(id.toString()));
 		return new Query(where("headers.id").is(id.toString()));
 	}
 
@@ -255,7 +257,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				throw new IllegalArgumentException("Unexpected source type [" + sourceType + "]. Should be a MessageWrapper.");
 			}
 			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
-			target.put(MESSAGE_ID_KEY, message.getHeaders().getId().toString());
 			if (groupId != null) {
 				target.put(GROUP_ID_KEY, groupId);
 			}
@@ -287,7 +288,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				GenericMessage message = new GenericMessage(payload, headers);
 				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-				innerMap.put(MessageHeaders.ID, UUID.fromString(source.get(MESSAGE_ID_KEY).toString()));
+				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 				MessageWrapper wrapper = new MessageWrapper(message, source.get(GROUP_ID_KEY), source.get(MARKED_KEY) != null);
 				return (S) wrapper;
@@ -311,6 +312,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 
+	/**
+	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
+	 */
 	private static final class MessageWrapper {
 
 		private final Object groupId;
