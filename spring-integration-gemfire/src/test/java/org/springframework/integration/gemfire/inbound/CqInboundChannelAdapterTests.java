@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.gemfire.inbound.cq;
+package org.springframework.integration.gemfire.inbound;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -37,12 +37,11 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
 
 /**
  * @author David Turanski
- * @since 2.1
+ *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class ContinuousQueryMessageProducerTests {
-	
+public class CqInboundChannelAdapterTests {
 	static ConfigurableApplicationContext staticCtx;
 	
 	@Autowired
@@ -82,9 +81,7 @@ public class ContinuousQueryMessageProducerTests {
 		region.put("one",1);
 		Message<?> msg = outputChannel2.receive(1000);
 		assertNotNull(msg);
-		assertEquals(1,msg.getPayload());
-		
-		
+		assertEquals(1,msg.getPayload());		
 	}
 	
 	@AfterClass

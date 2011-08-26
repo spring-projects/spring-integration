@@ -16,9 +16,9 @@
     </para>
     <para>
     Spring integration provides support for GemFire by providing inbound adapters for entry and continuous query events, 
-    and an outbound adapter to write entries to the cache. Spring integration leverages the 
-    <ulink url="http://www.springsource.org/spring-gemfire">Spring Gemfire</ulink> project, providing a thin
-    wrapper over its components.
+    an outbound adapter to write entries to the cache, and <classname>MessageStore</classname> and <classname>MessageGroupStore</classname> implementations. 
+    Spring integration leverages the 
+    <ulink url="http://www.springsource.org/spring-gemfire">Spring Gemfire</ulink> project, providing a thin wrapper over its components.
     </para>
     <para>
     To configure the 'int-gfe' namespace, include the following elements within the headers of your XML configuration file:
@@ -45,7 +45,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 
 	In the above configuration, we are creating a GemFire <classname>Cache</classname> and <classname>Region</classname> using Spring GemFire's 'gfe' namespace. 
 	The inbound-channel-adapter requires a reference to the GemFire region for which the adapter will be listening for events. Optional attributes include <code>cache-events</code> 
-	which can contain a comma separated list of event types for which a message will be produced on the input channel. By default all event types are enabled.
+	which can contain a comma separated list of event types for which a message will be produced on the input channel. By default CREATED and UPDATED are enabled.
 	Note that this adapter conforms to Spring integration conventions.
 	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code>.
 	If <code>expression</code> is not provided the message payload will be a GemFire <classname>EntryEvent</classname> 
@@ -88,9 +88,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	In the above configuration, we are creating a GemFire client cache 
 	(recall a cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>QueryListenerContainer</classname> 
 	using Spring GemFire. 	The continuous query inbound channel adapter requires a <code>query-listener-container</code> attribute which contains a reference to the <classname>QueryListenerContainer</classname>. Optionally,
-  	it accepts an <code>expression</code> attribute which uses SpEL to transform the <code>CqEvent</code> or extract an individual property as needed. The cq-inbound-channel-adapter also supports a
-  	<code>query-events</code> attribute, containing a comma separated list of event types for which a message will be produced on the input channel (all events are enabled by default), <code>query-name</code> which provides an optional query name, and 
-	<code>expression</code> which works as described in the above section. 
+  	it accepts an <code>expression</code> attribute which uses SpEL to transform the <code>CqEvent</code> or extract an individual property as needed. The cq-inbound-channel-adapter provides a
+  	<code>query-events</code> attribute, containing a comma separated list of event types for which a message will be produced on the input channel. Available event types are CREATED, UPDATED, DESTROYED,
+  	REGION_DESTROYED, REGION_INVALIDATED. CREATED and UPDATED are enabled by default. Additional optional attributes include, <code>query-name</code> which provides an optional query name, and 
+	<code>expression</code> which works as described in the above section, and <code>durable</code> - a boolean value indicating if the query is durable (false by default).
 	Note that this adapter conforms to Spring integration conventions.
 	If no <code>channel</code> attribute is provided, the channel will be created from the <code>id</code> attribute. This adapter also supports an <code>error-channel</code> 
   	</para>

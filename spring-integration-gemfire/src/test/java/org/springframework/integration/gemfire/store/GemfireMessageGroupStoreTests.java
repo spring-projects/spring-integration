@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gemfire.store.messagegroupstore;
+package org.springframework.integration.gemfire.store;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class GemfireMessageGroupStoreTest {
+public class GemfireMessageGroupStoreTests {
 
 	@Autowired
 	private GemfireMessageGroupStoreTestConfiguration.FakeMessageConsumer consumer;

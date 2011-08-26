@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gemfire.store.messagegroupstore;
+package org.springframework.integration.gemfire.store;
 
 import java.util.ArrayList;
 import java.util.Arrays;
