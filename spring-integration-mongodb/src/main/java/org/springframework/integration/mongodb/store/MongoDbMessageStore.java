@@ -145,50 +145,40 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		synchronized (groupId) {
-			MessageWrapper wrapper = new MessageWrapper(message, groupId, false);
-			this.template.insert(wrapper, this.collectionName);
-			return this.getMessageGroup(groupId);
-		}
+		MessageWrapper wrapper = new MessageWrapper(message, groupId, false);
+		this.template.insert(wrapper, this.collectionName);
+		return this.getMessageGroup(groupId);
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "'group' must not be null");
 		Object groupId = group.getGroupId();
-		synchronized (groupId) {
-			List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
-			for (MessageWrapper messageWrapper : messageWrappers) {
-				this.markMessageFromGroup(groupId, messageWrapper.getMessage());
-			}
-			return this.getMessageGroup(groupId);
-		}	
+		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
+		for (MessageWrapper messageWrapper : messageWrappers) {
+			this.markMessageFromGroup(groupId, messageWrapper.getMessage());
+		}
+		return this.getMessageGroup(groupId);
 	}
 
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		synchronized (groupId) {
-			this.removeMessage(messageToRemove.getHeaders().getId());
-			return this.getMessageGroup(groupId);
-		}
+		this.removeMessage(messageToRemove.getHeaders().getId());
+		return this.getMessageGroup(groupId);
 	}
 
 	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
 		Update update = Update.update(MARKED_KEY, true);
 		Query q = whereMessageIdIs(messageToMark.getHeaders().getId());
-		synchronized (groupId) {
-			this.template.updateFirst(q, update, this.collectionName);
-			return this.getMessageGroup(groupId);
-		}	    
+		this.template.updateFirst(q, update, this.collectionName);
+		return this.getMessageGroup(groupId);	    
 	}
 
 	public void removeMessageGroup(Object groupId) {
-		synchronized (groupId) {
-			List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
-			for (MessageWrapper messageWrapper : messageWrappers) {
-				this.removeMessageFromGroup(groupId, messageWrapper.getMessage());
-			}
-		}	
+		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
+		for (MessageWrapper messageWrapper : messageWrappers) {
+			this.removeMessageFromGroup(groupId, messageWrapper.getMessage());
+		}
 	}
 
 	@Override
