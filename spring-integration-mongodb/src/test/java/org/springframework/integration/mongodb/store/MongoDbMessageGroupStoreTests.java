@@ -238,7 +238,7 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		executor.execute(new Runnable() {	
 			public void run() {
-				for (int i = 0; i < 10000; i++) {
+				for (int i = 0; i < 100; i++) {
 					MessageGroup group = store1.addMessageToGroup(1, message);
 					assertEquals(1, group.getUnmarked().size());
 				}			
@@ -246,7 +246,7 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		});
 		executor.execute(new Runnable() {	
 			public void run() {
-				for (int i = 0; i < 10000; i++) {
+				for (int i = 0; i < 100; i++) {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
 					assertEquals(0, group.getUnmarked().size());
 				}			
