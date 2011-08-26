@@ -3,8 +3,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/scripting/spring-integration-gemfire.xsd
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire-1.1.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
