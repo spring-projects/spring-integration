@@ -12,6 +12,7 @@
  */
 package org.springframework.integration.gemfire.inbound.cq;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +43,8 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
 @ContextConfiguration
 public class ContinuousQueryMessageProducerTests {
 	
+	static ConfigurableApplicationContext staticCtx;
+	
 	@Autowired
 	LocalRegion region;
 	
@@ -48,7 +52,10 @@ public class ContinuousQueryMessageProducerTests {
 	ConfigurableApplicationContext applicationContext;
 	
 	@Autowired 
-	PollableChannel outputChannel;
+	PollableChannel outputChannel1;
+	
+	@Autowired 
+	PollableChannel outputChannel2;
 	
 	static OutputStream os;
 	@BeforeClass
@@ -56,30 +63,36 @@ public class ContinuousQueryMessageProducerTests {
 		os = ForkUtil.cacheServer();
 	}
 	
-	 
+	
+	@Before 
+	public void setUp() {
+		staticCtx = applicationContext;
+	}
 	
 	@Test
-	public void test()  throws InterruptedException {
+	public void testCqEvent()  throws InterruptedException {
 		region.put("one",1);
-		Message<?> msg = outputChannel.receive(1000);
+		Message<?> msg = outputChannel1.receive(1000);
 		assertNotNull(msg);
 		assertTrue(msg.getPayload() instanceof CqEvent);
-		/*
-		 * Avoid shutdown errors
-		 */
-		applicationContext.close();
+	}
+	
+	@Test
+	public void testPayloadExpression()  throws InterruptedException {
+		region.put("one",1);
+		Message<?> msg = outputChannel2.receive(1000);
+		assertNotNull(msg);
+		assertEquals(1,msg.getPayload());
+		
+		
 	}
 	
 	@AfterClass
 	public static void cleanUp()  { 
-		
-		try {
-			Thread.sleep(3000);
-		}
-		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
+		/*
+		 * Avoid shutdown errors
+		 */
+		staticCtx.close();
 		sendSignal();
 	}
 	

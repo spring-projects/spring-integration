@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/scripting/spring-integration-gemfire.xsd
+	xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
 		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire-1.1.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
@@ -23,14 +23,26 @@
 		<property name="cache" ref="client-cache"/>
 	</bean>
 	
-	<bean class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
+	<bean id="cqMessageProducer" class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
 		<constructor-arg ref="queryListenerContainer"/>
 		<constructor-arg value="select * from /test"/>
-		<property name="outputChannel" ref="outputChannel"/>
+		<property name="outputChannel" ref="outputChannel1"/>
 		<property name="durable" value="true"/>
 	</bean>
 	
-	<int:channel id="outputChannel">
+	<int:channel id="outputChannel1">
 		<int:queue/>
 	</int:channel>
+	
+	<bean id="spelCqMessageProducer" class="org.springframework.integration.gemfire.inbound.ContinuousQueryMessageProducer">
+		<constructor-arg ref="queryListenerContainer"/>
+		<constructor-arg value="select * from /test"/>
+		<property name="outputChannel" ref="outputChannel2"/>
+		<property name="payloadExpression" value="newValue"/>
+	</bean>
+	
+	<int:channel id="outputChannel2">
+		<int:queue/>
+	</int:channel>
+	
 </beans>
