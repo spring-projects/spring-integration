@@ -21,7 +21,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
  * @since 2.1
  *
  */
-public class SpelMessageProducerSupport extends MessageProducerSupport {
+abstract class SpelMessageProducerSupport extends MessageProducerSupport {
 	
 	private volatile Expression payloadExpression;
 
