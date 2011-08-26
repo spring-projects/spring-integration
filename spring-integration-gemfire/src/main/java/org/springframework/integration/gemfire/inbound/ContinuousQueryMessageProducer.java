@@ -111,7 +111,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	public void onEvent(CqEvent event) {
 		if (isEventSupported(event)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getBaseOperation()
+				logger.debug(String.format("processing cq event key [%s] event [%s]", event.getQueryOperation()
 						.toString(), event.getKey()));
 			}
 			Message<?> cqEventMessage = MessageBuilder.withPayload(evaluationResult(event)).build();
@@ -124,7 +124,9 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	 * @return
 	 */
 	private boolean isEventSupported(CqEvent event) {
-		 String eventName = event.getBaseOperation().toString()+"D";
+		 
+		 String eventName = event.getQueryOperation().toString() + 
+		 	(event.getQueryOperation().toString().endsWith("Y")? "ED" : "D");
 		 CqEventType eventType = CqEventType.valueOf(eventName);
 		 return supportedEventTypes.contains(eventType);
 	}
