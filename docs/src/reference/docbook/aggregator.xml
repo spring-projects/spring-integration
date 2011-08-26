@@ -234,24 +234,24 @@
       
       For example:
       
-      <programlisting language="java"><![CDATA[public class MyReleaseStrategy{
+      <programlisting language="java"><![CDATA[public class MyReleaseStrategy {
 
     @ReleaseStrategy 
-    public boolean canMessagesBeReleased(List<Message<?>>){..}
+    public boolean canMessagesBeReleased(List<Message<?>>) {...}
 }]]></programlisting>
 
-<programlisting language="java"><![CDATA[public class MyReleaseStrategy{
+<programlisting language="java"><![CDATA[public class MyReleaseStrategy {
 
     @ReleaseStrategy 
-    public boolean canMessagesBeReleased(List<String>){..}
+    public boolean canMessagesBeReleased(List<String>) {...}
 }]]></programlisting>
 
 <para>
-As you can see based on the above signatures the POJO-based Release Strategy will be passed a <classname>Collection</classname> of unmarked Messages 
+As you can see based on the above signatures, the POJO-based Release Strategy will be passed a <classname>Collection</classname> of unmarked Messages 
 if you need access to the whole <classname>Message</classname> or <classname>Collection</classname> of payload objects if the type parameter is 
-anything other than <classname>Message</classname>. Typically this would satisfy the majority of the use cases. However if 
-you need complete access to the <classname>MessageGroup</classname> which gives you access to <code>unmarked</code> and <code>marked</code> Messages 
-than provide the implementation of the <classname>ReleaseStrategy</classname>.
+anything other than <classname>Message</classname>. Typically this would satisfy the majority of use cases. However if 
+for some reason you need to access the full <classname>MessageGroup</classname> - which contains <code>unmarked</code> and <code>marked</code> Messages -
+then you should simply provide an implementation of the <classname>ReleaseStrategy</classname> interface.
 </para>
 
       <para>When the group is released for aggregation, all its unmarked
