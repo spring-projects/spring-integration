@@ -18,6 +18,7 @@ package org.springframework.integration.mongodb.store;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -48,6 +49,19 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
+	}
+	@Test 
+	@MongoDbAvailable
+	public void addThenRemoveWithStringPayload() throws Exception {
+		MongoDbFactory mongoDbFactory = new SimpleMongoDbFactory(new Mongo(), "test");
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		Message<?> messageToStore = MessageBuilder.withPayload("Hello").build();
+		store.addMessage(messageToStore);
+		Message<?> retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		store.removeMessage(retrievedMessage.getHeaders().getId());
+		retrievedMessage = store.getMessage(messageToStore.getHeaders().getId());
+		assertNull(retrievedMessage);
 	}
 
 	@Test 
