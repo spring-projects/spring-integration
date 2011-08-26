@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.gemfire.listener.QueryListenerContainer;
+import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
@@ -33,7 +33,7 @@ import com.gemstone.gemfire.cache.query.internal.CqQueryImpl;
  * @since 2.1
  */
 public class ContinuousQueryMessageProducerTests {
-	QueryListenerContainer queryListenerContainer;
+	ContinuousQueryListenerContainer queryListenerContainer;
 
 	ContinuousQueryMessageProducer cqMessageProducer;
 
@@ -41,7 +41,7 @@ public class ContinuousQueryMessageProducerTests {
 
 	@Before
 	public void setUp() {
-		queryListenerContainer = mock(QueryListenerContainer.class);
+		queryListenerContainer = mock(ContinuousQueryListenerContainer.class);
 		cqMessageProducer = new ContinuousQueryMessageProducer(queryListenerContainer, "");
 		DirectChannel outputChannel = new DirectChannel();
 		cqMessageProducer.setOutputChannel(outputChannel);

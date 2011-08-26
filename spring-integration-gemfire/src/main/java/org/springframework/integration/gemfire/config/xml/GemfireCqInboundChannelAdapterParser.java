@@ -32,7 +32,7 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 	 
 	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
  
-	private static final String QUERY_LISTENER_CONTAINER_ATTRIBUTE = "query-listener-container";
+	private static final String QUERY_LISTENER_CONTAINER_ATTRIBUTE = "cq-listener-container";
 	
 	private static final String DURABLE_ATTRIBUTE = "durable";
 	
