@@ -69,15 +69,15 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="InboundChannelAdapterType">
-					<xsd:attribute name="query-listener-container" use="required">
+					<xsd:attribute name="cq-listener-container" use="required">
 					<xsd:annotation>
 							<xsd:documentation><![CDATA[  
-						Reference to a QueryListenerContainer
+						Reference to a ContinuousQueryListenerContainer
 				]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="value">
 									<tool:expected-type
-										type="org.springframework.data.gemfire.listener.QueryListenerContainer" />
+										type="org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

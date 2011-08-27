@@ -55,8 +55,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
   	<title>Continuous Query Inbound Channel Adapter</title>
   	<para>
   	The <emphasis>cq-inbound-channel-adapter</emphasis> produces messages a channel triggered by a GemFire continuous query or <classname>CqEvent</classname> event. Spring GemFire introduced
-  	continuous query support in release 1.1, including a <classname>QueryListenerContainer</classname> which provides a nice abstraction over the GemFire native API. This adapter requires a 
-  	reference to a QueryListenerContainer, and creates a listener for a given <code>query</code> and executes the query. The continuous query acts as an event source that will fire whenever its 
+  	continuous query support in release 1.1, including a <classname>ContinuousQueryListenerContainer</classname> which provides a nice abstraction over the GemFire native API. This adapter requires a 
+  	reference to a ContinuousQueryListenerContainer, and creates a listener for a given <code>query</code> and executes the query. The continuous query acts as an event source that will fire whenever its 
   	result set changes state. 
   	<note>
   	GemFire queries are written in OQL and are scoped to the entire cache (not just one region). Additionally, continuous queries require a remote (i.e., running in a separate process or remote host) 
@@ -74,20 +74,18 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	
 	<gfe:client-region id="test" cache-ref="client-cache" pool-name="client-pool"/>
 	
-	<bean id="queryListenerContainer" 
-		class="org.springframework.data.gemfire.listener.QueryListenerContainer">
-		<property name="cache" ref="client-cache"/>
-	</bean>
-	
+	<gfe:cq-listener-container id="queryListenerContainer" cache="client-cache" 
+		pool-name="client-pool"/>
+	 
 	<int-gfe:cq-inbound-channel-adapter id="inputChannel" 
-		query-listener-container="queryListenerContainer" 
+		cq-listener-container="queryListenerContainer" 
 		query="select * from /test"/>
 	]]>
 	</programlisting>
 
 	In the above configuration, we are creating a GemFire client cache 
-	(recall a cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>QueryListenerContainer</classname> 
-	using Spring GemFire. 	The continuous query inbound channel adapter requires a <code>query-listener-container</code> attribute which contains a reference to the <classname>QueryListenerContainer</classname>. Optionally,
+	(recall a cache server is required for this implementation and its address is configured as a sub-element of the pool), a client region and a <classname>ContinuousQueryListenerContainer</classname> 
+	using Spring GemFire. 	The continuous query inbound channel adapter requires a <code>cq-listener-container</code> attribute which contains a reference to the <classname>ContinuousQueryListenerContainer</classname>. Optionally,
   	it accepts an <code>expression</code> attribute which uses SpEL to transform the <code>CqEvent</code> or extract an individual property as needed. The cq-inbound-channel-adapter provides a
   	<code>query-events</code> attribute, containing a comma separated list of event types for which a message will be produced on the input channel. Available event types are CREATED, UPDATED, DESTROYED,
   	REGION_DESTROYED, REGION_INVALIDATED. CREATED and UPDATED are enabled by default. Additional optional attributes include, <code>query-name</code> which provides an optional query name, and 

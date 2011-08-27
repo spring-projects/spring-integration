@@ -22,9 +22,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.gemfire.listener.CqQueryDefinition;
-import org.springframework.data.gemfire.listener.QueryListener;
-import org.springframework.data.gemfire.listener.QueryListenerContainer;
+import org.springframework.data.gemfire.listener.ContinuousQueryDefinition;
+import org.springframework.data.gemfire.listener.ContinuousQueryListener;
+import org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -42,12 +42,12 @@ import com.gemstone.gemfire.cache.query.CqEvent;
  * @since 2.1
  * 
  */
-public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport implements QueryListener {
+public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport implements ContinuousQueryListener {
 	private static Log logger = LogFactory.getLog(ContinuousQueryMessageProducer.class);
 
 	private final String query;
 
-	private final QueryListenerContainer queryListenerContainer;
+	private final ContinuousQueryListenerContainer queryListenerContainer;
 
 	private volatile String queryName;
 
@@ -62,7 +62,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	 * {@link org.springframework.data.gemfire.listener.QueryListenerContainer}
 	 * @param query the query string
 	 */
-	public ContinuousQueryMessageProducer(QueryListenerContainer queryListenerContainer, String query) {
+	public ContinuousQueryMessageProducer(ContinuousQueryListenerContainer queryListenerContainer, String query) {
 		Assert.notNull(queryListenerContainer, "'queryListenerContainer' cannot be null");
 		Assert.notNull(query, "'query' cannot be null");
 		this.queryListenerContainer = queryListenerContainer;
@@ -94,10 +94,10 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 	protected void onInit() {
 		super.onInit();
 		if (queryName == null) {
-			queryListenerContainer.addListener(new CqQueryDefinition(this.query, this, this.durable));
+			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.query, this, this.durable));
 		}
 		else {
-			queryListenerContainer.addListener(new CqQueryDefinition(this.queryName, this.query, this, this.durable));
+			queryListenerContainer.addListener(new ContinuousQueryDefinition(this.queryName, this.query, this, this.durable));
 		}
 	}
 
