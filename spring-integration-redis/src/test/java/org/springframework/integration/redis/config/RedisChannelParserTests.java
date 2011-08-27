@@ -65,7 +65,6 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		redisChannel.send(m);
 		Thread.sleep(1000);
 		Mockito.verify(marker, Mockito.times(1)).mark();
-		System.out.println("done");
 	}
 	
 	interface Marker {
