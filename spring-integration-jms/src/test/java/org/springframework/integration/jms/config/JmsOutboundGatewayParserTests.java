@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
@@ -48,11 +50,12 @@ import org.springframework.jms.support.converter.MessageConverter;
 /**
  * @author Jonas Partner
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  */
 public class JmsOutboundGatewayParserTests {
 	
 	@Test
-	public void testWithDelivertPersistentAttribute(){
+	public void testWithDeliveryPersistentAttribute(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithDeliveryPersistent.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGateway");
@@ -109,7 +112,30 @@ public class JmsOutboundGatewayParserTests {
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		assertEquals("hello", result);
 	}
-	
+
+	@Test
+	public void gatewayWithDefaultPubSubDomain() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayWithPubSubSettings.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultGateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		assertFalse((Boolean) accessor.getPropertyValue("requestPubSubDomain"));
+		assertFalse((Boolean) accessor.getPropertyValue("replyPubSubDomain"));
+	}
+
+	@Test
+	public void gatewayWithExplicitPubSubDomainTrue() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayWithPubSubSettings.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("pubSubDomainGateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		assertTrue((Boolean) accessor.getPropertyValue("requestPubSubDomain"));
+		assertTrue((Boolean) accessor.getPropertyValue("replyPubSubDomain"));
+	}
+
+
 	public static interface SampleGateway{
 		public String echo(String value);
 	}

@@ -67,7 +67,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
-	private volatile boolean pubSubDomain;
+	private volatile boolean requestPubSubDomain;
+
+	private volatile boolean replyPubSubDomain;
 
 	private volatile long receiveTimeout = 5000;
 
@@ -123,7 +125,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setRequestDestination(Destination requestDestination) {
 		if (requestDestination instanceof Topic) {
-			this.pubSubDomain = true;
+			this.requestPubSubDomain = true;
 		}
 		this.requestDestination = requestDestination;
 	}
@@ -141,6 +143,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
 	 */
 	public void setReplyDestination(Destination replyDestination) {
+		if (replyDestination instanceof Topic) {
+			this.replyPubSubDomain = true;
+		}
 		this.replyDestination = replyDestination;
 	}
 
@@ -166,10 +171,21 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * necessary when providing a destination name for a Topic rather than
 	 * a destination reference.
 	 * 
-	 * @param pubSubDomain true if the request destination is a Topic
+	 * @param requestPubSubDomain true if the request destination is a Topic
 	 */
-	public void setPubSubDomain(boolean pubSubDomain) {
-		this.pubSubDomain = pubSubDomain;
+	public void setRequestPubSubDomain(boolean requestPubSubDomain) {
+		this.requestPubSubDomain = requestPubSubDomain;
+	}
+
+	/**
+	 * Specify whether the reply destination is a Topic. This value is
+	 * necessary when providing a destination name for a Topic rather than
+	 * a destination reference.
+	 * 
+	 * @param replyPubSubDomain true if the reply destination is a Topic
+	 */
+	public void setReplyPubSubDomain(boolean replyPubSubDomain) {
+		this.replyPubSubDomain = replyPubSubDomain;
 	}
 
 	/**
@@ -295,7 +311,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		Assert.notNull(this.destinationResolver,
 				"DestinationResolver is required when relying upon the 'requestDestinationName' property.");
 		return this.destinationResolver.resolveDestinationName(
-				session, this.requestDestinationName, this.pubSubDomain);
+				session, this.requestDestinationName, this.requestPubSubDomain);
 	}
 
 	private Destination getReplyDestination(Session session) throws JMSException {
@@ -306,7 +322,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			Assert.notNull(this.destinationResolver,
 					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
 			return this.destinationResolver.resolveDestinationName(
-					session, this.replyDestinationName, this.pubSubDomain);
+					session, this.replyDestinationName, this.replyPubSubDomain);
 		}
 		return session.createTemporaryQueue();
 	}
@@ -521,7 +537,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	protected Connection createConnection() throws JMSException {
 		ConnectionFactory cf = this.connectionFactory;
-		if (!this.pubSubDomain && cf instanceof QueueConnectionFactory) {
+		if (!this.requestPubSubDomain && !this.replyPubSubDomain && cf instanceof QueueConnectionFactory) {
 			return ((QueueConnectionFactory) cf).createQueueConnection();
 		}
 		return cf.createConnection();
@@ -537,7 +553,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
 	 */
 	protected Session createSession(Connection connection) throws JMSException {
-		if (!this.pubSubDomain && connection instanceof QueueConnection) {
+		if (!this.requestPubSubDomain && !this.replyPubSubDomain && connection instanceof QueueConnection) {
 			return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 		}
 		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
