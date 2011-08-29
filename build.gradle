@@ -127,7 +127,7 @@ configure(javaprojects) {
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
     springDataRedisVersion = '1.0.0.M4'
-    springGemfireVersion = '1.1.0.BUILD-SNAPSHOT'
+    springGemfireVersion = '1.1.0.M2'
     springSecurityVersion = '3.0.5.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
