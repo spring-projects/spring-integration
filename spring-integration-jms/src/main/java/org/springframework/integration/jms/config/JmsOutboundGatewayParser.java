@@ -64,7 +64,8 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-pub-sub-domain");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-pub-sub-domain");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
