@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +44,9 @@ public class JmsDynamicDestinationTests {
 
 	@Autowired
 	private MessageChannel channelAdapterChannel;
+
+	@Autowired
+	private MessageChannel gatewayChannel;
 
 	@Autowired
 	private PollableChannel channelAdapterResults1;
@@ -72,6 +76,31 @@ public class JmsDynamicDestinationTests {
 		assertEquals("queue://queue.test.dynamic.adapter.1", jmsResult1.getJMSDestination().toString());
 		assertEquals("test-2", jmsResult2.getText());
 		assertEquals("queue://queue.test.dynamic.adapter.2", jmsResult2.getJMSDestination().toString());		
+	}
+
+	@Test
+	public void gateway() throws Exception {
+		Message<?> message1 = MessageBuilder.withPayload("test-1").setHeader("destinationNumber", 1).build();
+		Message<?> message2 = MessageBuilder.withPayload("test-2").setHeader("destinationNumber", 2).build();
+		MessagingTemplate template = new MessagingTemplate();
+		Message<?> result1 = template.sendAndReceive(gatewayChannel, message1);
+		Message<?> result2 = template.sendAndReceive(gatewayChannel, message2);
+		assertNotNull(result1);
+		assertNotNull(result2);
+		assertEquals("test-1!", result1.getPayload());
+		assertEquals("test-2!!", result2.getPayload());
+	}
+
+
+	public static class Responder {
+
+		public String one(String message) {
+			return message + "!";
+		}
+
+		public String two(String message) {
+			return message + "!!";
+		}
 	}
 
 }

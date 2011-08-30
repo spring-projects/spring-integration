@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -44,15 +45,24 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
 		String requestDestination = element.getAttribute("request-destination");
 		String requestDestinationName = element.getAttribute("request-destination-name");
-		if (!(StringUtils.hasText(requestDestination) ^ StringUtils.hasText(requestDestinationName))) {
-			parserContext.getReaderContext().error(
-					"Exactly one of the 'request-destination' or 'request-destination-name' attributes is required.", element);
+		String requestDestinationExpression = element.getAttribute("request-destination-expression");
+		boolean hasRequestDestination = StringUtils.hasText(requestDestination);
+		boolean hasRequestDestinationName = StringUtils.hasText(requestDestinationName);
+		boolean hasRequestDestinationExpression = StringUtils.hasText(requestDestinationExpression);
+		if (!(hasRequestDestination ^ hasRequestDestinationName ^ hasRequestDestinationExpression)) {
+			parserContext.getReaderContext().error("Exactly one of the 'request-destination', " +
+					"'request-destination-name', or 'request-destination-expression' attributes is required.", element);
 		}
-		if (StringUtils.hasText(requestDestination)) {
+		if (hasRequestDestination) {
 			builder.addPropertyReference("requestDestination", requestDestination);
 		}
-		else if (StringUtils.hasText(requestDestinationName)) {
+		else if (hasRequestDestinationName) {
 			builder.addPropertyValue("requestDestinationName", requestDestinationName);
+		}
+		else if (hasRequestDestinationExpression) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(requestDestinationExpression);
+			builder.addPropertyValue("requestDestinationExpression", expressionBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-destination");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-destination-name");

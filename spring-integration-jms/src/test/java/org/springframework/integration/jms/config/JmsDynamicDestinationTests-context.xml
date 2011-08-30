@@ -15,6 +15,10 @@
 
 	<int-jms:message-driven-channel-adapter channel="channelAdapterResults2" destination-name="queue.test.dynamic.adapter.2" extract-payload="false"/>
 
+	<int:channel id="gatewayChannel"/>
+
+	<int-jms:outbound-gateway request-channel="gatewayChannel" request-destination-expression="'queue.test.dynamic.gateway.' + headers.destinationNumber"/>
+
 	<int:channel id="channelAdapterResults1">
 		<int:queue capacity="1"/>
 	</int:channel>
@@ -32,5 +36,12 @@
 		<property name="sessionCacheSize" value="10"/>
 		<property name="cacheProducers" value="false"/>
 	</bean>
+
+	<jms:listener-container>
+		<jms:listener destination="queue.test.dynamic.gateway.1" ref="responder" method="one"/>
+		<jms:listener destination="queue.test.dynamic.gateway.2" ref="responder" method="two"/>
+	</jms:listener-container>
+
+	<bean id="responder" class="org.springframework.integration.jms.config.JmsDynamicDestinationTests$Responder"/>
 
 </beans>
