@@ -725,8 +725,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="request-timeout" type="xsd:string"/>
-			<xsd:attribute name="reply-timeout" type="xsd:string"/>
+			<xsd:attribute name="receive-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Timeout for the JMS MessageConsumer to receive the JMS reply Message. Default is 5 seconds. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Timeout for sending the mapped integration Message to this gateway's reply-channel. Default is indefinite.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-destination" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -819,7 +831,6 @@
 			</xsd:attribute>
 			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
-			<xsd:attribute name="receive-timeout" type="xsd:string"/>
 			<xsd:attribute name="delivery-mode" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
