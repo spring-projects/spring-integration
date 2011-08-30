@@ -732,7 +732,9 @@
 					<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'request-destination-name' and 'request-pub-sub-domain' which will rely
-	upon the DestinationResolver strategy (DynamicDestinationResolver by default). 
+	upon the DestinationResolver strategy (DynamicDestinationResolver by default). This
+	attribute is mutually exclusive with 'request-destination-name' and
+	'request-destination-expression'.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -741,8 +743,34 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="request-destination-name" type="xsd:string"/>
-			<xsd:attribute name="request-pub-sub-domain" type="xsd:string"/>
+			<xsd:attribute name="request-destination-name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Name of a destination to which request messages will be sent. This name will be handled
+	by this gateway's DestinationResolver. This attribute is mutually exclusive with
+	'request-destination' and 'request-destination-expression'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-destination-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	A SpEL expression to be evaluated at runtime against each Spring Integration request Message as
+	the root object. The result should be either a Destination instance or a String representing
+	the destination name. In the latter case, it will be passed to this adapter's DestinationResolver.
+	This attribute is mutually exclusive with 'request-destination' and 'request-destination-name'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>			
+			<xsd:attribute name="request-pub-sub-domain" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	When resolving a request destination name (rather than having a 'request-destination' reference),
+	a true value here specifies that the DestinationResolver should resolve Topics rather than Queues.
+	Default is false.  
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="reply-destination" type="xsd:string">
 				<xsd:annotation>
 							<xsd:documentation>
@@ -870,7 +898,8 @@
 							<xsd:documentation>
 	A reference to a javax.jms.Destination by bean name. As an alternative to a bean
 	reference, use 'destination-name' and 'pub-sub-domain' which will rely upon the
-	DestinationResolver strategy (DynamicDestinationResolver by default). 
+	DestinationResolver strategy (DynamicDestinationResolver by default). This attribute
+	is mutually exclusive with 'destination-name' and 'destination-expression'.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -879,8 +908,33 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="destination-name" type="xsd:string"/>
-					<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
+					<xsd:attribute name="destination-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Name of the destination to which JMS Messages will be sent. This will be passed to the
+	adapter's DestinationResolver. This attribute is mutually exclusive with 'destination'
+	and 'destination-expression'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="destination-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	A SpEL expression to be evaluated at runtime against each Spring Integration Message as
+	the root object. The result should be either a Destination instance or a String representing
+	the destination name. In the latter case, it will be passed to this adapter's DestinationResolver.
+	If the evaluation result is null, messages will be sent to the default destination of the
+	underlying JmsTemplate. This attribute is mutually exclusive with 'destination' and 'destination-name'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="pub-sub-domain" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	If true, specifies that destination names should resolve to Topics rather than Queues. Default is false.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

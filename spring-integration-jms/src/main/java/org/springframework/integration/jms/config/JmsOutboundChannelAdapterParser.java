@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -39,10 +40,12 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String destinationExpression = element.getAttribute(JmsAdapterParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE);
 		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
+		boolean hasDestinationExpression = StringUtils.hasText(destinationExpression);
 		if (hasJmsTemplate) {
 			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
@@ -50,22 +53,29 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		else {
 			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 		}
-		if (hasDestinationRef || hasDestinationName) {
+		
+		if (hasDestinationRef || hasDestinationName || hasDestinationExpression) {
+			if (!(hasDestinationRef ^ hasDestinationName ^ hasDestinationExpression)) {
+				parserContext.getReaderContext().error("The 'destination', 'destination-name', and " +
+						"'destination-expression' attributes are mutually exclusive.", parserContext.extractSource(element));
+			}
 			if (hasDestinationRef) {
-				if (hasDestinationName) {
-					parserContext.getReaderContext().error("The 'destination-name' " +
-							"and 'destination' attributes are mutually exclusive.", parserContext.extractSource(element));
-				}
 				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else if (hasDestinationName) {
 				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
+			else if (hasDestinationExpression) {
+				BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+				expressionBuilder.addConstructorArgValue(destinationExpression);
+				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_EXPRESSION_PROPERTY, expressionBuilder.getBeanDefinition());
+			}
 		}
 		else if (!hasJmsTemplate) {
 			parserContext.getReaderContext().error("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
-					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
-					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
+					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', '"
+					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "', or '" +
+					JmsAdapterParserUtils.DESTINATION_EXPRESSION_ATTRIBUTE +
 					"' attributes must be provided", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
