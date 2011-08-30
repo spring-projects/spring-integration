@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package org.springframework.integration.jms;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
 import org.springframework.util.Assert;
@@ -43,19 +46,29 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
 	private volatile boolean extractPayload = true;
 
+	private volatile ExpressionEvaluatingMessageProcessor<?> destinationExpressionProcessor;
+
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
 
 	public void setDestination(Destination destination) {
-		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		Assert.isTrue(this.destinationName == null && this.destinationExpressionProcessor == null,
+				"The 'destination', 'destinationName', and 'destinationExpression' properties are mutually exclusive.");
 		this.destination = destination;
 	}
 
 	public void setDestinationName(String destinationName) {
-		Assert.isNull(this.destination, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		Assert.isTrue(this.destination == null && this.destinationExpressionProcessor == null,
+				"The 'destination', 'destinationName', and 'destinationExpression' properties are mutually exclusive.");
 		this.destinationName = destinationName;
+	}
+
+	public void setDestinationExpression(Expression destinationExpression) {
+		Assert.isTrue(this.destination == null && this.destinationName == null,
+				"The 'destination', 'destinationName', and 'destinationExpression' properties are mutually exclusive.");
+		this.destinationExpressionProcessor = new ExpressionEvaluatingMessageProcessor<Object>(destinationExpression);
 	}
 
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
@@ -79,27 +92,54 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 	}
 
 	@Override
+	protected void onInit() {
+		if (this.destinationExpressionProcessor != null) {
+			this.destinationExpressionProcessor.setBeanFactory(getBeanFactory());
+			this.destinationExpressionProcessor.setConversionService(getConversionService());
+		}
+	}
+
+	@Override
 	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
+		Object destination = this.determineDestination(message);
 		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
 		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
 		try {
 			DynamicJmsTemplateProperties.setPriority(message.getHeaders().getPriority());
-			this.send(objectToSend, messagePostProcessor);
+			this.send(destination, objectToSend, messagePostProcessor);
 		}
 		finally {
 			DynamicJmsTemplateProperties.clearPriority();
 		}
 	}
 
-	private void send(Object objectToSend, MessagePostProcessor messagePostProcessor) {
+	private Object determineDestination(Message<?> message) {
 		if (this.destination != null) {
-			this.jmsTemplate.convertAndSend(this.destination, objectToSend, messagePostProcessor);
+			return this.destination;
 		}
-		else if (this.destinationName != null) {
-			this.jmsTemplate.convertAndSend(this.destinationName, objectToSend, messagePostProcessor);
+		if (this.destinationName != null) {
+			return this.destinationName;
+		}
+		if (this.destinationExpressionProcessor != null) {
+			Object result = this.destinationExpressionProcessor.processMessage(message);
+			if (!(result instanceof Destination || result instanceof String)) {
+				throw new MessageDeliveryException(message,
+						"Evaluation of destinationExpression failed to produce a Destination or destination name. Result was: " + result);
+			}
+			return result;
+		}
+		return null;
+	}
+
+	private void send(Object destination, Object objectToSend, MessagePostProcessor messagePostProcessor) {
+		if (destination instanceof Destination) {
+			this.jmsTemplate.convertAndSend((Destination) destination, objectToSend, messagePostProcessor);
+		}
+		else if (destination instanceof String) {
+			this.jmsTemplate.convertAndSend((String) destination, objectToSend, messagePostProcessor);
 		}
 		else { // fallback to default destination of the template
 			this.jmsTemplate.convertAndSend(objectToSend, messagePostProcessor);
@@ -123,6 +163,5 @@ public class JmsSendingMessageHandler extends AbstractMessageHandler {
 			return jmsMessage;
 		}
 	}
-
 
 }
