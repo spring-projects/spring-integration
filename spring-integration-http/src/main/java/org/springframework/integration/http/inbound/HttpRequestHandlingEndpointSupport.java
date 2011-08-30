@@ -17,6 +17,7 @@
 package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +29,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -82,9 +91,12 @@ import org.springframework.web.util.UriTemplate;
  * <code>false</code>.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
+	
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
@@ -112,6 +124,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
+	
+	private final StandardEvaluationContext evaluationContext;
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -137,6 +151,9 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			// this.messageConverters.add(new AtomFeedHttpMessageConverter());
 			// this.messageConverters.add(new RssChannelHttpMessageConverter());
 		}
+		StandardEvaluationContext sec = new StandardEvaluationContext();
+		sec.addPropertyAccessor(new MapAccessor());
+		this.evaluationContext = sec;
 	}
 	
 	/**
@@ -247,6 +264,13 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				}
 			}
 		}
+		if (beanFactory != null) {
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
 	}
 
 	/**
@@ -277,7 +301,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
             
 			Object payload = null;
 			if (this.isReadable(request)) {
-				payload = this.generatePayloadFromRequestBody(request);
+				payload = this.extractRequestBody(request);
 				headers.putAll(uriVariableMappings);
 			}
 			else {
@@ -336,7 +360,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(servletRequest)) {
 			return new MultipartHttpInputMessage(this.multipartResolver.resolveMultipart(servletRequest));
 		}
-		return new ServletServerHttpRequest(servletRequest);
+		return new SmartServletServerHttpRequest(servletRequest);
 	}
 
 	/**
@@ -377,7 +401,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
+	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		Class<?> expectedType = this.requestPayloadType;
 		if (expectedType == null) {
@@ -407,5 +431,38 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		return httpStatus;
 	}
+	
+	public class SmartServletServerHttpRequest extends ServletServerHttpRequest{
+		
+		private final Map<String, Object> requestParamMap;
 
+		@SuppressWarnings("rawtypes")
+		private final Map uriVarsMap;
+		
+		@SuppressWarnings({ "rawtypes", "unchecked" })
+		public SmartServletServerHttpRequest(HttpServletRequest servletRequest) {
+			super(servletRequest);
+			
+			requestParamMap = servletRequest.getParameterMap();
+			Map uriVariableMappings = null;
+			//
+            if (StringUtils.hasText(HttpRequestHandlingEndpointSupport.this.path)){
+                UriTemplate template = new UriTemplate(HttpRequestHandlingEndpointSupport.this.path);
+                uriVariableMappings = template.match(this.getURI().getPath());
+                if (logger.isDebugEnabled()){
+                    logger.debug("Mapped URI variables: " + uriVariableMappings);
+                }
+            }
+            uriVarsMap = uriVariableMappings;
+		}
+		
+		public Map<String, Object> getRequestParamMap() {
+			return requestParamMap;
+		}
+
+		@SuppressWarnings("rawtypes")
+		public Map getUriVars() {
+			return uriVarsMap;
+		}
+	}
 }
