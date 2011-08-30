@@ -19,6 +19,7 @@ package org.springframework.integration.http.inbound;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -54,9 +55,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * Base class for HTTP request handling endpoints.
@@ -104,6 +107,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	private final boolean expectReply;
 
+	private volatile String path;
+
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
@@ -139,6 +144,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	 */
 	protected boolean isExpectReply() {
 		return expectReply;
+	}
+	
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 	/**
@@ -244,6 +253,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws IOException {
 		try {
@@ -252,14 +262,33 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 				return null;
 			}
+			Map uriVariableMappings = null;
+			//
+            if (StringUtils.hasText(this.path)){
+                UriTemplate template = new UriTemplate(this.path);
+                uriVariableMappings = template.match(request.getURI().getPath());
+                if (logger.isDebugEnabled()){
+                    logger.debug("Mapped URI variables: " + uriVariableMappings);
+                }
+            }
+            //
+			
+            Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
+            
 			Object payload = null;
 			if (this.isReadable(request)) {
 				payload = this.generatePayloadFromRequestBody(request);
+				headers.putAll(uriVariableMappings);
 			}
 			else {
 				payload = this.convertParameterMap(servletRequest.getParameterMap());
+				if (payload instanceof Map){
+					for (Object key : uriVariableMappings.keySet()) {
+						((Map) payload).put(key, Collections.singletonList(uriVariableMappings.get(key)));
+					}
+				}
 			}
-			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
+					
 			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
 					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
