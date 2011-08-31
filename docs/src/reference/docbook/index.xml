@@ -118,26 +118,26 @@
 		  by Spring Integration to support Message-based communication with external systems.
 		</para>
     </partintro>
+      <xi:include href="./amqp.xml"/>
       <xi:include href="./event.xml"/> 
       <xi:include href="./feed.xml"/> 
       <xi:include href="./file.xml"/> 
       <xi:include href="./ftp.xml"/> 
+      <xi:include href="./gemfire.xml"/>
       <xi:include href="./http.xml"/>
-      <xi:include href="./httpinvoker.xml"/> 
-      <xi:include href="./mail.xml"/>
+      <xi:include href="./httpinvoker.xml"/>
       <xi:include href="./ip.xml"/>
 	  <xi:include href="./jdbc.xml"/>
-	  <xi:include href="./jms.xml"/>	
-	  <xi:include href="./redis.xml"/> 
+	  <xi:include href="./jms.xml"/>
+      <xi:include href="./mail.xml"/>
+	  <xi:include href="./redis.xml"/>
 	  <xi:include href="./rmi.xml"/>
-	  <xi:include href="./sftp.xml"/> 
+	  <xi:include href="./sftp.xml"/>
 	  <xi:include href="./stream.xml"/>
 	  <xi:include href="./twitter.xml"/>
-	  <xi:include href="./ws.xml"/>	 
-	  <xi:include href="./xml.xml"/>	 
-	  <xi:include href="./xmpp.xml"/> 
-      <xi:include href="./amqp.xml"/> 
-      <xi:include href="./gemfire.xml"/> 
+	  <xi:include href="./ws.xml"/>
+	  <xi:include href="./xml.xml"/>
+	  <xi:include href="./xmpp.xml"/>
   </part>
   <part id="spring-integration-appendices">
     <title>Appendices</title>
