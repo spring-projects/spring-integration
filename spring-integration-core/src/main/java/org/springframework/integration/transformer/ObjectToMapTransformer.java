@@ -15,7 +15,13 @@
  */
 package org.springframework.integration.transformer;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Will transform an object graph into a flat Map where keys are valid SpEL expressions
@@ -38,16 +44,67 @@ import java.util.Map;
  * @since 2.0
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
-	 */
+	private volatile boolean flaten = true;
+	
+	public void setFlaten(boolean flaten) {
+		this.flaten = flaten;
+	}
+	
+	@SuppressWarnings("unchecked")
 	protected Map<String, Object> transformPayload(Object payload) throws Exception {
-		CycleDetector cycleDetector = new CycleDetector();
-		cycleDetector.detectCycle(payload);
-		ObjectToSpelMapBuilder builder = new ObjectToSpelMapBuilder();
-		return builder.buildSpelMap(payload);
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String,Object> result =
+		        new ObjectMapper().readValue(mapper.writeValueAsString(payload), Map.class);
+		
+		if (flaten){
+			result = this.flatenMap(result);
+		}
+		
+		return result;
+	}
+	
+	private Map<String, Object> flatenMap(Map<String,Object> result){
+		Map<String,Object> resultMap = new HashMap<String, Object>();
+		this.doFlaten("", result, resultMap);
+		return resultMap;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void doFlaten(String propertyPrefix, Map<String,Object> inputMap, Map<String,Object> resultMap){
+		if (StringUtils.hasText(propertyPrefix)){
+			propertyPrefix = propertyPrefix + ".";
+		}
+		for (String key : inputMap.keySet()) {
+			Object value = inputMap.get(key);
+			if (value instanceof Map){
+				this.doFlaten(propertyPrefix + key, (Map<String, Object>) value, resultMap);
+			}
+			else if (value instanceof List){
+				this.doProcessList(propertyPrefix + key, (List<?>) value, resultMap);
+			} 
+			else if (value != null && value.getClass().isArray()){
+				List<?> list =  CollectionUtils.arrayToList(value); 
+				this.doProcessList(propertyPrefix + key, list, resultMap);
+			}
+			else {
+				resultMap.put(propertyPrefix + key, value);
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void doProcessList(String propertyPrefix,  List<?> list, Map<String, Object> resultMap) {
+		int counter = 0;
+		for (Object element : list) {
+			if (element instanceof Map){
+				this.doFlaten(propertyPrefix + "[" + counter + "]", (Map<String, Object>) element, resultMap);
+			} 
+			else {
+				resultMap.put(propertyPrefix + "[" + counter + "]", list.get(counter));
+			}
+			counter ++;
+		}
 	}
 
 }
