@@ -126,7 +126,6 @@
       <xi:include href="./gemfire.xml"/>
       <xi:include href="./http.xml"/>
       <xi:include href="./httpinvoker.xml"/>
-      <xi:include href="./httpinvoker.xml"/>
       <xi:include href="./ip.xml"/>
       <xi:include href="./jdbc.xml"/>
       <xi:include href="./jms.xml"/>
