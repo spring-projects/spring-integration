@@ -95,7 +95,7 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
-      <version>3.0.5.RELEASE</version>
+      <version>3.0.6.RELEASE</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>
@@ -103,6 +103,18 @@
           <groupId>org.springframework</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.0.6.RELEASE</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -117,9 +129,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-tx</artifactId>
+      <version>3.0.6.RELEASE</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -129,27 +141,27 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-config</artifactId>
+      <version>3.0.6.RELEASE</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>spring-support</artifactId>
+          <groupId>org.springframework</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>3.0.5.RELEASE</version>
+      <version>3.0.6.RELEASE</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymockclassextension</artifactId>
       <version>2.3</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-tx</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.5.RELEASE</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -163,18 +175,6 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-config</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>spring-support</artifactId>
-          <groupId>org.springframework</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

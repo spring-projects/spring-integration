@@ -122,13 +122,13 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    springVersion = '3.0.5.RELEASE'
+    springVersion = '3.0.6.RELEASE'
     springAmqpVersion = '1.0.0.RELEASE'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
     springDataRedisVersion = '1.0.0.M4'
     springGemfireVersion = '1.1.0.M2'
-    springSecurityVersion = '3.0.5.RELEASE'
+    springSecurityVersion = '3.0.6.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
     sourceSets {

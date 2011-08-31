@@ -178,7 +178,7 @@ public class DefaultHttpHeaderMapperFromMessageInboundTests {
 		HttpHeaders headers = new HttpHeaders();
 		
 		mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
-		assertEquals("1234", headers.getETag());
+		assertEquals("\"1234\"", headers.getETag());
 	}
 	
 	// Expires tests
