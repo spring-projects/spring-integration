@@ -186,13 +186,14 @@ rt.setConnectionFactory(redisConnectionFactory);]]></programlisting>
     This can be very useful when dealing with components that have a capability to buffer messages
     (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
     In Spring Integration, the MessageStore strategy also provides the foundation for the 
-	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, described in EIP as well.
+	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
 	</para>
 
 	<para>
     Spring Integration's Redis module provides the <classname>RedisMessageStore</classname> which is an implementation of both the
-    MessageStore strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis> patterns) and
-    the <classname>MessageGroupStore</classname> strategy (mainly used by <emphasis>Aggregator</emphasis> and <emphasis>Resequencer</emphasis> patterns).
+    the <classname>MessageStore</classname> strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis>
+    patterns) and the <classname>MessageGroupStore</classname> strategy (mainly used by the <emphasis>Aggregator</emphasis> and
+    <emphasis>Resequencer</emphasis> patterns).
     </para>
 
 	<para>
