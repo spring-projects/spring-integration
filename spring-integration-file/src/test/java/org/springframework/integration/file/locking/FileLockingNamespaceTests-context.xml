@@ -23,8 +23,6 @@
 
     <bean id="directory" class="org.junit.rules.TemporaryFolder" init-method="create" destroy-method="delete"/>
 
-    <si:poller default="true">
-        <si:interval-trigger interval="100000000"/>
-    </si:poller>
+    <si:poller default="true" fixed-delay="100000000"/>
 
 </beans>

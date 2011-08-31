@@ -7,8 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<poller id="poller">
-		<interval-trigger interval="5000"/>
+	<poller id="poller" fixed-delay="5000">
 		<advice-chain>
 			<ref bean="adviceBean1"/>
 			<beans:bean class="org.springframework.integration.config.xml.TestAdviceBean">

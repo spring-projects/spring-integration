@@ -12,9 +12,7 @@
 	</channel>
 
 	<service-activator input-channel="endpointParserTestInput" ref="testHandler">
-		<poller>
-			<interval-trigger interval="100"/>
-		</poller>
+		<poller fixed-delay="100"/>
 	</service-activator>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">

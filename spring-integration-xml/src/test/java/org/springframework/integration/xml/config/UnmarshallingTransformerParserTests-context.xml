@@ -16,7 +16,6 @@
 		<si:queue capacity="1"/>
 	</si:channel>
 	
-
 	<si:channel id="output">
 		<si:queue capacity="1"/>
 	</si:channel>
@@ -26,14 +25,11 @@
 			output-channel="output"
 			unmarshaller="unmarshaller"/>
 			
-			
 	<si-xml:unmarshalling-transformer id="unmrshallerWithPoller"
 			input-channel="pollableInput"
 			output-channel="output"
 			unmarshaller="unmarshaller">
-		<si:poller>
-			<si:interval-trigger interval="500" />
-		</si:poller>		
+		<si:poller fixed-delay="500"/>
 	</si-xml:unmarshalling-transformer>		
 
 	<bean id="unmarshaller" class="org.springframework.integration.xml.config.StubUnmarshaller"/>

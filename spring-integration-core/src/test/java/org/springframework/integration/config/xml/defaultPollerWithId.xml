@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<poller id="defaultPollerWithId" default="true">
-		<interval-trigger interval="5000"/>
-	</poller>
+	<poller id="defaultPollerWithId" default="true" fixed-delay="5000"/>
 
 </beans:beans>

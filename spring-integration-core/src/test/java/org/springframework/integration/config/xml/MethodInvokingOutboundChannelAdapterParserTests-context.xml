@@ -20,9 +20,7 @@
 
 	<outbound-channel-adapter id="adapterB" channel="channelB" method="out" order="99" auto-startup="false">
 		<beans:bean class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
-		<poller task-executor="executor" max-messages-per-poll="5"> 
-            <interval-trigger interval="20" /> 
-        </poller> 
+		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" /> 
 	</outbound-channel-adapter>
 
 	<task:executor id="executor" pool-size="5" /> 

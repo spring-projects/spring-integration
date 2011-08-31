@@ -3,7 +3,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:gateway id="sampleGateway" 
 	             service-interface="org.springframework.integration.history.MessageHistoryIntegrationTests.SampleGateway"
@@ -14,9 +14,7 @@
 	</int:channel>
 	             
 	<int:bridge id="testBridge" input-channel="bridgeInChannel" output-channel="headerEnricherChannel">
-		<int:poller max-messages-per-poll="1">
-			<int:interval-trigger interval="100"/>
-		</int:poller>
+		<int:poller max-messages-per-poll="1" fixed-delay="100"/>
 	</int:bridge>
 	
 	<int:header-enricher id="testHeaderEnricher" input-channel="headerEnricherChannel" output-channel="chainChannel">
