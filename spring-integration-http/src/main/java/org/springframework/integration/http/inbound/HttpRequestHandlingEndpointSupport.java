@@ -33,6 +33,7 @@ import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -126,6 +127,10 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	private volatile MultipartResolver multipartResolver;
 	
 	private final StandardEvaluationContext evaluationContext;
+	
+	private volatile Expression payloadExpression;
+
+	private volatile List<Expression> headerExpressions;
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -167,6 +172,13 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		this.path = path;
 	}
 
+	public void setPayloadExpression(Expression payloadExpression) {
+		this.payloadExpression = payloadExpression;
+	}
+
+	public void setHeaderExpressions(List<Expression> headerExpressions) {
+		this.headerExpressions = headerExpressions;
+	}
 	/**
 	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
 	 * responses.
@@ -441,6 +453,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public SmartServletServerHttpRequest(HttpServletRequest servletRequest) {
+			//servletRequest.getp
 			super(servletRequest);
 			
 			requestParamMap = servletRequest.getParameterMap();
