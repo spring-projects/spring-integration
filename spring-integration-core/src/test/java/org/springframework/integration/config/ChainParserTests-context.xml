@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
@@ -38,9 +39,7 @@
 	</chain>
 
 	<chain input-channel="pollableInput1" output-channel="output">
-		<poller>
-			<interval-trigger interval="10000" />
-		</poller>
+		<poller fixed-delay="10000" />
 		<filter ref="typeSelector" />
 		<service-activator ref="testHandler" />
 	</chain>
@@ -50,9 +49,7 @@
 		<service-activator ref="testHandler" />
 	</chain>
 
-	<poller id="topLevelPoller">
-		<interval-trigger interval="5000" />
-	</poller>
+	<poller id="topLevelPoller" fixed-delay="5000" />
 
 	<chain input-channel="beanInput" output-channel="output">
 		<beans:bean

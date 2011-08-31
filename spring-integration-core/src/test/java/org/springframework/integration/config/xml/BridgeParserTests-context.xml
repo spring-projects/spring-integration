@@ -13,9 +13,7 @@
 	</channel>
 
 	<bridge input-channel="pollableChannel" output-channel="output1">
-		<poller max-messages-per-poll="2">
-			<interval-trigger interval="3000" />
-		</poller>
+		<poller max-messages-per-poll="2" fixed-delay="3000" />
 	</bridge>
 
 	<channel id="output1">
