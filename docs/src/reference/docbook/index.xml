@@ -127,7 +127,8 @@
       <xi:include href="./mail.xml"/>
       <xi:include href="./ip.xml"/>
 	  <xi:include href="./jdbc.xml"/>
-	  <xi:include href="./jms.xml"/>	 
+	  <xi:include href="./jms.xml"/>	
+	  <xi:include href="./redis.xml"/> 
 	  <xi:include href="./rmi.xml"/>
 	  <xi:include href="./sftp.xml"/> 
 	  <xi:include href="./stream.xml"/>
