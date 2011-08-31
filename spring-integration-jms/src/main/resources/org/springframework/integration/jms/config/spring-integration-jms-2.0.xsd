@@ -674,7 +674,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="send-timeout" type="xsd:string">
+			<xsd:attribute name="reply-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 	Timeout for sending the mapped integration Message to this gateway's reply-channel. Default is indefinite.
