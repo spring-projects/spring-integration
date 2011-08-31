@@ -116,23 +116,20 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 			
 		ExpressionParser parser = new SpelExpressionParser();
 		
-		Expression bodyExpression = parser.parseExpression("#this.body");
+		Expression bodyExpression = parser.parseExpression("body");
 		InputStream body = bodyExpression.getValue(context, smartRequest, InputStream.class);
 		assertNotNull(body);
 		assertEquals("hello", this.convertToString(body));
 		
-		Expression headersExpression = parser.parseExpression("#this.headers['Content-Type']");
+		Expression headersExpression = parser.parseExpression("headers['Content-Type']");
 		List<?> headers = headersExpression.getValue(context, smartRequest, List.class);
 		assertNotNull(headers);
 		assertEquals("text/plain", headers.get(0));
 		
-		Expression uriVarsExpression = parser.parseExpression("#this.uriVars");
-		Map uriVars = uriVarsExpression.getValue(context, smartRequest, Map.class);
-		assertNotNull(uriVars);
-		assertTrue(!CollectionUtils.isEmpty(uriVars));
-		assertEquals("bill", "f");
-		assertEquals("bill", "f");
-		
+		Expression uriVarsExpression = parser.parseExpression("uriVars['f']");
+		String fname = uriVarsExpression.getValue(context, smartRequest, String.class);
+		assertNotNull(fname);
+		assertEquals("bill", fname);
 	}
 	
 	public String convertToString(InputStream in) throws IOException {
