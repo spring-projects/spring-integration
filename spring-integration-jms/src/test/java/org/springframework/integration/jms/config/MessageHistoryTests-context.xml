@@ -30,9 +30,7 @@
     	<int:queue capacity="2"/>
     </int:channel>
     
-    <int:poller id="poller" default="true">
-		<int:interval-trigger interval="10"/>
-	</int:poller>
+    <int:poller id="poller" default="true" fixed-delay="10"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
 		<property name="targetConnectionFactory">

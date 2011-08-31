@@ -18,12 +18,8 @@
 	                      request-destination="requestQueue"
 	                      request-channel="requestChannel"
 	                      message-converter="converter">
-		<si:poller>
-			<si:interval-trigger interval="1000"/>
-		</si:poller>
+		<si:poller fixed-delay="1000"/>
 	</jms:outbound-gateway>
-
-
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

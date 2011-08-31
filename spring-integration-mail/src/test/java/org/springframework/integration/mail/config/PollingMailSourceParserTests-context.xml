@@ -25,8 +25,6 @@
 		<prop key="foo">bar</prop>
 	</util:properties>
 
-	<integration:poller default="true">
-		<integration:interval-trigger interval="60" time-unit="SECONDS"/>
-	</integration:poller>
+	<integration:poller default="true" fixed-rate="60000"/>
 
 </beans>
