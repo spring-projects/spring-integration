@@ -86,9 +86,7 @@
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
 	                     uri="http://example.org">
-    	<si:poller>
-			<si:interval-trigger interval="5000"/>
-		</si:poller>
+    	<si:poller fixed-delay="5000"/>
 	</ws:outbound-gateway>
 
 	<ws:outbound-gateway id="gatewayWithOrderAndAutoStartupFalse"

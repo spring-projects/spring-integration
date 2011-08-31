@@ -3,9 +3,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:mail="http://www.springframework.org/schema/integration/mail"
 	xmlns:si="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<!-- INT-1163 -->
 
@@ -13,8 +13,6 @@
 
 	<si:channel id="testChannel"/>
 
-	<si:poller default="true" max-messages-per-poll="1">
-		<si:interval-trigger interval="60" time-unit="SECONDS"/>
-	</si:poller>
+	<si:poller default="true" max-messages-per-poll="1" fixed-delay="60000"/>
 
 </beans>

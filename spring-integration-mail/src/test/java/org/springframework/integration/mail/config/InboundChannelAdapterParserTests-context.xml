@@ -5,8 +5,8 @@
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:util="http://www.springframework.org/schema/util"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
@@ -56,9 +56,7 @@
 	<mail:inbound-channel-adapter id="pop3WithMaxFetchSize" store-uri="pop3:test" max-fetch-size="11" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
 
 	<mail:inbound-channel-adapter id="pop3WithMaxFetchSizeFallsBackToPollerMax" store-uri="pop3:test" channel="testChannel" should-delete-messages="false" auto-startup="false">
-		<si:poller max-messages-per-poll="99">
-			<si:interval-trigger interval="30" time-unit="SECONDS"/>
-		</si:poller>
+		<si:poller max-messages-per-poll="99" fixed-rate="30000"/>
 	</mail:inbound-channel-adapter>
 
 	<mail:inbound-channel-adapter id="imapWithMaxFetchSize" store-uri="imap:test" max-fetch-size="22" channel="testChannel" should-delete-messages="false" auto-startup="false"/>
@@ -105,8 +103,6 @@
 
 	<si:channel id="testChannel"/>
 
-	<si:poller default="true" max-messages-per-poll="1">
-		<si:interval-trigger interval="60" time-unit="SECONDS"/>
-	</si:poller>
+	<si:poller default="true" max-messages-per-poll="1" fixed-rate="60000"/>
 
 </beans>
