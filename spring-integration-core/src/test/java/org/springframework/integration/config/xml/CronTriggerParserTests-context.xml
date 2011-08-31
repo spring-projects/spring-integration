@@ -7,10 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<poller id="pollerWithSubElement" receive-timeout="1234">
-		<cron-trigger expression="*/10 * 9-17 * * MON-FRI"/>
-	</poller>
-
     <poller id="pollerWithAttribute" cron="*/10 * 9-17 * * MON-FRI" receive-timeout="1234"/>
 
 </beans:beans>

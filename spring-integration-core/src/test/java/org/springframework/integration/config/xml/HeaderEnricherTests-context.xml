@@ -22,9 +22,7 @@
 	</channel>
 
 	<header-enricher input-channel="errorChannelInput" output-channel="failInput">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="3000"/>
-		</poller> 
+		<poller max-messages-per-poll="1" fixed-delay="3000"/>
 		<error-channel ref="testErrorChannel"/>
 	</header-enricher>
 
