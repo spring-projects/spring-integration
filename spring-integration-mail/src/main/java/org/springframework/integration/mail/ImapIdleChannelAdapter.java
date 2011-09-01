@@ -17,7 +17,6 @@
 package org.springframework.integration.mail;
 
 import java.util.Date;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.mail.FolderClosedException;
@@ -26,7 +25,6 @@ import javax.mail.MessagingException;
 import javax.mail.Store;
 import javax.mail.internet.MimeMessage;
 
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
@@ -48,8 +46,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	private final IdleTask idleTask = new IdleTask();
 
 	private volatile boolean shouldReconnectAutomatically = true;
-
-	private volatile Executor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private final ImapMailReceiver mailReceiver;
 
@@ -75,15 +71,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
-	/**
-	 * @deprecated As of release 2.0.5
-	 * @param taskExecutor
-	 */
-	@Deprecated
-	public void setTaskExecutor(Executor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-	}
-
 	public String getComponentType() {
 		return "mail:imap-idle-channel-adapter";
 	}
@@ -106,24 +93,21 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		receivingTask = scheduler.schedule(new Runnable(){
 
 			public void run() {
-				taskExecutor.execute(new Runnable(){
 
-					public void run() {
-						try {
-							idleTask.run();
-							if (mailReceiver.getFolder().isOpen()){
-								if (logger.isDebugEnabled()){
-									logger.debug("Task completed successfully. Re-scheduling it again right away");
-								}
-								scheduler.schedule(this, new Date());
-							}					
+				try {
+					idleTask.run();
+					if (mailReceiver.getFolder().isOpen()){
+						if (logger.isDebugEnabled()){
+							logger.debug("Task completed successfully. Re-scheduling it again right away");
 						}
-						catch (IllegalStateException e) { //run again after a delay
-							logger.warn("Failed to execute IDLE task. Will atempt to resubmit in " + reconnectDelay + " milliseconds", e);
-							scheduler.schedule(this, new Date(System.currentTimeMillis() + reconnectDelay));
-						}
-					}				
-				});
+						scheduler.schedule(this, new Date());
+					}					
+				}
+				catch (IllegalStateException e) { //run again after a delay
+					logger.warn("Failed to execute IDLE task. Will atempt to resubmit in " + reconnectDelay + " milliseconds", e);
+					scheduler.schedule(this, new Date(System.currentTimeMillis() + reconnectDelay));
+				}
+
 			}
 			
 		}, new Date());
@@ -173,17 +157,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					for (Message mailMessage : mailMessages) {
 						final MimeMessage copied = new MimeMessage(
 								(MimeMessage) mailMessage);
-						if (taskExecutor != null) {
-							taskExecutor.execute(new Runnable() {
-								public void run() {
-									sendMessage(MessageBuilder.withPayload(
-											copied).build());
-								}
-							});
-						} else {
-							sendMessage(MessageBuilder.withPayload(copied)
-									.build());
-						}
+						sendMessage(MessageBuilder.withPayload(copied).build());
 					}
 				}
 			} catch (MessagingException e) {
