@@ -24,15 +24,12 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Will transform an object graph into a flat Map where keys are valid SpEL expressions
- * and values are of java.lang.* type. This means that this transformer will recursively navigate 
- * through the Object graph until the value could be java.lang.*
+ * Will transform an object graph into a flat Map where keys are valid SpEL expressions documenting the path to the value. 
  * It supports Collections, Maps and Arrays which means it will flatten Object's attributes that are defined as such:<br>
  * 
  * private Map<String, Map<String, Object>> testMapInMapData;<br>
  * private List<String> departments;<br>
  * private String[] akaNames;<br>
- * private Map<String, List<String>> mapWithListData;<br>
  * 
  * The resulting Map structure will look similar to this:<br>
  * 
