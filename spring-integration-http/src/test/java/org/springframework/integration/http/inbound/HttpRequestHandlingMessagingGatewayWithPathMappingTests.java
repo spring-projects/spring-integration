@@ -86,9 +86,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-		
-		
-		
+			
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
@@ -99,6 +97,7 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void withoutPayloadExpressionPointingToUriVariables() throws Exception {
 		
@@ -119,17 +118,13 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
 		
-		
-		
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
 		gateway.setPayloadExpression(PARSER.parseExpression("#uriVariables"));
 			
 		Object result =  gateway.doHandleRequest(request, response);
-		assertEquals("bill", ((Map)result).get("f"));
-		
+		assertEquals("bill", ((Map<String, Object>)result).get("f"));
 	}
-	
 	
 }
