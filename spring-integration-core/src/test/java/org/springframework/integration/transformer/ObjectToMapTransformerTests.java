@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,6 +136,11 @@ public class ObjectToMapTransformerTests {
 		valueFromTheMap = transformedMap.get("person.remarks[1].baz");
 		valueFromExpression = expression.getValue(context, employee, String.class);
 		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("listOfDates[0][1]");
+		valueFromTheMap = new Date((Long) transformedMap.get("listOfDates[0][1]"));
+		valueFromExpression = expression.getValue(context, employee, Date.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
 	}
 
 	@Test(expected=MessageTransformationException.class)
@@ -162,9 +167,22 @@ public class ObjectToMapTransformerTests {
 		coordinates.put("longitude", new Long[]{(long)156});
 		companyAddress.setCoordinates(coordinates);
 		
+		List<Date> datesA = new ArrayList<Date>();
+		datesA.add(new Date(System.currentTimeMillis() + 10000));
+		datesA.add(new Date(System.currentTimeMillis() + 20000));
+		
+		List<Date> datesB = new ArrayList<Date>();
+		datesB.add(new Date(System.currentTimeMillis() + 30000));
+		datesB.add(new Date(System.currentTimeMillis() + 40000));
+		
+		List<List<Date>> listOfDates = new ArrayList<List<Date>>();
+		listOfDates.add(datesA);
+		listOfDates.add(datesB);
+		
 		Employee employee = new Employee();
 		employee.setCompanyName("ABC Inc.");
 		employee.setCompanyAddress(companyAddress);
+		employee.setListOfDates(listOfDates);
 		ArrayList departments = new ArrayList();
 		departments.add("HR");
 		departments.add("IT");
@@ -215,10 +233,17 @@ public class ObjectToMapTransformerTests {
 	
 	public static class Employee{
 		private List<String> departments;
+		private List<List<Date>> listOfDates;
 		private String companyName;
 		private Person person;
 		private Address companyAddress;
 		private Map<String, Map<String, Object>> testMapInMapData;
+		public List<List<Date>> getListOfDates() {
+			return listOfDates;
+		}
+		public void setListOfDates(List<List<Date>> listOfDates) {
+			this.listOfDates = listOfDates;
+		}
 		public Map<String, Map<String, Object>> getTestMapInMapData() {
 			return testMapInMapData;
 		}

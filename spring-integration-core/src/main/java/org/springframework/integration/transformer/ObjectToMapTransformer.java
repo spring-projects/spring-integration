@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.transformer;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +45,11 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
-	private volatile boolean flaten = true;
 	
-	public void setFlaten(boolean flaten) {
-		this.flaten = flaten;
+	private volatile boolean shouldFlattenKeys = true;
+	
+	public void setShouldFlattenKeys(boolean shouldFlattenKeys) {
+		this.shouldFlattenKeys = shouldFlattenKeys;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -57,7 +59,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		Map<String,Object> result =
 		        new ObjectMapper().readValue(mapper.writeValueAsString(payload), Map.class);
 		
-		if (flaten){
+		if (shouldFlattenKeys){
 			result = this.flatenMap(result);
 		}
 		
@@ -70,41 +72,38 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		return resultMap;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void doFlaten(String propertyPrefix, Map<String,Object> inputMap, Map<String,Object> resultMap){
 		if (StringUtils.hasText(propertyPrefix)){
 			propertyPrefix = propertyPrefix + ".";
 		}
 		for (String key : inputMap.keySet()) {
 			Object value = inputMap.get(key);
-			if (value instanceof Map){
-				this.doFlaten(propertyPrefix + key, (Map<String, Object>) value, resultMap);
-			}
-			else if (value instanceof List){
-				this.doProcessList(propertyPrefix + key, (List<?>) value, resultMap);
-			} 
-			else if (value != null && value.getClass().isArray()){
-				List<?> list =  CollectionUtils.arrayToList(value); 
-				this.doProcessList(propertyPrefix + key, list, resultMap);
-			}
-			else {
-				resultMap.put(propertyPrefix + key, value);
-			}
+			this.doProcessElement(propertyPrefix + key, value, resultMap);
+		}
+	}
+	
+	private void doProcessCollection(String propertyPrefix,  List<?> list, Map<String, Object> resultMap) {
+		int counter = 0;
+		for (Object element : list) {
+			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);
+			counter ++;
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void doProcessList(String propertyPrefix,  List<?> list, Map<String, Object> resultMap) {
-		int counter = 0;
-		for (Object element : list) {
-			if (element instanceof Map){
-				this.doFlaten(propertyPrefix + "[" + counter + "]", (Map<String, Object>) element, resultMap);
-			} 
-			else {
-				resultMap.put(propertyPrefix + "[" + counter + "]", list.get(counter));
-			}
-			counter ++;
+	private void doProcessElement(String propertyPrefix, Object element, Map<String, Object> resultMap){
+		if (element instanceof Map){
+			this.doFlaten(propertyPrefix, (Map<String, Object>) element, resultMap);
+		}
+		else if (element instanceof Collection){
+			this.doProcessCollection(propertyPrefix, (List<?>) element, resultMap);
+		} 
+		else if (element != null && element.getClass().isArray()){
+			List<?> list =  CollectionUtils.arrayToList(element); 
+			this.doProcessCollection(propertyPrefix, list, resultMap);
+		}
+		else {
+			resultMap.put(propertyPrefix, element);
 		}
 	}
-
 }
