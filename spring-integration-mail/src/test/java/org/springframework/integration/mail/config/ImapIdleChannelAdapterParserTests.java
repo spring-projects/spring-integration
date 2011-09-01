@@ -129,9 +129,7 @@ public class ImapIdleChannelAdapterParserTests {
 		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Object channel = context.getBean("channel");
-		Object executor = context.getBean("executor");
 		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		assertSame(executor, adapterAccessor.getPropertyValue("taskExecutor"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
