@@ -59,7 +59,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
-		Assert.notNull(mailReceiver, "mailReceiver must not be null");
+		Assert.notNull(mailReceiver, "'mailReceiver' must not be null");
 		this.mailReceiver = mailReceiver;
 	}
 
