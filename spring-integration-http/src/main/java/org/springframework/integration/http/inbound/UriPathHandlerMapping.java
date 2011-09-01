@@ -19,7 +19,6 @@ import java.util.Collections;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.handler.AbstractDetectingUrlHandlerMapping;
@@ -28,14 +27,18 @@ import org.springframework.web.servlet.handler.AbstractDetectingUrlHandlerMappin
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class UriPathHandlerMapping extends AbstractDetectingUrlHandlerMapping implements InitializingBean {
-
+public class UriPathHandlerMapping extends AbstractDetectingUrlHandlerMapping {
+	
+	public UriPathHandlerMapping(){
+		this.setOrder(Integer.MIN_VALUE);
+	}
+	
 	protected void detectHandlers() throws BeansException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Looking for URL mappings in application context: " + getApplicationContext());
 		}
 		
-		String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), Object.class);
+		String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), HttpRequestHandlingEndpointSupport.class);
 	
 		for (String beanName : beanNames) {
 			String[] urls = determineUrlsForHandler(beanName);
@@ -57,9 +60,5 @@ public class UriPathHandlerMapping extends AbstractDetectingUrlHandlerMapping im
 		HttpRequestHandlingEndpointSupport handler = context.getBean(beanName, HttpRequestHandlingEndpointSupport.class);
 		String path = handler.getPath();
 		return Collections.singletonList(path).toArray(new String[]{});
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		this.setOrder(Integer.MIN_VALUE);
 	}
 }
