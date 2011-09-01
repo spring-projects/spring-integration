@@ -17,11 +17,8 @@
 package org.springframework.integration.http.inbound;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,13 +30,9 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -126,8 +119,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	private volatile MultipartResolver multipartResolver;
 	
-	private final StandardEvaluationContext evaluationContext;
-	
 	private volatile Expression payloadExpression;
 
 	private volatile Map<String, Expression> headerExpressions;
@@ -156,9 +147,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			// this.messageConverters.add(new AtomFeedHttpMessageConverter());
 			// this.messageConverters.add(new RssChannelHttpMessageConverter());
 		}
-		StandardEvaluationContext sec = new StandardEvaluationContext();
-		sec.addPropertyAccessor(new MapAccessor());
-		this.evaluationContext = sec;
 	}
 	
 	/**
@@ -276,13 +264,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				}
 			}
 		}
-		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
-		}
-		ConversionService conversionService = this.getConversionService();
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
 	}
 
 	/**
@@ -300,6 +281,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			}
 			Map uriVariableMappings = null;
 			//
+			StandardEvaluationContext evaluationContext = this.getEvaluationContext();
+			
             if (StringUtils.hasText(this.path)){
                 UriTemplate template = new UriTemplate(this.path);
                 uriVariableMappings = template.match(request.getURI().getPath());
@@ -309,10 +292,11 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
                     }
   
                 	// set the whole map
-	                this.evaluationContext.setVariable("uriVariables", uriVariableMappings);
+                	
+	                evaluationContext.setVariable("uriVariables", uriVariableMappings);
 	                for (Object key : uriVariableMappings.keySet()) {
 	                	// add individual elements
-						this.evaluationContext.setVariable((String) key, uriVariableMappings.get(key));
+	                	evaluationContext.setVariable((String) key, uriVariableMappings.get(key));
 					}
                 }
                 else {
@@ -327,12 +311,12 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
             
             if (this.payloadExpression != null){
             	// create payload based on SpEL
-            	payload = this.payloadExpression.getValue(this.evaluationContext, request);
+            	payload = this.payloadExpression.getValue(evaluationContext, request);
             }
             if (this.headerExpressions != null){
             	for (String headerName : this.headerExpressions.keySet()) {
 					Expression headerExpression = this.headerExpressions.get(headerName);
-					Object headerValue = headerExpression.getValue(this.evaluationContext, request);
+					Object headerValue = headerExpression.getValue(evaluationContext, request);
 					((Map<String, Object>)headers).put(headerName, headerValue);
 				}
             }
@@ -347,8 +331,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				}
 			}
 				
-			HttpEntity entity = new HttpEntity(request.getBody(), request.getHeaders());
-					
 			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
 					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
@@ -466,5 +448,19 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusFromHeader));
 		}
 		return httpStatus;
+	}
+	
+	private StandardEvaluationContext getEvaluationContext(){
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+		return evaluationContext;
 	}
 }
