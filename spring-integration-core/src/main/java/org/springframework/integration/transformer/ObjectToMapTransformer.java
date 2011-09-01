@@ -17,7 +17,6 @@ package org.springframework.integration.transformer;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -82,7 +81,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 		}
 	}
 	
-	private void doProcessCollection(String propertyPrefix,  List<?> list, Map<String, Object> resultMap) {
+	private void doProcessCollection(String propertyPrefix,  Collection<?> list, Map<String, Object> resultMap) {
 		int counter = 0;
 		for (Object element : list) {
 			this.doProcessElement(propertyPrefix + "[" + counter + "]", element, resultMap);
@@ -96,11 +95,11 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 			this.doFlaten(propertyPrefix, (Map<String, Object>) element, resultMap);
 		}
 		else if (element instanceof Collection){
-			this.doProcessCollection(propertyPrefix, (List<?>) element, resultMap);
+			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
 		} 
 		else if (element != null && element.getClass().isArray()){
-			List<?> list =  CollectionUtils.arrayToList(element); 
-			this.doProcessCollection(propertyPrefix, list, resultMap);
+			Collection<?> collection =  CollectionUtils.arrayToList(element); 
+			this.doProcessCollection(propertyPrefix, collection, resultMap);
 		}
 		else {
 			resultMap.put(propertyPrefix, element);
