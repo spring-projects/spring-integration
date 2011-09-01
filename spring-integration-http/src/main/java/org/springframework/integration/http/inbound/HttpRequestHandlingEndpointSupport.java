@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -97,8 +99,6 @@ import org.springframework.web.util.UriTemplate;
  */
 abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
 	
-	private static final ExpressionParser PARSER = new SpelExpressionParser();
-
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -130,7 +130,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	
 	private volatile Expression payloadExpression;
 
-	private volatile List<Expression> headerExpressions;
+	private volatile Map<String, Expression> headerExpressions;
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -176,7 +176,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		this.payloadExpression = payloadExpression;
 	}
 
-	public void setHeaderExpressions(List<Expression> headerExpressions) {
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
 		this.headerExpressions = headerExpressions;
 	}
 	/**
@@ -303,27 +303,51 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
             if (StringUtils.hasText(this.path)){
                 UriTemplate template = new UriTemplate(this.path);
                 uriVariableMappings = template.match(request.getURI().getPath());
-                if (logger.isDebugEnabled()){
-                    logger.debug("Mapped URI variables: " + uriVariableMappings);
+                if (!uriVariableMappings.isEmpty()){
+                	if (logger.isDebugEnabled()){
+                        logger.debug("Mapped URI variables: " + uriVariableMappings);
+                    }
+  
+                	// set the whole map
+	                this.evaluationContext.setVariable("uriVariables", uriVariableMappings);
+	                for (Object key : uriVariableMappings.keySet()) {
+	                	// add individual elements
+						this.evaluationContext.setVariable((String) key, uriVariableMappings.get(key));
+					}
                 }
+                else {
+                	logger.warn("Was not able to match UriVariables to path: " + this.path);
+                }            
             }
             //
 			
             Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
             
-			Object payload = null;
-			if (this.isReadable(request)) {
-				payload = this.extractRequestBody(request);
-				headers.putAll(uriVariableMappings);
-			}
-			else {
-				payload = this.convertParameterMap(servletRequest.getParameterMap());
-				if (payload instanceof Map){
-					for (Object key : uriVariableMappings.keySet()) {
-						((Map) payload).put(key, Collections.singletonList(uriVariableMappings.get(key)));
-					}
+            Object payload = null;
+            
+            if (this.payloadExpression != null){
+            	// create payload based on SpEL
+            	payload = this.payloadExpression.getValue(this.evaluationContext, request);
+            }
+            if (this.headerExpressions != null){
+            	for (String headerName : this.headerExpressions.keySet()) {
+					Expression headerExpression = this.headerExpressions.get(headerName);
+					Object headerValue = headerExpression.getValue(this.evaluationContext, request);
+					((Map<String, Object>)headers).put(headerName, headerValue);
+				}
+            }
+            
+			if (payload == null){
+				if (this.isReadable(request)) {
+					payload = this.extractRequestBody(request);
+				}
+				else {
+					payload = this.convertParameterMap(servletRequest.getParameterMap());
+
 				}
 			}
+				
+			HttpEntity entity = new HttpEntity(request.getBody(), request.getHeaders());
 					
 			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
 					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
@@ -372,7 +396,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(servletRequest)) {
 			return new MultipartHttpInputMessage(this.multipartResolver.resolveMultipart(servletRequest));
 		}
-		return new SmartServletServerHttpRequest(servletRequest);
+		return new ServletServerHttpRequest(servletRequest);
 	}
 
 	/**
@@ -442,40 +466,5 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			httpStatus = HttpStatus.valueOf(Integer.parseInt((String) httpStatusFromHeader));
 		}
 		return httpStatus;
-	}
-	
-	public class SmartServletServerHttpRequest extends ServletServerHttpRequest{
-		
-		private final Map<String, Object> requestParamMap;
-
-		@SuppressWarnings("rawtypes")
-		private final Map uriVarsMap;
-		
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public SmartServletServerHttpRequest(HttpServletRequest servletRequest) {
-			//servletRequest.getp
-			super(servletRequest);
-			
-			requestParamMap = servletRequest.getParameterMap();
-			Map uriVariableMappings = null;
-			//
-            if (StringUtils.hasText(HttpRequestHandlingEndpointSupport.this.path)){
-                UriTemplate template = new UriTemplate(HttpRequestHandlingEndpointSupport.this.path);
-                uriVariableMappings = template.match(this.getURI().getPath());
-                if (logger.isDebugEnabled()){
-                    logger.debug("Mapped URI variables: " + uriVariableMappings);
-                }
-            }
-            uriVarsMap = uriVariableMappings;
-		}
-		
-		public Map<String, Object> getRequestParamMap() {
-			return requestParamMap;
-		}
-
-		@SuppressWarnings("rawtypes")
-		public Map getUriVars() {
-			return uriVarsMap;
-		}
 	}
 }
