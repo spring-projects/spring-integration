@@ -63,8 +63,7 @@
 			channel="channel"
 			auto-startup="false"
 			java-mail-properties="javaMailProperties"
-			should-delete-messages="${mail.delete}"
-			task-executor="executor"/>
+			should-delete-messages="${mail.delete}"/>
 
 	<util:properties id="javaMailProperties">
 		<prop key="foo">bar</prop>

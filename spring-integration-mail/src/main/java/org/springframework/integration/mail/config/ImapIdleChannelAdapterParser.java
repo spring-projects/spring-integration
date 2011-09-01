@@ -58,7 +58,6 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 		builder.addConstructorArgValue(this.parseImapMailReceiver(element, parserContext));
 		builder.addPropertyReference("outputChannel", channel);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
 
