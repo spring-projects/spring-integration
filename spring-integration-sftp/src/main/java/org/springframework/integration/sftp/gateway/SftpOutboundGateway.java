@@ -29,7 +29,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Gary Russell
- * @since 2.0.4
+ * @since 2.1
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
 
