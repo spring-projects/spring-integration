@@ -26,9 +26,9 @@ import org.springframework.util.Assert;
  * @author David Turanski
  * @since 2.1
  */
-public class Jsr223ScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
+public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
-	private final Jsr223ScriptExecutor scriptExecutor;
+	private final DefaultScriptExecutor scriptExecutor;
 	private volatile ScriptSource scriptSource;
 	 
 
@@ -37,7 +37,7 @@ public class Jsr223ScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * @param scriptSource
 	 * @param scriptExecutor
 	 */
-	public Jsr223ScriptExecutingMessageProcessor(ScriptSource scriptSource, Jsr223ScriptExecutor scriptExecutor) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, DefaultScriptExecutor scriptExecutor) {
 		super();
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 
@@ -48,7 +48,7 @@ public class Jsr223ScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * @param scriptSource
 	 * @param scriptExecutor
 	 */
-	public Jsr223ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator,Jsr223ScriptExecutor scriptExecutor) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator,DefaultScriptExecutor scriptExecutor) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 
@@ -60,7 +60,7 @@ public class Jsr223ScriptExecutingMessageProcessor extends AbstractScriptExecuti
 	 * @param scriptExecutor
 	 * @param variables 
 	 */
-	public Jsr223ScriptExecutingMessageProcessor(ScriptSource scriptSource,Jsr223ScriptExecutor scriptExecutor,Map<String,Object> variables ) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource,DefaultScriptExecutor scriptExecutor,Map<String,Object> variables ) {
 		super(new DefaultScriptVariableGenerator(variables));
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 

@@ -22,8 +22,8 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scripting.jsr223.Jsr223ScriptExecutingMessageProcessor;
-import org.springframework.integration.scripting.jsr223.Jsr223ScriptExecutor;
+import org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor;
+import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 
@@ -32,10 +32,10 @@ import org.springframework.scripting.support.ResourceScriptSource;
  *
  */
 public class Jsr223ScriptExecutingMessageProcessorTests {
-	Jsr223ScriptExecutor executor;
+	DefaultScriptExecutor executor;
 	@Before
 	public void setUp() {
-		executor = new Jsr223ScriptExecutor("jruby");
+		executor = new DefaultScriptExecutor("jruby");
 	}
 	@Test
 	public void testExecuteWithVariables(){
@@ -48,7 +48,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 		
 		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
 		
-		Jsr223ScriptExecutingMessageProcessor messageProcessor = new Jsr223ScriptExecutingMessageProcessor(scriptSource,executor,vars);
+		ScriptExecutingMessageProcessor messageProcessor = new ScriptExecutingMessageProcessor(scriptSource,executor,vars);
 		
 		Message<?> message = new GenericMessage<String>("hello");
 		
@@ -61,7 +61,7 @@ public class Jsr223ScriptExecutingMessageProcessorTests {
 	public void testWithNoVars(){
 		ScriptSource scriptSource = new ResourceScriptSource(new ClassPathResource("/org/springframework/integration/scripting/jsr223/print_message.rb"));
 		
-		Jsr223ScriptExecutingMessageProcessor messageProcessor = new Jsr223ScriptExecutingMessageProcessor(scriptSource,executor);
+		ScriptExecutingMessageProcessor messageProcessor = new ScriptExecutingMessageProcessor(scriptSource,executor);
 		
 		Message<?> message = new GenericMessage<String>("hello");
 		

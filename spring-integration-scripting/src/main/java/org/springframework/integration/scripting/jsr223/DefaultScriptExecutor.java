@@ -29,15 +29,15 @@ import org.springframework.util.Assert;
  * @author David Turanski
  * @since 2.1
  */
-public class Jsr223ScriptExecutor implements ScriptExecutor {
-	private static Log log = LogFactory.getLog(Jsr223ScriptExecutor.class);
+public class DefaultScriptExecutor implements ScriptExecutor {
+	private static Log log = LogFactory.getLog(DefaultScriptExecutor.class);
 	private final ScriptEngine scriptEngine;
 
 	/**
 	 * Set the engine name (language)
 	 * @param language
 	 */
-	public Jsr223ScriptExecutor(String language) {
+	public DefaultScriptExecutor(String language) {
 		ScriptEngineManager manager = new ScriptEngineManager();
 		if (log.isDebugEnabled()){
 			for (ScriptEngineFactory factory: manager.getEngineFactories()) {
