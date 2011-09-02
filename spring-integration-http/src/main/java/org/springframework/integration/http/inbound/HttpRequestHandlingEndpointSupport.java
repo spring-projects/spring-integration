@@ -285,7 +285,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			}
 			Map uriVariableMappings = null;
 			//
-			StandardEvaluationContext evaluationContext = this.getEvaluationContext();
+			StandardEvaluationContext evaluationContext = this.prepareAndGetEvaluationContext();
 			
             if (StringUtils.hasText(this.path)){
                 UriTemplate template = new UriTemplate(this.path);
@@ -295,8 +295,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
                         logger.debug("Mapped URI variables: " + uriVariableMappings);
                     }
   
-                	// set the whole map
-                	
+                	// set the whole map       	
 	                evaluationContext.setVariable("uriVariables", uriVariableMappings);
 	                for (Object key : uriVariableMappings.keySet()) {
 	                	// add individual elements
@@ -454,7 +453,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		return httpStatus;
 	}
 	
-	private StandardEvaluationContext getEvaluationContext(){
+	private StandardEvaluationContext prepareAndGetEvaluationContext(){
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
 		BeanFactory beanFactory = this.getBeanFactory();

@@ -24,7 +24,14 @@
 				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" />
-			<xsd:attribute name="name" type="xsd:string" />
+			<xsd:attribute name="name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEPRECATED since v2.1] Use 'path' attribute if you want to specify the path or 
+						'id' attribute if you simply want to identify this component
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
