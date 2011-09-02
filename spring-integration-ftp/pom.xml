@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-ftp</artifactId>
-  <version>2.1.0.BUILD-SNAPSHOT</version>
+  <version>2.1.0.M1</version>
   <name>Spring Integration FTP Support</name>
   <licenses>
     <license>
@@ -86,10 +86,6 @@
       <id>SpringSource Release Repository</id>
       <url>http://maven.springframework.org/release/</url>
     </repository>
-    <repository>
-      <id>SpringSource Snapshot Repository</id>
-      <url>http://maven.springframework.org/snapshot/</url>
-    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -97,6 +93,12 @@
       <artifactId>spring-context-support</artifactId>
       <version>3.0.6.RELEASE</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.M1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -135,12 +137,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-file</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>1.1.1</version>
@@ -154,15 +150,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-file</artifactId>
+      <version>2.1.0.M1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>test</scope>
     </dependency>
     <dependency>
