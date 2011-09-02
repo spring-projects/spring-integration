@@ -33,6 +33,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -285,7 +286,23 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			}
 			Map uriVariableMappings = null;
 			//
-			StandardEvaluationContext evaluationContext = this.prepareAndGetEvaluationContext();
+			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
+			
+			Object requestBody = null;
+			if (this.isReadable(request)) {
+				requestBody = this.extractRequestBody(request);
+				evaluationContext.setVariable("requestBody", requestBody);
+			}
+			
+			HttpEntity httpEntity = new HttpEntity(requestBody, request.getHeaders());
+			evaluationContext.setRootObject(httpEntity);
+			
+			LinkedMultiValueMap<String, String> requestParameterMap = this.convertParameterMap(servletRequest.getParameterMap());
+			evaluationContext.setVariable("requestParameterMap", uriVariableMappings);// bind the whole map
+			
+			for (String parameterName : requestParameterMap.keySet()) { // bind individual parameters
+				evaluationContext.setVariable(parameterName, requestParameterMap.get(parameterName));
+			}
 			
             if (StringUtils.hasText(this.path)){
                 UriTemplate template = new UriTemplate(this.path);
@@ -296,7 +313,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
                     }
   
                 	// set the whole map       	
-	                evaluationContext.setVariable("uriVariables", uriVariableMappings);
+	                evaluationContext.setVariable("pathVariables", uriVariableMappings);
 	                for (Object key : uriVariableMappings.keySet()) {
 	                	// add individual elements
 	                	evaluationContext.setVariable((String) key, uriVariableMappings.get(key));
@@ -326,11 +343,11 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
             
 			if (payload == null){
 				if (this.isReadable(request)) {
-					payload = this.extractRequestBody(request);
+					//payload = this.extractRequestBody(request);
+					payload = requestBody;		
 				}
 				else {
-					payload = this.convertParameterMap(servletRequest.getParameterMap());
-
+					payload = requestParameterMap;
 				}
 			}
 				
@@ -453,7 +470,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		return httpStatus;
 	}
 	
-	private StandardEvaluationContext prepareAndGetEvaluationContext(){
+	private StandardEvaluationContext createEvaluationContext(){
 		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 		evaluationContext.addPropertyAccessor(new MapAccessor());
 		BeanFactory beanFactory = this.getBeanFactory();
