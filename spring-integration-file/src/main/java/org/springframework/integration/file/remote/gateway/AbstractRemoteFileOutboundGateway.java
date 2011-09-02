@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote.gateway;
 
 import java.io.File;
@@ -43,9 +44,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * Base class for Outbound Gateways that perform remote file operations.
+ * 
  * @author Gary Russell
  * @since 2.1
- *
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
 
@@ -97,6 +99,52 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			new SpelExpressionParser().parseExpression(expression));
 	}
 
+
+	/**
+	 * @param options the options to set
+	 */
+	public void setOptions(String options) {
+		String[] opts = options.split("\\s");
+		for (String opt : opts) {
+			this.options.add(opt.trim());
+		}
+	}
+
+	/**
+	 * @param remoteFileSeparator the remoteFileSeparator to set
+	 */
+	public void setRemoteFileSeparator(String remoteFileSeparator) {
+		this.remoteFileSeparator = remoteFileSeparator;
+	}
+
+	/**
+	 * @param localDirectory the localDirectory to set
+	 */
+	public void setLocalDirectory(File localDirectory) {
+		this.localDirectory = localDirectory;
+	}
+
+	/**
+	 * @param autoCreateLocalDirectory the autoCreateLocalDirectory to set
+	 */
+	public void setAutoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
+		this.autoCreateLocalDirectory = autoCreateLocalDirectory;
+	}
+
+	/**
+	 * @param temporaryFileSuffix the temporaryFileSuffix to set
+	 */
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
+	}
+
+	/**
+	 * @param filter the filter to set
+	 */
+	public void setFilter(FileListFilter<F> filter) {
+		this.filter = filter;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -143,7 +191,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					dir += "/";
 				}
 				return MessageBuilder.withPayload(ls(session, dir))
-					.setHeader(FileHeaders.REMOTE_DIR, dir)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.build();
 			} else if (COMMAND_GET.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
@@ -153,7 +201,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					remoteDir = "/";
 				}
 				return MessageBuilder.withPayload(get(session, remoteFilePath, remoteFilename))
-					.setHeader(FileHeaders.REMOTE_DIR, remoteDir)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
 			} else if (COMMAND_RM.equals(this.command)) {
@@ -164,7 +212,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 					remoteDir = "/";
 				}
 				return MessageBuilder.withPayload(rm(session, remoteFilePath))
-					.setHeader(FileHeaders.REMOTE_DIR, remoteDir)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
 			} else {
@@ -184,13 +232,13 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			Collection<F> filteredFiles = this.filterFiles(files);
 			for (F file : filteredFiles) {
 				if (file != null) {
-					if (this.options.contains(OPTION_SUBDIRS) ||
-							!isDir(file)) {
+					if (this.options.contains(OPTION_SUBDIRS) || !isDirectory(file)) {
 						lsFiles.add(file);
 					}
 				}
 			}
-		} else {
+		}
+		else {
 			return lsFiles;
 		}
 		if (!this.options.contains(OPTION_LINKS)) {
@@ -208,10 +256,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				Collections.sort(results);
 			}
 			return results;
-		} else {
+		}
+		else {
 			List<AbstractFileInfo<F>> canonicalFiles = this.asFileInfoList(lsFiles);
 			for (AbstractFileInfo<F> file : canonicalFiles) {
-				file.setRemoteDir(dir);
+				file.setRemoteDirectory(dir);
 			}
 			if (!this.options.contains(OPTION_NOSORT)) {
 				Collections.sort(canonicalFiles);
@@ -252,7 +301,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected File get(Session session, String remoteFilePath, String remoteFilename)
 			throws IOException {
 		F[] files = session.<F>list(remoteFilePath);
-		if (files.length != 1 || isDir(files[0]) || isLink(files[0])) {
+		if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
 			throw new MessagingException(remoteFilePath + " is not a file");
 		}
 		File localFile = new File(this.localDirectory, remoteFilename);
@@ -285,7 +334,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				localFile.setLastModified(getModified(files[0]));
 			}
 			return localFile;
-		} else {
+		}
+		else {
 			throw new MessagingException("Local file " + localFile + " already exists");
 		}
 	}
@@ -299,7 +349,8 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		int index = remoteFilePath.lastIndexOf(this.remoteFileSeparator);
 		if (index < 0) {
 			remoteFileName = remoteFilePath;
-		} else {
+		} 
+		else {
 			remoteFileName = remoteFilePath.substring(index + 1);
 		}
 		return remoteFileName;
@@ -310,7 +361,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return session.remove(remoteFilePath);
 	}
 
-	abstract protected boolean isDir(F file);
+	abstract protected boolean isDirectory(F file);
 
 	abstract protected boolean isLink(F file);
 
@@ -319,50 +370,5 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	abstract protected long getModified(F file);
 
 	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
-
-	/**
-	 * @param options the options to set
-	 */
-	public void setOptions(String options) {
-		String[] opts = options.split("\\s");
-		for (String opt : opts) {
-			this.options.add(opt.trim());
-		}
-	}
-
-	/**
-	 * @param remoteFileSeparator the remoteFileSeparator to set
-	 */
-	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		this.remoteFileSeparator = remoteFileSeparator;
-	}
-
-	/**
-	 * @param localDirectory the localDirectory to set
-	 */
-	public void setLocalDirectory(File localDirectory) {
-		this.localDirectory = localDirectory;
-	}
-
-	/**
-	 * @param autoCreateLocalDirectory the autoCreateLocalDirectory to set
-	 */
-	public void setAutoCreateLocalDirectory(boolean autoCreateLocalDirectory) {
-		this.autoCreateLocalDirectory = autoCreateLocalDirectory;
-	}
-
-	/**
-	 * @param temporaryFileSuffix the temporaryFileSuffix to set
-	 */
-	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		this.temporaryFileSuffix = temporaryFileSuffix;
-	}
-
-	/**
-	 * @param filter the filter to set
-	 */
-	public void setFilter(FileListFilter<F> filter) {
-		this.filter = filter;
-	}
 
 }

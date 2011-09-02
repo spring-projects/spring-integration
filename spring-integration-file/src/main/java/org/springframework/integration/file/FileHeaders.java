@@ -30,7 +30,7 @@ public abstract class FileHeaders {
 
 	public static final String ORIGINAL_FILE = PREFIX + "originalFile";
 
-	public static final String REMOTE_DIR = PREFIX + "remoteDir";
+	public static final String REMOTE_DIRECTORY = PREFIX + "remoteDirectory";
 
 	public static final String REMOTE_FILE = PREFIX + "remoteFile";
 

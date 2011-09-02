@@ -28,6 +28,8 @@ import org.springframework.integration.sftp.session.SftpFileInfo;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
+ * Outbound Gateway for performing remote file operations via SFTP.
+ * 
  * @author Gary Russell
  * @since 2.1
  */
@@ -44,7 +46,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
-	protected boolean isDir(LsEntry file) {
+	protected boolean isDirectory(LsEntry file) {
 		return file.getAttrs().isDir();
 	}
 

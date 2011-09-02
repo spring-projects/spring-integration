@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote;
 
 /**
- * Represents a remote file info - abstraction over underlying implementation
+ * Represents a remote file info - an abstraction over the underlying implementation.
+ *
  * @author Gary Russell
  * @since 2.1
- *
  */
 public interface FileInfo<F> {
 
 	/**
 	 * @return true if the remote file is a directory
 	 */
-	public abstract boolean isDir();
+	public abstract boolean isDirectory();
 
 	/**
 	 * @return true if the remote file is a link
@@ -51,7 +52,7 @@ public interface FileInfo<F> {
 	/**
 	 * @return the remote directory in which the file resides
 	 */
-	public abstract String getRemoteDir();
+	public abstract String getRemoteDirectory();
 
 	/**
 	 * @return a string representing the permissions of the remote

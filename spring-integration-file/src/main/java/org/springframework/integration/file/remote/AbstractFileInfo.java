@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.remote;
 
 import java.util.Date;
@@ -20,30 +21,30 @@ import java.util.Date;
 /**
  * Abstract implementation of {@link FileInfo}; provides a setter
  * for the remote directory and a generic toString implementation.
+ * 
  * @author Gary Russell
  * @since 2.1
- *
  */
 public abstract class AbstractFileInfo<F> implements FileInfo<F>, Comparable<FileInfo<F>> {
 
-	private String remoteDir;
+	private String remoteDirectory;
 
 	/**
-	 * @param remoteDir the remoteDir to set
+	 * @param remoteDirectory the remoteDirectory to set
 	 */
-	public void setRemoteDir(String remoteDir) {
-		this.remoteDir = remoteDir;
+	public void setRemoteDirectory(String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
 	}
 
-	public String getRemoteDir() {
-		return remoteDir;
+	public String getRemoteDirectory() {
+		return remoteDirectory;
 	}
 
 	public String toString() {
-		return "FileInfo [isDir=" + isDir() + ", isLink=" + isLink()
+		return "FileInfo [isDirectory=" + isDirectory() + ", isLink=" + isLink()
 				+ ", Size=" + getSize() + ", ModifiedTime="
 				+ new Date(getModified()) + ", Filename=" + getFilename()
-				+ ", RemoteDir=" + getRemoteDir() + ", Permissions=" + getPermissions() + "]";
+				+ ", RemoteDirectory=" + getRemoteDirectory() + ", Permissions=" + getPermissions() + "]";
 	}
 
 	public int compareTo(FileInfo<F> o) {

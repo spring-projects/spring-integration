@@ -27,6 +27,8 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.ftp.session.FtpFileInfo;
 
 /**
+ * Outbound Gateway for performing remote file operations via FTP/FTPS.
+ *  
  * @author Gary Russell
  * @since 2.1
  */
@@ -38,7 +40,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
-	protected boolean isDir(FTPFile file) {
+	protected boolean isDirectory(FTPFile file) {
 		return file.isDirectory();
 	}
 

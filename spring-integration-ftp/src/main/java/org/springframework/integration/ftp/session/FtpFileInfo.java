@@ -13,26 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp.session;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.FileInfo;
+import org.springframework.util.Assert;
 
 /**
+ * A {@link FileInfo} implementation for FTP/FTPS.
+ * 
  * @author Gary Russell
  * @since 2.1
- *
  */
 public class FtpFileInfo extends AbstractFileInfo<FTPFile> {
 
 	private final FTPFile ftpFile;
 
 	public FtpFileInfo(FTPFile ftpFile) {
+		Assert.notNull(ftpFile, "FTPFile must not be null");
 		this.ftpFile = ftpFile;
 	}
 
-	public boolean isDir() {
+	public boolean isDirectory() {
 		return this.ftpFile.isDirectory();
 	}
 

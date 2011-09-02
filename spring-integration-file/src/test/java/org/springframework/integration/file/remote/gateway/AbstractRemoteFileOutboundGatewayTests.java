@@ -65,7 +65,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		assertSame(files[1], out.getPayload().get(0)); // sort by default
 		assertSame(files[0], out.getPayload().get(1));
 		assertEquals("testremote/x/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIR));
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		assertSame(files[0], out.getPayload().get(0));
 		assertSame(files[1], out.getPayload().get(1));
 		assertEquals("testremote/x/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIR));
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
 
 	@Test
@@ -276,7 +276,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		assertTrue(outFile.exists());
 		outFile.delete();
 		assertEquals("/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIR));
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("f1",
 				out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
@@ -330,7 +330,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		assertEquals(modified.getTime() / 1000 * 1000, outFile.lastModified());
 		outFile.delete();
 		assertEquals("x/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIR));
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("f1",
 				out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
@@ -393,7 +393,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		assertEquals(Boolean.TRUE, out.getPayload());
 		verify(session).remove("testremote/x/f1");
 		assertEquals("testremote/x/",
-				out.getHeaders().get(FileHeaders.REMOTE_DIR));
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 		assertEquals("f1",
 				out.getHeaders().get(FileHeaders.REMOTE_FILE));
 	}
@@ -408,8 +408,8 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	}
 
 	@Override
-	protected boolean isDir(TestLsEntry file) {
-		return file.isDir();
+	protected boolean isDirectory(TestLsEntry file) {
+		return file.isDirectory();
 	}
 
 	@Override
@@ -454,7 +454,7 @@ class TestLsEntry extends AbstractFileInfo<TestLsEntry> {
 		this.permissions = permissions;
 	}
 
-	public boolean isDir() {
+	public boolean isDirectory() {
 		return this.dir;
 	}
 

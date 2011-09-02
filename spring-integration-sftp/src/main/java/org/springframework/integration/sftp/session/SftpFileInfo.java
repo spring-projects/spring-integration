@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.session;
 
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.FileInfo;
+import org.springframework.util.Assert;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
 
 /**
+ * A {@link FileInfo} implementation for SFTP.
+ * 
  * @author Gary Russell
  * @since 2.1
- *
  */
 public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 
@@ -32,7 +35,9 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 
 	private final SftpATTRS attrs;
 
+
 	public SftpFileInfo(LsEntry lsEntry) {
+		Assert.notNull("LsEntry must not be null");
 		this.lsEntry = lsEntry;
 		this.attrs = lsEntry.getAttrs();
 	}
@@ -41,7 +46,7 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	 * @return
 	 * @see com.jcraft.jsch.SftpATTRS#isDir()
 	 */
-	public boolean isDir() {
+	public boolean isDirectory() {
 		return this.attrs.isDir();
 	}
 
