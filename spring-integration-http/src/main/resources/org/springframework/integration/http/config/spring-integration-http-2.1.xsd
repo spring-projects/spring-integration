@@ -20,8 +20,18 @@
 					Defines an inbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" />
-			<xsd:attribute name="name" type="xsd:string" />
+			<xsd:attribute name="name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						[DEPRECATED since v2.1] Use 'path' attribute if you want to specify the path or 
+						'id' attribute if you simply want to identify this component
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -54,6 +64,20 @@
 						override the default key of the Errors (if the request cannot be handled).
 						Defaults to "errors" (similar to normal MVC
 						usage). 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="payload-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to specify SpEL expression to construct a Message payload
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="path" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to specify URI path (e.g., /orderId/{order})
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -116,6 +140,9 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
+				    <xsd:sequence>
+						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
+					</xsd:sequence>
 					<xsd:attribute name="name" type="xsd:string" />
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true" />
 					<xsd:attribute name="supported-methods" type="xsd:string" />
@@ -132,6 +159,20 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 								In the case that a view-name is specified this attribute can be used to
 								override the default key of the Errors (if the request cannot be handled).
 								Defaults to "errors" (similar to normal MVC usage). 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="payload-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify SpEL expression to construct a Message payload
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="path" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify URI path (e.g., /orderId/{order})
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -489,6 +530,28 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					The Message is the root object of the expression, therefore
 					the 'payload' and 'headers' are available directly. Any bean
 					may be resolved if the bean name is preceded with '@'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	
+	<xsd:complexType name="headerType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Expression to be evaluated against the ServletRequest(makes BODY and Headers available) as well as URI Variables (e.g., foo/bar/{id}).
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Name of the Message Header
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Expression to be evaluated to determine the value of the header.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

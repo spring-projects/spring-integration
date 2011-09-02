@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -50,13 +57,18 @@ import org.springframework.integration.http.multipart.MultipartHttpInputMessage;
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.PathMatcher;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.util.UrlPathHelper;
 
 /**
  * Base class for HTTP request handling endpoints.
@@ -79,10 +91,11 @@ import org.springframework.web.servlet.DispatcherServlet;
  * <code>false</code>.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
-
+	
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -104,9 +117,19 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	private final boolean expectReply;
 
+	private volatile String path;
+
+	private final UrlPathHelper urlPathHelper = new UrlPathHelper();
+
+	private final PathMatcher pathMatcher = new AntPathMatcher();
+
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
+	
+	private volatile Expression payloadExpression;
+
+	private volatile Map<String, Expression> headerExpressions;
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -139,6 +162,39 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	 */
 	protected boolean isExpectReply() {
 		return expectReply;
+	}
+
+	/**
+	 * Set the path template for which this endpoint expects requests.
+	 * May include path variable {keys} to match against. 
+	 */
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
+	String getPath() {
+		return path;
+	}
+
+	/**
+	 * Specifies a SpEL expression to evaluate in order to generate the Message payload.
+	 * The EvaluationContext will be populated with an HttpEntity instance as the root object,
+	 * and it may contain one or both of the <code>#pathVariables</code> and
+	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 */
+	public void setPayloadExpression(Expression payloadExpression) {
+		this.payloadExpression = payloadExpression;
+	}
+
+	/**
+	 * Specifies a Map of SpEL expressions to evaluate in order to generate the Message headers.
+	 * The keys in the map will be used as the header names. When evaluating the expression,
+	 * the EvaluationContext will be populated with an HttpEntity instance as the root object,
+	 * and it may contain one or both of the <code>#pathVariables</code> and
+	 * <code>#queryParameters</code> variables if present. Those variables' values are Maps.
+	 */
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+		this.headerExpressions = headerExpressions;
 	}
 
 	/**
@@ -244,28 +300,71 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 */
-	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
-			throws IOException {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
 		try {
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 			if (!this.supportedMethods.contains(request.getMethod())) {
 				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 				return null;
 			}
-			Object payload = null;
+
+			Object requestBody = null;
 			if (this.isReadable(request)) {
-				payload = this.generatePayloadFromRequestBody(request);
+				requestBody = this.extractRequestBody(request);
 			}
-			else {
-				payload = this.convertParameterMap(servletRequest.getParameterMap());
+			HttpEntity httpEntity = new HttpEntity(requestBody, request.getHeaders());
+
+			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
+			evaluationContext.setRootObject(httpEntity);
+
+			LinkedMultiValueMap<String, String> requestParams = this.convertParameterMap(servletRequest.getParameterMap());
+			evaluationContext.setVariable("requestParams", requestParams);
+
+			if (StringUtils.hasText(this.path)) {
+				String lookupPath = this.urlPathHelper.getLookupPathForRequest(servletRequest);
+				Map pathVariables = this.pathMatcher.extractUriTemplateVariables(this.path, lookupPath);
+				if (!pathVariables.isEmpty()) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Mapped path variables: " + pathVariables);
+					}
+					evaluationContext.setVariable("pathVariables", pathVariables);
+				}
 			}
-			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
-					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+
+			Map<String, Object> headers = this.headerMapper.toHeaders(request.getHeaders());
+			Object payload = null;
+			if (this.payloadExpression != null) {
+				// create payload based on SpEL
+				payload = this.payloadExpression.getValue(evaluationContext);
+			}
+			if (!CollectionUtils.isEmpty(this.headerExpressions)) {
+				for (String headerName : this.headerExpressions.keySet()) {
+					Expression headerExpression = this.headerExpressions.get(headerName);
+					Object headerValue = headerExpression.getValue(evaluationContext);
+					if (headerValue != null) {
+						headers.put(headerName, headerValue);
+					}
+				}
+			}
+
+			if (payload == null) {
+				if (requestBody != null) {
+					payload = requestBody;		
+				}
+				else {
+					payload = requestParams;
+				}
+			}
+
+			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers)
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
+							request.getURI().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-							request.getMethod().toString()).setHeader(
-							org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
+							request.getMethod().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
 							servletRequest.getUserPrincipal()).build();
+
 			Object reply = null;
 			if (this.expectReply) {
 				reply = this.sendAndReceiveMessage(message);
@@ -273,7 +372,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 					ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 					this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
 					HttpStatus httpStatus = this.resolveHttpStatusFromHeaders(((Message<?>) reply).getHeaders());
-					if (httpStatus != null){
+					if (httpStatus != null) {
 						response.setStatusCode(httpStatus);
 					}	
 					response.close();
@@ -348,7 +447,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
+	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		Class<?> expectedType = this.requestPayloadType;
 		if (expectedType == null) {
@@ -378,5 +477,18 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		return httpStatus;
 	}
-
+	
+	private StandardEvaluationContext createEvaluationContext(){
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+		return evaluationContext;
+	}
 }
