@@ -16,14 +16,21 @@
 
 package org.springframework.integration.http.config;
 
+import java.util.List;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -60,8 +67,9 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			id = element.getAttribute("name");
 		}
 		if (!StringUtils.hasText(id)) {
-			parserContext.getReaderContext().error("The 'id' or 'name' is required.", element);
+			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
 		}
+		
 		return id;
 	}
 
@@ -76,6 +84,32 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		}
 		builder.addPropertyReference("requestChannel", inputChannelRef);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
+		
+		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "path");
+		String payloadExpression = element.getAttribute("payload-expression");
+		if (StringUtils.hasText(payloadExpression)){
+			RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+			expressionDef.getConstructorArgumentValues().addGenericArgumentValue(payloadExpression);
+			builder.addPropertyValue("payloadExpression", expressionDef);
+		}
+		
+		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
+		
+		if (!CollectionUtils.isEmpty(headerElements)) {
+			ManagedMap<String, Object> headerElementsMap = new ManagedMap<String, Object>();
+			for (Element headerElement : headerElements) {
+				String name = headerElement.getAttribute("name");
+				String expression = headerElement.getAttribute("expression");
+				if (StringUtils.hasText(expression)){
+					RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
+					headerElementsMap.put(name, expressionDef);
+				}			
+			}
+			builder.addPropertyValue("headerExpressions", headerElementsMap);
+		}
+		
 		if (this.expectReply) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");

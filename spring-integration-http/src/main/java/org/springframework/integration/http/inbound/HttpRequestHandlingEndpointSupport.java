@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.expression.BeanFactoryResolver;
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -54,9 +61,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.util.UriTemplate;
 
 /**
  * Base class for HTTP request handling endpoints.
@@ -79,10 +88,11 @@ import org.springframework.web.servlet.DispatcherServlet;
  * <code>false</code>.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
-
+	
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -104,9 +114,15 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 
 	private final boolean expectReply;
 
+	private volatile String path;
+
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
+	
+	private volatile Expression payloadExpression;
+
+	private volatile Map<String, Expression> headerExpressions;
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -140,7 +156,22 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	protected boolean isExpectReply() {
 		return expectReply;
 	}
+	
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
+	String getPath() {
+		return path;
+	}
 
+	public void setPayloadExpression(Expression payloadExpression) {
+		this.payloadExpression = payloadExpression;
+	}
+
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+		this.headerExpressions = headerExpressions;
+	}
 	/**
 	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
 	 * responses.
@@ -244,6 +275,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
 	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
 			throws IOException {
 		try {
@@ -252,14 +284,73 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 				return null;
 			}
-			Object payload = null;
+			Map uriVariableMappings = null;
+			//
+			StandardEvaluationContext evaluationContext = this.createEvaluationContext();
+			
+			Object requestBody = null;
 			if (this.isReadable(request)) {
-				payload = this.generatePayloadFromRequestBody(request);
+				requestBody = this.extractRequestBody(request);
+				evaluationContext.setVariable("requestBody", requestBody);
 			}
-			else {
-				payload = this.convertParameterMap(servletRequest.getParameterMap());
+			
+			HttpEntity httpEntity = new HttpEntity(requestBody, request.getHeaders());
+			evaluationContext.setRootObject(httpEntity);
+			
+			LinkedMultiValueMap<String, String> requestParameterMap = this.convertParameterMap(servletRequest.getParameterMap());
+			evaluationContext.setVariable("requestParameterMap", uriVariableMappings);// bind the whole map
+			
+			for (String parameterName : requestParameterMap.keySet()) { // bind individual parameters
+				evaluationContext.setVariable(parameterName, requestParameterMap.get(parameterName));
 			}
-			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
+			
+            if (StringUtils.hasText(this.path)){
+                UriTemplate template = new UriTemplate(this.path);
+                uriVariableMappings = template.match(request.getURI().getPath());
+                if (!uriVariableMappings.isEmpty()){
+                	if (logger.isDebugEnabled()){
+                        logger.debug("Mapped URI variables: " + uriVariableMappings);
+                    }
+  
+                	// set the whole map       	
+	                evaluationContext.setVariable("pathVariables", uriVariableMappings);
+	                for (Object key : uriVariableMappings.keySet()) {
+	                	// add individual elements
+	                	evaluationContext.setVariable((String) key, uriVariableMappings.get(key));
+					}
+                }
+                else {
+                	logger.warn("Was not able to match UriVariables to path: " + this.path);
+                }            
+            }
+            //
+			
+            Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
+            
+            Object payload = null;
+            
+            if (this.payloadExpression != null){
+            	// create payload based on SpEL
+            	payload = this.payloadExpression.getValue(evaluationContext, request);
+            }
+            if (this.headerExpressions != null){
+            	for (String headerName : this.headerExpressions.keySet()) {
+					Expression headerExpression = this.headerExpressions.get(headerName);
+					Object headerValue = headerExpression.getValue(evaluationContext, request);
+					((Map<String, Object>)headers).put(headerName, headerValue);
+				}
+            }
+            
+			if (payload == null){
+				if (this.isReadable(request)) {
+					//payload = this.extractRequestBody(request);
+					payload = requestBody;		
+				}
+				else {
+					payload = requestParameterMap;
+				}
+			}
+				
 			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
 					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
 					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
@@ -348,7 +439,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
+	private Object extractRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		Class<?> expectedType = this.requestPayloadType;
 		if (expectedType == null) {
@@ -378,5 +469,18 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		return httpStatus;
 	}
-
+	
+	private StandardEvaluationContext createEvaluationContext(){
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+		return evaluationContext;
+	}
 }
