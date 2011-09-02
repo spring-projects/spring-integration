@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ftp.gateway;
 
 import java.util.ArrayList;
@@ -28,7 +29,6 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
 /**
  * @author Gary Russell
  * @since 2.1
- *
  */
 public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFile> {
 
@@ -58,8 +58,7 @@ public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFil
 	}
 
 	@Override
-	protected List<AbstractFileInfo<FTPFile>> asFileInFoList(
-			Collection<FTPFile> files) {
+	protected List<AbstractFileInfo<FTPFile>> asFileInfoList(Collection<FTPFile> files) {
 		List<AbstractFileInfo<FTPFile>> canonicalFiles = new ArrayList<AbstractFileInfo<FTPFile>>();
 		for (FTPFile file : files) {
 			canonicalFiles.add(new FtpFileInfo(file));

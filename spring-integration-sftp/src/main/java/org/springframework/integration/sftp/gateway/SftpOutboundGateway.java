@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.sftp.gateway;
 
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 /**
  * @author Gary Russell
  * @since 2.0.4
- *
  */
 public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEntry> {
 
@@ -39,8 +39,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	 * @param options
 	 * @param expression
 	 */
-	public SftpOutboundGateway(SessionFactory sessionFactory, String command,
-			String expression) {
+	public SftpOutboundGateway(SessionFactory sessionFactory, String command, String expression) {
 		super(sessionFactory, command, expression);
 	}
 
@@ -60,7 +59,7 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	}
 
 	@Override
-	protected List<AbstractFileInfo<LsEntry>> asFileInFoList(Collection<LsEntry> files) {
+	protected List<AbstractFileInfo<LsEntry>> asFileInfoList(Collection<LsEntry> files) {
 		List<AbstractFileInfo<LsEntry>> canonicalFiles = new ArrayList<AbstractFileInfo<LsEntry>>();
 		for (LsEntry file : files) {
 			canonicalFiles.add(new SftpFileInfo(file));
