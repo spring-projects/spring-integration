@@ -116,12 +116,10 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		public void run() {
 			try {
 				idleTask.run();
-				if (mailReceiver.getFolder().isOpen()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Task completed successfully. Re-scheduling it again right away.");
-					}
-					scheduler.schedule(this, new Date());
+				if (logger.isDebugEnabled()) {
+					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
+				scheduler.schedule(this, new Date());
 			}
 			catch (IllegalStateException e) { //run again after a delay
 				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + reconnectDelay + " milliseconds.", e);
