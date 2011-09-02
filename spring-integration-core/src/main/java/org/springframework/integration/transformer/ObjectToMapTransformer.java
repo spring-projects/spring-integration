@@ -26,21 +26,26 @@ import org.springframework.util.StringUtils;
 
 /**
  * Will transform an object graph into a Map. It supports a conventional Map (map of maps) where complex attributes are
- * represented as Map values as well as a flat Map where keys document the path to the value. It supports Collections,
- * Maps and Arrays which means that for flat maps it will flatten an Object's properties as such:<br>
+ * represented as Map values as well as a flat Map where keys document the path to the value. By default it will
+ * transform to a flat Map. If you need to transform to a Map of Maps set the 'shouldFlattenKeys' property to 'false'
+ * via the {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method. It supports Collections, Maps and Arrays
+ * which means that for flat maps it will flatten an Object's properties. Below is an example showing how a flattened
+ * Object hierarchy is represented when 'shouldFlattenKeys' is TRUE.<br>
  * 
- * private Map<String, Map<String, Object>> testMapInMapData;<br>
- * private List<String> departments;<br>
- * private String[] akaNames;<br>
+ * <code>
+ * public class Person {
+ *     public String name = "John";
+ *     public Address address = new Address();
+ * }
+ * public class Address {
+ *     private String street = "123 Main Street";
+ * }
+ * </code>
  * 
- * The resulting Map structure will look similar to this:<br>
- * 
- * person.address.mapWithListData['mapWithListTestData'][1]=blah<br>
- * departments[0]=HR<br>
- * person.lname=Case
- * 
- * By default it will transform to a flat Map. If you need to transform to a Map of Maps set the 'shouldFlattenKeys'
- * property to 'false' via the {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method.
+ * The resulting Map would look like this:
+ * <code>
+ * {name=John, address.street=123 Main Street}
+ * </code> 
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
