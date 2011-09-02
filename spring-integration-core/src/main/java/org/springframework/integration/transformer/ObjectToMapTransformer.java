@@ -24,8 +24,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Will transform an object graph into a flat Map where keys are valid SpEL expressions documenting the path to the value. 
- * It supports Collections, Maps and Arrays which means it will flatten Object's attributes that are defined as such:<br>
+ * Will transform an object graph into a Map.
+ * It supports conventional Map (map of maps) where complex attributes are represents as Map values as well as flat Map where keys are valid SpEL expressions documenting the path to the value.
+ * It supports Collections, Maps and Arrays which means that for flat maps it will flatten Object's attributes as such:<br>
  * 
  * private Map<String, Map<String, Object>> testMapInMapData;<br>
  * private List<String> departments;<br>
@@ -36,6 +37,9 @@ import org.springframework.util.StringUtils;
  * person.address.mapWithListData['mapWithListTestData'][1]=blah<br>
  * departments[0]=HR<br>
  * person.lname=Case
+ * 
+ * By default the it will transforme to a flat Map. If you need to transform to a Map of Maps set 'shouldFlattenKeys'
+ * attribute to 'false' via {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -64,11 +68,11 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	
 	private Map<String, Object> flatenMap(Map<String,Object> result){
 		Map<String,Object> resultMap = new HashMap<String, Object>();
-		this.doFlaten("", result, resultMap);
+		this.doFlatten("", result, resultMap);
 		return resultMap;
 	}
 	
-	private void doFlaten(String propertyPrefix, Map<String,Object> inputMap, Map<String,Object> resultMap){
+	private void doFlatten(String propertyPrefix, Map<String,Object> inputMap, Map<String,Object> resultMap){
 		if (StringUtils.hasText(propertyPrefix)){
 			propertyPrefix = propertyPrefix + ".";
 		}
@@ -89,7 +93,7 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	@SuppressWarnings("unchecked")
 	private void doProcessElement(String propertyPrefix, Object element, Map<String, Object> resultMap){
 		if (element instanceof Map){
-			this.doFlaten(propertyPrefix, (Map<String, Object>) element, resultMap);
+			this.doFlatten(propertyPrefix, (Map<String, Object>) element, resultMap);
 		}
 		else if (element instanceof Collection){
 			this.doProcessCollection(propertyPrefix, (Collection<?>) element, resultMap);
