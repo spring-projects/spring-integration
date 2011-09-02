@@ -22,10 +22,10 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * @author David Turanski
  * @since 2.1
  */
-public class Jsr223NamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class ScriptNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		this.registerBeanDefinitionParser("script", new Jsr223ScriptParser()); 
+		this.registerBeanDefinitionParser("script", new ScriptParser()); 
 	}
 
 }

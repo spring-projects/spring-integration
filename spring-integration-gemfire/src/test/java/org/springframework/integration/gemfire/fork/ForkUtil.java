@@ -102,9 +102,17 @@ public class ForkUtil {
 
 		return proc.getOutputStream();
 	}
-
+	
 	public static OutputStream cacheServer() {
-		String className = "org.springframework.integration.gemfire.fork.CacheServerProcess";
+		return startCacheServer("org.springframework.integration.gemfire.fork.CacheServerProcess");
+	}
+	
+	public static OutputStream cacheServer(String className) {
+		return startCacheServer(className);
+	}
+
+	private static OutputStream startCacheServer(String className) {
+		
 		if (controlFileExists(className)) {
 			deleteControlFile(className);
 		}

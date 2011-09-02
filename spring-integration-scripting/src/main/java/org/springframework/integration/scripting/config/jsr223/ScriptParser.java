@@ -19,7 +19,7 @@ package org.springframework.integration.scripting.config.jsr223;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractScriptParser;
-import org.springframework.integration.scripting.jsr223.Jsr223ScriptExecutor;
+import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
 import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 
@@ -27,13 +27,13 @@ import org.w3c.dom.Element;
  * @author David Turanski
  * @since 2.1
  */
-public class Jsr223ScriptParser extends AbstractScriptParser {
+public class ScriptParser extends AbstractScriptParser {
 	
 	private static final String LANGUAGE_ATTRIBUTE = "lang";
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.scripting.jsr223.Jsr223ScriptExecutingMessageProcessor";
+		return "org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor";
 	}
 	
 	/* (non-Javadoc)
@@ -47,7 +47,7 @@ public class Jsr223ScriptParser extends AbstractScriptParser {
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext){
 		String language = element.getAttribute(LANGUAGE_ATTRIBUTE);
 		Assert.hasLength(language, "Attribute " + LANGUAGE_ATTRIBUTE + " is required");
-		builder.addConstructorArgValue(new Jsr223ScriptExecutor(language));
+		builder.addConstructorArgValue(new DefaultScriptExecutor(language));
 	}
 	
 
