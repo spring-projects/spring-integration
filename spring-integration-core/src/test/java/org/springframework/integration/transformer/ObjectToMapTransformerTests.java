@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,30 @@
  */
 package org.springframework.integration.transformer;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Test;
-import org.springframework.expression.EvaluationContext;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -41,27 +48,101 @@ import org.springframework.integration.support.MessageBuilder;
 public class ObjectToMapTransformerTests {
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testObjectToSpelMapTransformer(){
+	public void testObjectToSpelMapTransformer() throws JsonParseException, JsonMappingException, JsonGenerationException, IOException{
 		Employee employee = this.buildEmployee();
-		EvaluationContext context = new StandardEvaluationContext(employee);
+		StandardEvaluationContext context = new StandardEvaluationContext();
+		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
 		
 		ObjectToMapTransformer transformer = new ObjectToMapTransformer();
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
+
 		Message<?> transformedMessage = transformer.transform(message);
 		Map<String, Object> transformedMap = (Map<String, Object>) transformedMessage.getPayload();
-		
+		System.out.println(transformedMap);
 		assertNotNull(transformedMap);
-		for (String key : transformedMap.keySet()) {
-			Expression expression = parser.parseExpression(key);
-			//System.out.println("Testing: " + key);
-			Object valueFromTheMap = transformedMap.get(key);
-			Object valueFromExpression = expression.getValue(context);
-			String packageNameOfValueType = valueFromTheMap.getClass().getPackage().getName();
-			assertTrue(packageNameOfValueType.startsWith("java.lang"));
-			assertEquals(valueFromTheMap, valueFromExpression);
-		}		
+		
+		Object valueFromTheMap = null;
+		Object valueFromExpression = null;
+		Expression expression = null;
+		
+		expression = parser.parseExpression("departments[0]");
+		valueFromTheMap = transformedMap.get("departments[0]");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.address.coordinates");
+		valueFromTheMap = transformedMap.get("person.address.coordinates");
+		valueFromExpression = expression.getValue(context, employee, Map.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.akaNames[0]");
+		valueFromTheMap = transformedMap.get("person.akaNames[0]");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("testMapInMapData.internalMapA.bar");
+		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.bar");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("companyAddress.street");
+		valueFromTheMap = transformedMap.get("companyAddress.street");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.lname");
+		valueFromTheMap = transformedMap.get("person.lname");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.address.mapWithListData.mapWithListTestData[1]");
+		valueFromTheMap = transformedMap.get("person.address.mapWithListData.mapWithListTestData[1]");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("companyAddress.city");
+		valueFromTheMap = transformedMap.get("companyAddress.city");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.akaNames[2]");
+		valueFromTheMap = transformedMap.get("person.akaNames[2]");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.child");
+		valueFromTheMap = transformedMap.get("person.child");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertNull(valueFromTheMap);
+		assertNull(valueFromExpression);
+		
+		expression = parser.parseExpression("testMapInMapData.internalMapA.foo");
+		valueFromTheMap = transformedMap.get("testMapInMapData.internalMapA.foo");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.address.city");
+		valueFromTheMap = transformedMap.get("person.address.city");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("companyAddress.coordinates.latitude[0]");
+		valueFromTheMap = transformedMap.get("companyAddress.coordinates.latitude[0]");
+		valueFromExpression = expression.getValue(context, employee, Integer.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("person.remarks[1].baz");
+		valueFromTheMap = transformedMap.get("person.remarks[1].baz");
+		valueFromExpression = expression.getValue(context, employee, String.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
+		
+		expression = parser.parseExpression("listOfDates[0][1]");
+		valueFromTheMap = new Date((Long) transformedMap.get("listOfDates[0][1]"));
+		valueFromExpression = expression.getValue(context, employee, Date.class);
+		assertEquals(valueFromTheMap, valueFromExpression);
 	}
+
 	@Test(expected=MessageTransformationException.class)
 	public void testObjectToSpelMapTransformerWithCycle(){
 		Employee employee = this.buildEmployee();
@@ -86,9 +167,22 @@ public class ObjectToMapTransformerTests {
 		coordinates.put("longitude", new Long[]{(long)156});
 		companyAddress.setCoordinates(coordinates);
 		
+		List<Date> datesA = new ArrayList<Date>();
+		datesA.add(new Date(System.currentTimeMillis() + 10000));
+		datesA.add(new Date(System.currentTimeMillis() + 20000));
+		
+		List<Date> datesB = new ArrayList<Date>();
+		datesB.add(new Date(System.currentTimeMillis() + 30000));
+		datesB.add(new Date(System.currentTimeMillis() + 40000));
+		
+		List<List<Date>> listOfDates = new ArrayList<List<Date>>();
+		listOfDates.add(datesA);
+		listOfDates.add(datesB);
+		
 		Employee employee = new Employee();
 		employee.setCompanyName("ABC Inc.");
 		employee.setCompanyAddress(companyAddress);
+		employee.setListOfDates(listOfDates);
 		ArrayList departments = new ArrayList();
 		departments.add("HR");
 		departments.add("IT");
@@ -98,6 +192,8 @@ public class ObjectToMapTransformerTests {
 		person.setFname("Justin");
 		person.setLname("Case");
 		person.setAkaNames("Hard", "Use", "Beer");
+		person.setBirthDate(new Date());
+		person.setAge(new BigDecimal(10));
 		Address personAddress = new Address();
 		personAddress.setCity("Philly");
 		personAddress.setStreet("123 Main");
@@ -137,10 +233,17 @@ public class ObjectToMapTransformerTests {
 	
 	public static class Employee{
 		private List<String> departments;
+		private List<List<Date>> listOfDates;
 		private String companyName;
 		private Person person;
 		private Address companyAddress;
 		private Map<String, Map<String, Object>> testMapInMapData;
+		public List<List<Date>> getListOfDates() {
+			return listOfDates;
+		}
+		public void setListOfDates(List<List<Date>> listOfDates) {
+			this.listOfDates = listOfDates;
+		}
 		public Map<String, Map<String, Object>> getTestMapInMapData() {
 			return testMapInMapData;
 		}
@@ -180,6 +283,24 @@ public class ObjectToMapTransformerTests {
 		private String[] akaNames;
 		private List<Map<String, Object>> remarks;
 		private Child child;
+		private BigDecimal age;
+		public BigDecimal getAge() {
+			return age;
+		}
+
+		public void setAge(BigDecimal age) {
+			this.age = age;
+		}
+
+		public Date getBirthDate() {
+			return birthDate;
+		}
+
+		public void setBirthDate(Date birthDate) {
+			this.birthDate = birthDate;
+		}
+
+		private Date birthDate;
 		public Child getChild() {
 			return child;
 		}
