@@ -67,6 +67,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="path" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Allows you to specify URI path (e.g., /orderId/{order})
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="error-code" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -152,6 +159,13 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						<xsd:annotation>
 							<xsd:documentation>
 								Allows you to specify SpEL expression to construct a Message payload
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="path" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to specify URI path (e.g., /orderId/{order})
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

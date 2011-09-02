@@ -26,5 +26,13 @@
 	
 	<inbound-channel-adapter id="withMappedHeaders" channel="requests"
 								mapped-request-headers="foo,bar"/>
+								
+	<inbound-channel-adapter id="inboundAdapterWithExpressions" 
+	                         path="/fname/{f}/lname/{l}"
+	                         channel="requests"
+							 mapped-request-headers="foo,bar"
+							 payload-expression="#f">
+		<header name="lname" expression="#l"/>
+	</inbound-channel-adapter>
 
 </beans:beans>
