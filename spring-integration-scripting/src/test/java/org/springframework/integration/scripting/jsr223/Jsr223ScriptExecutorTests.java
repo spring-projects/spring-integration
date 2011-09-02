@@ -20,7 +20,7 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.scripting.ScriptExecutor;
-import org.springframework.integration.scripting.jsr223.Jsr223ScriptExecutor;
+import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.scripting.support.StaticScriptSource;
 
@@ -31,7 +31,7 @@ import org.springframework.scripting.support.StaticScriptSource;
 public class Jsr223ScriptExecutorTests {
 	@Test
 	public void test(){
-		ScriptExecutor executor = new Jsr223ScriptExecutor("jruby");
+		ScriptExecutor executor = new DefaultScriptExecutor("jruby");
 		executor.executeScript(new StaticScriptSource("puts 'hello, world'"));
 		executor.executeScript(new StaticScriptSource("puts 'hello, again'"));
 		
@@ -54,7 +54,7 @@ public class Jsr223ScriptExecutorTests {
 	}
 	@Test
 	public void testJs(){
-		ScriptExecutor executor = new Jsr223ScriptExecutor("js");
+		ScriptExecutor executor = new DefaultScriptExecutor("js");
 		Object obj = executor.executeScript(new StaticScriptSource("function js(){ return 'js';} js();"));
 		assertEquals("js",obj.toString());
 	}
