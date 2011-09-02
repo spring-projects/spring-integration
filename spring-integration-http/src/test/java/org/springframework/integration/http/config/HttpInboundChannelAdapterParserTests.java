@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.Message;
@@ -75,7 +76,15 @@ public class HttpInboundChannelAdapterParserTests {
 	
 	@Autowired
 	private HttpRequestHandlingMessagingGateway inboundAdapterWithExpressions;
-
+	
+	@Autowired
+	@Qualifier("/fname/{blah}/lname/{boo}")
+	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameAndExpressions;
+	
+	@Autowired
+	@Qualifier("/fname/{f}/lname/{l}")
+	private HttpRequestHandlingMessagingGateway inboundAdapterWithNameNoPath;
+	
 	@Autowired
 	private HttpRequestHandlingController inboundController;
 
@@ -118,7 +127,7 @@ public class HttpInboundChannelAdapterParserTests {
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")// INT-1677
+	// INT-1677
 	public void withExpressions() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
@@ -137,6 +146,49 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("bill", payload);
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
+	@Test // ensure that 'path' takes priority over name
+	// INT-1677
+	public void withNameAndExpressionsAndPath() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("text/plain");
+		request.setParameter("foo", "bar");
+		request.setContent("hello".getBytes());
+		request.setRequestURI("/fname/bill/lname/clinton");
+		
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		inboundAdapterWithNameAndExpressions.handleRequest(request, response);
+		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		Message<?> message = requests.receive(0);
+		assertNotNull(message);
+		Object payload = message.getPayload();
+		assertTrue(payload instanceof String);
+		assertEquals("bill", payload);
+		assertEquals("clinton", message.getHeaders().get("lname"));
+	}
+	
+	@Test 
+	// INT-1677
+	public void withNameAndExpressionsNoPath() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("text/plain");
+		request.setParameter("foo", "bar");
+		request.setContent("hello".getBytes());
+		request.setRequestURI("/fname/bill/lname/clinton");
+		
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		inboundAdapterWithNameNoPath.handleRequest(request, response);
+		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		Message<?> message = requests.receive(0);
+		assertNotNull(message);
+		Object payload = message.getPayload();
+		assertTrue(payload instanceof String);
+		assertEquals("hello", payload); // default payload
+		assertNull(message.getHeaders().get("lname"));
+	}
+	
+	
 
 	@Test
 	public void getRequestNotAllowed() throws Exception {
