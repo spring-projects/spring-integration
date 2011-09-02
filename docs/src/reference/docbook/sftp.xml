@@ -17,9 +17,11 @@
     </para>
     
     <para>
-    Spring Integration supports sending and receiving files over SFTP by providing two types of <emphasis>client</emphasis>s - 
-    <emphasis>Inbound Channel Adapters</emphasis> and <emphasis>Outbound Channel Adapters</emphasis> as well as convenient 
-    namespace configuration to define these <emphasis>client</emphasis>s.
+    Spring Integration supports sending and receiving files over SFTP by providing three <emphasis>client</emphasis>
+    side endpoints:
+    <emphasis>Inbound Channel Adapter</emphasis>, <emphasis>Outbound Channel Adapter</emphasis>, and <emphasis>Outbound Gateway</emphasis>
+    It also provides convenient
+    namespace configuration to define these <emphasis>client</emphasis> components.
     
     <programlisting language="xml"><![CDATA[xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp 
@@ -168,7 +170,99 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   		value that computes the <emphasis>file name</emphasis> based on its original name while also appending a suffix: '-foo'.
   	</para>
   </section>
-  
+
+  <section id="sftp-outbound-gateway">
+	<title>SFTP Outbound Gateway</title>
+
+	<para>
+	  The <emphasis>SFTP Outbound Gateway</emphasis> provides a limited set of commands to interact with a remote SFTP server.
+	  <para>
+	    Commands supported are:
+	    <itemizedlist>
+		  <listitem>ls (list files)</listitem>
+		  <listitem>get (retrieve file(s))</listitem>
+		  <listitem>rm (remove file(s))</listitem>
+	    </itemizedlist>
+	  </para>
+	  <para>
+	    ls supports the following options:
+	    <itemizedlist>
+		  <listitem>-1 - just retrieve a list of filenames, default is to retrieve a
+		    list of <classname>FileInfo</classname> objects.</listitem>
+		  <listitem>-a - include all files (including those starting with '.')</listitem>
+		  <listitem>-f - do not sort the list</listitem>
+		  <listitem>-dirs - include directories (excluded by default)</listitem>
+		  <listitem>-links - include symbolic links (excluded by default)</listitem>
+		</itemizedlist>
+	  </para>
+	  <para>
+	    In addition, filename filtering is provided, in the same manner as the
+	    <classname>inbound-channel-adapter</classname>.
+	  </para>
+	  <para>
+	    The message payload resulting from an <emphasis>ls</emphasis> operation is a list of file names,
+	    or a list of <classname>FileInfo</classname> objects. These objects provide
+	    information such as modified time, permissions etc.
+	  </para>
+	  <para>
+	    The remote directory that the <emphasis>ls</emphasis> command acted on is provided
+	    in the <classname>file_remote_dir</classname> header.
+	  </para>
+	  <para>
+	    <emphasis>get</emphasis> supports the following option:
+	    <itemizedlist>
+		  <listitem>-P - preserve the timestamp of the remote file</listitem>
+	    </itemizedlist>
+	  </para>
+	  <para>
+		The message payload resulting from a <emphasis>get</emphasis> operation is a
+		<classname>File</classname>	object representing the retrieved file.
+	  </para>
+	  <para>
+	    The remote directory is provided in the <classname>file_remote_dir</classname> header, and the filename is
+	    provided in the <classname>file_remote_file</classname> header.
+	  </para>
+	  <para></para>
+	  <para>
+	    The <emphasis>rm</emphasis> command has no options.
+	  </para>
+	  <para>
+	    <note>
+	      Filters are not supported with the <emphasis>rm</emphasis> command.
+	    </note>
+	  </para>
+	  <para>
+		The message payload resulting from an <emphasis>rm</emphasis> operation is Boolean.TRUE if the
+		remove was successful, Boolean.FALSE otherwise.
+	    The remote directory is provided in the <classname>file_remote_dir</classname> header, and the filename is
+	    provided in the <classname>file_remote_file</classname> header.
+	  </para>
+	  <para></para>
+	  <para>
+	    In each case, the PATH that these commands act on is provided by the 'expression'
+	    property of the gateway.
+	  </para>
+	</para>
+	<para>
+	  Here is an example of a gateway configured for an ls command...
+	  <programlisting language="xml"><![CDATA[<int-ftp:outbound-gateway id="gateway1"
+		session-factory="ftpSessionFactory"
+		request-channel="inbound1"
+		command="ls"
+		command-options="-1"
+		expression="payload"
+		reply-channel="toSplitter"/>
+]]></programlisting>
+	</para>
+	<para>
+	  The payload of the message sent to the toSplitter channel is a list of String objects
+	  containing the filename of each file. If the <classname>command-options</classname> was
+	  omitted, it would be a list of <classname>FileInfo</classname> objects. Options are
+	  provided space-delimited, e.g. <classname>command-options="-1 -dirs -links"</classname>.
+	</para>
+
+  </section>
+
   <section id="sftp-jsch-logging">
   	<title>SFTP/JSCH Logging</title>
   	<para>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.1.xsd">
+
+	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>
+	</bean>
+
+	<int-sftp:outbound-gateway id="gateway1"
+		local-directory="/tmp"
+		session-factory="sf"
+		request-channel="inbound1"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		cache-sessions="false"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="ls"
+		command-options="-1 -f"
+		expression="payload"
+		order="1"
+		/>
+
+	<int-sftp:outbound-gateway id="gateway2"
+		local-directory="/tmp"
+		session-factory="sf"
+		request-channel="inbound2"
+		reply-channel="outbound"
+		auto-create-local-directory="false"
+		auto-startup="false"
+		cache-sessions="true"
+		filename-pattern="*"
+		remote-file-separator="X"
+		command="get"
+		command-options="-P"
+		expression="payload"
+		order="2"
+		/>
+
+	<int:channel id="outbound"/>
+
+</beans>
