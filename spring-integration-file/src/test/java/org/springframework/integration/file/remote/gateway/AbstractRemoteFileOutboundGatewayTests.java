@@ -428,7 +428,7 @@ class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<Te
 	}
 
 	@Override
-	protected List<AbstractFileInfo<TestLsEntry>> asFileInFoList(
+	protected List<AbstractFileInfo<TestLsEntry>> asFileInfoList(
 			Collection<TestLsEntry> files) {
 		return new ArrayList<AbstractFileInfo<TestLsEntry>>(files);
 	}

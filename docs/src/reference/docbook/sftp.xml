@@ -175,7 +175,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	<title>SFTP Outbound Gateway</title>
 
 	<para>
-	  The <emphasis>FTP Outbound Gateway</emphasis> provides a limited set of commands to interact with a remote FTP/FTPS server.
+	  The <emphasis>SFTP Outbound Gateway</emphasis> provides a limited set of commands to interact with a remote SFTP server.
 	  <para>
 	    Commands supported are:
 	    <itemizedlist>
