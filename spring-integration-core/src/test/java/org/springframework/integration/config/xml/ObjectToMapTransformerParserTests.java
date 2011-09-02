@@ -16,10 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.expression.EvaluationContext;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -41,6 +37,9 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
  * @author Oleg Zhurakousky
@@ -62,7 +61,8 @@ public class ObjectToMapTransformerParserTests {
 	@Test
 	public void testObjectToSpelMapTransformer(){
 		Employee employee = this.buildEmployee();
-		EvaluationContext context = new StandardEvaluationContext(employee);
+		StandardEvaluationContext context = new StandardEvaluationContext(employee);
+		context.addPropertyAccessor(new MapAccessor());
 		ExpressionParser parser = new SpelExpressionParser();
 		
 		Message<Employee> message = MessageBuilder.withPayload(employee).build();
@@ -75,8 +75,6 @@ public class ObjectToMapTransformerParserTests {
 			Expression expression = parser.parseExpression(key);
 			Object valueFromTheMap = transformedMap.get(key);
 			Object valueFromExpression = expression.getValue(context);
-			String packageNameOfValueType = valueFromTheMap.getClass().getPackage().getName();
-			assertTrue(packageNameOfValueType.startsWith("java.lang"));
 			assertEquals(valueFromTheMap, valueFromExpression);
 		}		
 	}
@@ -98,9 +96,9 @@ public class ObjectToMapTransformerParserTests {
 		companyAddress.setStreet("1123 Main");
 		companyAddress.setZip("12345");
 		
-		Map<String, Long[]> coordinates = new HashMap<String, Long[]>();
-		coordinates.put("latitude", new Long[]{(long)1, (long)5, (long)13});
-		coordinates.put("longitude", new Long[]{(long)156});
+		Map<String, Integer[]> coordinates = new HashMap<String, Integer[]>();
+		coordinates.put("latitude", new Integer[]{1, 5, 13});
+		coordinates.put("longitude", new Integer[]{156});
 		companyAddress.setCoordinates(coordinates);
 		
 		Employee employee = new Employee();
@@ -241,7 +239,7 @@ public class ObjectToMapTransformerParserTests {
 		private String city;
 		private String zip;
 		private Map<String, List<String>> mapWithListData;
-		private Map<String, Long[]> coordinates;
+		private Map<String, Integer[]> coordinates;
 		public Map<String, List<String>> getMapWithListData() {
 			return mapWithListData;
 		}
@@ -266,10 +264,10 @@ public class ObjectToMapTransformerParserTests {
 		public void setZip(String zip) {
 			this.zip = zip;
 		}
-		public Map<String, Long[]> getCoordinates() {
+		public Map<String, Integer[]> getCoordinates() {
 			return coordinates;
 		}
-		public void setCoordinates(Map<String, Long[]> coordinates) {
+		public void setCoordinates(Map<String, Integer[]> coordinates) {
 			this.coordinates = coordinates;
 		}
 	}
