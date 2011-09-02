@@ -61,7 +61,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected Set<String> options = new HashSet<String>();
 
-	public static final String OPTION_JUST_NAME = "-1";
+	public static final String OPTION_NAME_ONLY = "-1";
 
 	public static final String OPTION_ALL = "-a";
 
@@ -199,7 +199,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		if (!this.options.contains(OPTION_ALL)) {
 			purgeDots(lsFiles);
 		}
-		if (this.options.contains(OPTION_JUST_NAME)) {
+		if (this.options.contains(OPTION_NAME_ONLY)) {
 			List<String> results = new ArrayList<String>();
 			for (F file : lsFiles) {
 				results.add(getFilename(file));
