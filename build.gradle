@@ -62,7 +62,7 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
+        //mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
         mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
         mavenCentral()
         // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
@@ -124,8 +124,7 @@ configure(javaprojects) {
     mockitoVersion = '1.8.4'
     springVersion = '3.0.6.RELEASE'
     springAmqpVersion = '1.0.0.RELEASE'
-    springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
-    springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
+    springDataMongoVersion = '1.0.0.M4'
     springDataRedisVersion = '1.0.0.M4'
     springGemfireVersion = '1.1.0.M2'
     springSecurityVersion = '3.0.6.RELEASE'
@@ -355,7 +354,6 @@ project('spring-integration-mongodb') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data:spring-data-mongodb:$springDataMongoVersion"
-        compile "org.springframework.data:spring-data-commons-core:$springDataCommonsVersion"
         testCompile project(":spring-integration-test")
     }
 }
