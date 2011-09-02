@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
  * departments[0]=HR<br>
  * person.lname=Case
  * 
- * By default the it will transforme to a flat Map. If you need to transform to a Map of Maps set 'shouldFlattenKeys'
+ * By default the it will transform to a flat Map. If you need to transform to a Map of Maps set 'shouldFlattenKeys'
  * attribute to 'false' via {@link ObjectToMapTransformer#setShouldFlattenKeys(boolean)} method.
  * 
  * @author Oleg Zhurakousky
