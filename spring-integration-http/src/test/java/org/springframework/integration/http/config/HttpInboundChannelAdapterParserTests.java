@@ -72,6 +72,9 @@ public class HttpInboundChannelAdapterParserTests {
 	
 	@Autowired
 	private HttpRequestHandlingMessagingGateway withMappedHeaders;
+	
+	@Autowired
+	private HttpRequestHandlingMessagingGateway inboundAdapterWithExpressions;
 
 	@Autowired
 	private HttpRequestHandlingController inboundController;
@@ -112,6 +115,27 @@ public class HttpInboundChannelAdapterParserTests {
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")// INT-1677
+	public void withExpressions() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("text/plain");
+		request.setParameter("foo", "bar");
+		request.setContent("hello".getBytes());
+		request.setRequestURI("/fname/bill/lname/clinton");
+		
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		inboundAdapterWithExpressions.handleRequest(request, response);
+		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+		Message<?> message = requests.receive(0);
+		assertNotNull(message);
+		Object payload = message.getPayload();
+		assertTrue(payload instanceof String);
+		assertEquals("bill", payload);
+		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
 
 	@Test
