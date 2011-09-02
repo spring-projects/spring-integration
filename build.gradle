@@ -62,14 +62,15 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        mavenRepo urls: 'http://maven.springframework.org/snapshot'
+        mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
+        mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
         mavenCentral()
-        mavenRepo urls: 'http://maven.springframework.org/release'
-        mavenRepo urls: 'http://maven.springframework.org/milestone'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/external'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/release'
-        mavenRepo urls: 'http://repository.springsource.com/maven/bundles/milestone'
-        mavenRepo urls: 'http://download.java.net/maven/2' // for javax.mail 1.4.3
+        // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
+        mavenRepo name: 'SpringSource Release Repository', urls: 'http://maven.springframework.org/release'
+        // needed for bundlor:
+        mavenRepo name: 'SpringSource Release Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/release'
+        // needed for external dependencies required by bundlor:
+        mavenRepo name: 'SpringSource External Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/external'
     }
 }
 
@@ -121,13 +122,13 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    springVersion = '3.1.0.M2'
-    springAmqpVersion = '1.0.0.RC3'
+    springVersion = '3.0.6.RELEASE'
+    springAmqpVersion = '1.0.0.RELEASE'
     springDataMongoVersion = '1.0.0.BUILD-SNAPSHOT'
     springDataCommonsVersion = '1.2.0.BUILD-SNAPSHOT'
-    springDataRedisVersion = '1.0.0.BUILD-SNAPSHOT'
-    springGemfireVersion = '1.0.1.RELEASE'
-    springSecurityVersion = '3.0.5.RELEASE'
+    springDataRedisVersion = '1.0.0.M4'
+    springGemfireVersion = '1.1.0.M2'
+    springSecurityVersion = '3.0.6.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
 
     sourceSets {
@@ -249,6 +250,7 @@ project('spring-integration-gemfire') {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion"
         testCompile project(":spring-integration-stream")
+        testCompile project(":spring-integration-test")
     }
     repositories {
         mavenRepo urls: 'http://dist.gemstone.com/maven/release' // for gemfire
@@ -444,6 +446,7 @@ project('spring-integration-test') {
         compile "junit:junit-dep:$junitVersion"
         compile "org.mockito:mockito-all:$mockitoVersion"
         compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-test:$springVersion"
     }
 }
 

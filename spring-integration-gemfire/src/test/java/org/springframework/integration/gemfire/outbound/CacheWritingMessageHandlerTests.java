@@ -28,11 +28,13 @@ import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 
+import com.gemstone.bp.edu.emory.mathcs.backport.java.util.Collections;
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.1
  */
 public class CacheWritingMessageHandlerTests {
@@ -41,7 +43,7 @@ public class CacheWritingMessageHandlerTests {
 	public void mapPayloadWritesToCache() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.mapPayloadWritesToCache");
 		regionFactoryBean.setCache(cache);
@@ -54,6 +56,32 @@ public class CacheWritingMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload(map).build();
 		handler.handleMessage(message);
 		assertEquals(1, region.size());
+		assertEquals("bar", region.get("foo"));
+	}
+	
+	@Test
+	public void ExpressionsWriteToCache() throws Exception {
+		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
+		cacheFactoryBean.afterPropertiesSet();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
+		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
+		regionFactoryBean.setName("test.expressionsWriteToCache");
+		regionFactoryBean.setCache(cache);
+		regionFactoryBean.afterPropertiesSet();
+		Region<String, String> region = regionFactoryBean.getObject();
+		assertEquals(0, region.size());
+		CacheWritingMessageHandler handler = new CacheWritingMessageHandler(region);
+		
+		Map<String, String> expressions = new HashMap<String, String>();
+		expressions.put("'foo'", "'bar'");
+		expressions.put("payload.toUpperCase()", "headers['bar'].toUpperCase()");
+		handler.setCacheEntries(expressions);
+		
+		@SuppressWarnings("unchecked")
+		Message<?> message = MessageBuilder.withPayload("foo").copyHeaders(Collections.singletonMap("bar", "bar")).build();
+		handler.handleMessage(message);
+		assertEquals(2, region.size());
+		assertEquals("BAR", region.get("FOO"));
 		assertEquals("bar", region.get("foo"));
 	}
 

@@ -36,8 +36,6 @@
 		</constructor-arg>
 	</bean>
 
-	<integration:poller id="poller" default="true">
-		<integration:interval-trigger interval="500"/>
-	</integration:poller>
+	<integration:poller id="poller" default="true" fixed-delay="500"/>
 
 </beans>

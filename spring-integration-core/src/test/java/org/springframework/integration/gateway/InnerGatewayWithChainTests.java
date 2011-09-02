@@ -26,7 +26,6 @@ import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -84,7 +83,7 @@ public class InnerGatewayWithChainTests {
 	}
 	
 	// if no error channels explicitly defined exception is rethrown
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected=ArithmeticException.class)
 	public void testGatewaysNoErrorChannel(){
 		testGatewayWithNoErrorChannelAAA.echo(0);
 	}

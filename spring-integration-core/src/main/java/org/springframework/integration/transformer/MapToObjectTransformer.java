@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
@@ -73,7 +73,7 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 			conversionService = ((ConfigurableBeanFactory)this.getBeanFactory()).getConversionService();
 		}
 		if (conversionService == null){
-			conversionService = new DefaultConversionService();
+			conversionService = ConversionServiceFactory.createDefaultConversionService();
 		}
 		binder.setConversionService(conversionService);
 		binder.bind(new MutablePropertyValues(payload));

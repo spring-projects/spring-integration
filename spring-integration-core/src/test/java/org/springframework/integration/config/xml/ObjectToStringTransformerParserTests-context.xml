@@ -20,9 +20,7 @@
 	<object-to-string-transformer input-channel="directInput" output-channel="output"/>
 
 	<object-to-string-transformer input-channel="queueInput" output-channel="output">
-		<poller>
-			<interval-trigger interval="10000"/>
-		</poller>
+		<poller fixed-delay="10000"/>
 	</object-to-string-transformer>
 
 </beans:beans>

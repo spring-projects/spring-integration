@@ -46,11 +46,15 @@ abstract class JmsAdapterParserUtils {
 
 	static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
 
+	static final String DESTINATION_NAME_PROPERTY = "destinationName";
+
+	static final String DESTINATION_EXPRESSION_ATTRIBUTE = "destination-expression";
+
+	static final String DESTINATION_EXPRESSION_PROPERTY = "destinationExpression";
+
 	static final String PUB_SUB_DOMAIN_ATTRIBUTE = "pub-sub-domain";
 
 	static final String PUB_SUB_DOMAIN_PROPERTY = "pubSubDomain";
-
-	static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
 	static final String HEADER_MAPPER_ATTRIBUTE = "header-mapper";
 

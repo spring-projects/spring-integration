@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<poller>
-		<interval-trigger interval="3000"/>
-	</poller>
+	<poller fixed-delay="3000"/>
 
 </beans:beans>

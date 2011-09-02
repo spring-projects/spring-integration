@@ -19,9 +19,7 @@
 	<b:bean id="endpoint" class="org.springframework.integration.config.xml.ConstructorAutowireTests$TestEndpoint" />
 
 	<inbound-channel-adapter ref="endpoint" method="aProducer" channel="input">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="300" time-unit="SECONDS" />
-		</poller>
+		<poller max-messages-per-poll="1" fixed-delay="300000"/>
 	</inbound-channel-adapter>
 
 	<splitter input-channel="input" output-channel="output" ref="endpoint" method="aSplitter" />

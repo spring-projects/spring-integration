@@ -24,9 +24,7 @@
 			destination="testDestination"
 			selector="TestProperty = 'foo'"
 			channel="output1">
-		<si:poller max-messages-per-poll="1">
-			<si:interval-trigger interval="10000"/>
-		</si:poller>
+		<si:poller max-messages-per-poll="1" fixed-delay="10000"/>
 	</jms:inbound-channel-adapter>
 
 	<jms:message-driven-channel-adapter id="messageDrivenAdapter"

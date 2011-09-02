@@ -231,6 +231,28 @@
           aggregation, and false otherwise.</para>
         </listitem>
       </itemizedlist>
+      
+      For example:
+      
+      <programlisting language="java"><![CDATA[public class MyReleaseStrategy {
+
+    @ReleaseStrategy 
+    public boolean canMessagesBeReleased(List<Message<?>>) {...}
+}]]></programlisting>
+
+<programlisting language="java"><![CDATA[public class MyReleaseStrategy {
+
+    @ReleaseStrategy 
+    public boolean canMessagesBeReleased(List<String>) {...}
+}]]></programlisting>
+
+<para>
+As you can see based on the above signatures, the POJO-based Release Strategy will be passed a <classname>Collection</classname> of unmarked Messages 
+if you need access to the whole <classname>Message</classname> or <classname>Collection</classname> of payload objects if the type parameter is 
+anything other than <classname>Message</classname>. Typically this would satisfy the majority of use cases. However if 
+for some reason you need to access the full <classname>MessageGroup</classname> - which contains <code>unmarked</code> and <code>marked</code> Messages -
+then you should simply provide an implementation of the <classname>ReleaseStrategy</classname> interface.
+</para>
 
       <para>When the group is released for aggregation, all its unmarked
       messages are processed and then marked so they will not be processed
@@ -287,15 +309,14 @@
     </section>
   </section>
 
-	<section id="aggregator-config">
-		<title>Configuring Aggregator</title>
-		
-		<section id="aggregator-xml">
-    <title>Configuring an Aggregator with XML</title>
+  <section id="aggregator-config">
+    <title>Configuring Aggregator</title>
+	<section id="aggregator-xml">
+      <title>Configuring an Aggregator with XML</title>
 
-    <para>Spring Integration supports the configuration of an aggregator via
-    XML through the &lt;aggregator/&gt; element. Below you can see an example
-    of an aggregator.</para>
+      <para>Spring Integration supports the configuration of an aggregator via
+      XML through the &lt;aggregator/&gt; element. Below you can see an example
+      of an aggregator.</para>
 
     <programlisting lang="xml"><![CDATA[<channel id="inputChannel"/>
 

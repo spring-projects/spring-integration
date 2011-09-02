@@ -17,6 +17,7 @@
 package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author David Turanski
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -42,13 +44,19 @@ public class SpelHeaderEnricherIntegrationTests {
 
 	@Autowired
 	private MessageChannel beanResolvingInput;
-	
+
 	@Autowired
 	private MessageChannel expressionNotExecutedInput;
 
-	@Autowired @Qualifier("output")
-	private PollableChannel output;
+	@Autowired
+	private MessageChannel headerNotRemovedInput;
 
+	@Autowired
+	private MessageChannel headerRemovedInput;
+
+	@Autowired
+	@Qualifier("output")
+	private PollableChannel output;
 
 	@Test
 	public void simple() {
@@ -65,15 +73,30 @@ public class SpelHeaderEnricherIntegrationTests {
 		Message<?> result = output.receive(0);
 		assertEquals(243, result.getHeaders().get("num"));
 	}
-	
+
 	@Test
-	public void suppressBeanExecution(){
+	public void suppressBeanExecution() {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
 		this.expressionNotExecutedInput.send(message);
 		Message<?> result = output.receive(0);
 		assertEquals(3, result.getHeaders().get("num"));
 	}
 
+	@Test
+	public void headerNotRemoved() {
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
+		this.headerNotRemovedInput.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals(3, result.getHeaders().get("num"));
+	}
+
+	@Test
+	public void headerRemoved() {
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("num", 3).build();
+		this.headerRemovedInput.send(message);
+		Message<?> result = output.receive(0);
+		assertNull(result.getHeaders().get("num"));
+	}
 
 	static class TestBean {
 

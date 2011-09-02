@@ -41,7 +41,7 @@ public class GemfireMessageStoreTests {
 	public void addAndGetMessage() throws Exception {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = cacheFactoryBean.getObject();
+		Cache cache = (Cache)cacheFactoryBean.getObject();
 		RegionFactoryBean<UUID, Message<?>> regionFactoryBean = new RegionFactoryBean<UUID, Message<?>>();
 		regionFactoryBean.setName("test.addAndGetMessage");
 		regionFactoryBean.setCache(cache);

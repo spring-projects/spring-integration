@@ -12,9 +12,7 @@
 	</channel>
 
 	<inbound-channel-adapter id="methodInvokingSource" method="getMessage" channel="queueChannel" auto-startup="false">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="10000"/>
-		</poller>
+		<poller max-messages-per-poll="1" fixed-delay="10000"/>
 		<beans:bean class="org.springframework.integration.config.ChannelAdapterParserTests$SampleBean"/>
 	</inbound-channel-adapter>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,20 +39,6 @@ public class CronTriggerParserTests {
 
 	@Autowired
 	private ApplicationContext context;
-
-	@Test
-	public void checkConfigWithSubElement() {
-		Object poller = context.getBean("pollerWithSubElement");
-		assertEquals(PollerMetadata.class, poller.getClass());
-		PollerMetadata metadata = (PollerMetadata) poller;
-		Trigger trigger = metadata.getTrigger();
-		assertEquals(CronTrigger.class, trigger.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		String expression = (String) new DirectFieldAccessor(
-				accessor.getPropertyValue("sequenceGenerator"))
-				.getPropertyValue("expression");
-		assertEquals("*/10 * 9-17 * * MON-FRI", expression);
-	}
 
     @Test
     public void checkConfigWithAttribute() {

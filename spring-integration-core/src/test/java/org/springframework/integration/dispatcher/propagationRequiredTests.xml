@@ -20,8 +20,7 @@
 	                   ref="testBean"
 	                   method="good"
                        output-channel="output">
-        <poller max-messages-per-poll="1">
-        	<interval-trigger interval="10000"/>
+        <poller max-messages-per-poll="1" fixed-delay="10000">
         	<transactional transaction-manager="txManager" propagation="REQUIRED"/>
         </poller>
     </service-activator>

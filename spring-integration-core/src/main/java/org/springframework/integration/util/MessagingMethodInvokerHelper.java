@@ -419,7 +419,7 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 		private static final TypeDescriptor messageArrayTypeDescriptor = TypeDescriptor.valueOf(Message[].class);
 
 		@SuppressWarnings("unused")
-		private static final List<Message<?>> dummyMessages = Collections.emptyList();
+		private static final Collection<Message<?>> dummyMessages = Collections.emptyList();
 
 
 		private final Method method;

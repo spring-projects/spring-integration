@@ -30,8 +30,11 @@
       In combination with the namespace and SpEL, very powerful filters can be configured with very little java code.
   </section>
 
-  <section id="filter-namespace">
+  <section id="filter-config">
     <title>Configuring Filter</title>
+    <section id="filter-xml">
+      <title>Configuring a Filter with XML</title>
+
     <para>
     The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "<code>input-channel</code>
       and <code>output-channel</code> attributes, it requires a <code>ref</code>. The <code>ref</code> may point to a 
@@ -57,6 +60,8 @@
       <code>throw-exception-on-rejection</code> attribute to <code>true</code>:
       <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" ref="selector"
       output-channel="output" throw-exception-on-rejection="true"/> ]]></programlisting>
+    </para>
+    <para>  
     If you want rejected messages to be routed to a specific channel, provide that reference as the <code>discard-channel</code>:
       <programlisting language="xml"><![CDATA[ <int:filter input-channel="input" ref="selector"
       output-channel="output" discard-channel="rejectedMessages"/> ]]></programlisting>
@@ -85,9 +90,9 @@
     <para>
       With the introduction of SpEL support, Spring Integration added the <code>expression</code> attribute to the filter
       element. It can be used to avoid Java entirely for simple filters.
-      <programlisting language="xml">
-        <![CDATA[<int:filter input-channel="input" expression="payload.equals('nonsense')"/>]]>
-      </programlisting>
+      <programlisting language="xml"><![CDATA[<int:filter input-channel="input" expression="payload.equals('nonsense')"/>]]></programlisting>
+      </para>
+      <para>
       The string passed as the expression attribute will be evaluated as a SpEL expression with the Message available in
       the evaluation context.
       If it is necessary to include the result of an expression in the scope of the application context you can use the
@@ -95,9 +100,10 @@
       <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
         SpEL reference documentation
       </ulink>.
-      <programlisting language="xml">
-        <![CDATA[<int:filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
-      </programlisting>
+      <programlisting language="xml"><![CDATA[<int:filter input-channel="input" 
+            expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]></programlisting>
+      </para>
+      <para>
       If the Expression itself needs to be dynamic, then an 'expression' sub-element may be used. That provides a level of
       indirection for resolving the Expression by its key from an ExpressionSource. That is a strategy interface that you
       can implement directly, or you can rely upon a version available in Spring Integration that loads Expressions from
@@ -105,32 +111,61 @@
       the following configuration sample where the Expression could be reloaded within one minute if the underlying file
       had been modified. If the ExpressionSource bean is named "expressionSource", then it is not necessary to provide the
       <code>source</code> attribute on the &lt;expression&gt; element, but in this case it's shown for completeness.
-      <programlisting language="xml">
-        <![CDATA[
-  <int:filter input-channel="input" output-channel="output">
+      <programlisting language="xml"><![CDATA[<int:filter input-channel="input" output-channel="output">
       <int:expression key="filterPatterns.example" source="myExpressions"/>
   </int:filter>
 
   <beans:bean id="myExpressions" id="myExpressions"
-          class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource">
+   class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource">
       <beans:property name="basename" value="config/integration/expressions"/>
       <beans:property name="cacheSeconds" value="60"/>
   </beans:bean>
 ]]></programlisting>
-
+    </para>
+    <para>
     Then, the 'config/integration/expressions.properties' file (or any more specific version with a locale extension
     to be resolved in the typical way that resource-bundles are loaded) would contain a key/value pair:
-  <programlisting language="xml">
-        <![CDATA[  filterPatterns.example=payload > 100
-]]></programlisting>
+  <programlisting language="xml"><![CDATA[  filterPatterns.example=payload > 100]]></programlisting>
 
-    <note>All of these examples that use <code>expression</code> as an attribute or sub-element can also be applied within
-      transformer, router, splitter, service-activator, and header-enricher elements. Of course, the semantics/role
-      of the given component type would affect the interpretation of the evaluation result in the same way that the
-      return value of a method-invocation would be interpreted. For example, an expression can return Strings that are
-      to be treated as Message Channel names by a router component. However, the underlying functionality of evaluating
-      the expression against the Message as the root object, and resolving bean names if prefixed with '@' is consistent
+    <note>All of these examples that use <code>expression</code> as an attribute 
+      or sub-element can also be applied within transformer, router, splitter, 
+      service-activator, and header-enricher elements. Of course, the semantics/role
+      of the given component type would affect the interpretation of the evaluation 
+      result in the same way that the return value of a method-invocation would 
+      be interpreted. For example, an expression can return Strings that are to 
+      be treated as Message Channel names by a router component. However, the 
+      underlying functionality of evaluating the expression against the Message 
+      as the root object, and resolving bean names if prefixed with '@' is consistent
       across all of the core EIP components within Spring Integration.</note>
     </para>
+    </section>
+    <section id="filter-annotations">
+        <title>Configuring a Filter with Annotations</title>
+	    <para>A filter configured using annotations would look like this.</para>
+	
+	    <programlisting language="java"><![CDATA[public class PetFilter {
+	  ... 
+	
+	  @Filter ]]><co id="filterann" /><![CDATA[ 
+	  public boolean dogsOnly(String input) {
+	    ...
+	  }
+		
+	}]]></programlisting>
+	
+	    <calloutlist>
+	      <callout arearefs="filterann">
+	        <para>An annotation indicating that this method shall be used as a
+	        filter. Must be specified if this class will be used as a filter.</para>
+	      </callout>
+	    </calloutlist>
+	
+	    <para>All of the configuration options provided by the xml element are
+	    also available for the <interfacename>@Filter</interfacename> annotation.</para>
+	
+	    <para>The filter can be either referenced explicitly from XML or, if
+	    the <interfacename>@MessageEndpoint</interfacename> annotation is defined 
+	    on the class, detected automatically through classpath scanning.</para>
+	  </section>
   </section>
 </section>

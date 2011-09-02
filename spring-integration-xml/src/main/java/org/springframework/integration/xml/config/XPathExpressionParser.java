@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,18 @@ package org.springframework.integration.xml.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;xpath-expression&gt; element.
@@ -99,8 +99,8 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	protected Map<?,?> parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
-		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext(), new StandardEnvironment());
-		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement(), beanParser);
+		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
+		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
 		return beanParser.parseMapElement(element, parentDefinition);
 	}
 

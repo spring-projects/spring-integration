@@ -24,7 +24,6 @@ import org.springframework.util.Assert;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Provides an implementation of {@link org.springframework.integration.store.MessageGroupStore} that delegates to a backend Gemfire instance.
@@ -34,23 +33,6 @@ import java.util.concurrent.ConcurrentMap;
  * @since 2.1
  */
 public class KeyValueMessageGroupStore extends AbstractMessageGroupStore {
-
-	/**
-	 * Some operations can be done atomically and we should support them if possible
-	 */
-	// TODO: this is unused
-	//private boolean unmarkedIsConcurrentMap;
-
-	/**
-	 * Some operations can be done atomically and we should support them if possible
-	 */
-	// TODO: this is unused
-	//private boolean markedIsConcurrentMap;
-
-	/**
-	 * Some operations can be done atomically and we should support them if possible
-	 */
-	private boolean groupIdToMessageGroupIsConcurrentMap;
 
 	/**
 	 * Required {@link com.gemstone.gemfire.cache.Region} to managed the association of groups => {@link KeyValueMessageGroup}
@@ -75,21 +57,10 @@ public class KeyValueMessageGroupStore extends AbstractMessageGroupStore {
 	 * @param marked				the collection that will hold which messages are marked (delivered)
 	 * @param unmarked			  the collection that holds which messages are unmarked (not yet delivered)
 	 */
-	public KeyValueMessageGroupStore(Map<Object, KeyValueMessageGroup> groupIdToMessageGroup,
-				Map<String, Message<?>> marked, Map<String, Message<?>> unmarked) {
+	public KeyValueMessageGroupStore(Map<Object, KeyValueMessageGroup> groupIdToMessageGroup, Map<String, Message<?>> marked, Map<String, Message<?>> unmarked) {
 		this.marked = marked;
-		// TODO: these claim that a ConcurrentMap is required, but don't enforce it
-		Assert.notNull(this.marked,
-				"you must provide a ConcurrentMap to hold String => Message<?> for marked");
 		this.unmarked = unmarked;
-		Assert.notNull(this.unmarked,
-				"you must provide a ConcurrentMap to hold String => Message<?> for unmarked");
 		this.groupIdToMessageGroup = groupIdToMessageGroup;
-		Assert.notNull(this.groupIdToMessageGroup,
-				"you must provide a ConcurrentMap to hold associations of group ids to message groups ('groupIdToMessageGroup')");
-		//this.markedIsConcurrentMap = marked instanceof ConcurrentMap;
-		//this.unmarkedIsConcurrentMap = unmarked instanceof ConcurrentMap;
-		this.groupIdToMessageGroupIsConcurrentMap = this.groupIdToMessageGroup instanceof ConcurrentMap;
 	}
 
 
@@ -142,11 +113,7 @@ public class KeyValueMessageGroupStore extends AbstractMessageGroupStore {
 	}
 
 	protected KeyValueMessageGroup getMessageGroupInternal(Object groupId) {
-		if (this.groupIdToMessageGroupIsConcurrentMap) {
-			ConcurrentMap<Object, KeyValueMessageGroup> cm = (ConcurrentMap<Object, KeyValueMessageGroup>) this.groupIdToMessageGroup;
-			cm.putIfAbsent(groupId, new KeyValueMessageGroup(groupId));
-		}
-		else if (!groupIdToMessageGroup.containsKey(groupId)) {
+		if (!groupIdToMessageGroup.containsKey(groupId)) {
 			groupIdToMessageGroup.put(groupId, new KeyValueMessageGroup(groupId));
 		}
 		return ensureMessageGroupHasReferencesToRegions(groupIdToMessageGroup.get( groupId));

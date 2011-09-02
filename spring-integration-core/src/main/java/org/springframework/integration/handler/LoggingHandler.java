@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,6 +17,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -24,6 +27,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.dispatcher.AggregateMessageDeliveryException;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -42,11 +46,15 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
+
 	private volatile Expression expression;
 
 	private final Level level;
 
 	private final EvaluationContext evaluationContext;
+
+	private volatile Log messageLogger = this.logger;
+
 
 	/**
 	 * Create a LoggingHandler with the given log level (case-insensitive).
@@ -56,7 +64,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	public LoggingHandler(String level) {
 		try {
 			this.level = Level.valueOf(level.toUpperCase());
-		} catch (IllegalArgumentException e) {
+		}
+		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("Invalid log level '" + level
 					+ "'. The (case-insensitive) supported values are: "
 					+ StringUtils.arrayToCommaDelimitedString(Level.values()));
@@ -66,9 +75,15 @@ public class LoggingHandler extends AbstractMessageHandler {
 		this.evaluationContext = evaluationContext;
 		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
-	
+
+
 	public void setExpression(String expressionString) {
 		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
+	}
+
+	public void setLoggerName(String loggerName) {
+		Assert.hasText(loggerName, "loggerName must not be empty");
+		this.messageLogger = LogFactory.getLog(loggerName);
 	}
 
 	/**
@@ -102,33 +117,33 @@ public class LoggingHandler extends AbstractMessageHandler {
 		}
 		switch (this.level) {
 		case FATAL:
-			if (logger.isFatalEnabled()) {
-				logger.fatal(logMessage);
+			if (messageLogger.isFatalEnabled()) {
+				messageLogger.fatal(logMessage);
 			}
 			break;
 		case ERROR:
-			if (logger.isErrorEnabled()) {
-				logger.error(logMessage);
+			if (messageLogger.isErrorEnabled()) {
+				messageLogger.error(logMessage);
 			}
 			break;
 		case WARN:
-			if (logger.isWarnEnabled()) {
-				logger.warn(logMessage);
+			if (messageLogger.isWarnEnabled()) {
+				messageLogger.warn(logMessage);
 			}
 			break;
 		case INFO:
-			if (logger.isInfoEnabled()) {
-				logger.info(logMessage);
+			if (messageLogger.isInfoEnabled()) {
+				messageLogger.info(logMessage);
 			}
 			break;
 		case DEBUG:
-			if (logger.isDebugEnabled()) {
-				logger.debug(logMessage);
+			if (messageLogger.isDebugEnabled()) {
+				messageLogger.debug(logMessage);
 			}
 			break;
 		case TRACE:
-			if (logger.isTraceEnabled()) {
-				logger.trace(logMessage);
+			if (messageLogger.isTraceEnabled()) {
+				messageLogger.trace(logMessage);
 			}
 			break;
 		}

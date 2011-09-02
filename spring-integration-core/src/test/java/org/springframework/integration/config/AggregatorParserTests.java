@@ -53,6 +53,7 @@ import org.springframework.integration.test.util.TestUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class AggregatorParserTests {
 
@@ -164,6 +165,31 @@ public class AggregatorParserTests {
 	public void testAggregatorWithPojoReleaseStrategy() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
+		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
+				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
+		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
+				.getPropertyValue("adapter")).getPropertyValue("delegate"));
+		Map<?, ?> map = (Map<?, ?>) releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
+		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
+				.contains("checkCompleteness"));
+		input.send(createMessage(1l, "correllationId", 4, 0, null));
+		input.send(createMessage(2l, "correllationId", 4, 1, null));
+		input.send(createMessage(3l, "correllationId", 4, 2, null));
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
+		Message<?> reply = outputChannel.receive(0);
+		Assert.assertNull(reply);
+		input.send(createMessage(5l, "correllationId", 4, 3, null));
+		reply = outputChannel.receive(0);
+		Assert.assertNotNull(reply);
+		assertEquals(11l, reply.getPayload());
+	}
+	
+	@Test // see INT-2011
+	public void testAggregatorWithPojoReleaseStrategyAsCollection() {
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInputAsCollection");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategyAsCollection");
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
 				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);

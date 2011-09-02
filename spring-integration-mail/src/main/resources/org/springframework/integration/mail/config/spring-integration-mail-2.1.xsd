@@ -11,7 +11,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -104,18 +104,6 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inboundMailAdapterType">
-					<xsd:attribute name="task-executor" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-	[DEPRECATED as of 2.0.5]
-							</xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="error-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

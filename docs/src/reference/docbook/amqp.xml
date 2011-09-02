@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="amqp"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>AMQP Support</title>
+
+  <section id="amqp-introduction">
+    <title>Introduction</title>
+
+    <para>
+        Spring Integration provides Channel Adapters for receiving and sending 
+        messages using the Advanced Message Queuing Protocol (AMQP).
+        
+        The following adapters are available:
+	    <itemizedlist>
+	        <listitem>Inbound Channel Adapter</listitem>
+			<listitem>Outbound Channel Adapter</listitem>
+			<listitem>Inbound Gateway</listitem>
+			<listitem>Outbound Gateway</listitem>
+	    </itemizedlist>
+    </para>
+    <para>
+        In order to provide AMQP support, Spring Integration relies on Spring AMQP 
+        (<ulink url="http://www.springsource.org/spring-amqp">http://www.springsource.org/spring-amqp</ulink>) 
+        which "applies core Spring concepts to the development of AMQP-based 
+        messaging solutions". Spring AMQP provides similar semantics as Spring JMS 
+        (<ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#jms">http://.../spring-framework-reference.html#jms</ulink>).
+    </para>
+    <para>
+        Whereas the provided AMQP Channel Adapters are intended for unidirectional 
+        Messaging (send or receive), only, Spring Integration also provides inbound 
+        and outbound AMQP Gateways for request/reply operations. 
+    </para>
+    <tip>
+        <para>
+            Please familiarize yourself with the reference documentation of 
+            the Spring AMQP project as well. It provides much more in-depth information 
+            regarding Spring's integration with AMQP in general and RabbitMQ in 
+            particular.</para>
+        <para>You can find the documentation at: 
+              <ulink url="http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/">
+                  http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/</ulink>
+        </para>
+    </tip>
+  </section>
+
+  <section>
+    <title>Inbound Channel Adapter</title>
+
+    <para>A configuration sample for an AMQP Inbound Channel Adapter is shown 
+          below with all available parameters.</para>
+    <programlisting language="xml"><![CDATA[<int-amqp:inbound-channel-adapter id="inboundAmqp"]]><co                id="amqp-inbound-channel-adapter-xml-01-co" linkends="amqp-inbound-channel-adapter-xml-01" /><![CDATA[
+                                  channel="inboundChannel"]]><co        id="amqp-inbound-channel-adapter-xml-02-co" linkends="amqp-inbound-channel-adapter-xml-02" /><![CDATA[
+                                  queue-names="si.test.queue"]]><co     id="amqp-inbound-channel-adapter-xml-03-co" linkends="amqp-inbound-channel-adapter-xml-03" /><![CDATA[
+                                  acknowledge-mode="AUTO"]]><co         id="amqp-inbound-channel-adapter-xml-04-co" linkends="amqp-inbound-channel-adapter-xml-04" /><![CDATA[
+                                  advice-chain=""]]><co                 id="amqp-inbound-channel-adapter-xml-05-co" linkends="amqp-inbound-channel-adapter-xml-05" /><![CDATA[
+                                  channel-transacted=""]]><co           id="amqp-inbound-channel-adapter-xml-06-co" linkends="amqp-inbound-channel-adapter-xml-06" /><![CDATA[
+                                  concurrent-consumers=""]]><co         id="amqp-inbound-channel-adapter-xml-07-co" linkends="amqp-inbound-channel-adapter-xml-07" /><![CDATA[
+                                  connection-factory=""]]><co           id="amqp-inbound-channel-adapter-xml-08-co" linkends="amqp-inbound-channel-adapter-xml-08" /><![CDATA[
+                                  error-channel=""]]><co                id="amqp-inbound-channel-adapter-xml-09-co" linkends="amqp-inbound-channel-adapter-xml-09" /><![CDATA[
+                                  expose-listener-channel=""]]><co      id="amqp-inbound-channel-adapter-xml-10-co" linkends="amqp-inbound-channel-adapter-xml-10" /><![CDATA[
+                                  header-mapper=""]]><co                id="amqp-inbound-channel-adapter-xml-11-co" linkends="amqp-inbound-channel-adapter-xml-11" /><![CDATA[
+                                  listener-container=""]]><co           id="amqp-inbound-channel-adapter-xml-12-co" linkends="amqp-inbound-channel-adapter-xml-12" /><![CDATA[
+                                  message-converter=""]]><co            id="amqp-inbound-channel-adapter-xml-13-co" linkends="amqp-inbound-channel-adapter-xml-13" /><![CDATA[
+                                  message-properties-converter=""]]><co id="amqp-inbound-channel-adapter-xml-14-co" linkends="amqp-inbound-channel-adapter-xml-14" /><![CDATA[
+                                  phase=""]]><co                        id="amqp-inbound-channel-adapter-xml-15-co" linkends="amqp-inbound-channel-adapter-xml-15" /><![CDATA[
+                                  prefetch-count=""]]><co               id="amqp-inbound-channel-adapter-xml-16-co" linkends="amqp-inbound-channel-adapter-xml-16" /><![CDATA[
+                                  receive-timeout=""]]><co              id="amqp-inbound-channel-adapter-xml-17-co" linkends="amqp-inbound-channel-adapter-xml-17" /><![CDATA[
+                                  recovery-interval=""]]><co            id="amqp-inbound-channel-adapter-xml-18-co" linkends="amqp-inbound-channel-adapter-xml-18" /><![CDATA[
+                                  shutdown-timeout=""]]><co             id="amqp-inbound-channel-adapter-xml-19-co" linkends="amqp-inbound-channel-adapter-xml-19" /><![CDATA[
+                                  task-executor=""]]><co                id="amqp-inbound-channel-adapter-xml-20-co" linkends="amqp-inbound-channel-adapter-xml-20" /><![CDATA[
+                                  transaction-attribute=""]]><co        id="amqp-inbound-channel-adapter-xml-21-co" linkends="amqp-inbound-channel-adapter-xml-21" /><![CDATA[
+                                  transaction-manager=""]]><co          id="amqp-inbound-channel-adapter-xml-22-co" linkends="amqp-inbound-channel-adapter-xml-22" /><![CDATA[
+                                  tx-size=""]]><co                      id="amqp-inbound-channel-adapter-xml-23-co" linkends="amqp-inbound-channel-adapter-xml-23" /><![CDATA[/>]]>
+    </programlisting>
+    <para>
+        <calloutlist>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-01-co" id="amqp-inbound-channel-adapter-xml-01">
+                <para>Unique ID for this adapter.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-02-co" id="amqp-inbound-channel-adapter-xml-02">
+                <para>Message Channel to which converted Messages should be sent.
+                <emphasis>Required</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-03-co" id="amqp-inbound-channel-adapter-xml-03">
+                <para>Names of the AMQP Queues from which Messages should be 
+                      consumed (comma-separated list).
+                <emphasis>Required</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-04-co" id="amqp-inbound-channel-adapter-xml-04">
+                <para>Acknowledge Mode for the <interface>MessageListenerContainer</interface>.
+                <emphasis>Optional (Defaults to AUTO)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-05-co" id="amqp-inbound-channel-adapter-xml-05">
+                <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Channel Adapter.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-06-co" id="amqp-inbound-channel-adapter-xml-06">
+                <para>Flag to indicate that channels created by this component 
+                      will be transactional. Ff true, tells the framework to use 
+                      a transactional channel and to end all operations (send or 
+                      receive) with a commit or rollback depending on the outcome, 
+                      with an exception signalling a rollback.
+                <emphasis>Optional (Defaults to false)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-07-co" id="amqp-inbound-channel-adapter-xml-07">
+                <para>Specify the number of concurrent consumers to create. 
+                      Default is 1. Raising the number of concurrent consumers 
+                      is recommended in order to scale the consumption of 
+                      messages coming in from a queue. However, note that any 
+                      ordering guarantees are lost once multiple consumers are 
+                      registered. In general, stick with 1 consumer for 
+                      low-volume queues.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-08-co" id="amqp-inbound-channel-adapter-xml-08">
+                <para>Bean reference to the RabbitMQ ConnectionFactory.
+                <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-09-co" id="amqp-inbound-channel-adapter-xml-09">
+                <para>Message Channel to which error Messages should be sent.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-10-co" id="amqp-inbound-channel-adapter-xml-10">
+                <para>Shall the listener channel (com.rabbitmq.client.Channel) be 
+                      exposed to a registered <interface>ChannelAwareMessageListener</interface>.
+                <emphasis>Optional (Defaults to true)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-11-co" id="amqp-inbound-channel-adapter-xml-11">
+                <para>HeaderMapper to use when receiving AMQP Messages.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-12-co" id="amqp-inbound-channel-adapter-xml-12">
+                <para>Reference to the <interface>SimpleMessageListenerContainer</interface> 
+                      to use for receiving AMQP Messages. If this attribute is provided, 
+                      then no other attribute related to the listener container 
+                      configuration should be provided. In other words, by 
+                      setting this reference, you must take full responsibility 
+                      of the listener container configuration. The only exception 
+                      is the MessageListener itself. Since that is actually the 
+                      core responsibility of this Channel Adapter implementation, 
+                      the referenced listener container must NOT already have its 
+                      own MessageListener configured.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-13-co" id="amqp-inbound-channel-adapter-xml-13">
+                <para>The MessageConverter to use when receiving AMQP Messages.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>                        
+            <callout arearefs="amqp-inbound-channel-adapter-xml-14-co" id="amqp-inbound-channel-adapter-xml-14">
+                <para>The MessagePropertiesConverter to use when receiving AMQP Messages.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-15-co" id="amqp-inbound-channel-adapter-xml-15">
+                <para>Specify the phase in which the underlying <interface>SimpleMessageListenerContainer</interface> 
+                      should be started and stopped. The startup order proceeds 
+                      from lowest to highest, and the shutdown order is the 
+                      reverse of that. By default this value is Integer.MAX_VALUE 
+                      meaning that this container starts as late as possible and 
+                      stops as soon as possible.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-16-co" id="amqp-inbound-channel-adapter-xml-16">
+                <para>Tells the AMQP broker how many messages to send to each 
+                      consumer in a single request. Often this can be set quite 
+                      high to improve throughput. It should be greater than or 
+                      equal to the transaction size (see attribute "tx-size").
+                <emphasis>Optional (Defaults to 1)</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-17-co" id="amqp-inbound-channel-adapter-xml-17">
+                <para>Receive timeout in milliseconds.
+                <emphasis>Optional (Defaults to 1000)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-18-co" id="amqp-inbound-channel-adapter-xml-18">
+                <para>Specifies the interval between recovery attempts of the underlying 
+                      <interface>SimpleMessageListenerContainer</interface> (in 
+                      milliseconds).
+                <emphasis>Optional (Defaults to 5000)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-19-co" id="amqp-inbound-channel-adapter-xml-19">
+                <para>The time to wait for workers in milliseconds after the 
+                      underlying <interface>SimpleMessageListenerContainer</interface> 
+                      is stopped, and before the AMQP connection is forced closed. 
+                      If any workers are active when the shutdown signal comes 
+                      they will be allowed to finish processing as long as they 
+                      can finish within this timeout. Otherwise the connection is 
+                      closed and messages remain unacked (if the channel is 
+                      transactional). Defaults to 5000 milliseconds.
+                <emphasis>Optional (Defaults to 5000)</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-20-co" id="amqp-inbound-channel-adapter-xml-20">
+                <para>By default, the underlying <interface>SimpleMessageListenerContainer</interface> 
+                      uses a SimpleAsyncTaskExecutor implementation, that fires 
+                      up a new Thread for each task, executing it asynchronously. 
+                      By default, the number of concurrent threads is unlimited. 
+                      
+                      NOTE: This implementation does not reuse threads. Consider 
+                      a thread-pooling TaskExecutor implementation as an alternative.
+                <emphasis>Optional (Defaults to SimpleAsyncTaskExecutor)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-21-co" id="amqp-inbound-channel-adapter-xml-21">
+                <para>By default the underlying <interface>SimpleMessageListenerContainer</interface> 
+                      creates a new instance of the DefaultTransactionAttribute (takes 
+                      the EJB approach to rolling back on runtime, but not checked 
+                      exceptions.
+                <emphasis>Optional (Defaults to DefaultTransactionAttribute)</emphasis>.</para>
+            </callout>            
+            <callout arearefs="amqp-inbound-channel-adapter-xml-22-co" id="amqp-inbound-channel-adapter-xml-22">
+                <para>Sets a Bean reference to an external 
+                      <interface>PlatformTransactionManager</interface> on the 
+                      underlying SimpleMessageListenerContainer. The transaction 
+                      manager works in conjunction with the "channel-transacted" 
+                      attribute. 
+                
+                      If there is already a transaction in progress when the 
+                      framework is sending or receiving a message, and the 
+                      channelTransacted flag is true, then the commit or rollback 
+                      of the messaging transaction will be deferred until the 
+                      end of the current transaction. If the channelTransacted 
+                      flag is false, then no transaction semantics apply to the 
+                      messaging operation (it is auto-acked). For further information
+                      see chapter 1.9 of the Spring AMQP reference guide: 
+                      
+                      http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/#d0e525
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-23-co" id="amqp-inbound-channel-adapter-xml-23">
+                <para>Tells the <interface>SimpleMessageListenerContainer</interface> 
+                      how many messages to process in a single transaction (if 
+                      the channel is transactional). For best results it should 
+                      be less than or equal to the set "prefetch-count".
+                <emphasis>Optional (Defaults to 1)</emphasis>.</para>
+            </callout>                                                                     
+        </calloutlist>                                    
+    </para>
+    <important>
+        <para>Even though the Spring Integration JMS and AMQP support is very similar,
+              important differences exist. The JMS Inbound Channel Adapter is using a 
+              JmsDestinationPollingSource under the covers and expects a configured Poller.
+              
+              The AMQP Inbound Channel Adapter on the other side uses a 
+              <interface>SimpleMessageListenerContainer</interface> and is message 
+              driven. In that regard it is more similar to the JMS Message 
+              Driven Channel Adapter.</para>
+    </important>  
+  </section>
+
+  <section>
+    <title>Outbound Channel Adapter</title>
+
+    <para>A configuration sample for an AMQP Outbound Channel Adapter is shown 
+          below with all available parameters.</para>
+    <programlisting language="xml"><![CDATA[<int-amqp:outbound-channel-adapter id="outboundAmqp"]]><co              id="amqp-inbound-channel-adapter-xml-1-co" linkends="amqp-inbound-channel-adapter-xml-1" /><![CDATA[
+                               channel="outboundChannel"]]><co      id="amqp-inbound-channel-adapter-xml-2-co" linkends="amqp-inbound-channel-adapter-xml-2" /><![CDATA[
+                               amqp-template="myAmqpTemplate"]]><co id="amqp-inbound-channel-adapter-xml-3-co" linkends="amqp-inbound-channel-adapter-xml-3" /><![CDATA[
+                               exchange-name=""]]><co               id="amqp-inbound-channel-adapter-xml-4-co" linkends="amqp-inbound-channel-adapter-xml-4" /><![CDATA[
+                               order="1"]]><co                      id="amqp-inbound-channel-adapter-xml-5-co" linkends="amqp-inbound-channel-adapter-xml-5" /><![CDATA[
+                               routing-key=""]]><co                 id="amqp-inbound-channel-adapter-xml-6-co" linkends="amqp-inbound-channel-adapter-xml-6" /><![CDATA[
+                               routing-key-expression=""]]><co      id="amqp-inbound-channel-adapter-xml-7-co" linkends="amqp-inbound-channel-adapter-xml-7" /><![CDATA[/>]]>
+    </programlisting>
+    <para>
+        <calloutlist>
+	        <callout arearefs="amqp-inbound-channel-adapter-xml-1-co" id="amqp-inbound-channel-adapter-xml-1">
+	            <para>Unique ID for this adapter.
+	            <emphasis>Optional</emphasis>.</para>
+	        </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-2-co" id="amqp-inbound-channel-adapter-xml-2">
+                <para>Message Channel to which Messages should be sent 
+					  in order to have them converted and published to an 
+					  AMQP Exchange.
+                <emphasis>Required</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-3-co" id="amqp-inbound-channel-adapter-xml-3">
+                <para>Bean Reference to the configured AMQP Template
+                <emphasis>Optional (Defaults to "amqpTemplate")</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-4-co" id="amqp-inbound-channel-adapter-xml-4">
+                <para>The name of the AMQP Exchange to which Messages 
+					  should be sent. If not provided, Messages will be sent 
+					  to the default, no-name Exchange.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-5-co" id="amqp-inbound-channel-adapter-xml-5">
+                <para>The order for this consumer when multiple 
+					  consumers are registered thereby enabling load-
+					  balancing and/or failover.
+                <emphasis>Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-6-co" id="amqp-inbound-channel-adapter-xml-6">
+                <para>The fixed routing-key to use when sending Messages. By
+                      default, this will be an empty String.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="amqp-inbound-channel-adapter-xml-7-co" id="amqp-inbound-channel-adapter-xml-7">
+                <para>The routing-key to use when sending Messages 
+					  evaluated as an expression on the message (e.g. 
+					  'payload.key'). By default, this will be an empty String.
+                <emphasis>Optional</emphasis>.</para>
+            </callout>
+        </calloutlist>                                    
+    </para>   
+  </section>
+  
+  <section>
+      <title>Inbound Gateway</title>
+      <para>A configuration sample for an AMQP Inbound Gateway is shown 
+            below with all available parameters.</para>
+      <programlisting language="xml"><![CDATA[<int-amqp:inbound-gateway id="inboundGateway"]]><co                    id="amqp-inbound-gateway-adapter-xml-1-co" linkends="amqp-inbound-gateway-adapter-xml-1" /><![CDATA[
+                          request-channel="myRequestChannel"]]><co     id="amqp-inbound-gateway-adapter-xml-2-co" linkends="amqp-inbound-gateway-adapter-xml-2" /><![CDATA[
+                          queue-names="si.test.queue"]]><co            id="amqp-inbound-gateway-adapter-xml-3-co" linkends="amqp-inbound-gateway-adapter-xml-3" /><![CDATA[
+                          advice-chain=""]]><co                        id="amqp-inbound-gateway-adapter-xml-4-co" linkends="amqp-inbound-gateway-adapter-xml-4" /><![CDATA[
+                          concurrent-consumers="1"]]><co               id="amqp-inbound-gateway-adapter-xml-5-co" linkends="amqp-inbound-gateway-adapter-xml-5" /><![CDATA[
+                          connection-factory="connectionFactory"]]><co id="amqp-inbound-gateway-adapter-xml-6-co" linkends="amqp-inbound-gateway-adapter-xml-6" /><![CDATA[
+                          reply-channel="myReplyChannel"]]><co         id="amqp-inbound-gateway-adapter-xml-7-co" linkends="amqp-inbound-gateway-adapter-xml-7" /><![CDATA[/>]]>
+      </programlisting>
+      <para>
+          <calloutlist>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-1-co" id="amqp-inbound-gateway-adapter-xml-1">
+                  <para>Unique ID for this adapter.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-2-co" id="amqp-inbound-gateway-adapter-xml-2">
+                  <para>Message Channel to which converted Messages should be sent.
+                        <emphasis>Required</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-3-co" id="amqp-inbound-gateway-adapter-xml-3">
+                  <para>Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
+                  <emphasis>Required</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-4-co" id="amqp-inbound-gateway-adapter-xml-4">
+                  <para>Extra AOP Advice(s) to handle cross cutting behavior associated with this Inbound Gateway.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-5-co" id="amqp-inbound-gateway-adapter-xml-5">
+                  <para>Specify the number of concurrent consumers to 
+						create. Default is 1. Raising the number of concurrent 
+						consumers is recommended in order to scale the 
+						consumption of messages coming in from a queue. 
+						However, note that any ordering guarantees are lost 
+						once multiple consumers are registered. In general, 
+						stick with 1 consumer for low-volume queues.
+                  <emphasis>Optional (Defaults to 1)</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-6-co" id="amqp-inbound-gateway-adapter-xml-6">
+                  <para>Bean reference to the RabbitMQ ConnectionFactory.
+                  <emphasis>Optional (Defaults to 'connectionFactory')</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-inbound-gateway-adapter-xml-7-co" id="amqp-inbound-gateway-adapter-xml-7">
+                  <para>Message Channel where reply Messages will be expected.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+          </calloutlist>                                    
+      </para>       
+  </section>
+
+  <section>
+      <title>Outbound Gateway</title>
+      <para>A configuration sample for an AMQP Outbound Gateway is shown 
+            below with all available parameters.</para>
+      <programlisting language="xml"><![CDATA[<int-amqp:outbound-gateway id="inboundGateway"]]><co                id="amqp-outbound-gateway-adapter-xml-1-co" linkends="amqp-outbound-gateway-adapter-xml-1" /><![CDATA[
+                           request-channel="myRequestChannel"]]><co id="amqp-outbound-gateway-adapter-xml-2-co" linkends="amqp-outbound-gateway-adapter-xml-2" /><![CDATA[
+                           amqp-template=""]]><co                   id="amqp-outbound-gateway-adapter-xml-3-co" linkends="amqp-outbound-gateway-adapter-xml-3" /><![CDATA[
+                           exchange-name=""]]><co                   id="amqp-outbound-gateway-adapter-xml-4-co" linkends="amqp-outbound-gateway-adapter-xml-4" /><![CDATA[
+                           order="1"]]><co                          id="amqp-outbound-gateway-adapter-xml-5-co" linkends="amqp-outbound-gateway-adapter-xml-5" /><![CDATA[
+                           reply-channel=""]]><co                   id="amqp-outbound-gateway-adapter-xml-6-co" linkends="amqp-outbound-gateway-adapter-xml-6" /><![CDATA[
+                           routing-key=""]]><co                     id="amqp-outbound-gateway-adapter-xml-7-co" linkends="amqp-outbound-gateway-adapter-xml-7" /><![CDATA[                               
+                           routing-key-expression=""]]><co          id="amqp-outbound-gateway-adapter-xml-8-co" linkends="amqp-outbound-gateway-adapter-xml-8" /><![CDATA[/>]]>
+      </programlisting>
+      <para>
+          <calloutlist>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-1-co" id="amqp-outbound-gateway-adapter-xml-1">
+                  <para>Unique ID for this adapter.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-2-co" id="amqp-outbound-gateway-adapter-xml-2">
+                  <para>Message Channel to which Messages should be sent 
+                        in order to have them converted and published to an 
+                        AMQP Exchange.
+                        <emphasis>Required</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-3-co" id="amqp-outbound-gateway-adapter-xml-3">
+                  <para>Bean Reference to the configured AMQP Template
+                  <emphasis>Optional (Defaults to "amqpTemplate")</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-4-co" id="amqp-outbound-gateway-adapter-xml-4">
+                  <para>The name of the AMQP Exchange to which Messages should 
+                        be sent. If not provided, Messages will be sent to the 
+                        default, no-name Exchange.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-5-co" id="amqp-outbound-gateway-adapter-xml-5">
+                  <para>The order for this consumer when multiple 
+                        consumers are registered thereby enabling load-
+                        balancing and/or failover.
+                  <emphasis>Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-6-co" id="amqp-outbound-gateway-adapter-xml-6">
+                  <para>Message Channel to which replies should be sent after 
+                        being received from an AQMP Queue and converted.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-7-co" id="amqp-outbound-gateway-adapter-xml-7">
+                  <para>The routing-key to use when sending Messages. By default, 
+                        this will be an empty String.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>              
+              <callout arearefs="amqp-outbound-gateway-adapter-xml-8-co" id="amqp-outbound-gateway-adapter-xml-8">
+                  <para>The routing-key to use when sending Messages evealuated 
+                        as an expression on the message (e.g. 'payload.key'). 
+                        By default, this will be an empty String.
+                  <emphasis>Optional</emphasis>.</para>
+              </callout>
+          </calloutlist>                                    
+      </para> 
+    
+  </section>
+
+  <section>
+    <title>AMQP Backed Message Channels</title>
+
+    <para>
+        This feature is not currently available, yet, but it is planned for the 
+        Spring Integration 2.1 M2 release. In order to follow progress, please 
+        visit the Spring Integration issue tracker at 
+        <ulink url="https://jira.springsource.org/browse/INT-1878">
+            https://jira.springsource.org/browse/INT-1878
+        </ulink>
+    </para>
+    
+  </section>
+  <section>
+    <title>AMQP Samples</title>
+    <para>
+        To experiment with the AMQP adapters, check out the samples available in 
+        the Spring Integration Samples Git repository at: 
+    </para>
+    <itemizedlist>
+        <listitem><ulink url="https://github.com/spring-integration-samples/basic/amqp">
+           https://github.com/spring-integration-samples/basic/amqp</ulink>
+        </listitem>
+    </itemizedlist>    
+    <para>
+        Currently there is one sample available that demonstrates the basic 
+        functionality of the Spring Integration AMQP Adapter using an Outbound Channel Adapter
+        and an Inbound Channel Adapter. As AMQP Broker implementation the sample 
+        uses RabbitMQ (<ulink url="http://www.rabbitmq.com/">http://www.rabbitmq.com/</ulink>).
+    </para>
+    <note>
+        In order to run the example you will need a running instance of RabbitMQ. 
+        A local installation with just the basic defaults will be sufficient. 
+        For detailed RabbitMQ installation procedures please visit: 
+        <ulink url="http://www.rabbitmq.com/install.html">
+            http://www.rabbitmq.com/install.html
+        </ulink>
+    </note>
+    <para>
+        Once the sample application is started, you enter some text on the command prompt 
+        and a message containing that entered text is dispatched to the AMQP queue. 
+        In return that message is retrieved via Spring Integration and then printed 
+        to the console. 
+    </para>
+    <para>
+        The image belows illustrates the basic set of Sprign Integration components
+        used in this sample.
+    </para>
+	<mediaobject>
+	  <imageobject role="fo">
+	      <imagedata fileref="images/spring-integration-amqp-sample-graph.png" format="PNG" align="center"  scalefit="1" width="100%" contentdepth="100%"/>
+	  </imageobject>
+	  <imageobject role="html">
+	      <imagedata fileref="images/spring-integration-amqp-sample-graph.png" format="PNG" align="center"  scalefit="1" width="100%" contentdepth="100%"/>
+	  </imageobject>
+	</mediaobject>
+	<caption>The Spring Integration graph of the AMQP sample</caption>
+  </section>
+</chapter>

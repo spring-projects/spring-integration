@@ -752,6 +752,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</xsd:restriction>
 						</xsd:simpleType>
 					</xsd:attribute>
+					<xsd:attribute name="logger-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Provide a name for the logger. This is useful when there are multiple logging Channel Adapters configured,
+	and you would like to differentiate them within the actual log. By default the logger name will be the
+	fully qualified class name of the LoggingHandler implementation. 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="expression">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -1139,27 +1148,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:choice minOccurs="0" maxOccurs="1">
-				<xsd:element name="interval-trigger" type="intervalTriggerType">
-					<xsd:annotation>
-						<xsd:documentation>
-							NOTE: The 'interval-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be
-							removed in version
-							2.1.
-							Use one of the interval trigger attributes instead ('fixed-delay' or 'fixed-rate').
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
-				<xsd:element name="cron-trigger" type="cronTriggerType">
-					<xsd:annotation>
-						<xsd:documentation>
-							NOTE: The 'cron-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be
-							removed in version 2.1.
-							Use the 'cron' attribute instead.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
-			</xsd:choice>
 			<xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
