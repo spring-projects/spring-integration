@@ -13,52 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.http.inbound;
 
-import java.util.Collections;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.servlet.handler.AbstractDetectingUrlHandlerMapping;
 
 /**
+ * A {@link org.springframework.web.servlet.HandlerMapping} implementation that matches
+ * against the value of the 'path' attribute, if present, on a Spring Integration HTTP
+ * &lt;inbound-channel-adapter&gt; or &lt;inbound-gateway&gt; element.
+ * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.1
  */
 public class UriPathHandlerMapping extends AbstractDetectingUrlHandlerMapping {
-	
-	public UriPathHandlerMapping(){
-		this.setOrder(Integer.MIN_VALUE);
-	}
-	
-	protected void detectHandlers() throws BeansException {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Looking for URL mappings in application context: " + getApplicationContext());
-		}
-		
-		String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(getApplicationContext(), HttpRequestHandlingEndpointSupport.class);
-	
-		for (String beanName : beanNames) {
-			String[] urls = determineUrlsForHandler(beanName);
-			if (!ObjectUtils.isEmpty(urls)) {
-				// URL paths found: Let's consider it a handler.
-				registerHandler(urls, beanName);
-			}
-			else {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Rejected bean name '" + beanName + "': no URL paths identified");
-				}
-			}
-		}
-	}
 
 	@Override
 	protected String[] determineUrlsForHandler(String beanName) {
-		ApplicationContext context = this.getApplicationContext();
-		HttpRequestHandlingEndpointSupport handler = context.getBean(beanName, HttpRequestHandlingEndpointSupport.class);
-		String path = handler.getPath();
-		return Collections.singletonList(path).toArray(new String[]{});
+		String[] urls = null;
+		Class<?> beanClass = getApplicationContext().getType(beanName);
+		if (HttpRequestHandlingEndpointSupport.class.isAssignableFrom(beanClass)) {
+			HttpRequestHandlingEndpointSupport endpoint = getApplicationContext().getBean(beanName, HttpRequestHandlingEndpointSupport.class);
+			String path = endpoint.getPath();
+			if (path != null) {
+				urls = new String[]{path};
+			}
+		}
+		return urls;
 	}
+
 }

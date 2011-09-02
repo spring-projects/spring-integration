@@ -68,11 +68,9 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 	}
 	
 	@Test
-	public void withoutPayloadExpressionPointingToUriVariable() throws Exception {
-		
+	public void withPayloadExpressionPointingToPathVariable() throws Exception {
 		DirectChannel echoChannel = new DirectChannel();
 		echoChannel.subscribe(new MessageHandler() {
-			
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
@@ -80,21 +78,20 @@ public class HttpRequestHandlingMessagingGatewayWithPathMappingTests {
 		});
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		
+
 		request.setMethod("POST");
 		request.setContentType("text/plain");
 		request.setParameter("foo", "bar");
 		request.setContent("hello".getBytes());
 		request.setRequestURI("/fname/bill/lname/clinton");
-			
+
 		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
 		gateway.setPath("/fname/{f}/lname/{l}");
 		gateway.setRequestChannel(echoChannel);
-		gateway.setPayloadExpression(PARSER.parseExpression("#f"));
-			
+		gateway.setPayloadExpression(PARSER.parseExpression("#pathVariables.f"));
+
 		Object result =  gateway.doHandleRequest(request, response);
 		assertEquals("bill", result);
-		
 	}
 	
 	@SuppressWarnings("unchecked")

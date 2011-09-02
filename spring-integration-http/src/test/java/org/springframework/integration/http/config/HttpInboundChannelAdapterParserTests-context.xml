@@ -31,23 +31,23 @@
 	                         path="/fname/{f}/lname/{l}"
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
-							 payload-expression="#f">
-		<header name="lname" expression="#l"/>
+							 payload-expression="#pathVariables.f">
+		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 	
 	<inbound-channel-adapter name="/fname/{blah}/lname/{boo}" 
 	                         path="/fname/{f}/lname/{l}"
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
-							 payload-expression="#f">
-		<header name="lname" expression="#l"/>
+							 payload-expression="#pathVariables.f">
+		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 	
 	<inbound-channel-adapter name="/fname/{f}/lname/{l}" 
 	                         channel="requests"
 							 mapped-request-headers="foo,bar"
-							 payload-expression="#f">
-		<header name="lname" expression="#l"/>
+							 payload-expression="#pathVariables.f">
+		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 
 </beans:beans>

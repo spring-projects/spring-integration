@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.Message;
@@ -47,6 +48,7 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingMessaging
 import org.springframework.integration.http.support.DefaultHttpHeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.ExpectedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.MultiValueMap;
@@ -146,6 +148,7 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("bill", payload);
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
+
 	@Test // ensure that 'path' takes priority over name
 	// INT-1677
 	public void withNameAndExpressionsAndPath() throws Exception {
@@ -167,8 +170,9 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals("clinton", message.getHeaders().get("lname"));
 	}
 	
-	@Test 
+	@Test
 	// INT-1677
+	@ExpectedException(SpelEvaluationException.class)
 	public void withNameAndExpressionsNoPath() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
