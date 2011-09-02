@@ -13,21 +13,20 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.store;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 
 /**
+ * Exception for problems that occur when using a {@link MessageStore} implementation.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.1
- *
  */
 public class MessageStoreException extends MessagingException {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -42,7 +41,6 @@ public class MessageStoreException extends MessagingException {
 	 */
 	public MessageStoreException(String description) {
 		super(description);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -74,8 +72,7 @@ public class MessageStoreException extends MessagingException {
 	 * @param description
 	 * @param cause
 	 */
-	public MessageStoreException(Message<?> message, String description,
-			Throwable cause) {
+	public MessageStoreException(Message<?> message, String description, Throwable cause) {
 		super(message, description, cause);
 	}
 
