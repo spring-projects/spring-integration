@@ -188,7 +188,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:element name="outbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-                Builds an outbound gateway used to issue sftp commands.
+                Builds an outbound gateway used to issue FTP commands.
             ]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -197,11 +197,11 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.sftp.session.SftpSessionFactory"/>
+							<tool:expected-type type="org.springframework.integration.ftp.session.AbstractFtpSessionFactory"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-					 Reference to a [org.springframework.integration.sftp.session.SftpSessionFactory] bean.
+					 Reference to a [org.springframework.integration.ftp.session.AbstractFtpSessionFactory] bean.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -215,14 +215,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:attribute name="command" use="required" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-					sftp command - ls, get or rm
+					FTP command - ls, get or rm
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="command-options" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-					sftp command options; for ls, -1 means just return the file names (otherwise file
+					FTP command options; for ls, -1 means just return the file names (otherwise file
 					metadata is returned, -dirs means include directories (not included by default),
 					-links means include links (not included by default); for get, -P means preserve
 					timestamp from remote file.

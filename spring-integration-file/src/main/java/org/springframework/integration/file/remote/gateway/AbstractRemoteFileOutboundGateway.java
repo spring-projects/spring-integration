@@ -209,7 +209,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			}
 			return results;
 		} else {
-			List<AbstractFileInfo<F>> canonicalFiles = this.asFileInFoList(lsFiles);
+			List<AbstractFileInfo<F>> canonicalFiles = this.asFileInfoList(lsFiles);
 			for (AbstractFileInfo<F> file : canonicalFiles) {
 				file.setRemoteDir(dir);
 			}
@@ -318,7 +318,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	abstract protected long getModified(F file);
 
-	abstract protected List<AbstractFileInfo<F>> asFileInFoList(Collection<F> files);
+	abstract protected List<AbstractFileInfo<F>> asFileInfoList(Collection<F> files);
 
 	/**
 	 * @param options the options to set
