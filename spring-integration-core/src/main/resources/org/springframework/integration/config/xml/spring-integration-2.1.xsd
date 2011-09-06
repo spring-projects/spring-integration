@@ -2052,6 +2052,22 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             <xsd:extension base="abstractRouterType">
                 <xsd:attribute name="ref" type="xsd:string">
                     <xsd:annotation>
+                        <xsd:documentation>
+                            The "ref" attribute references the bean name of a custom 
+                            Router implementation that extends AbstractMessageRouter.
+                            
+                            Alternatively, the "ref" attribute may point to a 
+                            simple POJO that contains the @Router annotation.
+                            
+                            Instead of using the "ref" attribute you may also provide
+                            the custom Router implementation as an inner bean 
+                            definition.
+                            
+                            However, keep in mind that using both the "ref" attribute 
+                            and an inner handler definition in the same Router 
+                            configuration is not allowed, as it creates an 
+                            ambiguous condition, and an Exception will be thrown.
+                        </xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation kind="ref">
                                 <tool:expected-type type="java.lang.Object" />
@@ -2061,6 +2077,20 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 </xsd:attribute>
                 <xsd:attribute name="method" type="xsd:string">
                     <xsd:annotation>
+                        <xsd:documentation>
+                            When implementing a custom Router using a plain POJO
+                            the "ref" attribute may be combined with an explicit 
+                            method name using the "method" attribute. 
+                            
+                            The referenced method may return either a MessageChannel 
+                            or a String type.Additionally, the method may return 
+                            either a single value or a collection. If a collection 
+                            is returned, the reply message will be sent to 
+                            multiple channels.
+                            
+                            Specifying a "method" attribute applies the same behavior 
+                            as when using the @Router annotation within POJOs. 
+                        </xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation>
                                 <tool:expected-method type-ref="@ref" />
@@ -2068,13 +2098,32 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:attribute>
-                <xsd:attribute name="expression" type="xsd:string" />
+                <xsd:attribute name="expression" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            SpEL Expression to be evaulated at runtime. Allows you
+                            to implement simple computations without implementing
+                            a custom POJO router. Generally, the SpEL expression is 
+                            evaluated and the result is mapped to a channel using 
+                            "mapping" sub-elements. 
+                            
+                            However, if no "mapping" sub-element is present, the 
+                            SpEL Expression will evaluate to a channel name directly.
+                            
+                            A SpEL expression may return also a Collection. Whenever 
+                            the expression returns multiple channel values the 
+                            Message will be forwarded to each channel.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
                 <xsd:attribute name="channel-resolver" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[
-                            Provides a reference to a ChannelResolver that resolves the return value
-                            to the name of a MessageChannel within the application context. If none
-                            is provided, the return value is expected to match a channel name exactly.
+                            Provides a reference to a ChannelResolver that resolves 
+                            the return value to the name of a MessageChannel 
+                            within the application context. If none is provided, 
+                            the return value is expected to match a channel name 
+                            exactly.
                         ]]></xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation kind="ref">
@@ -2335,10 +2384,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
     -->
     
     <xsd:attributeGroup name="topLevelRouterAttributeGroup">        
-        <xsd:attribute name="id" type="xsd:string" />
+        <xsd:attribute name="id" type="xsd:string">
+	        <xsd:annotation>
+	            <xsd:documentation><![CDATA[Identifies the underlying Spring bean 
+	                definition (EventDrivenConsumer).
+	                ]]></xsd:documentation>
+	        </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="auto-startup" type="xsd:string" >
             <xsd:annotation>
-            <xsd:documentation>
+                <xsd:documentation>
                     Lifecycle attribute signaling if this component should be started during Application Context startup.
                 </xsd:documentation>
             </xsd:annotation>
@@ -2351,7 +2406,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     </tool:annotation>
                 </xsd:appinfo>
                 <xsd:documentation>
-                The receiving Message channel of this endpoint
+                    The receiving Message channel of this endpoint
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
