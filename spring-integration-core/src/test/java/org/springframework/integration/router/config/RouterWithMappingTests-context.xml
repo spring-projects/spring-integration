@@ -21,7 +21,7 @@
 
 	<router id="spelRouter" input-channel="expressionRouter" expression="payload.name"
 			default-output-channel="defaultChannelForExpression"
-			ignore-channel-name-resolution-failures="true">
+			channel-resolution-required="true">
 		<mapping value="foo" channel="fooChannelForExpression"/>
 		<mapping value="bar" channel="barChannelForExpression"/>
 	</router>
@@ -40,7 +40,7 @@
 
 	<router input-channel="pojoRouter" ref="testBean"
 			default-output-channel="defaultChannelForPojo"
-			ignore-channel-name-resolution-failures="true">
+			channel-resolution-required="false">
 		<mapping value="foo" channel="fooChannelForPojo"/>
 		<mapping value="bar" channel="barChannelForPojo"/>
 	</router>

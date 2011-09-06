@@ -53,7 +53,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile MessageChannel defaultOutputChannel;
 
-	private volatile boolean resolutionRequired;
+	private volatile boolean channelResolutionRequired = true;
 
 	private volatile boolean ignoreSendFailures;
 
@@ -122,7 +122,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution fails to return any channels. If no
 	 * default channel is provided, the router will either drop the Message or throw an Exception depending on the value
-	 * of {@link #resolutionRequired}.
+	 * of {@link #channelResolutionRequired}.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -141,8 +141,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * trigger an exception whenever the resolver returns null or an empty channel list, and this endpoint has no
 	 * 'defaultOutputChannel' configured, set this value to 'true'.
 	 */
-	public void setResolutionRequired(boolean resolutionRequired) {
-		this.resolutionRequired = resolutionRequired;
+	public void setChannelResolutionRequired(boolean resolutionRequired) {
+		this.channelResolutionRequired = resolutionRequired;
 	}
 
 	/**
@@ -235,7 +235,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			if (this.defaultOutputChannel != null) {
 				this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}
-			else if (this.resolutionRequired) {
+			else if (this.channelResolutionRequired) {
 				throw new MessageDeliveryException(message,
 						"no channel resolved by router and no default output channel defined");
 			}

@@ -54,8 +54,8 @@ public class RouterFactoryBeanDelegationTests {
 
 
 	@Test
-	public void checkResolutionRequiredConfiguredOnTargetRouter() {
-		boolean resolutionRequired = (Boolean) new DirectFieldAccessor(router).getPropertyValue("resolutionRequired");
+	public void checkChannelResolutionRequiredConfiguredOnTargetRouter() {
+		boolean resolutionRequired = (Boolean) new DirectFieldAccessor(router).getPropertyValue("channelResolutionRequired");
 		assertTrue("The 'resolutionRequired' property should be 'true'", resolutionRequired);
 	}
 

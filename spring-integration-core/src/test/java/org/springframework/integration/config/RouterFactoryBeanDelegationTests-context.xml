@@ -18,7 +18,7 @@
 	</si:channel>
 
 	<bean id="payloadTypeRouter" class="org.springframework.integration.router.PayloadTypeRouter">
-		<property name="resolutionRequired" value="true"/>
+		<property name="channelResolutionRequired" value="true"/>
 		<property name="channelIdentifierMap">
 			<map>
 				<entry key="java.lang.String" value="strings"/>

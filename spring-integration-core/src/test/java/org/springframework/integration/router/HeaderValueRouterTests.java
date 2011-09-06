@@ -41,7 +41,7 @@ public class HeaderValueRouterTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.refresh();
 		MessageHandler handler = (MessageHandler) context.getBean("router");
@@ -58,7 +58,7 @@ public class HeaderValueRouterTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		context.registerBeanDefinition("newChannel", new RootBeanDefinition(QueueChannel.class));
@@ -94,7 +94,7 @@ public class HeaderValueRouterTests {
 		channelMap.put("testKey", "testChannel");
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		context.registerBeanDefinition("router", routerBeanDefinition);
@@ -116,7 +116,7 @@ public class HeaderValueRouterTests {
 		channelMap.put("testKey", "testChannel");
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new ChannelResolver() {
@@ -142,7 +142,7 @@ public class HeaderValueRouterTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("channel1", new RootBeanDefinition(QueueChannel.class));
 		context.registerBeanDefinition("channel2", new RootBeanDefinition(QueueChannel.class));
@@ -166,7 +166,7 @@ public class HeaderValueRouterTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolutionRequired", "true");
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("channel1", new RootBeanDefinition(QueueChannel.class));
 		context.registerBeanDefinition("channel2", new RootBeanDefinition(QueueChannel.class));

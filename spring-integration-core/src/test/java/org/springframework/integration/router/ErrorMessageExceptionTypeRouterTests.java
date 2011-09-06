@@ -154,7 +154,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
-		router.setResolutionRequired(true);
+		router.setChannelResolutionRequired(true);
 		router.handleMessage(message);
 	}
 
