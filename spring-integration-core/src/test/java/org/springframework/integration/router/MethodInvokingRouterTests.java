@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.router;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
@@ -134,7 +136,15 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+		
+		
 	}
 
 	@Test
@@ -171,7 +181,14 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+		
 	}
 
 	@Test
@@ -208,7 +225,14 @@ public class MethodInvokingRouterTests {
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+		
 	}
 
 	@Test
@@ -251,7 +275,13 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
 	}
 
 	@Test
@@ -294,7 +324,13 @@ public class MethodInvokingRouterTests {
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
 	}
 
 	@Test
@@ -337,7 +373,13 @@ public class MethodInvokingRouterTests {
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
 	}
 
 	@Test
@@ -380,7 +422,14 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+		
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+
 	}
 
 	@Test
@@ -423,7 +472,14 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+		
 	}
 
 	@Test
@@ -466,7 +522,14 @@ public class MethodInvokingRouterTests {
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		router.handleMessage(badMessage);
+
+		try {
+		    router.handleMessage(badMessage);
+		    fail();
+		} catch (MessageDeliveryException e) {
+			/* Success */
+		}
+		
 	}
 
 
