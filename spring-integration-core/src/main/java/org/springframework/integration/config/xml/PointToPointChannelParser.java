@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.PriorityChannel.MessagePriorityComparator;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -49,7 +50,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		// configure a queue-based channel if any queue sub-element is defined
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
-			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE));
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE), false);
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
 			if (!hasStoreRef) {
 				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
@@ -67,10 +68,13 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".PriorityChannel");
-			this.parseQueueCapacity(builder, queueElement);
-			String comparatorRef = queueElement.getAttribute("comparator");
-			if (StringUtils.hasText(comparatorRef)) {
-				builder.addConstructorArgReference(comparatorRef);
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE), true);
+			if (!hasStoreRef){
+				this.parseQueueCapacity(builder, queueElement);
+				String comparatorRef = queueElement.getAttribute("comparator");
+				if (StringUtils.hasText(comparatorRef)) {
+					builder.addConstructorArgReference(comparatorRef);
+				}
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
@@ -159,13 +163,25 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		return false;
 	}
 
-	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel) {
+	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel, boolean priorityChannel) {
 		String storeRef = queueElement.getAttribute("message-store");
 		if (StringUtils.hasText(storeRef)) {
 			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(STORE_PACKAGE + ".MessageGroupQueue");
 			queueBuilder.addConstructorArgReference(storeRef);
 			queueBuilder.addConstructorArgValue(STORE_PACKAGE + ":" + channel);
+			
+			if (priorityChannel){
+				String comparator = queueElement.getAttribute("comparator");
+				if (StringUtils.hasText(comparator)){
+					queueBuilder.addPropertyReference("comparator", comparator);
+				}
+				else {
+					BeanDefinitionBuilder comparatorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePriorityComparator.class);
+					queueBuilder.addPropertyValue("comparator", comparatorBuilder.getBeanDefinition());
+				}
+			}
+			
 			parseQueueCapacity(queueBuilder, queueElement);
 			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;

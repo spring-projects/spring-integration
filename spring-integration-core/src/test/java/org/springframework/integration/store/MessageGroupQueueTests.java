@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -36,14 +37,31 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MessageGroupQueueTests {
 
 	static final Log logger = LogFactory.getLog(MessageGroupQueueTests.class);
+	
+	
+	@Test
+	public void testPutAndPollWithComparator() throws Exception {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(), "FOO");
+		queue.setComparator(new MessagePriorityComparator());
+		Message<?> messageA = MessageBuilder.withPayload("A").setPriority(1).build();
+		Message<?> messageB = MessageBuilder.withPayload("B").setPriority(2).build();
+		queue.put(messageA);
+		queue.put(messageB);
+		assertEquals(messageB, queue.poll(100, TimeUnit.MILLISECONDS));
+		assertEquals(messageA, queue.poll(100, TimeUnit.MILLISECONDS));
+	}
+	
+	
 
 	@Test
 	public void testPutAndPoll() throws Exception {
@@ -164,6 +182,17 @@ public class MessageGroupQueueTests {
 		
 		executorService.shutdown();
 
+	}
+	
+	private static class MessagePriorityComparator implements Comparator<Message<?>> {
+
+		public int compare(Message<?> message1, Message<?> message2) {
+			Integer priority1 = message1.getHeaders().getPriority();
+			Integer priority2 = message2.getHeaders().getPriority();
+			priority1 = priority1 != null ? priority1 : 0;
+			priority2 = priority2 != null ? priority2 : 0;
+			return priority2.compareTo(priority1);
+		}
 	}
 
 }
