@@ -116,18 +116,18 @@ public class MessageBuilderTests {
 	@Test
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
-			.setPriority(123).build();
-		assertEquals(new Integer(123), importantMessage.getHeaders().getPriority());
+			.setPriority((long)123).build();
+		assertEquals(new Long(123), importantMessage.getHeaders().getPriority());
 	}
 
 	@Test
 	public void testNonDestructiveSet() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setPriority(42).build();
+			.setPriority((long)42).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.setHeaderIfAbsent(MessageHeaders.PRIORITY, 13)
 			.build();
-		assertEquals(new Integer(42), message2.getHeaders().getPriority());
+		assertEquals(new Long(42), message2.getHeaders().getPriority());
 	}
 
 	@Test

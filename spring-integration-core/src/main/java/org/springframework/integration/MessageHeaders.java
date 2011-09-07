@@ -136,8 +136,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return (sequenceSize != null ? sequenceSize : 0);
 	}
 
-	public Integer getPriority() {
-		return this.get(PRIORITY, Integer.class);
+	public Long getPriority() {
+		return this.get(PRIORITY, Long.class);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * references) if provided as 'header' sub-elements.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 
@@ -39,7 +40,7 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
 		this.addElementToHeaderMapping("correlation-id", MessageHeaders.CORRELATION_ID);
 		this.addElementToHeaderMapping("expiration-date", MessageHeaders.EXPIRATION_DATE, Long.class);
-		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, Integer.class);
+		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, Long.class);
 	}
 
 	@Override

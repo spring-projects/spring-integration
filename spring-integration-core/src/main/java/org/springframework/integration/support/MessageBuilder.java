@@ -283,7 +283,7 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
 	}
 
-	public MessageBuilder<T> setPriority(Integer priority) {
+	public MessageBuilder<T> setPriority(Long priority) {
 		return this.setHeader(MessageHeaders.PRIORITY, priority);
 	}
 

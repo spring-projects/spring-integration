@@ -126,7 +126,7 @@ public class HeaderEnricherTests {
 		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
 		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
-		assertEquals(new Integer(42), result.getHeaders().getPriority());
+		assertEquals(new Long(42), result.getHeaders().getPriority());
 	}
 
 	@Test

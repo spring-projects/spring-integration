@@ -17,8 +17,10 @@
 package org.springframework.integration.channel;
 
 import java.util.Comparator;
+import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.util.UpperBound;
@@ -32,6 +34,8 @@ import org.springframework.integration.util.UpperBound;
 public class PriorityChannel extends QueueChannel {
 
 	private final UpperBound upperBound;
+	
+	private volatile long lastMessageSendTime;
 
 
 	/**
@@ -74,10 +78,16 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (!upperBound.tryAcquire(timeout)) {
 			return false;
+		}
+		if (message.getHeaders().getPriority() == null){
+			
+			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
+			innerMap.put(MessageHeaders.PRIORITY, this.calculateDefaultPriorityHeader());
 		}
 		return super.doSend(message, 0);
 	}
@@ -92,11 +102,29 @@ public class PriorityChannel extends QueueChannel {
 		return null;
 	}
 
+	private long calculateDefaultPriorityHeader(){
+		long currentTime = System.currentTimeMillis();
+		synchronized (this) {
+			if (currentTime > this.lastMessageSendTime){
+				this.lastMessageSendTime = currentTime;
+			}
+			else if (currentTime == this.lastMessageSendTime){
+				this.lastMessageSendTime = currentTime+1;
+			}
+			else {
+				this.lastMessageSendTime += 1;
+			}
+			long priorityHeadrValue = this.lastMessageSendTime;
+			return priorityHeadrValue * (-1);
+		}
+	}
+	
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
-			Integer priority1 = message1.getHeaders().getPriority();
-			Integer priority2 = message2.getHeaders().getPriority();
+			Long priority1 = message1.getHeaders().getPriority();
+			Long priority2 = message2.getHeaders().getPriority();
+			
 			priority1 = priority1 != null ? priority1 : 0;
 			priority2 = priority2 != null ? priority2 : 0;
 			return priority2.compareTo(priority1);

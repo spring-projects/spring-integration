@@ -203,9 +203,9 @@ public class ChannelParserTests {
 	public void testPriorityChannelWithDefaultComparator() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithDefaultComparator");
-		Message<String> lowPriorityMessage = MessageBuilder.withPayload("low").setPriority(-14).build();
-		Message<String> midPriorityMessage = MessageBuilder.withPayload("mid").setPriority(0).build();
-		Message<String> highPriorityMessage = MessageBuilder.withPayload("high").setPriority(99).build();
+		Message<String> lowPriorityMessage = MessageBuilder.withPayload("low").setPriority((long)-14).build();
+		Message<String> midPriorityMessage = MessageBuilder.withPayload("mid").setPriority((long)0).build();
+		Message<String> highPriorityMessage = MessageBuilder.withPayload("high").setPriority((long)99).build();
 		channel.send(lowPriorityMessage);
 		channel.send(highPriorityMessage);
 		channel.send(midPriorityMessage);
