@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -35,13 +36,18 @@ import org.springframework.integration.util.UpperBound;
  */
 public class PriorityChannel extends QueueChannel {
 
-	private final UpperBound upperBound;
-	
 	private final AtomicLong sequenceCounter = new AtomicLong();
 	
 	private static final String SEQUENCE_HEADER_NAME = "__priorityChannelSequence__";
 
+	private volatile UpperBound upperBound;
 
+	/**
+	 * Create a channel with the specified queue.
+	 */
+	public PriorityChannel(BlockingQueue<Message<?>> queue) {
+		super(queue);
+	}
 	/**
 	 * Create a channel with the specified queue capacity. If the capacity
 	 * is a non-positive value, the queue will be unbounded. Message priority
@@ -135,5 +141,4 @@ public class PriorityChannel extends QueueChannel {
 			return compareResult;
 		}
 	}
-
 }
