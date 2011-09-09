@@ -361,6 +361,12 @@
 	            </xsd:attribute>
 	            <xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
 	                <xsd:annotation>
+	                    <xsd:documentation>
+                            Reference to the XPathExpression instance to be 
+                            evaluated against the input Message's payload. Either 
+                            this or 'xpath-expression' must be provided, but not 
+                            both.
+                        </xsd:documentation>
 	                    <xsd:appinfo>
 	                        <tool:annotation kind="ref">
 	                            <tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
@@ -431,12 +437,26 @@
 	</xsd:element>
 
 	<xsd:element name="xpath-expression">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+                Defines an XPath expression.
+                
+                Internally XPath expressions will be evaluated as 
+                NODESET type and converted to a List<String> 
+                representing channel names. Typically such list 
+                will contain a single channel name. However, based 
+                on the result of an XPath Expression the XPath router 
+                can also take on the characteristics of the 
+                Recipient List Router if the XPath Expression 
+                returns more then one value, thus resulting in 
+                the List<String> containing more then one channel 
+                name. 
+                
+                In that case Message will be sent to all channels 
+                in the list.
+            ]]></xsd:documentation>
+        </xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an XPath expression.
-				</xsd:documentation>
-			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
