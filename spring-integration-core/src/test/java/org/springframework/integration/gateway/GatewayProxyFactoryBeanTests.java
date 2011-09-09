@@ -214,6 +214,20 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
+	public void testNoArgMethodWithPayloadAnnotation() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		String result = service.requestReplyWithPayloadAnnotation();
+		assertEquals("requestReplyWithPayloadAnnotation0bar", result);
+	}
+
+	@Test
 	public void testMessageAsReturnValue() throws Exception {
 		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {
