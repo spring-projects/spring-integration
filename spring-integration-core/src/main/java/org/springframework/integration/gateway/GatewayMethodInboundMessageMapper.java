@@ -128,6 +128,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		if (this.payloadExpression != null) {
 			StandardEvaluationContext context = new StandardEvaluationContext();
 			context.setVariable("args", arguments);
+			context.setVariable("method", this.method.getName());
 			if (this.beanResolver != null) {
 				context.setBeanResolver(this.beanResolver);
 			}
