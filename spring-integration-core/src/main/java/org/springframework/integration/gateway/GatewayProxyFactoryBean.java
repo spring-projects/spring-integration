@@ -285,7 +285,13 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
-		if (paramCount == 0 && !method.isAnnotationPresent(Payload.class)) {
+		boolean hasPayloadExpression = method.isAnnotationPresent(Payload.class);
+		if (!hasPayloadExpression && this.methodMetadataMap != null) {
+			// check for the method metadata next
+			GatewayMethodMetadata metadata = this.methodMetadataMap.get(method.getName());
+			hasPayloadExpression = (metadata != null) && StringUtils.hasText(metadata.getPayloadExpression());
+		}
+		if (paramCount == 0 && !hasPayloadExpression) {
 			if (shouldReply) {
 				if (shouldReturnMessage) {
 					return gateway.receive();

@@ -67,12 +67,21 @@ public class GatewayWithPayloadExpressionTests {
 		assertEquals("foobar", result.getPayload());
 	}
 
+	@Test
+	public void noArgMethodWithPayloadExpression() throws Exception {
+		gateway.send3();
+		Message<?> result = input.receive(0);
+		assertEquals("send3", result.getPayload());
+	}
+
 
 	public static interface SampleGateway {
 
 		void send1(String value);
 
 		void send2(String value);
+
+		void send3();
 	}
 
 
