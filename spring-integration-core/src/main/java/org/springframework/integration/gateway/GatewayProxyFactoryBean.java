@@ -28,7 +28,6 @@ import java.util.concurrent.Future;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -45,6 +44,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.history.TrackableComponent;
@@ -285,7 +285,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
-		if (paramCount == 0) {
+		if (paramCount == 0 && !method.isAnnotationPresent(Payload.class)) {
 			if (shouldReply) {
 				if (shouldReturnMessage) {
 					return gateway.receive();
