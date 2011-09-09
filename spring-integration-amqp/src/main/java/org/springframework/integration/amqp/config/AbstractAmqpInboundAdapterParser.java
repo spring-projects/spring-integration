@@ -111,7 +111,7 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 				"org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer");
 		String connectionFactoryRef = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactoryRef)) {
-			connectionFactoryRef = "connectionFactory";
+			connectionFactoryRef = "rabbitConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactoryRef);
 		for (String attributeName : CONTAINER_VALUE_ATTRIBUTES) {
