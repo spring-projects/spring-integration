@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.BeanResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -82,7 +83,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private final StandardEvaluationContext staticEvaluationContext = new StandardEvaluationContext();
 
 	private volatile BeanResolver beanResolver;
 
@@ -107,7 +108,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.beanResolver = new BeanFactoryResolver(beanFactory);
-			this.evaluationContext.setBeanResolver(beanResolver);
+			this.staticEvaluationContext.setBeanResolver(beanResolver);
 		}
 	}
 
@@ -125,14 +126,9 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		Object messageOrPayload = null;
 		boolean foundPayloadAnnotation = false;
 		Map<String, Object> headers = new HashMap<String, Object>();
+		EvaluationContext methodInvocationEvaluationContext = createMethodInvocationEvaluationContext(arguments);
 		if (this.payloadExpression != null) {
-			StandardEvaluationContext context = new StandardEvaluationContext();
-			context.setVariable("args", arguments);
-			context.setVariable("method", this.method.getName());
-			if (this.beanResolver != null) {
-				context.setBeanResolver(this.beanResolver);
-			}
-			messageOrPayload = this.payloadExpression.getValue(context);
+			messageOrPayload = this.payloadExpression.getValue(methodInvocationEvaluationContext);
 		}
 		for (int i = 0; i < this.parameterList.size(); i++) {
 			Object argumentValue = arguments[i];		
@@ -196,7 +192,7 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		if (!CollectionUtils.isEmpty(this.headerExpressions)) {
 			Map<String, Object> evaluatedHeaders = new HashMap<String, Object>();
 			for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
-				Object value = entry.getValue().getValue(this.evaluationContext);
+				Object value = entry.getValue().getValue(methodInvocationEvaluationContext);
 				if (value != null) {
 					evaluatedHeaders.put(entry.getKey(), value);
 				}
@@ -206,13 +202,23 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 		return builder.build();
 	}
 
+	private StandardEvaluationContext createMethodInvocationEvaluationContext(Object[] arguments) {
+		StandardEvaluationContext context = new StandardEvaluationContext();
+		context.setVariable("args", arguments);
+		context.setVariable("method", this.method.getName());
+		if (this.beanResolver != null) {
+			context.setBeanResolver(this.beanResolver);
+		}
+		return context;
+	}
+
 	private Object evaluatePayloadExpression(String expressionString, Object argumentValue) {
 		Expression expression = this.parameterPayloadExpressions.get(expressionString);
 		if (expression == null) {
 			expression = PARSER.parseExpression(expressionString);
 			this.parameterPayloadExpressions.put(expressionString, expression);
 		}
-		return expression.getValue(this.evaluationContext, argumentValue);
+		return expression.getValue(this.staticEvaluationContext, argumentValue);
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {
