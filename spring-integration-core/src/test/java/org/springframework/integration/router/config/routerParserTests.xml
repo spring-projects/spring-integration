@@ -73,9 +73,9 @@
 	
 	<router id="resolutionRequiredRouter" ref="pojo" method="route" input-channel="inputForRouterRequiringResolution" channel-resolution-required="true" />
 	
-	<channel id="ignoreChannelNameResolutionFailuresInput"/>
+	<channel id="channelResolutionRequiredIsTrueInput"/>
 	<beans:bean id="payloadAsChannelNameRouter" class="org.springframework.integration.router.config.RouterParserTests$ReturnStringPassedInAsChannelNameRouter" />
-	<router id="ignoreChannelNameResolutionFailuresRouter" ref="payloadAsChannelNameRouter" input-channel="ignoreChannelNameResolutionFailuresInput" channel-resolution-required="false" />  
+	<router id="ignoreChannelNameResolutionFailuresRouter" ref="payloadAsChannelNameRouter" input-channel="channelResolutionRequiredIsTrueInput" channel-resolution-required="false" />  
 
 	<channel id="timeoutRouterChannel"/>
 	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" timeout="1234" input-channel="timeoutRouterChannel"/>

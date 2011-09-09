@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Gunnar Hillert
  */
 public class RouterParserTests {
 
@@ -120,15 +121,14 @@ public class RouterParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("inputForRouterRequiringResolution");
 		input.send(new GenericMessage<Integer>(3));
 	}
-//FIXME
-//	@Test
-//	public void testIgnoreChannelNameResolutionFailures() {
-//		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-//				"routerParserTests.xml", this.getClass());
-//		context.start();
-//		MessageChannel input = (MessageChannel) context.getBean("ignoreChannelNameResolutionFailuresInput");
-//		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
-//	}
+
+	public void testChannelResolutionRequiredIsTrue() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("channelResolutionRequiredIsTrueInput");
+		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
+	}
 
 	@Test
 	public void timeoutValueConfigured() {
@@ -178,18 +178,17 @@ public class RouterParserTests {
 		assertEquals(new Integer(3), message3.getHeaders().getSequenceSize());
 	}
 
-	//FIXME
-//	@Test
-//	public void testErrorChannel(){
-//		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-//				"ErrorChannelRoutingTests-context.xml", this.getClass());
-//		MessageHandler handler = mock(MessageHandler.class);
-//		DirectChannel inputChannel = context.getBean("inputChannel", DirectChannel.class);
-//		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
-//		errorChannel.subscribe(handler);
-//		inputChannel.send(new GenericMessage<String>("fail"));
-//		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
-//	}
+	@Test
+	public void testErrorChannel(){
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ErrorChannelRoutingTests-context.xml", this.getClass());
+		MessageHandler handler = mock(MessageHandler.class);
+		DirectChannel inputChannel = context.getBean("inputChannel", DirectChannel.class);
+		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
+		errorChannel.subscribe(handler);
+		inputChannel.send(new GenericMessage<String>("fail"));
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+	}
 	
 	public static class NonExistingChannelRouter{
 		public String route(String payload){

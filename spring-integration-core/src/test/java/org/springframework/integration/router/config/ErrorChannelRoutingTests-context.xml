@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 
-	<int:router input-channel="inputChannel" default-output-channel="errorChannel" channel-resolution-required="false" >
+	<int:router input-channel="inputChannel" default-output-channel="errorChannel" channel-resolution-required="false">
 		<bean class="org.springframework.integration.router.config.RouterParserTests.NonExistingChannelRouter"/>
 	</int:router>
 	

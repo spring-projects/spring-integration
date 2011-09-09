@@ -21,7 +21,7 @@
 
 	<router id="spelRouter" input-channel="expressionRouter" expression="payload.name"
 			default-output-channel="defaultChannelForExpression"
-			channel-resolution-required="true">
+			channel-resolution-required="false">
 		<mapping value="foo" channel="fooChannelForExpression"/>
 		<mapping value="bar" channel="barChannelForExpression"/>
 	</router>
