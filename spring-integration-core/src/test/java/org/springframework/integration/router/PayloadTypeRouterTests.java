@@ -39,51 +39,51 @@ import org.springframework.integration.message.GenericMessage;
  */
 public class PayloadTypeRouterTests {
 
-	//FIXME
-//	@Test
-//	public void resolveExactMatch() {
-//		QueueChannel stringChannel = new QueueChannel();
-//		QueueChannel integerChannel = new QueueChannel();
-//		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-//		beanFactory.registerSingleton("stringChannel", stringChannel);
-//		beanFactory.registerSingleton("integerChannel", integerChannel);
-//		
-//		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
-//		payloadTypeChannelMap.put(String.class.getName(), "stringChannel");
-//		payloadTypeChannelMap.put(Integer.class.getName(), "integerChannel");
-//		PayloadTypeRouter router = new PayloadTypeRouter();
-//		router.setChannelIdentifierMap(payloadTypeChannelMap);
-//		router.setBeanFactory(beanFactory);
-//		
-//		Message<String> message1 = new GenericMessage<String>("test");
-//		Message<Integer> message2 = new GenericMessage<Integer>(123);
-//		assertEquals(1, router.getChannelIdentifiers(message1).size());
-//		assertEquals("stringChannel", router.getChannelIdentifiers(message1).iterator().next());
-//		assertEquals(1, router.getChannelIdentifiers(message2).size());
-//		assertEquals("integerChannel", router.getChannelIdentifiers(message2).iterator().next());
-//		
-//		// validate dynamics
-//		QueueChannel newChannel = new QueueChannel();
-//		beanFactory.registerSingleton("newChannel", newChannel);
-//		router.setChannelMapping(String.class.getName(), "newChannel");
-//		assertEquals(1, router.getChannelIdentifiers(message1).size());
-//		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
-//		
-//		// validate nothing happens if mappings were removed and resolutionRequires = false
-//		router.removeChannelMapping(String.class.getName());
-//		router.removeChannelMapping(Integer.class.getName());
-//		router.handleMessage(message1);
-//
-//		// validate exception is thrown if mappings were removed and resolutionRequires = true
-//		router.setChannelResolutionRequired(true);
-//		try {
-//			router.handleMessage(message1);
-//			fail();
-//		}
-//		catch (Exception e) {
-//			// ignore
-//		}
-//	}
+	@Test
+	public void resolveExactMatch() {
+		QueueChannel stringChannel = new QueueChannel();
+		QueueChannel integerChannel = new QueueChannel();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("stringChannel", stringChannel);
+		beanFactory.registerSingleton("integerChannel", integerChannel);
+		
+		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
+		payloadTypeChannelMap.put(String.class.getName(), "stringChannel");
+		payloadTypeChannelMap.put(Integer.class.getName(), "integerChannel");
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setBeanFactory(beanFactory);
+		
+		Message<String> message1 = new GenericMessage<String>("test");
+		Message<Integer> message2 = new GenericMessage<Integer>(123);
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("stringChannel", router.getChannelIdentifiers(message1).iterator().next());
+		assertEquals(1, router.getChannelIdentifiers(message2).size());
+		assertEquals("integerChannel", router.getChannelIdentifiers(message2).iterator().next());
+		
+		// validate dynamics
+		QueueChannel newChannel = new QueueChannel();
+		beanFactory.registerSingleton("newChannel", newChannel);
+		router.setChannelMapping(String.class.getName(), "newChannel");
+		assertEquals(1, router.getChannelIdentifiers(message1).size());
+		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
+
+		// validate exception is thrown if mappings were removed and 
+		// channelResolutionRequires = true (which is the default)
+		
+		router.removeChannelMapping(String.class.getName());
+		router.removeChannelMapping(Integer.class.getName());
+		
+		router.setChannelResolutionRequired(true);
+		
+		try {
+			router.handleMessage(message1);
+			fail();
+		}
+		catch (Exception e) {
+			// ignore
+		}
+	}
 
 	@Test
 	public void resolveSubclass() {
