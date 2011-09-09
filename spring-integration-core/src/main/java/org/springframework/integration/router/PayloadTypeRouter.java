@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.PatternMatchUtils;
 
 /**
  * A Message Router that resolves the {@link MessageChannel} based on the
@@ -100,7 +101,8 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	}
 
 	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {
-		if (type.getName().equals(candidate)) {
+		String typeName = type.getName();
+		if (PatternMatchUtils.simpleMatch(candidate, typeName)){
 			return level;
 		}
 		for (Class<?> iface : type.getInterfaces()) {

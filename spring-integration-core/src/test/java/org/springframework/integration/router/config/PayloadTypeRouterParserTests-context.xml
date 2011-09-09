@@ -27,6 +27,12 @@
 		<mapping type="java.lang.Number[]" channel="channel3" />
 		<mapping type="java.lang.Long[]" channel="channel4" />
 	</payload-type-router>
+	
+	<channel id="routingChannelPatterns" />
+	<payload-type-router input-channel="routingChannelPatterns">
+		<mapping type="java.lang.*" channel="channel1" />
+		<mapping type="java.util.*" channel="channel2" />
+	</payload-type-router>
 
 	<gateway id="testService"
 		service-interface="org.springframework.integration.router.config.PayloadTypeRouterParserTests$TestService"

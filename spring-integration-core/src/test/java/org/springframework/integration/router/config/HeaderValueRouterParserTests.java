@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router.config;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,6 +46,9 @@ public class HeaderValueRouterParserTests {
 
 	@Autowired
 	private TestServiceB testServiceB;
+	
+	@Autowired
+	private MessageChannel routingChannelC;
 
 
 	@Test
@@ -81,6 +86,34 @@ public class HeaderValueRouterParserTests {
 		assertTrue(message1.getHeaders().get("testHeader").equals("1"));
 		message2 = channel2.receive();
 		assertTrue(message2.getHeaders().get("testHeader").equals("2"));
+	}
+	
+	@Test
+	public void testHeaderValuesWithPatterns() {
+		context.start();
+		PollableChannel channel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
+		
+		Message<?> message = MessageBuilder.withPayload("").setHeader("testHeader", "foo").build();
+		routingChannelC.send(message);
+		assertNotNull(channel1.receive());
+		
+		message = MessageBuilder.withPayload("").setHeader("testHeader", "food").build();
+		routingChannelC.send(message);
+		assertNotNull(channel1.receive());
+		
+		message = MessageBuilder.withPayload("").setHeader("testHeader", "bartender").build();
+		routingChannelC.send(message);
+		assertNotNull(channel1.receive());
+		
+		message = MessageBuilder.withPayload("").setHeader("testHeader", "bartender, food").build();
+		routingChannelC.send(message);
+		assertNotNull(channel1.receive(1000));
+		
+		message = MessageBuilder.withPayload("").setHeader("testHeader", "sabcxyz").build();
+		routingChannelC.send(message);
+		assertNotNull(channel2.receive(1000));
+		
 	}
 
 
