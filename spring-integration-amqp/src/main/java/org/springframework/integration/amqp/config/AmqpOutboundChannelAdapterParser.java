@@ -42,6 +42,7 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		}
 		builder.addConstructorArgReference(amqpTemplateRef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
 		return builder.getBeanDefinition();
