@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.file.remote;
 
+import org.springframework.integration.file.remote.session.SessionFactoryResolver;
+
 /**
  * @author Gary Russell
  * @since 2.1

@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.file.remote;
+package org.springframework.integration.file.remote.session;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.file.remote.session.SessionFactory;
 
 /**
+ * Always resolves to the same {@link SessionFactory}.
+ * 
  * @author Gary Russell
  * @since 2.1
  *
  */
-public interface SessionFactoryResolver {
+public class SimpleSessionFactoryResolver implements SessionFactoryResolver {
 
+	private final SessionFactory sessionFactory;
+	
 	/**
-	 * Determines the session factory to be used for remote file 
-	 * operations on this message.
-	 * @param message
-	 * @return
+	 * @param sessionfactory
 	 */
-	SessionFactory resolve(Message<?> message);
+	public SimpleSessionFactoryResolver(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	public SessionFactory resolve(Message<?> message) {
+		return this.sessionFactory;
+	}
+
 }
