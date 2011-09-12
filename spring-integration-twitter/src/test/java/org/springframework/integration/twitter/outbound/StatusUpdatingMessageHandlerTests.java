@@ -16,64 +16,37 @@
 
 package org.springframework.integration.twitter.outbound;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import java.util.Properties;
 
-import java.lang.reflect.Field;
-
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
-
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.Twitter4jTemplate;
-import org.springframework.integration.twitter.core.TwitterOperations;
-
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class StatusUpdatingMessageHandlerTests {
+
 	
-	TwitterOperations twitterOperations;
-
-	Twitter twitter;
-	
-	@Before
-	public void prepare() throws Exception{
-		twitterOperations = spy(new Twitter4jTemplate());
-		Field twitterField = Twitter4jTemplate.class.getDeclaredField("twitter");
-		twitterField.setAccessible(true);
-		twitter = mock(Twitter.class);
-		twitterField.set(twitterOperations, twitter);
-	}
-
-	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testSendingStatusUpdate() throws Exception{
-		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
-		Tweet tweet = new Tweet();
-		tweet.setText("writing twitter tests");
-		handler.handleMessage(new GenericMessage(tweet));
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
-		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
-	}
-
-	@Test
-	public void testSendingStatusUpdateWithStringPayload() throws Exception{
-		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
-		Message<?> message = MessageBuilder.withPayload("writing twitter tests").build();
-		handler.handleMessage(message);
-		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
-		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
+	@Test @Ignore
+	public void demoSendStatusMessage() throws Exception{
+		PropertiesFactoryBean pf = new PropertiesFactoryBean();
+		pf.setLocation(new ClassPathResource("sample.properties"));
+		pf.afterPropertiesSet();
+		Properties prop =  pf.getObject();
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"), 
+										               prop.getProperty("z_oleg.oauth.consumerSecret"), 
+										               prop.getProperty("z_oleg.oauth.accessToken"), 
+										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
+		Message<?> message1 = MessageBuilder.withPayload("Ppolishing #springintegration migration to Spring Social. test").build();
+		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(template);
+		handler.afterPropertiesSet();
+		handler.handleMessage(message1);
 	}
 
 }

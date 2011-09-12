@@ -457,7 +457,8 @@ project('spring-integration-twitter') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context-support:$springVersion"
-        compile "org.twitter4j:twitter4j-core:2.1.12"
+        compile "org.springframework.social:spring-social-twitter:1.0.0.RELEASE"
+        compile "org.springframework.security:spring-security-crypto:3.1.0.RC3"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }

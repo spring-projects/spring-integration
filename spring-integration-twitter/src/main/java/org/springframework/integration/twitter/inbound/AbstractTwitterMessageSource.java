@@ -1,5 +1,4 @@
-/*
- * Copyright 2002-2010 the original author or authors.
+/* Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,7 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,8 +31,10 @@ import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.store.MetadataStore;
 import org.springframework.integration.store.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.DirectMessage;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.UserOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -58,7 +60,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile String metadataKey;
 
-	private final Queue<Tweet> tweets = new LinkedBlockingQueue<Tweet>();
+	private final Queue<Object> tweets = new LinkedBlockingQueue<Object>();
 
 	private volatile int prefetchThreshold = 0;
 
@@ -66,21 +68,21 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile long lastProcessedId = -1;
 
-	private final TwitterOperations twitterOperations;
+	private final Twitter twitter;
 
 	private final TweetComparator tweetComparator = new TweetComparator();
 
 	private final Object lastEnqueuedIdMonitor = new Object();
 
 
-	public AbstractTwitterMessageSource(TwitterOperations twitterOperations) {
-		Assert.notNull(twitterOperations, "twitterOperations must not be null");
-		this.twitterOperations = twitterOperations;
+	public AbstractTwitterMessageSource(Twitter twitter) {
+		Assert.notNull(twitter, "twitter must not be null");
+		this.twitter = twitter;
 	}
 
 
-	protected TwitterOperations getTwitterOperations() {
-		return this.twitterOperations;
+	protected Twitter getTwitter() {
+		return this.twitter;
 	}
 
 	@Override
@@ -106,21 +108,26 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		String profileId = this.twitterOperations.getProfileId();
-		if (profileId != null) {
-			metadataKeyBuilder.append(profileId);
+		
+		UserOperations userOperations = this.twitter.userOperations();
+		if (userOperations != null){
+			String profileId = String.valueOf(userOperations.getProfileId());
+			if (profileId != null) {
+				metadataKeyBuilder.append(profileId);
+			}
+			this.metadataKey = metadataKeyBuilder.toString();
+			String lastId = this.metadataStore.get(this.metadataKey);
+			// initialize the last status ID from the metadataStore
+			if (StringUtils.hasText(lastId)) {
+				this.lastProcessedId = Long.parseLong(lastId);
+				this.lastEnqueuedId = this.lastProcessedId;
+			}
 		}
-		this.metadataKey = metadataKeyBuilder.toString();
-		String lastId = this.metadataStore.get(this.metadataKey);
-		// initialize the last status ID from the metadataStore
-		if (StringUtils.hasText(lastId)) {
-			this.lastProcessedId = Long.parseLong(lastId);
-			this.lastEnqueuedId = this.lastProcessedId;
-		}
+		
 	}
 
 	public Message<?> receive() {   
-		Tweet tweet = this.tweets.poll();
+		Object tweet = this.tweets.poll();
 		if (tweet == null) {
 			long currentTime = System.currentTimeMillis();
 			long elapsedTime = currentTime - this.lastPollForTweet;
@@ -133,23 +140,23 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			this.lastPollForTweet = currentTime;
 		}
 		if (tweet != null) {
-			this.lastProcessedId = tweet.getId();
+			this.lastProcessedId = this.getIdForTweet(tweet);
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));
 			return MessageBuilder.withPayload(tweet).build();
 		}
 		return null;
 	}
 
-	private void enqueueAll(List<Tweet> tweets) {
+	private void enqueueAll(List<?> tweets) {
 		Collections.sort(tweets, this.tweetComparator);
-		for (Tweet tweet : tweets) {
+		for (Object tweet : tweets) {
 			enqueue(tweet);
 		}
 	}
 
-	private void enqueue(Tweet tweet) {
+	private void enqueue(Object tweet) {
 		synchronized (this.lastEnqueuedIdMonitor) {
-			long id = tweet.getId();
+			long id = this.getIdForTweet(tweet);
 			if (id > this.lastEnqueuedId) {
 				this.tweets.add(tweet);
 				this.lastEnqueuedId = id;
@@ -160,7 +167,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	private void refreshTweetQueueIfNecessary() {
 		try {
 			if (tweets.size() <= prefetchThreshold) {
-				List<Tweet> tweets = pollForTweets(lastEnqueuedId);
+				List<?> tweets = pollForTweets(lastEnqueuedId);
 				if (!CollectionUtils.isEmpty(tweets)) {
 					enqueueAll(tweets);
 				}
@@ -178,13 +185,48 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	 * Subclasses must implement this to return tweets.
 	 * The 'sinceId' value will be negative if no last id is known.
 	 */
-	protected abstract List<Tweet> pollForTweets(long sinceId);
+	protected abstract List<?> pollForTweets(long sinceId);
 
 
-	private static class TweetComparator implements Comparator<Tweet> {
+	private static class TweetComparator implements Comparator<Object> {
 
-		public int compare(Tweet tweet1, Tweet tweet2) {
-			return tweet1.getCreatedAt().compareTo(tweet2.getCreatedAt());
+		public int compare(Object tweet1, Object tweet2) {
+			// hopefully temporary logic. Will suggest improvement to SpringSocial to have a common base class for DM and Tweet
+			if (tweet1 instanceof Tweet && tweet2 instanceof Tweet){
+				Tweet t1 = (Tweet) tweet1;
+				Tweet t2 = (Tweet) tweet2;
+				Date t1CreatedAt = t1.getCreatedAt();
+				Date t2CreatedAt = t2.getCreatedAt();
+				Assert.notNull(t1CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
+				Assert.notNull(t2CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
+				return t1CreatedAt.compareTo(t2CreatedAt);
+			} 
+			else if (tweet1 instanceof DirectMessage && tweet2 instanceof DirectMessage) {
+				DirectMessage d1 = (DirectMessage) tweet1;
+				DirectMessage d2 = (DirectMessage) tweet2;
+				Date d1CreatedAt = d1.getCreatedAt();
+				Date d2CreatedAt = d2.getCreatedAt();
+				Assert.notNull(d1CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
+				Assert.notNull(d2CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
+				return d1CreatedAt.compareTo(d2CreatedAt);
+			} 
+			else {
+				throw new IllegalArgumentException("Uncomparable Twitter objects: " + tweet1 + " and " + tweet2);
+			}
+		}
+	}
+	
+	private long getIdForTweet(Object twitterMessage){
+		if (twitterMessage instanceof Tweet){
+			Tweet t = (Tweet) twitterMessage;
+			return t.getId();
+		} 
+		else if (twitterMessage instanceof DirectMessage){
+			DirectMessage d = (DirectMessage) twitterMessage;
+			return d.getId();
+		} 
+		else {
+			throw new IllegalArgumentException("Unrecognized Twitter object: " + twitterMessage );
 		}
 	}
 

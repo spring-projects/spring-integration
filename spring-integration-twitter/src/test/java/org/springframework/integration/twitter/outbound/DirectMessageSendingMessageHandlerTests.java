@@ -16,16 +16,16 @@
 
 package org.springframework.integration.twitter.outbound;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import java.util.Properties;
 
+import org.junit.Ignore;
 import org.junit.Test;
-
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 /**
  * @author Oleg Zhurakousky
@@ -33,20 +33,22 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class DirectMessageSendingMessageHandlerTests {
 
-	private TwitterOperations twitter = mock(TwitterOperations.class);
-
-	@Test
+	@Test @Ignore
 	public void validateSendDirectMessage() throws Exception{
-		Message<?> message1 = MessageBuilder.withPayload("hello")
-				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "foo").build();
-		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
+		PropertiesFactoryBean pf = new PropertiesFactoryBean();
+		pf.setLocation(new ClassPathResource("sample.properties"));
+		pf.afterPropertiesSet();
+		Properties prop =  pf.getObject();
+		System.out.println(prop);
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("spring_eip.oauth.consumerKey"), 
+										               prop.getProperty("spring_eip.oauth.consumerSecret"), 
+										               prop.getProperty("spring_eip.oauth.accessToken"), 
+										               prop.getProperty("spring_eip.oauth.accessTokenSecret"));
+		Message<?> message1 = MessageBuilder.withPayload("Polsihing SI Twitter migration")
+				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();
+		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(template);
 		handler.afterPropertiesSet();
 		handler.handleMessage(message1);
-		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
-		Message<?> message2 = MessageBuilder.withPayload("hello")
-				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123).build();;
-		handler.handleMessage(message2);
-		verify(twitter, times(1)).sendDirectMessage(123, "hello");
 	}
 	
 }
