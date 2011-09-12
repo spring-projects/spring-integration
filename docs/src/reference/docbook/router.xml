@@ -1,8 +1,242 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="router"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Router</title>
-
+  <title>Routers</title>
+  <section id="router-overview">
+    <title>Overview</title>
+    <para>
+    Routers are a crucial element in many messaging architectures. They consume 
+    Messages from a Message Channel and forward each consumed message to one or 
+    more different Message Channel depending on a set of conditions. 
+    </para>
+    <para>
+    Spring Integration provides the following routers out-of-the-box:
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para><emphasis>(Generic) Router</emphasis></para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Header Value Router</emphasis></para>
+      </listitem>
+      <listitem>
+        <para><emphasis>XPath Router (Part of the XML Module)</emphasis></para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Payload Type Router</emphasis></para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Recipient List Router</emphasis></para>
+      </listitem>
+      <listitem>
+        <para><emphasis>Error Message Exception Type Router</emphasis></para>
+      </listitem>
+    </itemizedlist>
+    <para>
+    Router implementations share many configuration parameters. Yet, certain differences
+    exist between routers. Furthermore, the availability of configuration parameters 
+    depends on whether Routers are used inside or outside of a chain. In order to
+    provide a quick overview, all available attributes are listed in the 2 tables 
+    below.
+    </para>    
+    <table><title>Routers Outside a Chain</title>
+        <tgroup cols="7">
+			<colspec colnum="1"  colname="col01" colwidth="3*"/>
+			<colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
+			<colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
+			<colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
+			<colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
+			<colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
+			<colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
+	        <thead>
+	          <row>
+	            <entry>Attribute</entry>
+	            <entry>router</entry>
+	            <entry>header value router</entry>
+	            <entry>xpath router</entry>
+	            <entry>payload type router</entry>
+	            <entry>recipient list router</entry>
+	            <entry>exception type router</entry>
+	          </row>
+	        </thead>
+	        <tbody>
+	            <row>
+	                <entry>apply-sequence</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>x<entry>x</entry><entry>x</entry>
+	            </row>
+	            <row>
+	                <entry>default-output-channel</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>channel-resolution-required</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>ignore-send-failures</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>timeout</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>id</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>auto-startup</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>input-channel</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>order</entry>
+	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+	            <row>
+	                <entry>channel-resolver</entry>
+	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>method</entry>
+	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>ref</entry>
+	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>expression</entry>
+	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>header-name</entry>
+	                <entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>evaluate-as-string</entry>
+	                <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
+                </row>
+	            <row>
+	                <entry>xpath-expression-ref</entry>
+	                <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
+                </row>                               
+	        </tbody>
+	    </tgroup>
+    </table>
+    <table><title>Routers Inside a Chain</title>
+        <tgroup cols="7">
+            <colspec colnum="1"  colname="col01" colwidth="3*"/>
+            <colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
+            <colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
+            <colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
+            <colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
+            <colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
+            <colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
+            <thead>
+              <row>
+                <entry>Attribute</entry>
+                <entry>router</entry>
+                <entry>header value router</entry>
+                <entry>xpath router</entry>
+                <entry>payload type router</entry>
+                <entry>recipient list router</entry>
+                <entry>exception type router</entry>
+              </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>apply-sequence</entry>
+                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>x<entry>x</entry><entry>x</entry>
+                </row>
+                <row>
+                    <entry>default-output-channel</entry>
+                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+                <row>
+                    <entry>channel-resolution-required</entry>
+                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+                <row>
+                    <entry>ignore-send-failures</entry>
+                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+                <row>
+                    <entry>timeout</entry>
+                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
+                </row>
+                <row>
+                    <entry>id</entry>
+                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>auto-startup</entry>
+                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>input-channel</entry>
+                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>order</entry>
+                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>channel-resolver</entry>
+                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>method</entry>
+                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>ref</entry>
+                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>expression</entry>
+                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>header-name</entry>
+                    <entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>evaluate-as-string</entry>
+                    <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>xpath-expression-ref</entry>
+                    <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
+                </row>                               
+            </tbody>
+        </tgroup>
+    </table>
+    <note>
+      Router parameters have been more standardized across all router implementations
+      in Spring Integration ??TBD??. Consequently, some parameters were removed or 
+      added leaving the possibility of breaking older Spring Integration based applications.
+    </note>
+    <important>
+      Since Spring Integration ??TBD?? the "ignore-channel-name-resolution-failures" 
+      attribute was renamed to "channel resolution-required". Also, "channel resolution-required"
+      defaults to "true". 
+       
+      Prior to an attribute "resolution-required" existed that defaulted to false 
+      causing messages to be dropped silently when no channel was resolved and 
+      no "default-output-channel" was set. 
+      
+      The new behavior will require at least one resolved channel and by default 
+      will throw an Exception if no channel was determined (and the sent to it 
+      was not successful).
+      
+      "resolution-required" is now removed. If you desire to drop messages silently
+      set "default-output-channel='nullChannel'".
+    </important>    
+  </section>
   <section id="router-implementations">
     <title>Router Implementations</title>
     <para>
