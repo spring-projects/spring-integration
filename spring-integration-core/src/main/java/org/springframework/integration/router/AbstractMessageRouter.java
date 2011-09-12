@@ -67,7 +67,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile ChannelResolver channelResolver;
 
-	private volatile boolean channelResolutionRequired = true;
+	private volatile boolean resolutionRequired = true;
 
 	protected volatile Map<String, String> channelIdentifierMap = new ConcurrentHashMap<String, String>();
 
@@ -143,8 +143,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * Specify whether this router should ignore any failure to resolve a channel name to
 	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
 	 */
-	public void setChannelResolutionRequired(boolean resolutionRequired) {
-		this.channelResolutionRequired = resolutionRequired;
+	public void setResolutionRequired(boolean resolutionRequired) {
+		this.resolutionRequired = resolutionRequired;
 	}
 
 	/**
@@ -253,12 +253,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			channel = this.channelResolver.resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
-			if (this.channelResolutionRequired) {
+			if (this.resolutionRequired) {
 				throw new MessagingException(message,
 						"failed to resolve channel name '" + channelName + "'", e);
 			}
 		}
-		if (channel == null && this.channelResolutionRequired) {
+		if (channel == null && this.resolutionRequired) {
 			throw new MessagingException(message,
 					"failed to resolve channel name '" + channelName + "'");
 		}

@@ -43,7 +43,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private volatile Long timeout;
 
-	private volatile Boolean channelResolutionRequired;
+	private volatile Boolean resolutionRequired;
 
 	private volatile Boolean applySequence;
 
@@ -62,8 +62,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		this.timeout = timeout;
 	}
 
-	public void setChannelResolutionRequired(Boolean channelResolutionRequired) {
-		this.channelResolutionRequired = channelResolutionRequired;
+	public void setResolutionRequired(Boolean resolutionRequired) {
+		this.resolutionRequired = resolutionRequired;
 	}
 
 	public void setApplySequence(Boolean applySequence) {
@@ -128,8 +128,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.ignoreSendFailures != null) {
 			router.setIgnoreSendFailures(this.ignoreSendFailures);
 		}
-		if (this.channelResolutionRequired != null) {
-			router.setChannelResolutionRequired(this.channelResolutionRequired);
+		if (this.resolutionRequired != null) {
+			router.setResolutionRequired(this.resolutionRequired);
 		}
 		return router;
 	}

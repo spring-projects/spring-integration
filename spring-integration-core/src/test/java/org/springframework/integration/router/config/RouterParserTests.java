@@ -122,11 +122,11 @@ public class RouterParserTests {
 		input.send(new GenericMessage<Integer>(3));
 	}
 
-	public void testChannelResolutionRequiredIsTrue() {
+	public void testResolutionRequiredIsTrue() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
 		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("channelResolutionRequiredIsTrueInput");
+		MessageChannel input = (MessageChannel) context.getBean("resolutionRequiredIsTrueInput");
 		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
 	}
 

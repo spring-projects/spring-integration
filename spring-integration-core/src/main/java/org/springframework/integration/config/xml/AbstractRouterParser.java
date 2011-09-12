@@ -41,7 +41,7 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "channel-resolution-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");
 		BeanDefinition targetRouterBeanDefinition = this.parseRouter(element, parserContext);

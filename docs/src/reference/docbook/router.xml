@@ -69,7 +69,7 @@
 	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
                 </row>
 	            <row>
-	                <entry>channel-resolution-required</entry>
+	                <entry>resolution-required</entry>
 	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
                 </row>
 	            <row>
@@ -157,7 +157,7 @@
                     <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
                 </row>
                 <row>
-                    <entry>channel-resolution-required</entry>
+                    <entry>resolution-required</entry>
                     <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
                 </row>
                 <row>

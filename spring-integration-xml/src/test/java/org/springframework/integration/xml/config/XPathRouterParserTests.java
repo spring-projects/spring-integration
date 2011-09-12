@@ -127,27 +127,27 @@ public class XPathRouterParserTests {
 	}
 	
 	@Test
-	public void testSetChannelResolutionRequiredFalse() throws Exception {
-		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' channel-resolution-required='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+	public void testSetResolutionRequiredFalse() throws Exception {
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
 		
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
-		Object channelResolutionRequired = accessor.getPropertyValue("channelResolutionRequired");
-		assertEquals("Resolution required not set to false ", false, channelResolutionRequired);
+		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
+		assertEquals("Resolution required not set to false ", false, resolutionRequired);
 	}
 	
 	@Test
-	public void testSetChannelResolutionRequiredTrue() throws Exception {
-		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' channel-resolution-required='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+	public void testSetResolutionRequiredTrue() throws Exception {
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
 		
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Object handler = accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(handler);
-		Object channelResolutionRequired = accessor.getPropertyValue("channelResolutionRequired");
-		assertEquals("Resolution required not set to true ", true, channelResolutionRequired);
+		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
+		assertEquals("Resolution required not set to true ", true, resolutionRequired);
 	}
 	
 	@Test

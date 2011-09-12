@@ -170,7 +170,7 @@ public class RouterTests {
 	}
 
 	@Test
-	public void unresolvableChannelIdentifierInListAreIgnoredWhenChannelResolutionRequiredIsFalse() {
+	public void unresolvableChannelIdentifierInListAreIgnoredWhenResolutionRequiredIsFalse() {
 		
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
@@ -179,7 +179,7 @@ public class RouterTests {
 			}
 		};
 		
-		router.setChannelResolutionRequired(false);
+		router.setResolutionRequired(false);
 		
 		QueueChannel testChannel = new QueueChannel();
 		GenericApplicationContext context = new GenericApplicationContext();

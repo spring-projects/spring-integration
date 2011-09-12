@@ -347,17 +347,23 @@
     <xsd:complexType name="commonXPathRouterType" abstract="true">
         <xsd:complexContent>
             <xsd:extension base="integration:abstractRouterType">
-	            <xsd:attribute name="evaluate-as-string" type="xsd:boolean" default="false">
+	            <xsd:attribute name="evaluate-as-string" default="false">
 	                <xsd:annotation>
 	                    <xsd:documentation><![CDATA[
 	                    By default XPath expressions are evaluated as NODESET type and then converted 
 	                    to a List of channel names, thus handling single channel scenarios as well as multiple.
 	                    However certain XPath expressions may evaluate as String type from the very 
 	                    beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in 
-	                    the exception if default evaluation type (NODESET) is used. This flag will allow you to manage the 
-	                    evaluation type. It is TRUE by default, however if set to FALSE, the String evaluation type will be used.
-	                        ]]></xsd:documentation>
+	                    the exception if default evaluation type (NODESET) is used. 
+	                    
+	                    This flag will allow you to manage the 
+	                    evaluation type. It is 'false' by default, however if 
+	                    set to 'true', then String evaluation type will be used.
+	                    ]]></xsd:documentation>
 	                </xsd:annotation>   
+		            <xsd:simpleType>
+		                <xsd:union memberTypes="xsd:boolean xsd:string" />
+		            </xsd:simpleType>   	                
 	            </xsd:attribute>
 	            <xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
 	                <xsd:annotation>
@@ -384,7 +390,25 @@
                 <xsd:sequence>
                     <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
                     <xsd:element ref="xpath-expression"   minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="mapping" type="integration:mapping-value-channel-type" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+                                If the values returned by the Xpaxth Expression 
+                                do not represent the channel names itself, additional 
+                                mappings can be specified using the mapping sub-element. 
+                                
+                                For example if the '/request/responders' expression 
+                                results in two values 'responderA' and 'responderB' 
+                                but you don't want to couple the responder names 
+                                to channel names you may provide additional mappings 
+                                such as:
+                                
+                                <int-xml:mapping value="responderA" channel="channelA"/>    
+                                <int-xml:mapping value="responderB" channel="channelB"/>
+                                ]]>
+                            </xsd:documentation>
+                        </xsd:annotation>                          
+                    </xsd:element>
                 </xsd:sequence>
                 <xsd:attributeGroup ref="integration:topLevelRouterAttributeGroup"/>
             </xsd:extension>
@@ -395,8 +419,26 @@
         <xsd:complexContent>
             <xsd:extension base="commonXPathRouterType">
                 <xsd:sequence>
-                    <xsd:element ref="xpath-expression"                                       minOccurs="0" maxOccurs="1"/>
-                    <xsd:element name="mapping" type="integration:mapping-value-channel-type" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element ref="xpath-expression"                                    minOccurs="0" maxOccurs="1"/>
+                    <xsd:element name="mapping" type="integration:mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
+			            <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+                                If the values returned by the Xpaxth Expression 
+                                do not represent the channel names itself, additional 
+                                mappings can be specified using the mapping sub-element. 
+                                
+                                For example if the '/request/responders' expression 
+                                results in two values 'responderA' and 'responderB' 
+                                but you don't want to couple the responder names 
+                                to channel names you may provide additional mappings 
+                                such as:
+                                
+                                <int-xml:mapping value="responderA" channel="channelA"/>    
+                                <int-xml:mapping value="responderB" channel="channelB"/>
+                                ]]>
+                            </xsd:documentation>
+			            </xsd:annotation>                    
+                    </xsd:element>
                 </xsd:sequence>            
             </xsd:extension>
         </xsd:complexContent>

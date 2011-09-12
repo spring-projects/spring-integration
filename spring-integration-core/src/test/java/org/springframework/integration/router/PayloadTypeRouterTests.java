@@ -74,7 +74,7 @@ public class PayloadTypeRouterTests {
 		router.removeChannelMapping(String.class.getName());
 		router.removeChannelMapping(Integer.class.getName());
 		
-		router.setChannelResolutionRequired(true);
+		router.setResolutionRequired(true);
 		
 		try {
 			router.handleMessage(message1);
