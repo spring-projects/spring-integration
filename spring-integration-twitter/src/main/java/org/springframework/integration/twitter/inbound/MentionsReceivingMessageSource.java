@@ -18,8 +18,8 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
@@ -30,7 +30,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public MentionsReceivingMessageSource(TwitterOperations twitter){
+	public MentionsReceivingMessageSource(Twitter twitter){
 		super(twitter);
 	}
 
@@ -41,8 +41,8 @@ public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets(long sinceId) {
-		return (sinceId > 0) ? this.getTwitterOperations().getMentions(sinceId) : this.getTwitterOperations().getMentions();
+	protected List<?> pollForTweets(long sinceId) {
+		return (sinceId > 0) ? this.getTwitter().timelineOperations().getMentions(1, 20, sinceId, 0) : this.getTwitter().timelineOperations().getMentions(1, 50, 0, 0);
 	}
 
 }

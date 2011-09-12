@@ -18,8 +18,8 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 
 /**
  * This class handles support for receiving DMs (direct messages) using Twitter.
@@ -31,7 +31,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public DirectMessageReceivingMessageSource(TwitterOperations twitter) {
+	public DirectMessageReceivingMessageSource(Twitter twitter) {
 		super(twitter);
 	}
 
@@ -42,10 +42,10 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets(long sinceId) {
+	protected List<?> pollForTweets(long sinceId) {
 		return (sinceId > 0)
-				? this.getTwitterOperations().getDirectMessages(sinceId)
-				: this.getTwitterOperations().getDirectMessages(); 
+				? this.getTwitter().directMessageOperations().getDirectMessagesReceived(1, 20, sinceId, 0)
+				: this.getTwitter().directMessageOperations().getDirectMessagesReceived(); 
 	}
 
 }

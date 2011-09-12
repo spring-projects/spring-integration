@@ -22,6 +22,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler;
+import org.springframework.integration.twitter.outbound.StatusUpdatingMessageHandler;
 
 /**
  * Parser for all outbound Twitter adapters
@@ -31,9 +33,6 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
  * @since 2.0
  */
 public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-
-	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
-
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
@@ -48,10 +47,10 @@ public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannel
 		String className = null;
 		String elementName = element.getLocalName().trim();
 		if ("outbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.StatusUpdatingMessageHandler";
+			className = StatusUpdatingMessageHandler.class.getName();
 		}
 		else if ("dm-outbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";
+			className = DirectMessageSendingMessageHandler.class.getName();
 		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);

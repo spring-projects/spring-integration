@@ -17,7 +17,9 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd http://www.springframework.org/schema/integration/twitter http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd">
 
 
-	<beans:bean id="twitter" class="org.springframework.integration.twitter.config.TestReceivingMessageSourceParserTests.TwitterTemplateFactoryBean"/>
+	<beans:bean id="twitter" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.social.twitter.api.Twitter"/>
+	</beans:bean>
 	
 	<channel id="inbound_mentions"/>
 	

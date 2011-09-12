@@ -18,8 +18,8 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 
 /**
  * This {@link org.springframework.integration.core.MessageSource} lets Spring Integration consume 
@@ -31,7 +31,7 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public TimelineReceivingMessageSource(TwitterOperations twitter){
+	public TimelineReceivingMessageSource(Twitter twitter){
 		super(twitter);
 	}
 
@@ -42,8 +42,9 @@ public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets(long sinceId) {
-		return(sinceId > 0) ? this.getTwitterOperations().getTimeline(sinceId) : this.getTwitterOperations().getTimeline();
+	protected List<?> pollForTweets(long sinceId) {
+		System.out.println("polling: " + sinceId);
+		return(sinceId > 0) ? this.getTwitter().timelineOperations().getHomeTimeline(1, 20, sinceId, 0) : this.getTwitter().timelineOperations().getHomeTimeline(1, 50, 0, 0);
 	}
 
 }

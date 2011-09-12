@@ -19,7 +19,7 @@ package org.springframework.integration.twitter.outbound;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.util.Assert;
 
 /**
@@ -32,12 +32,12 @@ import org.springframework.util.Assert;
  */
 public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 
-	private final TwitterOperations twitterOperations;
+	private final Twitter twitter;
 
 
-	public DirectMessageSendingMessageHandler(TwitterOperations twitterOperations) {
-		Assert.notNull(twitterOperations, "twitterOperations must not be null");
-		this.twitterOperations = twitterOperations;
+	public DirectMessageSendingMessageHandler(Twitter twitter) {
+		Assert.notNull(twitter, "twitter must not be null");
+		this.twitter = twitter;
 	}
 
 
@@ -51,10 +51,10 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 				"' must contain either a String (a screenname) or an int (a user ID)");
 		String payload = (String) message.getPayload();
 		if (toUser instanceof Integer) {
-			this.twitterOperations.sendDirectMessage((Integer) toUser, payload);
+			this.twitter.directMessageOperations().sendDirectMessage((Long) toUser, payload);
 		} 
 		else if (toUser instanceof String) {
-			this.twitterOperations.sendDirectMessage((String) toUser, payload);
+			this.twitter.directMessageOperations().sendDirectMessage((String) toUser, payload);
 		}
 	}
 

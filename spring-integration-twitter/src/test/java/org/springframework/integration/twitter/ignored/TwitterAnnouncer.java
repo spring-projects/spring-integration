@@ -18,15 +18,16 @@ package org.springframework.integration.twitter.ignored;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.twitter.core.Tweet;
+import org.springframework.social.twitter.api.DirectMessage;
+import org.springframework.social.twitter.api.Tweet;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TwitterAnnouncer {
 
-	public void dm(Tweet directMessage) {
+	public void dm(DirectMessage directMessage) {
 		System.out.println("A direct message has been received from " +
-				directMessage.getFromUser() + " with text " + directMessage.getText());
+				directMessage.getSender().getScreenName() + " with text " + directMessage.getText());
 	}
 
 	public void search(Message<?> search) {

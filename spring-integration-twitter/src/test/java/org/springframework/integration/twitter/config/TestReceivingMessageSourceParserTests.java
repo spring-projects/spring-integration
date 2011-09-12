@@ -16,18 +16,11 @@
 
 package org.springframework.integration.twitter.config;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.twitter.core.TwitterOperations;
 
 /**
  * @author Oleg Zhurakousky
  */
 public class TestReceivingMessageSourceParserTests {
-
-    @org.junit.Test public void test() { }
 
 	
 // NO LONGER RELEVANT...
@@ -48,21 +41,21 @@ public class TestReceivingMessageSourceParserTests {
 //	}
 
 
-	public static class TwitterTemplateFactoryBean implements FactoryBean<TwitterOperations>{
-
-		public TwitterOperations getObject() throws Exception {
-			TwitterOperations oper = mock(TwitterOperations.class);
-			when(oper.getProfileId()).thenReturn("kermit");
-			return oper;
-		}
-
-		public Class<?> getObjectType() {
-			return TwitterOperations.class;
-		}
-
-		public boolean isSingleton() {
-			return true;
-		}
-	}
+//	public static class TwitterTemplateFactoryBean implements FactoryBean<Twitter>{
+//
+//		public Twitter getObject() throws Exception {
+//			Twitter twitter = mock(Twitter.class);
+//			//when(oper.getProfileId()).thenReturn("kermit");
+//			return oper;
+//		}
+//
+//		public Class<?> getObjectType() {
+//			return TwitterOperations.class;
+//		}
+//
+//		public boolean isSingleton() {
+//			return true;
+//		}
+//	}
 
 }

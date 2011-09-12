@@ -19,8 +19,8 @@ package org.springframework.integration.twitter.outbound;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.util.Assert;
 
 /**
@@ -32,12 +32,12 @@ import org.springframework.util.Assert;
  */
 public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 
-	private final TwitterOperations twitterOperations;
+	private final Twitter twitter;
 
 
-	public StatusUpdatingMessageHandler(TwitterOperations twitterOperations) {
-		Assert.notNull(twitterOperations, "twitterOperations must not be null");
-		this.twitterOperations = twitterOperations;
+	public StatusUpdatingMessageHandler(Twitter twitter) {
+		Assert.notNull(twitter, "twitter must not be null");
+		this.twitter = twitter;
 	}
 
 
@@ -54,7 +54,7 @@ public class StatusUpdatingMessageHandler extends AbstractMessageHandler {
 		else {
 			throw new MessageHandlingException(message, "Unsupported payload type '" + payload.getClass().getName() + "'");
 		}
-		this.twitterOperations.updateStatus(statusText);
+		this.twitter.timelineOperations().updateStatus(statusText);
 	}
 
 }

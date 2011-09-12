@@ -16,42 +16,30 @@
 
 package org.springframework.integration.twitter.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-
-import org.junit.Test;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.twitter.core.Twitter4jTemplate;
-import org.springframework.integration.twitter.core.TwitterOperations;
-import org.springframework.integration.twitter.inbound.SearchReceivingMessageSource;
 
 /**
  * @author Oleg Zhurakousky
  */
 public class TestSearchReceivingMessageSourceParserTests {
 
-	@Test
-	public void testSearchReceivingDefaultTemplate(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
-		SourcePollingChannelAdapter spca = ac.getBean("searchAdapter", SourcePollingChannelAdapter.class);
-		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
-		//assertFalse(ms.isAutoStartup());
-		Twitter4jTemplate template = (Twitter4jTemplate) TestUtils.getPropertyValue(ms, "twitterOperations");
-		assertFalse(template.getUnderlyingTwitter().isOAuthEnabled()); // verify anonymous Twitter
-	}
-
-	@Test
-	public void testSearchReceivingCustomTemplate(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
-		SourcePollingChannelAdapter spca = ac.getBean("searchAdapterWithTemplate", SourcePollingChannelAdapter.class);
-		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
-		//assertFalse(ms.isAutoStartup());
-		TwitterOperations template = (TwitterOperations) TestUtils.getPropertyValue(ms, "twitterOperations");
-		assertEquals(ac.getBean("twitter"), template);
-	}
+//	@Test
+//	public void testSearchReceivingDefaultTemplate(){
+//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
+//		SourcePollingChannelAdapter spca = ac.getBean("searchAdapter", SourcePollingChannelAdapter.class);
+//		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
+//		//assertFalse(ms.isAutoStartup());
+//		Twitter4jTemplate template = (Twitter4jTemplate) TestUtils.getPropertyValue(ms, "twitterOperations");
+//		assertFalse(template.getUnderlyingTwitter().isOAuthEnabled()); // verify anonymous Twitter
+//	}
+//
+//	@Test
+//	public void testSearchReceivingCustomTemplate(){
+//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
+//		SourcePollingChannelAdapter spca = ac.getBean("searchAdapterWithTemplate", SourcePollingChannelAdapter.class);
+//		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
+//		//assertFalse(ms.isAutoStartup());
+//		TwitterOperations template = (TwitterOperations) TestUtils.getPropertyValue(ms, "twitterOperations");
+//		assertEquals(ac.getBean("twitter"), template);
+//	}
 
 }
