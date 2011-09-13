@@ -122,8 +122,8 @@ public class PriorityChannel extends QueueChannel {
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
-			Long priority1 = message1.getHeaders().getPriority();
-			Long priority2 = message2.getHeaders().getPriority();
+			Integer priority1 = message1.getHeaders().getPriority();
+			Integer priority2 = message2.getHeaders().getPriority();
 			
 			priority1 = priority1 != null ? priority1 : 0;
 			priority2 = priority2 != null ? priority2 : 0;

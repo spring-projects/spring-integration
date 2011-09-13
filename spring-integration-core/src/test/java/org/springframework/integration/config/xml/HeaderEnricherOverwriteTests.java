@@ -154,7 +154,7 @@ public class HeaderEnricherOverwriteTests {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
-				.setPriority((long)77)
+				.setPriority(77)
 				.build();
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
