@@ -117,7 +117,7 @@ public class MessageBuilderTests {
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 			.setPriority(123).build();
-		assertEquals(new Long(123), importantMessage.getHeaders().getPriority());
+		assertEquals(new Integer(123), importantMessage.getHeaders().getPriority());
 	}
 
 	@Test
@@ -127,7 +127,7 @@ public class MessageBuilderTests {
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.setHeaderIfAbsent(MessageHeaders.PRIORITY, 13)
 			.build();
-		assertEquals(new Long(42), message2.getHeaders().getPriority());
+		assertEquals(new Integer(42), message2.getHeaders().getPriority());
 	}
 
 	@Test

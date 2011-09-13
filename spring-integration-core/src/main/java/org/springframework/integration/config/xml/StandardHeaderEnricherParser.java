@@ -40,7 +40,7 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
 		this.addElementToHeaderMapping("correlation-id", MessageHeaders.CORRELATION_ID);
 		this.addElementToHeaderMapping("expiration-date", MessageHeaders.EXPIRATION_DATE, Long.class);
-		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, Long.class);
+		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, Integer.class);
 	}
 
 	@Override
