@@ -374,9 +374,10 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       because you have an integration concern.
       </para>
       <para>
-      This and other samples in this section are build on top of Enterprise Integration Patterns that meant to describe "building blocks"
-      for YOUR solution but not to be solutions in of themselves. Integration concerns exist in all types of applications (server based and not)
-      and should not require change in design, testing and deployment strategy if such applications need to integrate with one another.
+      This and other samples in this section are built on top of Enterprise Integration Patterns and can be considered "building blocks"
+      for YOUR solution; they are not intended to be complete solutions. Integration concerns exist in all types of application 
+      (whether server based or not).
+      It should not require change in design, testing and deployment strategy if such applications need to be integrated.
       </para>
     </section>
 
