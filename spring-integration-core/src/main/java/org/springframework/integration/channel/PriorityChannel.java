@@ -107,16 +107,16 @@ public class PriorityChannel extends QueueChannel {
 	
 	private static class SequenceFallbackComparator implements Comparator<Message<?>> {
 		
-		private final Comparator<Message<?>> delegatingComparator;
+		private final Comparator<Message<?>> targetComparator;
 		
-		public SequenceFallbackComparator(Comparator<Message<?>> delegatingComparator){
-			this.delegatingComparator = delegatingComparator;
+		public SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
+			this.targetComparator = targetComparator;
 		}
 
 		public int compare(Message<?> message1, Message<?> message2) {
 			int compareResult = 0;
-			if (this.delegatingComparator != null){
-				compareResult = this.delegatingComparator.compare(message1, message2);
+			if (this.targetComparator != null){
+				compareResult = this.targetComparator.compare(message1, message2);
 			}
 			else {
 				Integer priority1 = message1.getHeaders().getPriority();
