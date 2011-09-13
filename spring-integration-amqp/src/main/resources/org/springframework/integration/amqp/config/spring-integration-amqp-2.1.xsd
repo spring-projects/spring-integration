@@ -43,7 +43,14 @@
 			<xsd:attribute name="exchange-name" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	The name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+	The fixed name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="exchange-name-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The exchange name to use when sending Messages evaluated as an expression on the message (e.g. 'headers.exchange'). By default, this will be an emtpy String.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -153,6 +160,13 @@
 				<xsd:annotation>
 					<xsd:documentation>
 	The name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="exchange-name-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The exchange name to use when sending Messages evaluated as an expression on the message (e.g. 'headers.exchange'). By default, this will be an emtpy String.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
