@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -74,10 +75,10 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	private static class ManagedBeansScriptVariableGenerator implements ScriptVariableGenerator {
 
-		private final DefaultListableBeanFactory beanFactory;
+		private final ConfigurableListableBeanFactory beanFactory;
 
 		public ManagedBeansScriptVariableGenerator(BeanFactory beanFactory) {
-			this.beanFactory = (beanFactory instanceof DefaultListableBeanFactory) ? (DefaultListableBeanFactory) beanFactory : null;
+			this.beanFactory = (beanFactory instanceof ConfigurableListableBeanFactory) ? (ConfigurableListableBeanFactory) beanFactory : null;
 		}
 
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
