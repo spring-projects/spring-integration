@@ -17,7 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.Message;
@@ -73,10 +74,10 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 
 	private static class ManagedBeansScriptVariableGenerator implements ScriptVariableGenerator {
 
-		private final ListableBeanFactory beanFactory;
+		private final DefaultListableBeanFactory beanFactory;
 
 		public ManagedBeansScriptVariableGenerator(BeanFactory beanFactory) {
-			this.beanFactory = (beanFactory instanceof ListableBeanFactory) ? (ListableBeanFactory) beanFactory : null;
+			this.beanFactory = (beanFactory instanceof DefaultListableBeanFactory) ? (DefaultListableBeanFactory) beanFactory : null;
 		}
 
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
@@ -84,12 +85,15 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			variables.put("headers", message.getHeaders());
 			if (this.beanFactory != null) {
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
-					Object bean = this.beanFactory.getBean(name);
-					if (bean instanceof Lifecycle ||
-							bean instanceof CustomizableThreadCreator || 
-							(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-						variables.put(name, bean);
-					}
+					BeanDefinition def = this.beanFactory.getBeanDefinition(name);
+					if (!def.isAbstract()){
+						Object bean = this.beanFactory.getBean(name);
+						if (bean instanceof Lifecycle ||
+								bean instanceof CustomizableThreadCreator || 
+								(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+							variables.put(name, bean);
+						}
+					}					
 				}
 			}
 			return variables;
