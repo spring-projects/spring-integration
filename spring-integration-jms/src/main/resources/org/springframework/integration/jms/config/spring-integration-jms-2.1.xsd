@@ -451,14 +451,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
-					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
-					<xsd:attribute name="cache-level" type="xsd:string"/>
-					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
+					
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
-					<xsd:attribute name="recovery-interval" type="xsd:string"/>
-					<xsd:attribute name="idle-consumer-limit" type="xsd:string"/>
-					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
+					
+					<xsd:attributeGroup ref="dmlcAttributeGroup"/>
+					
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -679,14 +676,10 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
-					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
-					<xsd:attribute name="cache-level" type="xsd:string"/>
-					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="receive-timeout" type="xsd:string"/>
-					<xsd:attribute name="recovery-interval" type="xsd:string"/>
-					<xsd:attribute name="idle-consumer-limit" type="xsd:string"/>
-					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
+					
+					<xsd:attributeGroup ref="dmlcAttributeGroup"/>
+					
 					<xsd:attribute name="reply-time-to-live" type="xsd:string"/>
 					<xsd:attribute name="reply-priority" type="xsd:string"/>
 					<xsd:attribute name="reply-delivery-persistent" type="xsd:string"/>
@@ -1182,5 +1175,92 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+	
+	<xsd:attributeGroup name="dmlcAttributeGroup">
+		<xsd:attribute name="concurrent-consumers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the number of concurrent consumers to create. Default is 1.
+						Specifying a higher value for this setting will increase the standard
+						level of scheduled concurrent consumers at runtime: This is effectively
+						the minimum number of concurrent consumers which will be scheduled
+						at any given time. This is a static setting; for dynamic scaling,
+						consider specifying the "maxConcurrentConsumers" setting instead.
+						Raising the number of concurrent consumers is recommendable in order
+						to scale the consumption of messages coming in from a queue. However,
+						note that any ordering guarantees are lost once multiple consumers are
+						registered
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-concurrent-consumers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					 Specify the maximum number of concurrent consumers to create. Default is 1.
+						 If this setting is higher than "concurrentConsumers", the listener container
+						 will dynamically schedule new consumers at runtime, provided that enough
+						 incoming messages are encountered. Once the load goes down again, the number of
+						 consumers will be reduced to the standard level ("concurrentConsumers") again.
+						 Raising the number of concurrent consumers is recommendable in order
+						to scale the consumption of messages coming in from a queue. However,
+						note that any ordering guarantees are lost once multiple consumers are
+						registered.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="cache-level" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					 Specify the level of caching that this listener container is allowed to apply:
+					 CACHE_NONE = 0
+					 CACHE_CONNECTION = 1
+					 CACHE_SESSION = 2
+					 CACHE_CONSUMER = 3
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-messages-per-task" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				Specify the maximum number of messages to process in one task.
+					More concretely, this limits the number of message reception attempts
+					per task, which includes receive iterations that did not actually
+					pick up a message until they hit their timeout 
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		
+		<xsd:attribute name="recovery-interval" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				Interval in miliseconds between the recovery attempts
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="idle-consumer-limit" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				Specify the limit for the number of consumers that are allowed to be idle at any given time.
+				This limit is used to determine if a new invoker should be created. Increasing the limit causes
+				invokers to be created more aggressively. This can be useful to ramp up the
+					number of invokers faster.
+					The default is 1, only scheduling a new invoker (which is likely to
+					be idle initially) if none of the existing invokers is currently idle.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="idle-task-execution-limit" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				Specify the limit for idle executions of a consumer task, not having
+					received any message within its execution. If this limit is reached,
+					the task will shut down and leave receiving to other executing tasks.
+					The default is 1, closing idle resources early once a task didn't
+					receive a message. 
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		
+	</xsd:attributeGroup>
 
 </xsd:schema>
