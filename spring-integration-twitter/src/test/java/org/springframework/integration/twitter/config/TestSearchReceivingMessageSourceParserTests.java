@@ -16,30 +16,30 @@
 
 package org.springframework.integration.twitter.config;
 
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.twitter.inbound.SearchReceivingMessageSource;
+import org.springframework.social.twitter.api.Twitter;
+
+import static org.junit.Assert.assertNotNull;
+
 
 /**
  * @author Oleg Zhurakousky
  */
 public class TestSearchReceivingMessageSourceParserTests {
 
-//	@Test
-//	public void testSearchReceivingDefaultTemplate(){
-//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
-//		SourcePollingChannelAdapter spca = ac.getBean("searchAdapter", SourcePollingChannelAdapter.class);
-//		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
-//		//assertFalse(ms.isAutoStartup());
-//		Twitter4jTemplate template = (Twitter4jTemplate) TestUtils.getPropertyValue(ms, "twitterOperations");
-//		assertFalse(template.getUnderlyingTwitter().isOAuthEnabled()); // verify anonymous Twitter
-//	}
-//
-//	@Test
-//	public void testSearchReceivingCustomTemplate(){
-//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
-//		SourcePollingChannelAdapter spca = ac.getBean("searchAdapterWithTemplate", SourcePollingChannelAdapter.class);
-//		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
-//		//assertFalse(ms.isAutoStartup());
-//		TwitterOperations template = (TwitterOperations) TestUtils.getPropertyValue(ms, "twitterOperations");
-//		assertEquals(ac.getBean("twitter"), template);
-//	}
-
+	@Test
+	@Ignore // becouse userOpoeration.getProfile() throws exception where it doesn't have to since its a seqrch
+	public void testSearchReceivingDefaultTemplate(){
+		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSearchReceivingMessageSourceParser-context.xml", this.getClass());
+		SourcePollingChannelAdapter spca = ac.getBean("searchAdapter", SourcePollingChannelAdapter.class);
+		SearchReceivingMessageSource ms = (SearchReceivingMessageSource) TestUtils.getPropertyValue(spca, "source");
+		Twitter template = (Twitter) TestUtils.getPropertyValue(ms, "twitter");
+		assertNotNull(template);
+	}
 }

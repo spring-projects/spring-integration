@@ -34,6 +34,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
+import org.springframework.social.twitter.api.UserOperations;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -107,19 +108,22 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		//String profileId = this.twitterOperations.getProfileId();
 		
-		String profileId = String.valueOf(this.twitter.userOperations().getProfileId());
-		if (profileId != null) {
-			metadataKeyBuilder.append(profileId);
+		UserOperations userOperations = this.twitter.userOperations();
+		if (userOperations != null){
+			String profileId = String.valueOf(userOperations.getProfileId());
+			if (profileId != null) {
+				metadataKeyBuilder.append(profileId);
+			}
+			this.metadataKey = metadataKeyBuilder.toString();
+			String lastId = this.metadataStore.get(this.metadataKey);
+			// initialize the last status ID from the metadataStore
+			if (StringUtils.hasText(lastId)) {
+				this.lastProcessedId = Long.parseLong(lastId);
+				this.lastEnqueuedId = this.lastProcessedId;
+			}
 		}
-		this.metadataKey = metadataKeyBuilder.toString();
-		String lastId = this.metadataStore.get(this.metadataKey);
-		// initialize the last status ID from the metadataStore
-		if (StringUtils.hasText(lastId)) {
-			this.lastProcessedId = Long.parseLong(lastId);
-			this.lastEnqueuedId = this.lastProcessedId;
-		}
+		
 	}
 
 	public Message<?> receive() {   

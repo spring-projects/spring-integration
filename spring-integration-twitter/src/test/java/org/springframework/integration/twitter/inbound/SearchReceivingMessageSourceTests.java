@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
-import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
@@ -33,39 +32,6 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  */
 public class SearchReceivingMessageSourceTests {
 
-//	/**
-//	 * THis test is a sample test and wil require connecting to a real Twitter
-//	 * however no OAuth is required sincxe uts a search, so simply uncomment and run
-//	 * @throws Exception
-//	 */
-//	@Test
-//	@Ignore
-//	public void testSearchReceiving() throws Exception{
-//		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-//		ThreadPoolTaskScheduler scheduler =  new ThreadPoolTaskScheduler();
-//		scheduler.afterPropertiesSet();
-//		bf.registerSingleton("taskScheduler", scheduler);
-//		SearchReceivingMessageSource ms = new SearchReceivingMessageSource(new Twitter4jTemplate());
-//		DirectChannel channel = new DirectChannel(); 
-//		channel.subscribe(new MessageHandler() {
-//			public void handleMessage(Message<?> message) throws MessagingException {
-//				System.out.println("Message: " + ((Tweet)message.getPayload()).getCreatedAt() + " - " + ((Tweet)message.getPayload()).getText());
-//			}
-//		});
-//		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-//		adapter.setSource(ms);
-//		adapter.setBeanFactory(bf);
-//		adapter.setOutputChannel(channel);
-//		adapter.afterPropertiesSet();
-//		adapter.start();
-//		ms.setBeanFactory(bf);
-//		ms.setQuery("#springintegration");
-//		//ms.setTaskScheduler(scheduler);
-//		ms.afterPropertiesSet();
-//		//ms.start();
-//		System.in.read();
-//	}
-	
 	@SuppressWarnings("unchecked")
 	@Test @Ignore
 	public void demoReceiveSearchResults() throws Exception{

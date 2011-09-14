@@ -31,39 +31,7 @@ import org.springframework.social.twitter.api.impl.TwitterTemplate;
  * @since 2.0
  */
 public class StatusUpdatingMessageHandlerTests {
-	
-//	TwitterOperations twitterOperations;
-//
-//	Twitter twitter;
-//	
-//	@Before
-//	public void prepare() throws Exception{
-//		twitterOperations = spy(new Twitter4jTemplate());
-//		Field twitterField = Twitter4jTemplate.class.getDeclaredField("twitter");
-//		twitterField.setAccessible(true);
-//		twitter = mock(Twitter.class);
-//		twitterField.set(twitterOperations, twitter);
-//	}
-//
-//	@Test
-//	@SuppressWarnings({ "unchecked", "rawtypes" })
-//	public void testSendingStatusUpdate() throws Exception{
-//		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
-//		Tweet tweet = new Tweet();
-//		tweet.setText("writing twitter tests");
-//		handler.handleMessage(new GenericMessage(tweet));
-//		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
-//		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
-//	}
-//
-//	@Test
-//	public void testSendingStatusUpdateWithStringPayload() throws Exception{
-//		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(twitterOperations);
-//		Message<?> message = MessageBuilder.withPayload("writing twitter tests").build();
-//		handler.handleMessage(message);
-//		verify(twitterOperations, times(1)).updateStatus(Mockito.any(String.class));
-//		verify(twitter, times(1)).updateStatus(Mockito.any(StatusUpdate.class));
-//	}
+
 	
 	@Test @Ignore
 	public void demoSendStatusMessage() throws Exception{

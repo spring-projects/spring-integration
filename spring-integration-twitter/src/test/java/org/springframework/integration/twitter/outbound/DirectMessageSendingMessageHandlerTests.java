@@ -25,12 +25,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.twitter.core.TwitterHeaders;
-import org.springframework.social.twitter.api.Twitter;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -38,24 +33,6 @@ import static org.mockito.Mockito.verify;
  */
 public class DirectMessageSendingMessageHandlerTests {
 
-	private Twitter twitter = mock(Twitter.class);
-	
-	//private TwitterOperations twitter = mock(TwitterOperations.class);
-
-//	@Test
-//	public void validateSendDirectMessage() throws Exception{
-//		Message<?> message1 = MessageBuilder.withPayload("Migrating SI Twitter to Spring Social")
-//				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();
-//		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(twitter);
-//		handler.afterPropertiesSet();
-//		handler.handleMessage(message1);
-//		verify(twitter, times(1)).sendDirectMessage("foo", "hello");
-//		Message<?> message2 = MessageBuilder.withPayload("hello")
-//				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, 123).build();;
-//		handler.handleMessage(message2);
-//		verify(twitter, times(1)).sendDirectMessage(123, "hello");
-//	}
-	
 	@Test @Ignore
 	public void validateSendDirectMessage() throws Exception{
 		PropertiesFactoryBean pf = new PropertiesFactoryBean();

@@ -18,9 +18,9 @@
     </para>
     <para>
     	<important>
-    	Current Twitter support is based on the <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>.
-    	However, future versions will be changed to use the <link linkend="https://jira.springframework.org/browse/SOCIAL">Spring Social</link> 
-    	project as it is nearing its first release at the time of writing. 
+    	Previous versions of Spring Integration were dependent on <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>, 
+    	but after the release of <link linkend="http://www.springsource.org/spring-social">Spring Social 1.0 GA</link> 
+    	Spring Integration 2.1.M2 and all future releases are now depending on Spring Social framework's Twitter support.
     	</important>
     </para>
 
@@ -29,7 +29,7 @@
 the following within your XML header.
     <programlisting language="xml"><![CDATA[xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter 
-	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.0.xsd"]]></programlisting>
+	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.1.xsd"]]></programlisting>
     </para>
   </section>
   
@@ -72,15 +72,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   		<title>Twitter Template</title>
 
   	<para>
-  	Spring Integration uses the same familiar template pattern to interact with Twitter. Since current Twitter support 
-  	is based on the Twitter4J API we provide a simple Twiter4JTemplate. 
-	For anonymous operations (e.g., search), you don't have to define <classname>Twitter4JTemplate</classname> explicitly, since a default 
+  	Spring Integration uses the same familiar template pattern to interact with Twitter and Spring Social provides <classname>org.springframework.social.twitter.api.impl.TwitterTemplate</classname>
+	For anonymous operations (e.g., search), you don't have to define <classname>TwitterTemplate</classname> explicitly, since a default 
 	instance will be created and injected into the endpoint. However, for authenticated operation 
-	(update status, send direct message, etc.), you must configure <classname>Twitter4JTemplate</classname> as a bean and 
+	(update status, send direct message, etc.), you must configure <classname>TwitterTemplate</classname> as a bean and 
 	inject it explicitly into the endpoint, because the authentication configuration is required.
-	Below is a sample configuration of Twitter4JTemplate:
+	Below is a sample configuration of TwitterTemplate:
   	
-  	<programlisting language="xml"><![CDATA[<bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+  	<programlisting language="xml"><![CDATA[<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
 	<constructor-arg value="4XzBPacJQxyBzzzH"/>
 	<constructor-arg value="AbRxUAvyCtqQtvxFK8w5ZMtMj20KFhB6o"/>
 	<constructor-arg value="21691649-4YZY5iJEOfz2A9qCFd9SjBRGb3HLmIm4HNE"/>
@@ -108,7 +107,7 @@ twitter.oauth.accessTokenSecret=AbRxUAvyNCtqQtxFK8w5ZMtMj20KFhB6o]]></programlis
 <programlisting language="java"><![CDATA[<context:property-placeholder
             location="classpath:oauth.properties"/>
 
-<bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
 	<constructor-arg value="${twitter.oauth.consumerKey}"/>
 	<constructor-arg value="${twitter.oauth.consumerSecret}"/>
 	<constructor-arg value="${twitter.oauth.accessToken}"/>
@@ -219,7 +218,7 @@ received.
     of Spring Social.
   	</para>
   	<para>
-  	To get the text from the <classname>org.springframework.integration.twitter.core.Tweet</classname>
+  	To get the text from the <classname>org.springframework.social.twitter.api.Tweet</classname>
   	simply invoke the <code>getText()</code> method. 
   	</para>
   </section>

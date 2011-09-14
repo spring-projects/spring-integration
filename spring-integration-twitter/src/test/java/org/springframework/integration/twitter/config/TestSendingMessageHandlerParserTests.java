@@ -33,13 +33,13 @@ import org.springframework.integration.twitter.outbound.DirectMessageSendingMess
  */
 public class TestSendingMessageHandlerParserTests {
 
-//	@Test
-//	public void testSendingMessageHandlerSuccessfulBootstrap(){
-//		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
-//		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);
-//		Object handler = TestUtils.getPropertyValue(dmAdapter, "handler");
-//		assertEquals(DirectMessageSendingMessageHandler.class, handler.getClass());
-//		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
-//	}
+	@Test
+	public void testSendingMessageHandlerSuccessfulBootstrap(){
+		ApplicationContext ac = new ClassPathXmlApplicationContext("TestSendingMessageHandlerParser-context.xml", this.getClass());
+		EventDrivenConsumer dmAdapter = ac.getBean("dmAdapter", EventDrivenConsumer.class);
+		Object handler = TestUtils.getPropertyValue(dmAdapter, "handler");
+		assertEquals(DirectMessageSendingMessageHandler.class, handler.getClass());
+		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
+	}
 
 }
