@@ -26,6 +26,9 @@
 	Defines an outbound mail-sending Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>

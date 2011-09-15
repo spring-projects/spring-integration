@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:integration="http://wwww.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/mail
-			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
+	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<mail:outbound-channel-adapter id="adapterWithMailSenderReference"
+	<int-mail:outbound-channel-adapter id="adapterWithMailSenderReference"
 			order="23"
 			mail-sender="mailSender"/>
-
-	<mail:outbound-channel-adapter id="adapterWithHostProperty"
+			
+	<int-mail:outbound-channel-adapter id="adapterWithPollableChannel" channel="pollableChannel"
+			order="23"
+			mail-sender="mailSender">
+		<int:poller fixed-rate="100" max-messages-per-poll="4"/>
+	</int-mail:outbound-channel-adapter>
+	
+	<int:channel id="pollableChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int-mail:outbound-channel-adapter id="adapterWithHostProperty"
 			host="somehost" username="someuser" password="somepassword"/>
 
 	<bean id="mailSender" class="org.springframework.integration.mail.StubJavaMailSender">
