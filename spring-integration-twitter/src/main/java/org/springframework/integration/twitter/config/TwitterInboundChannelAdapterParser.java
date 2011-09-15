@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2011 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -23,6 +23,11 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.twitter.inbound.DirectMessageReceivingMessageSource;
+import org.springframework.integration.twitter.inbound.MentionsReceivingMessageSource;
+import org.springframework.integration.twitter.inbound.SearchReceivingMessageSource;
+import org.springframework.integration.twitter.inbound.TimelineReceivingMessageSource;
+import org.springframework.social.twitter.api.impl.TwitterTemplate;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,20 +38,16 @@ import org.springframework.util.StringUtils;
  */
 public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
-
-
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		String className = determineClassName(element, parserContext);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		Class<?> clazz = determineClass(element, parserContext);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(clazz);
 		String templateBeanName = element.getAttribute("twitter-template");
 		if (StringUtils.hasText(templateBeanName)) {
 			builder.addConstructorArgReference(templateBeanName);
 		}
 		else {
-			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					BASE_PACKAGE + ".core.Twitter4jTemplate");
+			BeanDefinitionBuilder templateBuilder = BeanDefinitionBuilder.genericBeanDefinition(TwitterTemplate.class);
 			builder.addConstructorArgValue(templateBuilder.getBeanDefinition());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "query");
@@ -54,25 +55,25 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 
-	private static String determineClassName(Element element, ParserContext parserContext) {
-		String className = null;
+	private static Class<?> determineClass(Element element, ParserContext parserContext) {
+		Class<?> clazz = null;
 		String elementName = element.getLocalName().trim();
 		if ("inbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".inbound.TimelineReceivingMessageSource";
+			clazz = TimelineReceivingMessageSource.class;
 		}
 		else if ("dm-inbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".inbound.DirectMessageReceivingMessageSource";
+			clazz = DirectMessageReceivingMessageSource.class;
 		}
 		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".inbound.MentionsReceivingMessageSource";
+			clazz = MentionsReceivingMessageSource.class;
 		}
 		else if ("search-inbound-channel-adapter".equals(elementName)){
-			className = BASE_PACKAGE + ".inbound.SearchReceivingMessageSource";
+			clazz = SearchReceivingMessageSource.class;
 		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
-		return className;
+		return clazz;
 	}
 
 }

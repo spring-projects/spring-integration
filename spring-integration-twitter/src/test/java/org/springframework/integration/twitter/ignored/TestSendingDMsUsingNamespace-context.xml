@@ -21,7 +21,7 @@
 			location="classpath:twitter.sender.properties"
 			ignore-unresolvable="true"/>
 
-	<beans:bean id="twitterTemplate" class="org.springframework.integration.twitter.core.Twitter4jTemplate">
+	<beans:bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
 		<beans:constructor-arg value="${twitter.oauth.consumerKey}"/>
 		<beans:constructor-arg value="${twitter.oauth.consumerSecret}"/>
 		<beans:constructor-arg value="${twitter.oauth.accessToken}"/>

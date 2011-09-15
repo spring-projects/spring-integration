@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 
 /**
  * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
@@ -30,19 +30,19 @@ import org.springframework.integration.twitter.core.TwitterOperations;
  */
 public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public MentionsReceivingMessageSource(TwitterOperations twitter){
+	public MentionsReceivingMessageSource(Twitter twitter) {
 		super(twitter);
 	}
 
 
 	@Override
 	public String getComponentType() {
-		return "twitter:mention-inbound-channel-adapter";
+		return "twitter:mentions-inbound-channel-adapter";
 	}
 
 	@Override
 	protected List<Tweet> pollForTweets(long sinceId) {
-		return (sinceId > 0) ? this.getTwitterOperations().getMentions(sinceId) : this.getTwitterOperations().getMentions();
+		return this.getTwitter().timelineOperations().getMentions(1, 20, sinceId, 0);
 	}
 
 }
