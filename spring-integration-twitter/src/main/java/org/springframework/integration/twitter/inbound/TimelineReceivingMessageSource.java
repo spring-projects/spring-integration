@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource
 
 	@Override
 	protected List<?> pollForTweets(long sinceId) {
-		return(sinceId > 0) ? this.getTwitter().timelineOperations().getHomeTimeline(1, 20, sinceId, 0) : this.getTwitter().timelineOperations().getHomeTimeline(1, 50, 0, 0);
+		return this.getTwitter().timelineOperations().getHomeTimeline(1, 20, sinceId, 0);
 	}
 
 }

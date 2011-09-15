@@ -46,12 +46,12 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 		Assert.isTrue(message.getPayload() instanceof String, "Only payload of type String is supported. " +
 				"Consider adding a transformer to the message flow in front of this adapter.");
 		Object toUser = message.getHeaders().get(TwitterHeaders.DM_TARGET_USER_ID);
-		Assert.isTrue(toUser instanceof String || toUser instanceof Integer,
+		Assert.isTrue(toUser instanceof String || toUser instanceof Number,
 				"the header '" + TwitterHeaders.DM_TARGET_USER_ID + 
-				"' must contain either a String (a screenname) or an int (a user ID)");
+				"' must contain either a String (a screenname) or an number (a user ID)");
 		String payload = (String) message.getPayload();
-		if (toUser instanceof Integer) {
-			this.twitter.directMessageOperations().sendDirectMessage((Integer) toUser, payload);
+		if (toUser instanceof Number) {
+			this.twitter.directMessageOperations().sendDirectMessage(((Number) toUser).longValue(), payload);
 		} 
 		else if (toUser instanceof String) {
 			this.twitter.directMessageOperations().sendDirectMessage((String) toUser, payload);
