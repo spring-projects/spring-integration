@@ -16,19 +16,21 @@
 
 package org.springframework.integration.mail.config;
 
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.Properties;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mail.MailSender;
+
+import static junit.framework.Assert.assertEquals;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -58,6 +60,15 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
+	}
+	
+	@Test
+	public void adapterWithPollableChannel() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
+		PollingConsumer pc = context.getBean("adapterWithPollableChannel", PollingConsumer.class);
+		QueueChannel pollableChannel = TestUtils.getPropertyValue(pc, "inputChannel", QueueChannel.class);
+		assertEquals("pollableChannel", pollableChannel.getComponentName());
 	}
 	
 	@Test
