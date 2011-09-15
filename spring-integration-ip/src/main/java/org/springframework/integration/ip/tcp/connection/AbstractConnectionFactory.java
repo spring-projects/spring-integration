@@ -36,73 +36,85 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 
 /**
  * Base class for all connection factories.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
  */
-public abstract class AbstractConnectionFactory 
-		implements ConnectionFactory, Runnable, SmartLifecycle  {
+public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
+		implements ConnectionFactory, Runnable, SmartLifecycle, BeanNameAware  {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
-	
-	protected final static int DEFAULT_REPLY_TIMEOUT = 10000;
-	
-	protected String host;
-	
-	protected int port;
-	
-	protected TcpListener listener;
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected TcpSender sender;
+	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
-	protected int soTimeout;
+	private volatile String host;
 
-	private int soSendBufferSize;
+	private volatile int port;
 
-	private int soReceiveBufferSize;
-	
-	private boolean soTcpNoDelay;
+	private volatile TcpListener listener;
 
-	private int soLinger  = -1; // don't set by default
+	private volatile TcpSender sender;
 
-	private boolean soKeepAlive;
+	private volatile int soTimeout;
 
-	private int soTrafficClass = -1; // don't set by default
-	
-	private Executor taskExecutor;
-	
-	private boolean privateExecutor;
+	private volatile int soSendBufferSize;
 
-	protected Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
-	
-	protected Serializer<?> serializer = new ByteArrayCrLfSerializer();
-	
-	protected TcpMessageMapper mapper = new TcpMessageMapper();
+	private volatile int soReceiveBufferSize;
 
-	protected boolean singleUse;
+	private volatile boolean soTcpNoDelay;
 
-	protected int poolSize = 5;
+	private volatile int soLinger  = -1; // don't set by default
 
-	protected volatile boolean active;
+	private volatile boolean soKeepAlive;
 
-	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
-	
-	private boolean lookupHost = true;
-	
-	private List<TcpConnection> connections = new LinkedList<TcpConnection>();
+	private volatile int soTrafficClass = -1; // don't set by default
+
+	private volatile Executor taskExecutor;
+
+	private volatile boolean privateExecutor;
+
+	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
+
+	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
+
+	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
+
+	private volatile boolean singleUse;
+
+	private volatile int poolSize = 5;
+
+	private volatile boolean active;
+
+	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+
+	private volatile boolean lookupHost = true;
+
+	private volatile List<TcpConnection> connections = new LinkedList<TcpConnection>();
 
 	protected final Object lifecycleMonitor = new Object();
-	
+
+	public AbstractConnectionFactory(int port) {
+		this.port = port;
+	}
+
+	public AbstractConnectionFactory(String host, int port) {
+		Assert.notNull(host, "host must not be null");
+		this.host = host;
+		this.port = port;
+	}
+
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.
@@ -241,6 +253,48 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
+	 * @return the listener
+	 */
+	public TcpListener getListener() {
+		return listener;
+	}
+
+	/**
+	 * @return the sender
+	 */
+	public TcpSender getSender() {
+		return sender;
+	}
+
+	/**
+	 * @return the serializer
+	 */
+	public Serializer<?> getSerializer() {
+		return serializer;
+	}
+
+	/**
+	 * @return the deserializer
+	 */
+	public Deserializer<?> getDeserializer() {
+		return deserializer;
+	}
+
+	/**
+	 * @return the mapper
+	 */
+	public TcpMessageMapper getMapper() {
+		return mapper;
+	}
+
+	/**
+	 * @return the poolSize
+	 */
+	public int getPoolSize() {
+		return poolSize;
+	}
+
+	/**
 	 * Registers a TcpListener to receive messages after
 	 * the payload has been converted from the input data.
 	 * @param listener the TcpListener.
@@ -252,7 +306,7 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
-	 * Registers a TcpSender; for server sockets, used to 
+	 * Registers a TcpSender; for server sockets, used to
 	 * provide connection information so a sender can be used
 	 * to reply to incoming messages.
 	 * @param sender The sender
@@ -271,7 +325,7 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param deserializer the deserializer to set
 	 */
 	public void setDeserializer(Deserializer<?> deserializer) {
@@ -279,7 +333,7 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param serializer the serializer to set
 	 */
 	public void setSerializer(Serializer<?> serializer) {
@@ -287,7 +341,7 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * @param mapper the mapper to set; defaults to a {@link TcpMessageMapper}
 	 */
 	public void setMapper(TcpMessageMapper mapper) {
@@ -309,7 +363,7 @@ public abstract class AbstractConnectionFactory
 		this.singleUse = singleUse;
 	}
 
-	
+
 	public void setPoolSize(int poolSize) {
 		this.poolSize = poolSize;
 	}
@@ -349,10 +403,13 @@ public abstract class AbstractConnectionFactory
 				this.getTaskExecutor().execute(this);
 			}
 		}
+		if (logger.isInfoEnabled()) {
+			logger.info("started " + this);
+		}
 	}
 
 	/**
-	 * Creates a taskExecutor (if one was not provided). 
+	 * Creates a taskExecutor (if one was not provided).
 	 */
 	protected Executor getTaskExecutor() {
 		synchronized (this.lifecycleMonitor) {
@@ -388,7 +445,7 @@ public abstract class AbstractConnectionFactory
 				try {
 					if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
 						logger.debug("Forcing executor shutdown");
-						executorService.shutdownNow();					
+						executorService.shutdownNow();
 						if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
 							logger.debug("Executor failed to shutdown");
 						}
@@ -402,6 +459,9 @@ public abstract class AbstractConnectionFactory
 				}
 			}
 		}
+		if (logger.isInfoEnabled()) {
+			logger.info("stopped " + this);
+		}
 	}
 
 	protected TcpConnection wrapConnection(TcpConnection connection) throws Exception {
@@ -409,7 +469,7 @@ public abstract class AbstractConnectionFactory
 			if (this.interceptorFactoryChain == null) {
 				return connection;
 			}
-			TcpConnectionInterceptorFactory[] interceptorFactories = 
+			TcpConnectionInterceptorFactory[] interceptorFactories =
 				this.interceptorFactoryChain.getInterceptorFactories();
 			if (interceptorFactories == null) {
 				return connection;
@@ -433,9 +493,9 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
-	 * 
+	 *
 	 * Times out any expired connections then, if selectionCount > 0, processes the selected keys.
-	 *  
+	 *
 	 * @param selectionCount
 	 * @param selector
 	 * @param connections
@@ -483,7 +543,7 @@ public abstract class AbstractConnectionFactory
 				else if (key.isReadable()) {
 					try {
 						key.interestOps(key.interestOps() - key.readyOps());
-						final TcpNioConnection connection; 
+						final TcpNioConnection connection;
 						connection = (TcpNioConnection) key.attachment();
 						connection.setLastRead(System.currentTimeMillis());
 						this.taskExecutor.execute(new Runnable() {
@@ -535,13 +595,17 @@ public abstract class AbstractConnectionFactory
 	protected void doAccept(final Selector selector, ServerSocketChannel server, long now) throws IOException {
 		throw new UnsupportedOperationException("Nio server factory must override this method");
 	}
-	
+
 	public int getPhase() {
 		return 0;
 	}
 
+	/**
+	 * We are controlled by the startup options of
+	 * the bound endpoint.
+	 */
 	public boolean isAutoStartup() {
-		return true;
+		return false;
 	}
 
 	public void stop(Runnable callback) {
@@ -558,7 +622,7 @@ public abstract class AbstractConnectionFactory
 			this.connections.add(connection);
 		}
 	}
-	
+
 	protected void harvestClosedConnections() {
 		synchronized (this.connections) {
 			Iterator<TcpConnection> iterator = this.connections.iterator();
@@ -570,4 +634,29 @@ public abstract class AbstractConnectionFactory
 			}
 		}
 	}
+
+	public boolean isRunning() {
+		return this.active;
+	}
+
+	/**
+	 * @return the active
+	 */
+	protected boolean isActive() {
+		return active;
+	}
+
+	/**
+	 * @param active the active to set
+	 */
+	protected void setActive(boolean active) {
+		this.active = active;
+	}
+
+	protected void checkActive() throws IOException {
+		if (!this.isActive()) {
+			throw new IOException(this + " connection factory has not been started");
+		}
+	}
+
 }

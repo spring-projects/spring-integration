@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,19 @@ public interface CommonSocketOptions {
 	 * @see Socket#setSoTimeout(int)
 	 * @see DatagramSocket#setSoTimeout(int)
 	 */
-	public void setSoTimeout(int soTimeout);
+	void setSoTimeout(int soTimeout);
 
 	/**
 	 * @see Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 */
-	public void setSoReceiveBufferSize(int soReceiveBufferSize);
+	void setSoReceiveBufferSize(int soReceiveBufferSize);
 
 	/**
 	 * @see Socket#setSendBufferSize(int)
 	 * @see DatagramSocket#setSendBufferSize(int)
 	 */
-	public void setSoSendBufferSize(int soSendBufferSize);
+	void setSoSendBufferSize(int soSendBufferSize);
 	
 	/**
 	 * On a multi-homed system, specifies the ip address of the network interface used to communicate.
@@ -53,6 +53,6 @@ public interface CommonSocketOptions {
 	 * 
  	 * @param localAddress
 	 */
-	public void setLocalAddress(String localAddress);
+	void setLocalAddress(String localAddress);
 
 }

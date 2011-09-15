@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,8 +27,6 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.ip.tcp.connection.TcpConnection;
-import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
@@ -41,10 +40,6 @@ public class TcpMessageMapperTests {
 	 */
 	private static final String TEST_PAYLOAD = "abcdefghijkl";
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#toMessage(org.springframework.integration.ip.tcp.SocketReader)}.
-	 * Tests segmented reads into the payload and verifies reassembly.
-	 */
 	@Test
 	public void testToMessage() throws Exception {
 		
@@ -64,10 +59,7 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#toMessage(org.springframework.integration.ip.tcp.SocketReader)}.
-	 * Tests segmented reads into the payload and verifies reassembly.
-	 */
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testToMessageSequence() throws Exception {
 		
@@ -119,10 +111,67 @@ public class TcpMessageMapperTests {
 				.getHeaders().get(IpHeaders.CONNECTION_SEQ));		
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#fromMessage(org.springframework.integration.Message)}.
-	 * @throws Exception 
-	 */
+	@SuppressWarnings("deprecation")
+	@Test
+	public void testToMessageSequenceNew() throws Exception {
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setApplySequence(true);
+		Socket socket = SocketFactory.getDefault().createSocket();
+		TcpConnection connection = new AbstractTcpConnection(socket, false, false) {
+			public void run() {
+			}
+			public void send(Message<?> message) throws Exception {
+			}
+			public boolean isOpen() {
+				return false;
+			}
+			public int getPort() {
+				return 1234;
+			}
+			public Object getPayload() throws Exception {
+				return TEST_PAYLOAD.getBytes();
+			}
+			public String getHostName() {
+				return "MyHost";
+			}
+			public String getHostAddress() {
+				return "1.1.1.1";
+			}
+			public String getConnectionId() {
+				return "anId";
+			}
+		};
+		Message<Object> message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message
+				.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message
+				.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message
+				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertNull(message
+				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
+		assertEquals(Integer.valueOf(1), message
+				.getHeaders().getSequenceNumber());
+		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
+				.getHeaders().getCorrelationId());
+		message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message
+				.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message
+				.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message
+				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertNull(message
+				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
+		assertEquals(Integer.valueOf(2), message
+				.getHeaders().getSequenceNumber());
+		assertEquals(message.getHeaders().get(IpHeaders.CONNECTION_ID), message
+				.getHeaders().getCorrelationId());
+
+	}
+
 	@Test
 	public void testFromMessageBytes() throws Exception {
 		String s = "test";

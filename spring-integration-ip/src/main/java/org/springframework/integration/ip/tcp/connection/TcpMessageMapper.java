@@ -41,20 +41,35 @@ public class TcpMessageMapper implements
 		OutboundMessageMapper<Object> {
 
 	private volatile String charset = "UTF-8";
-	
+
 	private volatile boolean stringToBytes = true;
-	
+
+	private volatile boolean applySequence = false;
+
+	@SuppressWarnings("deprecation")
 	public Message<Object> toMessage(TcpConnection connection) throws Exception {
 		Message<Object> message = null;
 		Object payload = connection.getPayload();
 		if (payload != null) {
-			message = MessageBuilder.withPayload(payload)
-					.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
-					.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
-					.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
-					.setHeader(IpHeaders.CONNECTION_ID, connection.getConnectionId())
-					.setHeader(IpHeaders.CONNECTION_SEQ, connection.getConnectionSeq())
-					.build();
+			String connectionId = connection.getConnectionId();
+			if (this.applySequence) {
+				message = MessageBuilder.withPayload(payload)
+						.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
+						.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
+						.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
+						.setHeader(IpHeaders.CONNECTION_ID, connectionId)
+						.setCorrelationId(connectionId)
+						.setSequenceNumber((int) connection.incrementAndGetConnectionSequence())
+						.build();
+			} else {
+				message = MessageBuilder.withPayload(payload)
+						.setHeader(IpHeaders.HOSTNAME, connection.getHostName())
+						.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
+						.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
+						.setHeader(IpHeaders.CONNECTION_ID, connectionId)
+						.setHeader(IpHeaders.CONNECTION_SEQ, connection.incrementAndGetConnectionSequence())
+						.build();
+			}
 		}
 		return message;
 
@@ -110,6 +125,13 @@ public class TcpMessageMapper implements
 	 */
 	public void setStringToBytes(boolean stringToBytes) {
 		this.stringToBytes = stringToBytes;
+	}
+
+	/**
+	 * @param applySequence the applySequence to set
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
 	}
 
 }

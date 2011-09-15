@@ -133,6 +133,7 @@ public class TcpConfigOutboundGatewayTests {
 	@Test
 	public void testOutboundStxEtx() throws Exception {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		stxEtxClient.start();
 		gateway.setConnectionFactory(stxEtxClient);
 		waitListening(inboundGatewayStxEtx);
 		Message<String> message = MessageBuilder.withPayload("test").build();
@@ -144,6 +145,7 @@ public class TcpConfigOutboundGatewayTests {
 	@Test
 	public void testOutboundSerialized() throws Exception {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		javaSerialClient.start();
 		gateway.setConnectionFactory(javaSerialClient);
 		waitListening(inboundGatewaySerialized);
 		Message<String> message = MessageBuilder.withPayload("test").build();
@@ -155,6 +157,7 @@ public class TcpConfigOutboundGatewayTests {
 	@Test
 	public void testOutboundLength() throws Exception {
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
+		lengthHeaderClient.start();
 		gateway.setConnectionFactory(lengthHeaderClient);
 		waitListening(inboundGatewayLength);
 		Message<String> message = MessageBuilder.withPayload("test").build();

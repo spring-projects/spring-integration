@@ -86,6 +86,7 @@ public class ConnectionToConnectionTests {
 				throw new Exception("Failed to listen");
 			}
 		}
+		client.start();
 		for (int i = 0; i < 100; i++) {
 			TcpConnection connection = client.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
@@ -105,6 +106,7 @@ public class ConnectionToConnectionTests {
 		ByteArrayRawSerializer serializer = new ByteArrayRawSerializer();
 		client.setSerializer(serializer);
 		server.setDeserializer(serializer);
+		client.start();
 		TcpConnection connection = client.getConnection();
 		connection.send(MessageBuilder.withPayload("Test").build());
 		Message<?> message = serverSideChannel.receive(10000);
@@ -119,6 +121,7 @@ public class ConnectionToConnectionTests {
 	
 	@Test
 	public void testLookup() throws Exception {
+		client.start();
 		TcpConnection connection = client.getConnection();
 		assertFalse(connection.getConnectionId().contains("localhost"));
 		connection.close();
