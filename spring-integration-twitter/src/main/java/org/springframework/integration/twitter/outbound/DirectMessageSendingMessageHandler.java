@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2011 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ public class DirectMessageSendingMessageHandler extends AbstractMessageHandler {
 				"' must contain either a String (a screenname) or an int (a user ID)");
 		String payload = (String) message.getPayload();
 		if (toUser instanceof Integer) {
-			this.twitter.directMessageOperations().sendDirectMessage((Long) toUser, payload);
+			this.twitter.directMessageOperations().sendDirectMessage((Integer) toUser, payload);
 		} 
 		else if (toUser instanceof String) {
 			this.twitter.directMessageOperations().sendDirectMessage((String) toUser, payload);

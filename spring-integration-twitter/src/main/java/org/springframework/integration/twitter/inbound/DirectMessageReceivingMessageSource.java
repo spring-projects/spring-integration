@@ -43,9 +43,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 
 	@Override
 	protected List<?> pollForTweets(long sinceId) {
-		return (sinceId > 0)
-				? this.getTwitter().directMessageOperations().getDirectMessagesReceived(1, 20, sinceId, 0)
-				: this.getTwitter().directMessageOperations().getDirectMessagesReceived(); 
+		return this.getTwitter().directMessageOperations().getDirectMessagesReceived(1, 20, sinceId, 0);
 	}
 
 }
