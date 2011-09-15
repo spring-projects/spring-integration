@@ -40,11 +40,11 @@ public class DirectMessageSendingMessageHandlerTests {
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
 		System.out.println(prop);
-		TwitterTemplate template = new TwitterTemplate(prop.getProperty("twitter.oauth.consumerKey"), 
-										               prop.getProperty("twitter.oauth.consumerSecret"), 
-										               prop.getProperty("twitter.oauth.accessToken"), 
-										               prop.getProperty("twitter.oauth.accessTokenSecret"));
-		Message<?> message1 = MessageBuilder.withPayload("Migrating SI Twitter to Spring Social")
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("spring_eip.oauth.consumerKey"), 
+										               prop.getProperty("spring_eip.oauth.consumerSecret"), 
+										               prop.getProperty("spring_eip.oauth.accessToken"), 
+										               prop.getProperty("spring_eip.oauth.accessTokenSecret"));
+		Message<?> message1 = MessageBuilder.withPayload("Polsihing SI Twitter migration")
 				.setHeader(TwitterHeaders.DM_TARGET_USER_ID, "z_oleg").build();
 		DirectMessageSendingMessageHandler handler = new DirectMessageSendingMessageHandler(template);
 		handler.afterPropertiesSet();

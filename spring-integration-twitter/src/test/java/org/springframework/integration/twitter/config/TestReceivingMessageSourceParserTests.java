@@ -36,7 +36,7 @@ public class TestReceivingMessageSourceParserTests {
 	
 
 	@Test
-	public void testRecievingAdapterConfigurationAutoStartup(){
+	public void testReceivingAdapterConfigurationAutoStartup(){
 		ApplicationContext ac = new ClassPathXmlApplicationContext("TestReceivingMessageSourceParser-context.xml", this.getClass());
 		SourcePollingChannelAdapter spca = ac.getBean("mentionAdapter", SourcePollingChannelAdapter.class);
 		MentionsReceivingMessageSource ms = TestUtils.getPropertyValue(spca, "source", MentionsReceivingMessageSource.class);

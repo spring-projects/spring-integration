@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2011 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		String className = determineClassName(element, parserContext);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		Class<?> clazz = determineClass(element, parserContext);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(clazz);
 		String templateBeanName = element.getAttribute("twitter-template");
 		if (StringUtils.hasText(templateBeanName)) {
 			builder.addConstructorArgReference(templateBeanName);
@@ -55,25 +55,25 @@ public class TwitterInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 
-	private static String determineClassName(Element element, ParserContext parserContext) {
-		String className = null;
+	private static Class<?> determineClass(Element element, ParserContext parserContext) {
+		Class<?> clazz = null;
 		String elementName = element.getLocalName().trim();
 		if ("inbound-channel-adapter".equals(elementName)) {
-			className = TimelineReceivingMessageSource.class.getName();
+			clazz = TimelineReceivingMessageSource.class;
 		}
 		else if ("dm-inbound-channel-adapter".equals(elementName)) {
-			className = DirectMessageReceivingMessageSource.class.getName();
+			clazz = DirectMessageReceivingMessageSource.class;
 		}
 		else if ("mentions-inbound-channel-adapter".equals(elementName)) {
-			className = MentionsReceivingMessageSource.class.getName();
+			clazz = MentionsReceivingMessageSource.class;
 		}
 		else if ("search-inbound-channel-adapter".equals(elementName)){
-			className = SearchReceivingMessageSource.class.getName();
+			clazz = SearchReceivingMessageSource.class;
 		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
-		return className;
+		return clazz;
 	}
 
 }

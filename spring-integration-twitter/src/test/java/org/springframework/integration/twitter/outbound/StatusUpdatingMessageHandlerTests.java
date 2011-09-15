@@ -39,12 +39,11 @@ public class StatusUpdatingMessageHandlerTests {
 		pf.setLocation(new ClassPathResource("sample.properties"));
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
-		System.out.println(prop);
-		TwitterTemplate template = new TwitterTemplate(prop.getProperty("twitter.oauth.consumerKey"), 
-										               prop.getProperty("twitter.oauth.consumerSecret"), 
-										               prop.getProperty("twitter.oauth.accessToken"), 
-										               prop.getProperty("twitter.oauth.accessTokenSecret"));
-		Message<?> message1 = MessageBuilder.withPayload("Migrating #springintegration to Spring Social. Too simple ;)").build();
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"), 
+										               prop.getProperty("z_oleg.oauth.consumerSecret"), 
+										               prop.getProperty("z_oleg.oauth.accessToken"), 
+										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
+		Message<?> message1 = MessageBuilder.withPayload("Ppolishing #springintegration migration to Spring Social. test").build();
 		StatusUpdatingMessageHandler handler = new StatusUpdatingMessageHandler(template);
 		handler.afterPropertiesSet();
 		handler.handleMessage(message1);

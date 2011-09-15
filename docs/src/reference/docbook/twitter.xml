@@ -20,7 +20,7 @@
     	<important>
     	Previous versions of Spring Integration were dependent on <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>, 
     	but after the release of <link linkend="http://www.springsource.org/spring-social">Spring Social 1.0 GA</link> 
-    	Spring Integration 2.1.M2 and all future releases are now depending on Spring Social framework's Twitter support.
+    	Spring Integration 2.1 and all future releases are now depending on Spring Social framework's Twitter support.
     	</important>
     </para>
 

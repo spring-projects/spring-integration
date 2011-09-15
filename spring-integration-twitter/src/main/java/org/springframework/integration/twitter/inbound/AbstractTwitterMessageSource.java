@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+right, but I am  * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -140,7 +141,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			this.lastPollForTweet = currentTime;
 		}
 		if (tweet != null) {
-			this.lastProcessedId = this.getId(tweet);
+			this.lastProcessedId = this.getIdForTweet(tweet);
 			this.metadataStore.put(this.metadataKey, String.valueOf(this.lastProcessedId));
 			return MessageBuilder.withPayload(tweet).build();
 		}
@@ -156,7 +157,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private void enqueue(Object tweet) {
 		synchronized (this.lastEnqueuedIdMonitor) {
-			long id = this.getId(tweet);
+			long id = this.getIdForTweet(tweet);
 			if (id > this.lastEnqueuedId) {
 				this.tweets.add(tweet);
 				this.lastEnqueuedId = id;
@@ -195,20 +196,28 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			if (tweet1 instanceof Tweet && tweet2 instanceof Tweet){
 				Tweet t1 = (Tweet) tweet1;
 				Tweet t2 = (Tweet) tweet2;
-				return t1.getCreatedAt().compareTo(t2.getCreatedAt());
+				Date t1CreatedAt = t1.getCreatedAt();
+				Date t2CreatedAt = t2.getCreatedAt();
+				Assert.notNull(t1CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
+				Assert.notNull(t2CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
+				return t1CreatedAt.compareTo(t2CreatedAt);
 			} 
 			else if (tweet1 instanceof DirectMessage && tweet2 instanceof DirectMessage) {
 				DirectMessage d1 = (DirectMessage) tweet1;
 				DirectMessage d2 = (DirectMessage) tweet2;
-				return d1.getCreatedAt().compareTo(d2.getCreatedAt());
+				Date d1CreatedAt = d1.getCreatedAt();
+				Date d2CreatedAt = d2.getCreatedAt();
+				Assert.notNull(d1CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
+				Assert.notNull(d2CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
+				return d1CreatedAt.compareTo(d2CreatedAt);
 			} 
 			else {
-				throw new MessagingException("Uncomparable Twitter objects: " + tweet1 + " and " + tweet2);
+				throw new IllegalArgumentException("Uncomparable Twitter objects: " + tweet1 + " and " + tweet2);
 			}
 		}
 	}
 	
-	private long getId(Object twitterMessage){
+	private long getIdForTweet(Object twitterMessage){
 		if (twitterMessage instanceof Tweet){
 			Tweet t = (Tweet) twitterMessage;
 			return t.getId();
@@ -218,7 +227,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 			return d.getId();
 		} 
 		else {
-			throw new MessagingException("Unrecognized Twitter object: " + twitterMessage );
+			throw new IllegalArgumentException("Unrecognized Twitter object: " + twitterMessage );
 		}
 	}
 
