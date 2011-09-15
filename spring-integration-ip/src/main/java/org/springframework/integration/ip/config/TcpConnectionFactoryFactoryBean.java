@@ -24,13 +24,11 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
-import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 
 /**
@@ -44,55 +42,49 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> 
 		implements SmartLifecycle {
 
-	private AbstractConnectionFactory connectionFactory;
+	private volatile AbstractConnectionFactory connectionFactory;
 	
-	private String type;
+	private volatile String type;
 
-	protected String host;
+	private volatile String host;
 	
-	protected int port;
+	private volatile int port;
 	
-	protected TcpListener listener;
+	private volatile int soTimeout;
 
-	protected TcpSender sender;
+	private volatile int soSendBufferSize;
 
-	protected int soTimeout;
-
-	private int soSendBufferSize;
-
-	private int soReceiveBufferSize;
+	private volatile int soReceiveBufferSize;
 	
-	private boolean soTcpNoDelay;
+	private volatile boolean soTcpNoDelay;
 
-	private int soLinger  = -1; // don't set by default
+	private volatile int soLinger  = -1; // don't set by default
 
-	private boolean soKeepAlive;
+	private volatile boolean soKeepAlive;
 
-	private int soTrafficClass = -1; // don't set by default
+	private volatile int soTrafficClass = -1; // don't set by default
 	
-	private Executor taskExecutor;
+	private volatile Executor taskExecutor;
 	
-	protected Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
+	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 	
-	protected Serializer<?> serializer = new ByteArrayCrLfSerializer();
+	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
 	
-	protected TcpMessageMapper mapper = new TcpMessageMapper();
+	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
 
-	protected boolean singleUse;
+	private volatile boolean singleUse;
 
-	protected int poolSize = 5;
+	private volatile int poolSize = 5;
 
-	protected volatile boolean active;
-
-	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
 	
-	private boolean lookupHost = true;
+	private volatile boolean lookupHost = true;
 	
-	private String localAddress;
+	private volatile String localAddress;
 
-	private boolean usingNio;
+	private volatile boolean usingNio;
 	
-	private boolean usingDirectBuffers;
+	private volatile boolean usingDirectBuffers;
 	
 	@Override
 	public Class<?> getObjectType() {

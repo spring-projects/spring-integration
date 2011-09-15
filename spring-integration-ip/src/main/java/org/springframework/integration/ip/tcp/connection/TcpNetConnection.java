@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
@@ -64,13 +65,13 @@ public class TcpNetConnection extends AbstractTcpConnection {
 
 	@SuppressWarnings("unchecked")
 	public synchronized void send(Message<?> message) throws Exception {
-		Object object = mapper.fromMessage(message);
-		this.serializer.serialize(object, this.socket.getOutputStream());
+		Object object = this.getMapper().fromMessage(message);
+		((Serializer<Object>) this.getSerializer()).serialize(object, this.socket.getOutputStream());
 		this.afterSend(message);
 	}
 
 	public Object getPayload() throws Exception {
-		return this.deserializer.deserialize(this.socket.getInputStream());
+		return this.getDeserializer().deserialize(this.socket.getInputStream());
 	}
 
 	public int getPort() {
@@ -88,7 +89,9 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * a warning is logged.
 	 */
 	public void run() {
-		if (this.listener == null && !this.singleUse) {
+		boolean singleUse = this.isSingleUse();
+		TcpListener listener = this.getListener();
+		if (listener == null && !singleUse) {
 			logger.debug("TcpListener exiting - no listener and not single use");
 			return;
 		}
@@ -98,11 +101,11 @@ public class TcpNetConnection extends AbstractTcpConnection {
 		boolean intercepted = false;
 		while (okToRun) {
 			try {
-				message = this.mapper.toMessage(this);
+				message = this.getMapper().toMessage(this);
 			} catch (Exception e) {
 				this.closeConnection();
 				if (!(e instanceof SoftEndOfStreamException)) {
-					if (e instanceof SocketTimeoutException && this.singleUse) {
+					if (e instanceof SocketTimeoutException && singleUse) {
 						logger.debug("Closing single use socket after timeout");
 					} else {
 						if (this.noReadErrorOnClose) {
@@ -135,8 +138,8 @@ public class TcpNetConnection extends AbstractTcpConnection {
 				intercepted = listener.onMessage(message);
 			} catch (Exception e) {
 				if (e instanceof NoListenerException) {
-					if (this.singleUse) {
-						logger.debug("Closing single use socket after inbound message " + this.connectionId);
+					if (singleUse) {
+						logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
 						this.closeConnection();
 						okToRun = false;
 					} else {
@@ -151,8 +154,8 @@ public class TcpNetConnection extends AbstractTcpConnection {
 			 * side, and the data was not intercepted, 
 			 * or the server side has no outbound adapter registered
 			 */
-			if (this.singleUse && ((!this.server && !intercepted) || (this.server && this.sender == null))) {
-				logger.debug("Closing single use socket after inbound message " + this.connectionId);
+			if (singleUse && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
+				logger.debug("Closing single use socket after inbound message " + this.getConnectionId());
 				this.closeConnection();
 				okToRun = false;
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,18 +101,18 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
 			MulticastSocket socket;
-			if (acknowledge) {
+			if (this.isAcknowledge()) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Listening for acks on port: " + ackPort);
+					logger.debug("Listening for acks on port: " + this.getAckPort());
 				}
 				if (localAddress == null) {
-					socket = new MulticastSocket(this.ackPort);
+					socket = new MulticastSocket(this.getAckPort());
 				} else {
 					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					socket = new MulticastSocket(new InetSocketAddress(whichNic, this.ackPort));
+					socket = new MulticastSocket(new InetSocketAddress(whichNic, this.getAckPort()));
 				}
-				if (this.soReceiveBufferSize > 0) {
-					socket.setReceiveBufferSize(this.soReceiveBufferSize);
+				if (this.getSoReceiveBufferSize() > 0) {
+					socket.setReceiveBufferSize(this.getSoReceiveBufferSize());
 				}
 			} else {
 				socket = new MulticastSocket();
@@ -137,7 +137,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	 * @param minAcksForSuccess
 	 */
 	public void setMinAcksForSuccess(int minAcksForSuccess) {
-		this.ackCounter = minAcksForSuccess;
+		this.setAckCounter(minAcksForSuccess);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,56 +40,51 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractTcpConnection implements TcpConnection {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 	
 	@SuppressWarnings("rawtypes")
-	protected Deserializer deserializer;
+	private volatile Deserializer deserializer;
 	
 	@SuppressWarnings("rawtypes")
-	protected Serializer serializer;
+	private volatile Serializer serializer;
 	
-	protected TcpMessageMapper mapper;
+	private volatile TcpMessageMapper mapper;
 	
-	protected TcpListener listener;
+	private volatile TcpListener listener;
 	
-	private TcpListener actualListener;
+	private volatile TcpListener actualListener;
 
-	protected TcpSender sender;
+	private volatile TcpSender sender;
 
-	protected boolean singleUse;
+	private volatile boolean singleUse;
 
-	protected final boolean server;
+	private final boolean server;
 
-	protected String connectionId;
+	private volatile String connectionId;
 	
-	private AtomicLong sequence = new AtomicLong();
+	private final AtomicLong sequence = new AtomicLong();
 	
-	private int soLinger = -1;
+	private volatile int soLinger = -1;
 
-	private String hostName = "unknown";
+	private volatile String hostName = "unknown";
 
-	private String hostAddress = "unknown";
+	private volatile String hostAddress = "unknown";
 	
-	private int port;
-	
-	private final boolean lookupHost;
-
-	private int hashCode;
+	private volatile int port;
 	
 	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
-		this.lookupHost = lookupHost;
-		this.hashCode = socket.hashCode();
+		int hashCode = socket.hashCode();
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
 			this.hostAddress = inetAddress.getHostAddress();
-			if (this.lookupHost) {
+			if (lookupHost) {
 				this.hostName = inetAddress.getHostName();
 			} else {
 				this.hostName = this.hostAddress;
 			}
 		}
-		this.connectionId = this.hostName + ":" + this.port + ":" + this.hashCode;
+		this.connectionId = this.hostName + ":" + this.port + ":" + hashCode;
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
@@ -220,6 +215,13 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		return this.listener;
 	}
 	
+	/**
+	 * @return the sender
+	 */
+	public TcpSender getSender() {
+		return sender;
+	}
+
 	/**
 	 * @param singleUse true if this socket is to used once and 
 	 * discarded.

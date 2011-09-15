@@ -47,14 +47,16 @@ public class TcpNetClientConnectionFactory extends
 		if (this.theConnection != null && this.theConnection.isOpen()) {
 			return this.theConnection;
 		}
-		logger.debug("Opening new socket connection to " + this.host + ":" + this.port);
-		Socket socket = SocketFactory.getDefault().createSocket(this.host, this.port);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
+		}
+		Socket socket = SocketFactory.getDefault().createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
 		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
-		if (!this.singleUse) {
+		if (!this.isSingleUse()) {
 			this.theConnection = connection;
 		}
 		this.harvestClosedConnections();
@@ -65,10 +67,6 @@ public class TcpNetClientConnectionFactory extends
 	}
 
 	public void run() {
-	}
-
-	public boolean isRunning() {
-		return this.active;
 	}
 
 }
