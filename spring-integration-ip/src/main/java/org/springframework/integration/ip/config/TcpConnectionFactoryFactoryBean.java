@@ -17,6 +17,7 @@ package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
@@ -24,13 +25,11 @@ import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
-import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 
 /**
@@ -42,58 +41,56 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
  *
  */
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> 
-		implements SmartLifecycle {
+		implements SmartLifecycle, BeanNameAware {
 
-	private AbstractConnectionFactory connectionFactory;
-	
-	private String type;
+	private volatile AbstractConnectionFactory connectionFactory;
 
-	protected String host;
-	
-	protected int port;
-	
-	protected TcpListener listener;
+	private volatile String type;
 
-	protected TcpSender sender;
+	private volatile String host;
 
-	protected int soTimeout;
+	private volatile int port;
 
-	private int soSendBufferSize;
+	private volatile int soTimeout;
 
-	private int soReceiveBufferSize;
-	
-	private boolean soTcpNoDelay;
+	private volatile int soSendBufferSize;
 
-	private int soLinger  = -1; // don't set by default
+	private volatile int soReceiveBufferSize;
 
-	private boolean soKeepAlive;
+	private volatile boolean soTcpNoDelay;
 
-	private int soTrafficClass = -1; // don't set by default
-	
-	private Executor taskExecutor;
-	
-	protected Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
-	
-	protected Serializer<?> serializer = new ByteArrayCrLfSerializer();
-	
-	protected TcpMessageMapper mapper = new TcpMessageMapper();
+	private volatile int soLinger  = -1; // don't set by default
 
-	protected boolean singleUse;
+	private volatile boolean soKeepAlive;
 
-	protected int poolSize = 5;
+	private volatile int soTrafficClass = -1; // don't set by default
 
-	protected volatile boolean active;
+	private volatile Executor taskExecutor;
 
-	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
-	
-	private boolean lookupHost = true;
-	
-	private String localAddress;
+	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 
-	private boolean usingNio;
-	
-	private boolean usingDirectBuffers;
-	
+	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
+
+	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
+
+	private volatile boolean singleUse;
+
+	private volatile int poolSize = 5;
+
+	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+
+	private volatile boolean lookupHost = true;
+
+	private volatile String localAddress;
+
+	private volatile boolean usingNio;
+
+	private volatile boolean usingDirectBuffers;
+
+	private volatile String beanName;
+
+	private volatile boolean applySequence;
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() 
@@ -136,6 +133,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setDeserializer(this.deserializer);
 		factory.setInterceptorFactoryChain(this.interceptorFactoryChain);
 		factory.setLookupHost(this.lookupHost);
+		this.mapper.setApplySequence(this.applySequence);
 		factory.setMapper(this.mapper);
 		factory.setPoolSize(this.poolSize);
 		factory.setSerializer(this.serializer);
@@ -148,6 +146,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setSoTimeout(this.soTimeout);
 		factory.setSoTrafficClass(this.soTrafficClass);
 		factory.setTaskExecutor(this.taskExecutor);
+		factory.setBeanName(this.beanName);
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
@@ -361,6 +360,17 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	public boolean isRunning() {
 		return this.connectionFactory.isRunning();
+	}
+
+	public void setBeanName(String name) {
+		this.beanName = name;
+	}
+
+	/**
+	 * @param applySequence the applySequence to set
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
 	}
 
 }

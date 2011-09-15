@@ -37,7 +37,7 @@ public abstract class AbstractByteArraySerializer implements
 
 	protected int maxMessageSize = 2048;
 	
-	protected Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	/**
 	 * The maximum supported message size for this serializer.

@@ -157,8 +157,8 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		}
 	}
 
-	public long getConnectionSeq() {
-		return this.theConnection.getConnectionSeq();
+	public long incrementAndGetConnectionSequence() {
+		return this.theConnection.incrementAndGetConnectionSequence();
 	}
 	
 	TcpSender getSender() {
@@ -176,5 +176,5 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		this.realSender = sender != null;
 		return this.realSender;
 	}
-	
+
 }
