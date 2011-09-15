@@ -30,18 +30,18 @@ import org.springframework.social.twitter.api.Twitter;
  */
 public class MentionsReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public MentionsReceivingMessageSource(Twitter twitter){
+	public MentionsReceivingMessageSource(Twitter twitter) {
 		super(twitter);
 	}
 
 
 	@Override
 	public String getComponentType() {
-		return "twitter:mention-inbound-channel-adapter";
+		return "twitter:mentions-inbound-channel-adapter";
 	}
 
 	@Override
-	protected List<?> pollForTweets(long sinceId) {
+	protected List<Tweet> pollForTweets(long sinceId) {
 		return this.getTwitter().timelineOperations().getMentions(1, 20, sinceId, 0);
 	}
 

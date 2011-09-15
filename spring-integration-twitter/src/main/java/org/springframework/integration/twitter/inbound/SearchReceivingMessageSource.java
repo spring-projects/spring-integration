@@ -16,6 +16,7 @@
 
 package org.springframework.integration.twitter.inbound;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.social.twitter.api.SearchResults;
@@ -49,9 +50,9 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	}
 
 	@Override
-	protected List<?> pollForTweets(long sinceId) {
+	protected List<Tweet> pollForTweets(long sinceId) {
 		SearchResults results = this.getTwitter().searchOperations().search(query, 1, 20, sinceId, 0);
-		return (results != null) ? results.getTweets() : null;
+		return (results != null) ? results.getTweets() : Collections.<Tweet>emptyList();
 	}
 
 }

@@ -18,9 +18,9 @@
     </para>
     <para>
     	<important>
-    	Previous versions of Spring Integration were dependent on <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>, 
-    	but after the release of <link linkend="http://www.springsource.org/spring-social">Spring Social 1.0 GA</link> 
-    	Spring Integration 2.1 and all future releases are now depending on Spring Social framework's Twitter support.
+    	Previous versions of Spring Integration were dependent upon the <link linkend="http://twitter4j.org/en/index.html">Twitter4J API</link>, 
+    	but with the release of <link linkend="http://www.springsource.org/spring-social">Spring Social 1.0 GA</link>,
+    	Spring Integration, as of version 2.1, now builds directly upon Spring Social's Twitter support, instead of Twitter4J.
     	</important>
     </para>
 
@@ -72,13 +72,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter
   		<title>Twitter Template</title>
 
   	<para>
-  	Spring Integration uses the same familiar template pattern to interact with Twitter and Spring Social provides <classname>org.springframework.social.twitter.api.impl.TwitterTemplate</classname>
-	For anonymous operations (e.g., search), you don't have to define <classname>TwitterTemplate</classname> explicitly, since a default 
-	instance will be created and injected into the endpoint. However, for authenticated operation 
-	(update status, send direct message, etc.), you must configure <classname>TwitterTemplate</classname> as a bean and 
-	inject it explicitly into the endpoint, because the authentication configuration is required.
-	Below is a sample configuration of TwitterTemplate:
-  	
+    As mentioned above, Spring Integration relies upon Spring Social, and that library provides an implementation of the template
+    pattern, <classname>org.springframework.social.twitter.api.impl.TwitterTemplate</classname> to interact with Twitter.
+    For anonymous operations (e.g., search), you don't have to define an instance of <classname>TwitterTemplate</classname> explicitly,
+    since a default instance will be created and injected into the endpoint. However, for authenticated operations
+    (update status, send direct message, etc.), you must configure a <classname>TwitterTemplate</classname> as a bean and 
+    inject it explicitly into the endpoint, because the authentication configuration is required.
+    Below is a sample configuration of TwitterTemplate:
+
   	<programlisting language="xml"><![CDATA[<bean id="twitterTemplate" class="org.springframework.social.twitter.api.impl.TwitterTemplate">
 	<constructor-arg value="4XzBPacJQxyBzzzH"/>
 	<constructor-arg value="AbRxUAvyCtqQtvxFK8w5ZMtMj20KFhB6o"/>

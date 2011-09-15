@@ -60,7 +60,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 
 	private volatile String metadataKey;
 
-	private final Queue<Object> tweets = new LinkedBlockingQueue<Object>();
+	private final Queue<T> tweets = new LinkedBlockingQueue<T>();
 
 	private volatile int prefetchThreshold = 0;
 
@@ -127,7 +127,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	}
 
 	public Message<?> receive() {   
-		Object tweet = this.tweets.poll();
+		T tweet = this.tweets.poll();
 		if (tweet == null) {
 			long currentTime = System.currentTimeMillis();
 			long elapsedTime = currentTime - this.lastPollForTweet;
@@ -147,14 +147,14 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		return null;
 	}
 
-	private void enqueueAll(List<?> tweets) {
+	private void enqueueAll(List<T> tweets) {
 		Collections.sort(tweets, this.tweetComparator);
-		for (Object tweet : tweets) {
+		for (T tweet : tweets) {
 			enqueue(tweet);
 		}
 	}
 
-	private void enqueue(Object tweet) {
+	private void enqueue(T tweet) {
 		synchronized (this.lastEnqueuedIdMonitor) {
 			long id = this.getIdForTweet(tweet);
 			if (id > this.lastEnqueuedId) {
@@ -167,7 +167,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	private void refreshTweetQueueIfNecessary() {
 		try {
 			if (tweets.size() <= prefetchThreshold) {
-				List<?> tweets = pollForTweets(lastEnqueuedId);
+				List<T> tweets = pollForTweets(lastEnqueuedId);
 				if (!CollectionUtils.isEmpty(tweets)) {
 					enqueueAll(tweets);
 				}
@@ -185,48 +185,47 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	 * Subclasses must implement this to return tweets.
 	 * The 'sinceId' value will be negative if no last id is known.
 	 */
-	protected abstract List<?> pollForTweets(long sinceId);
+	protected abstract List<T> pollForTweets(long sinceId);
 
 
-	private static class TweetComparator implements Comparator<Object> {
+	private long getIdForTweet(T twitterMessage) {
+		if (twitterMessage instanceof Tweet) {
+			return ((Tweet) twitterMessage).getId();
+		} 
+		else if (twitterMessage instanceof DirectMessage) {
+			return ((DirectMessage) twitterMessage).getId();
+		} 
+		else {
+			throw new IllegalArgumentException("Unsupported Twitter object: " + twitterMessage);
+		}
+	}
 
-		public int compare(Object tweet1, Object tweet2) {
-			// hopefully temporary logic. Will suggest improvement to SpringSocial to have a common base class for DM and Tweet
-			if (tweet1 instanceof Tweet && tweet2 instanceof Tweet){
+
+	private class TweetComparator implements Comparator<T> {
+
+		public int compare(T tweet1, T tweet2) {
+			// hopefully temporary logic. Will suggest that SpringSocial use a common base class for DM and Tweet
+			if (tweet1 instanceof Tweet && tweet2 instanceof Tweet) {
 				Tweet t1 = (Tweet) tweet1;
 				Tweet t2 = (Tweet) tweet2;
 				Date t1CreatedAt = t1.getCreatedAt();
 				Date t2CreatedAt = t2.getCreatedAt();
-				Assert.notNull(t1CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
-				Assert.notNull(t2CreatedAt, "Tweet is missing 'createdAt' date. Can not compare");
+				Assert.notNull(t1CreatedAt, "Tweet is missing 'createdAt' date. Cannot compare.");
+				Assert.notNull(t2CreatedAt, "Tweet is missing 'createdAt' date. Cannot compare.");
 				return t1CreatedAt.compareTo(t2CreatedAt);
-			} 
+			}
 			else if (tweet1 instanceof DirectMessage && tweet2 instanceof DirectMessage) {
 				DirectMessage d1 = (DirectMessage) tweet1;
 				DirectMessage d2 = (DirectMessage) tweet2;
 				Date d1CreatedAt = d1.getCreatedAt();
 				Date d2CreatedAt = d2.getCreatedAt();
-				Assert.notNull(d1CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
-				Assert.notNull(d2CreatedAt, "DirectMessage is missing 'createdAt' date. Can not compare");
+				Assert.notNull(d1CreatedAt, "DirectMessage is missing 'createdAt' date. Cannot compare.");
+				Assert.notNull(d2CreatedAt, "DirectMessage is missing 'createdAt' date. Cannot compare.");
 				return d1CreatedAt.compareTo(d2CreatedAt);
-			} 
+			}
 			else {
 				throw new IllegalArgumentException("Uncomparable Twitter objects: " + tweet1 + " and " + tweet2);
 			}
-		}
-	}
-	
-	private long getIdForTweet(Object twitterMessage){
-		if (twitterMessage instanceof Tweet){
-			Tweet t = (Tweet) twitterMessage;
-			return t.getId();
-		} 
-		else if (twitterMessage instanceof DirectMessage){
-			DirectMessage d = (DirectMessage) twitterMessage;
-			return d.getId();
-		} 
-		else {
-			throw new IllegalArgumentException("Unrecognized Twitter object: " + twitterMessage );
 		}
 	}
 

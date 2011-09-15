@@ -18,7 +18,7 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.DirectMessage;
 import org.springframework.social.twitter.api.Twitter;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.social.twitter.api.Twitter;
  * @author Mark Fisher
  * @since 2.0
  */
-public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
+public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageSource<DirectMessage> {
 
 	public DirectMessageReceivingMessageSource(Twitter twitter) {
 		super(twitter);
@@ -42,7 +42,7 @@ public class DirectMessageReceivingMessageSource extends AbstractTwitterMessageS
 	}
 
 	@Override
-	protected List<?> pollForTweets(long sinceId) {
+	protected List<DirectMessage> pollForTweets(long sinceId) {
 		return this.getTwitter().directMessageOperations().getDirectMessagesReceived(1, 20, sinceId, 0);
 	}
 

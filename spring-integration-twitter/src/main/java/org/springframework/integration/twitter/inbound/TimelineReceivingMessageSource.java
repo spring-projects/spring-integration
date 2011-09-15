@@ -31,7 +31,7 @@ import org.springframework.social.twitter.api.Twitter;
  */
 public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource<Tweet> {
 
-	public TimelineReceivingMessageSource(Twitter twitter){
+	public TimelineReceivingMessageSource(Twitter twitter) {
 		super(twitter);
 	}
 
@@ -42,7 +42,7 @@ public class TimelineReceivingMessageSource extends AbstractTwitterMessageSource
 	}
 
 	@Override
-	protected List<?> pollForTweets(long sinceId) {
+	protected List<Tweet> pollForTweets(long sinceId) {
 		return this.getTwitter().timelineOperations().getHomeTimeline(1, 20, sinceId, 0);
 	}
 
