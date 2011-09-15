@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.springframework.integration.twitter.inbound;
 
 import java.util.List;
 
-import org.springframework.integration.twitter.core.SearchResults;
-import org.springframework.integration.twitter.core.Tweet;
-import org.springframework.integration.twitter.core.TwitterOperations;
+import org.springframework.social.twitter.api.SearchResults;
+import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.util.Assert;
 
 /**
@@ -33,7 +33,7 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	private volatile String query;
 
 
-	public SearchReceivingMessageSource(TwitterOperations twitter) {
+	public SearchReceivingMessageSource(Twitter twitter) {
 		super(twitter);
 	}
 
@@ -49,10 +49,8 @@ public class SearchReceivingMessageSource extends AbstractTwitterMessageSource<T
 	}
 
 	@Override
-	protected List<Tweet> pollForTweets(long sinceId) {
-		SearchResults results = (sinceId > 0)
-				? this.getTwitterOperations().search(query, sinceId)
-				: this.getTwitterOperations().search(query);
+	protected List<?> pollForTweets(long sinceId) {
+		SearchResults results = this.getTwitter().searchOperations().search(query, 1, 20, sinceId, 0);
 		return (results != null) ? results.getTweets() : null;
 	}
 
