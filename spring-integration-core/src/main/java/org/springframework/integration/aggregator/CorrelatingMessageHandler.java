@@ -156,7 +156,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		return "aggregator";
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
@@ -171,37 +170,49 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Object lock = getLock(correlationKey);
 
 		synchronized (lock) {
-			MessageGroup group = messageStore.getMessageGroup(correlationKey);
-			if (group.canAdd(message)) {
+			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
+			if (messageGroup.canAdd(message)) {
 				if (logger.isTraceEnabled()) {
-					logger.trace("Adding message to group [ " + group + "]");
+					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
-				group = store(correlationKey, message);
-				if (releaseStrategy.canRelease(group)) {
-					Collection<Message> completedMessages = null;
+				messageGroup = store(correlationKey, message);
+				if (releaseStrategy.canRelease(messageGroup)) {
+					this.doCompleteGroup(message, correlationKey, messageGroup);
+				} else if (messageGroup.isComplete()) {
+					
+					
 					try {
-						completedMessages = completeGroup(message, correlationKey, group);
-					}
-					finally {
-						// Always clean up even if there was an exception
-						// processing messages
-						cleanUpForReleasedGroup(group, completedMessages);
-					}
-				} else if (group.isComplete()) {
-					try {
-						// If not releasing any messages the group might still
-						// be complete
-						for (Message<?> discard : group.getUnmarked()) {
-							discardChannel.send(discard);
+						if (this.sendPartialResultOnExpiry){
+							this.doCompleteGroup(message, correlationKey, messageGroup);
 						}
+						else {
+							// If not releasing any messages the group might still
+							// be complete
+							for (Message<?> discard : messageGroup.getUnmarked()) {
+								discardChannel.send(discard);
+							}
+						}			
 					}
 					finally {
-						remove(group);
+						remove(messageGroup);
 					}
 				}
 			} else {
 				discardChannel.send(message);
 			}
+		}
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void doCompleteGroup(Message<?> message, Object correlationKey, MessageGroup messageGroup){
+		Collection<Message> completedMessages = null;
+		try {
+			completedMessages = completeGroup(message, correlationKey, messageGroup);
+		}
+		finally {
+			// Always clean up even if there was an exception
+			// processing messages
+			cleanUpForReleasedGroup(messageGroup, completedMessages);
 		}
 	}
 
