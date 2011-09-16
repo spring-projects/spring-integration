@@ -13,11 +13,13 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
@@ -26,13 +28,12 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.store.*;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupCallback;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Message handler that holds a buffer of correlated messages in a
@@ -132,18 +133,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
-		if (this.sendPartialResultOnExpiry){
-			if (beanFactory instanceof ListableBeanFactory){
-				if (CollectionUtils.isEmpty(BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)beanFactory, MessageGroupStoreReaper.class))){
-					logger.warn("'send-partial-result-on-expiry' has been set to 'true' but no MessageGroupStoreReaper was configured. " +
-							"Unless MessageGroups are expired manually (e.g., via ControlBus - messageGroupStore.expireMessageGroups(..) ) this attribute carries no behavior");
-				}
-			}
-			else {
-				logger.warn("'send-partial-result-on-expiry' has been set to 'true' but no MessageGroupStoreReaper was located. " +
-						"Unless MessageGroups are expired manually (e.g., via ControlBus - messageGroupStore.expireMessageGroups(..) ) this attribute carries no behavior");
-			}
 		}
 	}
 
