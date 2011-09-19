@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,7 @@ public class AggregatorIntegrationTests {
 	}
 	
 	@Test
+	//@Ignore
 	public void testAggregatorWithCustomReleaseStrategyAndPartialCompletion() throws Exception {
 		ApplicationContext context = new ClassPathXmlApplicationContext("AggregatorWithPartialReleaseOnCompletion.xml", this.getClass());
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);

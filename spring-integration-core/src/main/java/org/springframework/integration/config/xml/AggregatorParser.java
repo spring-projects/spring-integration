@@ -21,6 +21,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.CompletionStrategyFactoryBean;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -46,6 +47,12 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 	private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
 
 	private static final String CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE = "correlation-strategy-expression";
+	
+	private static final String COMPLETION_STRATEGY_REF_ATTRIBUTE = "completion-strategy";
+	
+	private static final String COMPLETION_STRATEGY_METHOD_ATTRIBUTE = "completion-strategy-method";
+	
+	private static final String COMPLETION_STRATEGY_EXPRESSION_ATTRIBUTE = "completion-strategy-expression";
 
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
 
@@ -60,6 +67,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 	private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
 
 	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
+	
+	private static final String COMPLETION_STRATEGY_PROPERTY = "completionStrategy";
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
@@ -118,6 +127,14 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
 				element, builder, processor, parserContext);
+//		this.injectPropertyWithAdapter(COMPLETION_STRATEGY_REF_ATTRIBUTE, COMPLETION_STRATEGY_METHOD_ATTRIBUTE,
+//				COMPLETION_STRATEGY_EXPRESSION_ATTRIBUTE, COMPLETION_STRATEGY_PROPERTY, "CompletionStrategy",
+//				element, builder, processor, parserContext);
+		String completionStrategyRef = element.getAttribute(COMPLETION_STRATEGY_REF_ATTRIBUTE);
+		if (StringUtils.hasText(completionStrategyRef)) {
+			BeanMetadataElement adapter = this.createAdapter(new RuntimeBeanReference(completionStrategyRef), null, "CompletionStrategy", parserContext);
+			builder.addPropertyValue("CompletionStrategy", adapter);
+		}
 		return builder;
 	}
 

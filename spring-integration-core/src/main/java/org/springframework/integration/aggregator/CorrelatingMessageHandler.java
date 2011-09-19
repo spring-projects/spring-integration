@@ -62,6 +62,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private final MessageGroupProcessor outputProcessor;
 
 	private volatile CorrelationStrategy correlationStrategy;
+	
+	private volatile CompletionStrategy completionStrategy = new DefaultCompletionStrategy();
 
 	private volatile ReleaseStrategy releaseStrategy;
 
@@ -122,6 +124,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		this.outputChannel = outputChannel;
 	}
+	
+	public void setCompletionStrategy(CompletionStrategy completionStrategy) {
+		this.completionStrategy = completionStrategy;
+	}
 
 	@Override
 	protected void onInit() throws Exception {
@@ -178,20 +184,15 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				messageGroup = store(correlationKey, message);
 				if (releaseStrategy.canRelease(messageGroup)) {
 					this.doCompleteGroup(message, correlationKey, messageGroup);
-				} else if (messageGroup.isComplete()) {
-					
-					
+				} 
+				else if (this.completionStrategy.isComplete(messageGroup)) {		
 					try {
-						if (this.sendPartialResultOnExpiry){
-							this.doCompleteGroup(message, correlationKey, messageGroup);
-						}
-						else {
-							// If not releasing any messages the group might still
-							// be complete
-							for (Message<?> discard : messageGroup.getUnmarked()) {
-								discardChannel.send(discard);
-							}
-						}			
+						this.doCompleteGroup(message, correlationKey, messageGroup);
+						// If not releasing any messages the group might still
+						// be complete
+//						for (Message<?> discard : messageGroup.getUnmarked()) {
+//							discardChannel.send(discard);
+//						}		
 					}
 					finally {
 						remove(messageGroup);
@@ -377,6 +378,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			}
 		}
 		return false;
+	}
+	
+	private class DefaultCompletionStrategy implements CompletionStrategy {
+
+		public boolean isComplete(MessageGroup messageGroup) {
+			return messageGroup.isComplete();
+		}
+		
 	}
 
 }

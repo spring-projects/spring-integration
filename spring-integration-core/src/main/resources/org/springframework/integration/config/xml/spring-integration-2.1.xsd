@@ -2441,9 +2441,22 @@ Name of the header whose value will be used to route messages
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
+							A reference to a bean that calculates the Correlation Identifier for a particular MessageGroup.
+							The bean can be an implementation of the CorrelationStrategy interface or a POJO.
+							</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="completion-strategy" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.lang.Object" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
 							A reference to a bean that implements the decision algorithm as to whether a given 
-							message group is complete. The bean can be an implementation of the 
-							CorrelationStrategy interface or a POJO.
+							message group is complete. The bean must be an implementation of the 
+							CompletionStrategy.
 							</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
