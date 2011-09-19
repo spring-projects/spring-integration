@@ -2511,8 +2511,11 @@ Name of the header whose value will be used to route messages
 				<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-						Tells if partially aggregated messages should be released when their storage time had expired (see
-						MessageGroupStore.expireMessageGroups(long))
+						Specifies whether messages that expired should be aggregated and sent to the 'output-channel' or 'replyChannel'. 
+						Messages are expired when their containing MessageGroup expires. One of the ways of expiring MessageGroups is by 
+						configuring a MessageGroupStoreReaper. However MessageGroups can alternatively be expired by simply calling 
+						MessageGroupStore.expireMessageGroup(groupId). That could be accomplished via a ControlBus operation
+						or by simply invoking that method if you have a reference to the MessageGroupStore instance.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
