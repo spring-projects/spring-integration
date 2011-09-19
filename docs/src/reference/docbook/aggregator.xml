@@ -397,9 +397,16 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       </callout>
       
       <callout arearefs="aggxml08">
-        <para>Indicates if partially aggregated messages should be released when their storage time has expired
-        (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
+        <para>
+        Indicates that partially aggregated messages should be sent to the 'output-channel' or 'replyChannel' 
+		once the particular <classname>MessageGroup</classname> had expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>). One of the ways of expiring <classname>MessageGroup</classname>s is by 
+		configuring <classname>MessageGroupStoreReaper</classname>. However since <classname>MessageGroup</classname>s are expired by calling 
+		<code>MessageGroupStore.expireMessageGroup(groupId)</code>, <classname>MessageGroupStoreReaper</classname> is not the only option and can be 
+		accomplished via <classname>ControlBus</classname> or by simply invoking a method on <classname>MessageGroupStore</classname> if you have reference to its instance.
+		Otherwise by itself this attribute has no behavior. It only serves as an indicator of what to do (drop or send to the output/reply channel) with Messages that are 
+		still in the <classname>MessageGroup</classname> that is about to be expired.
         <emphasis>Optional</emphasis>.</para>
+        <para><emphasis>Default - 'false'</emphasis>.</para>
       </callout>
       
        <callout arearefs="aggxml09">
