@@ -398,13 +398,14 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       
       <callout arearefs="aggxml08">
         <para>
-        Indicates that partially aggregated messages should be sent to the 'output-channel' or 'replyChannel' 
-		once the particular <classname>MessageGroup</classname> had expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>). One of the ways of expiring <classname>MessageGroup</classname>s is by 
-		configuring <classname>MessageGroupStoreReaper</classname>. However since <classname>MessageGroup</classname>s are expired by calling 
-		<code>MessageGroupStore.expireMessageGroup(groupId)</code>, <classname>MessageGroupStoreReaper</classname> is not the only option and can be 
-		accomplished via <classname>ControlBus</classname> or by simply invoking a method on <classname>MessageGroupStore</classname> if you have reference to its instance.
-		Otherwise by itself this attribute has no behavior. It only serves as an indicator of what to do (drop or send to the output/reply channel) with Messages that are 
-		still in the <classname>MessageGroup</classname> that is about to be expired.
+        Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' 
+		once their containing <classname>MessageGroup</classname> is expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
+		One way of expiring <classname>MessageGroup</classname>s is by configuring a <classname>MessageGroupStoreReaper</classname>.
+		However <classname>MessageGroup</classname>s can alternatively be expired by simply calling
+		<code>MessageGroupStore.expireMessageGroup(groupId)</code>. That could be accomplished via a Control Bus operation
+		or by simply invoking that method if you have a reference to the <classname>MessageGroupStore</classname> instance.
+		Otherwise by itself this attribute has no behavior. It only serves as an indicator of what to do (discard or send to the output/reply
+		channel) with Messages that are still in the <classname>MessageGroup</classname> that is about to be expired.
         <emphasis>Optional</emphasis>.</para>
         <para><emphasis>Default - 'false'</emphasis>.</para>
       </callout>
