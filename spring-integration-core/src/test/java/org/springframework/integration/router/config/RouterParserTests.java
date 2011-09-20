@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Gunnar Hillert
  */
 public class RouterParserTests {
 
@@ -121,12 +122,11 @@ public class RouterParserTests {
 		input.send(new GenericMessage<Integer>(3));
 	}
 
-	@Test
-	public void testIgnoreChannelNameResolutionFailures() {
+	public void testResolutionRequiredIsTrue() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
 		context.start();
-		MessageChannel input = (MessageChannel) context.getBean("ignoreChannelNameResolutionFailuresInput");
+		MessageChannel input = (MessageChannel) context.getBean("resolutionRequiredIsTrueInput");
 		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
 	}
 
@@ -177,7 +177,7 @@ public class RouterParserTests {
 		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
 		assertEquals(new Integer(3), message3.getHeaders().getSequenceSize());
 	}
-	
+
 	@Test
 	public void testErrorChannel(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
