@@ -67,14 +67,15 @@ public class PayloadTypeRouterTests {
 		router.setChannelMapping(String.class.getName(), "newChannel");
 		assertEquals(1, router.getChannelIdentifiers(message1).size());
 		assertEquals("newChannel", router.getChannelIdentifiers(message1).iterator().next());
+
+		// validate exception is thrown if mappings were removed and 
+		// channelResolutionRequires = true (which is the default)
 		
-		// validate nothing happens if mappings were removed and resolutionRequires = false
 		router.removeChannelMapping(String.class.getName());
 		router.removeChannelMapping(Integer.class.getName());
-		router.handleMessage(message1);
-
-		// validate exception is thrown if mappings were removed and resolutionRequires = true
+		
 		router.setResolutionRequired(true);
+		
 		try {
 			router.handleMessage(message1);
 			fail();

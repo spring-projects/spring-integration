@@ -30,6 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -47,13 +48,12 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 @ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile MessageChannel defaultOutputChannel;
-
-	private volatile boolean resolutionRequired;
 
 	private volatile boolean ignoreSendFailures;
 
@@ -67,7 +67,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile ChannelResolver channelResolver;
 
-	private volatile boolean ignoreChannelNameResolutionFailures;
+	private volatile boolean resolutionRequired = true;
 
 	protected volatile Map<String, String> channelIdentifierMap = new ConcurrentHashMap<String, String>();
 
@@ -120,9 +120,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set the default channel where Messages should be sent if channel resolution fails to return any channels. If no
-	 * default channel is provided, the router will either drop the Message or throw an Exception depending on the value
-	 * of {@link #resolutionRequired}.
+	 * Set the default channel where Messages should be sent if channel resolution 
+	 * fails to return any channels. If no default channel is provided and channel 
+	 * resolution fails to return any channels, the router will throw an 
+	 * {@link MessageDeliveryException}. 
+	 * 
+	 * If messages shall be ignored (dropped) instead, please provide a {@link NullChannel}. 
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -137,20 +140,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Set whether this router should always be required to resolve at least one channel. The default is 'false'. To
-	 * trigger an exception whenever the resolver returns null or an empty channel list, and this endpoint has no
-	 * 'defaultOutputChannel' configured, set this value to 'true'.
-	 */
-	public void setResolutionRequired(boolean resolutionRequired) {
-		this.resolutionRequired = resolutionRequired;
-	}
-
-	/**
 	 * Specify whether this router should ignore any failure to resolve a channel name to
 	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
 	 */
-	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
-		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
+	public void setResolutionRequired(boolean resolutionRequired) {
+		this.resolutionRequired = resolutionRequired;
 	}
 
 	/**
@@ -234,8 +228,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
 				this.messagingTemplate.send(this.defaultOutputChannel, message);
-			}
-			else if (this.resolutionRequired) {
+			} else {
 				throw new MessageDeliveryException(message,
 						"no channel resolved by router and no default output channel defined");
 			}
@@ -260,12 +253,12 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			channel = this.channelResolver.resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
-			if (!this.ignoreChannelNameResolutionFailures) {
+			if (this.resolutionRequired) {
 				throw new MessagingException(message,
 						"failed to resolve channel name '" + channelName + "'", e);
 			}
 		}
-		if (channel == null && !this.ignoreChannelNameResolutionFailures) {
+		if (channel == null && this.resolutionRequired) {
 			throw new MessagingException(message,
 					"failed to resolve channel name '" + channelName + "'");
 		}
