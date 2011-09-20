@@ -217,24 +217,24 @@
     </table>
     <note>
       Router parameters have been more standardized across all router implementations
-      in Spring Integration ??TBD??. Consequently, some parameters were removed or 
-      added leaving the possibility of breaking older Spring Integration based applications.
+      in Spring Integration 2.1. Consequently, there are a few minor changes that
+      leave the possibility of breaking older Spring Integration based applications.
     </note>
     <important>
-      Since Spring Integration ??TBD?? the "ignore-channel-name-resolution-failures" 
-      attribute was renamed to "channel resolution-required". Also, "channel resolution-required"
-      defaults to "true". 
-       
-      Prior to an attribute "resolution-required" existed that defaulted to false 
+      Since Spring Integration 2.1 the "ignore-channel-name-resolution-failures" 
+      attribute was removed in favor of consolidating its behavior with the
+      "resolution-required" attribute. Also, the "resolution-required" attribute
+      now defaults to "true". 
+      
+      Prior to these changes, the "resolution-required" attribute defaulted to false 
       causing messages to be dropped silently when no channel was resolved and 
       no "default-output-channel" was set. 
       
       The new behavior will require at least one resolved channel and by default 
-      will throw an Exception if no channel was determined (and the sent to it 
+      will throw an Exception if no channel was determined (or an attempt to send
       was not successful).
       
-      "resolution-required" is now removed. If you desire to drop messages silently
-      set "default-output-channel='nullChannel'".
+      If you do desire to drop messages silently simply set "default-output-channel='nullChannel'".
     </important>    
   </section>
   <section id="router-implementations">

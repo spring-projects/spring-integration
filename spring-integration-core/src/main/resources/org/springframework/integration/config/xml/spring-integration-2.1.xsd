@@ -2064,10 +2064,13 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     <xsd:annotation>
                         <xsd:documentation>
                             The "ref" attribute references the bean name of a custom 
-                            Router implementation that extends AbstractMessageRouter.
+                            Router implementation. Typically that implementation will
+                            be a simple POJO, but it may extend AbstractMessageRouter.
                             
-                            Alternatively, the "ref" attribute may point to a 
-                            simple POJO that contains the @Router annotation.
+                            Provide the "method" attribute as well to clarify which
+                            method should be invoked, Alternatively, the "ref" attribute
+                            may point to an instance that contains the @Router annotation
+                            on one of its methods.
                             
                             Instead of using the "ref" attribute you may also provide
                             the custom Router implementation as an inner bean 
@@ -2077,6 +2080,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                             and an inner handler definition in the same Router 
                             configuration is not allowed, as it creates an 
                             ambiguous condition, and an Exception will be thrown.
+
+							Additionally, instead of using "ref" and "method" at all,
+                            you can use the "expression" attribute (see description below).
                         </xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation kind="ref">
@@ -2093,13 +2099,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                             method name using the "method" attribute. 
                             
                             The referenced method may return either a MessageChannel 
-                            or a String type.Additionally, the method may return 
+                            or a String type. Additionally, the method may return 
                             either a single value or a collection. If a collection 
                             is returned, the reply message will be sent to 
                             multiple channels.
                             
                             Specifying a "method" attribute applies the same behavior 
-                            as when using the @Router annotation within POJOs. 
+                            as when using the @Router annotation on a single method
+                            within the object pointed to by the "ref". 
                         </xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation>
@@ -2111,7 +2118,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:attribute name="expression" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                            SpEL Expression to be evaulated at runtime. Allows you
+                            SpEL Expression to be evaluated at runtime. Allows you
                             to implement simple computations without implementing
                             a custom POJO router. Generally, the SpEL expression is 
                             evaluated and the result is mapped to a channel using 
@@ -2120,9 +2127,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                             However, if no "mapping" sub-element is present, the 
                             SpEL Expression will evaluate to a channel name directly.
                             
-                            A SpEL expression may return also a Collection. Whenever 
+                            A SpEL expression may also return a Collection. Whenever 
                             the expression returns multiple channel values the 
                             Message will be forwarded to each channel.
+
+                            Note that SpEL supports bean-references within expressions
+                            using the @ sign. This enables more sophisticated mapping
+                            of Message content to method arguments, e.g.:
+                            expression="@someBean.someMethod(payload.foo, headers.bar)"
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
@@ -2157,13 +2169,12 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                             <![CDATA[
                            You can use SpEL Expressions to implement simple 
                            computations. Generally a SpEL expression is evaluated 
-                           and the result is either adirectly a channel name or 
-                           alternativelt the result can be mapped to a channel using the 
+                           and the result is either a channel name or 
+                           alternatively the result can be mapped to a channel using the 
                            'mapping' sub-element. 
                            
-                           Another value of SpEL for configuring routers is that 
-                           a SpEL expression can actually return a Collection, 
-                           effectively making thsi Router a Recipient List 
+                           The SpEL expression can return a Collection, 
+                           effectively making this Router a Dynamic Recipient List 
                            Router. Whenever the expression returns multiple 
                            channel values the Message will be forwarded to 
                            each channel.                    
@@ -2418,7 +2429,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
           
     <!-- 
     The following complex types define the attributes used for the Router 
-    sub-elements - "mapping" and "recipient"    .
+    sub-elements - "mapping" and "recipient"
      -->
 
     <xsd:complexType name="mappingExceptionTypeChannelType">
