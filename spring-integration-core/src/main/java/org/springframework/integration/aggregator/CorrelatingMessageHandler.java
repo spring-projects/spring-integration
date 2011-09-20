@@ -191,18 +191,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 						// processing messages
 						cleanUpForReleasedGroup(group, completedMessages);
 					}
-				} else if (group.isComplete()) {
-					try {
-						// If not releasing any messages the group might still
-						// be complete
-						for (Message<?> discard : group.getUnmarked()) {
-							discardChannel.send(discard);
-						}
-					}
-					finally {
-						remove(group);
-					}
-				}
+				} 
 			} else {
 				discardChannel.send(message);
 			}
@@ -211,7 +200,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	@SuppressWarnings("rawtypes")
 	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (group.isComplete() || group.getSequenceSize() == 0) {
+		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy && (group.isComplete() || group.getSequenceSize() == 0)) {
 			// The group is complete or else there is no
 			// sequence so there is no more state to track
 			remove(group);
