@@ -14,7 +14,6 @@
 package org.springframework.integration.store;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 
 import org.apache.commons.logging.Log;
@@ -67,8 +66,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		}
 		return count;
 	}
-	
-	public abstract Iterator<MessageGroup> iterator();
 
 	@ManagedAttribute
 	public int getMessageCountForAllMessageGroups() {

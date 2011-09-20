@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,27 @@
 
 package org.springframework.integration.config;
 
+import java.util.Comparator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.aggregator.*;
+import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
+import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
+import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
-import java.util.Comparator;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
@@ -47,8 +53,8 @@ public class ResequencerParserTests {
 	@Test
 	public void testDefaultResequencerProperties() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultResequencer");
-		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+				ResequencingMessageHandler.class);
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertTrue(getPropertyValue(resequencer, "discardChannel") instanceof NullChannel);
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 1000l, getPropertyValue(
@@ -65,8 +71,8 @@ public class ResequencerParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+				ResequencingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel", outputChannel,
 				getPropertyValue(resequencer, "outputChannel"));
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel", discardChannel,
@@ -84,8 +90,8 @@ public class ResequencerParserTests {
 	public void testCorrelationStrategyRefOnly() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context
 				.getBean("resequencerWithCorrelationStrategyRefOnly");
-		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+				ResequencingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy", context
 				.getBean("testCorrelationStrategy"), getPropertyValue(resequencer, "correlationStrategy"));
 	}
@@ -93,8 +99,8 @@ public class ResequencerParserTests {
 	@Test
 	public void shouldSetReleasePartialSequencesFlag(){
 				EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
-		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+				ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+						ResequencingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
 				true, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
 	}
@@ -103,8 +109,8 @@ public class ResequencerParserTests {
 	public void testCorrelationStrategyRefAndMethod() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context
 				.getBean("resequencerWithCorrelationStrategyRefAndMethod");
-		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+		ResequencingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler",
+				ResequencingMessageHandler.class);
 		Object correlationStrategy = getPropertyValue(resequencer, "correlationStrategy");
 		assertEquals("The ResequencerEndpoint is not configured with a CorrelationStrategy adapter",
 				MethodInvokingCorrelationStrategy.class, correlationStrategy.getClass());
@@ -115,22 +121,12 @@ public class ResequencerParserTests {
 	@Test
 	public void testComparator() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithComparator");
-		CorrelatingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
+		ResequencingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
+				ResequencingMessageHandler.class);
 		ResequencingMessageGroupProcessor resequencer = TestUtils.getPropertyValue(handler, "outputProcessor",
 				ResequencingMessageGroupProcessor.class);
 		Object comparator = getPropertyValue(resequencer, "comparator");
 		assertEquals("The Resequencer is not configured with a TestComparator", TestComparator.class, comparator
-				.getClass());
-	}
-
-	@Test
-	public void testReleaseStrategy() throws Exception {
-		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithReleaseStrategy");
-		CorrelatingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
-				CorrelatingMessageHandler.class);
-		Object releaseStrategy = getPropertyValue(handler, "releaseStrategy");
-		assertEquals("The Resequencer is not configured with an adapter", MethodInvokingReleaseStrategy.class, releaseStrategy
 				.getClass());
 	}
 

@@ -13,7 +13,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.redis.store;
+package org.springframework.integration.gemfire.store;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -24,19 +24,21 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.AssertionFailedError;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.redis.rules.RedisAvailable;
-import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+
+import com.gemstone.gemfire.cache.Cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -48,13 +50,13 @@ import static org.junit.Assert.assertTrue;
  * @author Oleg Zhurakousky
  *
  */
-public class RedisMessageGroupStoreTests extends RedisAvailableTests {
+public class GemfireGroupStoreTests {
+	
+	private Cache cache;
 
 	@Test
-	@RedisAvailable
 	public void testNonExistingEmptyMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		assertNotNull(messageGroup);
@@ -63,28 +65,24 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
 	public void testMessageGroupWithAddedMessage() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
 		assertEquals(1, messageGroup.size());
 		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		// make sure the store is properly rebuild from Gemfire
+		store = new GemfireMessageStore(this.cache);
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(1, messageGroup.size());
 	}
 	
 	@Test
-	@RedisAvailable
 	public void testRemoveMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("Hello");
@@ -98,8 +96,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(0, messageGroupA.getUnmarked().size());
 		assertEquals(0, messageGroupA.size());
 		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		// make sure the store is properly rebuild from Gemfire
+		store = new GemfireMessageStore(this.cache);
 
 		messageGroup = store.getMessageGroup(1);
 		
@@ -109,38 +107,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
-	public void testCompleteMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		Message<?> message = new GenericMessage<String>("Hello");
-		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
-		store.completeGroup(messageGroup.getGroupId());
-		messageGroup = store.getMessageGroup(1);
-		assertTrue(messageGroup.isComplete());
-	}
-	
-	@Test
-	@RedisAvailable
-	public void testLastReleasedSequenceNumber() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		Message<?> message = new GenericMessage<String>("Hello");
-		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
-		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
-		messageGroup = store.getMessageGroup(1);
-		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
-	}
-	
-	@Test
-	@RedisAvailable
 	public void testRemoveMessageFromTheGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> message = new GenericMessage<String>("2");
@@ -152,36 +120,17 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		messageGroup = store.removeMessageFromGroup(1, message);
 		assertEquals(2, messageGroup.size());
 		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		// make sure the store is properly rebuild from Gemfire
+		store = new GemfireMessageStore(this.cache);
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
-	}
-	@Test
-	@RedisAvailable
-	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
 
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
 	
 	@Test
-	@RedisAvailable
-	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
-	}
-	
-	@Test
-	@RedisAvailable
 	public void testMarkAllMessagesInMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
@@ -195,8 +144,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(0, messageGroup.getUnmarked().size());
 		assertEquals(3, messageGroup.getMarked().size());
 		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		// make sure the store is properly rebuild from Gemfire
+		store = new GemfireMessageStore(this.cache);
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(0, messageGroup.getUnmarked().size());
@@ -204,11 +153,23 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
-	public void testMarkMessageInMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
+	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+	}
+	
+	@Test
+	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+	}
+	
+	@Test
+	public void testMarkMessageInMessageGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageToMark = new GenericMessage<String>("1");
 		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
@@ -221,23 +182,41 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(2, messageGroup.getUnmarked().size());
 		assertEquals(1, messageGroup.getMarked().size());
 		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
+		// make sure the store is properly rebuild from Gemfire
+		store = new GemfireMessageStore(this.cache);
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.getUnmarked().size());
 		assertEquals(1, messageGroup.getMarked().size());
 	}
 	
-	
+	@Test
+	public void testCompleteMessageGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> messageToMark = new GenericMessage<String>("1");
+		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.completeGroup(messageGroup.getGroupId());
+		messageGroup = store.getMessageGroup(1);
+		assertTrue(messageGroup.isComplete());
+	}
 	
 	@Test
-	@RedisAvailable
+	public void testLastReleasedSequenceNumber() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> messageToMark = new GenericMessage<String>("1");
+		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+	}
+	
+	@Test
 	public void testMultipleInstancesOfGroupStore() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store1 = new RedisMessageStore(jcf);
+		GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
 		
-		RedisMessageStore store2 = new RedisMessageStore(jcf);
+		GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
 		
 		Message<?> message = new GenericMessage<String>("1");
 		store1.addMessageToGroup(1, message);
@@ -246,7 +225,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertEquals(2, messageGroup.getUnmarked().size());
 		assertEquals(0, messageGroup.getMarked().size());
 		
-		RedisMessageStore store3 = new RedisMessageStore(jcf);
+		GemfireMessageStore store3 = new GemfireMessageStore(this.cache);
 		
 		messageGroup = store3.markMessageFromGroup(1, message);
 		
@@ -255,12 +234,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
 	public void testIteratorOfMessageGroups() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store1 = new RedisMessageStore(jcf);
-		RedisMessageStore store2 = new RedisMessageStore(jcf);
-		
+		GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
+		GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
 		
 		store1.addMessageToGroup(1, new GenericMessage<String>("1"));
 		store2.addMessageToGroup(2, new GenericMessage<String>("2"));
@@ -287,12 +263,12 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable @Ignore
+	@Ignore
 	public void testConcurrentModifications() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		final RedisMessageStore store1 = new RedisMessageStore(jcf);
-		final RedisMessageStore store2 = new RedisMessageStore(jcf);
-
+	
+		final GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
+		final GemfireMessageStore store2 = new GemfireMessageStore(this.cache);
+		
 		final Message<?> message = new GenericMessage<String>("1"); 
 
 		ExecutorService executor = null;
@@ -329,11 +305,9 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
 	public void testWithAggregatorWithShutdown(){	
-		this.getConnectionFactoryForTest(); // for this test it only ensures that DB was flushed before test
 		
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-aggregator-config.xml", this.getClass());
 		MessageChannel input = context.getBean("inputChannel", MessageChannel.class);
 		QueueChannel output = context.getBean("outputChannel", QueueChannel.class);
 		
@@ -343,15 +317,26 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		assertNull(output.receive(1000));
 		input.send(m2);
 		assertNull(output.receive(1000));
-		context.close();
 		
-		context = new ClassPathXmlApplicationContext("redis-aggregator-config.xml", this.getClass());
-		input = context.getBean("inputChannel", MessageChannel.class);
-		output = context.getBean("outputChannel", QueueChannel.class);
+		context = new ClassPathXmlApplicationContext("gemfire-aggregator-config-a.xml", this.getClass());
+		MessageChannel inputA = context.getBean("inputChannel", MessageChannel.class);
+		QueueChannel outputA = context.getBean("outputChannel", QueueChannel.class);
 		
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
-		input.send(m3);
-		assertNotNull(output.receive(1000));
+		inputA.send(m3);
+		assertNotNull(outputA.receive(1000));
+	}
+	
+	@Before
+	public void init() throws Exception{
+		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
+		cacheFactoryBean.afterPropertiesSet();
+		this.cache = (Cache)cacheFactoryBean.getObject();
+	}
+	
+	@After
+	public void cleanup(){
+		this.cache.close();
 	}
 	
 }

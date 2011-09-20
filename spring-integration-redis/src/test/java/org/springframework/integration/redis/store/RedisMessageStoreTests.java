@@ -24,7 +24,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.store.MessageStoreException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -80,7 +79,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertEquals("Barak Obama", storedMessage.getPayload().getName());
 	}
 	
-	@Test(expected=MessageStoreException.class)
+	@Test(expected=IllegalArgumentException.class)
 	@RedisAvailable
 	public void testAddNonSerializableObjectMessage(){	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();

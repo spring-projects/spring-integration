@@ -21,6 +21,8 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -60,6 +62,10 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 	private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
 
 	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
+	
+	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
+
+	private static final String KEEP_RELEASED_MESSAGES = "keep-released-messages";
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
@@ -68,14 +74,12 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		BeanDefinitionBuilder builder;
 
-		builder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-				+ ".aggregator.CorrelatingMessageHandler");
+		builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatingMessageHandler.class);
 		BeanDefinitionBuilder processorBuilder = null;
 		BeanMetadataElement processor = null;
 
 		if (innerHandlerDefinition != null || StringUtils.hasText(ref)) {
-			processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-					+ ".aggregator.MethodInvokingMessageGroupProcessor");
+			processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageGroupProcessor.class);
 			builder.addConstructorArgValue(processorBuilder.getBeanDefinition());
 			if (innerHandlerDefinition != null) {
 				processor = innerHandlerDefinition;
@@ -110,8 +114,10 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, KEEP_RELEASED_MESSAGES);
 		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
 				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder,
 				processor, parserContext);

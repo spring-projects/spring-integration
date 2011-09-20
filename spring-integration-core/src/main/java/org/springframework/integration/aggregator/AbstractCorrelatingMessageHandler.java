@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,10 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,34 +37,36 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Message handler that holds a buffer of correlated messages in a
+ * Abstract Message handler that holds a buffer of correlated messages in a
  * {@link MessageStore}. This class takes care of correlated groups of messages
- * that can be completed in batches. It is useful for aggregating, resequencing,
- * or custom implementations requiring correlation.
+ * that can be completed in batches. It is useful for custom implementation of MessageHandlers that require correlation 
+ * and is used as a base class for Aggregator - {@link AggregatingMessageHandler} and
+ * Resequencer - {@link ResequencingMessageHandler},
+ * or custom implementations requiring correlation. 
  * <p/>
  * To customize this handler inject {@link CorrelationStrategy},
  * {@link ReleaseStrategy}, and {@link MessageGroupProcessor} implementations as
  * you require.
  * <p/>
- * By default the CorrelationStrategy will be a
- * HeaderAttributeCorrelationStrategy and the ReleaseStrategy will be a
- * SequenceSizeReleaseStrategy.
+ * By default the {@link CorrelationStrategy} will be a
+ * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
+ * {@link SequenceSizeReleaseStrategy}.
  *
  * @author Iwein Fuld
  * @author Dave Syer
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class CorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
+public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
 
-	private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
+	private static final Log logger = LogFactory.getLog(AbstractCorrelatingMessageHandler.class);
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
 
-
-	private MessageGroupStore messageStore;
+	protected volatile MessageGroupStore messageStore;
 
 	private final MessageGroupProcessor outputProcessor;
 
@@ -80,9 +85,15 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private final Object correlationLocksMonitor = new Object();
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
+	
+	protected volatile boolean keepReleasedMessages = true;
 
 
-	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+	public void setKeepReleasedMessages(boolean keepReleasedMessages) {
+		this.keepReleasedMessages = keepReleasedMessages;
+	}
+
+	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
 		Assert.notNull(store);
@@ -94,11 +105,11 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
-	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
+	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
 		this(processor, store, null, null);
 	}
 
-	public CorrelatingMessageHandler(MessageGroupProcessor processor) {
+	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor) {
 		this(processor, new SimpleMessageStore(0), null, null);
 	}
 
@@ -159,72 +170,59 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	public String getComponentType() {
 		return "aggregator";
 	}
+	
+	protected MessageGroupStore getMessageStore() {
+		return messageStore;
+	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
 		Assert.state(correlationKey!=null, "Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("Handling message with correlationKey ["
-					+ correlationKey + "]: " + message);
+			logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
 		}
 
 		// TODO: INT-1117 - make the lock global?
 		Object lock = getLock(correlationKey);
 
 		synchronized (lock) {
-			MessageGroup group = messageStore.getMessageGroup(correlationKey);
-			if (group.canAdd(message)) {
+			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
+			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
 				if (logger.isTraceEnabled()) {
-					logger.trace("Adding message to group [ " + group + "]");
+					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
-				group = store(correlationKey, message);
-				if (releaseStrategy.canRelease(group)) {
-					Collection<Message> completedMessages = null;
+				messageGroup = store(correlationKey, message);
+				
+				if (releaseStrategy.canRelease(messageGroup)) {
+					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = completeGroup(message, correlationKey, group);
+						completedMessages = completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
 						// Always clean up even if there was an exception
-						// processing messages
-						cleanUpForReleasedGroup(group, completedMessages);
-					}
-				} else if (group.isComplete()) {
-					try {
-						// If not releasing any messages the group might still
-						// be complete
-						for (Message<?> discard : group.getUnmarked()) {
-							discardChannel.send(discard);
+						// processing messages						
+						this.afterRelease(messageGroup, completedMessages);
+		
+						synchronized(correlationLocksMonitor){
+							locks.remove(messageGroup.getGroupId());
 						}
 					}
-					finally {
-						remove(group);
-					}
-				}
-			} else {
+				} 				
+			} 
+			else {
 				discardChannel.send(message);
 			}
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (group.isComplete() || group.getSequenceSize() == 0) {
-			// The group is complete or else there is no
-			// sequence so there is no more state to track
-			remove(group);
-		} else {
-			// Mark these messages as processed, but do not
-			// remove the group from store
-			if (completedMessages == null) {
-				mark(group);
-			} else {
-				mark(group, completedMessages);
-			}
-		}
-	}
+	/**
+	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
+	 * @param group
+	 * @param completedMessages
+	 */
+	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
 	private final boolean forceComplete(MessageGroup group) {
 
@@ -235,13 +233,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			if (group.size() > 0) {
 				try {
 					if (releaseStrategy.canRelease(group)) {
-						completeGroup(correlationKey, group);
-					} else {
-						expireGroup(group, correlationKey);
+						this.completeGroup(correlationKey, group);
+					} 
+					else {
+						this.expireGroup(correlationKey, group);
 					}
 				}
 				finally {
-					remove(group);
+					this.remove(group);
 				}
 				return true;
 			}
@@ -256,31 +255,25 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-	private void mark(MessageGroup group) {
-		messageStore.markMessageGroup(group);
-	}
-
-	@SuppressWarnings("rawtypes")
-	private void mark(MessageGroup group, Collection<Message> partialSequence) {
-		Object id = group.getGroupId();
-		for (Message message : partialSequence) {
-			messageStore.markMessageFromGroup(id, message);
-		}
-	}
-
-	private void remove(MessageGroup group) {
+	void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		messageStore.removeMessageGroup(correlationKey);
-		synchronized(correlationLocksMonitor){
-			locks.remove(correlationKey);
-		}
+	}
+
+	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence){
+		List<Message<?>> sorted = new ArrayList<Message<?>>((Collection<? extends Message<?>>)partialSequence);
+		Collections.sort(sorted, new SequenceNumberComparator());
+		
+		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
+		
+		return lastReleasedMessage.getHeaders().getSequenceNumber();
 	}
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
 		return messageStore.addMessageToGroup(correlationKey, message);
 	}
 
-	private void expireGroup(MessageGroup group, Object correlationKey) {
+	private void expireGroup(Object correlationKey, MessageGroup group) {
 		if (logger.isInfoEnabled()) {
 			logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		}
@@ -309,20 +302,24 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		completeGroup(first, correlationKey, group);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<Message> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
+	@SuppressWarnings("unchecked")
+	private Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Completing group with correlationKey ["
-					+ correlationKey + "]");
+			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
 		Object result = outputProcessor.processMessageGroup(group);
-		Collection<Message> partialSequence = null;
+		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {
-			//Taking a risk here because of Type Erasure. This is covered in the processor contract
-			partialSequence = (Collection<Message>) result;
+			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+			partialSequence = (Collection<Message<?>>) result;
 		}
 		this.sendReplies(result, message);
 		return partialSequence;
+	}
+	
+	private void verifyResultCollectionConsistsOfMessages(Collection<?> elements){
+		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
+		Assert.isAssignable(Message.class, commonElementType, "The expected collection of Messages contains non-Message element: " + commonElementType);
 	}
 
 	@SuppressWarnings("rawtypes")

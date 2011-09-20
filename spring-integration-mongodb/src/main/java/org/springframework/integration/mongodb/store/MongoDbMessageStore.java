@@ -68,6 +68,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private final static String GROUP_ID_KEY = "_groupId";
 
 	private final static String MARKED_KEY = "_marked";
+	
+	private final static String GROUP_COMPLETE_KEY = "_group_complete";
+	
+	private final static String LAST_RELEASED_SEQUENCE_NUMBER = "_last_released_sequence";
+	
+	private final static String GROUP_TIMESTAMP_KEY = "_group_timestamp";
 
 	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
 
@@ -105,7 +111,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		this.template.insert(new MessageWrapper(message, null, false), this.collectionName);
+		this.template.insert(new MessageWrapper(message), this.collectionName);
 		return message;
 	}
 
@@ -131,6 +137,16 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> unmarkedMessages = new ArrayList<Message<?>>();
 		List<Message<?>> markedMessages = new ArrayList<Message<?>>();
+		long timestamp = 0;
+		int lastReleasedSequenceNumber = 0;
+		boolean completeGroup = false;
+		if (messageWrappers.size() > 0){
+			MessageWrapper messageWrapper = messageWrappers.get(0);
+			timestamp = messageWrapper.getGroupTimestamp();
+			completeGroup = messageWrapper.isCompletedGroup();
+			lastReleasedSequenceNumber = messageWrapper.getLastReleasedSequenceNumber();
+		}
+		
 		for (MessageWrapper messageWrapper : messageWrappers) {
 			if (messageWrapper.isMarked()) {
 				markedMessages.add(messageWrapper.getMessage());
@@ -139,13 +155,24 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				unmarkedMessages.add(messageWrapper.getMessage());
 			}
 		}
-		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, System.currentTimeMillis());
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, timestamp, completeGroup);
+		if (lastReleasedSequenceNumber > 0){
+			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
+		}
+		return messageGroup;
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		MessageWrapper wrapper = new MessageWrapper(message, groupId, false);
+		MessageGroup messageGroup = this.getMessageGroup(groupId);
+		
+		MessageWrapper wrapper = new MessageWrapper(message);
+		wrapper.setGroupId(groupId);
+		wrapper.setGroupTimestamp(messageGroup.getTimestamp());
+		wrapper.setCompletedGroup(messageGroup.isComplete());
+		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
+		
 		this.template.insert(wrapper, this.collectionName);
 		return this.getMessageGroup(groupId);
 	}
@@ -181,7 +208,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
@@ -193,7 +219,18 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 		return messageGroups.values().iterator();
 	}
+	
+	public void completeGroup(Object groupId) {
+		Update update = Update.update(GROUP_COMPLETE_KEY, true);
+		Query q = whereGroupIdIs(groupId);
+		this.template.updateFirst(q, update, this.collectionName);
+	}
 
+	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		Update update = Update.update(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber);
+		Query q = whereGroupIdIs(groupId);
+		this.template.updateFirst(q, update, this.collectionName);
+	}
 
 	/*
 	 * Common Queries
@@ -236,11 +273,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			Message<?> message = null;
 			Object groupId = null;
 			boolean marked = false;
+			boolean groupComplete = false;
+			long groupTimestamp = 0;
+			int lastReleasedSequenceNumber = 0;
 			if (source instanceof MessageWrapper) {
 				MessageWrapper wrapper = (MessageWrapper) source;
 				message = wrapper.getMessage();
 				groupId = wrapper.getGroupId();
 				marked = wrapper.isMarked();
+				groupComplete = wrapper.isCompletedGroup();
+				lastReleasedSequenceNumber = wrapper.getLastReleasedSequenceNumber();
+				groupTimestamp = wrapper.getGroupTimestamp();
 			}
 			else {
 				Class<?> sourceType = (source != null) ? source.getClass() : null;
@@ -249,6 +292,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
 			if (groupId != null) {
 				target.put(GROUP_ID_KEY, groupId);
+				target.put(GROUP_COMPLETE_KEY, groupComplete);
+				target.put(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
+				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
 			}
 			if (marked) {
 				target.put(MARKED_KEY, marked);
@@ -280,7 +326,26 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-				MessageWrapper wrapper = new MessageWrapper(message, source.get(GROUP_ID_KEY), source.get(MARKED_KEY) != null);
+				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
+				Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE_NUMBER);
+				Boolean completeGroup = (Boolean)source.get(GROUP_COMPLETE_KEY);
+				
+				MessageWrapper wrapper = new MessageWrapper(message);
+				
+				if (source.containsField(GROUP_ID_KEY)){
+					wrapper.setGroupId(source.get(GROUP_ID_KEY));
+				}
+				if (groupTimestamp != null){
+					wrapper.setGroupTimestamp(groupTimestamp);
+				}
+				if (lastReleasedSequenceNumber != null){
+					wrapper.setLastReleasedSequenceNumber(lastReleasedSequenceNumber);
+				}
+				
+				wrapper.setMarked(source.get(MARKED_KEY) != null);
+						
+				wrapper.setCompletedGroup(completeGroup.booleanValue());
+							
 				return (S) wrapper;
 			}
 			return null;
@@ -307,16 +372,32 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	 */
 	private static final class MessageWrapper {
 
-		private final Object groupId;
+		private volatile Object groupId;
 
-		private final boolean marked;
+		private volatile boolean marked;
 
 		private final Message<?> message;
+		
+		private volatile long groupTimestamp; 
+		
+		private volatile int lastReleasedSequenceNumber; 
 
-		public MessageWrapper(Message<?> message, Object groupId, boolean marked) {
-			this.marked = marked;
+		private volatile boolean completedGroup;
+
+		public MessageWrapper(Message<?> message) {
 			this.message = message;
-			this.groupId = groupId;
+		}
+		
+		public int getLastReleasedSequenceNumber() {
+			return lastReleasedSequenceNumber;
+		}
+		
+		public long getGroupTimestamp() {
+			return groupTimestamp;
+		}
+
+		public boolean isCompletedGroup() {
+			return completedGroup;
 		}
 
 		public Object getGroupId() {
@@ -330,6 +411,25 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		public Message<?> getMessage() {
 			return message;
 		}
-	}
+		
+		public void setGroupId(Object groupId) {
+			this.groupId = groupId;
+		}
 
+		public void setMarked(boolean marked) {
+			this.marked = marked;
+		}
+
+		public void setGroupTimestamp(long groupTimestamp) {
+			this.groupTimestamp = groupTimestamp;
+		}
+
+		public void setLastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
+			this.lastReleasedSequenceNumber = lastReleasedSequenceNumber;
+		}
+
+		public void setCompletedGroup(boolean completedGroup) {
+			this.completedGroup = completedGroup;
+		}
+	}
 }

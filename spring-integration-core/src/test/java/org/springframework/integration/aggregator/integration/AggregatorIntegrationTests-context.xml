@@ -5,7 +5,7 @@
 	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
 
 	<channel id="input">
 		<queue capacity="5" />
@@ -20,8 +20,19 @@
 	<channel id="output">
 		<queue capacity="5" />
 	</channel>
+	
+	<channel id="discard">
+		<queue capacity="5" />
+	</channel>
 
 	<beans:bean id="summer"
 		class="org.springframework.integration.aggregator.integration.AggregatorIntegrationTests$SummingAggregator" />
+		
+	<aggregator id="expiringAggregator" input-channel="expiringAggregatorInput" output-channel="output" 
+				expire-groups-upon-completion="true" discard-channel="discard"/>
+				
+	<aggregator id="nonExpiringAggregator" input-channel="nonExpiringAggregatorInput" output-channel="output" 
+				expire-groups-upon-completion="false" discard-channel="discard"/>
+		
 
 </beans:beans>
