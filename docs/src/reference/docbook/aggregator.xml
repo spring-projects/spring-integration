@@ -744,6 +744,15 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
     in the example above is that the message group store's expire method is being called
     once every 10 seconds. The timeout itself is 30 seconds.</para>
+    
+    <note>
+    It is important to understand that the 'timeout' property of the <classname>MessageGroupStoreReaper</classname> is an 
+    approximate value and is impacted by the  the rate of the task scheduler since this property will 
+    only be checked on the next scheduled execution of the <classname>MessageGroupStoreReaper</classname> task. For example if 
+    the timeout is set for 10 min, but the <classname>MessageGroupStoreReaper</classname> task is scheduled to run every 60 min 
+    and the last execution of the <classname>MessageGroupStoreReaper</classname> task happened 1 min before the timeout, the 
+    <classname>MessageGroup</classname>  will not expire for the next 59 min. So it is recommended to set the rate at least equal to the value of the timeout or shorter.
+    </note>
 
     <para>In addition to the reaper, the expiry callbacks are invoked when the application
     shuts down via a lifecycle callback in the <classname>CorrelatingMessageHandler</classname>.
