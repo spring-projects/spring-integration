@@ -67,7 +67,6 @@ public class CorrelatingMessageHandlerIntegrationTests {
 		verify(outputChannel).send(message1);
 		defaultHandler.handleMessage(message2);
 		verify(outputChannel, never()).send(message2);
-		verify(discardChannel).send(message2);
 	}
 
 	@Test
