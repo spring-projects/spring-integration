@@ -14,7 +14,7 @@ public class RequestResponseScenario {
     private final String outputChannelName;
     private Object payload;
     private Message<?> message;
-    private AbstractResponseValidator responseValidator;
+    private AbstractResponseValidator<?> responseValidator;
     private String name;
  
     protected Message<? extends Object> getMessage(){
@@ -91,7 +91,7 @@ public class RequestResponseScenario {
      * @return the response validator 
      * @see AbstractResponseValidator
      */
-    public AbstractResponseValidator getResponseValidator(){
+    public AbstractResponseValidator<?> getResponseValidator(){
         return responseValidator;
     }
     
@@ -101,7 +101,7 @@ public class RequestResponseScenario {
      * @param responseValidator
      * @return
      */
-    public RequestResponseScenario setResponseValidator(AbstractResponseValidator responseValidator) {
+    public RequestResponseScenario setResponseValidator(AbstractResponseValidator<?> responseValidator) {
         this.responseValidator = responseValidator;
         return this;
     }

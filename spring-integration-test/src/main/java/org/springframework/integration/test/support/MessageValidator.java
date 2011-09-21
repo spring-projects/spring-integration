@@ -7,12 +7,12 @@ import org.springframework.integration.Message;
  * @author David Turanski
  *
  */
-public abstract class MessageValidator extends AbstractResponseValidator {
+public abstract class MessageValidator extends AbstractResponseValidator<Message<?>> {
     protected final boolean extractPayload(){
         return false;
     }
     
-    protected final void validateResponse(Object response){
+    protected final void validateResponse(Message<?> response){
         validateMessage((Message<?>) response);
     }
     /**
