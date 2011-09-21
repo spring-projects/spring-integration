@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,18 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
+import org.w3c.dom.Document;
+
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -36,9 +40,9 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
-import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -274,7 +278,31 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputChannel.send(docMessage);
 		assertNotNull(channelA.receive(10));
-		
+	}
+
+	@Test
+	public void testWithCustomXmlPayloadConverter() throws Exception {
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
+		MessageChannel inputChannel = ac.getBean("customConverterChannel", MessageChannel.class);
+		PollableChannel channelZ = ac.getBean("channelZ", PollableChannel.class);
+		GenericMessage<String> message = new GenericMessage<String>("<name>channelA</name>");
+		inputChannel.send(message);
+		Message<?> result = channelZ.receive(0);
+		assertNotNull(result);
+		assertEquals("<name>channelA</name>", result.getPayload());
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestXmlPayloadConverter extends DefaultXmlPayloadConverter {
+
+		@Override
+		public Document convertToDocument(Object object) {
+			if (object instanceof String) {
+				object = ((String) object).replace("A", "Z");
+			}
+			return super.convertToDocument(object);
+		}
 	}
 
 }
