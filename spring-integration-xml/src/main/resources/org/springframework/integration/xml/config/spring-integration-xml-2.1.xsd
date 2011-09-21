@@ -446,11 +446,81 @@
 
 	<xsd:element name="xpath-router" type="XPathRouterType"/>
 
+	<xsd:element name="xpath-filter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an XPath-based Message Filter. If the XPath expression will evaluate to a boolean,
+	no configuration attributes are required. If the XPath expression will evaluate to a String,
+	a "match-value" should be provided against which the evaluation result will be matched.
+	There are three options for the "match-type": exact, case-insensitive, and regex. These
+	correspond to the equals, equals-ignore-case, and matches operations on java.lang.String,
+	respectively. When providing a 'match-type' value of 'regex', the value provided in
+	'match-value' must be a valid Regular Expression.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="baseFilterType">
+					<xsd:sequence>
+						<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation>
+									The XPath expression to evaluate.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+					<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to an XPath expression instance to evaluate.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="match-value" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								String value to be matched against the XPath evaluation result. If this is not provided,
+								then the XPath evaluation MUST produce a boolean result directly.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="match-type" default="exact">
+						<xsd:annotation>
+							<xsd:documentation>
+								Type of match to apply between the XPath evaluation result and the 'match-value'.
+								Default is "exact".
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="matchTypeEnumeration xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<xsd:simpleType name="matchTypeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="exact"/>
+			<xsd:enumeration value="case-insensitive"/>
+			<xsd:enumeration value="regex"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<xsd:element name="xpath-selector">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
 	Defines an XPath selector.
+	NOTE: this element is deprecated as of 2.1. Please use &lt;xpath-filter&gt; instead.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -547,62 +617,85 @@
 	</xsd:element>
 	
 	<xsd:element name="validating-filter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an XML validating filter.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="baseFilterType">
+					<xsd:attribute name="xml-validator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a custom 'org.springframework.xml.validation.XmlValidator' strategy
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.validation.XmlValidator" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="schema-location"/>
+					<xsd:attribute name="schema-type" default="xml-schema">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="xml-schema"/>
+								<xsd:enumeration value="relax-ng"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>	
+	</xsd:element>
+
+	<xsd:complexType name="baseFilterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for XML filters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an XML validating filter.
+					Message Channel where you want accepted messages to be sent.
 				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="input-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="xml-validator" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Allows you to plug-in custom 'org.springframework.xml.validation.XmlValidator' strategy
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.xml.validation.XmlValidator" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="output-channel" type="xsd:string" use="required" />
-			<xsd:attribute name="discard-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Allows you to point to a Message Channel where you want discarded messages to be sent.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="schema-location"/>
-			<xsd:attribute name="schema-type" default="xml-schema">
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="xml-schema"/>
-						<xsd:enumeration value="relax-ng"/>
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>	
-		</xsd:complexType>
-	</xsd:element>
+		</xsd:attribute>
+		<xsd:attribute name="discard-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Message Channel where you want rejected messages to be sent.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="throw-exception-on-rejection" type="xsd:boolean" default="false"/>		
+	</xsd:complexType>
 
 	<xsd:complexType name="inputOutputEndpoint">
 		<xsd:sequence>
