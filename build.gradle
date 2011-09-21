@@ -266,6 +266,7 @@ project('spring-integration-groovy') {
     description = 'Spring Integration Groovy Support'
     dependencies {
         compile project(":spring-integration-core")
+        compile project(":spring-integration-scripting")
         compile "org.codehaus.groovy:groovy-all:1.7.5"
         compile "org.springframework:spring-context-support:$springVersion"
     }

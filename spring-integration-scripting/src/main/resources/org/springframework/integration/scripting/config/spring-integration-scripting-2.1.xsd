@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration/script"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/scripting"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	targetNamespace="http://www.springframework.org/schema/integration/script"
+	targetNamespace="http://www.springframework.org/schema/integration/scripting"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:include
-		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.1.xsd" />
+		schemaLocation="http://www.springframework.org/schema/integration/scripting-core-2.1.xsd" />
 
 	<xsd:element name="script">
 		<xsd:annotation>
