@@ -399,6 +399,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify the Converter to use when converting payloads prior to XPath evaluation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:appinfo>
