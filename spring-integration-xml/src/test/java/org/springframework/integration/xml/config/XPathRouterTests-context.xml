@@ -4,8 +4,8 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.1.xsd">
 
 
 	<int-xml:xpath-router id="xpathRouterEmpty" input-channel="xpathRouterEmptyChannel">
@@ -26,6 +26,10 @@
 		<int-xml:mapping value="channelA" channel="channelA"/>	
 		<int-xml:mapping value="channelB" channel="channelA"/>	
 	</int-xml:xpath-router>
+
+	<int-xml:xpath-router id="xpathRouterWithCustomConverter" input-channel="customConverterChannel" evaluate-as-string="true" converter="testConverter">
+		<int-xml:xpath-expression expression="/name"/>
+	</int-xml:xpath-router>
 	
 	<int:channel id="channelA">
 		<int:queue/>
@@ -34,5 +38,11 @@
 	<int:channel id="channelB">
 		<int:queue/>
 	</int:channel>
+
+	<int:channel id="channelZ">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="testConverter" class="org.springframework.integration.xml.config.XPathRouterParserTests$TestXmlPayloadConverter"/>
 
 </beans>

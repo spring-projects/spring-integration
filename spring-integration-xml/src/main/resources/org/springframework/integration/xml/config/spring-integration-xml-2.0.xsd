@@ -225,6 +225,11 @@
 						<xsd:annotation>
 							<xsd:documentation>
 	Specify the XmlPayloadConverter to use when converting a Message payload prior to XPath evaluation.
+	The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+	should be sufficient in most cases since it can convert from Node, Document, Source,
+	File, and String typed payloads. If you need to extend beyond the capabilities of
+	that default implementation, then an upstream Transformer is probably a better option
+	than providing a reference to a custom implementation of this strategy here.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -395,6 +400,23 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify the Converter to use when converting payloads prior to XPath evaluation.
+                		The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+                		should be sufficient in most cases since it can convert from Node, Document, Source,
+                		File, and String typed payloads. If you need to extend beyond the capabilities of
+                		that default implementation, then an upstream Transformer is probably a better option
+                		than providing a reference to a custom implementation of this strategy here.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
