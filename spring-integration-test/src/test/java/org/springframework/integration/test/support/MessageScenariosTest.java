@@ -21,9 +21,9 @@ public class MessageScenariosTest extends AbstractRequestResponseScenarioTest {
         RequestResponseScenario scenario1 = new RequestResponseScenario(
                 "inputChannel","outputChannel")
             .setPayload("hello")
-            .setResponseValidator(new PayloadValidator() {    
+            .setResponseValidator(new PayloadValidator<String>() {    
                 @Override
-                protected void validateResponse(Object response) {
+                protected void validateResponse(String response) {
                     assertEquals("HELLO",response);
                 }
             });

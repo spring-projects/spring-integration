@@ -63,13 +63,11 @@ public abstract class AbstractRequestResponseScenarioTest {
             if (outputChannel instanceof PollableChannel){
                 Message<?> response = ((PollableChannel) outputChannel).receive(10000);
                 assertNotNull(name + ": receive timeout on " + scenario.getOutputChannelName(),response);
-                
-                if (scenario.getResponseValidator() instanceof PayloadValidator){
-                    scenario.getResponseValidator().validateResponse(response.getPayload());
-                } else {
-                    scenario.getResponseValidator().validateResponse(response);
-                }
+                scenario.getResponseValidator().handleMessage(response);
             }
+            
+            assertNotNull("message was not handled on " + outputChannel + " for scenario '" + scenario.getName() + "'.",
+					scenario.getResponseValidator().getLastMessage());
         }
     }
     /**
