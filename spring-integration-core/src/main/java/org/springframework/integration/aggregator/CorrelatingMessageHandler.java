@@ -226,19 +226,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (this.keepClosedAggregates){
-			remove(group);
-		}
-		else {
-			// Mark these messages as processed, but do not
-			// remove the group from store
-			if (completedMessages == null) {
-				mark(group);
-			} else {
-				mark(group, completedMessages);
-			}
-		}
+	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
+		remove(group);
 	}
 
 	private final boolean forceComplete(MessageGroup group) {
@@ -271,12 +260,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-	private void mark(MessageGroup group) {
+	void mark(MessageGroup group) {
 		messageStore.markMessageGroup(group);
 	}
 
 	@SuppressWarnings("rawtypes")
-	private void mark(MessageGroup group, Collection<Message> partialSequence) {
+	void mark(MessageGroup group, Collection<Message> partialSequence) {
 		Object id = group.getGroupId();
 		for (Message message : partialSequence) {
 			messageStore.markMessageFromGroup(id, message);
