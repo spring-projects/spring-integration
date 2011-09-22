@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -14,6 +14,8 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -80,7 +82,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private final Object correlationLocksMonitor = new Object();
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
+	
+	private final Set<Object> unpurgedAggregates = new HashSet<Object>();
 
+	private boolean keepClosedAggregates = true;
 
 	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -176,35 +181,56 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 		synchronized (lock) {
 			MessageGroup group = messageStore.getMessageGroup(correlationKey);
-			if (group.canAdd(message)) {
+			
+			if (this.isAggregationAllowed(correlationKey) && group.canAdd(message)) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding message to group [ " + group + "]");
 				}
 				group = store(correlationKey, message);
-				if (releaseStrategy.canRelease(group)) {
-					Collection<Message> completedMessages = null;
-					try {
-						completedMessages = completeGroup(message, correlationKey, group);
-					}
-					finally {
-						// Always clean up even if there was an exception
-						// processing messages
-						cleanUpForReleasedGroup(group, completedMessages);
-					}
-				} 
+				
+				if (this.isAggregationAllowed(correlationKey)){
+					if (releaseStrategy.canRelease(group)) {
+						Collection<Message> completedMessages = null;
+						try {
+							completedMessages = completeGroup(message, correlationKey, group);
+						}
+						finally {
+							// Always clean up even if there was an exception
+							// processing messages
+							cleanUpForReleasedGroup(group, completedMessages);
+							if (this.shouldKeepClosedAggregates(correlationKey)){
+								this.unpurgedAggregates.add(correlationKey);
+							}
+						}
+					} 				
+				}
 			} else {
 				discardChannel.send(message);
 			}
 		}
 	}
+	
+	private boolean isAggregationAllowed(Object correlationKey){
+		return !this.unpurgedAggregates.contains(correlationKey);
+	}
+	
+	private boolean shouldKeepClosedAggregates(Object correlationKey){
+		return keepClosedAggregates;
+	}
+
+	public void setKeepClosedAggregates(boolean keepClosedAggregates) {
+		this.keepClosedAggregates = keepClosedAggregates;
+		if (!keepClosedAggregates){
+			this.unpurgedAggregates.clear();
+		}
+	}
 
 	@SuppressWarnings("rawtypes")
 	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy && (group.isComplete() || group.getSequenceSize() == 0)) {
-			// The group is complete or else there is no
-			// sequence so there is no more state to track
+		if (this.keepClosedAggregates){
 			remove(group);
-		} else {
+		}
+		else {
 			// Mark these messages as processed, but do not
 			// remove the group from store
 			if (completedMessages == null) {
