@@ -16,22 +16,29 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Iwein Fuld
@@ -57,6 +64,24 @@ public class AggregatorIntegrationTests {
 			input.send(new GenericMessage<Integer>(i, headers));
 		}
 		assertEquals(0 + 1 + 2 + 3 + 4, output.receive().getPayload());
+	}
+	
+	@Test
+	//@Ignore
+	public void testAggregatorWithCustomReleaseStrategyAndPartialCompletion() throws Exception {
+		ApplicationContext context = new ClassPathXmlApplicationContext("AggregatorWithPartialReleaseOnCompletion.xml", this.getClass());
+		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = context.getBean("discardChannel", QueueChannel.class);
+		for (int i = 0; i < 10; i++) {
+			Message<?> message = MessageBuilder.withPayload(i).setReplyChannel(replyChannel).setCorrelationId(1).setSequenceNumber(i).setSequenceSize(10).build();
+			inputChannel.send(message);
+		}
+		assertEquals(4, ((List<?>)((Message<?>)replyChannel.receive(100)).getPayload()).size());
+		assertEquals(4, ((List<?>)((Message<?>)replyChannel.receive(100)).getPayload()).size());
+		assertEquals(2, ((List<?>)((Message<?>)replyChannel.receive(100)).getPayload()).size());
+		
+		assertNull(discardChannel.receive(100));
 	}
 
 	// configured in context associated with this test
