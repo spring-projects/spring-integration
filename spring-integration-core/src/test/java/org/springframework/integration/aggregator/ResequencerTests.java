@@ -122,6 +122,7 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
+		this.resequencer.setKeepClosedAggregates(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
@@ -152,6 +153,7 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
+		this.resequencer.setKeepClosedAggregates(false);
 		this.processor.setComparator(new Comparator<Message<?>>() {			
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public int compare(Message<?> o1, Message<?> o2) {
