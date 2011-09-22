@@ -58,6 +58,19 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
+	public SimpleWebServiceOutboundGateway(String uri) {
+		this(uri, null, null);
+	}
+
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
+		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
+	}
+
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
+		super(uri, messageFactory);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
+	}
+
 
 	@Override
 	protected Object doHandle(String uri, Object requestPayload, WebServiceMessageCallback requestCallback) {

@@ -92,6 +92,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.webServiceTemplate = (messageFactory != null) ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.destinationProvider = destinationProvider;
+		// we always call WebServiceTemplate methods with an explicit URI argument,
+		// but in case the WebServiceTemplate is accessed directly we'll set this:
+		this.webServiceTemplate.setDestinationProvider(destinationProvider);
 		this.uriTemplate = null;
 	}
 
