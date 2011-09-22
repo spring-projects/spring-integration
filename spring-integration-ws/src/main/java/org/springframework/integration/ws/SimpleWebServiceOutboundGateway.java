@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,23 +58,36 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
+	public SimpleWebServiceOutboundGateway(String uri) {
+		this(uri, null, null);
+	}
+
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor) {
+		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
+	}
+
+	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
+		super(uri, messageFactory);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
+	}
+
 
 	@Override
-	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback) {
+	protected Object doHandle(String uri, Object requestPayload, WebServiceMessageCallback requestCallback) {
 		if (requestPayload instanceof Source) {
 			return this.getWebServiceTemplate().sendSourceAndReceive(
-					(Source) requestPayload, requestCallback, this.sourceExtractor);
+					uri, (Source) requestPayload, requestCallback, this.sourceExtractor);
 		}
 		if (requestPayload instanceof String) {
 			StringResult result = new StringResult();
 			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
-					new StringSource((String) requestPayload), requestCallback, result);
+					uri, new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
 		}
 		if (requestPayload instanceof Document) {
 			DOMResult result = new DOMResult();
 			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
-					new DOMSource((Document) requestPayload), requestCallback, result);
+					uri, new DOMSource((Document) requestPayload), requestCallback, result);
 			return result.getNode();
 		}
 		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +

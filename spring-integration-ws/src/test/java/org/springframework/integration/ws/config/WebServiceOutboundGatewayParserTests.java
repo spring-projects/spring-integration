@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -337,20 +338,22 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(messageFactory, templateAccessor.getPropertyValue("messageFactory"));
 	}
 
-    @Test
+	@Test
 	public void simpleGatewayWithDestinationProvider() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithDestinationProvider");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		StubDestinationProvider stubProvider = (StubDestinationProvider) context.getBean("destinationProvider");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-        Object destinationProviderObject = new DirectFieldAccessor(
-        		accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
-        StubDestinationProvider stubProvider = (StubDestinationProvider)context.getBean("destinationProvider");
-        assertEquals("Wrong DestinationProvider", stubProvider, destinationProviderObject );
-    }
+		assertEquals("Wrong DestinationProvider", stubProvider, accessor.getPropertyValue("destinationProvider"));
+		assertNull(accessor.getPropertyValue("uriTemplate"));
+		Object destinationProviderObject = new DirectFieldAccessor(
+				accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
+		assertEquals("Wrong DestinationProvider", stubProvider,destinationProviderObject);
+	}
 
     @Test(expected = BeanDefinitionParsingException.class)
     public void invalidGatewayWithBothUriAndDestinationProvider() {
