@@ -112,6 +112,41 @@ public class AggregatorSupportedUseCasesTests {
 		assertNotNull(discardChannel.receive(0));
 	}
 	
+	@Test
+	public void batchingWithoutLeftovers(){
+		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		defaultHandler.setOutputChannel(outputChannel);
+		defaultHandler.setDiscardChannel(discardChannel);
+		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
+		defaultHandler.setKeepClosedAggregates(false);
+		
+		for (int i = 0; i < 10; i++) {
+			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
+		}
+		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
+		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
+		assertNull(discardChannel.receive(0));
+	}
+	
+	@Test
+	public void batchingWithLeftovers(){
+		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		defaultHandler.setOutputChannel(outputChannel);
+		defaultHandler.setDiscardChannel(discardChannel);
+		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
+		defaultHandler.setKeepClosedAggregates(false);
+		
+		for (int i = 0; i < 12; i++) {
+			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
+		}
+		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
+		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
+		assertNull(discardChannel.receive(0));
+		assertEquals(2, store.getMessageGroup("A").getUnmarked().size());
+	}
+	
 	private class SampleSizeReleaseStrategy implements ReleaseStrategy {
 
 		public boolean canRelease(MessageGroup group) {
