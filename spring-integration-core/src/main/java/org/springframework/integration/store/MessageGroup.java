@@ -54,6 +54,11 @@ public interface MessageGroup {
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)
 	 */
 	boolean isComplete();
+	
+	/**
+	 * @return true if the group is complete (i.e. no more messages are expected to be added)
+	 */
+	void complete();
 
 	/**
 	 * @return the size of the sequence expected 0 if unknown

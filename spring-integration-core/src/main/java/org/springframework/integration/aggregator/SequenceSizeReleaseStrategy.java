@@ -16,18 +16,16 @@
 
 package org.springframework.integration.aggregator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.Message;
-import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.Message;
+import org.springframework.integration.store.MessageGroup;
 
 /**
  * An implementation of {@link ReleaseStrategy} that simply compares the current size of the message list to the
@@ -65,9 +63,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
-	public boolean canRelease(MessageGroup messages) {
-		Assert.isInstanceOf(SimpleMessageGroup.class, messages, "MessageGroup must be an instance of SimpleMessageGroup");
-		SimpleMessageGroup messageGroup = (SimpleMessageGroup) messages;
+	public boolean canRelease(MessageGroup messageGroup) {
 		if (releasePartialSequences) {
 			Collection<Message<?>> unmarked = messageGroup.getUnmarked();
 			if (!unmarked.isEmpty()) {
@@ -88,15 +84,17 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
 		
 		if (size == 0){
-			messageGroup.setComplete(true);
+			messageGroup.complete();
 		}
 		else {
 			int sequenceSize = messageGroup.getOne().getHeaders().getSequenceSize();
 			// If there is no sequence then it must be incomplete....
-			messageGroup.setComplete(sequenceSize > 0 && sequenceSize == size);
+			if (sequenceSize > 0 && sequenceSize == size){
+				messageGroup.complete();
+			}
 		}
 		
-		return messages.isComplete();
+		return messageGroup.isComplete();
 	}
 
 }

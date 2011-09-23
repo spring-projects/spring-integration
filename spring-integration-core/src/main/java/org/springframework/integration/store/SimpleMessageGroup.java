@@ -145,10 +145,10 @@ public class SimpleMessageGroup implements MessageGroup {
 		return this.complete;
 	}
 	
-	public void setComplete(boolean complete) {
-		this.complete = complete;
+	public void complete() {
+		this.complete = true;
 	}
-
+	
 	public int getSequenceSize() {
 		if (size() == 0) {
 			return 0;
@@ -238,6 +238,4 @@ public class SimpleMessageGroup implements MessageGroup {
 				", timestamp=" + timestamp +
 				'}';
 	}
-	
-	
 }
