@@ -7,7 +7,7 @@
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:include
-		schemaLocation="http://www.springframework.org/schema/integration/scripting-core-2.1.xsd" 
+		schemaLocation="http://www.springframework.org/schema/integration/scripting/spring-integration-scripting-core-2.1.xsd" 
 		/>
 
 	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd" />
