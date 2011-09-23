@@ -5,7 +5,7 @@ package org.springframework.integration.test.support;
  * @author David Turanski
  *
  */
-public abstract class PayloadValidator extends AbstractResponseValidator {
+public abstract class PayloadValidator<T> extends AbstractResponseValidator<T> {
     protected final boolean extractPayload(){
         return true;
     }

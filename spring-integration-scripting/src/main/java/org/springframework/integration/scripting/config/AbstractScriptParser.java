@@ -10,7 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.config.xml;
+package org.springframework.integration.scripting.config;
 
 import java.util.List;
 
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.beans.factory.xml.XmlReaderContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.scripting.support.StaticScriptSource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
