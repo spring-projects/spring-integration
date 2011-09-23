@@ -69,7 +69,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	/**
 	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
-	 * If false an incoming message MAY result in a reply message being sent.
+	 * If false an incoming message MAY result in a reply message being sent. Default is false.
 	 */
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
@@ -100,8 +100,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			this.handleResult(result, requestHeaders);
 		}
 		else if (this.requiresReply) {
-			throw new ReplyRequiredException(message, "handler '" + this
-					+ "' requires a reply, but no reply was received");
+			throw new ReplyRequiredException(message, "No reply produced by handler '" +
+					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
 		else if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
