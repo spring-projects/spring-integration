@@ -17,47 +17,47 @@ import java.util.Collection;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 
 /**
+ * Resequencer specific implementation of {@link CorrelatingMessageHandler}. It takes into account the fact that 
+ * it must remember the last released message sequence so it overrides {@link #cleanUpForReleasedGroup(MessageGroup, Collection)} method 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class ResequensingMessageHandler extends CorrelatingMessageHandler {
 
-	/**
-	 * @param processor
-	 * @param store
-	 * @param correlationStrategy
-	 * @param releaseStrategy
-	 */
+	
 	public ResequensingMessageHandler(MessageGroupProcessor processor,
 			MessageGroupStore store, CorrelationStrategy correlationStrategy,
 			ReleaseStrategy releaseStrategy) {
 		super(processor, store, correlationStrategy, releaseStrategy);
 	}
 
-	/**
-	 * @param processor
-	 * @param store
-	 */
+	
 	public ResequensingMessageHandler(MessageGroupProcessor processor,
 			MessageGroupStore store) {
 		super(processor, store);
 	}
 
-	/**
-	 * @param processor
-	 */
+	
 	public ResequensingMessageHandler(MessageGroupProcessor processor) {
 		super(processor);
 	}
 	
 	@SuppressWarnings("rawtypes")
-	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (completedMessages == null) {
-			mark(group);
-		} else {
-			mark(group, completedMessages);
+	void cleanUpForReleasedGroup(SimpleMessageGroup group, Collection<Message> completedMessages) {
+		if (group.isComplete() || group.getSequenceSize() == 0) {
+			remove(group);
+		}
+		else {
+			if (completedMessages == null) {
+				mark(group);
+			} 
+			else {
+				mark(group, completedMessages);
+			}
 		}
 	}
 
