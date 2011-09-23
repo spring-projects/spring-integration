@@ -16,7 +16,7 @@ package org.springframework.integration.aggregator.integration;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.channel.QueueChannel;
@@ -39,7 +39,7 @@ public class AggregatorSupportedUseCasesTests {
 	
 	private DefaultAggregatingMessageGroupProcessor processor = new DefaultAggregatingMessageGroupProcessor();
 	
-	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(processor, store);
+	private AggregatingMessageHandler defaultHandler = new AggregatingMessageHandler(processor, store);
 
 	@Test
 	public void waitForAllDefaultReleaseStrategyWithLateArrivals(){

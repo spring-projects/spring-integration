@@ -16,20 +16,19 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.mockito.Mockito.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CorrelatingMessageHandlerIntegrationTests {
 
@@ -39,7 +38,7 @@ public class CorrelatingMessageHandlerIntegrationTests {
 
 	private MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
 
-	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(processor, store);
+	private AggregatingMessageHandler defaultHandler = new AggregatingMessageHandler(processor, store);
 
 	@Before
 	public void setupHandler() {
