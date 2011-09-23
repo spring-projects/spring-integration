@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  * Post-processor for the {@link Aggregator @Aggregator} annotation.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
@@ -53,7 +54,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
 		MethodInvokingReleaseStrategy releaseStrategy = getReleaseStrategy(bean);
 		MethodInvokingCorrelationStrategy correlationStrategy = getCorrelationStrategy(bean);
-		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
+		AggregatingMessageHandler handler = new AggregatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);

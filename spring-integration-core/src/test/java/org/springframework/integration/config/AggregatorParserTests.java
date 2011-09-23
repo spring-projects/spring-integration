@@ -16,11 +16,6 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +33,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
@@ -48,6 +43,12 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Marius Bogoevici
@@ -111,7 +112,7 @@ public class AggregatorParserTests {
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertThat(consumer, is(CorrelatingMessageHandler.class));
+		assertThat(consumer, is(AggregatingMessageHandler.class));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
 				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
