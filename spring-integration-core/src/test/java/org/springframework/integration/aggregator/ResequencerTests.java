@@ -45,7 +45,7 @@ import static org.junit.Assert.assertThat;
  */
 public class ResequencerTests {
 
-	private CorrelatingMessageHandler resequencer;
+	private ResequensingMessageHandler resequencer;
 
 	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
