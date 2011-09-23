@@ -16,6 +16,11 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -25,13 +30,12 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import static org.hamcrest.Matchers.is;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Marius Bogoevici
@@ -49,7 +53,7 @@ public class ResequencerTests {
 
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new CorrelatingMessageHandler(processor, store, null, null);
+		this.resequencer = new ResequensingMessageHandler(processor, store, null, null);
 	}
 
 	@Test
@@ -122,7 +126,7 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
-		this.resequencer.setKeepClosedAggregates(false);
+		//this.resequencer.setKeepClosedAggregates(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
@@ -153,7 +157,7 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
-		this.resequencer.setKeepClosedAggregates(false);
+		//this.resequencer.setKeepClosedAggregates(false);
 		this.processor.setComparator(new Comparator<Message<?>>() {			
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public int compare(Message<?> o1, Message<?> o2) {

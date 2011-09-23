@@ -61,7 +61,7 @@ public class AggregatorSupportedUseCasesTests {
 		assertNotNull(discardChannel.receive(0));
 		
 		// set 'keepClosedOutAggregates' to 'false' and the messages should start accumulating again
-		defaultHandler.setKeepClosedAggregates(false);
+		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
 		assertNull(discardChannel.receive(0));
 		assertEquals(1, store.getMessageGroup("A").getUnmarked().size());
@@ -88,7 +88,7 @@ public class AggregatorSupportedUseCasesTests {
 		assertNotNull(discardChannel.receive(0));
 		
 		// set 'keepClosedOutAggregates' to 'false' and the messages should start accumulating again
-		defaultHandler.setKeepClosedAggregates(false);
+		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
 		assertNull(discardChannel.receive(0));
 		assertEquals(1, store.getMessageGroup("A").getUnmarked().size());
@@ -119,7 +119,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
 		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
-		defaultHandler.setKeepClosedAggregates(false);
+		defaultHandler.setExpireGroupsUponCompletion(true);
 		
 		for (int i = 0; i < 10; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
@@ -136,7 +136,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
 		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
-		defaultHandler.setKeepClosedAggregates(false);
+		defaultHandler.setExpireGroupsUponCompletion(true);
 		
 		for (int i = 0; i < 12; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
