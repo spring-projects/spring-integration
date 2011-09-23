@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,6 +37,7 @@ import java.util.List;
  * @author Marius Bogoevici
  * @author Dave Syer
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
@@ -63,22 +66,36 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	}
 
 	public boolean canRelease(MessageGroup messages) {
+		Assert.isInstanceOf(SimpleMessageGroup.class, messages, "MessageGroup must be an instance of SimpleMessageGroup");
+		SimpleMessageGroup messageGroup = (SimpleMessageGroup) messages;
 		if (releasePartialSequences) {
-			Collection<Message<?>> unmarked = messages.getUnmarked();
+			Collection<Message<?>> unmarked = messageGroup.getUnmarked();
 			if (!unmarked.isEmpty()) {
 				if (logger.isTraceEnabled()) {
-					logger.trace("Considering partial release of group [" + messages + "]");
+					logger.trace("Considering partial release of group [" + messageGroup + "]");
 				}
 				List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
 				Collections.sort(sorted, comparator);
 				int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-				boolean release = tail == messages.getMarked().size();
+				boolean release = tail == messageGroup.getMarked().size();
 				if (logger.isTraceEnabled() && release) {
 					logger.trace("Release imminent because tail [" + tail + "] is next in line.");
 				}
 				return release;
 			}
 		}
+		
+		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
+		
+		if (size == 0){
+			messageGroup.setComplete(true);
+		}
+		else {
+			int sequenceSize = messageGroup.getOne().getHeaders().getSequenceSize();
+			// If there is no sequence then it must be incomplete....
+			messageGroup.setComplete(sequenceSize > 0 && sequenceSize == size);
+		}
+		
 		return messages.isComplete();
 	}
 
