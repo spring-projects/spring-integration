@@ -28,7 +28,7 @@
    with Spring Integration depends on how well it conforms to the specification and/or the implementer's interpretation of the specification. 
     </important>  
   <tip>If you plan to use Groovy as your scripting language, we recommended you use <xref linkend="groovy">Spring-Integration's Groovy Support</xref> 
-  as it offers additional features specific to Groovy. <emphasis>However you will find his section relevant as well</emphasis>.
+  as it offers additional features specific to Groovy. <emphasis>However you will find this section relevant as well</emphasis>.
   </tip>
 </para>
 
