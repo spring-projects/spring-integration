@@ -16,12 +16,6 @@
 
 package org.springframework.integration.config.annotation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -30,9 +24,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -40,6 +34,13 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Marius Bogoevici
@@ -56,7 +57,7 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
-		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT, getPropertyValue(aggregator,
+		assertEquals(AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT, getPropertyValue(aggregator,
 				"messagingTemplate.sendTimeout"));
 		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
