@@ -16,13 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +28,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -45,6 +37,14 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Iwein Fuld
  * @author Dave Syer
@@ -52,7 +52,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @RunWith(MockitoJUnitRunner.class)
 public class CorrelatingMessageHandlerTests {
 
-	private CorrelatingMessageHandler handler;
+	private AggregatingMessageHandler handler;
 
 	@Mock
 	private CorrelationStrategy correlationStrategy;
@@ -70,7 +70,7 @@ public class CorrelatingMessageHandlerTests {
 
 	@Before
 	public void initializeSubject() {
-		handler = new CorrelatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
+		handler = new AggregatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 	}
 
@@ -94,7 +94,7 @@ public class CorrelatingMessageHandlerTests {
 		verify(processor).processMessageGroup(isA(SimpleMessageGroup.class));
 	}
 
-	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
+	private void verifyLocks(AggregatingMessageHandler handler, int lockCount) {
 		assertEquals(lockCount, ((Map<?, ?>) ReflectionTestUtils.getField(handler, "locks")).size());
 	}
 

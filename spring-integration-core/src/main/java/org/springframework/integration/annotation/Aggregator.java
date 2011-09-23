@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 
 /**
  * Indicates that a method is capable of aggregating messages. 
@@ -32,6 +32,7 @@ import org.springframework.integration.aggregator.CorrelatingMessageHandler;
  * Message or a single Object to be used as a Message payload.
  * 
  * @author Marius Bogoevici
+ * @author Oleg Zhurakousky
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -56,7 +57,7 @@ public @interface Aggregator {
 	/**
 	 * timeout for sending results to the reply target (in milliseconds)
 	 */
-	long sendTimeout() default CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
+	long sendTimeout() default AbstractCorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
 	/**
 	 * indicates whether to send an incomplete aggregate on expiry of the message group
