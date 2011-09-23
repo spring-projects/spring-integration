@@ -337,4 +337,9 @@ public class KeyValueMessageGroup implements MessageGroup, Serializable {
 
 		return false;
 	}
+
+	public void complete() {
+		// no op for now pending complete refactoring of this class to rely on SMG
+		
+	}
 }

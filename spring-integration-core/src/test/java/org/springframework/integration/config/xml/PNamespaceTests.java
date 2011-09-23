@@ -16,20 +16,19 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Validates the "p:namespace" is working for inner "bean" definition within SI components.
@@ -92,7 +91,7 @@ public class PNamespaceTests {
 	@Test
 	public void testPNamespaceChain() {		
 		List<?> handlers = (List<?>) TestUtils.getPropertyValue(sampleChain, "handler.handlers");
-		CorrelatingMessageHandler handler = (CorrelatingMessageHandler) handlers.get(0);
+		AggregatingMessageHandler handler = (AggregatingMessageHandler) handlers.get(0);
 		SampleAggregator aggregator = 
 			(SampleAggregator) TestUtils.getPropertyValue(handler, "outputProcessor.processor.delegate.targetObject");
 		assertEquals("Bill", aggregator.getName());
