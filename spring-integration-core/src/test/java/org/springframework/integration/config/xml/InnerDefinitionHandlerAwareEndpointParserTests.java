@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.util.Collection;
@@ -256,7 +257,9 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 			inChannel.send(message);
 		}
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
-		assertEquals(0 + 1 + 2 + 3 + 4, output.receive(100).getPayload());
+		Message<?> receivedMessage = output.receive(2000);
+		assertNotNull(receivedMessage);
+		assertEquals(0 + 1 + 2 + 3 + 4, receivedMessage.getPayload());
 	}
 
 	private void testFilterDefinitionSuccess(String configProperty){
