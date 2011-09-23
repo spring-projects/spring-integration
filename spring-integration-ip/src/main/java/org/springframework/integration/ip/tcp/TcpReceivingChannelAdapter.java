@@ -51,12 +51,22 @@ public class TcpReceivingChannelAdapter
 	
 	@Override
 	protected void doStart() {
-		// Nothing to do; we're passive
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.start();
+		}
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.start();
+		}
 	}
 
 	@Override
 	protected void doStop() {
-		// Nothing to do; we're passive
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop();
+		}
 	}
 
 	/**

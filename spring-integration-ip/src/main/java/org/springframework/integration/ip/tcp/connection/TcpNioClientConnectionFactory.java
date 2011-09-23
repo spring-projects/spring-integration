@@ -60,6 +60,7 @@ public class TcpNioClientConnectionFactory extends
 	 * reused for all requests while the connection remains open.
 	 */
 	public TcpConnection getConnection() throws Exception {
+		this.checkActive();
 		int n = 0;
 		while (this.selector == null) {
 			try {

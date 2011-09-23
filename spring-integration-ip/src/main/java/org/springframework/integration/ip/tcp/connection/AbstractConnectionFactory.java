@@ -36,10 +36,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 
@@ -50,8 +52,8 @@ import org.springframework.util.Assert;
  * @since 2.0
  *
  */
-public abstract class AbstractConnectionFactory
-		implements ConnectionFactory, Runnable, SmartLifecycle  {
+public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
+		implements ConnectionFactory, Runnable, SmartLifecycle, BeanNameAware  {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -401,6 +403,9 @@ public abstract class AbstractConnectionFactory
 				this.getTaskExecutor().execute(this);
 			}
 		}
+		if (logger.isInfoEnabled()) {
+			logger.info("started " + this);
+		}
 	}
 
 	/**
@@ -453,6 +458,9 @@ public abstract class AbstractConnectionFactory
 					this.privateExecutor = false;
 				}
 			}
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("stopped " + this);
 		}
 	}
 
@@ -592,8 +600,12 @@ public abstract class AbstractConnectionFactory
 		return 0;
 	}
 
+	/**
+	 * We are controlled by the startup options of
+	 * the bound endpoint.
+	 */
 	public boolean isAutoStartup() {
-		return true;
+		return false;
 	}
 
 	public void stop(Runnable callback) {
@@ -640,4 +652,11 @@ public abstract class AbstractConnectionFactory
 	protected void setActive(boolean active) {
 		this.active = active;
 	}
+
+	protected void checkActive() throws IOException {
+		if (!this.isActive()) {
+			throw new IOException(this + " connection factory has not been started");
+		}
+	}
+
 }

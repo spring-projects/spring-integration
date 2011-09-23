@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import org.springframework.context.SmartLifecycle;
+
 
 
 /**
@@ -25,7 +27,7 @@ package org.springframework.integration.ip.tcp.connection;
  * @since 2.0
  *
  */
-public interface ConnectionFactory {
+public interface ConnectionFactory extends SmartLifecycle {
 
 	TcpConnection getConnection() throws Exception;
 	

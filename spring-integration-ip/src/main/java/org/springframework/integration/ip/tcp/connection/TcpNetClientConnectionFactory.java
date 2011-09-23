@@ -44,6 +44,7 @@ public class TcpNetClientConnectionFactory extends
 	 * reused for all requests while the connection remains open.
 	 */
 	public TcpConnection getConnection() throws Exception {
+		this.checkActive();
 		if (this.theConnection != null && this.theConnection.isOpen()) {
 			return this.theConnection;
 		}

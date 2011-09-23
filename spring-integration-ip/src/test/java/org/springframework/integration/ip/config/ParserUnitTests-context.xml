@@ -12,15 +12,16 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
-
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketTestUtils" />
 
 	<int:channel id="udpChannel" />
+
 	<int:channel id="tcpChannel" />
+
 	<int:channel id="replyChannel" />
-	
+
 	<task:executor id="externalTE" pool-size="10"/>
-	
+
 	<ip:udp-inbound-channel-adapter id="testInUdp"
 		channel="udpChannel"
 		check-length="true"
@@ -48,7 +49,7 @@
 		so-receive-buffer-size="30"
 		so-send-buffer-size="31"
 		so-timeout="32"
-		local-address="127.0.0.1"		
+		local-address="127.0.0.1"
 	/>
 
 	<ip:tcp-connection-factory id="cfS1"
@@ -56,14 +57,16 @@
 		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
 		lookup-host="false"
 		/>
-		
+
 	<ip:tcp-inbound-channel-adapter id="testInTcp"
 		channel="tcpChannel"
 		error-channel="errorChannel"
 		connection-factory="cfS1"
+		auto-startup="false"
+		phase="124"
 	/>
 
-	<ip:udp-outbound-channel-adapter id="testOutUdp" 
+	<ip:udp-outbound-channel-adapter id="testOutUdp"
 		ack-host="somehost"
 		ack-port="#{tcpIpUtils.findAvailableUdpSocket(5300)}"
 		ack-timeout="51"
@@ -76,12 +79,12 @@
 		so-receive-buffer-size="52"
 		so-send-buffer-size="53"
 		so-timeout="54"
-		local-address="127.0.0.1"	
+		local-address="127.0.0.1"
 		task-executor="externalTE"
-		order="23"	
+		order="23"
 	/>
-	
-	<ip:udp-outbound-channel-adapter id="testOutUdpiMulticast" 
+
+	<ip:udp-outbound-channel-adapter id="testOutUdpiMulticast"
 		ack-host="somehost"
 		ack-port="#{tcpIpUtils.findAvailableUdpSocket(5500)}"
 		ack-timeout="51"
@@ -105,44 +108,48 @@
 		host="localhost"
 		lookup-host="false"
 		/>
-		
-	<ip:tcp-outbound-channel-adapter id="testOutTcpNio" 
+
+	<ip:tcp-outbound-channel-adapter id="testOutTcpNio"
 		channel="tcpChannel"
 		connection-factory="cfC1"
 		order="35"
+		auto-startup="false"
+		phase="125"
 	/>
 
 	<ip:tcp-connection-factory id="cfS2"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(5800)}"
 		/>
-		
+
 	<ip:tcp-inbound-gateway id="inGateway1"
 		request-channel="tcpChannel"
 		reply-channel="replyChannel"
 		error-channel="errorChannel"
 		connection-factory="cfS2"
 		reply-timeout="456"
-		/>	
+		auto-startup="false"
+		phase="126"
+		/>
 
 	<ip:tcp-connection-factory id="cfS3"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(5850)}"
 		/>
-		
+
 	<ip:tcp-inbound-gateway id="inGateway2"
 		request-channel="tcpChannel"
 		reply-channel="replyChannel"
 		connection-factory="cfS3"
 		reply-timeout="456"
-		/>	
+		/>
 
 	<ip:tcp-connection-factory id="cfC2"
 		type="client"
 		port="#{tcpIpUtils.findAvailableServerSocket(5900)}"
 		host="localhost"
 		/>
-		
+
 	<ip:tcp-outbound-gateway id="outGateway"
 		request-channel="tcpChannel"
 		reply-channel="replyChannel"
@@ -150,7 +157,9 @@
 		request-timeout="234"
 		reply-timeout="567"
 		order="24"
-		/>		
+		auto-startup="false"
+		phase="127"
+		/>
 
 	<ip:tcp-connection-factory
 		id="client1"
@@ -169,15 +178,15 @@
 		using-nio="#{props['use.nio']}"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="321"		
+		pool-size="321"
 		using-direct-buffers="true"
 		interceptor-factory-chain="interceptors"
 	/>
-	
+
 	<util:properties id="props">
 		<prop key="use.nio">true</prop>
 	</util:properties>
-	
+
 	<ip:tcp-connection-factory
 		id="server1"
 		type="server"
@@ -199,7 +208,7 @@
 		using-direct-buffers="true"
 		interceptor-factory-chain="interceptors"
 	/>
-	
+
 	<ip:tcp-connection-factory
 		id="client2"
 		type="client"
@@ -217,10 +226,10 @@
 		using-nio="false"
 		single-use="true"
 		task-executor="externalTE"
-		pool-size="321"		
+		pool-size="321"
 		interceptor-factory-chain="interceptors"
 	/>
-	
+
 	<ip:tcp-connection-factory
 		id="server2"
 		type="server"
@@ -241,32 +250,29 @@
 		pool-size="123"
 		interceptor-factory-chain="interceptors"
 	/>
-	
+
 	<bean id="interceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain" />
-	
+
 	<bean id="defaultSerializer" class="org.springframework.core.serializer.DefaultSerializer" />
-	
+
 	<bean id="defaultDeserializer" class="org.springframework.core.serializer.DefaultDeserializer" />
 
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
 		channel="tcpChannel"
-		connection-factory="client1" 
+		connection-factory="client1"
 		order="25"/>
-		
+
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut2"
 		channel="tcpChannel"
-		connection-factory="server1" 
+		connection-factory="server1"
 		order="15"/>
-		
+
 	<ip:tcp-inbound-channel-adapter id="tcpNewIn1"
 		channel="tcpChannel"
 		connection-factory="client1" />
-		
+
 	<ip:tcp-inbound-channel-adapter id="tcpNewIn2"
 		channel="tcpChannel"
 		connection-factory="server1" />
-
-
-		
 
 </beans>

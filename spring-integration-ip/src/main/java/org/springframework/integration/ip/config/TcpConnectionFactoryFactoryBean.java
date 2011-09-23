@@ -17,6 +17,7 @@ package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
@@ -40,22 +41,22 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
  *
  */
 public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> 
-		implements SmartLifecycle {
+		implements SmartLifecycle, BeanNameAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
-	
+
 	private volatile String type;
 
 	private volatile String host;
-	
+
 	private volatile int port;
-	
+
 	private volatile int soTimeout;
 
 	private volatile int soSendBufferSize;
 
 	private volatile int soReceiveBufferSize;
-	
+
 	private volatile boolean soTcpNoDelay;
 
 	private volatile int soLinger  = -1; // don't set by default
@@ -63,13 +64,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	private volatile boolean soKeepAlive;
 
 	private volatile int soTrafficClass = -1; // don't set by default
-	
+
 	private volatile Executor taskExecutor;
-	
+
 	private volatile Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
-	
+
 	private volatile Serializer<?> serializer = new ByteArrayCrLfSerializer();
-	
+
 	private volatile TcpMessageMapper mapper = new TcpMessageMapper();
 
 	private volatile boolean singleUse;
@@ -77,15 +78,17 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	private volatile int poolSize = 5;
 
 	private volatile TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
-	
+
 	private volatile boolean lookupHost = true;
-	
+
 	private volatile String localAddress;
 
 	private volatile boolean usingNio;
-	
+
 	private volatile boolean usingDirectBuffers;
-	
+
+	private volatile String beanName;
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() 
@@ -140,6 +143,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setSoTimeout(this.soTimeout);
 		factory.setSoTrafficClass(this.soTrafficClass);
 		factory.setTaskExecutor(this.taskExecutor);
+		factory.setBeanName(this.beanName);
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
@@ -353,6 +357,10 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	public boolean isRunning() {
 		return this.connectionFactory.isRunning();
+	}
+
+	public void setBeanName(String name) {
+		this.beanName = name;
 	}
 
 }

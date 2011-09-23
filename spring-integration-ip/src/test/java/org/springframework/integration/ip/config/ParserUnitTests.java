@@ -40,6 +40,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.springframework.integration.ip.tcp.TcpOutboundGateway;
 import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
@@ -68,7 +69,7 @@ public class ParserUnitTests {
 
 	@Autowired
 	ApplicationContext ctx;
-	
+
 	@Autowired
 	@Qualifier(value="testInUdp")
 	UnicastReceivingChannelAdapter udpIn;
@@ -80,7 +81,7 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="testInTcp")
 	TcpReceivingChannelAdapter tcpIn;
-	
+
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.udp.UnicastSendingMessageHandler#0")
 	UnicastSendingMessageHandler udpOut;
@@ -94,6 +95,9 @@ public class ParserUnitTests {
 	TcpSendingMessageHandler tcpOut;
 
 	@Autowired
+	EventDrivenConsumer testOutTcpNio;
+
+	@Autowired
 	@Qualifier(value="inGateway1")
 	TcpInboundGateway tcpInboundGateway1;
 
@@ -104,11 +108,14 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpOutboundGateway#0")
 	TcpOutboundGateway tcpOutboundGateway;
-	
+
+	@Autowired
+	EventDrivenConsumer outGateway;
+
 	@Autowired
 	@Qualifier(value="externalTE")
 	TaskExecutor taskExecutor;
-	
+
 	@Autowired
 	AbstractConnectionFactory client1;
 
@@ -158,7 +165,7 @@ public class ParserUnitTests {
 
 	@Autowired
 	private MessageChannel errorChannel;
-	
+
 	@Autowired
 	private DirectChannel udpChannel;
 
@@ -183,7 +190,7 @@ public class ParserUnitTests {
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertFalse((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
 	}
-	
+
 	@Test
 	public void testInUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpInMulticast);
@@ -195,13 +202,13 @@ public class ParserUnitTests {
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
-		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));		
+		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertNull(dfa.getPropertyValue("errorChannel"));
 		DatagramPacketMessageMapper mapper = (DatagramPacketMessageMapper) dfa.getPropertyValue("mapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertTrue((Boolean)mapperAccessor.getPropertyValue("lookupHost"));
 	}
-	
+
 	@Test
 	public void testInTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpIn);
@@ -210,8 +217,10 @@ public class ParserUnitTests {
 		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
 		assertFalse(cfS1.isLookupHost());
+		assertFalse(tcpIn.isAutoStartup());
+		assertEquals(124, tcpIn.getPhase());
 	}
-	
+
 	@Test
 	public void testOutUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOut);
@@ -235,7 +244,7 @@ public class ParserUnitTests {
 		assertEquals("testOutUdp",udpOut.getComponentName());
 		assertEquals("ip:udp-outbound-channel-adapter", udpOut.getComponentType());
 	}
-	
+
 	@Test
 	public void testOutUdpMulticast() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOutMulticast);
@@ -254,9 +263,9 @@ public class ParserUnitTests {
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals(55, dfa.getPropertyValue("timeToLive"));
-		assertEquals(12, dfa.getPropertyValue("order"));		
+		assertEquals(12, dfa.getPropertyValue("order"));
 	}
-	
+
 	@Test
 	public void testUdpOrder() {
 		@SuppressWarnings("unchecked")
@@ -277,6 +286,8 @@ public class ParserUnitTests {
 		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
 		assertFalse(cfC1.isLookupHost());
 		assertEquals(35, dfa.getPropertyValue("order"));
+		assertFalse(tcpOut.isAutoStartup());
+		assertEquals(125, tcpOut.getPhase());
 	}
 
 	@Test
@@ -288,6 +299,8 @@ public class ParserUnitTests {
 		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
 		assertEquals(errorChannel, dfa.getPropertyValue("errorChannel"));
 		assertTrue(cfS2.isLookupHost());
+		assertFalse(tcpInboundGateway1.isAutoStartup());
+		assertEquals(126, tcpInboundGateway1.getPhase());
 	}
 
 	@Test
@@ -309,7 +322,9 @@ public class ParserUnitTests {
 		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
 		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 		assertTrue(cfC2.isLookupHost());
-		assertEquals(24, dfa.getPropertyValue("order"));		
+		assertEquals(24, dfa.getPropertyValue("order"));
+		assertFalse(tcpOutboundGateway.isAutoStartup());
+		assertEquals(127, tcpOutboundGateway.getPhase());
 	}
 
 	@Test
@@ -350,7 +365,7 @@ public class ParserUnitTests {
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertEquals(123, dfa.getPropertyValue("poolSize"));
 		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));		
+		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
 	}
 
 	@Test
@@ -389,7 +404,7 @@ public class ParserUnitTests {
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertEquals(123, dfa.getPropertyValue("poolSize"));
-		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));		
+		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
 	}
 
 	@Test
@@ -398,36 +413,38 @@ public class ParserUnitTests {
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
 		assertEquals(25, dfa.getPropertyValue("order"));
 	}
-	
+
 	@Test
 	public void testNewOut2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut2);
 		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
-		assertEquals(15, dfa.getPropertyValue("order"));		
+		assertEquals(15, dfa.getPropertyValue("order"));
 	}
-	
+
 	@Test
 	public void testNewIn1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn1);
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
 		assertNull(dfa.getPropertyValue("errorChannel"));
 	}
-	
+
 	@Test
 	public void testNewIn2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn2);
 		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
 	}
-	
+
 	@Test
 	public void testtCPOrder() {
+		this.outGateway.start();
+		this.testOutTcpNio.start();
 		@SuppressWarnings("unchecked")
 		Set<MessageHandler> handlers = (Set<MessageHandler>) TestUtils
 				.getPropertyValue(
 						TestUtils.getPropertyValue(this.tcpChannel, "dispatcher"),
 						"handlers");
 		Iterator<MessageHandler> iterator = handlers.iterator();
-		assertSame(this.tcpNewOut2, iterator.next());			//15 
+		assertSame(this.tcpNewOut2, iterator.next());			//15
 		assertSame(this.tcpOutboundGateway, iterator.next());	//24
 		assertSame(this.tcpNewOut1, iterator.next());			//25
 		assertSame(this.tcpOut, iterator.next());				//35

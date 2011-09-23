@@ -107,6 +107,9 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String LOOKUP_HOST = "lookup-host";
 	
+	public static final String AUTO_STARTUP = "auto-startup";
+
+	public static final String PHASE = "phase";
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
