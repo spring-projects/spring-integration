@@ -7,7 +7,7 @@
          xmlns:ns="http://docbook.org/ns/docbook">
   <title>Groovy support</title>
 
-  <para>With Spring Integration 2.0 we've added Groovy support allowing you to
+  <para>In Spring Integration 2.0 we added Groovy support allowing you to
   use the Groovy scripting language to provide the logic for
   various integration components similar to the way the Spring Expression Language
   (SpEL) is supported for routing, transformation and other integration
@@ -17,18 +17,15 @@
 
   <section id="groovy-config">
     <title>Groovy configuration</title>
-
-    <para>Depending on the complexity of your integration requirements Groovy
-    scripts could be provided inline as CDATA in XML configuration or as a
-    reference to a file containing the Groovy script. To enable Groovy support
-    Spring Integration defines a
-    <classname>GroovyScriptExecutingMessageProcessor</classname> which will
-    bind the  Message Payload as a
-    <code>payload</code> variable and the Message Headers as a <code>headers</code>
-    variable within the script execution context. All that is left for you to do is
-    write a script that uses those
-    variables. Below are a couple of sample configurations:</para>
-
+    <para>  
+    With Spring Integration 2.1, Groovy Support's configuration namespace
+    is an extension of Spring Integration's Scripting Support and shares the core configuration 
+    and behavior described in detail in the 
+    <xref linkend="scripting">Scripting Support</xref> section. Even though Groovy scripts are
+    well supported by generic Scripting Support, Groovy Support provides the 
+    <emphasis>Groovy</emphasis> configuration namespace which is backed by the Spring Framework's 
+    <classname>org.springframework.scripting.groovy.GroovyScriptFactory</classname> and related components, 
+    offering extended capabilities for using Groovy. Below are a couple of sample configurations:</para>
     <para><emphasis>Filter</emphasis> <programlisting language="xml">&lt;int:filter input-channel="referencedScriptInput"&gt;
    &lt;int-groovy:script location="some/path/to/groovy/file/GroovyFilterTests.groovy"/&gt;
 &lt;/int:filter&gt;
@@ -38,89 +35,19 @@
      return payload == 'good'
    ]]&gt;&lt;/int-groovy:script&gt;
 &lt;/int:filter&gt;</programlisting>
+	As the above examples show, the configuration looks identical to the general Scripting Support configuration. The only 
+	difference is the use of the Groovy namespace as indicated in the examples by the <emphasis>int-groovy</emphasis> namespace prefix. 
+	Also note that the <code>lang</code> attribute on the <code>&lt;script&gt;</code> tag is not valid in this namespace. 
+  </para>
 
-    Here, you see that the script can be included inline
-    or via the <code>location</code> attribute using the groovy namespace
-    support.</para>
-
-    <para>Other supported elements are <emphasis>router, service-activator,
-    transformer, and splitter. The configuration would look identical to that
-    above other than the main element's name.</emphasis></para>
-
-    <para>Another interesting aspect of using Groovy support is the framework's
-    ability to update (reload) scripts without restarting the Application
-    Context. To accomplish this, all you need to do is specify
-    the <code>refresh-check-delay</code> attribute on the <emphasis>script</emphasis>
-    element.
-
-    <programlisting language="xml">&lt;int-groovy:script location="..." refresh-check-delay="5000"/&gt;</programlisting>
-
-    In the above example any invocations that occur within the 5 seconds immediately following the
-    updating of the script would still be using the old script. However, any invocation that occurs
-    after those 5 seconds have elapsed will
-    result in execution of the new script. This is a good example where 'near real
-    time' is acceptable.
-
-    <programlisting language="xml">&lt;int-groovy:script location="..." refresh-check-delay="0"/&gt;</programlisting>
-
-    In the above example the context will be updated with any script modifications
-    as soon as such modification occurs. Basically this is an example of
-    'real-time' configuration and might not be the most efficient option (but could be useful during development).
-
-    <programlisting language="xml">&lt;int-groovy:script location="..." refresh-check-delay="-1"/&gt;</programlisting>
-
-    Any negative number value means the script will never be refreshed after
-    initial initialization of the application context. This is the default behavior.
-    In this case, the "dynamic" aspect of Groovy is not being used, but the syntax
-    might be the primary reason that Groovy has been chosen in the first place.
-    <important>Inline defined scripts can not be reloaded.</important></para>
+   
+    <para><emphasis>Groovy object customization</emphasis> </para>
     
-    <para><emphasis>Custom bindings</emphasis> </para>
-    
-    <para>
-    You already know that by default, 'payload' and 'headers' will be bound as Groovy binding variables.
-	However, some times in order to take the most out of Groovy you may want to customize Groovy bindings 
-	(e.g., include extra variables pointing to some scalar values or bind some beans as variables).
-   To support this requirement we have defined a simple strategy: ScriptVariableGenerator.
-  <programlisting language="java"><![CDATA[public interface ScriptVariableGenerator {
-	
-	Map<String, Object> generateScriptVariables(Message<?> message);
-	
-}]]></programlisting>
-
-	As you can see the only method to implement is <code>generateScriptVariables(Message)</code>. It takes the Message
-	as an argument. That allows you to use data available in the Message payload and/or headers. The return value is
-	the Map of variables that will be bound to the script's evaluation context. This method will be called every time
-	the script is executed, corresponding to the processing of that particular Message. We also provide a
-	default implementation and namespace based configuration for simple bindings via &lt;variable&gt; sub-elements (see below):
-	<programlisting language="xml"><![CDATA[<groovy:script location="foo/bar/MyScript.groovy">
-	<groovy:variable name="foo" value="foo"/>
-	<groovy:variable name="bar" value="bar"/>
-	<groovy:variable name="date" ref="date"/>
-</groovy:script>]]></programlisting>
-
-	As you can see similar to other constructs in Spring, when binding each of these variables you can either provide a
-	scalar value or reference another bean in the Application Context.
-    </para>
-    <para>
-     If you need more control over how a particular variable is generated, then all you need to do is 
-     provide your own implementation of ScriptVariableGenerator and reference it with the <code>script-variable-generator</code>
-	attribute:
-   <programlisting language="xml"><![CDATA[<int-groovy:script location="foo/bar/MyScript.groovy"
-				script-variable-generator="variableGenerator"/>
-
-<bean id="variableGenerator" class="foo.bar.MyScriptVariableGenerator"/>]]></programlisting>
-	
-	  <important>
-	  The <code>script-variable-generator</code> attribute and &lt;variable&gt; sub-element(s) are mutually exclusive. 
-	  You can use at most one of them. Also, the <code>script-variable-generator</code> and &lt;variable&gt; sub-elements
-	  cannot be used with an inline script, but rather only when pointing to the script via the <code>location</code> attribute.
-	  </important>
-	  
+   <para>
 	  If you need to customize the Groovy object itself, beyond setting variables, you can reference
-	  a bean that implementats <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via the
-	  <code>customizer</code> attribute. For example, this might be useful if you want to configure a domain-specific
-	  language (DSL) by modifying the MetaClass and registering functions to be available within the script.
+	  a bean that implements <classname>org.springframework.scripting.groovy.GroovyObjectCustomizer</classname> via the
+	  <code>customizer</code> attribute. For example, this might be useful if you want to implement a domain-specific
+	  language (DSL) by modifying the MetaClass and registering functions to be available within the script:
 	  
 	   <programlisting language="xml"><![CDATA[<int:service-activator input-channel="groovyChannel">
     <int-groovy:script location="foo/SomeScript.groovy" customizer="groovyCustomizer"/>
@@ -128,7 +55,7 @@
 
 <beans:bean id="groovyCustomizer" class="org.foo.MyGroovyObjectCustomizer"/>]]></programlisting>
 
-	  Setting a custom GroovyObjectCustomizer is not mutually exclusive with &lt;variable&gt; sub-elements or
+	  Setting a custom GroovyObjectCustomizer is not mutually exclusive with <code>&lt;variable&gt;</code> sub-elements or
 	  the <code>script-variable-generator</code> attribute. It can also be provided when defining an inline script.
     </para>
   </section>
@@ -150,15 +77,15 @@
 
     <para>The Groovy Control Bus executes messages on the input channel as
     Groovy scripts. It takes a message, compiles the body to a Script,
-    customizes it with a GroovyObjectCustomizer, and then executes it. The
+    customizes it with a <classname>GroovyObjectCustomizer</classname>, and then executes it. The
     Control Bus' customizer exposes all the beans in the application context
-    that are annotated with @ManagedResource, implement Spring's
-    Lifecycle interface or extend Spring's CustomizableThreadCreator base class
-    (e.g. several of the TaskExecutor and TaskScheduler implementations).</para>
+    that are annotated with <code>@ManagedResource</code>, implement Spring's
+    <classname>Lifecycle</classname>interface or extend Spring's <classname>CustomizableThreadCreator</classname> base class
+    (e.g. several of the <classname>TaskExecutor</classname> and <classname>TaskScheduler</classname> implementations).</para>
     
     <para>
      If you need to further customize the Groovy objects, you can also provide a reference to a bean
-     that implements <code>org.springframework.scripting.groovy.GroovyObjectCustomizer</code> via
+     that implements <classname>org.springframework.scripting.groovy.GroovyObjectCustomizer</classname> via
      the <code>customizer</code> attribute.
 	  
 	   <programlisting language="xml"><![CDATA[<int-groovy:control-bus input-channel="input"
