@@ -29,9 +29,9 @@ import java.net.SocketException;
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
 
-	protected boolean listening;
+	private boolean listening;
 	
-	protected String localAddress;
+	private String localAddress;
 
 
 	/**
@@ -50,6 +50,14 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	public TcpConnection getConnection() throws Exception {
 		throw new UnsupportedOperationException("Getting a connection from a server factory is not supported");
 	}
+
+	/**
+	 * @param listening the listening to set
+	 */
+	protected void setListening(boolean listening) {
+		this.listening = listening;
+	}
+
 
 	/**
 	 * 

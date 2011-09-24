@@ -33,7 +33,7 @@ import javax.net.ServerSocketFactory;
  */
 public class TcpNetServerConnectionFactory extends AbstractServerConnectionFactory {
 
-	protected ServerSocket serverSocket;
+	private ServerSocket serverSocket;
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -57,16 +57,16 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			return;
 		}
 		try {
-			if (this.localAddress == null) {
+			if (this.getLocalAddress() == null) {
 				this.serverSocket = ServerSocketFactory.getDefault()
 						.createServerSocket(this.getPort(), Math.abs(this.getPoolSize()));
 			} else {
-				InetAddress whichNic = InetAddress.getByName(this.localAddress);
+				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				this.serverSocket = ServerSocketFactory.getDefault()
 						.createServerSocket(this.getPort(), Math.abs(this.getPoolSize()), whichNic);
 			}
 			theServerSocket = this.serverSocket;
-			this.listening = true;
+			this.setListening(true);
 			logger.info("Listening on port " + this.getPort());
 			while (true) {
 				final Socket socket = serverSocket.accept();
@@ -79,7 +79,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				this.harvestClosedConnections();
 			}
 		} catch (Exception e) {
-			this.listening = false;
+			this.setListening(false);
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.warn("Server Socket closed");
@@ -98,6 +98,13 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			this.serverSocket.close();
 		} catch (IOException e) {}
 		this.serverSocket = null;
+	}
+
+	/**
+	 * @return the serverSocket
+	 */
+	protected ServerSocket getServerSocket() {
+		return serverSocket;
 	}
 	
 

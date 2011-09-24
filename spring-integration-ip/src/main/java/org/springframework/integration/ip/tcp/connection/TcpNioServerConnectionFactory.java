@@ -39,11 +39,11 @@ import java.util.Map;
  */
 public class TcpNioServerConnectionFactory extends AbstractServerConnectionFactory {
 
-	protected ServerSocketChannel serverChannel;
+	private ServerSocketChannel serverChannel;
 	
-	protected boolean usingDirectBuffers;
+	private boolean usingDirectBuffers;
 	
-	protected Map<SocketChannel, TcpNioConnection> connections = new HashMap<SocketChannel, TcpNioConnection>();
+	private Map<SocketChannel, TcpNioConnection> connections = new HashMap<SocketChannel, TcpNioConnection>();
 
 	private Selector selector;
 	
@@ -72,23 +72,23 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			int port = this.getPort();
 			logger.info("Listening on port " + port);
 			this.serverChannel.configureBlocking(false);
-			if (this.localAddress == null) {
+			if (this.getLocalAddress() == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(port),
 					Math.abs(this.getPoolSize()));
 			} else {
-				InetAddress whichNic = InetAddress.getByName(this.localAddress);
+				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port),
 						Math.abs(this.getPoolSize()));
 			}
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-			this.listening = true;
+			this.setListening(true);
 			this.selector = selector;
 			doSelect(this.serverChannel, selector);
 
 		} catch (IOException e) {
 			this.close();
-			this.listening = false;
+			this.setListening(false);
 			if (this.isActive()) {
 				logger.error("Error on ServerSocketChannel", e);
 				this.setActive(false);
@@ -171,6 +171,27 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	/**
+	 * @return the serverChannel
+	 */
+	protected ServerSocketChannel getServerChannel() {
+		return serverChannel;
+	}
+
+	/**
+	 * @return the usingDirectBuffers
+	 */
+	protected boolean isUsingDirectBuffers() {
+		return usingDirectBuffers;
+	}
+
+	/**
+	 * @return the connections
+	 */
+	protected Map<SocketChannel, TcpNioConnection> getConnections() {
+		return connections;
 	}
 	
 

@@ -45,8 +45,9 @@ public class TcpNetClientConnectionFactory extends
 	 */
 	public TcpConnection getConnection() throws Exception {
 		this.checkActive();
-		if (this.theConnection != null && this.theConnection.isOpen()) {
-			return this.theConnection;
+		TcpConnection theConnection = this.getTheConnection();
+		if (theConnection != null && theConnection.isOpen()) {
+			return theConnection;
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
@@ -58,7 +59,7 @@ public class TcpNetClientConnectionFactory extends
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
 		if (!this.isSingleUse()) {
-			this.theConnection = connection;
+			this.setTheConnection(connection);
 		}
 		this.harvestClosedConnections();
 		return connection;

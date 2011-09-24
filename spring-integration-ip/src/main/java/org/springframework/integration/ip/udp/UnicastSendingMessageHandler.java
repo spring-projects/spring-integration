@@ -55,14 +55,14 @@ public class UnicastSendingMessageHandler extends
 
 	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	protected volatile DatagramSocket socket;
+	private volatile DatagramSocket socket;
 
 
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
 	 */
 	private volatile boolean waitForAck = false;
-	
+
 	private volatile boolean acknowledge = false;
 
 	private volatile int ackPort;
@@ -79,13 +79,13 @@ public class UnicastSendingMessageHandler extends
 	private volatile int soReceiveBufferSize = -1;
 
 	private volatile String localAddress;
-	
+
 	private volatile CountDownLatch ackLatch;
 
 	private volatile boolean ackThreadRunning;
 
 	private volatile Executor taskExecutor;
-	
+
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
 	 * @param host Destination host.
@@ -246,8 +246,16 @@ public class UnicastSendingMessageHandler extends
 
 	protected void send(DatagramPacket packet) throws Exception {
 		DatagramSocket socket = this.getSocket();
-		packet.setSocketAddress(this.destinationAddress);
+		packet.setSocketAddress(this.getDestinationAddress());
 		socket.send(packet);
+	}
+
+	protected void setSocket(DatagramSocket socket) {
+		this.socket = socket;
+	}
+
+	protected DatagramSocket getTheSocket() {
+		return this.socket;
 	}
 
 	protected synchronized DatagramSocket getSocket() throws IOException {
@@ -274,11 +282,11 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	protected void setSocketAttributes(DatagramSocket socket) throws SocketException {
-		if (this.soTimeout >= 0) {
-			socket.setSoTimeout(this.soTimeout);
+		if (this.getSoTimeout() >= 0) {
+			socket.setSoTimeout(this.getSoTimeout());
 		}
-		if (this.soSendBufferSize > 0) {
-			socket.setSendBufferSize(this.soSendBufferSize);
+		if (this.getSoSendBufferSize() > 0) {
+			socket.setSendBufferSize(this.getSoSendBufferSize());
 		}
 	}
 
@@ -346,7 +354,7 @@ public class UnicastSendingMessageHandler extends
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
-	
+
 	/**
 	 * @param ackCounter the ackCounter to set
 	 */

@@ -51,7 +51,7 @@ import org.springframework.util.Assert;
  */
 public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener, SmartLifecycle {
 
-	protected volatile AbstractConnectionFactory connectionFactory;
+	private volatile AbstractConnectionFactory connectionFactory;
 
 	private Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
 
@@ -201,6 +201,13 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+	}
+
+	/**
+	 * @return the connectionFactory
+	 */
+	protected AbstractConnectionFactory getConnectionFactory() {
+		return connectionFactory;
 	}
 
 	/**

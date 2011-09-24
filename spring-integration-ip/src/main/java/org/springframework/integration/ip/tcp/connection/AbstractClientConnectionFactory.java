@@ -28,7 +28,7 @@ import java.net.SocketException;
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
-	protected TcpConnection theConnection;
+	private TcpConnection theConnection;
 
 	/**
 	 * Constructs a factory that will established connections to the host and port.
@@ -66,6 +66,20 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 		connection.setDeserializer(this.getDeserializer());
 		connection.setSerializer(this.getSerializer());
 		connection.setSingleUse(this.isSingleUse());
+	}
+
+	/**
+	 * @param theConnection the theConnection to set
+	 */
+	protected void setTheConnection(TcpConnection theConnection) {
+		this.theConnection = theConnection;
+	}
+
+	/**
+	 * @return the theConnection
+	 */
+	protected TcpConnection getTheConnection() {
+		return theConnection;
 	}
 
 }

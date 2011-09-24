@@ -33,20 +33,20 @@ import org.springframework.integration.ip.AbstractInternetProtocolReceivingChann
 import org.springframework.integration.ip.IpHeaders;
 
 /**
- * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a 
+ * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a
  * 4 byte length field, used to validate that all data was received. Packets may also contain
  * information indicating an acknowledgment needs to be sent.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
 public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolReceivingChannelAdapter {
 
-	protected volatile DatagramSocket socket;
+	private volatile DatagramSocket socket;
 
-	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
-	protected volatile int soSendBufferSize = -1;
+	private volatile int soSendBufferSize = -1;
 
 	private static Pattern addressPattern = Pattern.compile("([^:]*):([0-9]*)");
 
@@ -75,15 +75,15 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	public void run() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("UDP Receiver running on port:" + port);
+			logger.debug("UDP Receiver running on port:" + this.getPort());
 		}
 		checkTaskExecutor("UDP-Incoming-Msg-Handler");
 
-		listening = true;
-		
+		this.setListening(true);
+
 		// Do as little as possible here so we can loop around and catch the next packet.
 		// Just schedule the packet for processing.
-		while (this.active) {
+		while (this.isActive()) {
 			try {
 				asyncSendMessage(receive());
 			}
@@ -91,7 +91,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				// continue
 			}
 			catch (SocketException e) {
-				doStop(); 
+				doStop();
 			}
 			catch (Exception e) {
 				if (e instanceof MessagingException) {
@@ -100,7 +100,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				throw new MessagingException("failed to receive DatagramPacket", e);
 			}
 		}
-		listening = false;
+		this.setListening(false);
 	}
 
 	protected void sendAck(Message<byte[]> message) {
@@ -133,7 +133,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 	protected boolean asyncSendMessage(final DatagramPacket packet) {
-		this.taskExecutor.execute(new Runnable(){
+		this.getTaskExecutor().execute(new Runnable(){
 			public void run() {
 				Message<byte[]> message = null;
 				try {
@@ -156,26 +156,36 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	protected DatagramPacket receive() throws Exception {
 		DatagramSocket socket = this.getSocket();
-		final byte[] buffer = new byte[this.receiveBufferSize];
+		final byte[] buffer = new byte[this.getReceiveBufferSize()];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 		socket.receive(packet);
 		return packet;
 	}
 
+	/**
+	 * @param socket the socket to set
+	 */
+	public void setSocket(DatagramSocket socket) {
+		this.socket = socket;
+	}
+
+	protected DatagramSocket getTheSocket() {
+		return this.socket;
+	}
+
 	protected synchronized DatagramSocket getSocket() {
 		if (this.socket == null) {
 			try {
+				DatagramSocket socket = null;
+				String localAddress = this.getLocalAddress();
 				if (localAddress == null) {
-					this.socket = new DatagramSocket(this.port);
+					socket = new DatagramSocket(this.getPort());
 				} else {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
-					this.socket = new DatagramSocket(this.port, whichNic);
+					InetAddress whichNic = InetAddress.getByName(localAddress);
+					socket = new DatagramSocket(this.getPort(), whichNic);
 				}
-				
-				this.socket.setSoTimeout(this.soTimeout);
-				if (this.soReceiveBufferSize > 0) {
-					this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
-				}
+				setSocketAttributes(socket);
+				this.socket = socket;
 			}
 			catch (IOException e) {
 				throw new MessagingException("failed to create DatagramSocket", e);
@@ -184,12 +194,28 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		return this.socket;
 	}
 
+	/**
+	 * Sets timeout and receive buffer size
+	 *
+	 * @param socket
+	 * @throws SocketException
+	 */
+	protected void setSocketAttributes(DatagramSocket socket)
+			throws SocketException {
+		socket.setSoTimeout(this.getSoTimeout());
+		int soReceiveBufferSize = this.getSoReceiveBufferSize();
+		if (soReceiveBufferSize > 0) {
+			socket.setReceiveBufferSize(soReceiveBufferSize);
+		}
+	}
+
 	@Override
 	protected void doStop() {
 		super.doStop();
 		try {
-			this.socket.close();
+			DatagramSocket socket = this.socket;
 			this.socket = null;
+			socket.close();
 		}
 		catch (Exception e) {
 			// ignore
@@ -199,11 +225,11 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public void setSoSendBufferSize(int soSendBufferSize) {
 		this.soSendBufferSize = soSendBufferSize;
 	}
-	
+
 	public void setLookupHost(boolean lookupHost) {
 		this.mapper.setLookupHost(lookupHost);
 	}
-	
+
 	public String getComponentType(){
 		return "ip:udp-inbound-channel-adapter";
 	}

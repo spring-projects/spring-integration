@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,20 +48,23 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected volatile ConnectionFactory clientConnectionFactory;
+	private volatile ConnectionFactory clientConnectionFactory;
 
-	protected volatile ConnectionFactory serverConnectionFactory;
+	private volatile ConnectionFactory serverConnectionFactory;
 
-	protected Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
 
 	private volatile boolean autoStartup;
 
 	private volatile int phase;
 
-	protected synchronized TcpConnection getConnection() {
+	protected TcpConnection getConnection() {
 		TcpConnection connection = null;
+		if (this.clientConnectionFactory == null) {
+			return null;
+		}
 		try {
-			connection = clientConnectionFactory.getConnection();
+			connection = this.clientConnectionFactory.getConnection();
 		} catch (Exception e) {
 			logger.error("Error creating SocketWriter", e);
 		}
@@ -156,6 +159,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
+
 	public String getComponentType(){
 		return "ip:tcp-outbound-channel-adapter";
 	}
@@ -207,6 +211,27 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 
 	public void setPhase(int phase) {
 		this.phase = phase;
+	}
+
+	/**
+	 * @return the clientConnectionFactory
+	 */
+	protected ConnectionFactory getClientConnectionFactory() {
+		return clientConnectionFactory;
+	}
+
+	/**
+	 * @return the serverConnectionFactory
+	 */
+	protected ConnectionFactory getServerConnectionFactory() {
+		return serverConnectionFactory;
+	}
+
+	/**
+	 * @return the connections
+	 */
+	protected Map<String, TcpConnection> getConnections() {
+		return connections;
 	}
 
 }

@@ -39,9 +39,9 @@ import org.springframework.integration.core.MessageHandler;
  */
 public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler {
 
-	protected int timeToLive = -1;
+	private int timeToLive = -1;
 
-	protected String localAddress;
+	private String localAddress;
 	
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
@@ -99,7 +99,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	@Override
 	protected synchronized DatagramSocket getSocket() throws IOException {
-		if (this.socket == null) {
+		if (this.getTheSocket() == null) {
 			MulticastSocket socket;
 			if (this.isAcknowledge()) {
 				if (logger.isDebugEnabled()) {
@@ -126,9 +126,9 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 				NetworkInterface intfce = NetworkInterface.getByInetAddress(whichNic);
 				socket.setNetworkInterface(intfce);
 			}
-			this.socket = socket;
+			this.setSocket(socket);
 		}
-		return this.socket;
+		return this.getSocket();
 	}
 	
 
