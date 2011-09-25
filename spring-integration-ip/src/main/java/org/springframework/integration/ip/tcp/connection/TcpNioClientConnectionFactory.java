@@ -60,6 +60,7 @@ public class TcpNioClientConnectionFactory extends
 	 * reused for all requests while the connection remains open.
 	 */
 	public TcpConnection getConnection() throws Exception {
+		this.checkActive();
 		int n = 0;
 		while (this.selector == null) {
 			try {
@@ -74,8 +75,10 @@ public class TcpNioClientConnectionFactory extends
 		if (this.theConnection != null && this.theConnection.isOpen()) {
 			return this.theConnection;
 		}
-		logger.debug("Opening new socket channel connection to " + this.host + ":" + this.port);
-		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.host, this.port));
+		if (logger.isDebugEnabled()) {
+			logger.debug("Opening new socket channel connection to " + this.getHost() + ":" + this.getPort());
+		}
+		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
 		setSocketAttributes(socketChannel.socket());
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, this.isLookupHost());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
@@ -83,13 +86,13 @@ public class TcpNioClientConnectionFactory extends
 		TcpConnection wrappedConnection = wrapConnection(connection);
 		initializeConnection(wrappedConnection, socketChannel.socket());
 		socketChannel.configureBlocking(false);
-		if (this.soTimeout > 0) {
+		if (this.getSoTimeout() > 0) {
 			connection.setLastRead(System.currentTimeMillis());
 		}
 		this.connections.put(socketChannel, connection);
 		newChannels.add(socketChannel);
 		selector.wakeup();
-		if (!this.singleUse) {
+		if (!this.isSingleUse()) {
 			this.theConnection = wrappedConnection;
 		}
 		return wrappedConnection;
@@ -112,12 +115,14 @@ public class TcpNioClientConnectionFactory extends
 	}
 
 	public void run() {
-		logger.debug("Read selector running for connections to " + host + ":" + port);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Read selector running for connections to " + this.getHost() + ":" + this.getPort());
+		}
 		try {
 			this.selector = Selector.open();
-			while (this.active) {
+			while (this.isActive()) {
 				SocketChannel newChannel;
-				int selectionCount = selector.select(this.soTimeout);
+				int selectionCount = selector.select(this.getSoTimeout());
 				while ((newChannel = newChannels.poll()) != null) {
 					newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
 				}
@@ -125,13 +130,11 @@ public class TcpNioClientConnectionFactory extends
 			}
 		} catch (Exception e) {
 			logger.error("Exception in read selector thread", e);
-			this.active = false;
+			this.setActive(false);
 		}
-		logger.debug("Read selector exiting for connections to " + host + ":" + port);
-	}
-
-	public boolean isRunning() {
-		return this.active;		
+		if (logger.isDebugEnabled()) {
+			logger.debug("Read selector exiting for connections to " + this.getHost() + ":" + this.getPort());
+		}
 	}
 
 }

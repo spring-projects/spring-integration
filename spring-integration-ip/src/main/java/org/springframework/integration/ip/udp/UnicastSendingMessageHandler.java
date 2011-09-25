@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,12 +36,11 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandler} implementation that maps a Message into
+ * A {@link org.springframework.integration.core.MessageHandler} implementation that maps a Message into
  * a UDP datagram packet and sends that to the specified host and port.
  *
  * Messages can be basic, with no support for reliability, can be prefixed
@@ -55,7 +53,7 @@ import org.springframework.util.Assert;
 public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable{
 
-	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
 	protected volatile DatagramSocket socket;
 
@@ -63,30 +61,30 @@ public class UnicastSendingMessageHandler extends
 	/**
 	 * If true adds headers to instruct receiving adapter to return an ack.
 	 */
-	protected volatile boolean waitForAck = false;
+	private volatile boolean waitForAck = false;
 	
-	protected volatile boolean acknowledge = false;
+	private volatile boolean acknowledge = false;
 
-	protected volatile int ackPort;
+	private volatile int ackPort;
 
-	protected volatile int ackTimeout = 5000;
+	private volatile int ackTimeout = 5000;
 
-	protected volatile int ackCounter = 1;
+	private volatile int ackCounter = 1;
 
-	protected volatile Map<String, CountDownLatch> ackControl = Collections
+	private volatile Map<String, CountDownLatch> ackControl = Collections
 			.synchronizedMap(new HashMap<String, CountDownLatch>());
 
-	protected volatile Exception fatalException;
+	private volatile Exception fatalException;
 
-	protected int soReceiveBufferSize = -1;
+	private volatile int soReceiveBufferSize = -1;
 
-	protected String localAddress;
+	private volatile String localAddress;
 	
-	private CountDownLatch ackLatch;
+	private volatile CountDownLatch ackLatch;
 
-	private boolean ackThreadRunning;
+	private volatile boolean ackThreadRunning;
 
-	protected volatile Executor taskExecutor;
+	private volatile Executor taskExecutor;
 	
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -153,7 +151,7 @@ public class UnicastSendingMessageHandler extends
 				ackTimeout);
 	}
 
-	protected void setReliabilityAttributes(boolean lengthCheck,
+	protected final void setReliabilityAttributes(boolean lengthCheck,
 			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
 		this.mapper.setLengthCheck(lengthCheck);
 		this.waitForAck = acknowledge;
@@ -334,7 +332,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * @see Socket#setReceiveBufferSize(int)
+	 * @see java.net.Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 */
 	public void setSoReceiveBufferSize(int size) {
@@ -349,7 +347,35 @@ public class UnicastSendingMessageHandler extends
 		this.taskExecutor = taskExecutor;
 	}
 	
+	/**
+	 * @param ackCounter the ackCounter to set
+	 */
+	public void setAckCounter(int ackCounter) {
+		this.ackCounter = ackCounter;
+	}
+
 	public String getComponentType(){
 		return "ip:udp-outbound-channel-adapter";
+	}
+
+	/**
+	 * @return the acknowledge
+	 */
+	public boolean isAcknowledge() {
+		return acknowledge;
+	}
+
+	/**
+	 * @return the ackPort
+	 */
+	public int getAckPort() {
+		return ackPort;
+	}
+
+	/**
+	 * @return the soReceiveBufferSize
+	 */
+	public int getSoReceiveBufferSize() {
+		return soReceiveBufferSize;
 	}
 }

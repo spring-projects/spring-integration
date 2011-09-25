@@ -19,8 +19,6 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketException;
 
-import org.springframework.util.Assert;
-
 /**
  * Abstract class for client connection factories; client connection factories
  * establish outgoing connections.
@@ -38,9 +36,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * @param port The port.
 	 */
 	public AbstractClientConnectionFactory(String host, int port) {
-		Assert.notNull(host, "host must not be null");
-		this.host = host;
-		this.port = port;
+		super(host, port);
 	}
 	
 	/**
@@ -53,11 +49,12 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	 * @param socket The new socket. 
 	 */
 	protected void initializeConnection(TcpConnection connection, Socket socket) {
-		if (this.listener != null) {
-			connection.registerListener(this.listener);
+		TcpListener listener = this.getListener();
+		if (listener != null) {
+			connection.registerListener(listener);
 		}
-		if (this.listener != null || this.singleUse) {
-			if (this.soTimeout <= 0) {
+		if (listener != null || this.isSingleUse()) {
+			if (this.getSoTimeout() <= 0) {
 				try {
 					socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 				} catch (SocketException e) {
@@ -65,10 +62,10 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 				}
 			}
 		}
-		connection.setMapper(this.mapper);
-		connection.setDeserializer(this.deserializer);
-		connection.setSerializer(this.serializer);
-		connection.setSingleUse(this.singleUse);
+		connection.setMapper(this.getMapper());
+		connection.setDeserializer(this.getDeserializer());
+		connection.setSerializer(this.getSerializer());
+		connection.setSingleUse(this.isSingleUse());
 	}
 
 }

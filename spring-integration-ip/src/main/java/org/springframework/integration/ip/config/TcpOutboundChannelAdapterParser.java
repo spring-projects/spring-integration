@@ -36,6 +36,10 @@ public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 				".TcpSendingMessageHandler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.PHASE);
 		return builder.getBeanDefinition();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,68 +33,64 @@ import org.springframework.util.Assert;
  * Base class for TcpConnections. TcpConnections are established by
  * client connection factories (outgoing) or server connection factories
  * (incoming).
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
  */
 public abstract class AbstractTcpConnection implements TcpConnection {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
-	
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
 	@SuppressWarnings("rawtypes")
-	protected Deserializer deserializer;
-	
+	private volatile Deserializer deserializer;
+
 	@SuppressWarnings("rawtypes")
-	protected Serializer serializer;
-	
-	protected TcpMessageMapper mapper;
-	
-	protected TcpListener listener;
-	
-	private TcpListener actualListener;
+	private volatile Serializer serializer;
 
-	protected TcpSender sender;
+	private volatile TcpMessageMapper mapper;
 
-	protected boolean singleUse;
+	private volatile TcpListener listener;
 
-	protected final boolean server;
+	private volatile TcpListener actualListener;
 
-	protected String connectionId;
-	
-	private AtomicLong sequence = new AtomicLong();
-	
-	private int soLinger = -1;
+	private volatile TcpSender sender;
 
-	private String hostName = "unknown";
+	private volatile boolean singleUse;
 
-	private String hostAddress = "unknown";
-	
-	private int port;
-	
-	private final boolean lookupHost;
+	private final boolean server;
 
-	private int hashCode;
-	
+	private volatile String connectionId;
+
+	private final AtomicLong sequence = new AtomicLong();
+
+	private volatile int soLinger = -1;
+
+	private volatile String hostName = "unknown";
+
+	private volatile String hostAddress = "unknown";
+
+	private volatile int port;
+
+	private static AtomicLong connectionNumber = new AtomicLong();
+
 	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
-		this.lookupHost = lookupHost;
-		this.hashCode = socket.hashCode();
 		InetAddress inetAddress = socket.getInetAddress();
 		if (inetAddress != null) {
 			this.hostAddress = inetAddress.getHostAddress();
-			if (this.lookupHost) {
+			if (lookupHost) {
 				this.hostName = inetAddress.getHostName();
 			} else {
 				this.hostName = this.hostAddress;
 			}
 		}
-		this.connectionId = this.hostName + ":" + this.port + ":" + this.hashCode;
+		this.connectionId = this.hostName + ":" + this.port + ":" + connectionNumber.incrementAndGet();
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
 	}
-	
+
 	public void afterSend(Message<?> message) throws Exception {
 		if (logger.isDebugEnabled())
 			logger.debug("Message sent " + message);
@@ -119,7 +115,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * If we have been intercepted, propagate the close from the outermost interceptor; 
+	 * If we have been intercepted, propagate the close from the outermost interceptor;
 	 * otherwise, just call close().
 	 */
 	protected void closeConnection() {
@@ -147,14 +143,14 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	public void setMapper(TcpMessageMapper mapper) {
 		Assert.notNull(mapper, this.getClass().getName() + " Mapper may not be null");
 		this.mapper = mapper;
-		if (this.serializer != null && 
+		if (this.serializer != null &&
 			 !(this.serializer instanceof AbstractByteArraySerializer)) {
 			mapper.setStringToBytes(false);
 		}
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the deserializer
 	 */
 	public Deserializer<?> getDeserializer() {
@@ -169,7 +165,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the serializer
 	 */
 	public Serializer<?> getSerializer() {
@@ -177,7 +173,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * @param serializer the serializer to set 
+	 * @param serializer the serializer to set
 	 */
 	public void setSerializer(Serializer<?> serializer) {
 		this.serializer = serializer;
@@ -202,7 +198,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 			this.actualListener = outerInterceptor.getListener();
 		}
 	}
-	
+
 	/**
 	 * @param sender the sender to set
 	 */
@@ -219,9 +215,16 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	public TcpListener getListener() {
 		return this.listener;
 	}
-	
+
 	/**
-	 * @param singleUse true if this socket is to used once and 
+	 * @return the sender
+	 */
+	public TcpSender getSender() {
+		return sender;
+	}
+
+	/**
+	 * @param singleUse true if this socket is to used once and
 	 * discarded.
 	 */
 	public void setSingleUse(boolean singleUse) {
@@ -229,7 +232,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return True if connection is used once.
 	 */
 	public boolean isSingleUse() {
@@ -255,5 +258,5 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	public String getConnectionId() {
 		return this.connectionId;
 	}
-	
+
 }

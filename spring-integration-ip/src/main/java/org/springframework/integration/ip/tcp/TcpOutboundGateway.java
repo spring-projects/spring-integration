@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageTimeoutException;
@@ -35,28 +36,34 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.util.Assert;
 
-/** 
+/**
  * TCP outbound gateway that uses a client connection factory. If the factory is configured
  * for single-use connections, each request is sent on a new connection; if the factory does not use
  * single use connections, each request is blocked until the previous response is received
- * (or times out). Asynchronous requests/responses over the same connection are not 
+ * (or times out). Asynchronous requests/responses over the same connection are not
  * supported - use a pair of outbound/inbound adapters for that use case.
- * 
+ * <p/>
+ * {@link SmartLifecycle} methods delegate to the underlying {@link AbstractConnectionFactory}
+ *
+ *
  * @author Gary Russell
  * @since 2.0
  */
-public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener {
+public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler implements TcpSender, TcpListener, SmartLifecycle {
 
-	protected AbstractConnectionFactory connectionFactory;
-	
+	protected volatile AbstractConnectionFactory connectionFactory;
+
 	private Map<String, AsyncReply> pendingReplies = new ConcurrentHashMap<String, AsyncReply>();
-	
+
 	private Semaphore semaphore = new Semaphore(1, true);
 
-	private long replyTimeout = 10000;
-	
-	private long requestTimeout = 10000;
+	private volatile long replyTimeout = 10000;
 
+	private volatile long requestTimeout = 10000;
+
+	private volatile boolean autoStartup = true;
+
+	private volatile int phase;
 
 	/**
 	 * @param requestTimeout the requestTimeout to set
@@ -98,7 +105,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 			connection.send(requestMessage);
 			Message<?> replyMessage = reply.getReply();
 			if (replyMessage == null) {
-				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");				
+				throw new MessageTimeoutException(requestMessage, "Timed out waiting for response");
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Respose " + replyMessage);
@@ -137,12 +144,8 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		return false;
 	}
 
-	public boolean isListening() {
-		return false;
-	}
-
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
-		Assert.isTrue(connectionFactory instanceof AbstractClientConnectionFactory, 
+		Assert.isTrue(connectionFactory instanceof AbstractClientConnectionFactory,
 				this.getClass().getName() + " requires a client connection factory");
 		this.connectionFactory = connectionFactory;
 		connectionFactory.registerListener(this);
@@ -157,10 +160,52 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		// do nothing - no asynchronous multiplexing supported
 	}
 
+	/**
+	 * Specify the Spring Integration reply channel. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 */
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+	public String getComponentType(){
+		return "ip:tcp-outbound-gateway";
+	}
+
+	public void start() {
+		this.connectionFactory.start();
+	}
+
+	public void stop() {
+		this.connectionFactory.stop();
+	}
+
+	public boolean isRunning() {
+		return this.connectionFactory.isRunning();
+	}
+
+	public int getPhase() {
+		return this.phase;
+	}
+
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	public void stop(Runnable callback) {
+		this.connectionFactory.stop(callback);
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
 
 	/**
 	 * Class used to coordinate the asynchronous reply to its request.
-	 * 
+	 *
 	 * @author Gary Russell
 	 * @since 2.0
 	 */
@@ -197,14 +242,4 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 	}
 
-	/**
-	 * Specify the Spring Integration reply channel. If this property is not
-	 * set the gateway will check for a 'replyChannel' header on the request.
-	 */
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
-	}
-	public String getComponentType(){
-		return "ip:tcp-outbound-gateway";
-	}
 }

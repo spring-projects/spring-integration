@@ -63,21 +63,22 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
 	public void run() {
-		if (this.listener == null) {
+		if (this.getListener() == null) {
 			logger.info("No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
 			this.serverChannel = ServerSocketChannel.open();
-			logger.info("Listening on port " + this.port);
+			int port = this.getPort();
+			logger.info("Listening on port " + port);
 			this.serverChannel.configureBlocking(false);
 			if (this.localAddress == null) {
-				this.serverChannel.socket().bind(new InetSocketAddress(this.port),
-					Math.abs(this.poolSize));
+				this.serverChannel.socket().bind(new InetSocketAddress(port),
+					Math.abs(this.getPoolSize()));
 			} else {
 				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, this.port),
-						Math.abs(this.poolSize));
+				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, port),
+						Math.abs(this.getPoolSize()));
 			}
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -88,9 +89,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		} catch (IOException e) {
 			this.close();
 			this.listening = false;
-			if (this.active) {
+			if (this.isActive()) {
 				logger.error("Error on ServerSocketChannel", e);
-				this.active = false;
+				this.setActive(false);
 			}
 		}
 	}
@@ -111,8 +112,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	 */
 	private void doSelect(ServerSocketChannel server, final Selector selector)
 			throws IOException, ClosedChannelException, SocketException {
-		while (this.active) {
-			int selectionCount = selector.select(this.soTimeout);
+		while (this.isActive()) {
+			int selectionCount = selector.select(this.getSoTimeout());
 			this.processNioSelections(selectionCount, selector, server, this.connections);			
 		}
 	}
@@ -153,10 +154,6 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			logger.error("Failed to establish new incoming connection", e);
 			return null;
 		}
-	}
-
-	public boolean isRunning() {
-		return this.active;
 	}
 
 	public void close() {
