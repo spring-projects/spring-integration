@@ -19,7 +19,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
-import org.springframework.integration.aggregator.ResequensingMessageHandler;
+import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -60,7 +60,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequensingMessageHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageHandler.class);
 		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageGroupProcessor.class);
 
 		// Comparator
