@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,14 +49,14 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 		
 		String restTemplate = element.getAttribute("rest-template");
-		if (StringUtils.hasText(restTemplate)){
+		if (StringUtils.hasText(restTemplate)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addConstructorArgReference("restTemplate");
+			builder.addConstructorArgReference(restTemplate);
 		}
 		else {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
+			for (String referenceAttributeName : HttpAdapterParsingUtils.REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			}
 		}
 		
 		String headerMapper = element.getAttribute("header-mapper");
