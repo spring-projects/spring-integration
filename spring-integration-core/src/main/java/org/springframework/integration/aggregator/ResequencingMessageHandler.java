@@ -25,23 +25,23 @@ import org.springframework.integration.store.MessageGroupStore;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class ResequensingMessageHandler extends AbstractCorrelatingMessageHandler {
+public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
 
 	
-	public ResequensingMessageHandler(MessageGroupProcessor processor,
+	public ResequencingMessageHandler(MessageGroupProcessor processor,
 			MessageGroupStore store, CorrelationStrategy correlationStrategy,
 			ReleaseStrategy releaseStrategy) {
 		super(processor, store, correlationStrategy, releaseStrategy);
 	}
 
 	
-	public ResequensingMessageHandler(MessageGroupProcessor processor,
+	public ResequencingMessageHandler(MessageGroupProcessor processor,
 			MessageGroupStore store) {
 		super(processor, store);
 	}
 
 	
-	public ResequensingMessageHandler(MessageGroupProcessor processor) {
+	public ResequencingMessageHandler(MessageGroupProcessor processor) {
 		super(processor);
 	}
 	
