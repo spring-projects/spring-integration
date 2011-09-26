@@ -38,16 +38,27 @@ import com.gemstone.gemfire.cache.Region;
  */
 public class GemfireMessageStore extends AbstractMessageGroupStore implements MessageStore{
 
-	private volatile Region<UUID, Message<?>> messageRegion;
+	private final Region<UUID, Message<?>> messageRegion;
 	
-	private volatile Region<Object, MessageGroup> messageGroupRegion;
-	
-	private final Cache cache;
+	private final Region<Object, MessageGroup> messageGroupRegion;
 
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
-		this.cache = cache;
-		this.initRegions();
+		try {
+			RegionFactoryBean<UUID, Message<?>> messageRegionFactoryBean = new RegionFactoryBean<UUID, Message<?>>();
+			messageRegionFactoryBean.setBeanName("messageRegionFactoryBean");
+			messageRegionFactoryBean.setCache(cache);
+			messageRegionFactoryBean.afterPropertiesSet();
+			this.messageRegion = messageRegionFactoryBean.getObject();
+			
+			RegionFactoryBean<Object, MessageGroup> messageGroupRegionFactoryBean = new RegionFactoryBean<Object, MessageGroup>();
+			messageGroupRegionFactoryBean.setBeanName("messageGroupRegionFactoryBean");
+			messageGroupRegionFactoryBean.setCache(cache);
+			messageGroupRegionFactoryBean.afterPropertiesSet();
+			this.messageGroupRegion = messageGroupRegionFactoryBean.getObject();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to initialize Gemfire Regions");
+		}
 	}
 
 	public Message<?> getMessage(UUID id) {
@@ -87,73 +98,53 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		synchronized (groupId) {
-			SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-			messageGroup.add(message);
-			this.messageGroupRegion.put(groupId, messageGroup);
-			return messageGroup;
-		}
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.add(message);
+		this.messageGroupRegion.put(groupId, messageGroup);
+		return messageGroup;
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "'group' must not be null");
-		Object groupId = group.getGroupId();
-		synchronized (groupId) {
-			((SimpleMessageGroup)group).markAll();
-			this.messageGroupRegion.put(group.getGroupId(), group);
-			return group;
-		}
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(group);
+		messageGroup.markAll();
+		this.messageGroupRegion.put(group.getGroupId(), group);
+		return group;
 	}
 
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		synchronized (groupId) {
-			SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-			messageGroup.remove(messageToRemove);
-			this.messageGroupRegion.put(groupId, messageGroup);
-			return messageGroup;
-		}
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.remove(messageToRemove);
+		this.messageGroupRegion.put(groupId, messageGroup);
+		return messageGroup;
 	}
 
 	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToMark, "'messageToMark' must not be null");
-		synchronized (groupId) {
-			SimpleMessageGroup messageGroup = (SimpleMessageGroup) this.getMessageGroup(groupId);
-			messageGroup.mark(messageToMark);
-			this.messageGroupRegion.put(groupId, messageGroup);
-			return messageGroup;
-		}
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.mark(messageToMark);
+		this.messageGroupRegion.put(groupId, messageGroup);
+		return messageGroup;
 	}
 
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		synchronized (groupId) {
-			this.messageGroupRegion.remove(groupId);
-		}
+		this.messageGroupRegion.remove(groupId);
 	}
 	
 	public Iterator<MessageGroup> iterator() {
 		return this.messageGroupRegion.values().iterator();
 	}
-
-	private void initRegions()  {
-		try {
-			RegionFactoryBean<UUID, Message<?>> messageRegionFactoryBean = new RegionFactoryBean<UUID, Message<?>>();
-			messageRegionFactoryBean.setBeanName("messageRegionFactoryBean");
-			messageRegionFactoryBean.setCache(cache);
-			messageRegionFactoryBean.afterPropertiesSet();
-			this.messageRegion = messageRegionFactoryBean.getObject();
-			
-			RegionFactoryBean<Object, MessageGroup> messageGroupRegionFactoryBean = new RegionFactoryBean<Object, MessageGroup>();
-			messageGroupRegionFactoryBean.setBeanName("messageGroupRegionFactoryBean");
-			messageGroupRegionFactoryBean.setCache(cache);
-			messageGroupRegionFactoryBean.afterPropertiesSet();
-			this.messageGroupRegion = messageGroupRegionFactoryBean.getObject();
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Failed to initialize Gemfire Regions");
+	
+	private SimpleMessageGroup getSimpleMessageGroup(MessageGroup messageGroup){
+		if (messageGroup instanceof SimpleMessageGroup){
+			return (SimpleMessageGroup) messageGroup;
+		}
+		else {
+			return new SimpleMessageGroup(messageGroup);
 		}
 	}
-
 }
