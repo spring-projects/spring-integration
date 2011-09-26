@@ -26,12 +26,12 @@ import org.springframework.beans.factory.xml.ParserContext;
  */
 abstract class HttpAdapterParsingUtils {
 
-	private static final String[] REST_TEMPLATE_ATTRIBUTES = {
+	static final String[] REST_TEMPLATE_REFERENCE_ATTRIBUTES = {
 		"request-factory", "error-handler", "message-converters"
 	};
 
 	static void verifyNoRestTemplateAttributes(Element element, ParserContext parserContext) {
-		for (String attributeName : REST_TEMPLATE_ATTRIBUTES) {
+		for (String attributeName : REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
 			if (element.hasAttribute(attributeName)) {
 				parserContext.getReaderContext().error("When providing a 'rest-template' reference, the '"
 						+ attributeName + "' attribute is not allowed.",

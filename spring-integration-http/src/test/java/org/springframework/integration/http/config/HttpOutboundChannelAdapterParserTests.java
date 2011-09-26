@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,27 +54,27 @@ import org.springframework.web.client.RestTemplate;
 public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired @Qualifier("minimalConfig")
-	private AbstractEndpoint minimalConfigEndpoint;
+	private AbstractEndpoint minimalConfig;
 
 	@Autowired @Qualifier("fullConfig")
-	private AbstractEndpoint fullConfigEndpoint;
+	private AbstractEndpoint fullConfig;
 	
 	@Autowired @Qualifier("restTemplateConfig")
 	private AbstractEndpoint restTemplateConfig;
 
+	@Autowired @Qualifier("customRestTemplate")
+	private RestTemplate customRestTemplate;
+
 	@Autowired
 	private ApplicationContext applicationContext;
-	
-	@Autowired
-	private RestTemplate restTemplate;
 
 
 	@Test
 	public void minimalConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfigEndpoint);
-		RestTemplate rTemplate = 
-			TestUtils.getPropertyValue(this.minimalConfigEndpoint, "handler.restTemplate", RestTemplate.class);
-		assertNotSame(restTemplate, rTemplate);
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.minimalConfig);
+		RestTemplate restTemplate = 
+			TestUtils.getPropertyValue(this.minimalConfig, "handler.restTemplate", RestTemplate.class);
+		assertNotSame(customRestTemplate, restTemplate);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
@@ -94,7 +93,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void fullConfig() {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigEndpoint);
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfig);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(false, handlerAccessor.getPropertyValue("expectReply"));
@@ -132,9 +131,9 @@ public class HttpOutboundChannelAdapterParserTests {
 	
 	@Test
 	public void restTemplateConfig() {
-		RestTemplate rTemplate = 
+		RestTemplate restTemplate = 
 			TestUtils.getPropertyValue(this.restTemplateConfig, "handler.restTemplate", RestTemplate.class);
-		assertEquals(restTemplate, rTemplate);
+		assertEquals(customRestTemplate, restTemplate);
 	}
 
 	@Test(expected=BeanDefinitionParsingException.class)
