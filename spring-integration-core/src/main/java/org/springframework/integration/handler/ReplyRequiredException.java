@@ -14,32 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway;
+package org.springframework.integration.handler;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.MessagingException;
 
 /**
+ * Exception that indicates no reply message is produced by a handler
+ * that does have a value of true for the 'requiresReply' property.
+ * 
  * @author Mark Fisher
- * @author Oleg Zhurakousky
+ * @since 2.1
  */
-public interface TestService {
+@SuppressWarnings("serial")
+public class ReplyRequiredException extends MessagingException {
 
-	String requestReply(String input);
-	
-	byte[] requestReplyInBytes(String input);
-
-	void oneWay(String input);
-
-	String solicitResponse();
-
-	Integer requestReplyWithIntegers(Integer input);
-
-	String requestReplyWithMessageParameter(Message<?> message);
-
-	Message<?> requestReplyWithMessageReturnValue(String input);
-
-	@Payload("#method + #args.length")
-	String requestReplyWithPayloadAnnotation();
+	public ReplyRequiredException(Message<?> failedMessage, String description) {
+		super(failedMessage, description);
+	}
 
 }

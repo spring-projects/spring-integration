@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -69,8 +68,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	/**
-	 * Flag wether reply is required. If true an incoming message MUST result in a reply message being sent.
-	 * If false an incoming message MAY result in a reply message being sent
+	 * Flag whether a reply is required. If true an incoming message MUST result in a reply message being sent.
+	 * If false an incoming message MAY result in a reply message being sent. Default is false.
 	 */
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
@@ -101,8 +100,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			this.handleResult(result, requestHeaders);
 		}
 		else if (this.requiresReply) {
-			throw new MessageHandlingException(message, "handler '" + this
-					+ "' requires a reply, but no reply was received");
+			throw new ReplyRequiredException(message, "No reply produced by handler '" +
+					this.getComponentName() + "', and its 'requiresReply' property is set to true.");
 		}
 		else if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);

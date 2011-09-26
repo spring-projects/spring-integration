@@ -175,6 +175,7 @@ project('spring-integration-amqp') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { optional = true }
         compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
             exclude group: 'org.springframework', module: 'spring-aop'
             exclude group: 'org.springframework', module: 'spring-beans'
@@ -246,8 +247,13 @@ project('spring-integration-gemfire') {
     description = 'Spring Integration GemFire Support'
     dependencies {
         compile project(":spring-integration-core")
+        compile ("org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion") {
+            exclude group: 'org.springframework', module: 'spring-context-support'
+            exclude group: 'org.springframework', module: 'spring-core'
+            exclude group: 'org.springframework', module: 'spring-tx'
+        }
         compile "org.springframework:spring-context:$springVersion"
-        compile "org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion"
+        compile "org.springframework:spring-tx:$springVersion"
         testCompile project(":spring-integration-stream")
         testCompile project(":spring-integration-test")
     }
@@ -260,6 +266,7 @@ project('spring-integration-groovy') {
     description = 'Spring Integration Groovy Support'
     dependencies {
         compile project(":spring-integration-core")
+        compile project(":spring-integration-scripting")
         compile "org.codehaus.groovy:groovy-all:1.7.5"
         compile "org.springframework:spring-context-support:$springVersion"
     }
@@ -363,10 +370,12 @@ project('spring-integration-redis') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context:$springVersion"
-        compile "org.springframework:spring-dao:2.0.3"
+        compile "org.springframework:spring-tx:$springVersion"
         compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") 
         compile("org.codehaus.jackson:jackson-core-asl:$jacksonVersion") 
         compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
+            exclude group: 'org.springframework', module: 'spring-core'
+            exclude group: 'org.springframework', module: 'spring-context-support'
             exclude group: 'org.springframework', module: 'spring-beans'
             exclude group: 'org.springframework', module: 'spring-tx'
         }
@@ -449,7 +458,8 @@ project('spring-integration-twitter') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-context-support:$springVersion"
-        compile "org.twitter4j:twitter4j-core:2.1.12"
+        compile "org.springframework.social:spring-social-twitter:1.0.0.RELEASE"
+        compile "org.springframework.security:spring-security-crypto:3.1.0.RC3"
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }

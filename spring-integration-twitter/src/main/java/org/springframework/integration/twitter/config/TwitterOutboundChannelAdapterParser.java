@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors
+ * Copyright 2002-2011 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.twitter.outbound.DirectMessageSendingMessageHandler;
+import org.springframework.integration.twitter.outbound.StatusUpdatingMessageHandler;
 
 /**
  * Parser for all outbound Twitter adapters
@@ -32,31 +34,28 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
  */
 public class TwitterOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
-
-
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		String className = determineClassName(element, parserContext);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(className);
+		Class<?> clazz = determineClass(element, parserContext);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(clazz);
 		builder.addConstructorArgReference(element.getAttribute("twitter-template"));
 		return builder.getBeanDefinition();
 	}
 
 
-	private static String determineClassName(Element element, ParserContext parserContext) {
-		String className = null;
+	private static Class<?> determineClass(Element element, ParserContext parserContext) {
+		Class<?> clazz = null;
 		String elementName = element.getLocalName().trim();
 		if ("outbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.StatusUpdatingMessageHandler";
+			clazz = StatusUpdatingMessageHandler.class;
 		}
 		else if ("dm-outbound-channel-adapter".equals(elementName)) {
-			className = BASE_PACKAGE + ".outbound.DirectMessageSendingMessageHandler";
+			clazz = DirectMessageSendingMessageHandler.class;
 		}
 		else {
 			parserContext.getReaderContext().error("element '" + elementName + "' is not supported by this parser.", element);
 		}
-		return className;
+		return clazz;
 	}
 
 }

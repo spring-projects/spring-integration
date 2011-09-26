@@ -397,9 +397,17 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
       </callout>
       
       <callout arearefs="aggxml08">
-        <para>Indicates if partially aggregated messages should be released when their storage time has expired
-        (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
+        <para>
+        Indicates that expired messages should be aggregated and sent to the 'output-channel' or 'replyChannel' 
+		once their containing <classname>MessageGroup</classname> is expired (see <code>MessageGroupStore.expireMessageGroups(long)</code>).
+		One way of expiring <classname>MessageGroup</classname>s is by configuring a <classname>MessageGroupStoreReaper</classname>.
+		However <classname>MessageGroup</classname>s can alternatively be expired by simply calling
+		<code>MessageGroupStore.expireMessageGroup(groupId)</code>. That could be accomplished via a Control Bus operation
+		or by simply invoking that method if you have a reference to the <classname>MessageGroupStore</classname> instance.
+		Otherwise by itself this attribute has no behavior. It only serves as an indicator of what to do (discard or send to the output/reply
+		channel) with Messages that are still in the <classname>MessageGroup</classname> that is about to be expired.
         <emphasis>Optional</emphasis>.</para>
+        <para><emphasis>Default - 'false'</emphasis>.</para>
       </callout>
       
        <callout arearefs="aggxml09">
@@ -736,6 +744,15 @@ then you should simply provide an implementation of the <classname>ReleaseStrate
     <para>The reaper is a <interfacename>Runnable</interfacename>, and all that is happening
     in the example above is that the message group store's expire method is being called
     once every 10 seconds. The timeout itself is 30 seconds.</para>
+    
+    <note>
+    It is important to understand that the 'timeout' property of the <classname>MessageGroupStoreReaper</classname> is an 
+    approximate value and is impacted by the  the rate of the task scheduler since this property will 
+    only be checked on the next scheduled execution of the <classname>MessageGroupStoreReaper</classname> task. For example if 
+    the timeout is set for 10 min, but the <classname>MessageGroupStoreReaper</classname> task is scheduled to run every 60 min 
+    and the last execution of the <classname>MessageGroupStoreReaper</classname> task happened 1 min before the timeout, the 
+    <classname>MessageGroup</classname>  will not expire for the next 59 min. So it is recommended to set the rate at least equal to the value of the timeout or shorter.
+    </note>
 
     <para>In addition to the reaper, the expiry callbacks are invoked when the application
     shuts down via a lifecycle callback in the <classname>CorrelatingMessageHandler</classname>.

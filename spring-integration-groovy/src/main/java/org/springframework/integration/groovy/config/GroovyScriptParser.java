@@ -18,13 +18,14 @@ package org.springframework.integration.groovy.config;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractScriptParser;
+import org.springframework.integration.scripting.config.AbstractScriptParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.0
  */
 public class GroovyScriptParser extends AbstractScriptParser {

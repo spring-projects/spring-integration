@@ -7,7 +7,8 @@
 	<xi:include href="./endpoint.xml"/>
 	<xi:include href="./gateway.xml"/>
 	<xi:include href="./service-activator.xml"/>	
-	<xi:include href="./delayer.xml"/>	
+	<xi:include href="./delayer.xml"/>
+	<xi:include href="./scripting.xml"/>	
 	<xi:include href="./groovy.xml"/>
 
 </chapter>

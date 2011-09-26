@@ -13,6 +13,10 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
@@ -24,12 +28,12 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.store.*;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupCallback;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
-
-import java.util.Collection;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * Message handler that holds a buffer of correlated messages in a

@@ -45,9 +45,10 @@ public class AmqpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		builder.addConstructorArgReference(amqpTemplateRef);
 		builder.addPropertyValue("expectReply", true);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		return builder;
 	}
 

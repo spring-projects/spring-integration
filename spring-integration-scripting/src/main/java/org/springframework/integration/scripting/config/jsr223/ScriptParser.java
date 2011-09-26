@@ -18,7 +18,7 @@ package org.springframework.integration.scripting.config.jsr223;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractScriptParser;
+import org.springframework.integration.scripting.config.AbstractScriptParser;
 import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
 import org.springframework.util.Assert;
 import org.w3c.dom.Element;
