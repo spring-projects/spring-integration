@@ -120,7 +120,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			}
 			triggerBeanNames.add(triggerAttribute);
 		}
-		else if (StringUtils.hasText(fixedRateAttribute)) {
+		if (StringUtils.hasText(fixedRateAttribute)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
 			builder.addConstructorArgValue(fixedRateAttribute);
 			if (StringUtils.hasText(timeUnit)) {
@@ -131,7 +131,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 					builder.getBeanDefinition(), parserContext.getRegistry());
 			triggerBeanNames.add(triggerBeanName);
 		}
-		else if (StringUtils.hasText(fixedDelayAttribute)) {
+		if (StringUtils.hasText(fixedDelayAttribute)) {
 			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
 			builder.addConstructorArgValue(fixedDelayAttribute);
 			if (StringUtils.hasText(timeUnit)) {
@@ -142,7 +142,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 					builder.getBeanDefinition(), parserContext.getRegistry());
 			triggerBeanNames.add(triggerBeanName);
 		}
-		else if (StringUtils.hasText(cronAttribute)) {
+		if (StringUtils.hasText(cronAttribute)) {
 			if (StringUtils.hasText(timeUnit)) {
 				parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'cron' trigger.", pollerElement);
 			}
