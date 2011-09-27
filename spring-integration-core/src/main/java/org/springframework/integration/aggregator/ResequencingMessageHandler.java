@@ -47,7 +47,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	
 	@SuppressWarnings("rawtypes")
 	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (group.isComplete() || group.getSequenceSize() == 0) {
+		if ((group.isComplete() || group.getSequenceSize() == 0) && !this.shouldExpireGroupsUponCompletion()) {
 			remove(group);
 		}
 		else {
