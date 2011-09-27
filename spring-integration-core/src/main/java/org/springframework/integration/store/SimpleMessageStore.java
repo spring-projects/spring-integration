@@ -148,7 +148,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return group;
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
 	}
