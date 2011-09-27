@@ -412,7 +412,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="queue-names" type="xsd:string" use="required">
+		<xsd:attribute name="queue-names" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
