@@ -36,19 +36,20 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
 
 /**
- * Message handler that holds a buffer of correlated messages in a
+ * Abstract Message handler that holds a buffer of correlated messages in a
  * {@link MessageStore}. This class takes care of correlated groups of messages
- * that can be completed in batches. It is useful for aggregating, resequencing,
- * or custom implementations requiring correlation. Note that for resequencing it is better to use 
- * {@link ResequensingMessageHandler}
+ * that can be completed in batches. It is useful for custom implementation of MessageHandlers that require correlation 
+ * and is used as a base class for Aggregator - {@link AggregatingMessageHandler} and
+ * Resequencer - {@link ResequencingMessageHandler},
+ * or custom implementations requiring correlation. 
  * <p/>
  * To customize this handler inject {@link CorrelationStrategy},
  * {@link ReleaseStrategy}, and {@link MessageGroupProcessor} implementations as
  * you require.
  * <p/>
- * By default the CorrelationStrategy will be a
- * HeaderAttributeCorrelationStrategy and the ReleaseStrategy will be a
- * SequenceSizeReleaseStrategy.
+ * By default the {@link CorrelationStrategy} will be a
+ * {@link HeaderAttributeCorrelationStrategy} and the {@link ReleaseStrategy} will be a
+ * {@link SequenceSizeReleaseStrategy}.
  *
  * @author Iwein Fuld
  * @author Dave Syer
