@@ -87,7 +87,6 @@ public class MessageStoreTests {
 
 		private boolean removed = false;
 
-		@Override
 		public Iterator<MessageGroup> iterator() {
 			return Arrays.asList(testMessages).iterator();
 		}

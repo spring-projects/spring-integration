@@ -12,6 +12,8 @@
  */
 package org.springframework.integration.store;
 
+import java.util.Iterator;
+
 import org.springframework.integration.Message;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 
@@ -121,4 +123,9 @@ public interface MessageGroupStore {
 	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
 	int expireMessageGroups(long timeout);
+	
+	/**
+	 * Returns the iterator of currently accumulated Messages
+	 */
+	Iterator<MessageGroup> iterator();
 }
