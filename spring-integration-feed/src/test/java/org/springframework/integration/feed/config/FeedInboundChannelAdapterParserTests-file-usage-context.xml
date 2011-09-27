@@ -12,7 +12,7 @@
 						channel="feedChannelUsage"
 						url="file:src/test/java/org/springframework/integration/feed/sample.rss"
 						feed-fetcher="fileUrlFeedFetcher">
-		<int:poller fixed-rate="10000" max-messages-per-poll="100" fixed-delay="10000"/>
+		<int:poller fixed-rate="10000" max-messages-per-poll="100"/>
 	</int-feed:inbound-channel-adapter>
 
 	<int:service-activator id="sampleActivator" input-channel="feedChannelUsage">
