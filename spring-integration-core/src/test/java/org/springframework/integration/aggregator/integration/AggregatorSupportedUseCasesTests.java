@@ -60,7 +60,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
 		assertNotNull(discardChannel.receive(0));
 		
-		// set 'keepClosedOutAggregates' to 'false' and the messages should start accumulating again
+		// set 'expireGroupsUponCompletion' to 'true' and the messages should start accumulating again
 		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
 		assertNull(discardChannel.receive(0));
@@ -87,7 +87,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
 		assertNotNull(discardChannel.receive(0));
 		
-		// set 'keepClosedOutAggregates' to 'false' and the messages should start accumulating again
+		// set 'expireGroupsUponCompletion' to 'true' and the messages should start accumulating again
 		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
 		assertNull(discardChannel.receive(0));
