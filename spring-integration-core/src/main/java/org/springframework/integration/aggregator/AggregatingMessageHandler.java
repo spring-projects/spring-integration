@@ -50,9 +50,9 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
 		if (expireGroupsUponCompletion){
-			Iterator<MessageGroup> messageGroups = ((AbstractMessageGroupStore)this.messageStore).iterator();
+			Iterator<MessageGroup> messageGroups = this.messageStore.iterator();
 			while (messageGroups.hasNext()) {
-				MessageGroup messageGroup = (MessageGroup) messageGroups.next();
+				MessageGroup messageGroup = messageGroups.next();
 				if (messageGroup.isComplete()){
 					remove(messageGroup);
 				}
