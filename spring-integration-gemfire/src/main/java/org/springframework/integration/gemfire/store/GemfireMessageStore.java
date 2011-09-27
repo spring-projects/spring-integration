@@ -108,8 +108,8 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 		Assert.notNull(group, "'group' must not be null");
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(group);
 		messageGroup.markAll();
-		this.messageGroupRegion.put(group.getGroupId(), group);
-		return group;
+		this.messageGroupRegion.put(messageGroup.getGroupId(), messageGroup);
+		return messageGroup;
 	}
 
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
