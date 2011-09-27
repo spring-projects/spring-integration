@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,6 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
-		//this.resequencer.setKeepClosedAggregates(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
@@ -157,7 +156,6 @@ public class ResequencerTests {
 	@Test
 	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
 		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
-		//this.resequencer.setKeepClosedAggregates(false);
 		this.processor.setComparator(new Comparator<Message<?>>() {			
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public int compare(Message<?> o1, Message<?> o2) {
