@@ -125,7 +125,7 @@ public interface MessageGroupStore {
 	int expireMessageGroups(long timeout);
 	
 	/**
-	 * Returns the iterator of currently accumulated Messages
+	 * Returns the iterator of currently accumulated {@link MessageGroup}s
 	 */
 	Iterator<MessageGroup> iterator();
 }
