@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
@@ -47,7 +48,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	
 	@SuppressWarnings("rawtypes")
 	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if ((group.isComplete() || group.getSequenceSize() == 0) && !this.shouldExpireGroupsUponCompletion()) {
+		if (group.isComplete() || group.getSequenceSize() == 0) {
 			remove(group);
 		}
 		else {
