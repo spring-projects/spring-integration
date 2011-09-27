@@ -10,13 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 import java.util.Iterator;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 
@@ -29,40 +29,39 @@ import org.springframework.integration.store.MessageGroupStore;
  */
 public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler {
 
-	
-	public AggregatingMessageHandler(MessageGroupProcessor processor,
-			MessageGroupStore store, CorrelationStrategy correlationStrategy,
-			ReleaseStrategy releaseStrategy) {
+	private volatile boolean expireGroupsUponCompletion = false;
+
+
+	public AggregatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
+			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		super(processor, store, correlationStrategy, releaseStrategy);
 	}
 
-	
-	public AggregatingMessageHandler(MessageGroupProcessor processor,
-			MessageGroupStore store) {
+	public AggregatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
 		super(processor, store);
 	}
-
 	
 	public AggregatingMessageHandler(MessageGroupProcessor processor) {
 		super(processor);
 	}
-	
+
+
 	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
-		if (expireGroupsUponCompletion){
+		if (expireGroupsUponCompletion) {
 			Iterator<MessageGroup> messageGroups = this.messageStore.iterator();
 			while (messageGroups.hasNext()) {
 				MessageGroup messageGroup = messageGroups.next();
-				if (messageGroup.isComplete()){
+				if (messageGroup.isComplete()) {
 					remove(messageGroup);
 				}
 			}
 		}
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (this.shouldExpireGroupsUponCompletion()){
+		if (this.expireGroupsUponCompletion) {
 			remove(group);
 		}
 		else { // remove messages from the group and mark is as complete
