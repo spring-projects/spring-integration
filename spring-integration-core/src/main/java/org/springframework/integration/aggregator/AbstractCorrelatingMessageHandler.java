@@ -83,7 +83,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
-	protected volatile boolean expireGroupsUponCompletion = false;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -207,10 +206,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				discardChannel.send(message);
 			}
 		}
-	}
-	
-	protected boolean shouldExpireGroupsUponCompletion(){
-		return this.expireGroupsUponCompletion;
 	}
 
 	@SuppressWarnings("rawtypes")
