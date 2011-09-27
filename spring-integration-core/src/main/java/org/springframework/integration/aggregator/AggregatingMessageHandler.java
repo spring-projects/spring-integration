@@ -13,8 +13,10 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 
@@ -43,6 +45,19 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	
 	public AggregatingMessageHandler(MessageGroupProcessor processor) {
 		super(processor);
+	}
+	
+	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
+		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
+		if (expireGroupsUponCompletion){
+			Iterator<MessageGroup> messageGroups = ((AbstractMessageGroupStore)this.messageStore).iterator();
+			while (messageGroups.hasNext()) {
+				MessageGroup messageGroup = (MessageGroup) messageGroups.next();
+				if (messageGroup.isComplete()){
+					remove(messageGroup);
+				}
+			}
+		}
 	}
 	
 	@SuppressWarnings("rawtypes")
