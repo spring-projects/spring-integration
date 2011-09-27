@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gemfire.store;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -101,6 +102,7 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.add(message);
 		this.messageGroupRegion.put(groupId, messageGroup);
+		this.addMessage(message);
 		return messageGroup;
 	}
 
@@ -118,6 +120,7 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.remove(messageToRemove);
 		this.messageGroupRegion.put(groupId, messageGroup);
+		this.removeMessage(messageToRemove.getHeaders().getId());
 		return messageGroup;
 	}
 
@@ -132,7 +135,15 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		this.messageGroupRegion.remove(groupId);
+		MessageGroup messageGroup = this.messageGroupRegion.remove(groupId);
+		Collection<Message<?>> markedMessages = messageGroup.getMarked();
+		for (Message<?> message : markedMessages) {
+			this.removeMessage(message.getHeaders().getId());
+		}
+		Collection<Message<?>> unmarkedMessages = messageGroup.getMarked();
+		for (Message<?> message : unmarkedMessages) {
+			this.removeMessage(message.getHeaders().getId());
+		}
 	}
 	
 	public Iterator<MessageGroup> iterator() {
