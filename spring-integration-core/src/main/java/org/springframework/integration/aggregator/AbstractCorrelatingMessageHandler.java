@@ -14,7 +14,6 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -29,7 +28,6 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
@@ -64,7 +62,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
 
 
-	private MessageGroupStore messageStore;
+	protected volatile MessageGroupStore messageStore;
 
 	private final MessageGroupProcessor outputProcessor;
 
@@ -84,7 +82,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
-	private boolean expireGroupsUponCompletion = false;
+	protected volatile boolean expireGroupsUponCompletion = false;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -212,17 +210,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	
 	protected boolean shouldExpireGroupsUponCompletion(){
 		return this.expireGroupsUponCompletion;
-	}
-
-	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
-		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
-		Iterator<MessageGroup> messageGroups = ((AbstractMessageGroupStore)this.messageStore).iterator();
-		while (messageGroups.hasNext()) {
-			MessageGroup messageGroup = (MessageGroup) messageGroups.next();
-			if (messageGroup.isComplete()){
-				remove(messageGroup);
-			}
-		}
 	}
 
 	@SuppressWarnings("rawtypes")
