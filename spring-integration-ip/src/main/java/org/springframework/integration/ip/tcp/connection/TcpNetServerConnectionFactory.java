@@ -58,14 +58,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			if (this.localAddress == null) {
-				this.serverSocket = ServerSocketFactory.getDefault()
-						.createServerSocket(this.port, Math.abs(this.poolSize));
+				theServerSocket = createServerSocket(this.port, this.poolSize, null);
 			} else {
 				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				this.serverSocket = ServerSocketFactory.getDefault()
-						.createServerSocket(port, Math.abs(poolSize), whichNic);
+				theServerSocket = createServerSocket(this.port, this.poolSize, whichNic);
 			}
-			theServerSocket = this.serverSocket;
+			this.serverSocket = theServerSocket;
 			this.listening = true;
 			logger.info("Listening on port " + this.port);
 			while (true) {
@@ -87,6 +85,27 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				logger.error("Error on ServerSocket", e);
 			}
 			this.active = false;
+		}
+	}
+
+	/**
+	 * Create a new {@link ServerSocket}. This default implementation uses the default
+	 * {@link ServerSocketFactory}. Override to use some other mechanism
+	 *
+	 * @param port The port.
+	 * @param backlog The server socket backlog.
+	 * @param whichNic An InetAddress if binding to a specific network interface. Set to
+	 * null when configured to bind to all interfaces.
+	 * @return The Server Socket.
+	 * @throws IOException
+	 */
+	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
+		if (whichNic == null) {
+			return ServerSocketFactory.getDefault().createServerSocket(port,
+					Math.abs(poolSize));
+		} else {
+			return ServerSocketFactory.getDefault().createServerSocket(port,
+					Math.abs(poolSize), whichNic);
 		}
 	}
 

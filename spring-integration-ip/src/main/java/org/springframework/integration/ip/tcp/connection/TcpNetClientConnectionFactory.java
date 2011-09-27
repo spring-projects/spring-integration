@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.net.Socket;
 
 import javax.net.SocketFactory;
@@ -48,7 +49,7 @@ public class TcpNetClientConnectionFactory extends
 			return this.theConnection;
 		}
 		logger.debug("Opening new socket connection to " + this.host + ":" + this.port);
-		Socket socket = SocketFactory.getDefault().createSocket(this.host, this.port);
+		Socket socket = createSocket(this.host, this.port);
 		setSocketAttributes(socket);
 		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
@@ -59,6 +60,19 @@ public class TcpNetClientConnectionFactory extends
 		}
 		this.harvestClosedConnections();
 		return connection;
+	}
+
+	/**
+	 * Create a new {@link Socket}. This default implementation uses the default
+	 * {@link SocketFactory}. Override to use some other mechanism
+	 *
+	 * @param host The host.
+	 * @param port The port.
+	 * @return The Socket
+	 * @throws IOException
+	 */
+	protected Socket createSocket(String host, int port) throws IOException {
+		return SocketFactory.getDefault().createSocket(host, port);
 	}
 
 	public void close() {
