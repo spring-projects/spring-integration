@@ -42,14 +42,14 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public class AggregatorTests {
 
-	private CorrelatingMessageHandler aggregator;
+	private AggregatingMessageHandler aggregator;
 
 	private SimpleMessageStore store = new SimpleMessageStore(50);
 
 
 	@Before
 	public void configureAggregator() {
-		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), store);
+		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 	}
 
 
@@ -211,7 +211,7 @@ public class AggregatorTests {
 
 	@Test
 	public void testNullReturningAggregator() throws InterruptedException {
-		this.aggregator = new CorrelatingMessageHandler(new NullReturningMessageProcessor(), new SimpleMessageStore(50));
+		this.aggregator = new AggregatingMessageHandler(new NullReturningMessageProcessor(), new SimpleMessageStore(50));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);

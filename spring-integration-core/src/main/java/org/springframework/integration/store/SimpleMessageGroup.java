@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -43,6 +43,8 @@ public class SimpleMessageGroup implements MessageGroup {
 	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
 
 	private final long timestamp;
+	
+	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
 		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), groupId, System
@@ -69,6 +71,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public SimpleMessageGroup(MessageGroup template) {
 		this.groupId = template.getGroupId();
+		this.complete = template.isComplete();
 		synchronized (lock) {
 			// Explicit iteration to work around bug in JDK (before 1.6.0_20
 			for (Message<?> message : template.getMarked()) {
@@ -139,14 +142,13 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public boolean isComplete() {
-		if (size() == 0) {
-			return true;
-		}
-		int sequenceSize = getSequenceSize();
-		// If there is no sequence then it must be incomplete....
-		return sequenceSize > 0 && sequenceSize == size();
+		return this.complete;
 	}
-
+	
+	public void complete() {
+		this.complete = true;
+	}
+	
 	public int getSequenceSize() {
 		if (size() == 0) {
 			return 0;
@@ -182,6 +184,11 @@ public class SimpleMessageGroup implements MessageGroup {
 			one = marked.peek();
 		}
 		return one;
+	}
+	
+	public void cleanup(){
+		this.marked.clear();
+		this.unmarked.clear();
 	}
 
 	/**
