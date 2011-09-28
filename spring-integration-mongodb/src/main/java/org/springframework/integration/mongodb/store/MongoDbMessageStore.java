@@ -212,6 +212,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		this.template.updateFirst(q, update, this.collectionName);
 	}
 
+	public void setLastReleasedSequenceNumberForGroup(Object groupId,
+			int sequenceNumber) {
+		// noop for now until this code is merged with INT-2155
+		
+	}
 
 	/*
 	 * Common Queries

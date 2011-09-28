@@ -64,37 +64,41 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 	}
 
 	public boolean canRelease(MessageGroup messageGroup) {
-		if (releasePartialSequences) {
-			Collection<Message<?>> unmarked = messageGroup.getUnmarked();
-			if (!unmarked.isEmpty()) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Considering partial release of group [" + messageGroup + "]");
-				}
-				List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
-				Collections.sort(sorted, comparator);
-				int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-				boolean release = tail == messageGroup.getMarked().size();
-				if (logger.isTraceEnabled() && release) {
-					logger.trace("Release imminent because tail [" + tail + "] is next in line.");
-				}
-				return release;
+
+		boolean canRelease = false;
+		
+		Collection<Message<?>> unmarked = messageGroup.getUnmarked();
+		
+		if (releasePartialSequences && !unmarked.isEmpty()) {
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
-		}
-		
-		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
-		
-		if (size == 0){
-			messageGroup.complete();
+			List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
+			Collections.sort(sorted, comparator);
+			int tail = sorted.get(0).getHeaders().getSequenceNumber()-1;
+			
+			long lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequence();
+			
+			if (tail == lastReleasedMessageSequence){
+				canRelease = true;;
+			}	
 		}
 		else {
-			int sequenceSize = messageGroup.getOne().getHeaders().getSequenceSize();
-			// If there is no sequence then it must be incomplete....
-			if (sequenceSize > 0 && sequenceSize == size){
-				messageGroup.complete();
+			int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
+			
+			if (size == 0){
+				canRelease = true;
 			}
-		}
-		
-		return messageGroup.isComplete();
+			else {
+				int sequenceSize = messageGroup.getOne().getHeaders().getSequenceSize();
+				// If there is no sequence then it must be incomplete....
+				if (sequenceSize > 0 && sequenceSize == size){
+					canRelease = true;
+				}
+			}
+		}	
+		return canRelease;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -23,7 +23,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
-import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.NullChannel;
@@ -128,16 +127,6 @@ public class ResequencerParserTests {
 				ResequencingMessageGroupProcessor.class);
 		Object comparator = getPropertyValue(resequencer, "comparator");
 		assertEquals("The Resequencer is not configured with a TestComparator", TestComparator.class, comparator
-				.getClass());
-	}
-
-	@Test
-	public void testReleaseStrategy() throws Exception {
-		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithReleaseStrategy");
-		ResequencingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
-				ResequencingMessageHandler.class);
-		Object releaseStrategy = getPropertyValue(handler, "releaseStrategy");
-		assertEquals("The Resequencer is not configured with an adapter", MethodInvokingReleaseStrategy.class, releaseStrategy
 				.getClass());
 	}
 

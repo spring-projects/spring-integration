@@ -47,6 +47,7 @@ public class AggregatorSupportedUseCasesTests {
 		QueueChannel discardChannel = new QueueChannel();
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
+		defaultHandler.setKeepReleasedMessages(false);
 		
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setSequenceSize(5).setCorrelationId("A").setSequenceNumber(i).build());
@@ -74,6 +75,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
 		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
+		defaultHandler.setKeepReleasedMessages(false);
 		
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
