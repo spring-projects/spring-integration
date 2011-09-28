@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.AssertionFailedError;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
@@ -239,7 +240,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
-	@RedisAvailable
+	@RedisAvailable @Ignore
 	public void testConcurrentModifications() throws Exception{	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		final RedisMessageStore store1 = new RedisMessageStore(jcf);
