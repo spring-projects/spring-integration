@@ -31,23 +31,29 @@ import org.springframework.util.Assert;
  */
 public class DefaultScriptExecutor implements ScriptExecutor {
 	private static Log log = LogFactory.getLog(DefaultScriptExecutor.class);
-	private final ScriptEngine scriptEngine;
+
+	// private ScriptEngine scriptEngine;
+	private final String language;
+
+	private ScriptEngineManager manager = new ScriptEngineManager();
 
 	/**
 	 * Set the engine name (language)
 	 * @param language
 	 */
 	public DefaultScriptExecutor(String language) {
-		ScriptEngineManager manager = new ScriptEngineManager();
-		if (log.isDebugEnabled()){
-			for (ScriptEngineFactory factory: manager.getEngineFactories()) {
-				log.debug(factory.getNames());
-			}
-		}
-		
-		scriptEngine = manager.getEngineByName(language);
-		Assert.notNull(scriptEngine,"JVM cannot create a script engine for name [" + language + "]"); 
-		
+		this.language = language;
+		// ScriptEngineManager manager = new ScriptEngineManager();
+		// if (log.isDebugEnabled()){
+		// for (ScriptEngineFactory factory: manager.getEngineFactories()) {
+		// log.debug(factory.getNames());
+		// }
+		// }
+		//
+		// scriptEngine = manager.getEngineByName(language);
+		// Assert.notNull(scriptEngine,"JVM cannot create a script engine for name ["
+		// + language + "]");
+		//
 	}
 
 	/*
@@ -58,7 +64,7 @@ public class DefaultScriptExecutor implements ScriptExecutor {
 	 * .scripting.ScriptSource)
 	 */
 	public Object executeScript(ScriptSource scriptSource) {
-		return this.executeScript(scriptSource,null);
+		return this.executeScript(scriptSource, null);
 	}
 
 	/*
@@ -68,40 +74,57 @@ public class DefaultScriptExecutor implements ScriptExecutor {
 	 * com.dturanski.test.jruby.ScriptExecutor#bindVariable(java.lang.String,
 	 * java.lang.Object)
 	 */
-	private void bindVariable(String variableName, Object value) {  
-		scriptEngine.put(variableName, value);
-	}
+	// private void bindVariable(String variableName, Object value) {
+	// scriptEngine.put(variableName, value);
+	// }
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.jsr233.ScriptExecutor#executeScript(org.springframework.scripting.ScriptSource, java.util.Map)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.springframework.integration.jsr233.ScriptExecutor#executeScript(org
+	 * .springframework.scripting.ScriptSource, java.util.Map)
 	 */
-	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {	
+	public synchronized Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Assert.notNull(scriptSource, "scriptSource must not be null");
-		synchronized (this) { 
-			Object obj = null;
-			try {
-				 
-				scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE).clear();
-				 
-				if (variables != null ) {
-					for (Entry<String, Object> entry: variables.entrySet()){
-						bindVariable(entry.getKey(), entry.getValue());
-					}
+
+		Object obj = null;
+		try {
+			ScriptEngine scriptEngine = manager.getEngineByName(language);
+
+			Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
+
+			if (variables != null) {
+				for (Entry<String, Object> entry : variables.entrySet()) {
+					bindings.put(entry.getKey(), entry.getValue());
 				}
-				
-				obj = scriptEngine.eval(scriptSource.getScriptAsString());
-				
-			}
-			
-			catch (ScriptException e) {
-				throw new RuntimeException(e);
-			}
-			catch (IOException e) {
-				throw new RuntimeException(e);
 			}
 
-			return obj;
+			String script = scriptSource.getScriptAsString();
+			if (log.isDebugEnabled()) {
+				Thread.currentThread().setName(Thread.currentThread().getName().replace("scheduler", "script"));
+				log.debug(Long.toHexString(Thread.currentThread().getId()) + " executing script: " + script);
+			}
+			obj = scriptEngine.eval(script, bindings);
+
+			if (log.isDebugEnabled()) {
+				log.debug(Long.toHexString(Thread.currentThread().getId()) + " returned from eval: ");
+			}
+
 		}
+		catch (Throwable t) {
+			t.printStackTrace();
+			throw new RuntimeException(t);
+		}
+
+		// catch (ScriptException e) {
+		// throw new RuntimeException(e);
+		// }
+		// catch (IOException e) {
+		// throw new RuntimeException(e);
+		// }
+
+		return obj;
 	}
 
 }
