@@ -68,6 +68,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private final static String GROUP_ID_KEY = "_groupId";
 
 	private final static String MARKED_KEY = "_marked";
+	
+	private final static String GROUP_COMPLETE_KEY = "_group_complete";
+	
+	private final static String GROUP_TIMESTAMP_KEY = "_group_timestamp";
 
 	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
 
@@ -105,7 +109,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		this.template.insert(new MessageWrapper(message, null, false), this.collectionName);
+		this.template.insert(new MessageWrapper(message, null, false, 0, false), this.collectionName);
 		return message;
 	}
 
@@ -131,6 +135,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> unmarkedMessages = new ArrayList<Message<?>>();
 		List<Message<?>> markedMessages = new ArrayList<Message<?>>();
+		long timestamp = 0;
+		boolean completeGroup = false;
+		if (messageWrappers.size() > 0){
+			MessageWrapper messageWrapper = messageWrappers.get(0);
+			timestamp = messageWrapper.getGroupTimestamp();
+			completeGroup = messageWrapper.isCompletedGroup();
+		}
+		
 		for (MessageWrapper messageWrapper : messageWrappers) {
 			if (messageWrapper.isMarked()) {
 				markedMessages.add(messageWrapper.getMessage());
@@ -139,13 +151,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				unmarkedMessages.add(messageWrapper.getMessage());
 			}
 		}
-		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, System.currentTimeMillis());
+		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, timestamp, completeGroup);
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		MessageWrapper wrapper = new MessageWrapper(message, groupId, false);
+		MessageGroup messageGroup = this.getMessageGroup(groupId);
+		MessageWrapper wrapper = new MessageWrapper(message, groupId, false, messageGroup.getTimestamp(), messageGroup.isComplete());
 		this.template.insert(wrapper, this.collectionName);
 		return this.getMessageGroup(groupId);
 	}
@@ -181,7 +194,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
@@ -192,6 +204,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			}
 		}
 		return messageGroups.values().iterator();
+	}
+	
+	public void completeGroup(Object groupId) {
+		Update update = Update.update(GROUP_COMPLETE_KEY, true);
+		Query q = whereGroupIdIs(groupId);
+		this.template.updateFirst(q, update, this.collectionName);
 	}
 
 
@@ -236,11 +254,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			Message<?> message = null;
 			Object groupId = null;
 			boolean marked = false;
+			boolean groupComplete = false;
+			long groupTimestamp = 0;
 			if (source instanceof MessageWrapper) {
 				MessageWrapper wrapper = (MessageWrapper) source;
 				message = wrapper.getMessage();
 				groupId = wrapper.getGroupId();
 				marked = wrapper.isMarked();
+				groupComplete = wrapper.isCompletedGroup();
+				groupTimestamp = wrapper.getGroupTimestamp();
 			}
 			else {
 				Class<?> sourceType = (source != null) ? source.getClass() : null;
@@ -249,6 +271,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
 			if (groupId != null) {
 				target.put(GROUP_ID_KEY, groupId);
+				target.put(GROUP_COMPLETE_KEY, groupComplete);
+				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
 			}
 			if (marked) {
 				target.put(MARKED_KEY, marked);
@@ -280,7 +304,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
-				MessageWrapper wrapper = new MessageWrapper(message, source.get(GROUP_ID_KEY), source.get(MARKED_KEY) != null);
+				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
+				Boolean completeGroup = (Boolean)source.get(GROUP_COMPLETE_KEY);
+				MessageWrapper wrapper = 
+						new MessageWrapper(message, 
+								           source.get(GROUP_ID_KEY), 
+								           source.get(MARKED_KEY) != null, 
+								           groupTimestamp == null ? 0 : groupTimestamp, 
+								           completeGroup == null ? false : completeGroup);
 				return (S) wrapper;
 			}
 			return null;
@@ -312,11 +343,25 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		private final boolean marked;
 
 		private final Message<?> message;
+		
+		private final long groupTimestamp; 
 
-		public MessageWrapper(Message<?> message, Object groupId, boolean marked) {
+		private final boolean completedGroup;
+
+		public MessageWrapper(Message<?> message, Object groupId, boolean marked, long groupTimestamp, boolean completedGroup) {
 			this.marked = marked;
 			this.message = message;
 			this.groupId = groupId;
+			this.groupTimestamp = groupTimestamp;
+			this.completedGroup = completedGroup;
+		}
+		
+		public long getGroupTimestamp() {
+			return groupTimestamp;
+		}
+
+		public boolean isCompletedGroup() {
+			return completedGroup;
 		}
 
 		public Object getGroupId() {
@@ -331,5 +376,4 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			return message;
 		}
 	}
-
 }
