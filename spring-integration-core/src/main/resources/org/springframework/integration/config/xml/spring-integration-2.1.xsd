@@ -2692,6 +2692,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="expire-groups-upon-completion" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Boolean flag specifying if MessageGroup should be removed once completed. Useful for 
+							handling late arrival use cases where messages arriving with the correlationKey that 
+							is the same as the completed MessageGroup will be discarded. Default is 'false'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
