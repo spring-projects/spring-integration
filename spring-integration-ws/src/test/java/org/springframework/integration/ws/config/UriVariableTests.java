@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -36,6 +37,7 @@ import org.springframework.ws.client.WebServiceClientException;
 import org.springframework.ws.client.WebServiceIOException;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.context.MessageContext;
+import org.springframework.ws.soap.SoapMessageCreationException;
 import org.springframework.ws.transport.context.TransportContext;
 import org.springframework.ws.transport.context.TransportContextHolder;
 import org.springframework.ws.transport.http.HttpUrlConnection;
@@ -55,15 +57,17 @@ public class UriVariableTests {
 	public void checkUriVariables() {
 		MessageChannel input = context.getBean("input", MessageChannel.class);
 		TestClientInterceptor interceptor = context.getBean("interceptor", TestClientInterceptor.class);
-		Message<?> message = MessageBuilder.withPayload("<FOO/>").setHeader("bar", "BAR").build();
+		Message<?> message = MessageBuilder.withPayload("<spring/>").setHeader("x", "integration").build();
 		try {
 			input.send(message);
 		}
 		catch (MessageHandlingException e) {
 			// expected
-			assertEquals(WebServiceIOException.class, e.getCause().getClass());
+			Class<?> causeType = e.getCause().getClass();
+			assertTrue(WebServiceIOException.class.equals(causeType) // offline
+					|| SoapMessageCreationException.class.equals(causeType));
 		}
-		assertEquals("http://localhost/test/FOO/BAR", interceptor.getLastUri().toString());
+		assertEquals("http://springsource.org/spring-integration", interceptor.getLastUri().toString());
 	}
 
 
