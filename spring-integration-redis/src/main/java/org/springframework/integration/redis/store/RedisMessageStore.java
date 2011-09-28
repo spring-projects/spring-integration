@@ -203,7 +203,6 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		}
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
 		Set<Object> messageGroupIds = mGroupsOps.members();

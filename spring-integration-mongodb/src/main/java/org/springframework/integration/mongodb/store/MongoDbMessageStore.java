@@ -181,7 +181,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();

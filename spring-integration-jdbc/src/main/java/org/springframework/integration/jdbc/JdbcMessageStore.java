@@ -424,7 +424,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
