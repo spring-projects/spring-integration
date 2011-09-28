@@ -81,7 +81,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
+	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
 
 	private static final String COUNT_ALL_GROUPS = "SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -94,13 +94,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String MARK_MESSAGE_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MESSAGE_ID=? and MARKED=0 and GROUP_KEY=? and REGION=?";
 	
 	private static final String COMPLETE_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, COMPLETE=1 where GROUP_KEY=? and REGION=?";
+	
+	private static final String UPDATE_LAST_RELEASED_SEQUENCE = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, LAST_RELEASED_SEQUENCE=? where GROUP_KEY=? and REGION=?";
 
 	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
 
-	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, COMPLETE, MESSAGE_BYTES)"
-			+ " values (?, ?, ?, ?, 0, 0, ?)";
+	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, MESSAGE_BYTES)"
+			+ " values (?, ?, ?, ?, 0, 0, 0, ?)";
 
 	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -336,6 +338,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final List<Message<?>> unmarked = new ArrayList<Message<?>>();
 		final AtomicReference<Date> date = new AtomicReference<Date>();
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
+		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 		
 		jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region },
 				new RowCallbackHandler() {
@@ -353,6 +356,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 						date.set(rs.getTimestamp("CREATED_DATE"));
 						
 						completeFlag.set(rs.getInt("COMPLETE") > 0);
+						
+						lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
 					}
 				});
 		if (marked.isEmpty() && unmarked.isEmpty()) {
@@ -361,7 +366,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		Assert.state(date.get() != null, "Could not locate created date for groupId=" + groupId);
 		long timestamp = date.get().getTime();
 		boolean complete = completeFlag.get().booleanValue();
-		return new SimpleMessageGroup(unmarked, marked, groupId, timestamp, complete);
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(unmarked, marked, groupId, timestamp, complete);
+		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
+		if (lastReleasedSequenceNumber > 0){
+			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
+		}
+		return messageGroup;
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
@@ -441,6 +451,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setTimestamp(1, new Timestamp(updatedDate));
 				ps.setString(2, groupKey);
 				ps.setString(3, region);
+			}
+		});
+	}
+
+	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		final long updatedDate = System.currentTimeMillis();
+		final String groupKey = getKey(groupId);
+		
+		jdbcTemplate.update(getQuery(UPDATE_LAST_RELEASED_SEQUENCE), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				logger.debug("Updating  the sequence number of the last released Message in the MessageGroup: " + groupKey);
+				ps.setTimestamp(1, new Timestamp(updatedDate));
+				ps.setInt(2, sequenceNumber);
+				ps.setString(3, groupKey);
+				ps.setString(4, region);
 			}
 		});
 	}

@@ -23,6 +23,7 @@ import java.util.*;
  *
  * @author Iwein Fuld
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class ResequencingMessageGroupProcessor implements MessageGroupProcessor {
@@ -37,15 +38,14 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 	public void setComparator(Comparator<Message<?>> comparator) {
 		this.comparator = comparator;
 	}
-
-	@SuppressWarnings("rawtypes")
+	
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getUnmarked();
 
 		if (messages.size() > 0) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, this.comparator);
-			ArrayList<Message> partialSequence = new ArrayList<Message>();
+			ArrayList<Message<?>> partialSequence = new ArrayList<Message<?>>();
 			int previousSequence = extractSequenceNumber(sorted.get(0));
 			int currentSequence = previousSequence;
 			for (Message<?> message : sorted) {
@@ -57,6 +57,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 				}
 				partialSequence.add(message);
 			}
+			
 			return partialSequence;
 		}
 		return null;

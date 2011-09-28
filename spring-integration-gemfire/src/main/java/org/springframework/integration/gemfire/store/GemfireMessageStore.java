@@ -160,6 +160,12 @@ public class GemfireMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 	
+	public void setLastReleasedSequenceNumberForGroup(Object groupId,
+			int sequenceNumber) {
+		// noop for now until this code is merged with INT-2155
+		
+	}
+	
 	public Iterator<MessageGroup> iterator() {
 		ArrayList<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
 		Iterator<MessageGroupWrapper> messageGroupWrappers = this.messageGroupRegion.values().iterator();

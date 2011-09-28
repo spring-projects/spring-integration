@@ -110,6 +110,8 @@ public class CorrelatingMessageHandlerTests {
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
+		handler.setExpireGroupsUponCompletion(true);
+		
 		handler.handleMessage(message1);
 
 		try {
