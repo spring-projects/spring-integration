@@ -1256,7 +1256,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				Defines an interval-based trigger.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="interval" type="xsd:string" use="required" />
 		<xsd:attribute name="initial-delay" type="xsd:string" />
 		<xsd:attribute name="fixed-rate" type="xsd:string" default="false" />
 		<xsd:attribute name="time-unit" default="MILLISECONDS">
