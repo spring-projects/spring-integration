@@ -16,9 +16,9 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.Message;
-
 import java.util.Collection;
+
+import org.springframework.integration.Message;
 
 /**
  * A group of messages that are correlated with each other and should be processed in the same context. The group is
@@ -49,6 +49,11 @@ public interface MessageGroup {
 	 * @return the key that links these messages together
 	 */
 	Object getGroupId();
+	
+	/**
+	 * Returns the sequenceNumber of the last released message. Used in Resequencer use cases only
+	 */
+	long getLastReleasedMessageSequence();
 
 	/**
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)
@@ -56,7 +61,7 @@ public interface MessageGroup {
 	boolean isComplete();
 	
 	/**
-	 * @return true if the group is complete (i.e. no more messages are expected to be added)
+	 * 
 	 */
 	void complete();
 

@@ -41,6 +41,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
+		
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		MessageBuilder<?> builder;
@@ -50,6 +51,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		else {
 			builder = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers);
 		}
+		
 		return builder.popSequenceDetails().build();
 	}
 
