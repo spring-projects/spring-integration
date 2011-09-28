@@ -199,6 +199,18 @@ public class JdbcMessageStoreTests {
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
+	
+	@Test
+	@Transactional
+	public void testCompleteMessageGroup() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.completeGroup(groupId);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertTrue(group.isComplete());
+		assertEquals(1, group.size());
+	}
 
 	@Test
 	@Transactional

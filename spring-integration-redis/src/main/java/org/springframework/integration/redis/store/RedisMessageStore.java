@@ -17,21 +17,14 @@
 package org.springframework.integration.redis.store;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.BoundListOperations;
-import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -41,8 +34,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.MessageGroupWrapper;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.MessageStoreException;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
@@ -56,14 +49,11 @@ import org.springframework.util.Assert;
  */
 public class RedisMessageStore extends AbstractMessageGroupStore implements MessageStore {
 
-	private static final String MESSAGE_GROUPS_KEY = "MESSAGE_GROUPS";
-
-	private static final String MARKED_PREFIX = "MARKED_";
-
-	private static final String UNMARKED_PREFIX = "UNMARKED_";
-
-
 	private final RedisTemplate<String, Object> redisTemplate;
+	
+	private static final String MESSAGES_HOLDER_MAP = "MESSAGES";
+	
+	private static final String MESSAGE_GROUPS_HOLDER_MAP = "MESSAGE_GROUPS";
 	
 
 	public RedisMessageStore(RedisConnectionFactory connectionFactory) {
@@ -79,50 +69,39 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 		this.redisTemplate.setValueSerializer(valueSerializer);
 	}
 
-	public Message<?> getMessage(final UUID id) {
+	public Message<?> getMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		if (this.redisTemplate.hasKey(id.toString())) {
-			BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(id.toString());	
-			Object result = ops.get();
-			Assert.isInstanceOf(Message.class, result, "Return value is not an instace of Message");
-			return (Message<?>) result;
+		Map<String, Object> result = this.getHolderMap(MESSAGES_HOLDER_MAP);
+		if (result.containsKey(id.toString())) {
+			Message<?> message = (Message<?>) result.get(id.toString());
+			return message;
 		}
+		
 		return null;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(message.getHeaders().getId().toString());
-		try {
-			ops.set(message);
-		}
-		catch (SerializationException e) {
-			throw new MessageStoreException(message, "If relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
-					"the Message must be Serializable. Either make it Serializable or provide your own implementation of " +
-					"RedisSerializer via 'setValueSerializer(..)'", e);
-		}
-		Object result = ops.get();
-		Assert.isInstanceOf(Message.class, result, "Return value is not an instace of Message");
-		return (Message<T>) result;
+		UUID messageId = message.getHeaders().getId();
+		Map<String, Object> result = this.getHolderMap(MESSAGES_HOLDER_MAP);
+		result.put(messageId.toString(), message);
+		this.storeHolderMap(MESSAGES_HOLDER_MAP, result);
+		return (Message<T>) this.getMessage(messageId);
 	}
 
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Message<?> message = this.getMessage(id);
-		if (message != null) {
-			this.redisTemplate.delete(id.toString());
-		}
+		Map<String, Object> result = this.getHolderMap(MESSAGES_HOLDER_MAP);
+		Message<?> message = (Message<?>) result.remove(id.toString());
+		this.storeHolderMap(MESSAGES_HOLDER_MAP, result);
 		return message;
 	}
 
 	@ManagedAttribute
 	public long getMessageCount() {
-		return redisTemplate.execute(new RedisCallback<Long>() {
-			public Long doInRedis(RedisConnection connection) throws DataAccessException {
-				return connection.dbSize();
-			}
-		});
+		Map<String, Object> result = this.getHolderMap(MESSAGES_HOLDER_MAP);
+		return result.size();
 	}
 
 
@@ -134,11 +113,24 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	 */
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		long timestamp = System.currentTimeMillis();
-		Collection<Message<?>> unmarkedMessages = this.buildMessageList(this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId));
-		Collection<Message<?>> markedMessages = this.buildMessageList(this.redisTemplate.boundListOps(MARKED_PREFIX + groupId));
-		this.doCreateMessageGroupIfNecessary(groupId);
-		return new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, timestamp);
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		if (result.containsKey(groupId.toString())){
+			MessageGroupWrapper messageGroupWrapper = (MessageGroupWrapper) result.get(groupId.toString());
+			ArrayList<Message<?>> markedMessages = new ArrayList<Message<?>>();
+			for (UUID uuid : messageGroupWrapper.getMarkedMessageIds()) {
+				markedMessages.add(this.getMessage(uuid));
+			}
+			
+			ArrayList<Message<?>> unmarkedMessages = new ArrayList<Message<?>>();
+			for (UUID uuid : messageGroupWrapper.getUnmarkedMessageIds()) {
+				unmarkedMessages.add(this.getMessage(uuid));
+			}
+			return new SimpleMessageGroup(unmarkedMessages, markedMessages, 
+					groupId, messageGroupWrapper.getTimestamp(), messageGroupWrapper.isComplete());
+		}
+		else {
+			return new SimpleMessageGroup(groupId);
+		}
 	}
 
 	/**
@@ -147,11 +139,16 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		synchronized (groupId) {
-			this.doAddMessageToGroup(message, groupId);
-			this.addMessage(message);
-			return this.getMessageGroup(groupId);
-		}
+		
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.add(message);	
+		result.put(groupId.toString(), new MessageGroupWrapper(messageGroup));
+		
+		this.addMessage(message);
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
+
+		return this.getMessageGroup(groupId);
 	}
 
 	/**
@@ -160,10 +157,15 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public MessageGroup markMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "'group' must not be null");
 		Object groupId = group.getGroupId();
-		synchronized (groupId) {
-			this.doMarkMessageGroup(groupId);
-			return this.getMessageGroup(groupId);
-		}
+
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(group);
+		messageGroup.markAll();
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		result.put(groupId.toString(), new MessageGroupWrapper(messageGroup));
+		
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
+		
+		return this.getMessageGroup(groupId);
 	}
 
 	/**
@@ -172,12 +174,15 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		UUID messageId = messageToRemove.getHeaders().getId();
-		synchronized (groupId) {
-			this.doRemoveMessageFromGroup(groupId, messageId);
-			this.removeMessage(messageId);
-			return this.getMessageGroup(groupId);
-		}
+		
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.remove(messageToRemove);
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		result.put(groupId.toString(), new MessageGroupWrapper(messageGroup));
+		
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
+		
+		return this.getMessageGroup(groupId);
 	}
 
 	/**
@@ -186,11 +191,27 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToMark, "'messageToMark' must not be null");
-		String messageIdAsString = messageToMark.getHeaders().getId().toString();
-		synchronized (groupId) {
-			this.doMarkMessageFromGroup(messageIdAsString, groupId);
-			return this.getMessageGroup(groupId);
-		}
+		
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.mark(messageToMark);
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		result.put(groupId.toString(), new MessageGroupWrapper(messageGroup));
+		
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
+		
+		return this.getMessageGroup(groupId);
+		
+	}
+	
+	public void completeGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		
+		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
+		messageGroup.complete();
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		result.put(groupId.toString(), new MessageGroupWrapper(messageGroup));
+		
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
 	}
 
 	/**
@@ -198,96 +219,63 @@ public class RedisMessageStore extends AbstractMessageGroupStore implements Mess
 	 */
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		synchronized (groupId) {
-			this.doRemoveMessageGroup(groupId);
+		
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
+		MessageGroupWrapper messageGroupWrapper = (MessageGroupWrapper) result.get(groupId.toString());
+		
+		for (UUID messageId : messageGroupWrapper.getMarkedMessageIds()) {
+			this.removeMessage(messageId);
 		}
+		
+		for (UUID messageId : messageGroupWrapper.getUnmarkedMessageIds()) {
+			this.removeMessage(messageId);
+		}
+		result.remove(groupId.toString());
+		
+		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, result);
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
-		BoundSetOperations<String, Object> mGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
-		Set<Object> messageGroupIds = mGroupsOps.members();
+		Map<String, Object> result = this.getHolderMap(MESSAGE_GROUPS_HOLDER_MAP);
 		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
-		for (Object messageGroupId : messageGroupIds) {
-			messageGroups.add(this.getMessageGroup(messageGroupId));
+		for (Object object : result.values()) {
+			MessageGroupWrapper messageGroupWrapper = (MessageGroupWrapper) object;
+			messageGroups.add(this.getMessageGroup(messageGroupWrapper.getGroupId()));
 		}
 		return messageGroups.iterator();
+		
 	}
-
-	private Collection<Message<?>> buildMessageList(BoundListOperations<String, Object> messageGroupOps) {
-		List<Message<?>> messages = new LinkedList<Message<?>>();
-		if (messageGroupOps.size() == 0) {
-			return Collections.emptyList();
+	
+	private SimpleMessageGroup getSimpleMessageGroup(MessageGroup messageGroup){
+		if (messageGroup instanceof SimpleMessageGroup){
+			return (SimpleMessageGroup) messageGroup;
 		}
-		List<Object> messageIds = messageGroupOps.range(0, messageGroupOps.size() - 1);
-		for (Object messageId : messageIds) {
-			Message<?> message = this.getMessage(UUID.fromString(messageId.toString()));
-			if (message != null) {
-				messages.add((Message<?>) message);
-			}
-		}
-		return messages;
-	}
-
-	/* candidates for future abstract methods */
-
-	private void doCreateMessageGroupIfNecessary(Object groupId) {
-		BoundSetOperations<String, Object> messageGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
-		if (!messageGroupsOps.members().contains(groupId)) {
-			messageGroupsOps.add(groupId);
+		else {
+			return new SimpleMessageGroup(messageGroup);
 		}
 	}
-
-	private void doAddMessageToGroup(Message<?> message, Object groupId) {
-		String messageId = message.getHeaders().getId().toString();
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		unmarkedOps.rightPush(messageId);
-	}
-
-	private void doMarkMessageGroup(Object groupId) {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		unmarkedOps.rename(MARKED_PREFIX + groupId);
-	}
-
-	private void doRemoveMessageFromGroup(Object groupId, UUID messageId) {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
-		unmarkedOps.remove(0, messageId.toString());
-		markedOps.remove(0, messageId.toString());
-	}
-
-	private void doMarkMessageFromGroup(String messageIdAsString, Object groupId) {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		if (unmarkedOps.size() > 0) {
-			List<Object> messageIds = unmarkedOps.range(0, unmarkedOps.size() - 1);
-			int objectIndex = messageIds.indexOf(messageIdAsString);
-			if (objectIndex > -1) {
-				BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
-				markedOps.rightPush(messageIdAsString);
-				unmarkedOps.remove(0, messageIdAsString);
-			}
+	
+	private void storeHolderMap(String key, Object value){
+		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
+		try {
+			ops.set(value);
+		}
+		catch (SerializationException e) {
+			throw new IllegalArgumentException("If relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
+					"the Object must be Serializable. Either make it Serializable or provide your own implementation of " +
+					"RedisSerializer via 'setValueSerializer(..)'", e);
 		}
 	}
-
-	private void doRemoveMessageGroup(Object groupId) {
-		BoundListOperations<String, Object> unmarkedOps = this.redisTemplate.boundListOps(UNMARKED_PREFIX + groupId);
-		if (unmarkedOps.size() > 0) {
-			List<Object> messageIds = unmarkedOps.range(0, unmarkedOps.size() - 1);
-			for (Object messageId : messageIds) {
-				this.removeMessage(UUID.fromString(messageId.toString()));
-			}
-			this.redisTemplate.delete(UNMARKED_PREFIX + groupId);
+	
+	
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getHolderMap(String key){
+		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);	
+		if (!this.redisTemplate.hasKey(key)){
+			this.storeHolderMap(key, new HashMap<String, Object>());
 		}
-		BoundListOperations<String, Object> markedOps = this.redisTemplate.boundListOps(MARKED_PREFIX + groupId);
-		if (markedOps.size() > 0) {
-			List<Object> messageIds =  markedOps.range(0, markedOps.size() - 1);
-			for (Object messageId : messageIds) {
-				this.removeMessage(UUID.fromString(messageId.toString()));
-			}
-			this.redisTemplate.delete(MARKED_PREFIX + groupId);
-		}
-		BoundSetOperations<String, Object> messageGroupsOps = this.redisTemplate.boundSetOps(MESSAGE_GROUPS_KEY);
-		messageGroupsOps.remove(groupId);
+		Object result = ops.get();
+		return (Map<String, Object>) result;
 	}
 
 }
