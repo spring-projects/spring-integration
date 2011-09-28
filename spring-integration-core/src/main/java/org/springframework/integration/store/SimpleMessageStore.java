@@ -159,4 +159,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return groupIdToMessageGroup.get(groupId);
 	}
 
+	public void completeGroup(Object groupId) {
+		SimpleMessageGroup group = getMessageGroupInternal(groupId);
+		group.complete();
+	}
+
 }

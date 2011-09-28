@@ -117,6 +117,10 @@ public class MessageStoreTests {
 			}
 		}
 
+		public void completeGroup(Object groupId) {
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 }
