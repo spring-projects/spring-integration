@@ -80,7 +80,7 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertEquals("Barak Obama", storedMessage.getPayload().getName());
 	}
 	
-	@Test(expected=MessageStoreException.class)
+	@Test(expected=IllegalArgumentException.class)
 	@RedisAvailable
 	public void testAddNonSerializableObjectMessage(){	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();

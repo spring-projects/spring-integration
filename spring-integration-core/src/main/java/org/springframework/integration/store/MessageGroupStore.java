@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
  * Interface for storage operations on groups of messages linked by a group id.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * 
  * @since 2.0
  * 
@@ -128,4 +129,11 @@ public interface MessageGroupStore {
 	 * Returns the iterator of currently accumulated {@link MessageGroup}s
 	 */
 	Iterator<MessageGroup> iterator();
+	
+	/**
+	 * Completes this MessageGroup. Completion of the MessageGroup generally means 
+	 * that this group should not be allowing any more mutating operation to be performed on it. 
+	 * For example any attempt to add/remove new Message form the group should not be allowed.
+	 */
+	void completeGroup(Object groupId);
 }

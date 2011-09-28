@@ -48,17 +48,18 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public SimpleMessageGroup(Object groupId) {
 		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), groupId, System
-				.currentTimeMillis());
+				.currentTimeMillis(), false);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object groupId) {
-		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis());
+		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked,
-			Object groupId, long timestamp) {
+			Object groupId, long timestamp, boolean complete) {
 		this.groupId = groupId;
 		this.timestamp = timestamp;
+		this.complete = complete;
 		synchronized (lock) {
 			for (Message<?> message : unmarked) {
 				addUnmarked(message);
@@ -87,6 +88,8 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 		this.timestamp = template.getTimestamp();
 	}
+	
+	
 
 	public long getTimestamp() {
 		return timestamp;
