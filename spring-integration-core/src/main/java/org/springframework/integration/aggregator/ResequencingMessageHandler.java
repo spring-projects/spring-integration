@@ -28,7 +28,6 @@ import org.springframework.integration.store.MessageGroupStore;
  */
 public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandler {
 
-	
 	public ResequencingMessageHandler(MessageGroupProcessor processor,
 			MessageGroupStore store, CorrelationStrategy correlationStrategy,
 			ReleaseStrategy releaseStrategy) {
@@ -46,18 +45,18 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		super(processor);
 	}
 	
-	@SuppressWarnings("rawtypes")
-	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
-		if (group.isComplete() || group.getSequenceSize() == 0) {
-			remove(group);
+	@SuppressWarnings("rawtypes") 
+	protected void cleanup(MessageGroup messageGroup, Collection<Message> completedMessages) {
+			
+		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
+		int sequenceSize = 0;
+		Message<?> message = messageGroup.getOne();
+		if (message != null){
+			sequenceSize = message.getHeaders().getSequenceSize();
 		}
-		else {
-			if (completedMessages == null) {
-				mark(group);
-			} 
-			else {
-				mark(group, completedMessages);
-			}
+		// If there is no sequence then it must be incomplete or unbounded
+		if (sequenceSize > 0 && sequenceSize == size){
+			remove(messageGroup);
 		}
 	}
 

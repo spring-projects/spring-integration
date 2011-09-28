@@ -13,12 +13,12 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.Message;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.springframework.integration.Message;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id. The
@@ -41,6 +41,8 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	// @GuardedBy(lock)
 	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
+	
+	private volatile int lastReleasedMessageSequence;
 
 	private final long timestamp;
 	
@@ -109,6 +111,10 @@ public class SimpleMessageGroup implements MessageGroup {
 			unmarked.remove(message);
 		}
 	}
+	
+	public long getLastReleasedMessageSequence() {
+		return lastReleasedMessageSequence;
+	}
 
 	private boolean addUnmarked(Message<?> message) {
 		if (isMember(message)) {
@@ -132,6 +138,10 @@ public class SimpleMessageGroup implements MessageGroup {
 		synchronized (lock) {
 			return Collections.unmodifiableCollection(unmarked);
 		}
+	}
+	
+	public void setLastReleasedSequenceNumber(int sequenceNumber){
+		this.lastReleasedMessageSequence = sequenceNumber;
 	}
 
 	public Collection<Message<?>> getMarked() {

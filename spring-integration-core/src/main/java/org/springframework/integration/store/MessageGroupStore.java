@@ -126,6 +126,12 @@ public interface MessageGroupStore {
 	int expireMessageGroups(long timeout);
 	
 	/**
+	 * Allows you to set the sequence number of the last released Message. Used for Resequencing use cases
+	 * @param sequenceNumber
+	 */
+	void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber);
+	
+	/**
 	 * Returns the iterator of currently accumulated {@link MessageGroup}s
 	 */
 	Iterator<MessageGroup> iterator();

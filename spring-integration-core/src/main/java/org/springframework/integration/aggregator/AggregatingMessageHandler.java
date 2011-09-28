@@ -60,18 +60,11 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 	}
 
 	@SuppressWarnings("rawtypes")
-	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
+	protected void cleanup(MessageGroup messageGroup, Collection<Message> completedMessages) {
+		messageGroup.complete();
+		
 		if (this.expireGroupsUponCompletion) {
-			remove(group);
-		}
-		else { // remove messages from the group and mark is as complete
-			for (Message message : group.getMarked()) {
-				this.getMessageStore().removeMessageFromGroup(group.getGroupId(), message);
-			}
-			for (Message message : group.getUnmarked()) {
-				this.getMessageStore().removeMessageFromGroup(group.getGroupId(), message);
-			}
-			group.complete();
+			remove(messageGroup);
 		}
 	}
 
