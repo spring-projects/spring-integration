@@ -17,6 +17,8 @@
 package org.springframework.integration.aggregator.integration;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,10 +47,22 @@ public class AggregatorIntegrationTests {
 	@Autowired
 	@Qualifier("input")
 	private MessageChannel input;
+	
+	@Autowired
+	@Qualifier("expiringAggregatorInput")
+	private MessageChannel expiringAggregatorInput;
+	
+	@Autowired
+	@Qualifier("nonExpiringAggregatorInput")
+	private MessageChannel nonExpiringAggregatorInput;
 
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
+	
+	@Autowired
+	@Qualifier("discard")
+	private PollableChannel discard;
 
 	@Test//(timeout=5000)
 	public void testVanillaAggregation() throws Exception {
@@ -57,6 +71,49 @@ public class AggregatorIntegrationTests {
 			input.send(new GenericMessage<Integer>(i, headers));
 		}
 		assertEquals(0 + 1 + 2 + 3 + 4, output.receive().getPayload());
+	}
+	
+	@Test
+	public void testNonExpiringAggregator() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			Map<String, Object> headers = stubHeaders(i, 5, 1);
+			nonExpiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+		}
+		assertNotNull(output.receive(0));
+		
+		assertNull(discard.receive(0));
+		
+		for (int i = 5; i < 10; i++) {
+			Map<String, Object> headers = stubHeaders(i, 5, 1);
+			nonExpiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+		}
+		assertNull(output.receive(0));
+		
+		assertNotNull(discard.receive(0));
+		assertNotNull(discard.receive(0));
+		assertNotNull(discard.receive(0));
+		assertNotNull(discard.receive(0));
+		assertNotNull(discard.receive(0));
+	}
+	
+	@Test
+	public void testExpiringAggregator() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			Map<String, Object> headers = stubHeaders(i, 5, 1);
+			expiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+		}
+		assertNotNull(output.receive(0));
+		
+		assertNull(discard.receive(0));
+		
+		for (int i = 5; i < 10; i++) {
+			Map<String, Object> headers = stubHeaders(i, 5, 1);
+			expiringAggregatorInput.send(new GenericMessage<Integer>(i, headers));
+		}
+		assertNotNull(output.receive(0));
+		
+		assertNull(discard.receive(0));
+
 	}
 
 	// configured in context associated with this test
