@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -25,13 +30,12 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import static org.hamcrest.Matchers.is;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Marius Bogoevici
@@ -41,7 +45,7 @@ import static org.hamcrest.Matchers.*;
  */
 public class ResequencerTests {
 
-	private CorrelatingMessageHandler resequencer;
+	private ResequencingMessageHandler resequencer;
 
 	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
@@ -49,7 +53,7 @@ public class ResequencerTests {
 
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new CorrelatingMessageHandler(processor, store, null, null);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
 	}
 
 	@Test

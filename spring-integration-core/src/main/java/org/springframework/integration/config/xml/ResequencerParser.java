@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,8 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
+import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -27,6 +29,7 @@ import org.w3c.dom.Element;
  * @author Marius Bogoevici
  * @author Dave Syer
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class ResequencerParser extends AbstractConsumerEndpointParser {
 
@@ -57,11 +60,8 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CorrelatingMessageHandler");
-		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-						+ ".aggregator.ResequencingMessageGroupProcessor");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageHandler.class);
+		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResequencingMessageGroupProcessor.class);
 
 		// Comparator
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(processorBuilder, element, COMPARATOR_REF_ATTRIBUTE);

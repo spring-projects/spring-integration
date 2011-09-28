@@ -16,19 +16,12 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
@@ -42,6 +35,13 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
+import static org.hamcrest.CoreMatchers.is;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -51,7 +51,7 @@ public class ConcurrentAggregatorTests {
 
 	private TaskExecutor taskExecutor;
 
-	private CorrelatingMessageHandler aggregator;
+	private AggregatingMessageHandler aggregator;
 
 	private MessageGroupStore store = new SimpleMessageStore();
 
@@ -59,7 +59,7 @@ public class ConcurrentAggregatorTests {
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
-		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), store);
+		this.aggregator = new AggregatingMessageHandler(new MultiplyingProcessor(), store);
 	}
 
 
@@ -274,7 +274,7 @@ public class ConcurrentAggregatorTests {
 
 	@Test
 	public void testNullReturningAggregator() throws InterruptedException {
-		this.aggregator = new CorrelatingMessageHandler(new NullReturningMessageProcessor(), new SimpleMessageStore(
+		this.aggregator = new AggregatingMessageHandler(new NullReturningMessageProcessor(), new SimpleMessageStore(
 						50));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
