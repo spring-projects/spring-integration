@@ -176,6 +176,28 @@ public class GemfireGroupStoreTests {
 	}
 	
 	@Test
+	public void testCompleteMessageGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> messageToMark = new GenericMessage<String>("1");
+		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.completeGroup(messageGroup.getGroupId());
+		messageGroup = store.getMessageGroup(1);
+		assertTrue(messageGroup.isComplete());
+	}
+	
+	@Test
+	public void testLastReleasedSequenceNumber() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> messageToMark = new GenericMessage<String>("1");
+		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
+		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+	}
+	
+	@Test
 	public void testMultipleInstancesOfGroupStore() throws Exception{	
 		GemfireMessageStore store1 = new GemfireMessageStore(this.cache);
 		

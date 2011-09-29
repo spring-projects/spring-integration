@@ -137,6 +137,20 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
+	public void testLastReleasedSequenceNumber() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+	}
+	
+	@Test
+	@MongoDbAvailable
 	public void testRemoveMessageFromTheGroup() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);

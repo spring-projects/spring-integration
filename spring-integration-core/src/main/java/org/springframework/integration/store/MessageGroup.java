@@ -53,7 +53,7 @@ public interface MessageGroup {
 	/**
 	 * Returns the sequenceNumber of the last released message. Used in Resequencer use cases only
 	 */
-	long getLastReleasedMessageSequence();
+	int getLastReleasedMessageSequenceNumber();
 
 	/**
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)
