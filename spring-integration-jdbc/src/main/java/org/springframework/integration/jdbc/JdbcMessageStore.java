@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  * target database type.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ManagedResource
@@ -80,7 +81,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
+	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
 
 	private static final String COUNT_ALL_GROUPS = "SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -91,13 +92,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and GROUP_KEY=? and REGION=?";
 
 	private static final String MARK_MESSAGE_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MESSAGE_ID=? and MARKED=0 and GROUP_KEY=? and REGION=?";
+	
+	private static final String COMPLETE_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, COMPLETE=1 where GROUP_KEY=? and REGION=?";
 
 	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
 
-	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, MESSAGE_BYTES)"
-			+ " values (?, ?, ?, ?, 0, ?)";
+	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, COMPLETE, MESSAGE_BYTES)"
+			+ " values (?, ?, ?, ?, 0, 0, ?)";
 
 	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -332,6 +335,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final List<Message<?>> marked = new ArrayList<Message<?>>();
 		final List<Message<?>> unmarked = new ArrayList<Message<?>>();
 		final AtomicReference<Date> date = new AtomicReference<Date>();
+		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
+		
 		jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region },
 				new RowCallbackHandler() {
 					int count = 0;
@@ -346,6 +351,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 							unmarked.add(message);
 						}
 						date.set(rs.getTimestamp("CREATED_DATE"));
+						
+						completeFlag.set(rs.getInt("COMPLETE") > 0);
 					}
 				});
 		if (marked.isEmpty() && unmarked.isEmpty()) {
@@ -353,7 +360,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		}
 		Assert.state(date.get() != null, "Could not locate created date for groupId=" + groupId);
 		long timestamp = date.get().getTime();
-		return new SimpleMessageGroup(unmarked, marked, groupId, timestamp);
+		boolean complete = completeFlag.get().booleanValue();
+		return new SimpleMessageGroup(unmarked, marked, groupId, timestamp, complete);
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
@@ -421,10 +429,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(2, region);
 			}
 		});
-
+	}
+	
+	public void completeGroup(Object groupId) {
+		final long updatedDate = System.currentTimeMillis();
+		final String groupKey = getKey(groupId);
+		
+		jdbcTemplate.update(getQuery(COMPLETE_GROUP), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				logger.debug("Completing MessageGroup: " + groupKey);
+				ps.setTimestamp(1, new Timestamp(updatedDate));
+				ps.setString(2, groupKey);
+				ps.setString(3, region);
+			}
+		});
 	}
 
-	@Override
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
@@ -465,5 +485,4 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			return message;
 		}
 	}
-
 }
