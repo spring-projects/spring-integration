@@ -123,13 +123,11 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+						<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-				Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
-				Integration provides [Twitter4jTemplate] template for your convenience.
-				NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+				Reference to a [org.springframework.social.twitter.api.impl.TwitterTemplate] bean provided by SpringSocial project. 
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -163,13 +161,11 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+							<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-				Reference to a [org.springframework.integration.twitter.core.TwitterOperations] bean. Spring 
-				Integration provides [Twitter4jTemplate] template for your convenience.
-				NOTE: in future releases TwitterOperations usage will be migrated to using Spring Social's TwitterOperations
+				Reference to a [org.springframework.social.twitter.api.impl.TwitterTemplate] bean provided by SpringSocial project. 
 				</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
