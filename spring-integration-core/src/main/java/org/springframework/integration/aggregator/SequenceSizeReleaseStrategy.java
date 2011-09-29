@@ -76,16 +76,16 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			}
 			List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
 			Collections.sort(sorted, comparator);
-			int tail = sorted.get(0).getHeaders().getSequenceNumber()-1;
 			
-			long lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequence();
+			int nextSequenceNumber = sorted.get(0).getHeaders().getSequenceNumber();
+			int lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
 			
-			if (tail == lastReleasedMessageSequence){
+			if (nextSequenceNumber - lastReleasedMessageSequence == 1){
 				canRelease = true;;
 			}	
 		}
 		else {
-			int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
+			int size = messageGroup.getUnmarked().size();
 			
 			if (size == 0){
 				canRelease = true;
@@ -93,7 +93,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			else {
 				int sequenceSize = messageGroup.getOne().getHeaders().getSequenceSize();
 				// If there is no sequence then it must be incomplete....
-				if (sequenceSize > 0 && sequenceSize == size){
+				if (sequenceSize == size){
 					canRelease = true;
 				}
 			}

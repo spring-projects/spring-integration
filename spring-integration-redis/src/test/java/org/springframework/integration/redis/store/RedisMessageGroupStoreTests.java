@@ -124,6 +124,20 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	
 	@Test
 	@RedisAvailable
+	public void testLastReleasedSequenceNumber() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
+	}
+	
+	@Test
+	@RedisAvailable
 	public void testRemoveMessageFromTheGroup() throws Exception{	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
 		RedisMessageStore store = new RedisMessageStore(jcf);

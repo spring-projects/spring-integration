@@ -20,8 +20,8 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 
 /**
- * Resequencer specific implementation of {@link AbstractCorrelatingMessageHandler}. It takes into account the fact that 
- * it must remember the last released message sequence in implementation of {@link #cleanUpForReleasedGroup(MessageGroup, Collection)} method 
+ * Resequencer specific implementation of {@link AbstractCorrelatingMessageHandler}. 
+ * Will remove {@link MessageGroup}s only if 'sequenceSize' is provided and reached. 
  *
  * @author Oleg Zhurakousky
  * @since 2.1
@@ -45,8 +45,8 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		super(processor);
 	}
 	
-	@SuppressWarnings("rawtypes") 
-	protected void cleanup(MessageGroup messageGroup, Collection<Message> completedMessages) {
+	@Override
+	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 			
 		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
 		int sequenceSize = 0;
@@ -57,6 +57,24 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 		// If there is no sequence then it must be incomplete or unbounded
 		if (sequenceSize > 0 && sequenceSize == size){
 			remove(messageGroup);
+		}
+		else {
+			if (completedMessages != null){ 
+				int lastReleasedSequenceNumber = this.findLastReleasedSequenceNumber(messageGroup.getGroupId(), completedMessages);
+				messageStore.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), lastReleasedSequenceNumber);
+				
+				if (this.keepReleasedMessages){
+					Object id = messageGroup.getGroupId();
+					for (Message<?> msg : completedMessages) {
+						messageStore.markMessageFromGroup(id, msg);
+					}
+				}
+				else {
+					for (Message<?> msg : completedMessages) {
+						this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), msg);
+					}
+				}
+			}
 		}
 	}
 
