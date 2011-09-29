@@ -16,12 +16,20 @@
 
 package org.springframework.integration.http.config;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0.2
  */
 abstract class HttpAdapterParsingUtils {
@@ -37,6 +45,21 @@ abstract class HttpAdapterParsingUtils {
 						+ attributeName + "' attribute is not allowed.",
 						parserContext.extractSource(element));
 			}
+		}
+	}
+
+	static void configureUriVariableExpressions(BeanDefinitionBuilder builder, Element element) {
+		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
+		if (!CollectionUtils.isEmpty(uriVariableElements)) {
+			ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<String, Object>();
+			for (Element uriVariableElement : uriVariableElements) {
+				String name = uriVariableElement.getAttribute("name");
+				String expression = uriVariableElement.getAttribute("expression");
+				BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+				factoryBeanBuilder.addConstructorArgValue(expression);
+				uriVariableExpressions.put(name,  factoryBeanBuilder.getBeanDefinition());
+			}
+			builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 		}
 	}
 

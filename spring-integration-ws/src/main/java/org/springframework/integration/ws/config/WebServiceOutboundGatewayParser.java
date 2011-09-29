@@ -16,16 +16,16 @@
 
 package org.springframework.integration.ws.config;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.CollectionUtils;
@@ -70,11 +70,13 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		else {
 			builder.addConstructorArgValue(uri);
 			if (!CollectionUtils.isEmpty(uriVariableElements)) {
-				Map<String, String> uriVariableExpressions = new HashMap<String, String>();
+				ManagedMap<String, Object> uriVariableExpressions = new ManagedMap<String, Object>();
 				for (Element uriVariableElement : uriVariableElements) {
 					String name = uriVariableElement.getAttribute("name");
 					String expression = uriVariableElement.getAttribute("expression");
-					uriVariableExpressions.put(name, expression);
+					BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+					factoryBeanBuilder.addConstructorArgValue(expression);
+					uriVariableExpressions.put(name,  factoryBeanBuilder.getBeanDefinition());
 				}
 				builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
 			}
