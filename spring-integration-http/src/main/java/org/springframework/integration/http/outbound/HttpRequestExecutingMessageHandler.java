@@ -32,8 +32,6 @@ import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
@@ -75,9 +73,6 @@ import org.springframework.web.client.RestTemplate;
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
-
-	private static final ExpressionParser PARSER = new SpelExpressionParser();
-
 
 	private final String uri;
 
@@ -210,14 +205,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
 	 * when replacing the variable placeholders in a URI template.
 	 */
-	public void setUriVariableExpressions(Map<String, String> uriVariableExpressions) {
+	public void setUriVariableExpressions(Map<String, Expression> uriVariableExpressions) {
 		synchronized (this.uriVariableExpressions) {
 			this.uriVariableExpressions.clear();
-			if (!CollectionUtils.isEmpty(uriVariableExpressions)) {
-				for (Map.Entry<String, String> entry : uriVariableExpressions.entrySet()) {
-					this.uriVariableExpressions.put(entry.getKey(), PARSER.parseExpression(entry.getValue()));
-				}
-			}
+			this.uriVariableExpressions.putAll(uriVariableExpressions);
 		}
 	}
 

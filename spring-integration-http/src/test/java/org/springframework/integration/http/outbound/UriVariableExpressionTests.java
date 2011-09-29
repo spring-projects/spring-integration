@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -43,7 +44,8 @@ public class UriVariableExpressionTests {
 	public void testFromMessageWithExpressions() throws Exception {
 		final AtomicReference<URI> uriHolder = new AtomicReference<URI>();
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://test/{foo}");
-		handler.setUriVariableExpressions(Collections.singletonMap("foo", "payload"));
+		SpelExpressionParser parser = new SpelExpressionParser();
+		handler.setUriVariableExpressions(Collections.singletonMap("foo", parser.parseExpression("payload")));
 		handler.setRequestFactory(new SimpleClientHttpRequestFactory() {
 			public ClientHttpRequest createRequest(URI uri, HttpMethod httpMethod) throws IOException {
 				uriHolder.set(uri);
