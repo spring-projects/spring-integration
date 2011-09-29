@@ -1250,41 +1250,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:complexType name="intervalTriggerType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defines an interval-based trigger.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:attribute name="interval" type="xsd:string" use="required" />
-		<xsd:attribute name="initial-delay" type="xsd:string" />
-		<xsd:attribute name="fixed-rate" type="xsd:string" default="false" />
-		<xsd:attribute name="time-unit" default="MILLISECONDS">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-	The java.util.concurrent.TimeUnit enum value. The interval trigger resolution
-	only has millisecond granularity, so we only provide MILLISECONDS and SECONDS.
-	For hourly, daily, and monthly settings, consider using a cron-trigger instead.
-				]]></xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="MILLISECONDS" />
-					<xsd:enumeration value="SECONDS" />
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
-	</xsd:complexType>
-
-	<xsd:complexType name="cronTriggerType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defines an cron-based trigger.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:attribute name="expression" type="xsd:string" use="required" />
-	</xsd:complexType>
-
 	<xsd:element name="selector-chain">
 		<xsd:complexType>
 			<xsd:annotation>
