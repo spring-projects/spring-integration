@@ -73,9 +73,9 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Map<UUID, Message<?>> getHolderMapForMessage(){
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGES_HOLDER_MAP);	
-		if (!this.redisTemplate.hasKey(MESSAGES_HOLDER_MAP)){
-			this.storeHolderMap(MESSAGES_HOLDER_MAP, new HashMap<UUID, Message<?>>());
+		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGES_HOLDER_MAP_NAME);	
+		if (!this.redisTemplate.hasKey(MESSAGES_HOLDER_MAP_NAME)){
+			this.storeHolderMap(MESSAGES_HOLDER_MAP_NAME, new HashMap<UUID, Message<?>>());
 		}
 		Object result = ops.get();
 		return (Map<UUID, Message<?>>) result;
@@ -84,9 +84,9 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected Map<Object, MessageGroupMetadata> getHolderMapForMessageGroups(){
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGE_GROUPS_HOLDER_MAP);	
-		if (!this.redisTemplate.hasKey(MESSAGE_GROUPS_HOLDER_MAP)){
-			this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP, new HashMap<String, MessageGroupMetadata>());
+		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGE_GROUPS_HOLDER_MAP_NAME);	
+		if (!this.redisTemplate.hasKey(MESSAGE_GROUPS_HOLDER_MAP_NAME)){
+			this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, new HashMap<String, MessageGroupMetadata>());
 		}
 		Object result = ops.get();
 		return (Map<Object, MessageGroupMetadata>) result;

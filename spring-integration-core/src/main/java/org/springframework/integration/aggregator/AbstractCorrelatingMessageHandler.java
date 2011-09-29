@@ -37,6 +37,7 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Abstract Message handler that holds a buffer of correlated messages in a
@@ -85,7 +86,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 	
-	private volatile boolean keepReleasedMessages = true;
+	protected volatile boolean keepReleasedMessages = true;
 
 
 	public void setKeepReleasedMessages(boolean keepReleasedMessages) {
@@ -174,7 +175,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		return messageStore;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
@@ -196,31 +196,33 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				messageGroup = store(correlationKey, message);
 				
 				if (releaseStrategy.canRelease(messageGroup)) {
-					Collection<Message> completedMessages = null;
+					Collection<Message<?>> completedMessages = null;
 					try {
 						completedMessages = completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
 						// Always clean up even if there was an exception
-						// processing messages	
-						
-						this.resetMessageGroup(messageGroup, completedMessages);
-						
-						this.cleanup(messageGroup, completedMessages);
-						
+						// processing messages						
+						this.afterRelease(messageGroup, completedMessages);
+		
 						synchronized(correlationLocksMonitor){
 							locks.remove(messageGroup.getGroupId());
 						}
 					}
 				} 				
-			} else {
+			} 
+			else {
 				discardChannel.send(message);
 			}
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected abstract void cleanup(MessageGroup group, Collection<Message> completedMessages);
+	/**
+	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
+	 * @param group
+	 * @param completedMessages
+	 */
+	protected abstract void afterRelease(MessageGroup group, Collection<Message<?>> completedMessages);
 
 	private final boolean forceComplete(MessageGroup group) {
 
@@ -234,7 +236,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						this.completeGroup(correlationKey, group);
 					} 
 					else {
-						this.expireGroup(group, correlationKey);
+						this.expireGroup(correlationKey, group);
 					}
 				}
 				finally {
@@ -253,60 +255,25 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes"})
-	void resetMessageGroup(MessageGroup group, Collection<Message> partialSequence) {
-		
-		if (partialSequence != null){
-			
-			this.setLastReleasedSequenceNumber(group.getGroupId(), partialSequence);
-			
-			if (this.keepReleasedMessages){
-				Object id = group.getGroupId();
-				for (Message message : partialSequence) {
-					messageStore.markMessageFromGroup(id, message);
-				}
-			}
-			else {
-				for (Message<?> message : partialSequence) {
-					this.messageStore.removeMessageFromGroup(group.getGroupId(), message);
-				}
-			}
-		}
-		else {
-			if (this.keepReleasedMessages){
-				messageStore.markMessageGroup(group);
-			}
-			else {
-				for (Message<?> message : group.getMarked()) {
-					this.messageStore.removeMessageFromGroup(group.getGroupId(), message);
-				}
-				for (Message<?> message : group.getUnmarked()) {
-					this.messageStore.removeMessageFromGroup(group.getGroupId(), message);
-				}
-			}
-		}
-	}
-
 	void remove(MessageGroup group) {
 		Object correlationKey = group.getGroupId();
 		messageStore.removeMessageGroup(correlationKey);
 	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setLastReleasedSequenceNumber(Object groupId, Collection<Message> partialSequence){
+
+	protected int findLastReleasedSequenceNumber(Object groupId, Collection<Message<?>> partialSequence){
 		List<Message<?>> sorted = new ArrayList<Message<?>>((Collection<? extends Message<?>>)partialSequence);
 		Collections.sort(sorted, new SequenceNumberComparator());
 		
 		Message<?> lastReleasedMessage = sorted.get(partialSequence.size()-1);
 		
-		messageStore.setLastReleasedSequenceNumberForGroup(groupId, lastReleasedMessage.getHeaders().getSequenceNumber());
+		return lastReleasedMessage.getHeaders().getSequenceNumber();
 	}
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
 		return messageStore.addMessageToGroup(correlationKey, message);
 	}
 
-	private void expireGroup(MessageGroup group, Object correlationKey) {
+	private void expireGroup(Object correlationKey, MessageGroup group) {
 		if (logger.isInfoEnabled()) {
 			logger.info("Expiring MessageGroup with correlationKey[" + correlationKey + "]");
 		}
@@ -335,19 +302,24 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		completeGroup(first, correlationKey, group);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private Collection<Message> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
+	@SuppressWarnings("unchecked")
+	private Collection<Message<?>> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
 		Object result = outputProcessor.processMessageGroup(group);
-		Collection<Message> partialSequence = null;
+		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {
-			//Taking a risk here because of Type Erasure. This is covered in the processor contract
-			partialSequence = (Collection<Message>) result;
+			this.verifyResultCollectionConsistsOfMessages((Collection<?>) result);
+			partialSequence = (Collection<Message<?>>) result;
 		}
 		this.sendReplies(result, message);
 		return partialSequence;
+	}
+	
+	private void verifyResultCollectionConsistsOfMessages(Collection<?> elements){
+		Class<?> commonElementType = CollectionUtils.findCommonElementType(elements);
+		Assert.isAssignable(Message.class, commonElementType, "The expected collection of Messages contains non-Message element: " + commonElementType);
 	}
 
 	@SuppressWarnings("rawtypes")
