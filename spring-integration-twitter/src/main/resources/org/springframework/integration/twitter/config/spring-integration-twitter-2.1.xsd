@@ -15,12 +15,13 @@
 
 	<!--
 		INBOUND
-		-->
+	-->
+
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-				from twitter and sends Messages whose payloads are Tweet objects.
+				Configures an inbound channel adapter that consumes your friends' timeline updates
+				from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>	
 		<xsd:complexType >
@@ -33,8 +34,8 @@
 	<xsd:element name="mentions-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes message (representing mentions of your handle)
-				from twitter and sends Messages whose payloads are Status objects.
+				Configures an inbound channel adapter that consumes mentions of your handle
+				from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -48,8 +49,8 @@
 	<xsd:element name="search-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes message (representing mentions of your handle)
-				from twitter and sends Messages whose payloads are Status objects.
+				Configures an inbound channel adapter that consumes search results for a given query
+				from Twitter and sends Messages whose payloads are Tweet objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -58,7 +59,7 @@
 					<xsd:attribute name="query" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:documentation>
-							Twitter search query (e.g, #springintegration . 
+							Twitter search query (e.g, #springintegration).
 							For more info on Twitter queries please refer to this site: http://search.twitter.com/operators)
 							</xsd:documentation>
 						</xsd:annotation>
@@ -71,7 +72,8 @@
 	<xsd:element name="dm-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes direct messages and forwards them to Spring Integration
+				Configures an inbound channel adapter that consumes direct messages from Twitter
+				and sends Messages whose payloads are DirectMessage objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -82,14 +84,14 @@
 	</xsd:element>
 
 	<!--
-			OUTBOUND
-		-->
+		OUTBOUND
+	-->
 
 	<xsd:element name="dm-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-				from twitter and sends Messages whose payloads are Tweet objects.
+				Configures an outbound channel adapter that sends Direct Messages to a Twitter user as
+				specified in the header whose name is defined by the TwitterHeaders.DM_TARGET_USER_ID constant.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -103,8 +105,7 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-				from twitter and sends Messages whose payloads are Tweet objects.
+				Configures an outbound channel adapter that posts a status update to the authorized user's timeline.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -113,6 +114,10 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<!--
+		BASE TYPES
+	-->
 
 	<xsd:complexType name="inbound-twitter-type">
 		<xsd:sequence>
@@ -123,19 +128,19 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
+						<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-				Reference to a [org.springframework.social.twitter.api.impl.TwitterTemplate] bean provided by SpringSocial project. 
+					Reference to a TwitterTemplate bean provided by the Spring Social project. 
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
 			<xsd:annotation>
 					<xsd:documentation>
-					Lifecycle attribute signaling if this component should be started during Application Context startup.
-					Default is 'true'
+					Lifecycle attribute signaling whether this component should be started during Application Context startup.
+					Default is 'true'.
 					</xsd:documentation>
 				</xsd:annotation>
 		</xsd:attribute>
@@ -147,10 +152,8 @@
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
-					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
-	            	</xsd:documentation>
+	            	Message Channel to which messages will be sent by this adapter.
+	            </xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -161,12 +164,12 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
+							<tool:expected-type type="org.springframework.social.twitter.api.Twitter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-				Reference to a [org.springframework.social.twitter.api.impl.TwitterTemplate] bean provided by SpringSocial project. 
-				</xsd:documentation>
+						Reference to a TwitterTemplate bean provided by the Spring Social project. 
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string">
@@ -177,9 +180,7 @@
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
-					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
+	            		Message Channel where this adapter receives messages to be handled by performing Twitter operations.
 	            	</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
