@@ -154,7 +154,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		SimpleMessageGroup group = getMessageGroupInternal(groupId);
-		group.setLastReleasedSequenceNumber(sequenceNumber);
+		group.setLastReleasedMessageSequenceNumber(sequenceNumber);
 	}
 
 	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {

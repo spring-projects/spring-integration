@@ -112,7 +112,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 	}
 	
-	public long getLastReleasedMessageSequence() {
+	public int getLastReleasedMessageSequenceNumber() {
 		return lastReleasedMessageSequence;
 	}
 
@@ -140,7 +140,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 	}
 	
-	public void setLastReleasedSequenceNumber(int sequenceNumber){
+	public void setLastReleasedMessageSequenceNumber(int sequenceNumber){
 		this.lastReleasedMessageSequence = sequenceNumber;
 	}
 
@@ -199,7 +199,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return one;
 	}
 	
-	public void cleanup(){
+	public void clear(){
 		this.marked.clear();
 		this.unmarked.clear();
 	}

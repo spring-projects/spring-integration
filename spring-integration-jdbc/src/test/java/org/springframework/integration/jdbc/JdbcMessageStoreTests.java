@@ -211,6 +211,17 @@ public class JdbcMessageStoreTests {
 		assertTrue(group.isComplete());
 		assertEquals(1, group.size());
 	}
+	
+	@Test
+	@Transactional
+	public void testUpdateLastReleasedSequence() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.setLastReleasedSequenceNumberForGroup(groupId, 5);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(5, group.getLastReleasedMessageSequenceNumber());
+	}
 
 	@Test
 	@Transactional
