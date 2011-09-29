@@ -123,7 +123,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+						<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
@@ -161,7 +161,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.twitter.core.TwitterOperations"/>
+							<tool:expected-type type="org.springframework.social.twitter.api.impl.TwitterTemplate"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
