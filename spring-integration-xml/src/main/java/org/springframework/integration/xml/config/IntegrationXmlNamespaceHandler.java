@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ public class IntegrationXmlNamespaceHandler extends AbstractIntegrationNamespace
 		registerBeanDefinitionParser("xpath-transformer", new XPathTransformerParser());
 		registerBeanDefinitionParser("xpath-header-enricher", new XPathHeaderEnricherParser());
 		registerBeanDefinitionParser("xpath-router", new XPathRouterParser());
+		registerBeanDefinitionParser("xpath-filter", new XPathFilterParser());
 		registerBeanDefinitionParser("xpath-selector", new XPathSelectorParser());
 		registerBeanDefinitionParser("xpath-expression", new XPathExpressionParser());
 		registerBeanDefinitionParser("xpath-splitter", new XPathMessageSplitterParser());
