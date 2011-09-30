@@ -77,7 +77,7 @@ public class DefaultScriptExecutor implements ScriptExecutor {
 
 			Date start = new Date();
 			if (log.isDebugEnabled()) {
-				log.debug("executing script: " + script + " on instance " + scriptEngine.hashCode());
+				log.debug("executing script: " + script);
 			}
 
 			obj = scriptEngine.eval(script);
