@@ -10,7 +10,7 @@
 	<service-activator input-channel="inlineScriptInput">
 		<script:script lang="ruby">
 			<![CDATA[
-				return "inline-#{$payload}-" + "#{$foo}" + " - " + $bar + " - " + $date
+				return "inline-#{payload}-" + "#{foo}" + " - " + bar + " - " + date
 			]]>
 			<script:variable name="foo" value="foo"/>
 			<script:variable name="bar" value="bar"/>

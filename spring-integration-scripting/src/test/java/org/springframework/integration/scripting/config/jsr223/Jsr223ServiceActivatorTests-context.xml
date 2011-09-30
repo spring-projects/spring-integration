@@ -33,7 +33,7 @@
 	<service-activator input-channel="inlineScriptInput">
 		<script:script lang="ruby">
 			<![CDATA[
-				"inline-#{$payload}"
+				"inline-#{payload}"
 			]]>
 		</script:script>
 	</service-activator>
