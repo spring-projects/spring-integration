@@ -26,9 +26,10 @@
 	Defines a Web Service based outbound Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:all>
+			<xsd:sequence>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:all>
+				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -64,10 +65,13 @@
 			</xsd:attribute>
 			<xsd:attribute name="uri" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>
+					<xsd:documentation><![CDATA[
 	The Destination URI for this Web Service Gateway. If the URI should be determined at runtime
-	(e.g. registry lookup), then configure a 'destination-provider' reference instead.
-					</xsd:documentation>
+	(e.g. registry lookup), then configure a 'destination-provider' reference instead. Aternatively,
+	this URI may include {placeholders} whose values are determined by evaluating SpEL expressions
+	provided via 'uri-variable' sub-elements. The root object for those evaluations is the actual
+	request Message at runtime, i.e. you can access its payload or headers in the expression.
+					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
             <xsd:attribute name="destination-provider" type="xsd:string">
@@ -202,6 +206,31 @@
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="uriVariableType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Expression to be evaluated against the Message to replace a URI {placeholder} with the evaluation result.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Name of the placeholder to be replaced.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Expression to be evaluated to determine the replacement value.
+					The Message is the root object of the expression, therefore
+					the 'payload' and 'headers' are available directly. Any bean
+					may be resolved if the bean name is preceded with '@'.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 	<xsd:element name="inbound-gateway">
 		<xsd:complexType>

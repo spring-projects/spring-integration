@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,6 @@
 
 package org.springframework.integration.http.config;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -27,9 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the 'outbound-channel-adapter' element of the http namespace.
@@ -49,14 +43,14 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 		
 		String restTemplate = element.getAttribute("rest-template");
-		if (StringUtils.hasText(restTemplate)){
+		if (StringUtils.hasText(restTemplate)) {
 			HttpAdapterParsingUtils.verifyNoRestTemplateAttributes(element, parserContext);
-			builder.addConstructorArgReference("restTemplate");
+			builder.addConstructorArgReference(restTemplate);
 		}
 		else {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
+			for (String referenceAttributeName : HttpAdapterParsingUtils.REST_TEMPLATE_REFERENCE_ATTRIBUTES) {
+				IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, referenceAttributeName);
+			}
 		}
 		
 		String headerMapper = element.getAttribute("header-mapper");
@@ -78,16 +72,7 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");
-		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
-		if (!CollectionUtils.isEmpty(uriVariableElements)) {
-			Map<String, String> uriVariableExpressions = new HashMap<String, String>();
-			for (Element uriVariableElement : uriVariableElements) {
-				String name = uriVariableElement.getAttribute("name");
-				String expression = uriVariableElement.getAttribute("expression");
-				uriVariableExpressions.put(name, expression);
-			}
-			builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
-		}
+		HttpAdapterParsingUtils.configureUriVariableExpressions(builder, element);
 		return builder.getBeanDefinition();
 	}
 

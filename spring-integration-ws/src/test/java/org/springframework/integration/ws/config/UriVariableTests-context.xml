@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ws="http://www.springframework.org/schema/integration/ws"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
+
+	<ws:outbound-gateway id="gateway" request-channel="input" uri="http://springsource.org/{foo}-{bar}" interceptor="interceptor">
+		<ws:uri-variable name="foo" expression="payload.substring(1,7)"/>
+		<ws:uri-variable name="bar" expression="headers.x"/>
+	</ws:outbound-gateway>
+
+	<bean id="interceptor" class="org.springframework.integration.ws.config.UriVariableTests$TestClientInterceptor"/>
+
+</beans>

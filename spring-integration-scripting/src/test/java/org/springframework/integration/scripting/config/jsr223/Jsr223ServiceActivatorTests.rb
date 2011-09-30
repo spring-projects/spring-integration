@@ -1,1 +1,1 @@
-"ruby-#{$payload}-#{$foo} - #{$bar} - #{$date}"
+"ruby-#{payload}-#{foo} - #{bar} - #{date}"

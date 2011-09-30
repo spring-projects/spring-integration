@@ -58,16 +58,16 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			if (this.getLocalAddress() == null) {
-				this.serverSocket = ServerSocketFactory.getDefault()
-						.createServerSocket(this.getPort(), Math.abs(this.getPoolSize()));
+				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), null);
 			} else {
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
-				this.serverSocket = ServerSocketFactory.getDefault()
-						.createServerSocket(this.getPort(), Math.abs(this.getPoolSize()), whichNic);
+				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), whichNic);
 			}
-			theServerSocket = this.serverSocket;
+			this.serverSocket = theServerSocket;
 			this.setListening(true);
-			logger.info("Listening on port " + this.getPort());
+			if (logger.isInfoEnabled()) {
+				logger.info("Listening on port " + this.getPort());
+			}
 			while (true) {
 				final Socket socket = serverSocket.accept();
 				logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
@@ -88,6 +88,31 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			}
 			this.setActive(false);
 		}
+	}
+
+	/**
+	 * Create a new {@link ServerSocket}. This default implementation uses the default
+	 * {@link ServerSocketFactory}. Override to use some other mechanism
+	 *
+	 * @param port The port.
+	 * @param backlog The server socket backlog.
+	 * @param whichNic An InetAddress if binding to a specific network interface. Set to
+	 * null when configured to bind to all interfaces.
+	 * @return The Server Socket.
+	 * @throws IOException
+	 */
+	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
+		if (whichNic == null) {
+			return ServerSocketFactory.getDefault().createServerSocket(port,
+					Math.abs(backlog));
+		} else {
+			return ServerSocketFactory.getDefault().createServerSocket(port,
+					Math.abs(backlog), whichNic);
+		}
+	}
+
+	public boolean isRunning() {
+		return this.isActive();
 	}
 
 	public void close() {

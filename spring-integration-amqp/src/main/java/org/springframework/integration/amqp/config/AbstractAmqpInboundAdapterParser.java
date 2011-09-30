@@ -107,6 +107,10 @@ abstract class AbstractAmqpInboundAdapterParser extends AbstractSingleBeanDefini
 	protected abstract void configureChannels(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 
 	private BeanDefinition buildListenerContainer(Element element, ParserContext parserContext) {
+		if (!element.hasAttribute("queue-names")) {
+			parserContext.getReaderContext().error("If no 'listener-container' reference is provided, " +
+					"the 'queue-names' attribute is required.", element);
+		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer");
 		String connectionFactoryRef = element.getAttribute("connection-factory");

@@ -206,7 +206,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	  </para>
 	  <para>
 	    The remote directory that the <emphasis>ls</emphasis> command acted on is provided
-	    in the <classname>file_remote_dir</classname> header.
+	    in the <classname>file_remoteDirectory</classname> header.
 	  </para>
 	  <para>
 	    <emphasis>get</emphasis> supports the following option:
@@ -219,8 +219,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		<classname>File</classname>	object representing the retrieved file.
 	  </para>
 	  <para>
-	    The remote directory is provided in the <classname>file_remote_dir</classname> header, and the filename is
-	    provided in the <classname>file_remote_file</classname> header.
+	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
+	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
 	  <para></para>
 	  <para>
@@ -234,8 +234,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	  <para>
 		The message payload resulting from an <emphasis>rm</emphasis> operation is Boolean.TRUE if the
 		remove was successful, Boolean.FALSE otherwise.
-	    The remote directory is provided in the <classname>file_remote_dir</classname> header, and the filename is
-	    provided in the <classname>file_remote_file</classname> header.
+	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
+	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
 	  <para></para>
 	  <para>

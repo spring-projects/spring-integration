@@ -319,6 +319,18 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="error-handler" use="optional" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	ErrorHandler to be configured on the underlying MessageListener container.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.util.ErrorHandler"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="expose-listener-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -400,7 +412,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="queue-names" type="xsd:string" use="required">
+		<xsd:attribute name="queue-names" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
 	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).

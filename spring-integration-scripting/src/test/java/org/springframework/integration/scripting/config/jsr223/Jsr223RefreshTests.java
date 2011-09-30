@@ -67,7 +67,7 @@ public class Jsr223RefreshTests {
 	private static class CycleResource extends AbstractResource {
 
 		private int count = -1;
-		private String[] scripts = {"\"ruby-#{$payload}-0\"", "\"ruby-#{$payload}-1\""};
+		private String[] scripts = {"\"ruby-#{payload}-0\"", "\"ruby-#{payload}-1\""};
 
 		public String getDescription() {
 			return "CycleResource";
