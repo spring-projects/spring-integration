@@ -652,13 +652,21 @@
     Two sequential
     messages arriving on the <emphasis>same</emphasis> socket <emphasis>might</emphasis>
     be processed by different threads. This means that the order in which the messages are
-    sent to the channel is indeterminate; the strict ordering of the messages on the
+    sent to the channel is indeterminate; the strict ordering of the messages arriving on the
     socket is not maintained.     
    </para>
    <para>
     For some applications, this is not an issue; for others it is. If strict ordering
     is required, consider setting <classname>using-nio</classname> to false
     and using async handoff.
+   </para>
+   <para>
+    Alternatively, you may choose to insert a resequencer downstream of the inbound endpoint to
+    return the messages to their proper sequence. Set <emphasis>apply-sequence</emphasis>
+    to true on the connection factory, and messages arriving on a TCP connection will
+    have <emphasis>sequenceNumber</emphasis> and <emphasis>correlationId</emphasis> headers
+    set. The resequencer uses these headers to return the messages to their proper
+    sequence.
    </para>
   </section>
   <section id="ip-endpoint-reference">
@@ -727,7 +735,7 @@
               <entry>true, false</entry>
               <entry>Whether or not connection uses NIO. Refer to the java.nio
                      package for more information.
-                     See <xref linkend="note_nio" />. 
+                     See <xref linkend="note_nio" />.
                      Default false.</entry>
             </row>
             <row>
@@ -738,6 +746,18 @@
               <entry>When using NIO, whether or not the connection uses direct buffers.
                      Refer to <classname>java.nio.ByteBuffer</classname> documentation for
                      more information. Must be false if using-nio is false. </entry>
+            </row>
+            <row>
+              <entry>apply-sequence</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>When using NIO, it may be necessary to resequence messages. When this
+                     attribute is set to true, <emphasis>correlationId</emphasis> and
+                     <emphasis>sequenceNumber</emphasis> headers will be added to
+                     received messages.
+                     See <xref linkend="note_nio" />.
+                     Default false.</entry>
             </row>
             <row>
               <entry>so-timeout</entry>
