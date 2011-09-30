@@ -117,6 +117,15 @@ public class MessageStoreTests {
 			}
 		}
 
+		public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+			throw new UnsupportedOperationException();
+		}
+
+		public void completeGroup(Object groupId) {
+
+			throw new UnsupportedOperationException();
+		}
+
 	}
 
 }

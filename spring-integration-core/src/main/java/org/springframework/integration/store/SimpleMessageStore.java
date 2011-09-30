@@ -151,12 +151,22 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	public Iterator<MessageGroup> iterator() {
 		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
 	}
+	
+	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		SimpleMessageGroup group = getMessageGroupInternal(groupId);
+		group.setLastReleasedMessageSequenceNumber(sequenceNumber);
+	}
 
 	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {
 		if (!groupIdToMessageGroup.containsKey(groupId)) {
 			groupIdToMessageGroup.putIfAbsent(groupId, new SimpleMessageGroup(groupId));
 		}
 		return groupIdToMessageGroup.get(groupId);
+	}
+
+	public void completeGroup(Object groupId) {
+		SimpleMessageGroup group = getMessageGroupInternal(groupId);
+		group.complete();
 	}
 
 }

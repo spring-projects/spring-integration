@@ -65,6 +65,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 	
 	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
 
+	private static final String KEEP_RELEASED_MESSAGES = "keep-released-messages";
+
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanComponentDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element,
@@ -115,6 +117,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, KEEP_RELEASED_MESSAGES);
 		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
 				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder,
 				processor, parserContext);

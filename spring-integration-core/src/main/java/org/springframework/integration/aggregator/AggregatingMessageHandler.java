@@ -21,8 +21,8 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 
 /**
- * Aggregator specific implementation of {@link AbstractCorrelatingMessageHandler}. It takes into account the fact that 
- * it must not remember the last released message but may remember processed MessageGroups
+ * Aggregator specific implementation of {@link AbstractCorrelatingMessageHandler}. 
+ * Will remove {@link MessageGroup}s only if 'expireGroupsUponCompletion' flag is set to 'true'.
  *
  * @author Oleg Zhurakousky
  * @since 2.1
@@ -45,7 +45,11 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		super(processor);
 	}
 
-
+	/**
+	 * Will set the 'expireGroupsUponCompletion' flag and if it is 
+	 * set to 'true' it will also remove all 'complete' {@link MessageGroup}s
+	 * @param expireGroupsUponCompletion
+	 */
 	public void setExpireGroupsUponCompletion(boolean expireGroupsUponCompletion) {
 		this.expireGroupsUponCompletion = expireGroupsUponCompletion;
 		if (expireGroupsUponCompletion) {
@@ -59,20 +63,26 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
+	@Override
+	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
+		this.messageStore.completeGroup(messageGroup.getGroupId());
+		
 		if (this.expireGroupsUponCompletion) {
-			remove(group);
+			remove(messageGroup);
 		}
-		else { // remove messages from the group and mark is as complete
-			for (Message message : group.getMarked()) {
-				this.getMessageStore().removeMessageFromGroup(group.getGroupId(), message);
+		else {
+			if (this.keepReleasedMessages){
+				messageStore.markMessageGroup(messageGroup);
 			}
-			for (Message message : group.getUnmarked()) {
-				this.getMessageStore().removeMessageFromGroup(group.getGroupId(), message);
+			else {
+				for (Message<?> message : messageGroup.getMarked()) {
+					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
+				}
+				for (Message<?> message : messageGroup.getUnmarked()) {
+					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
+				}
 			}
-			group.complete();
-		}
+		}	
 	}
 
 }

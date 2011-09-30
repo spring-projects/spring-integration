@@ -16,17 +16,14 @@
 
 package org.springframework.integration.gemfire.store;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.store.AbstractMessageGroupStore;
-import org.springframework.integration.store.MessageGroup;
-import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.integration.store.AbstractKeyValueMessageStore;
+import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
@@ -37,125 +34,50 @@ import com.gemstone.gemfire.cache.Region;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class GemfireMessageStore extends AbstractMessageGroupStore implements MessageStore{
+public class GemfireMessageStore extends AbstractKeyValueMessageStore{
 
-	private final Region<UUID, Message<?>> messageRegion;
+	private final Region<Object, Object> messageStoreRegion;
 	
-	private final Region<Object, MessageGroup> messageGroupRegion;
-
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
 		try {
-			RegionFactoryBean<UUID, Message<?>> messageRegionFactoryBean = new RegionFactoryBean<UUID, Message<?>>();
+			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
 			messageRegionFactoryBean.setBeanName("messageRegionFactoryBean");
 			messageRegionFactoryBean.setCache(cache);
 			messageRegionFactoryBean.afterPropertiesSet();
-			this.messageRegion = messageRegionFactoryBean.getObject();
-			
-			RegionFactoryBean<Object, MessageGroup> messageGroupRegionFactoryBean = new RegionFactoryBean<Object, MessageGroup>();
-			messageGroupRegionFactoryBean.setBeanName("messageGroupRegionFactoryBean");
-			messageGroupRegionFactoryBean.setCache(cache);
-			messageGroupRegionFactoryBean.afterPropertiesSet();
-			this.messageGroupRegion = messageGroupRegionFactoryBean.getObject();
+			this.messageStoreRegion = messageRegionFactoryBean.getObject();
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Failed to initialize Gemfire Regions");
 		}
 	}
-
-	public Message<?> getMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
-		return this.messageRegion.get(id);
+	
+	protected void storeHolderMap(String key, Object value){
+		messageStoreRegion.put(key, value);
 	}
-
-	public <T> Message<T> addMessage(Message<T> message) {
-		Assert.notNull(message, "'message' must not be null");
-		this.messageRegion.put(message.getHeaders().getId(), message);
-		return message;
-	}
-
-	public Message<?> removeMessage(UUID id) {
-		Assert.notNull(id, "'id' must not be null");
-		return this.messageRegion.remove(id);
-	}
-
-	@ManagedAttribute
-	public long getMessageCount() {
-		return this.messageRegion.size();
-	}
-
-	public MessageGroup getMessageGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		MessageGroup messageGroup = null;
-		if (this.messageGroupRegion.containsKey(groupId)){
-			messageGroup = this.messageGroupRegion.get(groupId);
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Map<UUID, Message<?>> getHolderMapForMessage(){
+		if (messageStoreRegion.containsKey(MESSAGES_HOLDER_MAP_NAME)){
+			return (Map<UUID, Message<?>>) messageStoreRegion.get(MESSAGES_HOLDER_MAP_NAME);
 		}
 		else {
-			messageGroup = new SimpleMessageGroup(groupId);
-			this.messageGroupRegion.put(groupId, messageGroup);
-		}
-		return messageGroup;
-	}
-
-	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(message, "'message' must not be null");
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-		messageGroup.add(message);
-		this.messageGroupRegion.put(groupId, messageGroup);
-		this.addMessage(message);
-		return messageGroup;
-	}
-
-	public MessageGroup markMessageGroup(MessageGroup group) {
-		Assert.notNull(group, "'group' must not be null");
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(group);
-		messageGroup.markAll();
-		this.messageGroupRegion.put(messageGroup.getGroupId(), messageGroup);
-		return messageGroup;
-	}
-
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-		messageGroup.remove(messageToRemove);
-		this.messageGroupRegion.put(groupId, messageGroup);
-		this.removeMessage(messageToRemove.getHeaders().getId());
-		return messageGroup;
-	}
-
-	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		Assert.notNull(messageToMark, "'messageToMark' must not be null");
-		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
-		messageGroup.mark(messageToMark);
-		this.messageGroupRegion.put(groupId, messageGroup);
-		return messageGroup;
-	}
-
-	public void removeMessageGroup(Object groupId) {
-		Assert.notNull(groupId, "'groupId' must not be null");
-		MessageGroup messageGroup = this.messageGroupRegion.remove(groupId);
-		Collection<Message<?>> markedMessages = messageGroup.getMarked();
-		for (Message<?> message : markedMessages) {
-			this.removeMessage(message.getHeaders().getId());
-		}
-		Collection<Message<?>> unmarkedMessages = messageGroup.getMarked();
-		for (Message<?> message : unmarkedMessages) {
-			this.removeMessage(message.getHeaders().getId());
+			Map<UUID, Message<?>> messageHolderMap = new HashMap<UUID, Message<?>>();
+			messageStoreRegion.put(MESSAGES_HOLDER_MAP_NAME, messageHolderMap);
+			return messageHolderMap;
 		}
 	}
 	
-	public Iterator<MessageGroup> iterator() {
-		return this.messageGroupRegion.values().iterator();
-	}
-	
-	private SimpleMessageGroup getSimpleMessageGroup(MessageGroup messageGroup){
-		if (messageGroup instanceof SimpleMessageGroup){
-			return (SimpleMessageGroup) messageGroup;
+	@Override
+	@SuppressWarnings("unchecked")
+	protected Map<Object, MessageGroupMetadata> getHolderMapForMessageGroups(){
+		if (messageStoreRegion.containsKey(MESSAGE_GROUPS_HOLDER_MAP_NAME)){
+			return (Map<Object, MessageGroupMetadata>) messageStoreRegion.get(MESSAGE_GROUPS_HOLDER_MAP_NAME);
 		}
 		else {
-			return new SimpleMessageGroup(messageGroup);
+			Map<Object, MessageGroupMetadata> messageHolderMap = new HashMap<Object, MessageGroupMetadata>();
+			messageStoreRegion.put(MESSAGE_GROUPS_HOLDER_MAP_NAME, messageHolderMap);
+			return messageHolderMap;
 		}
 	}
 }

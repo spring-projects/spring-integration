@@ -13,12 +13,12 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.Message;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.springframework.integration.Message;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id. The
@@ -41,6 +41,8 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	// @GuardedBy(lock)
 	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
+	
+	private volatile int lastReleasedMessageSequence;
 
 	private final long timestamp;
 	
@@ -48,17 +50,18 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public SimpleMessageGroup(Object groupId) {
 		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), groupId, System
-				.currentTimeMillis());
+				.currentTimeMillis(), false);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object groupId) {
-		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis());
+		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false);
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked,
-			Object groupId, long timestamp) {
+			Object groupId, long timestamp, boolean complete) {
 		this.groupId = groupId;
 		this.timestamp = timestamp;
+		this.complete = complete;
 		synchronized (lock) {
 			for (Message<?> message : unmarked) {
 				addUnmarked(message);
@@ -87,6 +90,8 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 		this.timestamp = template.getTimestamp();
 	}
+	
+	
 
 	public long getTimestamp() {
 		return timestamp;
@@ -105,6 +110,10 @@ public class SimpleMessageGroup implements MessageGroup {
 			marked.remove(message);
 			unmarked.remove(message);
 		}
+	}
+	
+	public int getLastReleasedMessageSequenceNumber() {
+		return lastReleasedMessageSequence;
 	}
 
 	private boolean addUnmarked(Message<?> message) {
@@ -129,6 +138,10 @@ public class SimpleMessageGroup implements MessageGroup {
 		synchronized (lock) {
 			return Collections.unmodifiableCollection(unmarked);
 		}
+	}
+	
+	public void setLastReleasedMessageSequenceNumber(int sequenceNumber){
+		this.lastReleasedMessageSequence = sequenceNumber;
 	}
 
 	public Collection<Message<?>> getMarked() {
@@ -186,7 +199,7 @@ public class SimpleMessageGroup implements MessageGroup {
 		return one;
 	}
 	
-	public void cleanup(){
+	public void clear(){
 		this.marked.clear();
 		this.unmarked.clear();
 	}
