@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for NamespaceHandlers that registers a BeanFactoryPostProcessor
@@ -49,6 +50,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
+		this.verifySchemaVersion(element, parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
@@ -86,6 +88,21 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		this.delegate.doRegisterBeanDefinitionParser(elementName, parser);
 	}
 
+	private void verifySchemaVersion(Element element, ParserContext parserContext) {
+		if (!(matchesVersion(element) && matchesVersion(element.getOwnerDocument().getDocumentElement())))  {
+			parserContext.getReaderContext().error(
+					"You cannot use prior versions of Spring Integration with Spring Integration 2.1. Please upgrade your schema declarations "
+							+ "(or use the spring-integration.xsd alias if you are feeling lucky).", element);
+		}
+	}
+
+	private static boolean matchesVersion(Element element) {
+		String schemaLocation = element.getAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation");
+		return !StringUtils.hasText(schemaLocation) // no namespace on this element
+				|| schemaLocation.matches("(?m).*spring-integration-[a-z-]*2.1.xsd.*") // correct version
+				|| schemaLocation.matches("(?m).*spring-integration.xsd.*") // version-less schema
+				|| !schemaLocation.matches("(?m).*spring-integration.*"); // no spring-integration schemas
+	}
 
 	private class NamespaceHandlerDelegate extends NamespaceHandlerSupport {
 
