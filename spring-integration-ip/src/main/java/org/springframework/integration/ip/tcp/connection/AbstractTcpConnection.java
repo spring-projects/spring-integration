@@ -19,6 +19,7 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -72,8 +73,6 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private volatile int port;
 
-	private static AtomicLong connectionNumber = new AtomicLong();
-
 	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
@@ -85,7 +84,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 				this.hostName = this.hostAddress;
 			}
 		}
-		this.connectionId = this.hostName + ":" + this.port + ":" + connectionNumber.incrementAndGet();
+		this.connectionId = this.hostName + ":" + this.port + ":" + UUID.randomUUID().toString();
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
@@ -243,8 +242,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		return server;
 	}
 
-	public long getConnectionSeq() {
-		return sequence.incrementAndGet();
+	public long incrementAndGetConnectionSequence() {
+		return this.sequence.incrementAndGet();
 	}
 
 	public String getHostAddress() {

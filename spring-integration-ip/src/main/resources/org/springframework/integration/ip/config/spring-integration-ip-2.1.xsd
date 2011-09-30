@@ -450,6 +450,14 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="apply-sequence" type="xsd:string" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+When set to "true", adds sequenceNumber and correlationId headers to messages originating from
+connections created by this factory. Facilitates resequencing if necessary. Default "false".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 

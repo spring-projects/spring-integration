@@ -219,6 +219,8 @@ public class ParserUnitTests {
 		assertFalse(cfS1.isLookupHost());
 		assertFalse(tcpIn.isAutoStartup());
 		assertEquals(124, tcpIn.getPhase());
+		assertTrue((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfS1, "mapper"), "applySequence"));
 	}
 
 	@Test
@@ -288,6 +290,8 @@ public class ParserUnitTests {
 		assertEquals(35, dfa.getPropertyValue("order"));
 		assertFalse(tcpOut.isAutoStartup());
 		assertEquals(125, tcpOut.getPhase());
+		assertFalse((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfC1, "mapper"), "applySequence"));
 	}
 
 	@Test
@@ -301,6 +305,8 @@ public class ParserUnitTests {
 		assertTrue(cfS2.isLookupHost());
 		assertFalse(tcpInboundGateway1.isAutoStartup());
 		assertEquals(126, tcpInboundGateway1.getPhase());
+		assertFalse((Boolean) TestUtils.getPropertyValue(
+				TestUtils.getPropertyValue(cfS2, "mapper"), "applySequence"));
 	}
 
 	@Test

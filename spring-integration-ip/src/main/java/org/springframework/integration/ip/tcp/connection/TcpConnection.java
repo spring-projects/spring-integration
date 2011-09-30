@@ -147,6 +147,6 @@ public interface TcpConnection extends Runnable {
 	/**
 	 * @return the next sequence number for a message received on this socket
 	 */
-	long getConnectionSeq();
+	long incrementAndGetConnectionSequence();
 	
 }

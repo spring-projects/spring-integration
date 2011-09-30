@@ -56,6 +56,7 @@
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
 		lookup-host="false"
+		apply-sequence="true"
 		/>
 
 	<ip:tcp-inbound-channel-adapter id="testInTcp"
@@ -107,6 +108,7 @@
 		port="#{tcpIpUtils.findAvailableServerSocket(5700)}"
 		host="localhost"
 		lookup-host="false"
+		apply-sequence="false"
 		/>
 
 	<ip:tcp-outbound-channel-adapter id="testOutTcpNio"

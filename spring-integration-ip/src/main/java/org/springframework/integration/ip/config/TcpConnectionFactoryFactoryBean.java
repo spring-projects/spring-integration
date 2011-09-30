@@ -89,6 +89,8 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile String beanName;
 
+	private volatile boolean applySequence;
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() 
@@ -131,6 +133,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setDeserializer(this.deserializer);
 		factory.setInterceptorFactoryChain(this.interceptorFactoryChain);
 		factory.setLookupHost(this.lookupHost);
+		this.mapper.setApplySequence(this.applySequence);
 		factory.setMapper(this.mapper);
 		factory.setPoolSize(this.poolSize);
 		factory.setSerializer(this.serializer);
@@ -361,6 +364,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	public void setBeanName(String name) {
 		this.beanName = name;
+	}
+
+	/**
+	 * @param applySequence the applySequence to set
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
 	}
 
 }

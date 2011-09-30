@@ -111,6 +111,8 @@ public abstract class IpAdapterParserUtils {
 
 	public static final String PHASE = "phase";
 
+	public static final String APPLY_SEQUENCE = "apply-sequence";
+
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
 	 * with the value of the attribute whose name is provided if that
