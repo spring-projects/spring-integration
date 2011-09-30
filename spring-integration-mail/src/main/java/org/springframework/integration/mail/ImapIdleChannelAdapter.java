@@ -28,8 +28,8 @@ import javax.mail.internet.MimeMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 /**
@@ -59,7 +59,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private volatile long connectionPingInterval = 10000;
 	
-	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger(0);
+	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
@@ -119,7 +119,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			}
 			catch (Exception e) { //run again after a delay
 				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + reconnectDelay + " milliseconds.", e);
-				receivingTaskTrigger.delay();
+				receivingTaskTrigger.delayNextExecution();
 			}
 		}
 	}
@@ -177,26 +177,23 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		}
 	}
 	
-	private class ExceptionAwarePeriodicTrigger extends PeriodicTrigger {
+	private class ExceptionAwarePeriodicTrigger implements Trigger {
 		
-		private volatile boolean delay;
+		private volatile boolean delayNextExecution;
 
-		public ExceptionAwarePeriodicTrigger(long period) {
-			super(period);
-		}
 
 		public Date nextExecutionTime(TriggerContext triggerContext) {
-			if (delay){
-				delay = false;
+			if (delayNextExecution){
+				delayNextExecution = false;
 				return new Date(System.currentTimeMillis() + reconnectDelay);
 			} 
 			else {
-				return super.nextExecutionTime(triggerContext);
+				return new Date(System.currentTimeMillis());
 			}		
 		}
 		
-		public void delay() {
-			this.delay = true;
+		public void delayNextExecution() {
+			this.delayNextExecution = true;
 		}
 	}
 
