@@ -451,8 +451,11 @@
 			<xsd:documentation>
 	Defines an XPath-based Message Filter. If the XPath expression will evaluate to a boolean,
 	no configuration attributes are required. If the XPath expression will evaluate to a String,
-	there are three options: equals, equals-ignore-case, and matches. Those three are mutually
-	exclusive. When providing a value for 'matches', it should be a valid Regular Expression.
+	a "match-value" should be provided against which the evaluation result will be matched.
+	There are three options for the "match-type": exact, case-insensitive, and regex. These
+	correspond to the equals, equals-ignore-case, and matches operations on java.lang.String,
+	respectively. When providing a 'match-type' value of 'regex', the value provided in
+	'match-value' must be a valid Regular Expression.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
