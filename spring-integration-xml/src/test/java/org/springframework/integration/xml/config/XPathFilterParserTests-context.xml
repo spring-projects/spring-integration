@@ -39,7 +39,7 @@
 	</si:channel>
 
 	<si-xml:xpath-filter id="stringFilterWithNamespace" input-channel="stringFilterWithNamespaceInput" discard-channel="stringFilterWithNamespaceRejections"
-			equals="outputOne">
+			match-value="outputOne">
 		<si-xml:xpath-expression expression="/ns:name" ns-prefix="ns" ns-uri="www.example.org"/>
 	</si-xml:xpath-filter>
 
@@ -48,7 +48,7 @@
 	</si:channel>
 
 	<si-xml:xpath-filter id="stringFilterIgnoresCase" input-channel="stringFilterIgnoresCaseInput" discard-channel="stringFilterIgnoresCaseRejections"
-			equals-ignore-case="outputOne">
+			match-value="outputOne" match-type="case-insensitive">
 		<si-xml:xpath-expression expression="name"/>
 	</si-xml:xpath-filter>
 
@@ -57,7 +57,7 @@
 	</si:channel>
 
 	<si-xml:xpath-filter id="stringFilterRegex" input-channel="stringFilterRegexInput" discard-channel="stringFilterRegexRejections"
-			matches="[A-Za-z]+">
+			match-value="[A-Za-z]+" match-type="regex">
 		<si-xml:xpath-expression expression="name"/>
 	</si-xml:xpath-filter>
 

@@ -479,26 +479,28 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="equals" type="xsd:string" use="optional">
+					<xsd:attribute name="match-value" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								String value to compare (case-sensitive) to a String result from XPath evaluation.
+								String value to be matched against the XPath evaluation result. If this is not provided,
+								then the XPath evaluation MUST produce a boolean result directly.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="equals-ignore-case" type="xsd:string" use="optional">
+					<xsd:attribute name="match-type" default="exact">
 						<xsd:annotation>
 							<xsd:documentation>
-								String value to compare (case-insensitive) to a String result from XPath evaluation.
+								Type of match to apply between the XPath evaluation result and the 'match-value'.
+								Default is "exact".
 							</xsd:documentation>
 						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="matches" type="xsd:string" use="optional">
-						<xsd:annotation>
-							<xsd:documentation>
-								Regular Expression to match against a String result from XPath evaluation.
-							</xsd:documentation>
-						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="exact"/>
+								<xsd:enumeration value="case-insensitive"/>
+								<xsd:enumeration value="regex"/>
+							</xsd:restriction>
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

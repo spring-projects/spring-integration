@@ -47,26 +47,19 @@ public class XPathFilterParser extends AbstractConsumerEndpointParser {
 		final BeanDefinitionBuilder selectorBuilder = BeanDefinitionBuilder.genericBeanDefinition();
 		selectorBuilder.getBeanDefinition().setBeanClass(BooleanTestXPathMessageSelector.class);
 		this.configureXPathExpression(element, selectorBuilder, parserContext);
-		int testTypeAttributeCount = 0;
-		if (element.hasAttribute("equals")) {
-			testTypeAttributeCount++;
-			selectorBuilder.getBeanDefinition().setBeanClass(StringValueTestXPathMessageSelector.class);
-			selectorBuilder.addConstructorArgValue(element.getAttribute("equals"));
-		}
-		if (element.hasAttribute("equals-ignore-case")) {
-			testTypeAttributeCount++;
-			selectorBuilder.getBeanDefinition().setBeanClass(StringValueTestXPathMessageSelector.class);
-			selectorBuilder.addConstructorArgValue(element.getAttribute("equals-ignore-case"));
-			selectorBuilder.addPropertyValue("caseSensitive", false);
-		}
-		if (element.hasAttribute("matches")) {
-			testTypeAttributeCount++;
-			selectorBuilder.getBeanDefinition().setBeanClass(RegexTestXPathMessageSelector.class);
-			selectorBuilder.addConstructorArgValue(element.getAttribute("matches"));
-		}
-		if (testTypeAttributeCount > 1) {
-			parserContext.getReaderContext().error("At most one of the " +
-					"'equals', 'equals-ignore-case', and 'regex' attributes is allowed.", element);
+		if (element.hasAttribute("match-value")) {
+			selectorBuilder.addConstructorArgValue(element.getAttribute("match-value"));
+			String matchType = element.getAttribute("match-type");
+			if ("exact".equals(matchType)) {
+				selectorBuilder.getBeanDefinition().setBeanClass(StringValueTestXPathMessageSelector.class);
+			}
+			else if ("case-insensitive".equals(matchType)) {
+				selectorBuilder.getBeanDefinition().setBeanClass(StringValueTestXPathMessageSelector.class);
+				selectorBuilder.addPropertyValue("caseSensitive", false);
+			}
+			else if ("regex".equals(matchType)) {
+				selectorBuilder.getBeanDefinition().setBeanClass(RegexTestXPathMessageSelector.class);
+			}
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FilterFactoryBean.class);
 		builder.addPropertyValue("targetObject", selectorBuilder.getBeanDefinition());
