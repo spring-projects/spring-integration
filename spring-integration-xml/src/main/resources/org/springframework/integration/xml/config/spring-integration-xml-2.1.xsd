@@ -498,17 +498,22 @@
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="exact"/>
-								<xsd:enumeration value="case-insensitive"/>
-								<xsd:enumeration value="regex"/>
-							</xsd:restriction>
+							<xsd:union memberTypes="matchTypeEnumeration xsd:string" />
 						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+
+	<xsd:simpleType name="matchTypeEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="exact"/>
+			<xsd:enumeration value="case-insensitive"/>
+			<xsd:enumeration value="regex"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:element name="xpath-selector">
 		<xsd:complexType>
