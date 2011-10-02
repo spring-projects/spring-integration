@@ -47,7 +47,9 @@ import org.springframework.integration.message.GenericMessage;
  * @since 2.1
  *
  */
-public class AbstractRemoteFileOutboundGatewayTests {
+public class RemoteFileOutboundGatewayTests {
+
+	private String tmpDir = System.getProperty("java.io.tmpdir");
 
 	@Test
 	public void testLs() throws Exception {
@@ -237,9 +239,9 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "get", "payload");
-		gw.setLocalDirectory(new File("/tmp"));
+		gw.setLocalDirectory(new File(this.tmpDir ));
 		gw.afterPropertiesSet();
-		new File("/tmp/f1").delete();
+		new File(this.tmpDir + "/f1").delete();
 		when(sessionFactory.getSession()).thenReturn(new Session(){
 			private boolean open = true;
 			public boolean remove(String path) throws IOException {
@@ -271,7 +273,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 			} });
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
-		File outFile = new File("/tmp/f1");
+		File outFile = new File(this.tmpDir + "/f1");
 		assertEquals(outFile, out.getPayload());
 		assertTrue(outFile.exists());
 		outFile.delete();
@@ -286,13 +288,13 @@ public class AbstractRemoteFileOutboundGatewayTests {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "get", "payload");
-		gw.setLocalDirectory(new File("/tmp"));
+		gw.setLocalDirectory(new File(this.tmpDir));
 		gw.setOptions("-P");
 		gw.afterPropertiesSet();
-		new File("/tmp/f1").delete();
+		new File(this.tmpDir + "/f1").delete();
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MONTH, -1);
-		final Date modified = cal.getTime();
+		final Date modified = new Date(cal.getTime().getTime() / 1000 * 1000);
 		when(sessionFactory.getSession()).thenReturn(new Session(){
 			private boolean open = true;
 			public boolean remove(String path) throws IOException {
@@ -324,10 +326,10 @@ public class AbstractRemoteFileOutboundGatewayTests {
 			} });
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
-		File outFile = new File("/tmp/f1");
+		File outFile = new File(this.tmpDir + "/f1");
 		assertEquals(outFile, out.getPayload());
 		assertTrue(outFile.exists());
-		assertEquals(modified.getTime() / 1000 * 1000, outFile.lastModified());
+		assertEquals(modified.getTime(), outFile.lastModified());
 		outFile.delete();
 		assertEquals("x/",
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
@@ -337,12 +339,12 @@ public class AbstractRemoteFileOutboundGatewayTests {
 
 	@Test
 	public void testGet_create_dir() throws Exception {
-		new File("/tmp/x/f1").delete();
-		new File("/tmp/x").delete();
+		new File(this.tmpDir + "/x/f1").delete();
+		new File(this.tmpDir + "/x").delete();
 		SessionFactory sessionFactory = mock(SessionFactory.class);
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "get", "payload");
-		gw.setLocalDirectory(new File("/tmp/x"));
+		gw.setLocalDirectory(new File(this.tmpDir + "/x"));
 		gw.afterPropertiesSet();
 		when(sessionFactory.getSession()).thenReturn(new Session(){
 			private boolean open = true;
@@ -374,7 +376,7 @@ public class AbstractRemoteFileOutboundGatewayTests {
 				return open;
 			} });
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
-		File out = new File("/tmp/x/f1");
+		File out = new File(this.tmpDir + "/x/f1");
 		assertTrue(out.exists());
 		out.delete();
 	}
