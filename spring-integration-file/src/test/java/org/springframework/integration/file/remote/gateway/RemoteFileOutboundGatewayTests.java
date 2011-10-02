@@ -47,7 +47,7 @@ import org.springframework.integration.message.GenericMessage;
  * @since 2.1
  *
  */
-public class AbstractRemoteFileOutboundGatewayTests {
+public class RemoteFileOutboundGatewayTests {
 
 	private String tmpDir = System.getProperty("java.io.tmpdir");
 
