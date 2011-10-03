@@ -508,16 +508,16 @@ apply to TCP outbound adapters and gateways.
 		<xsd:attribute name="auto-startup" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-Boolean value indicating whether this connection factory should start automatically.
+Boolean value indicating whether this endpoint should start automatically.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="phase" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-The lifecycle phase within which this connection factory should start and stop.
-The lower the value the earlier this factory will start and the later it will stop. The
-default is 0. See SmartLifeCycle.
+The lifecycle phase within which this endpoint should start and stop.
+The lower the value the earlier this endpoint will start and the later it will stop. The
+default is 0. Values can be negative. See SmartLifeCycle.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
