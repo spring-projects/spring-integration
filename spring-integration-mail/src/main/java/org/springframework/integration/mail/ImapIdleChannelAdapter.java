@@ -28,6 +28,8 @@ import javax.mail.internet.MimeMessage;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
 
 /**
@@ -49,13 +51,15 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private final ImapMailReceiver mailReceiver;
 
-	private volatile int reconnectDelay = 10000; // seconds
+	private volatile int reconnectDelay = 10000; // milliseconds
 
 	private volatile ScheduledFuture<?> receivingTask;
 
 	private volatile ScheduledFuture<?> pingTask;
 
 	private volatile long connectionPingInterval = 10000;
+	
+	private final ExceptionAwarePeriodicTrigger receivingTaskTrigger = new ExceptionAwarePeriodicTrigger();
 
 
 	public ImapIdleChannelAdapter(ImapMailReceiver mailReceiver) {
@@ -86,7 +90,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	protected void doStart() {
 		final TaskScheduler scheduler =  this.getTaskScheduler();
 		Assert.notNull(scheduler, "'taskScheduler' must not be null" );
-		this.receivingTask = scheduler.schedule(new ReceivingTask(scheduler), new Date());
+		this.receivingTask = scheduler.schedule(new ReceivingTask(), this.receivingTaskTrigger);
 		this.pingTask = scheduler.scheduleAtFixedRate(new PingTask(), this.connectionPingInterval);
 	}
 
@@ -106,24 +110,16 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 
 	private class ReceivingTask implements Runnable {
-
-		private final TaskScheduler scheduler;
-
-		ReceivingTask(TaskScheduler scheduler) {
-			this.scheduler = scheduler;
-		}
-
 		public void run() {
 			try {
 				idleTask.run();
 				if (logger.isDebugEnabled()) {
 					logger.debug("Task completed successfully. Re-scheduling it again right away.");
 				}
-				scheduler.schedule(this, new Date());
 			}
-			catch (IllegalStateException e) { //run again after a delay
+			catch (Exception e) { //run again after a delay
 				logger.warn("Failed to execute IDLE task. Will attempt to resubmit in " + reconnectDelay + " milliseconds.", e);
-				scheduler.schedule(this, new Date(System.currentTimeMillis() + reconnectDelay));
+				receivingTaskTrigger.delayNextExecution();
 			}
 		}
 	}
@@ -178,6 +174,26 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			}
 			catch (Exception ignore) {
 			}
+		}
+	}
+	
+	private class ExceptionAwarePeriodicTrigger implements Trigger {
+		
+		private volatile boolean delayNextExecution;
+
+
+		public Date nextExecutionTime(TriggerContext triggerContext) {
+			if (delayNextExecution){
+				delayNextExecution = false;
+				return new Date(System.currentTimeMillis() + reconnectDelay);
+			} 
+			else {
+				return new Date(System.currentTimeMillis());
+			}		
+		}
+		
+		public void delayNextExecution() {
+			this.delayNextExecution = true;
 		}
 	}
 
