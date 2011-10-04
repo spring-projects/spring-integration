@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jdbc.JdbcMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -41,7 +42,7 @@ public class JdbcMessageHandlerParser extends AbstractOutboundChannelAdapterPars
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcMessageHandler");
+				.genericBeanDefinition(JdbcMessageHandler.class);
 		String dataSourceRef = element.getAttribute("data-source");
 		String jdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
