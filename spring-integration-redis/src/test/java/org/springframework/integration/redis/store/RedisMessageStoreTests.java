@@ -24,7 +24,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-import org.springframework.integration.store.MessageStoreException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
