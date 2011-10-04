@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import org.springframework.context.SmartLifecycle;
+
 
 
 /**
@@ -25,8 +27,8 @@ package org.springframework.integration.ip.tcp.connection;
  * @since 2.0
  *
  */
-public interface ConnectionFactory {
+public interface ConnectionFactory extends SmartLifecycle {
 
-	public TcpConnection getConnection() throws Exception;
+	TcpConnection getConnection() throws Exception;
 	
 }

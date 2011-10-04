@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
@@ -35,7 +36,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
 import org.springframework.integration.mapping.MessageMappingException;
 
 /**
- * Tcp outbound channel adapter using a TcpConnection to 
+ * Tcp outbound channel adapter using a TcpConnection to
  * send data - if the connection factory is a server
  * factory, the TcpListener owns the connections. If it is
  * a client factory, this object owns the connection.
@@ -43,39 +44,36 @@ import org.springframework.integration.mapping.MessageMappingException;
  * @since 2.0
  *
  */
-public class TcpSendingMessageHandler extends AbstractMessageHandler implements TcpSender {
-	
-	protected Log logger = LogFactory.getLog(this.getClass());	
-	
-	protected TcpConnection connection;
-	
-	protected ConnectionFactory clientConnectionFactory;
-	
-	protected ConnectionFactory serverConnectionFactory;
-	
-	protected Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
-	
-	protected synchronized TcpConnection getConnection() {
+public class TcpSendingMessageHandler extends AbstractMessageHandler implements TcpSender, SmartLifecycle {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile ConnectionFactory clientConnectionFactory;
+
+	private volatile ConnectionFactory serverConnectionFactory;
+
+	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+
+	private volatile boolean autoStartup;
+
+	private volatile int phase;
+
+	protected TcpConnection getConnection() {
+		TcpConnection connection = null;
+		if (this.clientConnectionFactory == null) {
+			return null;
+		}
 		try {
-			this.connection = clientConnectionFactory.getConnection();
+			connection = this.clientConnectionFactory.getConnection();
 		} catch (Exception e) {
 			logger.error("Error creating SocketWriter", e);
 		}
-		return this.connection;
-	}
-
-	/**
-	 * Close the underlying socket and prepare to establish a new socket on
-	 * the next write.
-	 */
-	protected void close() {
-		this.connection.close();
-		this.connection = null;
+		return connection;
 	}
 
 	/**
 	 * Writes the message payload to the underlying socket, using the specified
-	 * message format. 
+	 * message format.
 	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
 	 */
 	public void handleMessageInternal(final Message<?> message) throws MessageRejectedException,
@@ -96,7 +94,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 			}
 			return;
 		}
-		
+
 		// we own the connection
 		try {
 			doWrite(message);
@@ -116,8 +114,9 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	 * @param message The message to write.
 	 */
 	protected void doWrite(Message<?> message) {
+		TcpConnection connection = null;
 		try {
-			TcpConnection connection = getConnection();
+			connection = getConnection();
 			if (connection == null) {
 				throw new MessageMappingException(message, "Failed to create connection");
 			}
@@ -126,11 +125,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 			}
 			connection.send(message);
 		} catch (Exception e) {
-			String connectionId = null; 
-			if (this.connection != null) {
-				connectionId = this.connection.getConnectionId();
+			String connectionId = null;
+			if (connection != null) {
+				connectionId = connection.getConnectionId();
 			}
-			this.connection = null;
 			if (e instanceof MessageMappingException) {
 				throw (MessageMappingException) e;
 			}
@@ -142,7 +140,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	 * Sets the client or server connection factory; for this (an outbound adapter), if
 	 * the factory is a server connection factory, the sockets are owned by a receiving
 	 * channel adapter and this adapter is used to send replies.
-	 * 
+	 *
 	 * @param connectionFactory the connectionFactory to set
 	 */
 	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
@@ -157,11 +155,83 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	public void addNewConnection(TcpConnection connection) {
 		connections.put(connection.getConnectionId(), connection);
 	}
-	
+
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
+
 	public String getComponentType(){
 		return "ip:tcp-outbound-channel-adapter";
 	}
+
+	public void start() {
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.start();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.start();
+		}
+	}
+
+	public void stop() {
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop();
+		}
+	}
+
+	public boolean isRunning() {
+		boolean cfRunning = this.clientConnectionFactory != null ? this.clientConnectionFactory.isRunning() : false;
+		boolean sfRunning = this.serverConnectionFactory != null ? this.serverConnectionFactory.isRunning() : false;
+		return cfRunning | sfRunning;
+	}
+
+	public int getPhase() {
+		return this.phase;
+	}
+
+	public boolean isAutoStartup() {
+		return this.autoStartup;
+	}
+
+	public void stop(Runnable callback) {
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop(callback);
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop(callback);
+		}
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
+	 * @return the clientConnectionFactory
+	 */
+	protected ConnectionFactory getClientConnectionFactory() {
+		return clientConnectionFactory;
+	}
+
+	/**
+	 * @return the serverConnectionFactory
+	 */
+	protected ConnectionFactory getServerConnectionFactory() {
+		return serverConnectionFactory;
+	}
+
+	/**
+	 * @return the connections
+	 */
+	protected Map<String, TcpConnection> getConnections() {
+		return connections;
+	}
+
 }

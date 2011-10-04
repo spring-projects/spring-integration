@@ -42,6 +42,10 @@ public class TcpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 				element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "error-channel", "errorChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.PHASE);
 		return builder.getBeanDefinition();
 	}
 

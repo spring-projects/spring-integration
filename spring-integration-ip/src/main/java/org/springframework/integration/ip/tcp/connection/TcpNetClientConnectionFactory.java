@@ -45,18 +45,22 @@ public class TcpNetClientConnectionFactory extends
 	 * reused for all requests while the connection remains open.
 	 */
 	public TcpConnection getConnection() throws Exception {
-		if (this.theConnection != null && this.theConnection.isOpen()) {
-			return this.theConnection;
+		this.checkActive();
+		TcpConnection theConnection = this.getTheConnection();
+		if (theConnection != null && theConnection.isOpen()) {
+			return theConnection;
 		}
-		logger.debug("Opening new socket connection to " + this.host + ":" + this.port);
-		Socket socket = createSocket(this.host, this.port);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Opening new socket connection to " + this.getHost() + ":" + this.getPort());
+		}
+		Socket socket = createSocket(this.getHost(), this.getPort());
 		setSocketAttributes(socket);
 		TcpConnection connection = new TcpNetConnection(socket, false, this.isLookupHost());
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
-		if (!this.singleUse) {
-			this.theConnection = connection;
+		if (!this.isSingleUse()) {
+			this.setTheConnection(connection);
 		}
 		this.harvestClosedConnections();
 		return connection;
@@ -79,10 +83,6 @@ public class TcpNetClientConnectionFactory extends
 	}
 
 	public void run() {
-	}
-
-	public boolean isRunning() {
-		return this.active;
 	}
 
 }
