@@ -295,8 +295,14 @@
 </int-xml:xpath-router>	
 ]]></programlisting>
     </para>
-    
-    
+
+	<para>The XPath Router does support custom implementations of the XmlPayloadConverter strategy, and when configuring
+	an 'xpath-router' element in XML, a reference to such an implementation may be provided via the 'converter' attribute.
+	However, the DefaultXmlPayloadConverter is used if this reference is not provided, and it
+	should be sufficient in most cases since it can convert from Node, Document, Source,
+	File, and String typed payloads. If you need to extend beyond the capabilities of
+	that default implementation, then an upstream Transformer is probably a better option
+	than providing a reference to a custom implementation of this strategy here.</para>
     
   </section>
 
@@ -395,7 +401,7 @@
     <emphasis>XML Payload Converter</emphasis>
     </para>
     <para>
-    You can also use implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
+    You can also use an implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
     provide more granular transformation:
     <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type"
     converter="testXmlPayloadConverter" output-channel="output"/>
@@ -421,6 +427,12 @@
   }
 }]]></programlisting>
     </para>
+	<para>The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+	should be sufficient in most cases since it can convert from Node, Document, Source,
+	File, and String typed payloads. If you need to extend beyond the capabilities of
+	that default implementation, then an upstream Transformer is probably a better option
+	than providing a reference to a custom implementation of this strategy here.</para>
+
     <para>
     <emphasis>Combination of SpEL and XPath expressions</emphasis>
     </para>
