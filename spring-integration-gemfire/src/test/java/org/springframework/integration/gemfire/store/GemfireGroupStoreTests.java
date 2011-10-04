@@ -153,6 +153,21 @@ public class GemfireGroupStoreTests {
 	}
 	
 	@Test
+	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+	}
+	
+	@Test
+	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+	}
+	
+	@Test
 	public void testMarkMessageInMessageGroup() throws Exception{	
 		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		MessageGroup messageGroup = store.getMessageGroup(1);

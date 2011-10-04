@@ -16,9 +16,8 @@
 package org.springframework.integration.store;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.integration.Message;
@@ -33,56 +32,58 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupStore implements MessageStore{
 
-	protected static final String MESSAGES_HOLDER_MAP_NAME = "MESSAGES";
+	protected static final String MESSAGE_KEY_PREFIX = "MESSAGE_";
 	
-	protected static final String MESSAGE_GROUPS_HOLDER_MAP_NAME = "MESSAGE_GROUPS";
+	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
+	
+	// MessageStore methods
 	
 	public Message<?> getMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Map<UUID, Message<?>> result = this.getHolderMapForMessage();
-		if (result.containsKey(id)) {
-			Message<?> message = result.get(id);
-			return message;
-		}
-		
-		return null;
+		Object message = this.doRetrieve(MESSAGE_KEY_PREFIX + id);
+		if (message != null){
+			Assert.isInstanceOf(Message.class, message);
+		}	
+		return (Message<?>) message;
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
 		Assert.notNull(message, "'message' must not be null");
-		UUID messageId = message.getHeaders().getId();
-		Map<UUID, Message<?>> result = this.getHolderMapForMessage();
-		result.put(messageId, message);
-		this.storeHolderMap(MESSAGES_HOLDER_MAP_NAME, result);
+		UUID messageId = message.getHeaders().getId(); 
+		this.doStore(MESSAGE_KEY_PREFIX + messageId, message);
 		return (Message<T>) this.getMessage(messageId);
 	}
 
 	public Message<?> removeMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Map<UUID, Message<?>> result = this.getHolderMapForMessage();
-		Message<?> message = result.remove(id);
-		this.storeHolderMap(MESSAGES_HOLDER_MAP_NAME, result);
-		return message;
+		Object message = this.doRemove(MESSAGE_KEY_PREFIX + id);
+		Assert.isInstanceOf(Message.class, message);
+		return (Message<?>) message;
 	}
 
 	@ManagedAttribute
 	public long getMessageCount() {
-		Map<UUID, Message<?>> result = this.getHolderMapForMessage();
-		return result.size();
+		Collection<?> messageIds = this.doListKeys(MESSAGE_KEY_PREFIX + "*");
+		if (messageIds != null){
+			return messageIds.size();
+		}
+		else {
+			return 0;
+		}
 	}
 
-
-	// MESSAGE GROUP methods
+	// MessageGroupStore methods
 
 	/**
 	 * Will create a new instance of SimpleMessageGroup 
 	 */
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		if (result.containsKey(groupId)){
-			MessageGroupMetadata messageGroupMetadata = result.get(groupId);
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null){
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 			ArrayList<Message<?>> markedMessages = new ArrayList<Message<?>>();
 			for (UUID uuid : messageGroupMetadata.getMarkedMessageIds()) {
 				markedMessages.add(this.getMessage(uuid));
@@ -110,16 +111,13 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
-		
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
+
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.add(message);	
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
-		
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 		this.addMessage(message);
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
-
-		return this.getMessageGroup(groupId);
+		
+		return messageGroup;
 	}
 
 	/**
@@ -131,12 +129,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(group);
 		messageGroup.markAll();
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
-		
-		return this.getMessageGroup(groupId);
+		return messageGroup;
 	}
 
 	/**
@@ -148,12 +143,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.remove(messageToRemove);
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
-		
-		return this.getMessageGroup(groupId);
+		return messageGroup;
 	}
 
 	/**
@@ -165,12 +157,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.mark(messageToMark);
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
-		
-		return this.getMessageGroup(groupId);
+		return messageGroup;
 		
 	}
 	
@@ -179,10 +168,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.complete();
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
-		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
 	/**
@@ -191,19 +177,18 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		MessageGroupMetadata messageGroupWrapper = (MessageGroupMetadata) result.get(groupId);
-		
-		for (UUID messageId : messageGroupWrapper.getMarkedMessageIds()) {
-			this.removeMessage(messageId);
+		Object mgm = this.doRemove(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null){
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+			for (UUID messageId : messageGroupMetadata.getMarkedMessageIds()) {
+				this.removeMessage(messageId);
+			}
+			
+			for (UUID messageId : messageGroupMetadata.getUnmarkedMessageIds()) {
+				this.removeMessage(messageId);
+			}
 		}
-		
-		for (UUID messageId : messageGroupWrapper.getUnmarkedMessageIds()) {
-			this.removeMessage(messageId);
-		}
-		result.remove(groupId);
-		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
 	}
 	
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
@@ -211,21 +196,26 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		messageGroup.setLastReleasedMessageSequenceNumber(sequenceNumber);
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		result.put(groupId, new MessageGroupMetadata(messageGroup));
-		
-		this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, result);
+		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
 	public Iterator<MessageGroup> iterator() {
-		Map<Object, MessageGroupMetadata> result = this.getHolderMapForMessageGroups();
-		List<MessageGroup> messageGroups = new ArrayList<MessageGroup>();
-		for (Object object : result.values()) {
-			MessageGroupMetadata messageGroupWrapper = (MessageGroupMetadata) object;
-			messageGroups.add(this.getMessageGroup(messageGroupWrapper.getGroupId()));
-		}
-		return messageGroups.iterator();
-		
+		final Iterator<?> messageGroupKeys = this.doListKeys(MESSAGE_GROUP_KEY_PREFIX + "*").iterator();
+		return new Iterator<MessageGroup>() {
+
+			public boolean hasNext() {
+				return messageGroupKeys.hasNext();
+			}
+
+			public MessageGroup next() {
+				Object messageGroupId = messageGroupKeys.next();
+				return getMessageGroup(messageGroupId);
+			}
+
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
 	}
 	
 	private SimpleMessageGroup getSimpleMessageGroup(MessageGroup messageGroup){
@@ -236,10 +226,12 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			return new SimpleMessageGroup(messageGroup);
 		}
 	}
+
+	protected abstract Object doRetrieve(Object id);
 	
-	protected abstract void storeHolderMap(String key, Object value);
+	protected abstract void doStore(Object id, Object objectToStore);
 	
-	protected abstract Map<UUID, Message<?>> getHolderMapForMessage();
-	
-	protected abstract Map<Object, MessageGroupMetadata> getHolderMapForMessageGroups();
+	protected abstract Object doRemove(Object id);  
+
+	protected abstract Collection<?> doListKeys(String keyPattern);
 }
