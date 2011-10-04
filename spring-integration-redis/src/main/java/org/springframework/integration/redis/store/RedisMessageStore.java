@@ -16,9 +16,8 @@
 
 package org.springframework.integration.redis.store;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.Collection;
+import java.util.Set;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
@@ -27,41 +26,48 @@ import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
-import org.springframework.integration.store.MessageGroupMetadata;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
- * strategies that relies upon Redis for persistence.
+ * Redis implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
  * 
  * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class RedisMessageStore extends AbstractKeyValueMessageStore {
 
-	private final RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<Object, Object> redisTemplate;
 
 	public RedisMessageStore(RedisConnectionFactory connectionFactory) {
-		this.redisTemplate = new RedisTemplate<String, Object>();
+		this.redisTemplate = new RedisTemplate<Object, Object>();
 		this.redisTemplate.setConnectionFactory(connectionFactory);
 		this.redisTemplate.setKeySerializer(new StringRedisSerializer());
 		this.redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
 	}
-
 
 	public void setValueSerializer(RedisSerializer<?> valueSerializer) {
 		Assert.notNull(valueSerializer, "'valueSerializer' must not be null");
 		this.redisTemplate.setValueSerializer(valueSerializer);
 	}
 	
-	protected void storeHolderMap(String key, Object value){
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(key);
+	@Override
+	protected Object doRetrieve(Object id){
+		Assert.notNull(id, "'id' must not be null");
+		BoundValueOperations<Object, Object> ops = redisTemplate.boundValueOps(id);
+		return ops.get();
+	}
+
+
+	@Override
+	protected void doStore(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		BoundValueOperations<Object, Object> ops = redisTemplate.boundValueOps(id);
 		try {
-			ops.set(value);
+			ops.set(objectToStore);
 		}
 		catch (SerializationException e) {
 			throw new IllegalArgumentException("If relying on the default RedisSerializer (JdkSerializationRedisSerializer) " +
@@ -69,27 +75,23 @@ public class RedisMessageStore extends AbstractKeyValueMessageStore {
 					"RedisSerializer via 'setValueSerializer(..)'", e);
 		}
 	}
-	
+
+
 	@Override
-	@SuppressWarnings("unchecked")
-	protected Map<UUID, Message<?>> getHolderMapForMessage(){
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGES_HOLDER_MAP_NAME);	
-		if (!this.redisTemplate.hasKey(MESSAGES_HOLDER_MAP_NAME)){
-			this.storeHolderMap(MESSAGES_HOLDER_MAP_NAME, new HashMap<UUID, Message<?>>());
-		}
-		Object result = ops.get();
-		return (Map<UUID, Message<?>>) result;
-	}
-	
-	@Override
-	@SuppressWarnings("unchecked")
-	protected Map<Object, MessageGroupMetadata> getHolderMapForMessageGroups(){
-		BoundValueOperations<String, Object> ops = redisTemplate.boundValueOps(MESSAGE_GROUPS_HOLDER_MAP_NAME);	
-		if (!this.redisTemplate.hasKey(MESSAGE_GROUPS_HOLDER_MAP_NAME)){
-			this.storeHolderMap(MESSAGE_GROUPS_HOLDER_MAP_NAME, new HashMap<String, MessageGroupMetadata>());
-		}
-		Object result = ops.get();
-		return (Map<Object, MessageGroupMetadata>) result;
+	protected Object doRemove(Object id) {
+		Assert.notNull(id, "'id' must not be null");
+		Object removedObject = this.doRetrieve(id);
+		if (removedObject != null){
+			redisTemplate.delete(id);
+		}	
+		return removedObject;
 	}
 
+
+	@Override
+	protected Collection<?> doListKeys(String keyPattern) {
+		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
+		Set<Object> keys = redisTemplate.keys(keyPattern);
+		return keys;
+	}
 }
