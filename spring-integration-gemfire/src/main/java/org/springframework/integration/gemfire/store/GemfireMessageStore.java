@@ -16,20 +16,22 @@
 
 package org.springframework.integration.gemfire.store;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.springframework.data.gemfire.RegionFactoryBean;
-import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
-import org.springframework.integration.store.MessageGroupMetadata;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
+ * Gemfire implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
+ * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.1
@@ -42,42 +44,45 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore{
 		Assert.notNull(cache, "'cache' must not be null");
 		try {
 			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
-			messageRegionFactoryBean.setBeanName("messageRegionFactoryBean");
+			messageRegionFactoryBean.setBeanName("messageStoreRegion");
 			messageRegionFactoryBean.setCache(cache);
 			messageRegionFactoryBean.afterPropertiesSet();
 			this.messageStoreRegion = messageRegionFactoryBean.getObject();
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Failed to initialize Gemfire Regions");
+			throw new IllegalArgumentException("Failed to initialize Gemfire Region");
 		}
 	}
-	
-	protected void storeHolderMap(String key, Object value){
-		messageStoreRegion.put(key, value);
-	}
-	
+
 	@Override
-	@SuppressWarnings("unchecked")
-	protected Map<UUID, Message<?>> getHolderMapForMessage(){
-		if (messageStoreRegion.containsKey(MESSAGES_HOLDER_MAP_NAME)){
-			return (Map<UUID, Message<?>>) messageStoreRegion.get(MESSAGES_HOLDER_MAP_NAME);
-		}
-		else {
-			Map<UUID, Message<?>> messageHolderMap = new HashMap<UUID, Message<?>>();
-			messageStoreRegion.put(MESSAGES_HOLDER_MAP_NAME, messageHolderMap);
-			return messageHolderMap;
-		}
+	protected Object doRetrieve(Object id) {
+		Assert.notNull(id, "'id' must not be null");
+		return this.messageStoreRegion.get(id);
 	}
-	
+
 	@Override
-	@SuppressWarnings("unchecked")
-	protected Map<Object, MessageGroupMetadata> getHolderMapForMessageGroups(){
-		if (messageStoreRegion.containsKey(MESSAGE_GROUPS_HOLDER_MAP_NAME)){
-			return (Map<Object, MessageGroupMetadata>) messageStoreRegion.get(MESSAGE_GROUPS_HOLDER_MAP_NAME);
+	protected void doStore(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		this.messageStoreRegion.put(id, objectToStore);
+	}
+
+	@Override
+	protected Object doRemove(Object id) {
+		Assert.notNull(id, "'id' must not be null");
+		return this.messageStoreRegion.remove(id);
+	}
+
+	@Override
+	protected Collection<?> doListKeys(String keyPattern) {
+		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
+		Collection<Object> keys = this.messageStoreRegion.keySet();
+		List<Object> keyList = new ArrayList<Object>();
+		for (Object key : keys) {
+			String keyValue = key.toString();
+			if (PatternMatchUtils.simpleMatch(keyPattern, keyValue)){
+				keyList.add(keyValue);
+			}
 		}
-		else {
-			Map<Object, MessageGroupMetadata> messageHolderMap = new HashMap<Object, MessageGroupMetadata>();
-			messageStoreRegion.put(MESSAGE_GROUPS_HOLDER_MAP_NAME, messageHolderMap);
-			return messageHolderMap;
-		}
+		return keyList;
 	}
 }
