@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * 
  * @author Jonas Partner
  * @author Dave Syer
+ * @author Gunnar Hillert
+ * 
  * @since 2.0
  */
 public class JdbcNamespaceHandler extends AbstractIntegrationNamespaceHandler {
@@ -32,6 +34,9 @@ public class JdbcNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		registerBeanDefinitionParser("outbound-channel-adapter", new JdbcMessageHandlerParser());
 		registerBeanDefinitionParser("outbound-gateway", new JdbcOutboundGatewayParser());
 		registerBeanDefinitionParser("message-store", new JdbcMessageStoreParser());
+		registerBeanDefinitionParser("stored-proc-outbound-channel-adapter", new StoredProcMessageHandlerParser());
+		registerBeanDefinitionParser("stored-proc-inbound-channel-adapter",  new StoredProcPollingChannelAdapterParser());
+		registerBeanDefinitionParser("stored-proc-outbound-gateway",  new StoredProcOutboundGatewayParser());
 	}
 
 }

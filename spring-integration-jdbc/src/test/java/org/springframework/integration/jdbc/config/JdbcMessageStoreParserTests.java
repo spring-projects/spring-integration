@@ -9,7 +9,6 @@ import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;

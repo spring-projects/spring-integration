@@ -551,4 +551,609 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:element name="stored-proc-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Channel Adapter for updating a
+				database using stored procedures.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0"
+					maxOccurs="1" />
+				<xsd:element name="sql-parameter-definition" minOccurs="0"
+					maxOccurs="unbounded" type="sqlParameterDefinitionType">
+					<xsd:annotation>
+						<xsd:documentation>
+                                    <![CDATA[
+                                    For fully supported database these parameters
+                                    need not be declared as for those database the 
+                                    type information can be retrieved from the 
+                                    JDBC Metadata. 
+                                    
+                                    Fully Supported Databases (Stored Procedures):
+    
+                                    * Apache Derby
+                                    * DB2
+                                    * MySQL
+                                    * Microsoft SQL Server
+                                    * Oracle
+                                    * PostgreSQL
+                                    * Sybase
+                                    
+                                    Fully Supported Databases (Functions)
+                            
+                                    * MySQL
+                                    * Microsoft SQL Server
+                                    * Oracle
+                                    * PostgreSQL
+                                    
+                                    If you use a database not listed above, you
+                                    MUST provide Sql Parameter Definitions.                                     
+                                    ]]>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
+					type="parameterSubElementType">
+					<xsd:annotation>
+						<xsd:documentation>
+	                                <![CDATA[
+	                                Provides a mechanism to provide stored procedure
+	                                parameters.
+	                                ]]>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
+			<xsd:attribute name="sql-parameter-source-factory"
+				type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to a SqlParameterSourceFactory. The input is the whole
+							outgoing message. The
+							default factory creates a bean
+							property parameter source so the query can specify named
+							parameters like :payload and :headers[foo].
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Channel from which messages will be output.
+							When a message is sent to this channel it will
+							cause the query
+							to be executed.
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="return-value-required" default="false">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="stored-proc-outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an Outbound Channel Gateway for updating a database using
+				a stored procedure. The response of the stored procedure is used
+				to populate the Message for the reply channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:sequence>
+                    <xsd:element name="sql-parameter-definition" minOccurs="0"
+                        maxOccurs="unbounded" type="sqlParameterDefinitionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                        <![CDATA[
+                                        For fully supported database these parameters
+                                        generally need not be declared as for those 
+                                        databases the type information can be 
+                                        retrieved from the JDBC Metadata. 
+                                        
+                                        Fully Supported Databases (Stored Procedures):
+        
+                                        * Apache Derby
+                                        * DB2
+                                        * MySQL
+                                        * Microsoft SQL Server
+                                        * Oracle
+                                        * PostgreSQL
+                                        * Sybase
+                                        
+                                        Fully Supported Databases (Functions)
+                                
+                                        * MySQL
+                                        * Microsoft SQL Server
+                                        * Oracle
+                                        * PostgreSQL
+                                        
+                                        If you use a database not listed above, you
+                                        MUST provide Sql Parameter Definitions.                                     
+                                        ]]>
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>				
+					<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
+						type="parameterSubElementType">
+						<xsd:annotation>
+							<xsd:documentation>
+	                                    <![CDATA[
+	                                    Provides a mechanism to provide stored procedure
+	                                    parameters. Parameters can be either static 
+	                                    or provided using a SpEL Expression.
+	                                    ]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="returning-resultset" minOccurs="0"
+						maxOccurs="unbounded" type="returningResultSetRowMappersType">
+						<xsd:annotation>
+							<xsd:documentation>
+                                        <![CDATA[
+                                        Storeed procedured may return multiple resultsets.
+                                        ]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:sequence>
+            <xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
+            <xsd:attribute name="sql-parameter-source-factory"
+                type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <xsd:documentation>
+                            Reference to a SqlParameterSourceFactory. The input is the whole
+                            outgoing message. The
+                            default factory creates a bean
+                            property parameter source so the query can specify named
+                            parameters like :payload and :headers[foo].
+                        </xsd:documentation>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type
+                                type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>            
+			<xsd:attribute name="is-function" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If "true", a SQL Function is called. In that case
+						the "stored-procedure-name" attribute defines
+						the name of the called function.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+            <xsd:attribute name="expect-single-result" default="false">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+                         This parameter indicates that only one result object shall be returned from
+                         the Stored Procedure/Function Call. If set to true and the result map 
+                         from the Stored Procedure/Function Call contains only 1 element,
+                         then that 1 element is extracted and returned as payload.
+                          
+                         If the result map contains more than 1 element and 
+                         expect-single-result is true, then a MessagingException 
+                         is thrown. 
+                          
+                         Otherwise the complete result map is returned as the 
+                         payload.
+                          
+                         Important Note: Several databases such as H2 are not 
+                         fully supported for Stored Procedure and/oir Function calls. 
+                         
+                         The H2 database, for example, does not fully support the CallableStatement
+                         semantics and when executing function calls against H2, a result list is 
+                         returned, rather than a single value. 
+                          
+                         Therefore, even if you set expect-single-result = true, 
+                         you may end up with a collection being returned.
+                         ]]>
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:union memberTypes="xsd:boolean xsd:string" />
+                </xsd:simpleType>
+            </xsd:attribute>			
+			<xsd:attribute name="request-channel" type="xsd:string"
+				use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-timeout" type="xsd:string" />
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a SubscribableChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="return-value-required" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						Indicates whether this procedure's return value
+						should be included.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="stored-proc-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an inbound Channel Adapter for polling a
+				database using a stored procedure or function.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0"
+					maxOccurs="1" />
+                <xsd:element name="sql-parameter-definition" minOccurs="0"
+                    maxOccurs="unbounded" type="sqlParameterDefinitionType">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                                    <![CDATA[
+                                    For fully supported database these parameters
+                                    need not be declared as for those database the 
+                                    type information can be retrieved from the 
+                                    JDBC Metadata. 
+                                    
+                                    Fully Supported Databases (Stored Procedures):
+    
+                                    * Apache Derby
+                                    * DB2
+                                    * MySQL
+                                    * Microsoft SQL Server
+                                    * Oracle
+                                    * PostgreSQL
+                                    * Sybase
+                                    
+                                    Fully Supported Databases (Functions)
+                            
+                                    * MySQL
+                                    * Microsoft SQL Server
+                                    * Oracle
+                                    * PostgreSQL
+                                    
+                                    If you use a database not listed above, you
+                                    MUST provide Sql Parameter Definitions.                                     
+                                    ]]>
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>					
+				<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
+					type="parameterSubElementType">
+					<xsd:annotation>
+						<xsd:documentation>
+                                    <![CDATA[
+                                    Provides a mechanism to provide stored procedure
+                                    parameters.
+                                    ]]>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="returning-resultset" minOccurs="0"
+					maxOccurs="unbounded" type="returningResultSetRowMappersType">
+					<xsd:annotation>
+						<xsd:documentation>
+                                    <![CDATA[
+                                    Storeed procedured may return multiple resultsets.
+                                    ]]>
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
+			<xsd:attribute name="is-function" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If "true", a SQL Function is called. In that case
+						the "stored-procedure-name" attribute defines
+						the name of the called function.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="xsd:boolean xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
+            <xsd:attribute name="expect-single-result" default="false">
+                <xsd:annotation>
+                    <xsd:documentation><![CDATA[
+					     This parameter indicates that only one result object shall be returned from
+					     the Stored Procedure/Function Call. If set to true and the result map 
+					     from the Stored Procedure/Function Call contains only 1 element,
+					     then that 1 element is extracted and returned as payload.
+					      
+					     If the result map contains more than 1 element and 
+					     expect-single-result is true, then a MessagingException 
+					     is thrown. 
+					      
+					     Otherwise the complete result map is returned as the 
+					     payload.
+					      
+					     Important Note: Several databases such as H2 are not 
+					     fully supported for Stored Procedure and/oir Function calls. 
+					     
+					     The H2 database, for example, does not fully support the CallableStatement
+					     semantics and when executing function calls against H2, a result list is 
+					     returned, rather than a single value. 
+					      
+					     Therefore, even if you set expect-single-result = true, 
+					     you may end up with a collection being returned.
+					     ]]>
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:union memberTypes="xsd:boolean xsd:string" />
+                </xsd:simpleType>
+            </xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						Channel to which polled messages will be send. If the stored
+						procedure or function does not return any data, the payload
+						of the Message will be Null. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:attributeGroup name="coreStoredProcComponentAttributes">
+		<xsd:attribute name="id" type="xsd:string" use="optional" />
+		<xsd:attribute name="stored-procedure-name" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The name of the stored procedure. If the "is-function"
+					attribute is "true", this attributes specifies the
+					function name.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="data-source" type="xsd:string" use="required" >
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a data source to use to access
+					the database.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.sql.DataSource" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Flag to indicate that the poller should start automatically 
+					on startup (default true).
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="ignore-column-meta-data" default="false" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					If true, the JDBC parameter definitions for the stored procedure
+					are not automatically derived from the underlying JDBC connection. In 
+					that case you must specify all Sql parameter definitions explicitly
+					using the 'sql-parameter-definition' sub-element.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:attributeGroup> 
+    
+    <xsd:complexType name="parameterSubElementType">    
+        <xsd:attribute name="name" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The name of stored procedure or function parameter. 
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="value" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The value of the parameter. Either this or the 'expression' 
+                    attribute must be provided.
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The type of the value used. If nothing is provided this attribute
+                    will default to java.lang.String. This attribute is not used 
+                    when the 'expression' attribute is used instead.
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>        
+        <xsd:attribute name="expression" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    Expression to be evaluated to produce a value for the header.
+                    Either this or the 'value' attribute must be provided.
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    
+    <xsd:complexType name="returningResultSetRowMappersType">
+        <xsd:attribute name="name"      type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The name of the under which the resultset will be returned. 
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>     
+       <xsd:attribute name="row-mapper" type="xsd:string" use="required">
+           <xsd:annotation>
+               <xsd:documentation source="java:java.lang.Class"><![CDATA[
+                   The fully qualified class name of the row mapper.
+                ]]></xsd:documentation>
+           </xsd:annotation>
+       </xsd:attribute>        
+    </xsd:complexType>
+    
+    <xsd:complexType name="sqlParameterDefinitionType">
+        <xsd:attribute name="name"      type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The name of the Sql parameter.
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="direction" use="optional" default="IN">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    Specifies the direction of the Sql parameter definition. Defaults 
+                    to 'IN'. If your procedure is returning ResultSets, please 
+                    use the 'returning-resultset' element. 
+                ]]></xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+                <xsd:union memberTypes="sqlTypeDirection xsd:string"/>
+            </xsd:simpleType>
+        </xsd:attribute>        
+       <xsd:attribute name="type">
+           <xsd:annotation>
+               <xsd:documentation><![CDATA[
+                   The Sql type used for this Sql parameter defintion. Will translate
+                   into the integer value as defined by java.sql.Types. Alternatively
+                   you can provide the integer value as well. If this attribute is 
+                   not explicitly set, then it will default to 'VARCHAR'.
+               ]]></xsd:documentation>
+           </xsd:annotation>
+           <xsd:simpleType>
+                <xsd:union memberTypes="sqlType xsd:string"/>
+           </xsd:simpleType>
+       </xsd:attribute>        
+        <xsd:attribute name="scale" type="xsd:integer" use="optional">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    The scale of the Sql parameter. Only used for numeric and decimal
+                    parameters. 
+                ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+       
+    <xsd:simpleType name="sqlType">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="VARCHAR"/>
+            <xsd:enumeration value="ARRAY"/>
+            <xsd:enumeration value="BIGINT"/>
+            <xsd:enumeration value="BINARY"/>
+            <xsd:enumeration value="BIT"/>
+            <xsd:enumeration value="BLOB"/>
+            <xsd:enumeration value="BOOLEAN"/>
+            <xsd:enumeration value="CHAR"/>
+            <xsd:enumeration value="CLOB"/>
+            <xsd:enumeration value="DATALINK"/>
+            <xsd:enumeration value="DATE"/>
+            <xsd:enumeration value="DECIMAL"/>
+            <xsd:enumeration value="DISTINCT"/>
+            <xsd:enumeration value="DOUBLE"/>
+            <xsd:enumeration value="FLOAT"/>
+            <xsd:enumeration value="INTEGER"/>
+            <xsd:enumeration value="JAVA_OBJECT"/>
+            <xsd:enumeration value="LONGVARBINARY"/>
+            <xsd:enumeration value="LONGNVARCHAR"/>
+            <xsd:enumeration value="LONGVARCHAR"/>
+            <xsd:enumeration value="NCHAR"/>
+            <xsd:enumeration value="NCLOB"/>
+            <xsd:enumeration value="NULL"/>
+            <xsd:enumeration value="NUMERIC"/>
+            <xsd:enumeration value="NVARCHAR"/>
+            <xsd:enumeration value="OTHER"/>
+            <xsd:enumeration value="REAL"/>
+            <xsd:enumeration value="REF"/>
+            <xsd:enumeration value="ROWID"/>
+            <xsd:enumeration value="SMALLINT"/>
+            <xsd:enumeration value="SQLXML"/>
+            <xsd:enumeration value="STRUCT"/>
+            <xsd:enumeration value="TIME"/>
+            <xsd:enumeration value="TIMESTAMP"/>
+            <xsd:enumeration value="TINYINT"/>
+            <xsd:enumeration value="VARBINARY"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="sqlTypeDirection">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="IN"/>
+            <xsd:enumeration value="OUT"/>
+            <xsd:enumeration value="INOUT"/>
+        </xsd:restriction>
+    </xsd:simpleType>    
 </xsd:schema>

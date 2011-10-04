@@ -36,9 +36,9 @@
 	<int:logging-channel-adapter channel="output" />
 
 	<service-activator id="service-activator"
-		input-channel="input" output-channel="output"
+		input-channel="input" output-channel="output" 
 		xmlns="http://www.springframework.org/schema/integration">
-		<beans:bean
+		<beans:bean 
 			class="org.springframework.integration.jdbc.JdbcMessageStoreChannelIntegrationTests$Service" />
 		<poller fixed-rate="200">
 			<advice-chain>

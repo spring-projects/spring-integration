@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -58,7 +59,7 @@ public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 			return null;
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcOutboundGateway");
+				.genericBeanDefinition(JdbcOutboundGateway.class);
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
 		}
