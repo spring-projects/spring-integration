@@ -33,7 +33,7 @@ import javax.net.ServerSocketFactory;
  */
 public class TcpNetServerConnectionFactory extends AbstractServerConnectionFactory {
 
-	protected ServerSocket serverSocket;
+	private ServerSocket serverSocket;
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -52,20 +52,20 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 */
 	public void run() {
 		ServerSocket theServerSocket = null;
-		if (this.listener == null) {
+		if (this.getListener() == null) {
 			logger.info("No listener bound to server connection factory; will not read; exiting...");
 			return;
 		}
 		try {
-			if (this.localAddress == null) {
-				theServerSocket = createServerSocket(this.port, this.poolSize, null);
+			if (this.getLocalAddress() == null) {
+				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), null);
 			} else {
-				InetAddress whichNic = InetAddress.getByName(this.localAddress);
-				theServerSocket = createServerSocket(this.port, this.poolSize, whichNic);
+				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
+				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), whichNic);
 			}
 			this.serverSocket = theServerSocket;
-			this.listening = true;
-			logger.info("Listening on port " + this.port);
+			this.setListening(true);
+			logger.info("Listening on port " + this.getPort());
 			while (true) {
 				final Socket socket = serverSocket.accept();
 				logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
@@ -77,14 +77,14 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				this.harvestClosedConnections();
 			}
 		} catch (Exception e) {
-			this.listening = false;
+			this.setListening(false);
 			// don't log an error if we had a good socket once and now it's closed
 			if (e instanceof SocketException && theServerSocket != null) {
 				logger.warn("Server Socket closed");
-			} else if (this.active) {
+			} else if (this.isActive()) {
 				logger.error("Error on ServerSocket", e);
 			}
-			this.active = false;
+			this.setActive(false);
 		}
 	}
 
@@ -102,15 +102,11 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
 		if (whichNic == null) {
 			return ServerSocketFactory.getDefault().createServerSocket(port,
-					Math.abs(poolSize));
+					Math.abs(backlog));
 		} else {
 			return ServerSocketFactory.getDefault().createServerSocket(port,
-					Math.abs(poolSize), whichNic);
+					Math.abs(backlog), whichNic);
 		}
-	}
-
-	public boolean isRunning() {
-		return this.active;
 	}
 
 	public void close() {
@@ -122,6 +118,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 		} catch (IOException e) {}
 		this.serverSocket = null;
 	}
-	
 
+	/**
+	 * @return the serverSocket
+	 */
+	protected ServerSocket getServerSocket() {
+		return serverSocket;
+	}
+	
 }

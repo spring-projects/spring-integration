@@ -81,6 +81,8 @@ public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 				IpAdapterParserUtils.INTERCEPTOR_FACTORY_CHAIN);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.LOOKUP_HOST);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.APPLY_SEQUENCE);
 	
 		return builder.getBeanDefinition();
 	}

@@ -36,15 +36,15 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	protected final SocketAddress destinationAddress;
+	private final SocketAddress destinationAddress;
 
-	protected final String host;
+	private final String host;
 
-	protected final int port;
+	private final int port;
 
-	protected volatile int soSendBufferSize = -1;
+	private volatile int soSendBufferSize = -1;
 
-	protected volatile int soTimeout = -1;
+	private volatile int soTimeout = -1;
 
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {
 		Assert.notNull(host, "host must not be null");
@@ -81,10 +81,42 @@ public abstract class AbstractInternetProtocolSendingMessageHandler extends Abst
 	}
 
 	/**
+	 * @return the host
+	 */
+	public String getHost() {
+		return host;
+	}
+
+
+	/**
 	 * @return the port
 	 */
 	public int getPort() {
 		return port;
+	}
+
+
+	/**
+	 * @return the destinationAddress
+	 */
+	public SocketAddress getDestinationAddress() {
+		return destinationAddress;
+	}
+
+
+	/**
+	 * @return the soTimeout
+	 */
+	public int getSoTimeout() {
+		return soTimeout;
+	}
+
+
+	/**
+	 * @return the soSendBufferSize
+	 */
+	public int getSoSendBufferSize() {
+		return soSendBufferSize;
 	}
 
 }

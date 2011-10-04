@@ -35,23 +35,23 @@ import org.springframework.util.Assert;
 public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		extends MessageProducerSupport implements Runnable, CommonSocketOptions {
 
-	protected final int port;
+	private final int port;
 
-	protected volatile int soTimeout = 0;
+	private volatile int soTimeout = 0;
 
-	protected volatile int soReceiveBufferSize = -1;
+	private volatile int soReceiveBufferSize = -1;
 
-	protected volatile int receiveBufferSize = 2048;
+	private volatile int receiveBufferSize = 2048;
 
-	protected volatile boolean active;
+	private volatile boolean active;
 
-	protected volatile boolean listening;
+	private volatile boolean listening;
 
-	protected volatile String localAddress;
+	private volatile String localAddress;
 
-	protected volatile Executor taskExecutor;
+	private volatile Executor taskExecutor;
 
-	protected volatile int poolSize = 5;
+	private volatile int poolSize = 5;
 
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
@@ -66,28 +66,37 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		return port;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.SocketOptions#setSoTimeout(int)
-	 */
 	public void setSoTimeout(int soTimeout) {
 		this.soTimeout = soTimeout;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.SocketOptions#setSoReceiveBufferSize(int)
+	/**
+	 * @return the soTimeout
 	 */
+	public int getSoTimeout() {
+		return soTimeout;
+	}
+
 	public void setSoReceiveBufferSize(int soReceiveBufferSize) {
 		this.soReceiveBufferSize = soReceiveBufferSize;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.CommonSocketOptions#setSoSendBufferSize(int)
+	/**
+	 * @return the soReceiveBufferSize
 	 */
-	public void setSoSendBufferSize(int soSendBufferSize) {
+	public int getSoReceiveBufferSize() {
+		return soReceiveBufferSize;
 	}
 
 	public void setReceiveBufferSize(int receiveBufferSize) {
 		this.receiveBufferSize = receiveBufferSize;
+	}
+
+	/**
+	 * @return the receiveBufferSize
+	 */
+	public int getReceiveBufferSize() {
+		return receiveBufferSize;
 	}
 
 	@Override
@@ -117,9 +126,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.endpoint.AbstractEndpoint#doStop()
-	 */
 	@Override
 	protected void doStop() {
 		this.active = false;
@@ -127,6 +133,13 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	public boolean isListening() {
 		return listening;
+	}
+
+	/**
+	 * @param listening the listening to set
+	 */
+	public void setListening(boolean listening) {
+		this.listening = listening;
 	}
 
 	public String getLocalAddress() {
@@ -143,6 +156,20 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
+	}
+
+	/**
+	 * @return the taskExecutor
+	 */
+	public Executor getTaskExecutor() {
+		return taskExecutor;
+	}
+
+	/**
+	 * @return the active
+	 */
+	public boolean isActive() {
+		return active;
 	}
 
 }
