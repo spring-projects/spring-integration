@@ -70,8 +70,6 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private String hostAddress = "unknown";
 	
-	private int port;
-	
 	private final boolean lookupHost;
 
 	private int hashCode;
@@ -89,7 +87,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 				this.hostName = this.hostAddress;
 			}
 		}
-		this.connectionId = this.hostName + ":" + this.port + ":" + this.hashCode;
+		int port = socket.getPort();
+		this.connectionId = this.hostName + ":" + port + ":" + this.hashCode;
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
