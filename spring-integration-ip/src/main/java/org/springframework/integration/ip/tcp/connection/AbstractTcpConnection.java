@@ -71,8 +71,6 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	private volatile String hostAddress = "unknown";
 
-	private volatile int port;
-
 	public AbstractTcpConnection(Socket socket, boolean server, boolean lookupHost) {
 		this.server = server;
 		InetAddress inetAddress = socket.getInetAddress();
@@ -84,7 +82,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 				this.hostName = this.hostAddress;
 			}
 		}
-		this.connectionId = this.hostName + ":" + this.port + ":" + UUID.randomUUID().toString();
+		int port = socket.getPort();
+		this.connectionId = this.hostName + ":" + port + ":" + UUID.randomUUID().toString();
 		try {
 			this.soLinger = socket.getSoLinger();
 		} catch (SocketException e) { }
