@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 package org.springframework.integration.ip.tcp;
-
-import java.net.ServerSocket;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -38,11 +36,9 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
 public class TcpReceivingChannelAdapter 
 	extends MessageProducerSupport implements TcpListener {
 
-	protected ServerSocket serverSocket;
+	private ConnectionFactory clientConnectionFactory;
 	
-	protected ConnectionFactory clientConnectionFactory;
-	
-	protected ConnectionFactory serverConnectionFactory;
+	private ConnectionFactory serverConnectionFactory;
 	
 	public boolean onMessage(Message<?> message) {
 		sendMessage(message);
@@ -51,12 +47,22 @@ public class TcpReceivingChannelAdapter
 	
 	@Override
 	protected void doStart() {
-		// Nothing to do; we're passive
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.start();
+		}
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.start();
+		}
 	}
 
 	@Override
 	protected void doStop() {
-		// Nothing to do; we're passive
+		if (this.clientConnectionFactory != null) {
+			this.clientConnectionFactory.stop();
+		}
+		if (this.serverConnectionFactory != null) {
+			this.serverConnectionFactory.stop();
+		}
 	}
 
 	/**
@@ -87,5 +93,19 @@ public class TcpReceivingChannelAdapter
 
 	public String getComponentType(){
 		return "ip:tcp-inbound-channel-adapter";
+	}
+
+	/**
+	 * @return the clientConnectionFactory
+	 */
+	protected ConnectionFactory getClientConnectionFactory() {
+		return clientConnectionFactory;
+	}
+
+	/**
+	 * @return the serverConnectionFactory
+	 */
+	protected ConnectionFactory getServerConnectionFactory() {
+		return serverConnectionFactory;
 	}
 }

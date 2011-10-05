@@ -49,6 +49,10 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				IpAdapterParserUtils.REQUEST_TIMEOUT);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.REPLY_TIMEOUT);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.AUTO_STARTUP);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.PHASE);
 		return builder;
 	}
 

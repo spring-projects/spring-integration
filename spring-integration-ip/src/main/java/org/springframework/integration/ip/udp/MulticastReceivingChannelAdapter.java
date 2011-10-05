@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.integration.MessagingException;
  */
 public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAdapter {
 
-	protected String group;
+	private String group;
 
 
 	/**
@@ -61,25 +61,23 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 
 	@Override
 	protected synchronized DatagramSocket getSocket() {
-		if (this.socket == null) {
+		if (this.getTheSocket() == null) {
 			try {
-				MulticastSocket socket = new MulticastSocket(this.port);
+				MulticastSocket socket = new MulticastSocket(this.getPort());
+				String localAddress = this.getLocalAddress();
 				if (localAddress != null) {
-					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					InetAddress whichNic = InetAddress.getByName(localAddress);
 					socket.setInterface(whichNic);
 				}
-				socket.setSoTimeout(this.soTimeout);
-				if (this.soReceiveBufferSize > 0) {
-					socket.setReceiveBufferSize(this.soReceiveBufferSize);
-				}
+				this.setSocketAttributes(socket);
 				socket.joinGroup(InetAddress.getByName(this.group));
-				this.socket = socket;
+				this.setSocket(socket);
 			}
 			catch (IOException e) {
 				throw new MessagingException("failed to create DatagramSocket", e);
 			}
 		}
-		return this.socket;
+		return super.getSocket();
 	}
 
 }

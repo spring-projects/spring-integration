@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2001-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,9 @@ import java.net.SocketException;
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
 
-	protected boolean listening;
+	private boolean listening;
 	
-	protected String localAddress;
+	private String localAddress;
 
 
 	/**
@@ -39,7 +39,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * @param port
 	 */
 	public AbstractServerConnectionFactory(int port) {
-		this.port = port;
+		super(port);
 	}
 
 
@@ -50,6 +50,14 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	public TcpConnection getConnection() throws Exception {
 		throw new UnsupportedOperationException("Getting a connection from a server factory is not supported");
 	}
+
+	/**
+	 * @param listening the listening to set
+	 */
+	protected void setListening(boolean listening) {
+		this.listening = listening;
+	}
+
 
 	/**
 	 * 
@@ -66,20 +74,21 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * @param socket The new socket. 
 	 */
 	protected void initializeConnection(TcpConnection connection, Socket socket) {
-		if (this.listener != null) {
-			connection.registerListener(this.listener);
+		TcpListener listener = this.getListener();
+		if (listener != null) {
+			connection.registerListener(listener);
 		}
-		connection.registerSender(this.sender);
-		connection.setMapper(this.mapper);
-		connection.setDeserializer(this.deserializer);
-		connection.setSerializer(this.serializer);
-		connection.setSingleUse(this.singleUse);
+		connection.registerSender(this.getSender());
+		connection.setMapper(this.getMapper());
+		connection.setDeserializer(this.getDeserializer());
+		connection.setSerializer(this.getSerializer());
+		connection.setSingleUse(this.isSingleUse());
 		/*
 		 * If we have a collaborating outbound channel adapter and we are configured
 		 * for single use; need to enforce a timeout on the socket so we will close
 		 * it some period after the response was sent (timeout on the next read).
 		 */
-		if (this.singleUse && this.soTimeout <= 0 && this.listener != null) {
+		if (this.isSingleUse() && this.getSoTimeout() <= 0 && listener != null) {
 			try {
 				socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 			} catch (SocketException e) {

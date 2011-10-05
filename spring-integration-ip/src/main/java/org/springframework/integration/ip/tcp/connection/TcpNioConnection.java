@@ -30,6 +30,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 
@@ -43,27 +44,27 @@ import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamExceptio
 public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final SocketChannel socketChannel;
-	
+
 	private volatile OutputStream channelOutputStream;
-	
+
 	private volatile PipedOutputStream pipedOutputStream;
-	
+
 	private volatile PipedInputStream pipedInputStream;
 
 	private volatile boolean usingDirectBuffers;
-	
+
 	private volatile Executor taskExecutor;
-	
+
 	private volatile ByteBuffer rawBuffer;
-	
+
 	private volatile int maxMessageSize = 60 * 1024;
-	
+
 	private volatile long lastRead;
-	
+
 	private AtomicInteger executionControl = new AtomicInteger();
-	
+
 	private volatile boolean writingToPipe;
-	
+
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel the socketChannel
@@ -77,7 +78,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
 	}
-	
+
 	public void close() {
 		doClose();
 	}
@@ -100,21 +101,21 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
-		synchronized(mapper) {
-			Object object = mapper.fromMessage(message);
-			this.serializer.serialize(object, this.channelOutputStream);
+		synchronized(this.getMapper()) {
+			Object object = this.getMapper().fromMessage(message);
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.channelOutputStream);
 			this.afterSend(message);
 		}
 	}
 
 	public Object getPayload() throws Exception {
-		return this.deserializer.deserialize(pipedInputStream);
+		return this.getDeserializer().deserialize(pipedInputStream);
 	}
 
 	public int getPort() {
 		return this.socketChannel.socket().getPort();
 	}
-	
+
 	/**
 	 * Allocates a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.
@@ -128,7 +129,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		return buffer;
 	}
-	
+
 	/**
 	 * If there is no listener, and this connection is not for single use, 
 	 * this method exits. When there is a listener, this method assembles
@@ -142,8 +143,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			logger.trace(this.getConnectionId() + " Nio message assembler running...");
 		}
 		try {
-			if (this.listener == null && !this.singleUse) {
-				logger.debug("TcpListener exiting - no listener and not single use");			
+			if (this.getListener() == null && !this.isSingleUse()) {
+				logger.debug("TcpListener exiting - no listener and not single use");
 				return;
 			}
 			try {
@@ -206,12 +207,12 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		Message<?> message = null;
 		try {
-			message = this.mapper.toMessage(this);
+			message = this.getMapper().toMessage(this);
 		} catch (Exception e) {
 			this.closeConnection();
-			if (e instanceof SocketTimeoutException && this.singleUse) {
+			if (e instanceof SocketTimeoutException && this.isSingleUse()) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Closing single use socket after timeout " + this.connectionId);				
+					logger.debug("Closing single use socket after timeout " + this.getConnectionId());
 				}
 			} else {
 				if (!(e instanceof SoftEndOfStreamException)) {
@@ -219,7 +220,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				}
 			}
 			return null;
-		}			
+		}
 		return message;
 	}
 
@@ -227,13 +228,13 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		boolean intercepted = false;
 		try {
 			if (message != null) {
-				intercepted = listener.onMessage(message);
+				intercepted = getListener().onMessage(message);
 			}
 		} catch (Exception e) {
 			if (e instanceof NoListenerException) {
-				if (this.singleUse) {
+				if (this.isSingleUse()) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("Closing single use channel after inbound message " + this.connectionId);
+						logger.debug("Closing single use channel after inbound message " + this.getConnectionId());
 					}
 					this.closeConnection();
 				}
@@ -246,12 +247,14 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		 * side, and the data was not intercepted, 
 		 * or the server side has no outbound adapter registered
 		 */
-		if (this.singleUse && ((!this.server && !intercepted) || (this.server && this.sender == null))) {
-			logger.debug("Closing single use cbannel after inbound message " + this.connectionId);
+		if (this.isSingleUse() && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Closing single use cbannel after inbound message " + this.getConnectionId());
+			}
 			this.closeConnection();
 		}
 	}
-	
+
 	private void doRead() throws Exception {
 		if (this.rawBuffer == null) {
 			this.rawBuffer = allocate(maxMessageSize);
@@ -311,14 +314,14 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			this.closeConnection();
 		}
 	}
-	
+
 	/**
 	 * Close the socket due to timeout.
 	 */
 	void timeout() {
 		this.closeConnection();
 	}
-	
+
 	/**
 	 * 
 	 * @param taskExecutor the taskExecutor to set
@@ -326,7 +329,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
-	
+
 	/**
 	 * If true, connection will attempt to use direct buffers where
 	 * possible.
@@ -359,9 +362,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	class ChannelOutputStream extends OutputStream {
 
 		private Selector selector;
-		
+
 		private int soTimeout;
-		
+
 		@Override
 		public void write(int b) throws IOException {
 			byte[] bytes = new byte[1];
@@ -390,7 +393,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			ByteBuffer buffer = ByteBuffer.wrap(b);
 			doWrite(buffer);
 		}
-		
+
 		private synchronized void doWrite(ByteBuffer buffer) throws IOException {
 			socketChannel.write(buffer);
 			int remaining = buffer.remaining();
@@ -414,5 +417,5 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 
 	}
-	
+
 }

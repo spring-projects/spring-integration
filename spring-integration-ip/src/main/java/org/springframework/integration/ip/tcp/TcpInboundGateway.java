@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
  */
 public class TcpInboundGateway extends MessagingGatewaySupport implements TcpListener, TcpSender {
 
-	protected AbstractServerConnectionFactory connectionFactory;
+	private AbstractServerConnectionFactory connectionFactory;
 	
 	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
 
@@ -93,5 +93,12 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 	}
 	public String getComponentType(){
 		return "ip:tcp-inbound-gateway";
+	}
+
+	/**
+	 * @return the connectionFactory
+	 */
+	protected AbstractServerConnectionFactory getConnectionFactory() {
+		return connectionFactory;
 	}
 }
