@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.store;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,68 +26,68 @@ import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 
 /**
+ * Immutable Value Object holding metadata about a MessageGroup.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.1
- *
  */
 public class MessageGroupMetadata implements Serializable{
-	
+
 	private static final long serialVersionUID = 1L;
 
+
 	private final Object groupId;
-	
+
 	private final List<UUID> markedMessageIds;
 
 	private final List<UUID> unmarkedMessageIds;
-	
-	private final boolean complete;
-	
-	private final long timestamp;
-	
-	private final int lastReleasedMessageSequence;
 
-	public MessageGroupMetadata(MessageGroup messageGroup){
+	private final boolean complete;
+
+	private final long timestamp;
+
+	private final int lastReleasedMessageSequenceNumber;
+
+
+	public MessageGroupMetadata(MessageGroup messageGroup) {
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
 		this.groupId = messageGroup.getGroupId();
-		
 		this.markedMessageIds = new ArrayList<UUID>();
 		for (Message<?> message : messageGroup.getMarked()) {
-			markedMessageIds.add(message.getHeaders().getId());
+			this.markedMessageIds.add(message.getHeaders().getId());
 		}
-		
 		this.unmarkedMessageIds = new ArrayList<UUID>();
 		for (Message<?> message : messageGroup.getUnmarked()) {
-			unmarkedMessageIds.add(message.getHeaders().getId());
+			this.unmarkedMessageIds.add(message.getHeaders().getId());
 		}
-		
 		this.complete = messageGroup.isComplete();
-		
 		this.timestamp = messageGroup.getTimestamp();
-		
-		this.lastReleasedMessageSequence = messageGroup.getLastReleasedMessageSequenceNumber();
+		this.lastReleasedMessageSequenceNumber = messageGroup.getLastReleasedMessageSequenceNumber();
 	}
-	
+
+
 	public Object getGroupId() {
-		return groupId;
+		return this.groupId;
 	}
 
 	public List<UUID> getMarkedMessageIds() {
-		return markedMessageIds;
+		return Collections.unmodifiableList(markedMessageIds);
 	}
 
 	public List<UUID> getUnmarkedMessageIds() {
-		return unmarkedMessageIds;
+		return Collections.unmodifiableList(this.unmarkedMessageIds);
 	}
 
 	public boolean isComplete() {
-		return complete;
+		return this.complete;
 	}
 
 	public long getTimestamp() {
-		return timestamp;
+		return this.timestamp;
 	}
-	
+
 	public int getLastReleasedMessageSequenceNumber() {
-		return lastReleasedMessageSequence;
+		return this.lastReleasedMessageSequenceNumber;
 	}
+
 }
