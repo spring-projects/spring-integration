@@ -35,6 +35,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
@@ -46,6 +47,7 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
+import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.transport.WebServiceMessageSender;
@@ -71,7 +73,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private volatile WebServiceMessageCallback requestCallback;
 
 	private volatile boolean ignoreEmptyResponses = true;
-
+	
+	protected volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper(true);
 
 	public AbstractWebServiceOutboundGateway(String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
@@ -92,6 +95,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.uriTemplate = null;
 	}
 
+	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {
+		this.headerMapper = headerMapper;
+	}
 
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
@@ -195,22 +201,27 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private WebServiceMessageCallback getRequestCallback(Message<?> requestMessage) {
 		String soapAction = requestMessage.getHeaders().get(WebServiceHeaders.SOAP_ACTION, String.class);
 		return (soapAction != null) ?
-				new TypeCheckingSoapActionCallback(soapAction, this.requestCallback) : this.requestCallback;
+				new TypeCheckingSoapActionCallback(soapAction, requestMessage, this.requestCallback) : this.requestCallback;
 	}
 
 
-	private static class TypeCheckingSoapActionCallback extends SoapActionCallback {
+	private class TypeCheckingSoapActionCallback extends SoapActionCallback {
 
 		private final WebServiceMessageCallback callbackDelegate;
-
-		TypeCheckingSoapActionCallback(String soapAction, WebServiceMessageCallback callbackDelegate) {
+		private final Message<?> requestMessage;
+		
+		TypeCheckingSoapActionCallback(String soapAction, Message<?> requestMessage, WebServiceMessageCallback callbackDelegate) {
 			super(soapAction);
 			this.callbackDelegate = callbackDelegate;
+			this.requestMessage = requestMessage;
 		}
 
 		@Override
 		public void doWithMessage(WebServiceMessage message) throws IOException {
+			
 			if (message instanceof SoapMessage) {
+				SoapHeader target = ((SoapMessage)message).getSoapHeader();
+				headerMapper.fromHeaders(requestMessage.getHeaders(), target);
 				super.doWithMessage(message);
 			}
 			if (this.callbackDelegate != null) {

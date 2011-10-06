@@ -26,7 +26,6 @@ import org.springframework.core.Conventions;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-
 import org.w3c.dom.Element;
 
 /**
@@ -220,4 +219,39 @@ public abstract class IntegrationNamespaceUtils {
 		return innerComponentDefinition;
 	}
 
+	/**
+	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
+	 */
+	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext, Class<?> headerMapperClass, 
+										     boolean outbound, String replyHeaderValue){
+		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
+		if (!StringUtils.hasText(replyHeaderValue)){
+			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
+		}
+		boolean hasHeaderMapper = element.hasAttribute("header-mapper");
+		boolean hasMappedRequestHeaders = element.hasAttribute("mapped-request-headers");
+		boolean hasMappedResponseHeaders = element.hasAttribute(replyHeaderValue);
+		
+		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedResponseHeaders)){
+			parserContext.getReaderContext().error("The 'header-mapper' attribute is mutually exclusive with" +
+					" 'mapped-request-headers' or 'mapped-response-headers'. " +
+					"You can only use one or the others", element);
+		}
+		
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
+		
+		if (hasMappedRequestHeaders || hasMappedResponseHeaders){
+			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
+			headerMapperBuilder.addConstructorArgValue(outbound);
+			
+			if (hasMappedRequestHeaders) {
+				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
+			}
+			if (hasMappedResponseHeaders) {
+				headerMapperBuilder.addPropertyValue("responseHeaderNames", element.getAttribute(replyHeaderValue));
+			}
+			
+			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.util.StringUtils;
 
 import org.w3c.dom.Element;
@@ -36,6 +38,9 @@ public abstract class AbstractXmppOutboundChannelAdapterParser extends AbstractO
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getHandlerClassName());
+		
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, true, null);
+		
 		String connectionName = element.getAttribute("xmpp-connection");
 		if (StringUtils.hasText(connectionName)){
 			builder.addConstructorArgReference(connectionName);

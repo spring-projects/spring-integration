@@ -50,7 +50,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private volatile MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(false);
 
 	private final RabbitTemplate amqpTemplate;
 

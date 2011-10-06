@@ -37,10 +37,10 @@ import org.springframework.ws.soap.SoapMessage;
  */
 abstract public class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
 	
-	protected volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper();
+	protected volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper(false);
 	
 	public String getComponentType() {
-		return "ws:outbound-gateway";
+		return "ws:inbound-gateway";
 	}
 	
 	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {

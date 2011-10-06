@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xmpp.config;
+package org.springframework.integration.xmpp.support;
 
-import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
-import org.springframework.integration.xmpp.XmppHeaders;
+import org.jivesoftware.smack.packet.Message;
+import org.springframework.integration.mapping.HeaderMapper;
 
 /**
- * Parser for 'xmpp:header-enricher' element
- * @author Josh Long
- * @author Oleg Zhurakousky
- * @since 2.0
+ * A convenience interface that extends {@link HeaderMapper}
+ * but parameterized with {@link MessageProperties}.
+ *
+ * @author Mark Fisher
+ * @since 2.1
  */
-public class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
-
-	public XmppHeaderEnricherParser() {
-		this.addElementToHeaderMapping("chat-to", XmppHeaders.TO);
-		this.addElementToHeaderMapping("chat-thread-id", XmppHeaders.THREAD);
-	}
-
+public interface XmppHeaderMapper extends HeaderMapper<Message> {
 }

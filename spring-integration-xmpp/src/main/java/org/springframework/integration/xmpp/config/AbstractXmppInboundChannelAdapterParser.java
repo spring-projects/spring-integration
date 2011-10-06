@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,6 +46,9 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, false, null);
+		
 		String connectionName = element.getAttribute("xmpp-connection");
 		
 		if (StringUtils.hasText(connectionName)){

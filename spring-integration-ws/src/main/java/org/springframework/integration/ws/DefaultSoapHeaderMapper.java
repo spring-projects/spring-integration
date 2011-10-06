@@ -16,17 +16,15 @@
 
 package org.springframework.integration.ws;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.PatternMatchUtils;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.xml.namespace.QNameUtils;
@@ -41,38 +39,22 @@ import org.springframework.xml.namespace.QNameUtils;
  * one should implement the HeaderMapper interface directly.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DefaultSoapHeaderMapper implements HeaderMapper<SoapHeader> {
+public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> {
 
-	private volatile String[] outboundHeaderNames = new String[0];
-
-	private volatile String[] inboundHeaderNames = new String[] { "*" };
-
-
-	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
-		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
+	public DefaultSoapHeaderMapper(boolean outbound) {
+		super(WebServiceHeaders.class, outbound);
 	}
 
-	public void setInboundHeaderNames(String[] inboundHeaderNames) {
-		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
+	@Override
+	protected Map<String, Object> extractStandardHeaders(SoapHeader source) {
+		return Collections.emptyMap();
 	}
 
-	public void fromHeaders(MessageHeaders headers, SoapHeader target) {
-		if (target != null && !CollectionUtils.isEmpty(headers)) {
-			for (String headerName : headers.keySet()) {
-				if (this.shouldMapOutboundHeader(headerName)) {
-					Object value = headers.get(headerName);
-					if (value instanceof String) {
-						QName qname = QNameUtils.parseQNameString(headerName);
-						target.addAttribute(qname, (String) value);
-					}
-				}
-			}
-		}
-	}
-
-	public Map<String, Object> toHeaders(SoapHeader source) {
+	@Override
+	protected Map<String, Object> extractUserDefinedHeaders(SoapHeader source) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		if (source != null) {
 			Iterator<?> attributeIter = source.getAllAttributes();
@@ -80,11 +62,9 @@ public class DefaultSoapHeaderMapper implements HeaderMapper<SoapHeader> {
 				Object name = attributeIter.next();
 				if (name instanceof QName) {
 					String qnameString = QNameUtils.toQualifiedName((QName) name);
-					if (this.shouldMapInboundHeader(qnameString)) {
-						String value = source.getAttributeValue((QName) name);
-						if (value != null) {
-							headers.put(qnameString, value);
-						}
+					String value = source.getAttributeValue((QName) name);
+					if (value != null) {
+						headers.put(qnameString, value);
 					}
 				}
 			}
@@ -94,32 +74,25 @@ public class DefaultSoapHeaderMapper implements HeaderMapper<SoapHeader> {
 				if (element instanceof SoapHeaderElement) {
 					QName qname = ((SoapHeaderElement) element).getName();
 					String qnameString = QNameUtils.toQualifiedName(qname);
-					if (this.shouldMapInboundHeader(qnameString)) {
-						headers.put(qnameString, element);
-					}
+					headers.put(qnameString, element);
 				}
 			}
 		}
 		return headers;
 	}
 
-	private boolean shouldMapInboundHeader(String headerName) {
-		return matchesAny(this.inboundHeaderNames, headerName);
+	@Override
+	protected void populateStandardHeaders(Map<String, Object> headers,
+			SoapHeader target) {
+		// no op
 	}
 
-	private boolean shouldMapOutboundHeader(String headerName) {
-		return matchesAny(this.outboundHeaderNames, headerName);
-	}
-
-	private static boolean matchesAny(String[] patterns, String candidate) {
-		if (!ObjectUtils.isEmpty(patterns) && QNameUtils.validateQName(candidate)) {
-			for (String pattern : patterns) {
-				if (PatternMatchUtils.simpleMatch(pattern, candidate)) {
-					return true;
-				}
-			}
+	@Override
+	protected void populateUserDefinedHeader(String headerName, Object headerValue, SoapHeader target) {
+		if (headerValue instanceof String) {
+			QName qname = QNameUtils.parseQNameString(headerName);
+			target.addAttribute(qname, (String) headerValue);
 		}
-		return false;
 	}
 
 }

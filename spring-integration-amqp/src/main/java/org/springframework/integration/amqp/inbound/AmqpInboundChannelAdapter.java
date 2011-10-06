@@ -42,7 +42,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport {
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(false);
 
 
 	public AmqpInboundChannelAdapter(AbstractMessageListenerContainer listenerContainer) {

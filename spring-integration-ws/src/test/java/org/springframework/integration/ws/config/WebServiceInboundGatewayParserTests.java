@@ -149,7 +149,7 @@ public class WebServiceInboundGatewayParserTests {
 		assertNotNull(history);
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
 		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
 	}
 
 	@Test
@@ -162,7 +162,7 @@ public class WebServiceInboundGatewayParserTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
 		System.out.println(componentHistoryRecord);
 		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
 	}
 
 	@Autowired
@@ -185,6 +185,7 @@ public class WebServiceInboundGatewayParserTests {
 		public void fromHeaders(MessageHeaders headers, SoapHeader target) {
 		}
 
+		@SuppressWarnings("unchecked")
 		public Map<String, ?> toHeaders(SoapHeader source) {
 			return Collections.emptyMap();
 		}

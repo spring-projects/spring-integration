@@ -16,14 +16,15 @@
 
 package org.springframework.integration.ws.config;
 
-import org.w3c.dom.Element;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
-import org.springframework.util.Assert;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ws.DefaultSoapHeaderMapper;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Iwein Fuld
@@ -66,12 +67,16 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 				logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");
 			}
 		}
-		String headerMapperRef = element.getAttribute("header-mapper");
-		if (StringUtils.hasText(headerMapperRef)) {
-			Assert.isTrue(!StringUtils.hasText(marshallerRef),
-					"The 'header-mapper' attribute cannot be used when a 'marshaller' is provided.");
-			builder.addPropertyReference("headerMapper", headerMapperRef);
-		}
+//		String headerMapperRef = element.getAttribute("header-mapper");
+//		if (StringUtils.hasText(headerMapperRef)) {
+//			Assert.isTrue(!StringUtils.hasText(marshallerRef),
+//					"The 'header-mapper' attribute cannot be used when a 'marshaller' is provided.");
+//			builder.addPropertyReference("headerMapper", headerMapperRef);
+//		}
 	}
 
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, false, null);
+	}
 }

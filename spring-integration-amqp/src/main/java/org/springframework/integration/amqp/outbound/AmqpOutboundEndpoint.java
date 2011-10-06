@@ -60,8 +60,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
-
+	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 
 	@Override
 	protected void onInit() {
@@ -83,6 +82,10 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	public AmqpOutboundEndpoint(AmqpTemplate amqpTemplate) {
 		Assert.notNull(amqpTemplate, "AmqpTemplate must not be null");
 		this.amqpTemplate = amqpTemplate;
+	}
+	
+	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
 	}
 
 	public void setExchangeName(String exchangeName) {

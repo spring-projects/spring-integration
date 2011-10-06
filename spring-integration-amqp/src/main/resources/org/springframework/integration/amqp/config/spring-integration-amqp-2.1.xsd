@@ -85,6 +85,24 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapped-request-headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -201,6 +219,35 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="header-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-request-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[							
+    Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
+	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property 
+	which itself is a Map.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -236,6 +283,17 @@
 									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mapped-reply-headers" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[							
+	Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
+	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property 
+	which itself is a Map.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
@@ -380,6 +438,24 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapped-request-headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="message-converter" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -388,18 +464,6 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.amqp.support.converter.MessageConverter"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="header-mapper" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	HeaderMapper to use when receiving AMQP Messages.
-				</xsd:documentation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.amqp.support.AmqpHeaderMapper"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

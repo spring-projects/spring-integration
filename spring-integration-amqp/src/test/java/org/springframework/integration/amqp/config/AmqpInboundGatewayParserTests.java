@@ -16,19 +16,36 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import java.lang.reflect.Field;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.amqp.inbound.AmqpInboundGateway;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ReflectionUtils;
+
+import static junit.framework.Assert.assertEquals;
+
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Mark Fisher
@@ -58,6 +75,55 @@ public class AmqpInboundGatewayParserTests {
 		Object gateway = context.getBean("autoStartFalseGateway");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void verifyUsageWithHeaderMapper() throws Exception{
+		DirectChannel requestChannel = context.getBean("requestChannel", DirectChannel.class);
+		requestChannel.subscribe(new MessageHandler() {		
+			public void handleMessage(org.springframework.integration.Message<?> siMessage)
+					throws MessagingException {
+				org.springframework.integration.Message<?> replyMessage = MessageBuilder.fromMessage(siMessage).setHeader("bar", "bar").build();
+				MessageChannel replyChannel = (MessageChannel) siMessage.getHeaders().getReplyChannel();
+				replyChannel.send(replyMessage);
+			}
+		});
+		
+		final AmqpInboundGateway gateway = context.getBean("withHeaderMapper", AmqpInboundGateway.class);
+		
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpInboundGateway.class, "amqpTemplate");
+		amqpTemplateField.setAccessible(true);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(gateway, "amqpTemplate", RabbitTemplate.class);
+		amqpTemplate = Mockito.spy(amqpTemplate);
+			
+		Mockito.doAnswer(new Answer() {
+		      public Object answer(InvocationOnMock invocation) {
+		          Object[] args = invocation.getArguments();
+		          Message amqpReplyMessage = (Message) args[2];
+		          MessageProperties properties = amqpReplyMessage.getMessageProperties();
+		          assertEquals("bar", properties.getHeaders().get("bar"));
+		          return null;
+		      }})
+		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(Message.class));
+		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
+		
+		AbstractMessageListenerContainer mlc = 
+				TestUtils.getPropertyValue(gateway, "messageListenerContainer", AbstractMessageListenerContainer.class);
+		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentEncoding("test.contentEncoding");
+		amqpProperties.setContentLength(99L);
+		amqpProperties.setReplyTo("oleg");
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("foo", "foo");
+		amqpProperties.setHeader("bar", "bar");
+		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
+		listener.onMessage(amqpMessage);
+		
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(Message.class));
 	}
 
 	private static class TestConverter extends SimpleMessageConverter {}
