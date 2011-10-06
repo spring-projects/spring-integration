@@ -13,20 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.mapping;
 
-package org.springframework.integration.amqp.support;
+import java.util.Map;
 
-import org.springframework.amqp.core.MessageProperties;
-import org.springframework.integration.mapping.HeaderMapper;
-import org.springframework.integration.mapping.RequestReplyHeaderMapper;
+import org.springframework.integration.MessageHeaders;
 
 /**
- * A convenience interface that extends {@link HeaderMapper}
- * but parameterized with {@link MessageProperties}.
- *  
- * @author Mark Fisher
+ * Request/Reply strategy interface for mapping {@link MessageHeaders} to and from other
+ * types of objects. This would typically be used by adapters where the "other type"
+ * has a concept of headers or properties (HTTP, JMS, AMQP, etc).
+ * 
  * @author Oleg Zhurakousky
  * @since 2.1
+ *
  */
-public interface AmqpHeaderMapper extends RequestReplyHeaderMapper<MessageProperties> {
+public interface RequestReplyHeaderMapper<T> {
+	
+	void fromHeadersToRequest(MessageHeaders headers, T target);
+	
+	void fromHeadersToReply(MessageHeaders headers, T target);
+	
+	Map<String, Object> toHeadersFromRequest(T source);
+
+	Map<String, Object> toHeadersFromReply(T source);
+	
 }

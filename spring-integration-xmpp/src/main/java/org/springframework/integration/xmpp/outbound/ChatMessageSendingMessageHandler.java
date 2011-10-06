@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
+import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
+import org.springframework.integration.xmpp.support.XmppHeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,7 +37,10 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
-	
+
+	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
+
+
 	public ChatMessageSendingMessageHandler() {
 		super();
 	}
@@ -44,6 +49,10 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 		super(xmppConnection);
 	}
 
+	public void setHeaderMapper(XmppHeaderMapper headerMapper) {
+		Assert.notNull(headerMapper, "headerMapper must not be null");
+		this.headerMapper = headerMapper;
+	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
@@ -54,12 +63,11 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			xmppMessage = (org.jivesoftware.smack.packet.Message) messageBody;
 		}
 		else if (messageBody instanceof String) {
-			String chatTo = message.getHeaders().get(XmppHeaders.CHAT_TO, String.class);
-			Assert.state(StringUtils.hasText(chatTo), "The '" + XmppHeaders.CHAT_TO + "' header must not be null");
-			xmppMessage = new org.jivesoftware.smack.packet.Message(chatTo);
-			String threadId = message.getHeaders().get(XmppHeaders.CHAT_THREAD_ID, String.class);
-			if (StringUtils.hasText(threadId)) {
-				xmppMessage.setThread(threadId);
+			String to = message.getHeaders().get(XmppHeaders.TO, String.class);
+			Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
+			xmppMessage = new org.jivesoftware.smack.packet.Message(to);
+			if (this.headerMapper != null) {
+				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
 			}
 			xmppMessage.setBody((String) messageBody);
 		}

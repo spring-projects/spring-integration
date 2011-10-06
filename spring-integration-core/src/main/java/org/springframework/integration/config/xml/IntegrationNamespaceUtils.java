@@ -26,7 +26,6 @@ import org.springframework.core.Conventions;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-
 import org.w3c.dom.Element;
 
 /**
@@ -220,4 +219,37 @@ public abstract class IntegrationNamespaceUtils {
 		return innerComponentDefinition;
 	}
 
+	/**
+	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
+	 */
+	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue){
+		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
+		if (!StringUtils.hasText(replyHeaderValue)){
+			replyHeaderValue = defaultMappedReplyHeadersAttributeName;
+		}
+		boolean hasHeaderMapper = element.hasAttribute("header-mapper");
+		boolean hasMappedRequestHeaders = element.hasAttribute("mapped-request-headers");
+		boolean hasMappedReplyHeaders = element.hasAttribute(replyHeaderValue);
+		
+		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedReplyHeaders)){
+			parserContext.getReaderContext().error("The 'header-mapper' attribute is mutually exclusive with" +
+					" 'mapped-request-headers' or 'mapped-reply-headers'. " +
+					"You can only use one or the others", element);
+		}
+		
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
+		
+		if (hasMappedRequestHeaders || hasMappedReplyHeaders){
+			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
+			
+			if (hasMappedRequestHeaders) {
+				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
+			}
+			if (hasMappedReplyHeaders) {
+				headerMapperBuilder.addPropertyValue("replyHeaderNames", element.getAttribute(replyHeaderValue));
+			}
+			
+			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
+		}
+	}
 }

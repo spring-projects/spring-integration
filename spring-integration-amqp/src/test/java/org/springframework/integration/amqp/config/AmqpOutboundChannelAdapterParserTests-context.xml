@@ -16,5 +16,11 @@
 	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
+	
+	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel" 
+								   exchange-name="outboundchanneladapter.test.1"
+								   mapped-request-headers="foo*"/>
+								   
+    <int:channel id="requestChannel"/>
 		
 </beans>

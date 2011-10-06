@@ -491,6 +491,7 @@ project('spring-integration-ws') {
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
         testCompile "stax:stax-api:1.0.1"
+        testCompile "xstream:xstream:1.2.2"
     }
 
     // suppress saaj path warnings

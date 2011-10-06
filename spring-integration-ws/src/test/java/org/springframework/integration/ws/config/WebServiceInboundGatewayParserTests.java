@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2010 the original author or authors.
+ *  Copyright 2002-2011 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,17 +34,17 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
+import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.support.AbstractMarshaller;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
-import org.springframework.ws.soap.SoapHeader;
+import org.springframework.ws.soap.SoapMessage;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -149,7 +150,7 @@ public class WebServiceInboundGatewayParserTests {
 		assertNotNull(history);
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
 		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
 	}
 
 	@Test
@@ -162,14 +163,14 @@ public class WebServiceInboundGatewayParserTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
 		System.out.println(componentHistoryRecord);
 		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+		assertEquals("ws:inbound-gateway", componentHistoryRecord.get("type"));
 	}
 
 	@Autowired
 	private SimpleWebServiceInboundGateway headerMappingGateway;
 
 	@Autowired
-	private HeaderMapper<SoapHeader> testHeaderMapper;
+	private SoapHeaderMapper testHeaderMapper;
 
 	@Test
 	public void testHeaderMapperReference() throws Exception {
@@ -180,12 +181,20 @@ public class WebServiceInboundGatewayParserTests {
 
 
 	@SuppressWarnings("unused")
-	private static class TestHeaderMapper implements HeaderMapper<SoapHeader> {
-
-		public void fromHeaders(MessageHeaders headers, SoapHeader target) {
+	private static class TestHeaderMapper implements SoapHeaderMapper {
+		
+		public void fromHeadersToRequest(MessageHeaders headers,
+				SoapMessage target) {
 		}
 
-		public Map<String, ?> toHeaders(SoapHeader source) {
+		public void fromHeadersToReply(MessageHeaders headers, SoapMessage target) {
+		}
+
+		public Map<String, Object> toHeadersFromRequest(SoapMessage source) {
+			return Collections.emptyMap();
+		}
+
+		public Map<String, Object> toHeadersFromReply(SoapMessage source) {
 			return Collections.emptyMap();
 		}
 	}

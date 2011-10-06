@@ -22,9 +22,13 @@
 		<beans:constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
 	</beans:bean>
 	
-	<channel id="xmppInbound"/>
+	<channel id="xmppInbound">
+		<queue/>
+	</channel>
 
 	<xmpp:inbound-channel-adapter id="xmppInboundAdapter" channel="xmppInbound" 
-			xmpp-connection="testConnection" extract-payload="false" auto-startup="false" error-channel="errorChannel"/>
+			xmpp-connection="testConnection" extract-payload="false" 
+			auto-startup="false" error-channel="errorChannel"
+			mapped-request-headers="foo*, xmpp*"/>
 
 </beans:beans>

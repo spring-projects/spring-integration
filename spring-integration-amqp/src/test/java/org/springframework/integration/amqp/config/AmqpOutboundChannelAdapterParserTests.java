@@ -16,23 +16,36 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
+import java.lang.reflect.Field;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ReflectionUtils;
+
+import static org.junit.Assert.assertNull;
+
+import static junit.framework.Assert.assertEquals;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
 @ContextConfiguration
@@ -50,6 +63,38 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals(EventDrivenConsumer.class, adapter.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
 		assertEquals(AmqpOutboundEndpoint.class, handler.getClass());
+	}
+	
+	@SuppressWarnings("rawtypes")
+	@Test
+	public void withHeaderMapperCustomHeaders() {
+		Object eventDrivernConsumer = context.getBean("withHeaderMapperCustomHeaders");
+		
+		AmqpOutboundEndpoint endpoint = TestUtils.getPropertyValue(eventDrivernConsumer, "handler", AmqpOutboundEndpoint.class);
+		
+		Field amqpTemplateField = ReflectionUtils.findField(AmqpOutboundEndpoint.class, "amqpTemplate");
+		amqpTemplateField.setAccessible(true);
+		RabbitTemplate amqpTemplate = TestUtils.getPropertyValue(endpoint, "amqpTemplate", RabbitTemplate.class);
+		amqpTemplate = Mockito.spy(amqpTemplate);
+
+		Mockito.doAnswer(new Answer() {
+		      public Object answer(InvocationOnMock invocation) {
+		          Object[] args = invocation.getArguments();
+		          org.springframework.amqp.core.Message amqpReplyMessage = (org.springframework.amqp.core.Message) args[2];
+		          MessageProperties properties = amqpReplyMessage.getMessageProperties();
+		          assertEquals("foo", properties.getHeaders().get("foo"));
+		          assertEquals("foobar", properties.getHeaders().get("foobar"));
+		          assertNull(properties.getHeaders().get("bar"));
+		          return null;
+		      }})
+		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
+		ReflectionUtils.setField(amqpTemplateField, endpoint, amqpTemplate);
+		
+		
+		MessageChannel requestChannel = context.getBean("requestChannel", MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader("foo", "foo").setHeader("bar", "bar").setHeader("foobar", "foobar").build();
+		requestChannel.send(message);
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(org.springframework.amqp.core.Message.class));
 	}
 
 }

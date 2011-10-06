@@ -16,20 +16,17 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
+import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,166 +44,36 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
+public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
+	
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
-	private static final String[] TRANSIENT_HEADER_NAMES = new String[] {
-		MessageHeaders.ID,
-		MessageHeaders.ERROR_CHANNEL,
-		MessageHeaders.REPLY_CHANNEL,
-		MessageHeaders.TIMESTAMP
-	};
-
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile String inboundPrefix = "";
-
-	private volatile String outboundPrefix = "";
-
-
-	/**
-	 * Specify a prefix to be appended to the integration message header name for
-	 * any user-defined AMQP header that is being mapped into the MessageHeaders.
-	 * The Default is an empty string (no prefix).
-	 * <p/>
-	 * This does not affect the standard AMQP properties, such as contentType, etc.
-	 * The header names used for mapping such properties are all defined in the
-	 * {@link AmqpHeaders} class as constants.   
-	 */
-	public void setInboundPrefix(String inboundPrefix) {
-		this.inboundPrefix = (inboundPrefix != null) ? inboundPrefix : "";
+	static {
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.APP_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CLUSTER_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_ENCODING);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_LENGTH);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_TYPE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CORRELATION_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_MODE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_TAG);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.EXPIRATION);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_COUNT);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_EXCHANGE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_ROUTING_KEY);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.REDELIVERED);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.REPLY_TO);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
 	}
 
 	/**
-	 * Specify a prefix to be appended to the AMQP header name for any
-	 * integration message header that is being mapped into the AMQP Message.
-	 * The Default is an empty string (no prefix).
-	 * <p/>
-	 * This does not affect the standard AMQP properties, such as contentType, etc.
-	 * The header names used for mapping such properties are all defined in
-	 * the {@link AmqpHeaders} class as constants.   
+	 * Extract "standard" headers from an AMQP MessageProperties instance.
 	 */
-	public void setOutboundPrefix(String outboundPrefix) {
-		this.outboundPrefix = (outboundPrefix != null) ? outboundPrefix : "";
-	}
-
-	/**
-	 * Maps headers from a Spring Integration MessageHeaders instance to the MessageProperties
-	 * of an AMQP Message.
-	 */
-	public void fromHeaders(MessageHeaders headers, MessageProperties amqpMessageProperties) {
-		try {
-			String appId = getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class);
-			if (StringUtils.hasText(appId)) {
-				amqpMessageProperties.setAppId(appId);
-			}				
-			String clusterId = getHeaderIfAvailable(headers, AmqpHeaders.CLUSTER_ID, String.class);
-			if (StringUtils.hasText(clusterId)) {
-				amqpMessageProperties.setClusterId(clusterId);
-			}
-			String contentEncoding = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_ENCODING, String.class);
-			if (StringUtils.hasText(contentEncoding)) {
-				amqpMessageProperties.setContentEncoding(contentEncoding);
-			}
-			Long contentLength = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_LENGTH, Long.class);
-			if (contentLength != null) {
-				amqpMessageProperties.setContentLength(contentLength);
-			}			
-			String contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, String.class);
-			if (StringUtils.hasText(contentType)) {
-				amqpMessageProperties.setContentType(contentType);
-			}
-			Object correlationId = headers.get(AmqpHeaders.CORRELATION_ID);
-			if (correlationId instanceof byte[]) {
-				amqpMessageProperties.setCorrelationId((byte[]) correlationId);
-			}
-			MessageDeliveryMode deliveryMode = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class);
-			if (deliveryMode != null) {
-				amqpMessageProperties.setDeliveryMode(deliveryMode);
-			}
-			Long deliveryTag = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_TAG, Long.class);
-			if (deliveryTag != null) {
-				amqpMessageProperties.setDeliveryTag(deliveryTag);
-			}
-			String expiration = getHeaderIfAvailable(headers, AmqpHeaders.EXPIRATION, String.class);
-			if (StringUtils.hasText(expiration)) {
-				amqpMessageProperties.setExpiration(expiration);
-			}
-			Integer messageCount = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_COUNT, Integer.class);
-			if (messageCount != null) {
-				amqpMessageProperties.setMessageCount(messageCount);
-			}
-			String messageId = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_ID, String.class);
-			if (StringUtils.hasText(messageId)) {
-				amqpMessageProperties.setMessageId(messageId);
-			}
-			Integer priority = headers.getPriority();
-			if (priority != null) {
-				amqpMessageProperties.setPriority(priority);
-			}
-			String receivedExchange = getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_EXCHANGE, String.class);
-			if (StringUtils.hasText(receivedExchange)) {
-				amqpMessageProperties.setReceivedExchange(receivedExchange);
-			}
-			String receivedRoutingKey = getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_ROUTING_KEY, String.class);
-			if (StringUtils.hasText(receivedRoutingKey)) {
-				amqpMessageProperties.setReceivedRoutingKey(receivedRoutingKey);
-			}
-			Boolean redelivered = getHeaderIfAvailable(headers, AmqpHeaders.REDELIVERED, Boolean.class);
-			if (redelivered != null) {
-				amqpMessageProperties.setRedelivered(redelivered);
-			}
-			String replyTo = getHeaderIfAvailable(headers, AmqpHeaders.REPLY_TO, String.class);
-			if (replyTo != null) {
-				amqpMessageProperties.setReplyTo(replyTo);
-			}
-			Date timestamp = getHeaderIfAvailable(headers, AmqpHeaders.TIMESTAMP, Date.class);
-			if (timestamp != null) {
-				amqpMessageProperties.setTimestamp(timestamp);
-			}
-			String type = getHeaderIfAvailable(headers, AmqpHeaders.TYPE, String.class);
-			if (type != null) {
-				amqpMessageProperties.setType(type);
-			}
-			String userId = getHeaderIfAvailable(headers, AmqpHeaders.USER_ID, String.class);
-			if (StringUtils.hasText(userId)) {
-				amqpMessageProperties.setUserId(userId);
-			}
-			// now map to the user-defined headers, if any, within the AMQP MessageProperties
-			Set<String> headerNames = headers.keySet();
-			for (String headerName : headerNames) {
-				if (this.shouldMapOutboundHeader(headerName)) {
-					Object value = headers.get(headerName);
-					if (value != null) {
-						try {
-							String key = this.fromHeaderName(headerName);
-							// do not overwrite an existing header with the same key
-							// TODO: do we need to expose a boolean 'overwrite' flag?
-							if (!amqpMessageProperties.getHeaders().containsKey(key)) {
-								amqpMessageProperties.setHeader(key, value);
-							}
-						}
-						catch (Exception e) {
-							if (logger.isWarnEnabled()) {
-								logger.warn("failed to map Message header '" + headerName + "' to AMQP header", e);
-							}
-						}
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping from MessageHeaders to AMQP properties", e);
-			}
-		}
-	}
-
-	/**
-	 * Maps headers from an AMQP MessageProperties instance to the MessageHeaders of a
-	 * Spring Integration Message.
-	 */
-	public Map<String, Object> toHeaders(MessageProperties amqpMessageProperties) {
+	@Override
+	protected Map<String, Object> extractStandardHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
 			String appId = amqpMessageProperties.getAppId();
@@ -285,23 +152,6 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 			if (StringUtils.hasText(userId)) {
 				headers.put(AmqpHeaders.USER_ID, userId);
 			}
-			Map<String, Object> amqpHeaders = amqpMessageProperties.getHeaders();
-			if (!CollectionUtils.isEmpty(amqpHeaders)) {
-				for (Map.Entry<String, Object> entry : amqpHeaders.entrySet()) {
-					try {
-						String headerName = this.toHeaderName(entry.getKey());
-						if (!ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName)) {
-							headers.put(headerName, entry.getValue());
-						}
-					}
-					catch (Exception e) {
-						if (logger.isWarnEnabled()) {
-							logger.warn("error occurred while mapping AMQP header '"
-									+ entry.getKey() + "' to Message header", e);
-						}
-					}
-				}
-			}
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
@@ -311,44 +161,123 @@ public class DefaultAmqpHeaderMapper implements AmqpHeaderMapper {
 		return headers;
 	}
 
-	private boolean shouldMapOutboundHeader(String headerName) {
-		return StringUtils.hasText(headerName)
-				&& !headerName.startsWith(AmqpHeaders.PREFIX)
-				&& !ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName);
-	}
-
-	private <T> T getHeaderIfAvailable(MessageHeaders headers, String name, Class<T> type) {
-		try {
-			return headers.get(name, type);
-		}
-		catch (IllegalArgumentException e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("skipping header '" + name + "' since it is not of expected type [" + type + "]", e);
-			}
-			return null;
-		}
+	/**
+	 * Extract user-defined headers from an AMQP MessageProperties instance.
+	 */
+	@Override
+	protected Map<String, Object> extractUserDefinedHeaders(MessageProperties amqpMessageProperties) {
+		return amqpMessageProperties.getHeaders();
 	}
 
 	/**
-	 * Adds the outbound prefix if necessary.
+	 * Maps headers from a Spring Integration MessageHeaders instance to the MessageProperties
+	 * of an AMQP Message.
 	 */
-	private String fromHeaderName(String headerName) {
-		String propertyName = headerName;
-		if (StringUtils.hasText(this.outboundPrefix) && !propertyName.startsWith(this.outboundPrefix)) {
-			propertyName = this.outboundPrefix + headerName;
+	@Override
+	protected void populateStandardHeaders(Map<String, Object> headers, MessageProperties amqpMessageProperties) {
+		String appId = getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class);
+		if (StringUtils.hasText(appId)) {
+			amqpMessageProperties.setAppId(appId);
 		}
-		return propertyName;
+		String clusterId = getHeaderIfAvailable(headers, AmqpHeaders.CLUSTER_ID, String.class);
+		if (StringUtils.hasText(clusterId)) {
+			amqpMessageProperties.setClusterId(clusterId);
+		}
+		String contentEncoding = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_ENCODING, String.class);
+		if (StringUtils.hasText(contentEncoding)) {
+			amqpMessageProperties.setContentEncoding(contentEncoding);
+		}
+		Long contentLength = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_LENGTH, Long.class);
+		if (contentLength != null) {
+			amqpMessageProperties.setContentLength(contentLength);
+		}
+		String contentType = getHeaderIfAvailable(headers, AmqpHeaders.CONTENT_TYPE, String.class);
+		if (StringUtils.hasText(contentType)) {
+			amqpMessageProperties.setContentType(contentType);
+		}
+		Object correlationId = headers.get(AmqpHeaders.CORRELATION_ID);
+		if (correlationId instanceof byte[]) {
+			amqpMessageProperties.setCorrelationId((byte[]) correlationId);
+		}
+		MessageDeliveryMode deliveryMode = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_MODE, MessageDeliveryMode.class);
+		if (deliveryMode != null) {
+			amqpMessageProperties.setDeliveryMode(deliveryMode);
+		}
+		Long deliveryTag = getHeaderIfAvailable(headers, AmqpHeaders.DELIVERY_TAG, Long.class);
+		if (deliveryTag != null) {
+			amqpMessageProperties.setDeliveryTag(deliveryTag);
+		}
+		String expiration = getHeaderIfAvailable(headers, AmqpHeaders.EXPIRATION, String.class);
+		if (StringUtils.hasText(expiration)) {
+			amqpMessageProperties.setExpiration(expiration);
+		}
+		Integer messageCount = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_COUNT, Integer.class);
+		if (messageCount != null) {
+			amqpMessageProperties.setMessageCount(messageCount);
+		}
+		String messageId = getHeaderIfAvailable(headers, AmqpHeaders.MESSAGE_ID, String.class);
+		if (StringUtils.hasText(messageId)) {
+			amqpMessageProperties.setMessageId(messageId);
+		}
+		Integer priority = getHeaderIfAvailable(headers, MessageHeaders.PRIORITY, Integer.class);
+		if (priority != null) {
+			amqpMessageProperties.setPriority(priority);
+		}
+		String receivedExchange = getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_EXCHANGE, String.class);
+		if (StringUtils.hasText(receivedExchange)) {
+			amqpMessageProperties.setReceivedExchange(receivedExchange);
+		}
+		String receivedRoutingKey = getHeaderIfAvailable(headers, AmqpHeaders.RECEIVED_ROUTING_KEY, String.class);
+		if (StringUtils.hasText(receivedRoutingKey)) {
+			amqpMessageProperties.setReceivedRoutingKey(receivedRoutingKey);
+		}
+		Boolean redelivered = getHeaderIfAvailable(headers, AmqpHeaders.REDELIVERED, Boolean.class);
+		if (redelivered != null) {
+			amqpMessageProperties.setRedelivered(redelivered);
+		}
+		String replyTo = getHeaderIfAvailable(headers, AmqpHeaders.REPLY_TO, String.class);
+		if (replyTo != null) {
+			amqpMessageProperties.setReplyTo(replyTo);
+		}
+		Date timestamp = getHeaderIfAvailable(headers, AmqpHeaders.TIMESTAMP, Date.class);
+		if (timestamp != null) {
+			amqpMessageProperties.setTimestamp(timestamp);
+		}
+		String type = getHeaderIfAvailable(headers, AmqpHeaders.TYPE, String.class);
+		if (type != null) {
+			amqpMessageProperties.setType(type);
+		}
+		String userId = getHeaderIfAvailable(headers, AmqpHeaders.USER_ID, String.class);
+		if (StringUtils.hasText(userId)) {
+			amqpMessageProperties.setUserId(userId);
+		}
 	}
 
-	/**
-	 * Adds the inbound prefix if necessary.
-	 */
-	private String toHeaderName(String propertyName) {
-		String headerName = propertyName;
-		if (StringUtils.hasText(this.inboundPrefix) && !headerName.startsWith(this.inboundPrefix)) {
-			headerName = this.inboundPrefix + propertyName;
+	@Override
+	protected void populateUserDefinedHeader(String headerName, Object headerValue, MessageProperties amqpMessageProperties) {
+		// do not overwrite an existing header with the same key
+		// TODO: do we need to expose a boolean 'overwrite' flag?
+		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {
+			amqpMessageProperties.setHeader(headerName, headerValue);
 		}
-		return headerName;
+	}
+
+
+	@Override
+	protected List<String> getStandardRequestHeaderNames() {
+		return STANDARD_HEADER_NAMES;
+	}
+
+
+	@Override
+	protected List<String> getStandardReplyHeaderNames() {
+		return STANDARD_HEADER_NAMES;
+	}
+
+
+	@Override
+	protected String getStandardHeaderPrefix() {
+		return AmqpHeaders.PREFIX;
 	}
 
 }

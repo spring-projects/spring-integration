@@ -204,6 +204,38 @@
 			</xsd:attribute>
 			<xsd:attribute name="order" type="xsd:string"/>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="header-mapper">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
+						that this gateway will use to map between Spring Integration
+						MessageHeaders and the SoapHeader. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-request-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Comma-separated list of names of SOAP Headers to be mapped from the SOAP request into the MessageHeaders.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[							
+Comma-separated list of names of MessageHeaders to be mapped into the SOAP Headers of the SOAP reply.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -295,14 +327,31 @@
 					<xsd:documentation>
 						Reference to a HeaderMapper&lt;SoapHeader&gt; implementation
 						that this gateway will use to map between Spring Integration
-						MessageHeaders and the SoapHeader. This strategy can only be
-						applied when a 'marshaller' is not being configured.
+						MessageHeaders and the SoapHeader. 
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
 						</tool:annotation>
 					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-request-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Comma-separated list of names of SOAP Headers to be mapped from the SOAP request into the MessageHeaders.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+							]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[							
+Comma-separated list of names of MessageHeaders to be mapped into the SOAP Headers of the SOAP reply.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
