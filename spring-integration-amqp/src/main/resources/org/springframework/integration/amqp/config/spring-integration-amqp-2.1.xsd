@@ -242,6 +242,60 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="channel">
+		<xsd:annotation>
+			<xsd:documentation>
+	Creates a point-to-point channel that is backed by an AMQP Queue.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="message-driven" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Indicate whether this channel should be message-driven (subscribable) or not (pollable).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="publish-subscribe-channel" type="channelType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Creates a publish-subscribe-channel that is backed by an AMQP FanoutExchange.
+	Always message-driven (subscribable).
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="channelType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for 'channel' and 'publish-subscribe-channel'.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+	Unique ID for this Message Channel.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Flag to indicate whether this Message Channel should start automatically.
+	This only applies to a message-driven channel. Default is true.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
+	</xsd:complexType>
+
 	<xsd:complexType name="inboundType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -255,58 +309,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="acknowledge-mode">
-			<xsd:annotation>
-				<xsd:documentation>
-	Acknowledge Mode for the MessageListenerContainer.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="AUTO"/>
-					<xsd:enumeration value="MANUAL"/>
-					<xsd:enumeration value="NONE"/>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
-		<xsd:attribute name="advice-chain" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="java.util.Collection" />
-					</tool:annotation>
-					<xsd:documentation>
-	Array of AOP Advice instances to be applied to the MessageListener.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="channel-transacted" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Flag to indicate that AMQP channels created by this component will be transactional.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="concurrent-consumers" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Specify the number of concurrent consumers to create. Default is 1.
-	Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in
-	from a queue. However, note that any ordering guarantees are lost once multiple consumers are registered. In
-	general, stick with 1 consumer for low-volume queues.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="connection-factory" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
+		<xsd:attributeGroup ref="containerAttributes"/>
 		<xsd:attribute name="error-channel" use="optional" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -319,25 +322,15 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="error-handler" use="optional" type="xsd:string">
+		<xsd:attribute name="message-converter" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	ErrorHandler to be configured on the underlying MessageListener container.
+	MessageConverter to use when receiving AMQP Messages.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.util.ErrorHandler"/>
+						<tool:expected-type type="org.springframework.amqp.support.converter.MessageConverter"/>
 					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="expose-listener-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-	Set whether to expose the listener Rabbit Channel to a registered ChannelAwareMessageListener as well as
-	to RabbitTemplate calls.
-					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -369,14 +362,47 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="message-converter" type="xsd:string">
+		<xsd:attribute name="queue-names" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	MessageConverter to use when receiving AMQP Messages.
+	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:attributeGroup name="containerAttributes">
+		<xsd:attributeGroup ref="containerOnlyAttributes"/>
+		<xsd:attributeGroup ref="containerAndTemplateSharedAttributes"/>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="templateAttributes">
+		<xsd:attributeGroup ref="templateOnlyAttributes"/>
+		<xsd:attributeGroup ref="containerAndTemplateSharedAttributes"/>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="containerAndTemplateAttributes">
+		<xsd:attributeGroup ref="containerOnlyAttributes"/>
+		<xsd:attributeGroup ref="templateOnlyAttributes"/>
+		<xsd:attributeGroup ref="containerAndTemplateSharedAttributes"/>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="containerAndTemplateSharedAttributes">
+		<xsd:attribute name="channel-transacted" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Flag to indicate that channels created by this component will be transactional.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="connection-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to the Rabbit ConnectionFactory to be used by this component.	
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.amqp.support.converter.MessageConverter"/>
+						<tool:expected-type type="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -390,6 +416,105 @@
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.amqp.rabbit.support.MessagePropertiesConverter"/>
 					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="templateOnlyAttributes">
+		<xsd:annotation>
+			<xsd:documentation>
+	Attributes for a RabbitTemplate. This does not include the exchange, queue, or routingKey properties
+	since those may or may not be exposed for configuration depending on what type of component uses this
+	attribute group. This group also does not include any of the properties that are shared with the
+	SimpleMessageListenerContainer, such as channelTransacted, connectionFactory, and messagePropertiesConverter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="encoding" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	The encoding to use when converting between byte arrays and Strings in message properties.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to a MessageConverter to be used by this RabbitTemplate.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.amqp.support.converter.MessageConverter"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
+
+	<xsd:attributeGroup name="containerOnlyAttributes">
+		<xsd:annotation>
+			<xsd:documentation>
+	Attributes for a SimpleMesssageListenerContainer's properties other than queues, queueNames, messageListener, and 
+	autoStartup which may or may not be exposed for configuration depending on what type of component uses this attribute group.
+	This group also does not include any of the properties that are shared with RabbitTemplate, such as channelTransacted,
+	connectionFactory, and messsagePropertiesConverter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="acknowledge-mode">
+			<xsd:annotation>
+				<xsd:documentation>
+	Acknowledge Mode for the MessageListenerContainer.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="AUTO"/>
+					<xsd:enumeration value="MANUAL"/>
+					<xsd:enumeration value="NONE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="advice-chain" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.Collection" />
+					</tool:annotation>
+					<xsd:documentation>
+	Array of AOP Advice instances to be applied to the MessageListener.
+					</xsd:documentation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="concurrent-consumers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the number of concurrent consumers to create. Default is 1.
+	Raising the number of concurrent consumers is recommended in order to scale the consumption of messages coming in
+	from a queue. However, note that any ordering guarantees are lost once multiple consumers are registered. In
+	general, stick with 1 consumer for low-volume queues.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="error-handler" use="optional" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	ErrorHandler to be configured on the underlying MessageListener container.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.util.ErrorHandler"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expose-listener-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+	Set whether to expose the listener Rabbit Channel to a registered ChannelAwareMessageListener as well as
+	to RabbitTemplate calls.
+					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -410,13 +535,6 @@
 	to improve throughput. It should be greater than or equal to the tx-size value.
 					</xsd:documentation>
 				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="queue-names" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation>
-	Names of the AMQP Queues from which Messages should be consumed (comma-separated list).
-				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="receive-timeout" type="xsd:string">
@@ -446,16 +564,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>	
-		<xsd:attribute name="tx-size" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<xsd:documentation>
-	How many messages to process in a single transaction (if the channel is transactional). For best results it should be
-	less than or equal to the prefetch count.
-					</xsd:documentation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -493,6 +601,16 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-	</xsd:complexType>
+		<xsd:attribute name="tx-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<xsd:documentation>
+	How many messages to process in a single transaction (if the channel is transactional). For best results it should be
+	less than or equal to the prefetch count.
+					</xsd:documentation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 </xsd:schema>
