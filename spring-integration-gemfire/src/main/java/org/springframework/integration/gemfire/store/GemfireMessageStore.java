@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.store.AbstractKeyValueMessageStore;
 import org.springframework.integration.store.MessageGroupStore;
@@ -30,7 +31,6 @@ import org.springframework.util.PatternMatchUtils;
 
 import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
-import com.gemstone.gemfire.internal.cache.xmlcache.RegionAttributesCreation;
 
 /**
  * Gemfire implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
@@ -39,21 +39,41 @@ import com.gemstone.gemfire.internal.cache.xmlcache.RegionAttributesCreation;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean{
+public class GemfireMessageStore extends AbstractKeyValueMessageStore implements InitializingBean {
 
 	private volatile Region<Object, Object> messageStoreRegion;
-	
+
 	private final Cache cache;
-	
+
 	private volatile boolean ignoreJta = true;
+
 
 	public GemfireMessageStore(Cache cache) {
 		Assert.notNull(cache, "'cache' must not be null");
 		this.cache = cache;
 	}
-	
+
+
 	public void setIgnoreJta(boolean ignoreJta) {
 		this.ignoreJta = ignoreJta;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void afterPropertiesSet() {
+		try {
+			RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
+			attributesFactoryBean.setIgnoreJTA(this.ignoreJta);
+			attributesFactoryBean.afterPropertiesSet();
+			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
+			messageRegionFactoryBean.setBeanName("messageStoreRegion");
+			messageRegionFactoryBean.setAttributes(attributesFactoryBean.getObject());
+			messageRegionFactoryBean.setCache(cache);
+			messageRegionFactoryBean.afterPropertiesSet();
+			this.messageStoreRegion = messageRegionFactoryBean.getObject();
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Failed to initialize Gemfire Region", e);
+		}
 	}
 
 	@Override
@@ -89,20 +109,4 @@ public class GemfireMessageStore extends AbstractKeyValueMessageStore implements
 		return keyList;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void afterPropertiesSet() throws Exception {
-		try {
-			RegionAttributesCreation attributes = new RegionAttributesCreation();
-			attributes.setIgnoreJTA(ignoreJta);
-			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
-			messageRegionFactoryBean.setBeanName("messageStoreRegion");
-			messageRegionFactoryBean.setAttributes(attributes);
-			messageRegionFactoryBean.setCache(cache);
-			messageRegionFactoryBean.afterPropertiesSet();
-			
-			this.messageStoreRegion = messageRegionFactoryBean.getObject();
-		} catch (Exception e) {
-			throw new IllegalArgumentException("Failed to initialize Gemfire Region", e);
-		}
-	}
 }
