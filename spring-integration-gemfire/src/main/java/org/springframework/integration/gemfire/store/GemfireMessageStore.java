@@ -16,44 +16,73 @@
 
 package org.springframework.integration.gemfire.store;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.store.MessageStore;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.data.gemfire.RegionFactoryBean;
+import org.springframework.integration.store.AbstractKeyValueMessageStore;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 
+import com.gemstone.gemfire.cache.Cache;
 import com.gemstone.gemfire.cache.Region;
 
 /**
+ * Gemfire implementation of the key/value style {@link MessageStore} and {@link MessageGroupStore}
+ * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class GemfireMessageStore implements MessageStore {
+public class GemfireMessageStore extends AbstractKeyValueMessageStore{
 
-	private final Region<UUID, Message<?>> region;
-
-	public GemfireMessageStore(Region<UUID, Message<?>> region) {
-		Assert.notNull(region, "region must not be null");
-		this.region = region;
+	private final Region<Object, Object> messageStoreRegion;
+	
+	public GemfireMessageStore(Cache cache) {
+		Assert.notNull(cache, "'cache' must not be null");
+		try {
+			RegionFactoryBean<Object, Object> messageRegionFactoryBean = new RegionFactoryBean<Object, Object>();
+			messageRegionFactoryBean.setBeanName("messageStoreRegion");
+			messageRegionFactoryBean.setCache(cache);
+			messageRegionFactoryBean.afterPropertiesSet();
+			this.messageStoreRegion = messageRegionFactoryBean.getObject();
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to initialize Gemfire Region");
+		}
 	}
 
-	public Message<?> getMessage(UUID id) {
-		return this.region.get(id);
+	@Override
+	protected Object doRetrieve(Object id) {
+		Assert.notNull(id, "'id' must not be null");
+		return this.messageStoreRegion.get(id);
 	}
 
-	public <T> Message<T> addMessage(Message<T> message) {
-		this.region.put(message.getHeaders().getId(), message);
-		return message;
+	@Override
+	protected void doStore(Object id, Object objectToStore) {
+		Assert.notNull(id, "'id' must not be null");
+		Assert.notNull(objectToStore, "'objectToStore' must not be null");
+		this.messageStoreRegion.put(id, objectToStore);
 	}
 
-	public Message<?> removeMessage(UUID id) {
-		return this.region.remove(id);
+	@Override
+	protected Object doRemove(Object id) {
+		Assert.notNull(id, "'id' must not be null");
+		return this.messageStoreRegion.remove(id);
 	}
 
-	@ManagedAttribute
-	public long getMessageCount() {
-		return this.region.size();
+	@Override
+	protected Collection<?> doListKeys(String keyPattern) {
+		Assert.hasText(keyPattern, "'keyPattern' must not be empty");
+		Collection<Object> keys = this.messageStoreRegion.keySet();
+		List<Object> keyList = new ArrayList<Object>();
+		for (Object key : keys) {
+			String keyValue = key.toString();
+			if (PatternMatchUtils.simpleMatch(keyPattern, keyValue)){
+				keyList.add(keyValue);
+			}
+		}
+		return keyList;
 	}
-
 }

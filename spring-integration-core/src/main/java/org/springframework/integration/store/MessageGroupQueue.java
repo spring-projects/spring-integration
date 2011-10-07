@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.springframework.integration.store;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.Message;
@@ -31,6 +33,7 @@ import org.springframework.integration.Message;
  * must be provided, so it needs to be unique but identifiable with a single logical instance of the queue.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  * 
  */
@@ -52,6 +55,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	// This one only needs to be local
 	private final Object readLock = new Object();
+	
+	private volatile Comparator<Message<?>> comparator;
 
 	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId) {
 		this(messageGroupStore, groupId, DEFAULT_CAPACITY);
@@ -61,6 +66,10 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		this.messageGroupStore = messageGroupStore;
 		this.groupId = groupId;
 		this.capacity = capacity;
+	}
+	
+	public void setComparator(Comparator<Message<?>> comparator) {
+		this.comparator = comparator;
 	}
 	
 	/**
@@ -84,6 +93,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 				return false;
 			}
 			messageGroupStore.addMessageToGroup(groupId, e);
+//			if (this.priorityQueue != null){
+//				this.priorityQueue.offer(e);
+//			}
 		}
 		synchronized (readLock) {
 			readLock.notifyAll();
@@ -196,7 +208,15 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	private Collection<Message<?>> getUnmarked() {
-		return messageGroupStore.getMessageGroup(groupId).getUnmarked();
+		Collection<Message<?>> messages = messageGroupStore.getMessageGroup(groupId).getUnmarked();
+		if (this.comparator != null && messages.size() > 0){
+			PriorityBlockingQueue<Message<?>> prioritizedMessages = new PriorityBlockingQueue<Message<?>>(messages.size(), this.comparator);
+			prioritizedMessages.addAll(messages);
+			return prioritizedMessages;
+		}
+		else {
+			return messages;
+		}
 	}
 
 }

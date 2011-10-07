@@ -185,6 +185,28 @@
 				Defines a queue with priority-ordering for message reception.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="message-store" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a MessageGroupStore that can be used to buffer the messages. If a message store is
+					specified then it will store messages for this channel with a correlation key equal to the
+					channel name. If you need
+					more control over the correlation key (e.g. two channels in the same
+					application share a name), then you need to
+					look to the queue implementation itself and provide an
+					explicit instance via the "ref" attribute, or else maybe the
+					message store has a way to specify a region or similar additional
+					tag for messages. This attribute is
+					mutually
+					exclusive with the "ref" attribute (only one can be specified).
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.store.MessageGroupStore" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="capacity" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -2692,6 +2714,33 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="expire-groups-upon-completion" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Boolean flag specifying if MessageGroup should be removed once completed. Useful for 
+							handling late arrival use cases where messages arriving with the correlationKey that 
+							is the same as the completed MessageGroup will be discarded. Default is 'false'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="release-strategy-method" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-method type-ref="@release-strategy" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A method defined on the bean referenced by release-strategy, that implements the completion
+							decision algorithm.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>		
+				<xsd:attribute name="release-strategy-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -2713,22 +2762,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="release-strategy-method" type="xsd:string">
+				<xsd:attribute name="keep-released-messages" type="xsd:string">
 					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation>
-								<tool:expected-method type-ref="@release-strategy" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							A method defined on the bean referenced by release-strategy, that implements the completion
-							decision algorithm.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="release-strategy-expression" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
+						<xsd:documentation>Will store messages after their release. Mainly used for monitoring purposes. Default is 'true'</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">
