@@ -50,7 +50,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
-		//this.verifySchemaVersion(element, parserContext);
+		this.verifySchemaVersion(element, parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
