@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -25,23 +30,23 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import static org.hamcrest.Matchers.is;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Marius Bogoevici
  * @author Alex Peters
  * @author Dave Syer
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class ResequencerTests {
 
-	private CorrelatingMessageHandler resequencer;
+	private ResequencingMessageHandler resequencer;
 
 	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
@@ -49,7 +54,7 @@ public class ResequencerTests {
 
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new CorrelatingMessageHandler(processor, store, null, null);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, null);
 	}
 
 	@Test
@@ -71,6 +76,59 @@ public class ResequencerTests {
 		assertNotNull(reply3);
 		assertThat( reply3.getHeaders().getSequenceNumber(), is(3));
 	}
+	
+	@Test
+	public void testBasicResequencingA() throws InterruptedException {
+		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		releaseStrategy.setReleasePartialSequences(true);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
+		
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
+		
+		this.resequencer.handleMessage(message3);
+		assertNull(replyChannel.receive(0));
+		this.resequencer.handleMessage(message1);
+		assertNotNull(replyChannel.receive(0));
+		assertNull(replyChannel.receive(0));
+	}
+	
+	@Test
+	public void testBasicUnboundedResequencing() throws InterruptedException {
+		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		releaseStrategy.setReleasePartialSequences(true);
+		this.resequencer = new ResequencingMessageHandler(processor, store, null, releaseStrategy);
+		QueueChannel replyChannel = new QueueChannel();
+		this.resequencer.setCorrelationStrategy(new CorrelationStrategy() {	
+			public Object getCorrelationKey(Message<?> message) {
+				return "A";
+			}
+		});
+		//Message<?> message0 = MessageBuilder.withPayload("0").setSequenceNumber(0).build();
+		Message<?> message1 = MessageBuilder.withPayload("1").setSequenceNumber(1).setReplyChannel(replyChannel).build();
+		Message<?> message2 = MessageBuilder.withPayload("2").setSequenceNumber(2).setReplyChannel(replyChannel).build();
+		Message<?> message3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setReplyChannel(replyChannel).build();
+		Message<?> message4 = MessageBuilder.withPayload("4").setSequenceNumber(4).setReplyChannel(replyChannel).build();
+		Message<?> message5 = MessageBuilder.withPayload("5").setSequenceNumber(5).setReplyChannel(replyChannel).build();
+		
+		this.resequencer.handleMessage(message3);
+		assertNull(replyChannel.receive(0));
+		this.resequencer.handleMessage(message1);
+		assertNotNull(replyChannel.receive(0));
+		
+		this.resequencer.handleMessage(message2);
+
+		assertNotNull(replyChannel.receive(0));
+		assertNotNull(replyChannel.receive(0));
+		assertNull(replyChannel.receive(0));
+		
+		this.resequencer.handleMessage(message5);
+		assertNull(replyChannel.receive(0));
+		this.resequencer.handleMessage(message4);
+		assertNotNull(replyChannel.receive(0));
+	}
+
 
 	@Test
 	public void testBasicResequencingWithCustomComparator() throws InterruptedException {

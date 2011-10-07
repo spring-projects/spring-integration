@@ -2692,6 +2692,33 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="expire-groups-upon-completion" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							Boolean flag specifying if MessageGroup should be removed once completed. Useful for 
+							handling late arrival use cases where messages arriving with the correlationKey that 
+							is the same as the completed MessageGroup will be discarded. Default is 'false'
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="release-strategy-method" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation>
+								<tool:expected-method type-ref="@release-strategy" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A method defined on the bean referenced by release-strategy, that implements the completion
+							decision algorithm.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>		
+				<xsd:attribute name="release-strategy-expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -2713,22 +2740,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="release-strategy-method" type="xsd:string">
+				<xsd:attribute name="keep-released-messages" type="xsd:string">
 					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation>
-								<tool:expected-method type-ref="@release-strategy" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							A method defined on the bean referenced by release-strategy, that implements the completion
-							decision algorithm.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="release-strategy-expression" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
+						<xsd:documentation>Will store messages after their release. Mainly used for monitoring purposes. Default is 'true'</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">

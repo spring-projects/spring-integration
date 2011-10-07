@@ -87,7 +87,6 @@ public class MessageStoreTests {
 
 		private boolean removed = false;
 
-		@Override
 		public Iterator<MessageGroup> iterator() {
 			return Arrays.asList(testMessages).iterator();
 		}
@@ -116,6 +115,15 @@ public class MessageStoreTests {
 			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
+		}
+
+		public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+			throw new UnsupportedOperationException();
+		}
+
+		public void completeGroup(Object groupId) {
+
+			throw new UnsupportedOperationException();
 		}
 
 	}

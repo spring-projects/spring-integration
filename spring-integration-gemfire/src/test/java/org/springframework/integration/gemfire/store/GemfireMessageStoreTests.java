@@ -16,20 +16,14 @@
 
 package org.springframework.integration.gemfire.store;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.UUID;
-
 import org.junit.Test;
-
 import org.springframework.data.gemfire.CacheFactoryBean;
-import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.gemstone.gemfire.cache.Cache;
-import com.gemstone.gemfire.cache.Region;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Mark Fisher
@@ -42,12 +36,9 @@ public class GemfireMessageStoreTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
-		RegionFactoryBean<UUID, Message<?>> regionFactoryBean = new RegionFactoryBean<UUID, Message<?>>();
-		regionFactoryBean.setName("test.addAndGetMessage");
-		regionFactoryBean.setCache(cache);
-		regionFactoryBean.afterPropertiesSet();
-		Region<UUID, Message<?>> region = regionFactoryBean.getObject();
-		MessageStore store = new GemfireMessageStore(region);
+		GemfireMessageStore store = new GemfireMessageStore(cache);
+		store.afterPropertiesSet();
+		
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());

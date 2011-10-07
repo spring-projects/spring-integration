@@ -15,15 +15,8 @@
  */
 package org.springframework.integration.mongodb.store;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import junit.framework.AssertionFailedError;
 
 import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -126,6 +119,34 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		assertEquals(0, messageGroupA.size());
 		assertFalse(messageGroupA.equals(messageGroup));
 		
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testCompleteMessageGroup() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.completeGroup(messageGroup.getGroupId());
+		messageGroup = store.getMessageGroup(1);
+		assertTrue(messageGroup.isComplete());
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testLastReleasedSequenceNumber() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		store.addMessageToGroup(messageGroup.getGroupId(), message);
+		store.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), 5);
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(5, messageGroup.getLastReleasedMessageSequenceNumber());
 	}
 	
 	@Test
