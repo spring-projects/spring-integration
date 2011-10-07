@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<si:inbound-channel-adapter id="inboundEndpoint" ref="counter" method="next" channel="producerAndConsumerAutoStartupTestChannel">
 		<si:poller max-messages-per-poll="1" fixed-rate="50"/>
