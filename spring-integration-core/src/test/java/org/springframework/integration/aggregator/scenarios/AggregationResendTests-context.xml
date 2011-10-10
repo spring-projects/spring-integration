@@ -3,9 +3,9 @@
 			 xmlns="http://www.springframework.org/schema/integration"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/integration
-            http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+            http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="input_for_aggregator_with_explicit_timeout"/>
 	<channel id="input_for_aggregator_without_explicit_timeout"/>
@@ -24,9 +24,11 @@
 			  input-channel="input_for_aggregator_without_explicit_timeout"
 			  output-channel="aggregator_without_explicit_timeout_channel"/>
 
+	<!-- timeout is no longer supported
 	<aggregator id="aggregator_with_explicit_timeout"
 				timeout="1000"
 				input-channel="aggregator_with_explicit_timeout_channel"/>
+	-->
 
 	<aggregator id="aggregator_without_explicit_timeout"
 				input-channel="aggregator_without_explicit_timeout_channel"/>

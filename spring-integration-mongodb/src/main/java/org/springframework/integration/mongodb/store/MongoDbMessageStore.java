@@ -343,9 +343,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				}
 				
 				wrapper.setMarked(source.get(MARKED_KEY) != null);
-						
-				wrapper.setCompletedGroup(completeGroup.booleanValue());
-							
+					
+				if (completeGroup != null){
+					wrapper.setCompletedGroup(completeGroup.booleanValue());
+				}
+										
 				return (S) wrapper;
 			}
 			return null;

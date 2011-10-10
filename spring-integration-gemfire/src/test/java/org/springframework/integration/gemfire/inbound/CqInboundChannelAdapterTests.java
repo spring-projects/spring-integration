@@ -12,10 +12,6 @@
  */
 package org.springframework.integration.gemfire.inbound;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -34,6 +30,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.gemstone.gemfire.cache.query.CqEvent;
 import com.gemstone.gemfire.internal.cache.LocalRegion;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author David Turanski
