@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.springframework.data.gemfire.CacheFactoryBean;
+import org.springframework.data.gemfire.RegionAttributesFactoryBean;
 import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
@@ -40,9 +41,12 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
+		
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForCreateEvent");
 		regionFactoryBean.setCache(cache);
+		this.setRegionAttributes(regionFactoryBean);
+			
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -63,9 +67,12 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
+		
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveNewValuePayloadForUpdateEvent");
 		regionFactoryBean.setCache(cache);
+		this.setRegionAttributes(regionFactoryBean);
+		
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -90,9 +97,12 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
+		
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
+		this.setRegionAttributes(regionFactoryBean);
+		
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -116,9 +126,12 @@ public class CacheListeningMessageProducerTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
+		
 		RegionFactoryBean<String, String> regionFactoryBean = new RegionFactoryBean<String, String>();
 		regionFactoryBean.setName("test.receiveOldValuePayloadForDestroyEvent");
 		regionFactoryBean.setCache(cache);
+		this.setRegionAttributes(regionFactoryBean);
+		
 		regionFactoryBean.afterPropertiesSet();
 		Region<String, String> region = regionFactoryBean.getObject();
 		QueueChannel channel = new QueueChannel();
@@ -135,5 +148,13 @@ public class CacheListeningMessageProducerTests {
 		Message<?> message2 = channel.receive(0);
 		assertNotNull(message2);
 		assertEquals("foo was abc", message2.getPayload());		
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void setRegionAttributes(RegionFactoryBean<String, String> regionFactoryBean) throws Exception{
+		RegionAttributesFactoryBean attributesFactoryBean = new RegionAttributesFactoryBean();
+		attributesFactoryBean.setIgnoreJTA(true);
+		attributesFactoryBean.afterPropertiesSet();
+		regionFactoryBean.setAttributes(attributesFactoryBean.getObject());
 	}
 }
