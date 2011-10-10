@@ -5,7 +5,7 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:gfe="http://www.springframework.org/schema/gemfire"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd
-		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire-1.1.xsd
+		http://www.springframework.org/schema/gemfire http://www.springframework.org/schema/gemfire/spring-gemfire.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 	
