@@ -5,7 +5,7 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.1.xsd">
+		http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<bean id="sf" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.remote.session.SessionFactory"/>

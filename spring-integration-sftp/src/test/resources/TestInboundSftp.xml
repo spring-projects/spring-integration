@@ -27,22 +27,20 @@
 		xmlns:lang="http://www.springframework.org/schema/lang"
 		xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
 		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-                        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
-						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
-						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
-						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
-
+						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd
+						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
 
 	<context:component-scan base-package="org.springframework.integration.sftp"/>
+
 	<context:property-placeholder
 			location="file://${user.home}/Desktop/sftp.properties"
 			ignore-unresolvable="true"/>
 
-
 	<channel id="inboundFilesChannel"/>
-
 
 	<sftp:inbound-channel-adapter
 			key-file="${sftp.key}"
@@ -57,7 +55,6 @@
 			<interval-trigger interval="1000" time-unit="MILLISECONDS"/>
 		</poller>
 	</sftp:inbound-channel-adapter>
-
 
 	<service-activator ref="sftpAnnouncer" input-channel="inboundFilesChannel"/>
 
