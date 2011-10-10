@@ -11,7 +11,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/jmx
-			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx-2.0.xsd">
+			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
 	<context:mbean-export/>
 	<context:mbean-server/>
