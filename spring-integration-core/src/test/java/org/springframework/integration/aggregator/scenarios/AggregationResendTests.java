@@ -60,6 +60,7 @@ public class AggregationResendTests {
 	 * <p>We should <emphasis>not</emphasis> get another 3 after the 1 second.
 	 */
 	@Test
+	@Ignore // timeout is no longer supported
 	public void testAggregatorWithoutExplicitTimeoutReturnsOnlyOneMessage() throws Exception {
 		sendMessage(input_for_aggregator_with_explicit_timeout, 2000);
 	}
