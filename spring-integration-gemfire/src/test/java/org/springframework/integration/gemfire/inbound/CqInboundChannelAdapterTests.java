@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ import com.gemstone.gemfire.internal.cache.LocalRegion;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
+@Ignore
 public class CqInboundChannelAdapterTests {
 	static ConfigurableApplicationContext staticCtx;
 	
