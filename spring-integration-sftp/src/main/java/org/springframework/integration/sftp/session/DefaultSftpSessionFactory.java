@@ -186,39 +186,36 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 			jschSession.setPassword(this.password);
 		}
 		jschSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
+		
 		try {
-			this.populateSessionWithAditionalProperties(jschSession);
+			if (proxy != null){
+				jschSession.setProxy(proxy);
+			}
+			if (socketFactory != null){
+				jschSession.setSocketFactory(socketFactory);
+			}
+			if (timeout != null){
+				jschSession.setTimeout(timeout);
+			}
+			if (StringUtils.hasText(clientVersion)){
+				jschSession.setClientVersion(clientVersion);
+			}
+			if (StringUtils.hasText(hostKeyAlias)){
+				jschSession.setHostKeyAlias(hostKeyAlias);
+			}
+			if (serverAliveInterval != null){
+				jschSession.setServerAliveInterval(serverAliveInterval);
+			}
+			if (serverAliveCountMax != null){
+				jschSession.setServerAliveCountMax(serverAliveCountMax);
+			}
+			if (enableDaemonThread != null){
+				jschSession.setDaemonThread(enableDaemonThread);
+			}
 		} catch (Exception e) {
 			throw new BeanCreationException("Attempt to set additional properties of the com.jcraft.jsch.Session resulted in error: " + e.getMessage(), e);
 		}
 		return jschSession;
-	}
-	
-	private void populateSessionWithAditionalProperties(com.jcraft.jsch.Session jschSession) throws Exception{
-		if (proxy != null){
-			jschSession.setProxy(proxy);
-		}
-		if (socketFactory != null){
-			jschSession.setSocketFactory(socketFactory);
-		}
-		if (timeout != null){
-			jschSession.setTimeout(timeout);
-		}
-		if (StringUtils.hasText(clientVersion)){
-			jschSession.setClientVersion(clientVersion);
-		}
-		if (StringUtils.hasText(hostKeyAlias)){
-			jschSession.setHostKeyAlias(hostKeyAlias);
-		}
-		if (serverAliveInterval != null){
-			jschSession.setServerAliveInterval(serverAliveInterval);
-		}
-		if (serverAliveCountMax != null){
-			jschSession.setServerAliveCountMax(serverAliveCountMax);
-		}
-		if (enableDaemonThread != null){
-			jschSession.setDaemonThread(enableDaemonThread);
-		}
 	}
 
 
