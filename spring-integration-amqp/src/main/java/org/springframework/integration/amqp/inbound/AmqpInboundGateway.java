@@ -64,6 +64,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 
 	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.notNull(messageConverter, "MessageConverter must not be null");
 		this.amqpMessageConverter = messageConverter;
 		this.amqpTemplate.setMessageConverter(messageConverter);
 	}
