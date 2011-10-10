@@ -157,7 +157,24 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
+	}
+	@Test
+	@RedisAvailable
+	public void testRemoveNonExistingMessageFromTheGroup() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
 
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testRemoveNonExistingMessageFromNonExistingTheGroup() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
 	
 	@Test

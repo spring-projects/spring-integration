@@ -19,7 +19,6 @@ package org.springframework.integration.gemfire.store;
 import org.junit.Test;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.gemstone.gemfire.cache.Cache;
@@ -37,7 +36,8 @@ public class GemfireMessageStoreTests {
 		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
 		cacheFactoryBean.afterPropertiesSet();
 		Cache cache = (Cache)cacheFactoryBean.getObject();
-		MessageStore store = new GemfireMessageStore(cache);
+		GemfireMessageStore store = new GemfireMessageStore(cache);
+		store.afterPropertiesSet();
 		
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		store.addMessage(message);
