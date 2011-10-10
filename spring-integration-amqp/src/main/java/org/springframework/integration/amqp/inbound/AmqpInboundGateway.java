@@ -25,6 +25,7 @@ import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
@@ -45,7 +46,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 
 	private final AbstractMessageListenerContainer messageListenerContainer;
 
-	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter amqpMessageConverter = new SimpleMessageConverter();
 
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
@@ -62,6 +63,11 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	}
 
 
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.amqpMessageConverter = messageConverter;
+		this.amqpTemplate.setMessageConverter(messageConverter);
+	}
+
 	public void setHeaderMapper(AmqpHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
@@ -71,7 +77,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 	protected void onInit() throws Exception {
 		this.messageListenerContainer.setMessageListener(new MessageListener() {
 			public void onMessage(Message message) {
-				Object payload = messageConverter.fromMessage(message);
+				Object payload = amqpMessageConverter.fromMessage(message);
 				Map<String, ?> headers = headerMapper.toHeaders(message.getMessageProperties());
 				org.springframework.integration.Message<?> request =
 						MessageBuilder.withPayload(payload).copyHeaders(headers).build();
