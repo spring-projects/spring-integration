@@ -15,7 +15,7 @@
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 	
