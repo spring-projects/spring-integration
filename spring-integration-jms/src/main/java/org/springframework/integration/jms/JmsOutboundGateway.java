@@ -379,7 +379,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected Object handleRequestMessage(final Message<?> message) {
 		if (!this.initialized) {
@@ -581,7 +580,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	protected Connection createConnection() throws JMSException {
 		ConnectionFactory cf = this.connectionFactory;
 		if (!this.requestPubSubDomain && !this.replyPubSubDomain && cf instanceof QueueConnectionFactory) {
-			return ((QueueConnectionFactory) cf).createQueueConnection();
+			try {
+				return ((QueueConnectionFactory) cf).createQueueConnection();
+			}
+			catch (Exception e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("An error occurred while trying to use ConnectionFactory as a QueueConnectionFactory " +
+							" even though the instanceof check passed. Falling back to use it only as a ConnectionFactory."); 
+				}
+			}
 		}
 		return cf.createConnection();
 	}
@@ -597,7 +604,15 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	protected Session createSession(Connection connection) throws JMSException {
 		if (!this.requestPubSubDomain && !this.replyPubSubDomain && connection instanceof QueueConnection) {
-			return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+			try {
+				return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+			}
+			catch (Exception e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("An error occurred while trying to use Connection as a QueueConnection " +
+							" even though the instanceof check passed. Falling back to use it only as a Connection."); 
+				}
+			}
 		}
 		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
