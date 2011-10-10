@@ -23,6 +23,7 @@ import org.springframework.amqp.core.Address;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -91,9 +92,21 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 					amqpTemplate.convertAndSend(replyTo.getExchangeName(), replyTo.getRoutingKey(), reply.getPayload(),
 							new MessagePostProcessor() {
 								public Message postProcessMessage(Message message) throws AmqpException {
-									headerMapper.fromHeaders(reply.getHeaders(), message.getMessageProperties());
+									MessageProperties messageProperties = message.getMessageProperties();
+									String contentEncoding = messageProperties.getContentEncoding();
+									long contentLength = messageProperties.getContentLength();
+									String contentType = messageProperties.getContentType();
+									headerMapper.fromHeaders(reply.getHeaders(), messageProperties);
 									// clear the replyTo from the original message since we are using it now
-									message.getMessageProperties().setReplyTo(null);
+									messageProperties.setReplyTo(null);
+									// reset the content-* properties as determined by the MessageConverter
+									if (contentEncoding != null) {
+										messageProperties.setContentEncoding(contentEncoding);
+									}
+									messageProperties.setContentLength(contentLength);
+									if (contentType != null) {
+										messageProperties.setContentType(contentType);
+									}
 									return message;
 								}
 							});
