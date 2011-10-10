@@ -39,6 +39,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
 
+	private static final String VERSION = "2.1";
+
 	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME =
 			"DefaultConfiguringBeanFactoryPostProcessor";
 
@@ -91,16 +93,16 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	private void verifySchemaVersion(Element element, ParserContext parserContext) {
 		if (!(matchesVersion(element) && matchesVersion(element.getOwnerDocument().getDocumentElement())))  {
 			parserContext.getReaderContext().error(
-					"You cannot use prior versions of Spring Integration with Spring Integration 2.1. Please upgrade your schema declarations "
-							+ "(or use the spring-integration.xsd alias if you are feeling lucky).", element);
+					"You cannot use prior versions of Spring Integration schemas with Spring Integration " + VERSION  +
+					". Please upgrade your schema declarations or use versionless aliases (e.g. spring-integration.xsd).", element);
 		}
 	}
 
 	private static boolean matchesVersion(Element element) {
 		String schemaLocation = element.getAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation");
 		return !StringUtils.hasText(schemaLocation) // no namespace on this element
-				|| schemaLocation.matches("(?m).*spring-integration-[a-z-]*2.1.xsd.*") // correct version
-				|| schemaLocation.matches("(?m).*spring-integration.xsd.*") // version-less schema
+				|| schemaLocation.matches("(?m).*spring-integration-[a-z-]*" + VERSION + ".xsd.*") // correct version
+				|| schemaLocation.matches("(?m).*spring-integration[a-z-]*.xsd.*") // version-less schema
 				|| !schemaLocation.matches("(?m).*spring-integration.*"); // no spring-integration schemas
 	}
 
