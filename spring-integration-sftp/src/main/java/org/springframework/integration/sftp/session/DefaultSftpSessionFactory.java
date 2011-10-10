@@ -18,6 +18,7 @@ package org.springframework.integration.sftp.session;
 
 import java.util.Properties;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -25,6 +26,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Proxy;
+import com.jcraft.jsch.SocketFactory;
 import com.jcraft.jsch.UserInfo;
 
 /**
@@ -52,6 +55,23 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	private volatile String privateKeyPassphrase;
 	
 	private volatile Properties sessionConfig;
+	
+	private volatile Proxy proxy;
+	
+	private volatile SocketFactory socketFactory;
+	
+	private volatile Integer timeout;
+	
+	private volatile String clientVersion;
+	
+	private volatile String hostKeyAlias;
+	
+	private volatile Integer serverAliveInterval;
+	
+	private volatile Integer serverAliveCountMax;
+	
+	private volatile Boolean enableDaemonThread;
+	
 
 	private final JSch jsch = new JSch();
 
@@ -87,7 +107,40 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 	public void setSessionConfig(Properties sessionConfig) {
 		this.sessionConfig = sessionConfig;
 	}
-
+	
+	public void setProxy(Proxy proxy){ 
+		this.proxy = proxy;
+	}
+	
+	public void setSocketFactory(SocketFactory socketFactory){ 
+		this.socketFactory = socketFactory;
+	}
+		
+    public void setTimeout(Integer timeout) {
+    	this.timeout = timeout;
+    }
+	
+    public void setClientVersion(String clientVersion){
+    	this.clientVersion = clientVersion;
+    }
+    
+    public void setHostKeyAlias(String hostKeyAlias){
+    	this.hostKeyAlias = hostKeyAlias;
+    }
+    
+    public void setServerAliveInterval(Integer serverAliveInterval){
+    	this.serverAliveInterval = serverAliveInterval;
+    }
+    
+    public void setServerAliveCountMax(Integer serverAliveCountMax){
+    	this.serverAliveCountMax = serverAliveCountMax;
+    }
+    
+    public void setEnableDaemonThread(Boolean enableDaemonThread){
+    	this.enableDaemonThread = enableDaemonThread;
+    }
+    
+    
 	public Session getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
@@ -133,6 +186,35 @@ public class DefaultSftpSessionFactory implements SessionFactory {
 			jschSession.setPassword(this.password);
 		}
 		jschSession.setUserInfo(new OptimisticUserInfoImpl(this.password));
+		
+		try {
+			if (proxy != null){
+				jschSession.setProxy(proxy);
+			}
+			if (socketFactory != null){
+				jschSession.setSocketFactory(socketFactory);
+			}
+			if (timeout != null){
+				jschSession.setTimeout(timeout);
+			}
+			if (StringUtils.hasText(clientVersion)){
+				jschSession.setClientVersion(clientVersion);
+			}
+			if (StringUtils.hasText(hostKeyAlias)){
+				jschSession.setHostKeyAlias(hostKeyAlias);
+			}
+			if (serverAliveInterval != null){
+				jschSession.setServerAliveInterval(serverAliveInterval);
+			}
+			if (serverAliveCountMax != null){
+				jschSession.setServerAliveCountMax(serverAliveCountMax);
+			}
+			if (enableDaemonThread != null){
+				jschSession.setDaemonThread(enableDaemonThread);
+			}
+		} catch (Exception e) {
+			throw new BeanCreationException("Attempt to set additional properties of the com.jcraft.jsch.Session resulted in error: " + e.getMessage(), e);
+		}
 		return jschSession;
 	}
 
