@@ -16,13 +16,11 @@
 
 package org.springframework.integration.router.config;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
+import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -30,10 +28,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
@@ -47,6 +48,11 @@ public class PayloadTypeRouterParserTests {
 
 	@Autowired
 	private TestService testService;
+	
+	@Autowired
+	private MessageChannel routingChannelPatterns;
+	
+	
 	
 	@Test
 	public void testPayloadTypeRouter() {
@@ -67,6 +73,21 @@ public class PayloadTypeRouterParserTests {
 		assertTrue(chanel2.receive(100).getPayload() instanceof Integer);	
 		assertTrue(chanel3.receive(100).getPayload().getClass().isArray());	
 		assertTrue(chanel4.receive(100).getPayload().getClass().isArray());
+	}
+	
+	@Test
+	public void testPayloadTypeRouterWithPatterns() {
+		context.start();
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		Message<?> message1 = MessageBuilder.withPayload("Hello").build();
+		Message<?> message2 = MessageBuilder.withPayload(new Date()).build();
+		
+		routingChannelPatterns.send(message1);
+		routingChannelPatterns.send(message2);
+	
+		assertTrue(chanel1.receive(100).getPayload() instanceof String);
+		assertTrue(chanel2.receive(100).getPayload() instanceof Date);	
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)

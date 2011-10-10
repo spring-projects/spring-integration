@@ -22,6 +22,12 @@
 		<mapping value="1" channel="channel1" />
 		<mapping value="2" channel="channel2" />
 	</header-value-router>
+	
+	<channel id="routingChannelC" />
+	<header-value-router input-channel="routingChannelC" header-name="testHeader">
+		<mapping value="foo*, bar*" channel="channel1" />
+		<mapping value="*abc*" channel="channel2" />
+	</header-value-router>
 
 	<gateway id="testServiceA"
 		service-interface="org.springframework.integration.router.config.HeaderValueRouterParserTests$TestServiceA"

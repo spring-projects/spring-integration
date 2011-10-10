@@ -16,9 +16,9 @@
 
 package org.springframework.integration.router;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +41,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -236,7 +237,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
+		Collection<MessageChannel> channels = new LinkedHashSet<MessageChannel>();
 		Collection<Object> channelsReturned = this.getChannelIdentifiers(message);
 		addToCollection(channels, channelsReturned, message);
 		return channels;
@@ -276,8 +277,17 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		// if the channelIdentifierMap contains a mapping, we'll use the mapped value
 		// otherwise, the String-based channelIdentifier itself will be used as the channel name
 		String channelName = channelIdentifier;
-		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)) {
-			channelName = channelIdentifierMap.get(channelIdentifier);
+		if (!CollectionUtils.isEmpty(channelIdentifierMap)) {
+			outer:
+			for (String key : channelIdentifierMap.keySet()) {
+				String[] channelPatterns = StringUtils.tokenizeToStringArray(key, ",", true, true);
+				for (String channelPattern : channelPatterns) {
+					if (PatternMatchUtils.simpleMatch(channelPattern, channelName)){
+						channelName = channelIdentifierMap.get(key);
+						break outer;
+					}
+				}
+			}
 		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;

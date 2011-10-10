@@ -406,7 +406,7 @@ public class AsyncMessagingTemplateTests {
 		template.setDefaultChannel(channel);
 		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
 		try {
-			result.get(10, TimeUnit.MILLISECONDS);
+			result.get(1000, TimeUnit.MILLISECONDS);
 			fail();
 		}
 		catch (ExecutionException e) {
