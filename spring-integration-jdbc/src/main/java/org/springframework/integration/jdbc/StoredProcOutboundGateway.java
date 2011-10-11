@@ -58,7 +58,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
     	Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
     	
     	this.executor = new StoredProcExecutor(dataSource, storedProcedureName);
-    	this.executor.setUsePayloadAsParameterSource(true);
+
     }
 
     /**
@@ -188,5 +188,34 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
-	
+
+    /**
+     * 
+     * @param sqlParameterSourceFactory
+     */
+    public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+    	this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
+    }
+    
+	/**
+	 * If set to 'true', the payload of the Message will be used as a source for 
+	 * providing parameters. If false the entire Message will be available as a 
+	 * source for parameters. 
+	 * 
+	 * If no {@link ProcedureParameter} are passed in, this property will default to
+	 * 'true'. This means that using a default {@link BeanPropertySqlParameterSourceFactory}
+	 * the bean properties of the payload will be used as a source for parameter values for 
+	 * the to-be-executed Stored Procedure or Function.
+	 * 
+	 * However, if {@link ProcedureParameter} are passed in, then this property 
+	 * will by default evaluate to 'false'. {@link ProcedureParameter} allow for 
+	 * SpEl Expressions to be provided and therefore it is highly beneficial to
+	 * have access to the entire {@link Message}.
+	 * 
+	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source. 
+	 */
+    public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
+    	this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
+    }
+    
 }

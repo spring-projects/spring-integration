@@ -55,7 +55,10 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "ignore-column-meta-data");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "expect-single-result");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "return-value-required");
-	
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
+		
+		
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);

@@ -51,13 +51,16 @@ public class StoredProcMessageHandlerParser extends AbstractOutboundChannelAdapt
 		builder.addConstructorArgValue(storedProcedureName);	
 		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-column-meta-data");
-		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "use-payload-as-parameter-source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");
+				
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(element, parserContext);
 
 		if (!procedureParameterList.isEmpty()) {
 			builder.addPropertyValue("procedureParameters", procedureParameterList);
 		}
+		
 		if (!sqlParameterDefinitionList.isEmpty()) {
 			builder.addPropertyValue("sqlParameters", sqlParameterDefinitionList);
 		}
