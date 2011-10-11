@@ -21,8 +21,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @since 2.1
  */
-public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final StoredProcExecutor executor;
 
@@ -87,7 +87,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
                 payload = resultMap.values().iterator().next();
         	} else if (this.expectSingleResult && resultMap.size() > 1) {
         		
-        		throw new MessagingException(
+        		throw new MessageHandlingException(requestMessage,
         				"Stored Procedure/Function call returned more than "
         		      + "1 result object and expectSingleResult was 'true'. ");
 

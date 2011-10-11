@@ -43,7 +43,7 @@ import org.w3c.dom.Element;
  */
 public final class StoredProcParserUtils {
 
-	private static final Log logger = LogFactory
+	private static final Log LOGGER = LogFactory
 			.getLog(StoredProcParserUtils.class);
 
 	/** Prevent instantiation. */
@@ -134,12 +134,7 @@ public final class StoredProcParserUtils {
 
 			if (StringUtils.hasText(name)) {
 				parameterBuilder.addPropertyValue("name", name);
-			} else {
-				parserContext
-						.getReaderContext()
-						.error("The 'name' attribute must be set for the Stored Procedure parameter element.",
-								storedProcComponent);
-			}
+			} 
 
 			if (StringUtils.hasText(expression)) {
 				parameterBuilder.addPropertyValue("expression", expression);
@@ -148,9 +143,14 @@ public final class StoredProcParserUtils {
 			if (StringUtils.hasText(value)) {
 
 				if (!StringUtils.hasText(type)) {
-					logger.info(String
-							.format("Type attribute not set for Store Procedure parameter '%s'. Defaulting to 'java.lang.String'.",
-									value));
+					
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info(String
+								.format("Type attribute not set for Store " 
+						              + "Procedure parameter '%s'. Defaulting to " 
+									  + "'java.lang.String'.", value));
+					}
+					
 					parameterBuilder.addPropertyValue("value",
 							new TypedStringValue(value, String.class));
 

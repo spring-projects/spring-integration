@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
-    final StoredProcExecutor executor;
+    private final StoredProcExecutor executor;
 
 	private volatile boolean expectSingleResult = false;
 	
@@ -117,8 +117,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
     }
 
     protected Map<String, ?> doPoll() {
-        Map<String, Object> payload = this.executor.executeStoredProcedure();
-        return payload;
+        return this.executor.executeStoredProcedure();
     }
 
     public String getComponentType(){
