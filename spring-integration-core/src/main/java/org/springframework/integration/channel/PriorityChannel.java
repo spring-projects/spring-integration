@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -35,13 +36,18 @@ import org.springframework.integration.util.UpperBound;
  */
 public class PriorityChannel extends QueueChannel {
 
-	private final UpperBound upperBound;
-	
 	private final AtomicLong sequenceCounter = new AtomicLong();
 	
 	private static final String SEQUENCE_HEADER_NAME = "__priorityChannelSequence__";
 
+	private volatile UpperBound upperBound;
 
+	/**
+	 * Create a channel with the specified queue.
+	 */
+	public PriorityChannel(BlockingQueue<Message<?>> queue) {
+		super(queue);
+	}
 	/**
 	 * Create a channel with the specified queue capacity. If the capacity
 	 * is a non-positive value, the queue will be unbounded. Message priority
@@ -84,7 +90,7 @@ public class PriorityChannel extends QueueChannel {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (!upperBound.tryAcquire(timeout)) {
+		if (upperBound != null && !upperBound.tryAcquire(timeout)) {
 			return false;
 		}
 		Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
@@ -100,14 +106,20 @@ public class PriorityChannel extends QueueChannel {
 		if (message != null) {
 			Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
 			innerMap.remove(SEQUENCE_HEADER_NAME);
-			upperBound.release();
+			if (upperBound != null){
+				upperBound.release();
+			}		
 		}
 		return message;
 	}
 	
-	private static class SequenceFallbackComparator implements Comparator<Message<?>> {
+	public final static class SequenceFallbackComparator implements Comparator<Message<?>> {
 		
 		private final Comparator<Message<?>> targetComparator;
+		
+		public SequenceFallbackComparator(){
+			this.targetComparator = null;
+		}
 		
 		public SequenceFallbackComparator(Comparator<Message<?>> targetComparator){
 			this.targetComparator = targetComparator;
@@ -135,5 +147,4 @@ public class PriorityChannel extends QueueChannel {
 			return compareResult;
 		}
 	}
-
 }

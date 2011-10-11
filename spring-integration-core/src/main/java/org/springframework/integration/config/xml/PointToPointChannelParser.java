@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.ExecutorChannel;
+import org.springframework.integration.channel.PriorityChannel;
+import org.springframework.integration.channel.PriorityChannel.SequenceFallbackComparator;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -33,12 +40,6 @@ import org.w3c.dom.Element;
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
-	private static final String CHANNEL_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel";
-
-	//private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
-
-	private static final String STORE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".store";
-
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
@@ -48,8 +49,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 		// configure a queue-based channel if any queue sub-element is defined
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
-			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE));
+			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE), false);
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
 			if (!hasStoreRef) {
 				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
@@ -66,15 +67,18 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".PriorityChannel");
-			this.parseQueueCapacity(builder, queueElement);
-			String comparatorRef = queueElement.getAttribute("comparator");
-			if (StringUtils.hasText(comparatorRef)) {
-				builder.addConstructorArgReference(comparatorRef);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE), true);
+			if (!hasStoreRef){
+				this.parseQueueCapacity(builder, queueElement);
+				String comparatorRef = queueElement.getAttribute("comparator");
+				if (StringUtils.hasText(comparatorRef)) {
+					builder.addConstructorArgReference(comparatorRef);
+				}
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".RendezvousChannel");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(RendezvousChannel.class);
 		}
 
 		Element dispatcherElement = DomUtils.getChildElementByTagName(element, "dispatcher");
@@ -110,7 +114,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		if (hasDispatcherAttribute) {
 			// this attribute is deprecated, but if set, we need to create a DirectChannel
 			// without any LoadBalancerStrategy and the failover flag set to true (default).
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 			if ("failover".equals(dispatcherAttribute)) {
 				// round-robin dispatcher is used by default, the "failover" value simply disables it
 				builder.addConstructorArgValue(null);
@@ -118,17 +122,17 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 		else if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		}
 		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
 			String taskExecutor = dispatcherElement.getAttribute("task-executor");
 			if (StringUtils.hasText(taskExecutor)) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".ExecutorChannel");
+				builder = BeanDefinitionBuilder.genericBeanDefinition(ExecutorChannel.class);
 				builder.addConstructorArgReference(taskExecutor);
 			}
 			else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+				builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 			}
 			// unless the 'load-balancer' attribute is explicitly set to 'none',
 			// configure the default RoundRobinLoadBalancingStrategy
@@ -159,13 +163,22 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		return false;
 	}
 
-	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel) {
+	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel, boolean priorityChannel) {
 		String storeRef = queueElement.getAttribute("message-store");
 		if (StringUtils.hasText(storeRef)) {
-			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(STORE_PACKAGE + ".MessageGroupQueue");
+			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessageGroupQueue.class);
 			queueBuilder.addConstructorArgReference(storeRef);
-			queueBuilder.addConstructorArgValue(STORE_PACKAGE + ":" + channel);
+			queueBuilder.addConstructorArgValue("org.springframework.integration.store:" + channel);
+			
+			if (priorityChannel){
+				BeanDefinitionBuilder comparatorBuilder = BeanDefinitionBuilder.genericBeanDefinition(SequenceFallbackComparator.class);
+				String comparator = queueElement.getAttribute("comparator");
+				if (StringUtils.hasText(comparator)){			
+					comparatorBuilder.addConstructorArgReference(comparator);
+				}		
+				queueBuilder.addPropertyValue("comparator", comparatorBuilder.getBeanDefinition());
+			}
+			
 			parseQueueCapacity(queueBuilder, queueElement);
 			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;

@@ -185,6 +185,28 @@
 				Defines a queue with priority-ordering for message reception.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="message-store" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a MessageGroupStore that can be used to buffer the messages. If a message store is
+					specified then it will store messages for this channel with a correlation key equal to the
+					channel name. If you need
+					more control over the correlation key (e.g. two channels in the same
+					application share a name), then you need to
+					look to the queue implementation itself and provide an
+					explicit instance via the "ref" attribute, or else maybe the
+					message store has a way to specify a region or similar additional
+					tag for messages. This attribute is
+					mutually
+					exclusive with the "ref" attribute (only one can be specified).
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.store.MessageGroupStore" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="capacity" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

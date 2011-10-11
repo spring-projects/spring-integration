@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -30,13 +24,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
-
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.PriorityChannel.SequenceFallbackComparator;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.store.MessageGroupQueue;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PriorityChannelTests {
 
@@ -85,6 +90,28 @@ public class PriorityChannelTests {
 	@Test
 	public void testCustomComparator() {
 		PriorityChannel channel = new PriorityChannel(5, new StringPayloadComparator());
+		Message<?> messageA = new GenericMessage<String>("A");
+		Message<?> messageB = new GenericMessage<String>("B");
+		Message<?> messageC = new GenericMessage<String>("C");
+		Message<?> messageD = new GenericMessage<String>("D");
+		Message<?> messageE = new GenericMessage<String>("E");
+		channel.send(messageC);
+		channel.send(messageA);
+		channel.send(messageE);
+		channel.send(messageD);
+		channel.send(messageB);
+		assertEquals("A", channel.receive(0).getPayload());
+		assertEquals("B", channel.receive(0).getPayload());
+		assertEquals("C", channel.receive(0).getPayload());
+		assertEquals("D", channel.receive(0).getPayload());
+		assertEquals("E", channel.receive(0).getPayload());		
+	}
+	
+	@Test
+	public void testCustomComparatorA() {
+		MessageGroupQueue queue = new MessageGroupQueue(new SimpleMessageStore(5), "foo", 5);
+		queue.setComparator(new SequenceFallbackComparator(new StringPayloadComparator()));
+		PriorityChannel channel = new PriorityChannel(queue);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
 		Message<?> messageC = new GenericMessage<String>("C");
@@ -280,6 +307,47 @@ public class PriorityChannelTests {
 		Message<?> message2 = channel.receive();
 		assertNotNull(message2);
 		assertEquals("test-2", message2.getPayload());
+	}
+	
+	@Test
+	public void testConfiguration() {
+		Message<String> message1 = MessageBuilder.withPayload("C").setPriority(1).build();
+		Message<String> message2 = MessageBuilder.withPayload("B").setPriority(2).build();
+		Message<String> message3 = MessageBuilder.withPayload("A").setPriority(3).build();
+		
+		ApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTest.xml", this.getClass());
+		
+		// ===
+		PriorityChannel pcDefaultCapacityDefaultComparator = context.getBean("pcDefaultCapacityDefaultComparator", PriorityChannel.class);
+			
+		pcDefaultCapacityDefaultComparator.send(message1);
+		pcDefaultCapacityDefaultComparator.send(message2);
+		assertEquals(message2, pcDefaultCapacityDefaultComparator.receive(1000));
+		
+		// ===
+		PriorityChannel pcDefaultCapacityProvidedComparator = context.getBean("pcDefaultCapacityProvidedComparator", PriorityChannel.class);
+			
+		pcDefaultCapacityProvidedComparator.send(message1);
+		pcDefaultCapacityProvidedComparator.send(message2);
+		pcDefaultCapacityProvidedComparator.send(message3);
+		assertEquals(message3, pcDefaultCapacityProvidedComparator.receive(1000));
+		
+		// ===
+		PriorityChannel pcProvidedCapacityProvidedComparatorAndMessageStore = context.getBean("pcProvidedCapacityProvidedComparatorAndMessageStore", PriorityChannel.class);
+			
+		pcProvidedCapacityProvidedComparatorAndMessageStore.send(message1);
+		pcProvidedCapacityProvidedComparatorAndMessageStore.send(message2);
+		pcProvidedCapacityProvidedComparatorAndMessageStore.send(message3);
+		assertEquals(message3, pcProvidedCapacityProvidedComparatorAndMessageStore.receive(1000));
+		
+		// ===
+		PriorityChannel pcDefaultCapacityDefaultComparatorAndMessageStore = context.getBean("pcDefaultCapacityDefaultComparatorAndMessageStore", PriorityChannel.class);
+			
+		pcDefaultCapacityDefaultComparatorAndMessageStore.send(message1);
+		pcDefaultCapacityDefaultComparatorAndMessageStore.send(message2);
+		pcDefaultCapacityDefaultComparatorAndMessageStore.send(message3);
+		assertEquals(message3, pcDefaultCapacityDefaultComparatorAndMessageStore.receive(1000));
+		
 	}
 
 

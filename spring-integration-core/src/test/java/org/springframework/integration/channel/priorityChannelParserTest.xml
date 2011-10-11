@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
+
+	<int:channel id="pcDefaultCapacityDefaultComparator">
+		<int:priority-queue/>
+	</int:channel>
+	
+	<int:channel id="pcDefaultCapacityProvidedComparator">
+		<int:priority-queue comparator="comparator"/>
+	</int:channel>
+	
+	<int:channel id="pcProvidedCapacityProvidedComparatorAndMessageStore">
+		<int:priority-queue capacity="3" comparator="comparator" message-store="messageStore"/>
+	</int:channel>
+	
+	<int:channel id="pcDefaultCapacityDefaultComparatorAndMessageStore">
+		<int:priority-queue  message-store="messageStore"/>
+	</int:channel>
+	
+	
+	<bean id="comparator" class="org.springframework.integration.channel.PriorityChannelTests.StringPayloadComparator"/>
+	
+	<bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
+
+</beans>
