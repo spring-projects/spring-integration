@@ -64,7 +64,7 @@ public class ProcedureParameter {
     public ProcedureParameter(String name, Object value, String expression) {
         super();
         
-        Assert.hasText(name, "Please provide a name.");
+        Assert.hasText(name, "'name' must not be empty.");
 
         this.name = name;
         this.value = value;
@@ -99,6 +99,10 @@ public class ProcedureParameter {
     	
     	Assert.notNull(procedureParameters, "The Collection of procedureParameters must not be null.");
     	
+    	for (ProcedureParameter parameter : procedureParameters) {
+    		Assert.notNull(parameter, "'procedureParameters' must not contain null values.");
+    	}
+    	
     	Map<String, String> staticParameters = new HashMap<String, String>();
     	
     	for (ProcedureParameter parameter : procedureParameters) {
@@ -118,6 +122,12 @@ public class ProcedureParameter {
 	 * @return Map containing only the static parameters. Will never be null.
 	 */
     public static Map<String, Object> convertStaticParameters(Collection<ProcedureParameter> procedureParameters) {
+    	
+    	Assert.notNull(procedureParameters, "The Collection of procedureParameters must not be null.");
+    	
+    	for (ProcedureParameter parameter : procedureParameters) {
+    		Assert.notNull(parameter, "'procedureParameters' must not contain null values.");
+    	}
     	
     	Map<String, Object> staticParameters = new HashMap<String, Object>();
     	
