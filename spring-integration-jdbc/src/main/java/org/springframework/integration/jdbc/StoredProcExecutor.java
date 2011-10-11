@@ -124,7 +124,7 @@ public class StoredProcExecutor implements InitializingBean {
      * obtained and the select query to execute the stored procedure.
      *
      * @param dataSource used to create a {@link SimpleJdbcTemplate}, must not be Null
-     * @param storedProcedureName Name of the Stored Procedure of function, must not be empty
+     * @param storedProcedureName Name of the Stored Procedure or function, must not be empty
      */
     public StoredProcExecutor(DataSource dataSource, String storedProcedureName) {
 
@@ -207,7 +207,7 @@ public class StoredProcExecutor implements InitializingBean {
     }
 
     /**
-     * Execute a Stored Procedure of Function - Use when not {@link Message} is
+     * Execute a Stored Procedure or Function - Use when no {@link Message} is
      * available to extract {@link ProcedureParameter} values from it.
      *
      * @return Map containing the stored procedure results if any.
@@ -217,7 +217,7 @@ public class StoredProcExecutor implements InitializingBean {
     }
 
     /**
-     * Execute a Stored Procedure of Function - Use with {@link Message} is
+     * Execute a Stored Procedure or Function - Use with {@link Message} is
      * available to extract {@link ProcedureParameter} values from it.
      *
      * @return Map containing the stored procedure results if any.

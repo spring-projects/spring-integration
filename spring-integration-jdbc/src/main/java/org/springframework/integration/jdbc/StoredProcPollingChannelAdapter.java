@@ -52,7 +52,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
      * obtained and the stored procedure name to execute.
      *
      * @param dataSource used to create a {@link SimpleJdbcCall}
-     * @param storedProcedureName Name of the Stored Procedure of Function to execute
+     * @param storedProcedureName Name of the Stored Procedure or Function to execute
      */
     public StoredProcPollingChannelAdapter(DataSource dataSource, String storedProcedureName) {
     	
