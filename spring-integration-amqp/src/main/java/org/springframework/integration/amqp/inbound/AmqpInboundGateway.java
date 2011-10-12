@@ -33,6 +33,7 @@ import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Adapter that receives Messages from an AMQP Queue, converts them into
@@ -100,7 +101,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 									// clear the replyTo from the original message since we are using it now
 									messageProperties.setReplyTo(null);
 									// reset the content-* properties as determined by the MessageConverter
-									if (contentEncoding != null) {
+									if (StringUtils.hasText(contentEncoding)) {
 										messageProperties.setContentEncoding(contentEncoding);
 									}
 									messageProperties.setContentLength(contentLength);
