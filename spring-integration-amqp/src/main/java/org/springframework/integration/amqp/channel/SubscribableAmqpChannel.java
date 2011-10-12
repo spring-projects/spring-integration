@@ -145,7 +145,7 @@ public class SubscribableAmqpChannel extends AbstractAmqpChannel implements Subs
 				}
 			}
 			catch (Exception e) {
-				throw new MessagingException("failed to handle incoming AMQP Message", e);
+				throw new MessagingException("Failure occured in AMQP listener while attempting to convert and dispatch Message.", e);
 			}
 		}
 	}
