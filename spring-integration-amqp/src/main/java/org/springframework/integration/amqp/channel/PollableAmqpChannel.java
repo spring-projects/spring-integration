@@ -34,7 +34,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 	private final String channelName;
 
 
-	public PollableAmqpChannel(String channelName, RabbitTemplate amqpTemplate) {
+	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate) {
 		super(amqpTemplate);
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
@@ -44,7 +44,9 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 	@Override
 	protected void onInit() throws Exception {
 		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
-		Assert.isInstanceOf(RabbitTemplate.class, amqpTemplate);
+		if (!(amqpTemplate instanceof RabbitTemplate)) {
+			throw new IllegalArgumentException("AmqpTemplate must be a RabbitTemplate");
+		}
 		RabbitTemplate rabbitTemplate = (RabbitTemplate) amqpTemplate;
 		RabbitAdmin admin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
 		String queueName = "si." + this.channelName;

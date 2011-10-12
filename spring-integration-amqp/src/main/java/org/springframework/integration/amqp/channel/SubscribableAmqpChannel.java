@@ -55,8 +55,8 @@ public class SubscribableAmqpChannel extends AbstractAmqpChannel implements Subs
 	private volatile MessageDispatcher dispatcher;
 
 
-	public SubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, RabbitTemplate rabbitTemplate, boolean isPubSub) {
-		super(rabbitTemplate);
+	public SubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate, boolean isPubSub) {
+		super(amqpTemplate);
 		Assert.notNull(container, "container must not be null");
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
@@ -78,7 +78,9 @@ public class SubscribableAmqpChannel extends AbstractAmqpChannel implements Subs
 		super.onInit();
 		this.configureDispatcher();
 		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
-		Assert.isInstanceOf(RabbitTemplate.class, amqpTemplate);
+		if (!(amqpTemplate instanceof RabbitTemplate)) {
+			throw new IllegalArgumentException("AmqpTemplate must be a RabbitTemplate");
+		}
 		RabbitTemplate rabbitTemplate = (RabbitTemplate) amqpTemplate;
 		RabbitAdmin admin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
 		if (this.isPubSub) {
@@ -97,7 +99,7 @@ public class SubscribableAmqpChannel extends AbstractAmqpChannel implements Subs
 			this.container.setQueues(queue);
 			rabbitTemplate.setRoutingKey(queueName);
 		}
-		MessageListener listener = new DispatchingMessageListener((RabbitTemplate) amqpTemplate, this.dispatcher);
+		MessageListener listener = new DispatchingMessageListener(rabbitTemplate, this.dispatcher);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
