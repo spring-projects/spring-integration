@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.springframework.integration.jdbc.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jdbc.JdbcPollingChannelAdapter;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for {@link org.springframework.integration.jdbc.JdbcPollingChannelAdapter}.
@@ -46,7 +46,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcPollingChannelAdapter");
+				.genericBeanDefinition(JdbcPollingChannelAdapter.class);
 		String dataSourceRef = element.getAttribute("data-source");
 		String jdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
