@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -61,6 +62,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	public boolean addHandler(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
 		return this.handlers.add(handler);
 	}
 
@@ -70,6 +72,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	public boolean removeHandler(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
 		return this.handlers.remove(handler);
 	}
 

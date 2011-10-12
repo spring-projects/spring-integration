@@ -18,6 +18,10 @@
 			<listitem>Outbound Gateway</listitem>
 	    </itemizedlist>
     </para>
+	<para>
+		Spring Integration also provides a point-to-point Message Channel as well as a
+		publish/subscribe Message Channel backed by AMQP Exchanges and Queues.
+	</para>
     <para>
         In order to provide AMQP support, Spring Integration relies on Spring AMQP 
         (<ulink url="http://www.springsource.org/spring-amqp">http://www.springsource.org/spring-amqp</ulink>) 
@@ -27,7 +31,7 @@
     </para>
     <para>
         Whereas the provided AMQP Channel Adapters are intended for unidirectional 
-        Messaging (send or receive), only, Spring Integration also provides inbound 
+        Messaging (send or receive) only, Spring Integration also provides inbound 
         and outbound AMQP Gateways for request/reply operations. 
     </para>
     <tip>
@@ -250,48 +254,48 @@
 
     <para>A configuration sample for an AMQP Outbound Channel Adapter is shown 
           below with all available parameters.</para>
-    <programlisting language="xml"><![CDATA[<int-amqp:outbound-channel-adapter id="outboundAmqp"]]><co              id="amqp-inbound-channel-adapter-xml-1-co" linkends="amqp-inbound-channel-adapter-xml-1" /><![CDATA[
-                               channel="outboundChannel"]]><co      id="amqp-inbound-channel-adapter-xml-2-co" linkends="amqp-inbound-channel-adapter-xml-2" /><![CDATA[
-                               amqp-template="myAmqpTemplate"]]><co id="amqp-inbound-channel-adapter-xml-3-co" linkends="amqp-inbound-channel-adapter-xml-3" /><![CDATA[
-                               exchange-name=""]]><co               id="amqp-inbound-channel-adapter-xml-4-co" linkends="amqp-inbound-channel-adapter-xml-4" /><![CDATA[
-                               order="1"]]><co                      id="amqp-inbound-channel-adapter-xml-5-co" linkends="amqp-inbound-channel-adapter-xml-5" /><![CDATA[
-                               routing-key=""]]><co                 id="amqp-inbound-channel-adapter-xml-6-co" linkends="amqp-inbound-channel-adapter-xml-6" /><![CDATA[
-                               routing-key-expression=""]]><co      id="amqp-inbound-channel-adapter-xml-7-co" linkends="amqp-inbound-channel-adapter-xml-7" /><![CDATA[/>]]>
+    <programlisting language="xml"><![CDATA[<int-amqp:outbound-channel-adapter id="outboundAmqp"]]><co              id="amqp-outbound-channel-adapter-xml-1-co" linkends="amqp-outbound-channel-adapter-xml-1" /><![CDATA[
+                               channel="outboundChannel"]]><co      id="amqp-outbound-channel-adapter-xml-2-co" linkends="amqp-outbound-channel-adapter-xml-2" /><![CDATA[
+                               amqp-template="myAmqpTemplate"]]><co id="amqp-outbound-channel-adapter-xml-3-co" linkends="amqp-outbound-channel-adapter-xml-3" /><![CDATA[
+                               exchange-name=""]]><co               id="amqp-outbound-channel-adapter-xml-4-co" linkends="amqp-outbound-channel-adapter-xml-4" /><![CDATA[
+                               order="1"]]><co                      id="amqp-outbound-channel-adapter-xml-5-co" linkends="amqp-outbound-channel-adapter-xml-5" /><![CDATA[
+                               routing-key=""]]><co                 id="amqp-outbound-channel-adapter-xml-6-co" linkends="amqp-outbound-channel-adapter-xml-6" /><![CDATA[
+                               routing-key-expression=""]]><co      id="amqp-outbound-channel-adapter-xml-7-co" linkends="amqp-outbound-channel-adapter-xml-7" /><![CDATA[/>]]>
     </programlisting>
     <para>
         <calloutlist>
-	        <callout arearefs="amqp-inbound-channel-adapter-xml-1-co" id="amqp-inbound-channel-adapter-xml-1">
+	        <callout arearefs="amqp-outbound-channel-adapter-xml-1-co" id="amqp-outbound-channel-adapter-xml-1">
 	            <para>Unique ID for this adapter.
 	            <emphasis>Optional</emphasis>.</para>
 	        </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-2-co" id="amqp-inbound-channel-adapter-xml-2">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-2-co" id="amqp-outbound-channel-adapter-xml-2">
                 <para>Message Channel to which Messages should be sent 
 					  in order to have them converted and published to an 
 					  AMQP Exchange.
                 <emphasis>Required</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-3-co" id="amqp-inbound-channel-adapter-xml-3">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-3-co" id="amqp-outbound-channel-adapter-xml-3">
                 <para>Bean Reference to the configured AMQP Template
                 <emphasis>Optional (Defaults to "amqpTemplate")</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-4-co" id="amqp-inbound-channel-adapter-xml-4">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-4-co" id="amqp-outbound-channel-adapter-xml-4">
                 <para>The name of the AMQP Exchange to which Messages 
 					  should be sent. If not provided, Messages will be sent 
 					  to the default, no-name Exchange.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-5-co" id="amqp-inbound-channel-adapter-xml-5">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-5-co" id="amqp-outbound-channel-adapter-xml-5">
                 <para>The order for this consumer when multiple 
 					  consumers are registered thereby enabling load-
 					  balancing and/or failover.
                 <emphasis>Optional (Defaults to Ordered.LOWEST_PRECEDENCE [=Integer.MAX_VALUE])</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-6-co" id="amqp-inbound-channel-adapter-xml-6">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-6-co" id="amqp-outbound-channel-adapter-xml-6">
                 <para>The fixed routing-key to use when sending Messages. By
                       default, this will be an empty String.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-7-co" id="amqp-inbound-channel-adapter-xml-7">
+            <callout arearefs="amqp-outbound-channel-adapter-xml-7-co" id="amqp-outbound-channel-adapter-xml-7">
                 <para>The routing-key to use when sending Messages 
 					  evaluated as an expression on the message (e.g. 
 					  'payload.key'). By default, this will be an empty String.
@@ -419,15 +423,30 @@
     <title>AMQP Backed Message Channels</title>
 
     <para>
-        This feature is not currently available, yet, but it is planned for the 
-        Spring Integration 2.1 M2 release. In order to follow progress, please 
-        visit the Spring Integration issue tracker at 
-        <ulink url="https://jira.springsource.org/browse/INT-1878">
-            https://jira.springsource.org/browse/INT-1878
-        </ulink>
+        There are two Message Channel implementations available. One is point-to-point, and the other is publish/subscribe.
+		Both of these channels provide a wide range of configuration attributes for the underlying AmqpTemplate and
+		SimpleMessageListenerContainer as you have seen on the Channel Adapters and Gateways. However, the examples we'll
+		show here are going to have minimal configuration. Explore the XML schema to view the available attributes.
     </para>
-    
+	<para>
+		A point-to-point channel would look like this:
+		<programlisting language="xml"><![CDATA[<int-amqp:channel id="p2pChannel"/>]]></programlisting>
+		Under the covers a Queue named "si.p2pChannel" would be declared, and this channel will send to
+		that Queue (technically by sending to the no-name Direct Exchange with a routing key that matches this Queue's name).
+		This channel will also register a consumer on that Queue. If for some reason, you want the Queue to be "pollable"
+		instead of message-driven, then simply provide the "message-driven" flag with a value of false:
+		<programlisting language="xml"><![CDATA[<int-amqp:channel id="p2pPollableChannel"  message-driven="false"/>]]></programlisting>
+	</para>
+	<para>
+    	A publish/subscribe channel would look like this:
+		<programlisting language="xml"><![CDATA[<int-amqp:publish-subscribe-channel id="pubSubChannel"/>]]></programlisting>
+		Under the covers a Fanout Exchange named "si.fanout.pubSubChannel" would be declared, and this channel will send
+		to that Fanout Exchange. This channel will also declare a server-named exclusive, autodelete, non-durable Queue
+		and bind that to the Fanout Exchange while registering a consumer on that Queue to receive Messages. There is no
+		"pollable" option for a publish-subscribe-channel; it must be message-driven.
+	</para>
   </section>
+
   <section>
     <title>AMQP Samples</title>
     <para>
