@@ -220,5 +220,293 @@
       separate for different physical channels that happen to have the same
       logical name.</para>
     </section>
-  </section>
+    </section>
+    <section id="stored-procedures">
+        <title>Stored Procedures</title>
+        <para>Spring Integration provides 3 components for stored procedures support:</para>
+	        <itemizedlist>
+		        <listitem>Stored Procedures Inbound Channel Adapter</listitem>
+		        <listitem>Stored Procedures Outbound Channel Adapter</listitem>
+		        <listitem>Stored Procedures Outbound Gateway</listitem>
+	        </itemizedlist>
+        <section id="sp-common-config-params">
+            <title>Common Configuration Parameters</title>
+        </section>
+        <section id="sp-supported-databases">
+            <title>Supported Parameters</title>
+            <para>The Store procedures components use the <classname>org.springframework.jdbc.core.simple.SimpleJdbcCall</classname>
+                  class to facilitate Stored Procedure support. The following databases 
+                  are fully supported for executing Stored procedures:</para>
+            <itemizedlist>
+                <listitem>Apache Derby</listitem>
+                <listitem>DB2</listitem>
+                <listitem>MySQL</listitem>
+                <listitem>Microsoft SQL Server</listitem>
+                <listitem>Oracle</listitem>
+                <listitem>PostgreSQL</listitem>
+                <listitem>Sybase</listitem>
+            </itemizedlist>  
+            <para>The following databases are fully supported for executing Sql 
+                  functions:</para>
+            <itemizedlist>
+                <listitem>MySQL</listitem>
+                <listitem>Microsoft SQL Server</listitem>
+                <listitem>Oracle</listitem>
+                <listitem>PostgreSQL</listitem>
+            </itemizedlist>                  
+        </section>        
+        <note><para>Even though your particular database may not be fully supported, chances
+              are that you can use the Stored Procedures Spring Integration
+              components quite successfully anyway, provided your RDBMS supports
+              Stored Procedures or Functions.</para>
+              <para>As a matter of fact, some of the provided
+              integration tests use the the H2 database. Nevertheless it is very important
+              to thouroughly test those usasge scenarios.</para></note>        
+        <section id="sp-defining-parameter-sources">
+            <title>Defining Parameter Sources</title>
+            <para>TBD</para>
+        </section>        
+        <section id="stored-procedures-inbound-channel-adapter">
+	        <title>Stored Procedures Inbound Channel Adapter</title>
+	        
+	        <programlisting language="xml">
+            <![CDATA[
+<int-jdbc:stored-proc-inbound-channel-adapter 
+                                   channel=""                                   ]]><co id="sp-inbound-xml01-co" linkends="sp-inbound-xml01" /><![CDATA[
+                                   stored-procedure-name=""                     ]]><co id="sp-inbound-xml02-co" linkends="sp-inbound-xml02" /><![CDATA[
+                                   data-source=""                               ]]><co id="sp-inbound-xml03-co" linkends="sp-inbound-xml03" /><![CDATA[
+                                   auto-startup="true"                          ]]><co id="sp-inbound-xml04-co" linkends="sp-inbound-xml04" /><![CDATA[
+                                   id=""                                        ]]><co id="sp-inbound-xml05-co" linkends="sp-inbound-xml05" /><![CDATA[
+                                   ignore-column-meta-data="false"              ]]><co id="sp-inbound-xml06-co" linkends="sp-inbound-xml06" /><![CDATA[
+                                   is-function="false"                          ]]><co id="sp-inbound-xml07-co" linkends="sp-inbound-xml07" /><![CDATA[
+                                   max-rows-per-poll=""                         ]]><co id="sp-inbound-xml08-co" linkends="sp-inbound-xml08" /><![CDATA[
+                                   update=""                                    ]]><co id="sp-inbound-xml09-co" linkends="sp-inbound-xml09" /><![CDATA[
+                                   update-per-row="false"                       ]]><co id="sp-inbound-xml10-co" linkends="sp-inbound-xml10" /><![CDATA[
+                                   update-sql-parameter-source-factory="">      ]]><co id="sp-inbound-xml11-co" linkends="sp-inbound-xml11" /><![CDATA[
+    <int:poller/>                                                               ]]><co id="sp-inbound-xml12-co" linkends="sp-inbound-xml12" /><![CDATA[
+    <int-jdbc:sql-parameter-definition name="" direction="IN"                   ]]><co id="sp-inbound-xml13-co" linkends="sp-inbound-xml13" /><![CDATA[
+                                               type="INTEGER"                   ]]><co id="sp-inbound-xml14-co" linkends="sp-inbound-xml14" /><![CDATA[
+                                               scale="10"/>                     ]]><co id="sp-inbound-xml15-co" linkends="sp-inbound-xml15" /><![CDATA[                                       
+    <int-jdbc:parameter name="" type="" value=""/>                              ]]><co id="sp-inbound-xml16-co" linkends="sp-inbound-xml16" /><![CDATA[
+    <int-jdbc:parameter name="" expression=""/>                                 ]]><co id="sp-inbound-xml17-co" linkends="sp-inbound-xml17" /><![CDATA[
+    <int-jdbc:returning-resultset name="" row-mapper="" />                      ]]><co id="sp-inbound-xml18-co" linkends="sp-inbound-xml18" /><![CDATA[
+</int-jdbc:stored-proc-inbound-channel-adapter>                                 ]]><co id="sp-inbound-xml19-co" linkends="sp-inbound-xml19" /><![CDATA[            
+            ]]>
+            </programlisting>
+            <para>
+                <calloutlist>
+                    <callout arearefs="sp-inbound-xml01-co" id="sp-inbound-xml01">
+                      <para>Channel to which polled messages will be send. If the stored
+                            procedure or function does not return any data, the payload
+                            of the Message will be Null. <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml02-co" id="sp-inbound-xml02">
+                      <para>The name of the stored procedure. If the "is-function"
+                            attribute is "true", this attributes specifies the
+                            function name. <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml03-co" id="sp-inbound-xml03">
+                      <para>Reference to a data source to use to access
+                            the database. <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml04-co" id="sp-inbound-xml04">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml05-co" id="sp-inbound-xml05">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml06-co" id="sp-inbound-xml06">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml07-co" id="sp-inbound-xml07">
+                      <para>If "true", a SQL Function is called. In that case
+                            the "stored-procedure-name" attribute defines
+                            the name of the called function. Defaults to false. <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml08-co" id="sp-inbound-xml08">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml09-co" id="sp-inbound-xml09">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml10-co" id="sp-inbound-xml10">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml11-co" id="sp-inbound-xml11">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml12-co" id="sp-inbound-xml12">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml13-co" id="sp-inbound-xml13">
+                      <para>Specifies the direction of the Sql parameter definition. 
+                            Defaults to 'IN'. If your procedure is returning ResultSets, 
+                            please use the 'returning-resultset' element. <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml14-co" id="sp-inbound-xml14">
+                      <para>The Sql type used for this Sql parameter defintion. Will translate
+                            into the integer value as defined by java.sql.Types. Alternatively
+                            you can provide the integer value as well. If this attribute is 
+                            not explicitly set, then it will default to 'VARCHAR'.<emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml15-co" id="sp-inbound-xml15">
+                      <para>The scale of the Sql parameter. Only used for numeric and decimal
+                            parameters. <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml16-co" id="sp-inbound-xml16">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-inbound-xml17-co" id="sp-inbound-xml17">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout> 
+                    <callout arearefs="sp-inbound-xml18-co" id="sp-inbound-xml18">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout> 
+                    <callout arearefs="sp-inbound-xml19-co" id="sp-inbound-xml19">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>                                                                               
+              </calloutlist></para>    	        
+	    </section>
+        <section id="stored-procedures-outbound-channel-adapter">
+            <title>Stored Procedures Outbound Channel Adapter</title>
+            
+            <programlisting language="xml">
+            <![CDATA[
+<int-jdbc:stored-proc-outbound-channel-adapter channel=""                       ]]><co id="sp-outbound-xml01-co" linkends="sp-outbound-xml01" /><![CDATA[
+                                               stored-procedure-name=""         ]]><co id="sp-outbound-xml02-co" linkends="sp-outbound-xml02" /><![CDATA[
+                                               data-source=""                   ]]><co id="sp-outbound-xml03-co" linkends="sp-outbound-xml03" /><![CDATA[
+                                               auto-startup="true"              ]]><co id="sp-outbound-xml04-co" linkends="sp-outbound-xml04" /><![CDATA[
+                                               id=""                            ]]><co id="sp-outbound-xml05-co" linkends="sp-outbound-xml05" /><![CDATA[
+                                               ignore-column-meta-data="false"  ]]><co id="sp-outbound-xml06-co" linkends="sp-outbound-xml06" /><![CDATA[
+                                               order=""                         ]]><co id="sp-outbound-xml07-co" linkends="sp-outbound-xml07" /><![CDATA[
+                                               return-value-required="false"    ]]><co id="sp-outbound-xml08-co" linkends="sp-outbound-xml08" /><![CDATA[
+                                               sql-parameter-source-factory=""> ]]><co id="sp-outbound-xml09-co" linkends="sp-outbound-xml09" /><![CDATA[
+    <int:poller fixed-rate=""/>
+    <int-jdbc:sql-parameter-definition name=""/>
+    <int-jdbc:parameter name=""/>
+                                               
+</int-jdbc:stored-proc-outbound-channel-adapter>            
+            ]]>
+            </programlisting>
+            <para>
+                <calloutlist>
+                    <callout arearefs="sp-outbound-xml01-co" id="sp-outbound-xml01">
+                      <para> <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml02-co" id="sp-outbound-xml02">
+                      <para>The name of the stored procedure. If the "is-function"
+                            attribute is "true", this attributes specifies the
+                            function name. <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml03-co" id="sp-outbound-xml03">
+                      <para>Reference to a data source to use to access
+                            the database. <emphasis>Required</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml04-co" id="sp-outbound-xml04">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml05-co" id="sp-outbound-xml05">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml06-co" id="sp-outbound-xml06">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml07-co" id="sp-outbound-xml07">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml08-co" id="sp-outbound-xml08">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>
+                    <callout arearefs="sp-outbound-xml09-co" id="sp-outbound-xml09">
+                      <para> <emphasis>Optional</emphasis>.</para>
+                    </callout>                                            
+              </calloutlist></para>                
+        </section>
+        <section id="stored-procedures-outbound-gateway">
+            <title>Stored Procedures Outbound Gateway</title>
+
+		    <programlisting language="xml">
+		    <![CDATA[
+<int-jdbc:stored-proc-outbound-gateway request-channel=""                       ]]><co id="sp-gateway-xml01-co" linkends="sp-gateway-xml01" /><![CDATA[
+                                       stored-procedure-name=""                 ]]><co id="sp-gateway-xml02-co" linkends="sp-gateway-xml02" /><![CDATA[
+                                       data-source=""                           ]]><co id="sp-gateway-xml03-co" linkends="sp-gateway-xml03" /><![CDATA[
+                                   auto-startup="true"                          ]]><co id="sp-gateway-xml04-co" linkends="sp-gateway-xml04" /><![CDATA[
+                                   id=""                                        ]]><co id="sp-gateway-xml05-co" linkends="sp-gateway-xml05" /><![CDATA[
+                                   ignore-column-meta-data="false"              ]]><co id="sp-gateway-xml06-co" linkends="sp-gateway-xml06" /><![CDATA[
+                                   is-function="false"                          ]]><co id="sp-gateway-xml07-co" linkends="sp-gateway-xml07" /><![CDATA[
+                                   order=""                                     ]]><co id="sp-gateway-xml08-co" linkends="sp-gateway-xml08" /><![CDATA[
+                                   reply-channel=""                             ]]><co id="sp-gateway-xml09-co" linkends="sp-gateway-xml09" /><![CDATA[
+                                   request-timeout=""                           ]]><co id="sp-gateway-xml10-co" linkends="sp-gateway-xml10" /><![CDATA[
+                                   return-value-required="false"                ]]><co id="sp-gateway-xml11-co" linkends="sp-gateway-xml11" /><![CDATA[
+                                   sql-parameter-source-factory="">             ]]><co id="sp-gateway-xml12-co" linkends="sp-gateway-xml12" /><![CDATA[
+<int-jdbc:sql-parameter-definition name="" direction="IN" 
+                                   type="" 
+                                   scale="10"/>                                 ]]><co id="sp-gateway-xml13-co" linkends="sp-gateway-xml13" /><![CDATA[
+<int-jdbc:sql-parameter-definition name=""/>                                    ]]><co id="sp-gateway-xml14-co" linkends="sp-gateway-xml14" /><![CDATA[                   
+<int-jdbc:parameter name="" type="" value=""/>                                  ]]><co id="sp-gateway-xml15-co" linkends="sp-gateway-xml15" /><![CDATA[
+<int-jdbc:parameter name="" expression=""/>                                     ]]><co id="sp-gateway-xml16-co" linkends="sp-gateway-xml16" /><![CDATA[
+<int-jdbc:returning-resultset name="" row-mapper="" />                          ]]><co id="sp-gateway-xml17-co" linkends="sp-gateway-xml17" /><![CDATA[
+		    ]]></programlisting>
+		
+		    <para>
+		        <calloutlist>
+			        <callout arearefs="sp-gateway-xml01-co" id="sp-gateway-xml01">
+			          <para> <emphasis>Required</emphasis>.</para>
+			        </callout>
+		            <callout arearefs="sp-gateway-xml02-co" id="sp-gateway-xml02">
+                      <para>The name of the stored procedure. If the "is-function"
+                            attribute is "true", this attributes specifies the
+                            function name. <emphasis>Required</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml03-co" id="sp-gateway-xml03">
+		              <para>Reference to a data source to use to access
+                            the database. <emphasis>Required</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml04-co" id="sp-gateway-xml04">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml05-co" id="sp-gateway-xml05">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml06-co" id="sp-gateway-xml06">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml07-co" id="sp-gateway-xml07">
+                      <para>If "true", a SQL Function is called. In that case
+                            the "stored-procedure-name" attribute defines
+                            the name of the called function. Defaults to false. <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml08-co" id="sp-gateway-xml08">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml09-co" id="sp-gateway-xml09">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml10-co" id="sp-gateway-xml10">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml11-co" id="sp-gateway-xml11">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml12-co" id="sp-gateway-xml12">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml13-co" id="sp-gateway-xml13">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml14-co" id="sp-gateway-xml14">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml15-co" id="sp-gateway-xml15">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml16-co" id="sp-gateway-xml16">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>
+		            <callout arearefs="sp-gateway-xml17-co" id="sp-gateway-xml17">
+		              <para> <emphasis>Optional</emphasis>.</para>
+		            </callout>                                              
+		      </calloutlist></para>            
+        </section>           	    
+    </section>
 </chapter>

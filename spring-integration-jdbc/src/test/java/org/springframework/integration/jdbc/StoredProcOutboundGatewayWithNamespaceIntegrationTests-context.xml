@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+  xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:util="http://www.springframework.org/schema/util"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+    http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+    http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+    <jdbc:embedded-database id="datasource" type="DERBY">
+        <jdbc:script location="classpath:derby-stored-procedures.sql"/>
+    </jdbc:embedded-database>
+
+    <int:poller id="defaultPoller" default="true" fixed-rate="5000"/>
+
+    <int:gateway id="startGateway" default-request-channel="startChannel"
+                 service-interface="org.springframework.integration.jdbc.storedproc.CreateUser" />
+    
+    <int:channel id="startChannel"/>
+
+    <int-jdbc:stored-proc-outbound-gateway request-channel="startChannel" stored-procedure-name="CREATE_USER_RETURN_ALL" data-source="datasource"
+                                           auto-startup="true"
+                                           id="gateway"
+                                           ignore-column-meta-data="false"
+                                           is-function="false"
+                                           expect-single-result="true"
+                                           reply-channel="outputChannel">                                        
+        <int-jdbc:parameter name="username" expression="payload.username"/>
+        <int-jdbc:parameter name="password" expression="payload.password"/>
+        <int-jdbc:parameter name="email"    expression="payload.email"/>
+        <int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.UserMapper" />
+    </int-jdbc:stored-proc-outbound-gateway>
+
+    <int:channel id="outputChannel"/>
+
+    <int:service-activator id="consumerEndpoint" input-channel="outputChannel" ref="consumer" />
+    <bean id="consumer" class="org.springframework.integration.jdbc.StoredProcOutboundGatewayWithNamespaceIntegrationTests$Consumer"/>
+
+    <int:logging-channel-adapter channel="errorChannel" log-full-message="true"/>
+
+    <bean id="transactionManager"
+        class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="datasource" />
+    </bean>
+
+</beans>

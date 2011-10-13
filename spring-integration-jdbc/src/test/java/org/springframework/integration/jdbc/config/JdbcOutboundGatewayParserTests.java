@@ -12,6 +12,10 @@
  */
 package org.springframework.integration.jdbc.config;
 
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,11 +34,6 @@ import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import static junit.framework.Assert.assertTrue;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Dave Syer
