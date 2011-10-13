@@ -81,7 +81,10 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 		if (this.serverConnectionFactory != null) {
 			// We don't own the connection, we are asynchronously replying
 			Object connectionId = message.getHeaders().get(IpHeaders.CONNECTION_ID);
-			TcpConnection connection = connections.get(connectionId);
+			TcpConnection connection = null;
+			if (connectionId != null) {
+				connection = connections.get(connectionId);
+			}
 			if (connection != null) {
 				try {
 					connection.send(message);
@@ -90,7 +93,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 					connection.close();
 				}
 			} else {
-				logger.error("Unable to find incoming socket for " + message);
+				logger.error("Unable to find outbound socket for " + message);
 			}
 			return;
 		}

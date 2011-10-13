@@ -53,9 +53,12 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 			return false;
 		}
 		String connectionId = (String) message.getHeaders().get(IpHeaders.CONNECTION_ID);
-		TcpConnection connection = connections.get(connectionId);
+		TcpConnection connection = null;
+		if (connectionId != null) {
+			connection = connections.get(connectionId);
+		}
 		if (connection == null) {
-			logger.error("Connection " + connectionId + " not found when processing reply for " + message);
+			logger.error("Connection not found when processing reply " + reply + " for " + message);
 			return false;
 		}
 		try {
