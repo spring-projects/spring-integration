@@ -486,7 +486,19 @@
       from the response message by writing it to the connection.
     </para>
     <para>
-          The outbound gateway, after sending a message over the connection, waits for a response and
+     <note>
+      <para>
+       For the inbound gateway, care must be taken to retain, or populate, the
+       <emphasis>ip_connnection_id</emphasis> header because it is used to
+       correlate the message to a connection. Messages that originate at the
+       gateway will automatically have the header set. If the reply is 
+       constructed as a new message, you will need to set the header. The
+       header value can be captured from the incoming message.
+      </para>
+     </note>
+    </para>
+    <para>
+      The outbound gateway, after sending a message over the connection, waits for a response and
       constructs a response message and puts in on the reply channel.
       Communications over the connections are single-threaded. Users should be aware that only one
       message can be handled at a time and, if another thread attempts to send
@@ -562,12 +574,30 @@
     <para>
      To achieve high-volume throughput (avoiding the pitfalls of using gateways
      as mentioned above) you may consider configuring a pair of collaborating
-     outbound and inbound channel adapters. On the server side, message
+     outbound and inbound channel adapters.
+     Collaborating adapters can also be used (server-side or client-side) for
+     totally asynchronous communication (rather than with request/reply semantics).
+     On the server side, message
      correlation is automatically handled by the adapters because the inbound
      adapter adds a header allowing the outbound adapter to determine which
-     connection to use to send the reply message. On the client side, however, 
-     the application will have to provide its own correlation logic. This can
-     be done in a number of ways.
+     connection to use to send the reply message.
+    </para>
+    <para>
+     <note>
+      <para>
+       On the server side, care must be taken to populate the
+       <emphasis>ip_connnection_id</emphasis> header because it is used to
+       correlate the message to a connection. Messages that originate at the
+       inbound adapter will automatically have the header set. If you wish to
+       construct other messages to send, you will need to set the header. The
+       header value can be captured from an incoming message.
+      </para>
+     </note>
+    </para>
+    <para>
+     On the client side,
+     the application will have to provide its own correlation logic, if needed.
+     This can be done in a number of ways.
     </para>
     <para>
      If the message payload has some natural correlation data, such as a 
