@@ -330,7 +330,11 @@
               <listitem>
                   <para>
                       Identifies the underlying Spring bean definition which
-                      in case of Routers is an instance of <code>EventDrivenConsumer</code>.
+                      in case of Routers is an instance of EventDrivenConsumer or
+                      PollingConsumer depending on whether the Router's
+                      <emphasis>input-channel</emphasis> is a
+                      <emphasis>SubscribableChannel</emphasis> or
+                      <emphasis>PollableChannel</emphasis>, respectively.
                       This is an <emphasis>optional</emphasis> attribute.
                   </para>
               </listitem>
@@ -355,7 +359,7 @@
               <varlistentry><term><emphasis role="bold">order</emphasis></term>
                   <listitem>
                   <para>
-                      This attriobute defines the order for invocation when
+                      This attribute defines the order for invocation when
                       this endpoint is connected as a subscriber to a channel.
                       This is particularly relevant when that channel is using a
                       <emphasis>failover</emphasis> dispatching strategy. It
@@ -428,25 +432,47 @@
     <int:mapping value="someOtherHeaderValue" channel="channelB" />
 </int:header-value-router>]]></programlisting>
           <para>
-          During the resolution process this router may encounter channel resolution failures, causing an
-          exception. If you want to suppress such exceptions and send unresolved messages to the default output channel
-          (identified with the <code>default-output-channel</code> attribute) set <code>ignore-channel-name-resolution-failures</code> to true.
-          Normally, messages for which the header value is not explicitly mapped to a channel will be sent to the <code>default-output-channel</code>.
-          However, in cases where the header value is mapped to a channel name but the channel cannot be resolved, setting
-          the <code>ignore-channel-name-resolution-failures</code>
-          attribute to true will result in routing such messages to the <code>default-output-channel</code>.
-      </para>
+              During the resolution process this router may encounter channel
+              resolution failures, causing an exception. If you want to suppress
+              such exceptions and send unresolved messages to the default output
+              channel (identified with the <code>default-output-channel</code>
+              attribute) set <code>resolution-required</code> to <code>false</code>.
+          </para>
+          <para>
+              Normally, messages for which the header value is not explicitly
+              mapped to a channel will be sent to the <code>default-output-channel</code>.
+              However, in cases where the header value is mapped to a channel
+              name but the channel cannot be resolved, setting the <code>resolution-required</code>
+              attribute to <code>false</code> will result in routing such messages
+              to the <code>default-output-channel</code>.
+          </para>
 
-          <para> <emphasis>2. Configuration where mapping of header values to channel names
+	      <important>
+		      With Spring Integration 2.1 the attribute was changed from
+		      <code>ignore-channel-name-resolution-failures</code> to
+		      <code>resolution-required</code>. Attribute <code>resolution-required</code>
+		      will default to <code>true</code>.
+	      </important>
+
+          <para><emphasis>2. Configuration where mapping of header values to channel names
               is not required since header values themselves represent channel names</emphasis>
           </para>
           <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
-        <note>
-            The two router implementations shown above share some common attributes, such as <code>default-output-channel</code> and <code>resolution-required</code>.
-            If <code>resolution-required</code> is set to true, and the router is unable to determine a target channel (e.g. there is
-            no matching payload for a PayloadTypeRouter and no <code>default-output-channel</code> has been specified), then an Exception
-            will be thrown.
-        </note>
+          <note>
+              <para>
+	              Since Spring Integration 2.1 the behavior of resolving channels is
+	              more explicit. For example, if you ommit the <code>default-output-channel</code> attribute
+	              and the Router was unable to resolve at least one valid channel, and any channel name resolution
+	              failures were ignored by setting <code>resolution-required</code> to <code>false</code>, then a
+	              <code>MessageDeliveryException</code> is thrown.
+              </para>
+              <para>
+	              Basically, by default the Router must be able to route messages
+	              successfully to at least one channel. If you really want to
+	              drop messages, you must also have <code>default-output-channel</code>
+	              set to <code>nullChannel</code>.
+              </para>
+          </note>
       </section>
       <section id="router-implementations-recipientlistrouter">
         <title>RecipientListRouter</title>
