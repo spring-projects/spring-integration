@@ -5,7 +5,7 @@
          xmlns:ns4="http://www.w3.org/1998/Math/MathML"
          xmlns:ns3="http://www.w3.org/2000/svg"
          xmlns:ns="http://docbook.org/ns/docbook">
-  <title>JMX Support</title>
+  <title id="jmx.title">JMX Support</title>
 
   <para>Spring Integration provides Channel Adapters for receiving and
   publishing JMX Notifications. There is also an inbound Channel Adapter for
@@ -150,7 +150,7 @@
  &lt;bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"&gt;
      &lt;property name="locateExistingServerIfPossible" value="true"/&gt;
  &lt;/bean&gt;</programlisting> Once the exporter is defined start up your
-    application with <screen>-Dcom.sun.management.jmxremote 
+    application with <screen>-Dcom.sun.management.jmxremote
     -Dcom.sun.management.jmxremote.port=6969
     -Dcom.sun.management.jmxremote.ssl=false
     -Dcom.sun.management.jmxremote.authenticate=false</screen>Then start
