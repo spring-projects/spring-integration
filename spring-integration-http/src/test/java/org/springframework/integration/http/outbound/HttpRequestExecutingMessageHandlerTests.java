@@ -530,6 +530,16 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertEquals(MediaType.TEXT_XML, request.getHeaders().getContentType());
 	}
 	
+	@Test // no asertions just a warn message in a log
+	public void testWarnMessageForNonPostPutAndExtractPayload() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExtractPayload(true);
+		handler.afterPropertiesSet();
+	}
+	
 	@Test
 	public void contentTypeIsNotSetForGetRequest() throws Exception {
 		//GET
