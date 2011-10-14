@@ -128,7 +128,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			}
 			this.setSocket(socket);
 		}
-		return this.getSocket();
+		return this.getTheSocket();
 	}
 	
 
