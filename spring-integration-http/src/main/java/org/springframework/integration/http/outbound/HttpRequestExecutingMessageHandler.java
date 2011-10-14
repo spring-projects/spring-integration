@@ -223,7 +223,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
-		if (this.httpMethod == HttpMethod.GET && this.extractPayload){
+		if (!this.shouldIncludeRequestBody() && this.extractPayload){
 			if (logger.isWarnEnabled()){
 				logger.warn("'extractPayload' attribute has no meaning in the context of this handler " +
 						"since provided HTTP Method is '" + this.httpMethod + "'. This attribute only has meaning " +
