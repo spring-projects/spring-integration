@@ -22,8 +22,7 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scripting.jsr223.ScriptExecutingMessageProcessor;
-import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
+import org.springframework.integration.scripting.ScriptExecutor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 
@@ -32,10 +31,10 @@ import org.springframework.scripting.support.ResourceScriptSource;
  *
  */
 public class Jsr223ScriptExecutingMessageProcessorTests {
-	DefaultScriptExecutor executor;
+	ScriptExecutor executor;
 	@Before
 	public void setUp() {
-		executor = new DefaultScriptExecutor("jruby");
+		executor = ScriptExecutorFactory.getScriptExecutor("jruby");
 	}
 	@Test
 	public void testExecuteWithVariables(){

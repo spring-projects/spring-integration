@@ -12,37 +12,22 @@
  */
 package org.springframework.integration.scripting.jsr223;
 
-import javax.script.ScriptEngine;
-
 import org.springframework.integration.scripting.ScriptExecutor;
 
 /**
- * Default implementation of the {@link ScriptExecutor}
- * 
  * @author David Turanski
- * @author Mark Fisher
  * @since 2.1
  */
- class DefaultScriptExecutor extends AbstractScriptExecutor {
-	/**
-	 * Create a DefaultScriptExceutor for the specified language name (JSR233
-	 * alias).
-	 */
-	public DefaultScriptExecutor(String language) {
-		super(language);
+public class ScriptExecutorFactory {
+	
+	private ScriptExecutorFactory(){};
+	public static ScriptExecutor getScriptExecutor(String language) {
+		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")){
+			return new PythonScriptExecutor();
+		} 
+		else if (language.equalsIgnoreCase("ruby") ||  language.equalsIgnoreCase("jruby")) {
+			return new RubyScriptExecutor();
+		}
+		return new DefaultScriptExecutor(language);
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.integration.scripting.jsr223.AbstractScriptExecutor
-	 * #postProcess(java.lang.Object, javax.script.ScriptEngine,
-	 * java.lang.String)
-	 */
-	@Override
-	protected Object postProcess(Object result, ScriptEngine scriptEngine, String script) {
-		return result;
-	}
-
 }

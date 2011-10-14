@@ -12,10 +12,10 @@
 
 	<!-- Loggers -->
 	<logger name="org.springframework">
-		<level value="info" />
+		<level value="warn" />
 	</logger>
 
-	<logger name="org.springframework.integration.jsr223">
+	<logger name="org.springframework.integration.scripting.jsr223">
 		<level value="info" />
 	</logger>
 
