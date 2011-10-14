@@ -83,6 +83,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile Class<?> expectedResponseType;
 
 	private volatile boolean extractPayload = true;
+	
+	private volatile boolean extractPayloadExplicitlySetToTrue = false;
 
 	private volatile String charset = "UTF-8";
 
@@ -93,6 +95,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
+	
+	
 
 
 	/**
@@ -139,6 +143,9 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+		if (extractPayload){
+			this.extractPayloadExplicitlySetToTrue = true;
+		}
 	}
 
 	/**
@@ -223,7 +230,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
 		}
-		if (!this.shouldIncludeRequestBody() && this.extractPayload){
+		if (!this.shouldIncludeRequestBody() && this.extractPayloadExplicitlySetToTrue){
 			if (logger.isWarnEnabled()){
 				logger.warn("'extractPayload' attribute has no meaning in the context of this handler " +
 						"since provided HTTP Method is '" + this.httpMethod + "'. This attribute only has meaning " +

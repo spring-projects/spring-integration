@@ -532,10 +532,29 @@ public class HttpRequestExecutingMessageHandlerTests {
 	
 	@Test // no asertions just a warn message in a log
 	public void testWarnMessageForNonPostPutAndExtractPayload() throws Exception {
+		// should see a warn message
+		
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
 		MockRestTemplate template = new MockRestTemplate();
 		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
 		handler.setHttpMethod(HttpMethod.GET);
+		handler.setExtractPayload(true);
+		handler.afterPropertiesSet();
+		
+		// should not see  a warn message since 'setExtractPayload' is not set explicitly
+		
+		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.GET);
+		handler.afterPropertiesSet();
+		
+		// should not see  a warn message since HTTP method is not GET
+		
+		handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
 		handler.setExtractPayload(true);
 		handler.afterPropertiesSet();
 	}
