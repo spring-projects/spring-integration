@@ -12,18 +12,17 @@
  */
 package org.springframework.integration.scripting.jsr223;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.scripting.ScriptExecutor;
+import org.springframework.integration.scripting.ScriptingException;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;
 
@@ -46,13 +45,15 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 		Assert.hasText(language, "language must not be empty");
 		this.language = language;
 		if (logger.isDebugEnabled()) {
-			logger.debug("using script engine : " + scriptEngineManager.getEngineByName(language).getFactory().getEngineName());
-			 for (String name:scriptEngineManager.getEngineByName(language).getFactory().getNames()){
-				 logger.debug("name=" + name);
-			 }
+			ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(this.language);
+			if (scriptEngine == null) {
+				logger.error(invlalidLanguageMessage(this.language));
+			}
+			else {
+				logger.debug("using script engine : " + scriptEngine.getFactory().getEngineName());
+			}
 		}
 	}
-
 
 	public Object executeScript(ScriptSource scriptSource) {
 		return this.executeScript(scriptSource, null);
@@ -61,6 +62,11 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 	public Object executeScript(ScriptSource scriptSource, Map<String, Object> variables) {
 		Object result = null;
 		ScriptEngine scriptEngine = this.scriptEngineManager.getEngineByName(this.language);
+
+		if (scriptEngine == null) {
+			throw new ScriptingException(invlalidLanguageMessage(this.language));
+		}
+
 		try {
 			if (variables != null) {
 				for (Entry<String, Object> entry : variables.entrySet()) {
@@ -72,24 +78,22 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 			if (logger.isDebugEnabled()) {
 				logger.debug("executing script: " + script);
 			}
-			
+
 			result = scriptEngine.eval(script);
-			
+
 			result = postProcess(result, scriptEngine, script);
-			
+
 			if (logger.isDebugEnabled()) {
 				logger.debug("script executed in " + (new Date().getTime() - start.getTime()) + " ms");
 			}
 		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
+
+		catch (Exception e) {
+			throw new ScriptingException(e.getMessage(), e);
 		}
-		catch (ScriptException e) {
-			throw new RuntimeException(e);
-		}
+
 		return result;
 	}
-
 
 	/**
 	 * Subclasses may implement this to provide any special handling required
@@ -99,5 +103,11 @@ abstract class AbstractScriptExecutor implements ScriptExecutor {
 	 * @return modified result
 	 */
 	protected abstract Object postProcess(Object result, ScriptEngine scriptEngine, String script);
+
+	private static String invlalidLanguageMessage(String language) {
+		return new StringBuilder().append(ScriptEngineManager.class.getName())
+				.append(" is unable to create a script engine for language '").append(language).append("'.\n")
+				.append("This may be due to a missing language implementation or an invalid language name.").toString();
+	}
 
 }

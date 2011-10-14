@@ -10,23 +10,24 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.scripting.jsr223;
+package org.springframework.integration.scripting;
 
-import org.springframework.integration.scripting.ScriptExecutor;
+import org.springframework.integration.MessagingException;
 
 /**
  * @author David Turanski
  * @since 2.1
  */
-public abstract class ScriptExecutorFactory {
+@SuppressWarnings("serial")
+
+public class ScriptingException extends MessagingException {
 	
-	public static ScriptExecutor getScriptExecutor(String language) {
-		if (language.equalsIgnoreCase("python") || language.equalsIgnoreCase("jython")){
-			return new PythonScriptExecutor();
-		} 
-		else if (language.equalsIgnoreCase("ruby") ||  language.equalsIgnoreCase("jruby")) {
-			return new RubyScriptExecutor();
-		}
-		return new DefaultScriptExecutor(language);
+	public ScriptingException(String description) {
+		super(description);
+	}
+	
+	
+	public ScriptingException(String description, Throwable cause) {
+		super(description, cause);
 	}
 }
