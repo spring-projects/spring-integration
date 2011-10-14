@@ -40,8 +40,9 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite;
-		if (logger.isDebugEnabled()) 
+		if (logger.isDebugEnabled()) {
 			logger.debug("Available to read:" + inputStream.available());
+		}
 		while (true) {
 			bite = inputStream.read();
 //			logger.debug("Read:" + (char) bite);
@@ -49,8 +50,9 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 				throw new SoftEndOfStreamException("Stream closed between payloads");
 			}
 			checkClosure(bite);
-			if (n > 0 && bite == '\n' && buffer[n-1] == '\r')
+			if (n > 0 && bite == '\n' && buffer[n-1] == '\r') {
 				break;
+			}
 			buffer[n++] = (byte) bite;
 			if (n >= this.maxMessageSize) {
 				throw new IOException("CRLF not found before max message length: "

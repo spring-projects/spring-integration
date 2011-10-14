@@ -49,4 +49,6 @@ public abstract class IpHeaders {
 	@Deprecated
 	public static final String CONNECTION_SEQ = IP + "connection_seq";
 
+	private IpHeaders() {}
+
 }

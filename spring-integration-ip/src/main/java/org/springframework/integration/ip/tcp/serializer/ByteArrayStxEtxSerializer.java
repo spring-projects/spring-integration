@@ -49,8 +49,9 @@ public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
 		if (bite < 0) {
 			throw new SoftEndOfStreamException("Stream closed between payloads");
 		}
-		if (bite != STX)
+		if (bite != STX) {
 			throw new MessageMappingException("Expected STX to begin message");
+		}
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		while ((bite = inputStream.read()) != ETX) {
