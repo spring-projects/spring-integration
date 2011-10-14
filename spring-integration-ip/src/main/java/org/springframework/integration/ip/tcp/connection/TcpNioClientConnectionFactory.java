@@ -16,7 +16,9 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -55,12 +57,12 @@ public class TcpNioClientConnectionFactory extends
 	}
 
 	/**
-	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
-	 * true, a new connection is returned; otherwise a single connection is
-	 * reused for all requests while the connection remains open.
+	 * @return
+	 * @throws Exception
+	 * @throws IOException
+	 * @throws SocketException
 	 */
-	public TcpConnection getConnection() throws Exception {
-		this.checkActive();
+	protected TcpConnection getOrMakeConnection() throws Exception {
 		int n = 0;
 		while (this.selector == null) {
 			try {
@@ -72,8 +74,9 @@ public class TcpNioClientConnectionFactory extends
 				throw new Exception("Factory failed to start");
 			}
 		}
-		if (this.getTheConnection() != null && this.getTheConnection().isOpen()) {
-			return this.getTheConnection();
+		TcpConnection theConnection = this.getTheConnection();
+		if (theConnection != null && theConnection.isOpen()) {
+			return theConnection;
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("Opening new socket channel connection to " + this.getHost() + ":" + this.getPort());
@@ -92,9 +95,6 @@ public class TcpNioClientConnectionFactory extends
 		this.connections.put(socketChannel, connection);
 		newChannels.add(socketChannel);
 		selector.wakeup();
-		if (!this.isSingleUse()) {
-			this.setTheConnection(wrappedConnection);
-		}
 		return wrappedConnection;
 	}
 

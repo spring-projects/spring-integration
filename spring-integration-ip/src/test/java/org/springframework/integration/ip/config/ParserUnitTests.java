@@ -56,6 +56,7 @@ import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -129,6 +130,15 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfC2;
 
 	@Autowired
+	AbstractConnectionFactory cfC3;
+
+	@Autowired
+	AbstractConnectionFactory cfC4;
+
+	@Autowired
+	AbstractConnectionFactory cfC5;
+
+	@Autowired
 	Serializer<?> serializer;
 
 	@Autowired
@@ -171,6 +181,19 @@ public class ParserUnitTests {
 
 	@Autowired
 	private DirectChannel tcpChannel;
+
+	@Autowired
+	TcpReceivingChannelAdapter tcpInClientMode;
+
+	@Autowired
+	TcpInboundGateway inGatewayClientMode;
+
+	@Autowired
+	TaskScheduler sched;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#3")
+	TcpSendingMessageHandler tcpOutClientMode;
 
 	@Test
 	public void testInUdp() {
@@ -297,7 +320,7 @@ public class ParserUnitTests {
 	@Test
 	public void testInGateway1() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway1);
-		assertSame(cfS2, dfa.getPropertyValue("connectionFactory"));
+		assertSame(cfS2, dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
 		assertEquals("inGateway1",tcpInboundGateway1.getComponentName());
 		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway1.getComponentType());
@@ -312,11 +335,14 @@ public class ParserUnitTests {
 	@Test
 	public void testInGateway2() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway2);
-		assertSame(cfS3, dfa.getPropertyValue("connectionFactory"));
+		assertSame(cfS3, dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
 		assertEquals("inGateway2",tcpInboundGateway2.getComponentName());
 		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway2.getComponentType());
 		assertNull(dfa.getPropertyValue("errorChannel"));
+		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
+		assertNull(dfa.getPropertyValue("scheduler"));
+		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 	@Test
@@ -418,6 +444,9 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut1);
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
 		assertEquals(25, dfa.getPropertyValue("order"));
+		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
+		assertNull(dfa.getPropertyValue("scheduler"));
+		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 	@Test
@@ -432,6 +461,9 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn1);
 		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
 		assertNull(dfa.getPropertyValue("errorChannel"));
+		assertEquals(Boolean.FALSE, dfa.getPropertyValue("isClientMode"));
+		assertNull(dfa.getPropertyValue("scheduler"));
+		assertEquals(60000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 	@Test
@@ -454,6 +486,36 @@ public class ParserUnitTests {
 		assertSame(this.tcpOutboundGateway, iterator.next());	//24
 		assertSame(this.tcpNewOut1, iterator.next());			//25
 		assertSame(this.tcpOut, iterator.next());				//35
+	}
+
+	@Test
+	public void testInClientMode() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInClientMode);
+		assertSame(cfC3, dfa.getPropertyValue("clientConnectionFactory"));
+		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
+		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
+		assertSame(sched, dfa.getPropertyValue("scheduler"));
+		assertEquals(123L, dfa.getPropertyValue("retryInterval"));
+	}
+
+	@Test
+	public void testOutClientMode() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutClientMode);
+		assertSame(cfC4, dfa.getPropertyValue("clientConnectionFactory"));
+		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
+		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
+		assertSame(sched, dfa.getPropertyValue("scheduler"));
+		assertEquals(124L, dfa.getPropertyValue("retryInterval"));
+	}
+
+	@Test
+	public void testInGatewayClientMode() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(inGatewayClientMode);
+		assertSame(cfC5, dfa.getPropertyValue("clientConnectionFactory"));
+		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
+		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
+		assertSame(sched, dfa.getPropertyValue("scheduler"));
+		assertEquals(125L, dfa.getPropertyValue("retryInterval"));
 	}
 
 }

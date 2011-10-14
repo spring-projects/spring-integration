@@ -37,12 +37,16 @@ public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !attributeName.equals(IpAdapterParserUtils.TCP_CONNECTION_FACTORY)
+				&& !attributeName.equals(IpAdapterParserUtils.SCHEDULER)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);	}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SCHEDULER);
+	}
 
 }

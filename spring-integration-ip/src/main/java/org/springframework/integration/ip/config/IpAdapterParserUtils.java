@@ -98,20 +98,26 @@ public abstract class IpAdapterParserUtils {
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
-	
+
 	public static final String REQUEST_TIMEOUT = "request-timeout";
-	
+
 	public static final String REPLY_TIMEOUT = "reply-timeout";
-	
+
 	public static final String REPLY_CHANNEL = "reply-channel";
 
 	public static final String LOOKUP_HOST = "lookup-host";
-	
+
 	public static final String AUTO_STARTUP = "auto-startup";
 
 	public static final String PHASE = "phase";
 
 	public static final String APPLY_SEQUENCE = "apply-sequence";
+
+	public static final String CLIENT_MODE = "client-mode";
+
+	public static final String RETRY_INTERVAL = "retry-interval";
+
+	public static final String SCHEDULER = "scheduler";
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 

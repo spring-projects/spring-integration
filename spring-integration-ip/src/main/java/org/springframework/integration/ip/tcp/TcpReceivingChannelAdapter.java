@@ -15,13 +15,20 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
+import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.util.Assert;
 
 /**
  * Tcp inbound channel adapter using a TcpConnection to 
@@ -34,34 +41,75 @@ import org.springframework.integration.ip.tcp.connection.TcpListener;
  *
  */
 public class TcpReceivingChannelAdapter 
-	extends MessageProducerSupport implements TcpListener {
+	extends MessageProducerSupport implements TcpListener, ClientModeCapable {
 
-	private ConnectionFactory clientConnectionFactory;
-	
-	private ConnectionFactory serverConnectionFactory;
-	
+	private AbstractConnectionFactory clientConnectionFactory;
+
+	private AbstractConnectionFactory serverConnectionFactory;
+
+	private volatile boolean isClientMode;
+
+	private volatile TaskScheduler scheduler;
+
+	private volatile long retryInterval = 60000;
+
+	private volatile ScheduledFuture<?> scheduledFuture;
+
+	private volatile ClientModeConnectionManager clientModeConnectionManager;
+
+	private volatile boolean active;
+
 	public boolean onMessage(Message<?> message) {
 		sendMessage(message);
 		return false;
 	}
-	
+
 	@Override
-	protected void doStart() {
-		if (this.serverConnectionFactory != null) {
-			this.serverConnectionFactory.start();
-		}
-		if (this.clientConnectionFactory != null) {
-			this.clientConnectionFactory.start();
+	protected void onInit() {
+		super.onInit();
+		if (this.isClientMode) {
+			Assert.notNull(this.clientConnectionFactory,
+					"For client-mode, connection factory must be type='client'");
+			Assert.isTrue(!this.clientConnectionFactory.isSingleUse(),
+					"For client-mode, connection factory must have single-use='false'");
 		}
 	}
 
-	@Override
-	protected void doStop() {
-		if (this.clientConnectionFactory != null) {
-			this.clientConnectionFactory.stop();
+	@Override // protected by super#lifecycleLock
+	protected void doStart() {
+		super.doStart();
+		if (!this.active) {
+			this.active = true;
+			if (this.serverConnectionFactory != null) {
+				this.serverConnectionFactory.start();
+			}
+			if (this.clientConnectionFactory != null) {
+				this.clientConnectionFactory.start();
+			}
+			if (this.isClientMode) {
+				ClientModeConnectionManager manager = new ClientModeConnectionManager(
+						this.clientConnectionFactory);
+				this.clientModeConnectionManager = manager;
+				this.scheduledFuture = this.getScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+			}
 		}
-		if (this.serverConnectionFactory != null) {
-			this.serverConnectionFactory.stop();
+	}
+
+	@Override // protected by super#lifecycleLock
+	protected void doStop() {
+		super.doStop();
+		if (this.active) {
+			this.active = false;
+			if (this.scheduledFuture != null) {
+				this.scheduledFuture.cancel(true);
+			}
+			this.clientModeConnectionManager = null;
+			if (this.clientConnectionFactory != null) {
+				this.clientConnectionFactory.stop();
+			}
+			if (this.serverConnectionFactory != null) {
+				this.serverConnectionFactory.stop();
+			}
 		}
 	}
 
@@ -108,4 +156,69 @@ public class TcpReceivingChannelAdapter
 	protected ConnectionFactory getServerConnectionFactory() {
 		return serverConnectionFactory;
 	}
+
+	/**
+	 * @return the isClientMode
+	 */
+	public boolean isClientMode() {
+		return this.isClientMode;
+	}
+
+	/**
+	 * @param isClientMode
+	 *            the isClientMode to set
+	 */
+	public void setClientMode(boolean isClientMode) {
+		this.isClientMode = isClientMode;
+	}
+
+	/**
+	 * @return the scheduler
+	 */
+	protected TaskScheduler getScheduler() {
+		if (this.scheduler == null) {
+			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+			scheduler.initialize();
+			this.scheduler = scheduler;
+		}
+		return this.scheduler;
+	}
+
+	/**
+	 * @param scheduler
+	 *            the scheduler to set
+	 */
+	public void setScheduler(TaskScheduler scheduler) {
+		this.scheduler = scheduler;
+	}
+
+	/**
+	 * @return the retryInterval
+	 */
+	public long getRetryInterval() {
+		return this.retryInterval;
+	}
+
+	/**
+	 * @param retryInterval
+	 *            the retryInterval to set
+	 */
+	public void setRetryInterval(long retryInterval) {
+		this.retryInterval = retryInterval;
+	}
+
+	public boolean isClientModeConnected() {
+		if (this.isClientMode && this.clientModeConnectionManager != null) {
+			return this.clientModeConnectionManager.isConnected();
+		} else {
+			return false;
+		}
+	}
+
+	public void retryConnection() {
+		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
+			this.clientModeConnectionManager.run();
+		}
+	}
+
 }
