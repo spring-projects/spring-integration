@@ -290,17 +290,31 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
   <section id="sftp-session-caching">
   	<title>SFTP Session Caching</title>
   	<para>
-  	One of the optimizations implemented by the SFTP adapters is session caching. Similar to JDBC pooling of Connections, the SFTP Adapters maintain a 
-  	pool of Sessions by default. However there are times when this behavior is not desired (e.g., security etc.). 
-  	To disable session caching you can set the <code>cache-sessions</code> attribute to <code>false</code> (the default value is <code>true</code>).
-<programlisting language="xml"><![CDATA[<int-sftp:inbound-channel-adapter id="ftpInbound"
-				channel="sftpChannel" 
-				. . .
-				cache-sessions="false"
-                . . . 
-</int-sftp:inbound-channel-adapter>]]></programlisting>	
+  	Since version 2.1 we've exposed more flexibility with regard to session management for remote file adapters (e.g., FTP, SFTP etc).
+    In previous versions the sessions were cached automatically. And although we did exposes <code>cache-session</code> attribute which would 
+    allow you to turn auto caching off it was still not sufficient when it came to other session caching attributes. 
+    For example; One of the requirement we received was to control session limit if remote server imposes client connection limit. 
+    Now such behavior is controlled by the <classname>CachingSessionFactory</classname> and its <code>maxConcurrentSession</code> and 
+    <code>sessionWaitTimeout</code> properties. As its name suggest <code>maxConcurrentSession</code> property controls how many active 
+    sessions this adapter will maintain in its cache. If <code>maxConcurrentSession</code> threshold has been reached any 
+    attempt to get more session will block until session becomes available or until wait time for a session to become available 
+    expires (DEFAULT 5 sec). The wait time for a session to become available can also be controlled via <code>sessionWaitTimeout</code> 
+    property.
+    </para>
+    <para>
+    Since version 2.1 if you need you session to be cahced you can simplt configure you default Session Factory as 
+    described above and than wrap it in the <classname>CachingSessionFactory</classname> while providing additional attributes.
+    
+    <programlisting language="xml"><![CDATA[<bean id="ftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+		<property name="host" value="localhost"/>
+	</bean>
+	
+	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
+		<constructor-arg ref="ftpSessionFactory"/>
+		<property name="sessionCacheSize" value="10"/>
+		<property name="sessionWaitTimeout" value="1000"/>
+	</bean>]]></programlisting>
 
-The same attribute can also be used with Outbound Channel Adapters.
   	</para>
   </section>
 </chapter>

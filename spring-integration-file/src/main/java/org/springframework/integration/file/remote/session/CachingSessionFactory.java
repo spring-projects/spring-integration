@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,14 @@ package org.springframework.integration.file.remote.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -37,46 +38,91 @@ import org.springframework.beans.factory.DisposableBean;
  * @author Mark Fisher
  * @since 2.0
  */
-public class CachingSessionFactory implements SessionFactory, DisposableBean {
+public class CachingSessionFactory implements SessionFactory, DisposableBean, InitializingBean {
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
-	public static final int DEFAULT_POOL_SIZE = 10;
+	public static final int DEFAULT_SESSION_LIMIT = 10;
+	
+	private final AtomicInteger concurrentSessions = new AtomicInteger(0);
+	
+	private volatile int sessionCacheSize = DEFAULT_SESSION_LIMIT;
 
+	private volatile long sessionWaitTimeout = 5000;
 
-	private final Queue<Session> queue;
+	private volatile LinkedBlockingQueue<Session> queue;
 
 	private final SessionFactory sessionFactory;
 
-	private final int maxPoolSize;
-
+	private final Object lock = new Object();
 
 	public CachingSessionFactory(SessionFactory sessionFactory) {
-		this(sessionFactory, DEFAULT_POOL_SIZE);
-	}
-
-	public CachingSessionFactory(SessionFactory sessionFactory, int maxPoolSize) {
 		this.sessionFactory = sessionFactory;
-		this.maxPoolSize = maxPoolSize;
-		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
+	}
+	/**
+	 * Sets the limit of concurrent sessions to be maintained by this session factory
+	 */
+	public void setSessionCacheSize(int sessionCacheSize) {
+		this.sessionCacheSize = sessionCacheSize;
+	}
+	
+	/**
+	 * Sets the limit of how long it will wait for a session to become available after which 
+	 * it will throw {@link IllegalStateException}.
+	 */
+	public void setSessionWaitTimeout(long sessionWaitTimeout) {
+		this.sessionWaitTimeout = sessionWaitTimeout;
 	}
 
-
-	public Session getSession() {
-		Session session = this.queue.poll();
-		if (session == null || !session.isOpen()) {
-			if (session != null && logger.isTraceEnabled()) {
-				logger.trace("Located session in the pool but it is stale, will create new one.");
+	public Session getSession() {	
+		try {
+			Session session = null;
+			synchronized (lock) {
+				if (concurrentSessions.get() == this.sessionCacheSize){
+					session = this.queue.poll(this.sessionWaitTimeout, TimeUnit.MILLISECONDS);
+					if (session == null){
+						throw new IllegalStateException("Timed out while attempting to obtain session form the local cache");
+					}
+				}
+				else {
+					session = this.queue.poll();
+				}
 			}
-			session = this.sessionFactory.getSession();
-			if (logger.isTraceEnabled()) {
-				logger.trace("Created new session");
+					
+			if (session == null || !session.isOpen()) {
+				if (session != null && logger.isTraceEnabled()) {
+					logger.trace("Located session in the pool but it is stale, will create new one.");				
+					concurrentSessions.getAndDecrement();				
+				}
+				
+				int sessionsCount = 0;
+				synchronized (lock) {
+					session = this.sessionFactory.getSession();
+					sessionsCount = concurrentSessions.incrementAndGet();
+				}
+				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Created new Session");
+				}
+				if (sessionsCount == this.sessionCacheSize){
+					if (logger.isInfoEnabled()){
+						logger.info("Concurrent remote sessions threshold has been reached: " + this.sessionCacheSize +
+								". No more new session will be created.");
+					}
+				}
 			}
+			else if (logger.isTraceEnabled()) {
+				logger.trace("Using session from the pool");
+			}
+			return new CachedSession(session);
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Exception was received during attempt to obtain Session", e);
 		}
-		else if (logger.isTraceEnabled()) {
-			logger.trace("Using session from the pool");
-		}
-		return new CachedSession(session);
+	}
+	
+	public void afterPropertiesSet() throws Exception {
+		this.queue = new LinkedBlockingQueue<Session>(this.sessionCacheSize);
 	}
 
 	public void destroy() {
@@ -111,18 +157,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 
 		public void close() {
-			if (queue.size() < maxPoolSize) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Releasing target session back to the pool");
-				}
-				queue.add(targetSession);
+			if (logger.isDebugEnabled()){
+				logger.debug("Releasing Session back into the pool");
 			}
-			else {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Disconnecting target session");
-				}
-				targetSession.close();
-			}
+			queue.add(targetSession);
 		}
 
 		public boolean remove(String path) throws IOException{
@@ -153,5 +191,4 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			this.targetSession.mkdir(directory);
 		}
 	}
-
 }
