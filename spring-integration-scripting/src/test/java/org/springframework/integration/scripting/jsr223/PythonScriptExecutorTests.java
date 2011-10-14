@@ -36,6 +36,7 @@ public class PythonScriptExecutorTests {
 	public void init() {
 		 executor = new PythonScriptExecutor();
 	}
+	
 	@Test 
 	public void testLiteral() {
 		Object obj = executor.executeScript(new StaticScriptSource("3+4") );
