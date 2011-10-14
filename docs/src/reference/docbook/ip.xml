@@ -331,7 +331,7 @@
     </para>
   </section>
   <section id="ip-interceptors">
-    <title>Tcp Connection Interceptors</title>
+    <title>TCP Connection Interceptors</title>
     <para>
         Connection factories can be configured with a reference to a
         <classname>TcpConnectionInterceptorFactoryChain</classname>. Interceptors can be used
@@ -403,7 +403,7 @@
     <title>TCP Adapters</title>
     <para>
       TCP inbound and outbound channel adapters that utilize the above connection
-      factories are provided. These adapters have just 2 attributes
+      factories are provided. These adapters have attributes
       <classname>connection-factory</classname> and <classname>channel</classname>.
       The channel attribute specifies the channel on which messages arrive at an
       outbound adapter and on which messages are placed by an inbound adapter.
@@ -471,6 +471,48 @@
       'inboundClient' and deposited in channel 'replies'. Java
       serialization is used on the wire.
     </para>
+    <para>
+      Normally, inbound adapters use a type="server" connection
+      factory, which listens for incoming connection requests.
+      In some cases, it is desireable to establish the connection
+      in reverse, whereby the inbound adapter connects to an
+      external server and then waits for inbound messages on that
+      connection.
+    </para>
+    <para>
+      This topology is supported by using <emphasis>client-mode="true"</emphasis>
+      on the inbound adapter. In this case, the connection factory must
+      be of type 'client' and must have <emphasis>single-use</emphasis>
+      set to false.
+    </para>
+    <para>
+      Two additional attributes are used to support this mechanism:
+      <emphasis>retry-interval</emphasis> specifies (in milliseconds)
+      how often the framework will attempt to reconnect after a 
+      connection failure. <emphasis>scheduler</emphasis> is used to
+      supply a <classname>TaskScheduler</classname> used to
+      schedule the connection attempts, and to test that the connection is
+      still active.
+    </para>
+    <para>
+      For an outbound adapter, the connection is normally established
+      when the first message is sent. <emphasis>client-mode="true"</emphasis>
+      on an outbound adapter will cause the connection to be established
+      when the adapter is started. Adapters are automatically started
+      by default.  Again, the connection factory must be of type client
+      and have <emphasis>single-use</emphasis> set to false and
+      <emphasis>retry-interval</emphasis> and 
+      <emphasis>scheduler</emphasis> are also supported. If a connection
+      fails, it will be re-established either by the scheduler or
+      when the next message is sent.
+    </para>
+    <para>
+      For both inbound and outbound,
+      if the adapter is started, you may force the adapter to establish
+      a connection by sending a &lt;control-bus /&gt; command:
+      <classname>@adapter_id.retryConnection()</classname> and examine the
+      current state with <classname>@adapter_id.isConnected()</classname>.
+    </para>
   </section>
   <section id="tcp-gateways">
     <title>TCP Gateways</title>
@@ -496,6 +538,36 @@
        header value can be captured from the incoming message.
       </para>
      </note>
+    </para>
+    <para>
+      As with inbound adapters, inbound gateways normally use a 
+      type="server" connection
+      factory, which listens for incoming connection requests.
+      In some cases, it is desireable to establish the connection
+      in reverse, whereby the inbound gateway connects to an
+      external server and then waits for, and replies to, inbound 
+      messages on that connection.
+    </para>
+    <para>
+      This topology is supported by using <emphasis>client-mode="true"</emphasis>
+      on the inbound gateway. In this case, the connection factory must
+      be of type 'client' and must have <emphasis>single-use</emphasis>
+      set to false.
+    </para>
+    <para>
+      Two additional attributes are used to support this mechanism:
+      <emphasis>retry-interval</emphasis> specifies (in milliseconds)
+      how often the framework will attempt to reconnect after a 
+      connection failure. <emphasis>scheduler</emphasis> is used to
+      supply a <classname>TaskScheduler</classname> used to
+      schedule the connection attempts, and to test that the connection is
+      still active.
+    </para>
+    <para>
+      If the gateway is started, you may force the gateway to establish
+      a connection by sending a &lt;control-bus /&gt; command:
+      <classname>@adapter_id.retryConnection()</classname> and examine the
+      current state with <classname>@adapter_id.isConnected()</classname>.
     </para>
     <para>
       The outbound gateway, after sending a message over the connection, waits for a response and
@@ -1164,6 +1236,35 @@
                      component, the MessagingException message containing the exception 
                      and failed message is sent to this channel.</entry>
             </row>
+            <row>
+              <entry>client-mode</entry>
+              <entry>true, false</entry>
+              <entry>
+                When true, the inbound adapter will act as a client, with respect to establishing
+                the connection and then receive incoming messages on that connection. Default = false.
+                Also see <emphasis>retry-interval</emphasis> and <emphasis>scheduler</emphasis>.
+                The connection factory must be of type 'client' and have <emphasis>single-use</emphasis>
+                set to false.
+              </entry>
+            </row>
+            <row>
+              <entry>retry-interval</entry>
+              <entry></entry>
+              <entry>
+                 When in <emphasis>client-mode</emphasis>, specifies the number of milliseconds
+                 to wait between connection attempts, or after a connection failure. Default 60,000
+                 (60 seconds).
+              </entry>
+            </row>
+            <row>
+              <entry>scheduler</entry>
+              <entry>true, false</entry>
+              <entry>
+                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                <emphasis>client-mode</emphasis> connection. Defaults to a
+                <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
+              </entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -1195,6 +1296,36 @@
                      by an inbound channel adapter and this adapter will attempt 
                      to correlate messages to the connection on which an 
                      original inbound message was received.  </entry>
+            </row>
+            <row>
+              <entry>client-mode</entry>
+              <entry>true, false</entry>
+              <entry>
+                When true, the outbound adapter will attempt to establish the connection as
+                soon as it is started. When false, the connection is established when
+                the first message is sent. Default = false.
+                Also see <emphasis>retry-interval</emphasis> and <emphasis>scheduler</emphasis>.
+                The connection factory must be of type 'client' and have <emphasis>single-use</emphasis>
+                set to false.
+              </entry>
+            </row>
+            <row>
+              <entry>retry-interval</entry>
+              <entry></entry>
+              <entry>
+                 When in <emphasis>client-mode</emphasis>, specifies the number of milliseconds
+                 to wait between connection attempts, or after a connection failure. Default 60,000
+                 (60 seconds).
+              </entry>
+            </row>
+            <row>
+              <entry>scheduler</entry>
+              <entry>true, false</entry>
+              <entry>
+                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                <emphasis>client-mode</emphasis> connection. Defaults to a
+                <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
+              </entry>
             </row>
           </tbody>
         </tgroup>
@@ -1245,6 +1376,36 @@
                      and failed message is sent to this channel;
                      any reply from that flow will then be returned as a response by
                      the gateway.</entry>
+            </row>
+            <row>
+              <entry>client-mode</entry>
+              <entry>true, false</entry>
+              <entry>
+                When true, the inbound gateway will act as a client, with respect to establishing
+                the connection and then receive (and reply to) incoming messages on that connection. 
+                Default = false.
+                Also see <emphasis>retry-interval</emphasis> and <emphasis>scheduler</emphasis>.
+                The connection factory must be of type 'client' and have <emphasis>single-use</emphasis>
+                set to false.
+              </entry>
+            </row>
+            <row>
+              <entry>retry-interval</entry>
+              <entry></entry>
+              <entry>
+                 When in <emphasis>client-mode</emphasis>, specifies the number of milliseconds
+                 to wait between connection attempts, or after a connection failure. Default 60,000
+                 (60 seconds).
+              </entry>
+            </row>
+            <row>
+              <entry>scheduler</entry>
+              <entry>true, false</entry>
+              <entry>
+                Specifies a <classname>TaskScheduler</classname> to use for managing the 
+                <emphasis>client-mode</emphasis> connection. Defaults to a
+                <classname>ThreadPoolTaskScheduler</classname> with a pool size of `.
+              </entry>
             </row>
           </tbody>
         </tgroup>

@@ -22,10 +22,16 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
@@ -37,7 +43,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.util.SocketTestUtils;
@@ -110,6 +118,57 @@ public class TcpInboundGatewayTests {
 		assertEquals("Echo:Test1\r\n", new String(bytes));
 		readFully(socket.getInputStream(), bytes);
 		assertEquals("Echo:Test2\r\n", new String(bytes));
+	}
+
+	@Test
+	public void testNetClientMode() throws Exception {
+		final int port = SocketTestUtils.findAvailableServerSocket();
+		AbstractClientConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		ccf.setSingleUse(false);
+		TcpInboundGateway gateway = new TcpInboundGateway();
+		gateway.setConnectionFactory(ccf);
+		final QueueChannel channel = new QueueChannel();
+		gateway.setRequestChannel(channel);
+		gateway.setClientMode(true);
+		gateway.setRetryInterval(10000);
+		gateway.afterPropertiesSet();
+		ServiceActivatingHandler handler = new ServiceActivatingHandler(new Service());
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 10);
+					latch1.countDown();
+					Socket socket = server.accept();
+					socket.getOutputStream().write("Test1\r\nTest2\r\n".getBytes());
+					byte[] bytes = new byte[12];
+					readFully(socket.getInputStream(), bytes);
+					assertEquals("Echo:Test1\r\n", new String(bytes));
+					readFully(socket.getInputStream(), bytes);
+					assertEquals("Echo:Test2\r\n", new String(bytes));
+					latch2.await();
+					socket.close();
+					server.close();
+					done.set(true);
+					latch3.countDown();
+				}
+				catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+		gateway.start();
+		handler.handleMessage(channel.receive());
+		handler.handleMessage(channel.receive());
+		latch2.countDown();
+		assertTrue(latch3.await(10, TimeUnit.SECONDS));
+		assertTrue(done.get());
 	}
 
 	@Test

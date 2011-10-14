@@ -40,6 +40,26 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 	
 	/**
+	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
+	 * true, a new connection is returned; otherwise a single connection is
+	 * reused for all requests while the connection remains open.
+	 */
+	public TcpConnection getConnection() throws Exception {
+		this.checkActive();
+		if (this.isSingleUse()) {
+			return getOrMakeConnection();
+		} else {
+			synchronized(this) {
+				TcpConnection connection = getOrMakeConnection();
+				this.setTheConnection(connection);
+				return connection;
+			}
+		}
+	}
+
+	protected abstract TcpConnection getOrMakeConnection() throws Exception;
+
+	/**
 	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
 	 * When the connection factory has a reference to a TCPListener (to read 
 	 * responses), or for single use connections, the connection is executed.
@@ -61,6 +81,10 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 					logger.error("Error setting default reply timeout", e);
 				}
 			}
+		}
+		TcpSender sender = this.getSender();
+		if (sender != null) {
+			connection.registerSender(sender);
 		}
 		connection.setMapper(this.getMapper());
 		connection.setDeserializer(this.getDeserializer());
