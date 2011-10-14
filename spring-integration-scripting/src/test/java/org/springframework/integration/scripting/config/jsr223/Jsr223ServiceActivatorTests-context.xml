@@ -11,8 +11,8 @@
 
 	<service-activator input-channel="referencedScriptInput">
 		<script:script 
-				lang="ruby"
-				location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.rb">
+				lang="python"
+				location="org/springframework/integration/scripting/config/jsr223/Jsr223ServiceActivatorTests.py">
 			<script:variable name="foo" value="foo"/>
 			<script:variable name="bar" value="bar"/>
 			<script:variable name="date" ref="date"/>

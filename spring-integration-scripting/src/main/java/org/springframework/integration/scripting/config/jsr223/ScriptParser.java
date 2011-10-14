@@ -19,7 +19,7 @@ package org.springframework.integration.scripting.config.jsr223;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.scripting.config.AbstractScriptParser;
-import org.springframework.integration.scripting.jsr223.DefaultScriptExecutor;
+import org.springframework.integration.scripting.jsr223.ScriptExecutorFactory;
 import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 
@@ -47,7 +47,7 @@ public class ScriptParser extends AbstractScriptParser {
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext){
 		String language = element.getAttribute(LANGUAGE_ATTRIBUTE);
 		Assert.hasLength(language, "Attribute " + LANGUAGE_ATTRIBUTE + " is required");
-		builder.addConstructorArgValue(new DefaultScriptExecutor(language));
+		builder.addConstructorArgValue(ScriptExecutorFactory.getScriptExecutor(language));
 	}
 	
 

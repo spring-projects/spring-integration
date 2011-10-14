@@ -1,0 +1,1 @@
+"python-%s-%s - %s - %s" %(payload,foo,bar,date)
