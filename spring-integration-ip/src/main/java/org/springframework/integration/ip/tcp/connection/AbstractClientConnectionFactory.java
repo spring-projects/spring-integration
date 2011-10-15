@@ -74,8 +74,13 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			connection.registerListener(listener);
 		}
 		if (listener != null || this.isSingleUse()) {
-			if (this.getSoTimeout() <= 0) {
+			if (this.getSoTimeout() < 0) {
 				try {
+					/* Default so-timeout, when we have a collaborating inbound adapter,
+					 * may go to infinity in a future release; currently it's 10 seconds.
+					 * While it makes sense in a request/reply scenario, it doesn't
+					 * really for completely asynchronous communication between peers.
+					 */
 					socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 				} catch (SocketException e) {
 					logger.error("Error setting default reply timeout", e);
