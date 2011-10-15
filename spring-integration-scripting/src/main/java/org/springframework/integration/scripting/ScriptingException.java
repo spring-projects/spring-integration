@@ -12,29 +12,22 @@
  */
 package org.springframework.integration.scripting;
 
-import java.util.Map;
-
-import org.springframework.scripting.ScriptSource;
+import org.springframework.integration.MessagingException;
 
 /**
  * @author David Turanski
  * @since 2.1
  */
-public interface ScriptExecutor {
+@SuppressWarnings("serial")
 
-	/**
-	 * 
-	 * @param scriptSource
-	 * @return
-	 */
-	public abstract Object executeScript(ScriptSource scriptSource);
+public class ScriptingException extends MessagingException {
 	
-	/** 
-	 * 
-	 * @param scriptSource
-	 * @param variables -bind variable
-	 * @return
-	 */
-	public abstract Object executeScript(ScriptSource scriptSource,Map<String,Object> variables);
+	public ScriptingException(String description) {
+		super(description);
+	}
 	
+	
+	public ScriptingException(String description, Throwable cause) {
+		super(description, cause);
+	}
 }
