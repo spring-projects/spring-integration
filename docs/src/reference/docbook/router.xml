@@ -1,141 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="router"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Routers</title>
-  <section id="router-overview">
-    <title>Overview</title>
+    <title>Routers</title>
+    <section id="router-overview">
+        <title>Overview</title>
     <para>
-    Routers are a crucial element in many messaging architectures. They consume 
-    Messages from a Message Channel and forward each consumed message to one or 
-    more different Message Channel depending on a set of conditions. 
+      Routers are a crucial element in many messaging architectures. They consume
+      Messages from a Message Channel and forward each consumed message to one or
+      more different Message Channel depending on a set of conditions.
     </para>
-    <para>
-    Spring Integration provides the following routers out-of-the-box:
-    </para>
-    <itemizedlist>
-      <listitem>
-        <para><emphasis>(Generic) Router</emphasis></para>
-      </listitem>
-      <listitem>
-        <para><emphasis>Header Value Router</emphasis></para>
-      </listitem>
-      <listitem>
-        <para><emphasis>XPath Router (Part of the XML Module)</emphasis></para>
-      </listitem>
-      <listitem>
-        <para><emphasis>Payload Type Router</emphasis></para>
-      </listitem>
-      <listitem>
-        <para><emphasis>Recipient List Router</emphasis></para>
-      </listitem>
-      <listitem>
-        <para><emphasis>Error Message Exception Type Router</emphasis></para>
-      </listitem>
-    </itemizedlist>
-    <para>
-    Router implementations share many configuration parameters. Yet, certain differences
-    exist between routers. Furthermore, the availability of configuration parameters 
-    depends on whether Routers are used inside or outside of a chain. In order to
-    provide a quick overview, all available attributes are listed in the 2 tables 
-    below.
-    </para>    
-    <table><title>Routers Outside a Chain</title>
-        <tgroup cols="7">
-			<colspec colnum="1"  colname="col01" colwidth="3*"/>
-			<colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
-			<colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
-			<colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
-			<colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
-			<colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
-			<colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
-	        <thead>
-	          <row>
-	            <entry>Attribute</entry>
-	            <entry>router</entry>
-	            <entry>header value router</entry>
-	            <entry>xpath router</entry>
-	            <entry>payload type router</entry>
-	            <entry>recipient list router</entry>
-	            <entry>exception type router</entry>
-	          </row>
-	        </thead>
-	        <tbody>
-	            <row>
-	                <entry>apply-sequence</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>x<entry>x</entry><entry>x</entry>
-	            </row>
-	            <row>
-	                <entry>default-output-channel</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>resolution-required</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>ignore-send-failures</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>timeout</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>id</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>auto-startup</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>input-channel</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>order</entry>
-	                <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
-	            <row>
-	                <entry>channel-resolver</entry>
-	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>method</entry>
-	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>ref</entry>
-	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>expression</entry>
-	                <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>header-name</entry>
-	                <entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>evaluate-as-string</entry>
-	                <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
-                </row>
-	            <row>
-	                <entry>xpath-expression-ref</entry>
-	                <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
-                </row>                               
-	        </tbody>
-	    </tgroup>
-    </table>
-    <table><title>Routers Inside a Chain</title>
-        <tgroup cols="7">
-            <colspec colnum="1"  colname="col01" colwidth="3*"/>
-            <colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
-            <colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
-            <colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
-            <colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
-            <colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
-            <colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
+      <para>
+          Spring Integration provides the following routers out-of-the-box:
+      </para>
+      <itemizedlist>
+          <listitem>
+              <para><emphasis><link linkend='router-implementations-payloadtyperouter'>Payload Type Router</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='router-implementations-headervaluerouter'>Header Value Router</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='router-implementations-recipientlistrouter'>Recipient List Router</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='xpath-routing'>XPath Router (Part of the XML Module)</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='router-implementations-exception-router'>Error Message Exception Type Router</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='router-namespace'>(Generic) Router</link></emphasis></para>
+          </listitem>
+      </itemizedlist>
+      <para>
+        Router implementations share many configuration parameters. Yet, certain differences
+        exist between routers. Furthermore, the availability of configuration parameters
+        depends on whether Routers are used inside or outside of a chain. In order to
+        provide a quick overview, all available attributes are listed in the 2 tables
+        below.
+      </para>
+      <table><title>Routers Outside of a Chain</title>
+          <tgroup cols="7">
+        <colspec colnum="1"  colname="col01" colwidth="3*"/>
+        <colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
+        <colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
+        <colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
+        <colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
+        <colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
+        <colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
             <thead>
               <row>
                 <entry>Attribute</entry>
@@ -150,107 +62,331 @@
             <tbody>
                 <row>
                     <entry>apply-sequence</entry>
-                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>x<entry>x</entry><entry>x</entry>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>x<entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
                 </row>
                 <row>
                     <entry>default-output-channel</entry>
-                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>resolution-required</entry>
-                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>ignore-send-failures</entry>
-                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>timeout</entry>
-                    <entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry><entry>x</entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>id</entry>
-                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>auto-startup</entry>
-                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>input-channel</entry>
-                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>order</entry>
-                    <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
                 <row>
                     <entry>channel-resolver</entry>
-                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>method</entry>
-                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>ref</entry>
-                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>expression</entry>
-                    <entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>header-name</entry>
-                    <entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>evaluate-as-string</entry>
-                    <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
-                </row>
+                    <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
                 <row>
                     <entry>xpath-expression-ref</entry>
-                    <entry></entry><entry></entry><entry>x</entry><entry></entry><entry></entry><entry></entry>
-                </row>                               
+                    <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                </row>
+                <row>
+                    <entry>converter</entry>
+                    <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                </row>
             </tbody>
         </tgroup>
-    </table>
-    <note>
-      Router parameters have been more standardized across all router implementations
-      in Spring Integration 2.1. Consequently, there are a few minor changes that
-      leave the possibility of breaking older Spring Integration based applications.
-    </note>
-    <important>
-      Since Spring Integration 2.1 the "ignore-channel-name-resolution-failures" 
-      attribute was removed in favor of consolidating its behavior with the
-      "resolution-required" attribute. Also, the "resolution-required" attribute
-      now defaults to "true". 
-      
-      Prior to these changes, the "resolution-required" attribute defaulted to false 
-      causing messages to be dropped silently when no channel was resolved and 
-      no "default-output-channel" was set. 
-      
-      The new behavior will require at least one resolved channel and by default 
-      will throw an Exception if no channel was determined (or an attempt to send
-      was not successful).
-      
-      If you do desire to drop messages silently simply set "default-output-channel='nullChannel'".
-    </important>    
-  </section>
-  <section id="router-implementations">
-    <title>Router Implementations</title>
-    <para>
-      Since content-based routing often requires some domain-specific logic, most use-cases will require
-      Spring Integration's options for delegating to POJOs using the XML namespace support and/or Annotations.
-      Both of these are discussed below, but first we present a couple implementations that are available
-      out-of-the-box since they fulfill common requirements.
-    </para>
-    <section id="router-implementations-payloadtyperouter">
-      <title>PayloadTypeRouter</title>
+      </table>
+      <table><title>Routers Inside of a Chain</title>
+          <tgroup cols="7">
+              <colspec colnum="1"  colname="col01" colwidth="3*"/>
+              <colspec colnum="2"  colname="col02" colwidth="1*" align="center"/>
+              <colspec colnum="3"  colname="col03" colwidth="1*" align="center"/>
+              <colspec colnum="4"  colname="col04" colwidth="1*" align="center"/>
+              <colspec colnum="5"  colname="col05" colwidth="1*" align="center"/>
+              <colspec colnum="6"  colname="col06" colwidth="1*" align="center"/>
+              <colspec colnum="7"  colname="col07" colwidth="1*" align="center"/>
+              <thead>
+                <row>
+                  <entry>Attribute</entry>
+                  <entry>router</entry>
+                  <entry>header value router</entry>
+                  <entry>xpath router</entry>
+                  <entry>payload type router</entry>
+                  <entry>recipient list router</entry>
+                  <entry>exception type router</entry>
+                </row>
+              </thead>
+              <tbody>
+                  <row>
+                      <entry>apply-sequence</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>x<entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
+                  <row>
+                      <entry>default-output-channel</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
+                  <row>
+                      <entry>resolution-required</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
+                  <row>
+                      <entry>ignore-send-failures</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
+                  <row>
+                      <entry>timeout</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
+                  </row>
+                  <row>
+                      <entry>id</entry>
+                      <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>auto-startup</entry>
+                      <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>input-channel</entry>
+                      <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>order</entry>
+                      <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>channel-resolver</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>method</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>ref</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>expression</entry>
+                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>header-name</entry>
+                      <entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>evaluate-as-string</entry>
+                      <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>xpath-expression-ref</entry>
+                      <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+                  <row>
+                      <entry>converter</entry>
+                      <entry></entry><entry></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry>
+                  </row>
+              </tbody>
+          </tgroup>
+      </table>
+      <important>
+        <para>
+	        Router parameters have been more standardized across all router implementations
+	        with Spring Integration 2.1. Consequently, there are a few minor changes that
+	        leave the possibility of breaking older Spring Integration based applications.
+        </para>
+        <para>
+	        Since Spring Integration 2.1 the <code>ignore-channel-name-resolution-failures</code>
+	        attribute is removed in favor of consolidating its behavior with the
+	        <code>resolution-required</code> attribute. Also, the <code>resolution-required</code> attribute
+	        now defaults to <code>true</code>.
+        </para>
+        <para>
+	        Prior to these changes, the <code>resolution-required</code> attribute defaulted
+	        to <code>false</code> causing messages to be silently dropped when no channel was
+	        resolved and no <code>default-output-channel</code> was set.
+
+	        The new behavior will require at least one resolved channel and by default
+	        will throw an <code>MessageDeliveryException</code> if no channel was
+	        determined (or an attempt to send was not successful).
+	    </para>
+	    <para>
+	        If you do desire to drop messages silently simply set <code>default-output-channel="nullChannel"</code>.
+        </para>
+      </important>
+    </section>
+  <section id="router-common-parameters">
+      <title id="router-common-parameters.title">Common Router Parameters</title>
+      <section id="router-common-parameters-all">
+          <title>Inside and Outside of a Chain</title>
+          <para>The following parameters are valid for all routers inside and outside of
+          chains.
+          </para>
+          <variablelist>
+              <varlistentry><term><emphasis role="bold">apply-sequence</emphasis></term>
+                  <listitem>
+                  <para>
+                      This attribute specifies whether sequence number and
+                      size headers should be added to each Message. This
+                      <emphasis>optional</emphasis> attribute defaults
+                      to <emphasis>false</emphasis>.
+                  </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">default-output-channel</emphasis></term>
+                  <listitem>
+                  <para>
+                      If set, this attribute provides a reference to the
+                      channel, where Messages should be sent, if channel
+                      resolution fails to return any channels.  If no default
+                      output channel is provided, the router will throw an Exception.
+                      If you would like to silently drop those messages instead,
+                      add the <code>nullChannel</code> as the default output
+                      channel attribute value.
+                  </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">resolution-required</emphasis></term>
+                  <listitem>
+                      <para>
+                          If <emphasis>true</emphasis> this attribute specifies
+                          that channel names must always be successfully resolved
+                          to channel instances that exist. If set to
+                          <emphasis>true</emphasis>, a <code>MessagingException</code>
+                          will be raised, in case the channel cannot be resolved.
+                          Setting this attribute to <emphasis>false</emphasis>,
+                          will cause any unresovable channels to be ignored. This
+                          <emphasis>optional</emphasis> attribute will, if not
+                          explicitly set, default to <emphasis>true</emphasis>.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">ignore-send-failures</emphasis></term>
+                  <listitem>
+                  <para>
+                      If set to <emphasis>true</emphasis>, any failures that
+                      occur while trying to send to a single channel will be
+                      ignored. Otherwise, a <code>MessageDeliveryExceptions</code>
+                      will be thrown. This attribute defaults to
+                      <emphasis>false</emphasis>.
+                  </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">timeout</emphasis></term>
+                  <listitem>
+                  <para>
+                      The <code>timeout</code> attribute specifies the maximum
+                      amount of time in milliseconds to wait, when
+                      sending Messages to the target Message Channels. By default
+                      the send operation will block indefinitely.
+                  </para>
+                  </listitem>
+              </varlistentry>
+          </variablelist>
+      </section>
+      <section id="router-common-parameters-top">
+          <title>Top-Level (Outside of a Chain)</title>
+          <para>
+              The following parameters are valid only across all top-level routers that are
+              ourside of chains.
+          </para>
+
+        <variablelist>
+            <varlistentry><term><emphasis role="bold">id</emphasis></term>
+              <listitem>
+                  <para>
+                      Identifies the underlying Spring bean definition which
+                      in case of Routers is an instance of EventDrivenConsumer or
+                      PollingConsumer depending on whether the Router's
+                      <emphasis>input-channel</emphasis> is a
+                      <emphasis>SubscribableChannel</emphasis> or
+                      <emphasis>PollableChannel</emphasis>, respectively.
+                      This is an <emphasis>optional</emphasis> attribute.
+                  </para>
+              </listitem>
+            </varlistentry>
+              <varlistentry><term><emphasis role="bold">auto-startup</emphasis></term>
+                  <listitem>
+                  <para>
+                      This <code>Lifecycle</code> attribute signaled if this
+                      component should be started during startup of the Application
+                      Context. This <emphasis>optional</emphasis>
+                      attribute defaults to <emphasis>true</emphasis>.
+                  </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">input-channel</emphasis></term>
+                  <listitem>
+                      <para>
+                          The receiving Message channel of this endpoint.
+                      </para>
+                  </listitem>
+              </varlistentry>
+              <varlistentry><term><emphasis role="bold">order</emphasis></term>
+                  <listitem>
+                  <para>
+                      This attribute defines the order for invocation when
+                      this endpoint is connected as a subscriber to a channel.
+                      This is particularly relevant when that channel is using a
+                      <emphasis>failover</emphasis> dispatching strategy. It
+                      has no effect when this endpoint itself is a Polling
+                      Consumer for a channel with a queue.
+                  </para>
+                  </listitem>
+              </varlistentry>
+        </variablelist>
+
+      </section>
+    </section>
+    <section id="router-implementations">
+      <title>Router Implementations</title>
       <para>
-        A <classname>PayloadTypeRouter</classname> will send Messages to the channel as defined by payload-type
-        mappings.
-        <programlisting language="xml"><![CDATA[<bean id="payloadTypeRouter" class="org.springframework.integration.router.PayloadTypeRouter">
+        Since content-based routing often requires some domain-specific logic, most use-cases will require
+        Spring Integration's options for delegating to POJOs using the XML namespace support and/or Annotations.
+        Both of these are discussed below, but first we present a couple implementations that are available
+        out-of-the-box since they fulfill common requirements.
+      </para>
+      <section id="router-implementations-payloadtyperouter">
+        <title>PayloadTypeRouter</title>
+        <para>
+          A <classname>PayloadTypeRouter</classname> will send Messages to the channel as defined by payload-type
+          mappings.
+          <programlisting language="xml"><![CDATA[<bean id="payloadTypeRouter"
+      class="org.springframework.integration.router.PayloadTypeRouter">
     <property name="channelIdentifierMap">
         <map>
             <entry key="java.lang.String" value-ref="stringChannel"/>
@@ -258,79 +394,93 @@
         </map>
     </property>
 </bean>]]></programlisting>
-      </para>
-      <para>
-      Configuration of the <classname>PayloadTypeRouter</classname> is also supported via the namespace provided by Spring Integration (see <xref linkend="configuration-namespace"/>),
-      which essentially simplifies configuration by combining the <code>&lt;router/&gt;</code> configuration and its corresponding implementation
-      defined using a <code>&lt;bean/&gt;</code> element
-      into a single and more concise configuration element.
-      The example below demonstrates a <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using the namespace support:
-      </para>
-      <para>
-      <programlisting language="xml"><![CDATA[<int:payload-type-router input-channel="routingChannel">
-  <int:mapping type="java.lang.String" channel="stringChannel" />
-  <int:mapping type="java.lang.Integer" channel="integerChannel" />
+        </para>
+          <para>
+            Configuration of the <classname>PayloadTypeRouter</classname> is also supported via the namespace provided by Spring Integration (see <xref linkend="configuration-namespace"/>),
+            which essentially simplifies configuration by combining the <code>&lt;router/&gt;</code> configuration and its corresponding implementation
+            defined using a <code>&lt;bean/&gt;</code> element
+            into a single and more concise configuration element.
+            The example below demonstrates a <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using the namespace support:
+          </para>
+          <programlisting language="xml"><![CDATA[<int:payload-type-router input-channel="routingChannel">
+    <int:mapping type="java.lang.String" channel="stringChannel" />
+    <int:mapping type="java.lang.Integer" channel="integerChannel" />
 </int:payload-type-router>]]></programlisting>
-  </para>
-    </section>
-    <section id="router-implementations-headervaluerouter">
-      <title>HeaderValueRouter</title>
-      <para>
-        A <classname>HeaderValueRouter</classname> will send Messages to the channel based on the individual header value mappings.
-        When a <code>HeaderValueRouter</code> is created it is initialized with the <emphasis>name</emphasis> of the header to be evaluated.
-        The <emphasis>value</emphasis> of the header could be one of two things:</para>
-      <para>
-        1. Arbitrary value
-     </para>
-     <para>
-        2. Channel name
-     </para>
-     <para>
-      If arbitrary then additional mappings for these header values to channel names is required, otherwise no additional configuration is needed.
-      </para>
-      <para>
-      Spring Integration provides a simple namespace-based XML configuration to configure a <classname>HeaderValueRouter</classname>.
-      The example below demonstrates two types of namespace-based configuration for the <classname>HeaderValueRouter</classname>.
-      </para>
-      <para><emphasis>1. Configuration where mapping of header values to channels is required</emphasis> </para>
-      <para>
-      <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader">
-  <int:mapping value="someHeaderValue" channel="channelA" />
-  <int:mapping value="someOtherHeaderValue" channel="channelB" />
+      </section>
+      <section id="router-implementations-headervaluerouter">
+          <title>HeaderValueRouter</title>
+          <para>
+            A <classname>HeaderValueRouter</classname> will send Messages to the channel based on the individual header value mappings.
+            When a <code>HeaderValueRouter</code> is created it is initialized with the <emphasis>name</emphasis> of the header to be evaluated.
+            The <emphasis>value</emphasis> of the header could be one of two things:</para>
+          <para>
+              1. Arbitrary value
+          </para>
+          <para>
+              2. Channel name
+          </para>
+          <para>
+              If arbitrary then additional mappings for these header values to channel names is required, otherwise no additional configuration is needed.
+          </para>
+          <para>
+              Spring Integration provides a simple namespace-based XML configuration to configure a <classname>HeaderValueRouter</classname>.
+              The example below demonstrates two types of namespace-based configuration for the <classname>HeaderValueRouter</classname>.
+          </para>
+          <para><emphasis>1. Configuration where mapping of header values to channels is required</emphasis></para>
+          <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader">
+    <int:mapping value="someHeaderValue" channel="channelA" />
+    <int:mapping value="someOtherHeaderValue" channel="channelB" />
 </int:header-value-router>]]></programlisting>
-  </para>
-  <para>
-  During the resolution process this router may encounter channel resolution failures, causing an
-  exception. If you want to suppress such exceptions and send unresolved messages to the default output channel 
-  (identified with the <code>default-output-channel</code> attribute) set <code>ignore-channel-name-resolution-failures</code> to true. 
-  Normally, messages for which the header value is not explicitly mapped to a channel will be sent to the <code>default-output-channel</code>.
-  However, in cases where the header value is mapped to a channel name but the channel cannot be resolved, setting
-  the <code>ignore-channel-name-resolution-failures</code>
-  attribute to true will result in routing such messages to the <code>default-output-channel</code>.
-  </para>
-  
-  <para> <emphasis>2. Configuration where mapping of header values to channel names 
-  is not required since header values themselves represent channel names</emphasis> </para>
-      <para>
-      <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
-  </para>
-  
-  <note>
-      The two router implementations shown above share some common attributes, such as <code>default-output-channel</code> and <code>resolution-required</code>.
-      If <code>resolution-required</code> is set to true, and the router is unable to determine a target channel (e.g. there is
-      no matching payload for a PayloadTypeRouter and no <code>default-output-channel</code> has been specified), then an Exception
-      will be thrown.
-    </note>
-    </section>
-    
-    
-    
-    <section id="router-implementations-recipientlistrouter">
-      <title>RecipientListRouter</title>
-      <para>
-        A <classname>RecipientListRouter</classname> will send each received Message to a statically defined
-        list of Message Channels:
-        <programlisting language="xml"><![CDATA[<bean id="recipientListRouter" class="org.springframework.integration.router.RecipientListRouter">
+          <para>
+              During the resolution process this router may encounter channel
+              resolution failures, causing an exception. If you want to suppress
+              such exceptions and send unresolved messages to the default output
+              channel (identified with the <code>default-output-channel</code>
+              attribute) set <code>resolution-required</code> to <code>false</code>.
+          </para>
+          <para>
+              Normally, messages for which the header value is not explicitly
+              mapped to a channel will be sent to the <code>default-output-channel</code>.
+              However, in cases where the header value is mapped to a channel
+              name but the channel cannot be resolved, setting the <code>resolution-required</code>
+              attribute to <code>false</code> will result in routing such messages
+              to the <code>default-output-channel</code>.
+          </para>
+
+	      <important>
+		      With Spring Integration 2.1 the attribute was changed from
+		      <code>ignore-channel-name-resolution-failures</code> to
+		      <code>resolution-required</code>. Attribute <code>resolution-required</code>
+		      will default to <code>true</code>.
+	      </important>
+
+          <para><emphasis>2. Configuration where mapping of header values to channel names
+              is not required since header values themselves represent channel names</emphasis>
+          </para>
+          <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
+          <note>
+              <para>
+	              Since Spring Integration 2.1 the behavior of resolving channels is
+	              more explicit. For example, if you ommit the <code>default-output-channel</code> attribute
+	              and the Router was unable to resolve at least one valid channel, and any channel name resolution
+	              failures were ignored by setting <code>resolution-required</code> to <code>false</code>, then a
+	              <code>MessageDeliveryException</code> is thrown.
+              </para>
+              <para>
+	              Basically, by default the Router must be able to route messages
+	              successfully to at least one channel. If you really want to
+	              drop messages, you must also have <code>default-output-channel</code>
+	              set to <code>nullChannel</code>.
+              </para>
+          </note>
+      </section>
+      <section id="router-implementations-recipientlistrouter">
+        <title>RecipientListRouter</title>
+        <para>
+          A <classname>RecipientListRouter</classname> will send each received Message to a statically defined
+          list of Message Channels:
+          <programlisting language="xml"><![CDATA[<bean id="recipientListRouter"
+      class="org.springframework.integration.router.RecipientListRouter">
     <property name="channels">
         <list>
             <ref bean="channel1"/>
@@ -339,378 +489,442 @@
         </list>
     </property>
 </bean>]]></programlisting>
-      </para>
-    </section>
-     <para>
-     Spring Integration also provides namespace support for the <classname>RecipientListRouter</classname> configuration (see <xref linkend="configuration-namespace"/>)
-      as the example below demonstrates.
-      </para>
-      <para>
-      <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel"
+        </para>
+
+        <para>
+            Spring Integration also provides namespace support for the <classname>RecipientListRouter</classname> configuration (see <xref linkend="configuration-namespace"/>)
+            as the example below demonstrates.
+        </para>
+
+        <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel"
         timeout="1234"
         ignore-send-failures="true"
         apply-sequence="true">
   <int:recipient channel="channel1"/>
   <int:recipient channel="channel2"/>
 </int:recipient-list-router>]]></programlisting>
-  </para>
-  <note>
-      The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel,
-      and like a publish-subscribe-channel, it is disabled by default on the recipient-list-router. Refer to
-      <xref linkend="channel-configuration-pubsubchannel"/> for more information.
-  </note>
-  
-  <para>
-  Another convenient option when configuring a <classname>RecipientListRouter</classname> is to use Spring Expression Language (SpEL) support
-  as selectors for individual recipient channels. This is similar to using a Filter at the beginning of 'chain' to act as a "Selective Consumer".
-  However, in this case, it's all combined rather concisely into the router's configuration.
-  
-  <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel">
-	<int:recipient channel="channel1" selector-expression="payload.equals('foo')"/>
-	<int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
+
+          <note>
+              The 'apply-sequence' flag here has the same effect as it does for a publish-subscribe-channel,
+              and like a publish-subscribe-channel, it is disabled by default on the recipient-list-router. Refer to
+              <xref linkend="channel-configuration-pubsubchannel"/> for more information.
+          </note>
+          <para>
+              Another convenient option when configuring a <classname>RecipientListRouter</classname> is to use Spring Expression Language (SpEL) support
+              as selectors for individual recipient channels. This is similar to using a Filter at the beginning of 'chain' to act as a "Selective Consumer".
+              However, in this case, it's all combined rather concisely into the router's configuration.
+          </para>
+              <programlisting language="xml"><![CDATA[<int:recipient-list-router id="customRouter" input-channel="routingChannel">
+    <int:recipient channel="channel1" selector-expression="payload.equals('foo')"/>
+    <int:recipient channel="channel2" selector-expression="headers.containsKey('bar')"/>
 </int:recipient-list-router>]]></programlisting>
 
-	In the above configuration a SpEL expression identified by the <code>selector-expression</code> attribute will be evaluated to determine if this recipient 
- 	should be included in the recipient list for a given input Message. The evaluation result of the expression must be a boolean. If this 
- 	attribute is not defined, the channel will always be among the list of recipients.
-  </para>
-    
-  </section>
-  
-  <section id="router-implementations-exception-router">
-  	<title>Routing and Error handling</title>
-  
-  	<para>
-  	Spring Integration also provides a special type-based router called <classname>ErrorMessageExceptionTypeRouter</classname> for routing 
-  	Error Messages (Messages whose <code>payload</code> is a <classname>Throwable</classname> instance).
-    <classname>ErrorMessageExceptionTypeRouter</classname> is very similar to the <classname>PayloadTypeRouter</classname>. 
-    In fact they are almost identical. The only difference is that while <classname>PayloadTypeRouter</classname> navigates 
-    the instance hierarchy of a payload instance (e.g., <code>payload.getClass().getSuperclass()</code>) to find the most 
-    specific type/channel mappings, the <classname>ErrorMessageExceptionTypeRouter</classname> navigates the hierarchy of 
-    'exception causes' (e.g., <code>payload.getCause()</code>) to find the most specific <classname>Throwable</classname> type/channel mappings.
-  	</para>
-  	<para>
-  	Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>.
-  	
-  	<programlisting language="xml"><![CDATA[<int:exception-type-router input-channel="inputChannel" default-output-channel="defaultChannel">
-		<int:mapping exception-type="java.lang.IllegalArgumentException" channel="illegalChannel"/>
-		<int:mapping exception-type="java.lang.NullPointerException" channel="npeChannel"/>
+          <para>
+            In the above configuration a SpEL expression identified by the <code>selector-expression</code> attribute will be evaluated to determine if this recipient
+             should be included in the recipient list for a given input Message. The evaluation result of the expression must be a boolean. If this
+             attribute is not defined, the channel will always be among the list of recipients.
+          </para>
+      </section>
+
+      <section id="router-implementations-xpath-router">
+          <title>XPath Router</title>
+          <para>The XPath Router is part of the XML Module. As such, please read chapter
+              <emphasis><xref linkend='xpath-routing' endterm="xpath-routing.title"/></emphasis>
+          </para>
+        </section>
+
+        <section id="router-implementations-exception-router">
+            <title>Routing and Error handling</title>
+
+        <para>
+            Spring Integration also provides a special type-based router called <classname>ErrorMessageExceptionTypeRouter</classname> for routing
+            Error Messages (Messages whose <code>payload</code> is a <classname>Throwable</classname> instance).
+            <classname>ErrorMessageExceptionTypeRouter</classname> is very similar to the <classname>PayloadTypeRouter</classname>.
+            In fact they are almost identical. The only difference is that while <classname>PayloadTypeRouter</classname> navigates
+            the instance hierarchy of a payload instance (e.g., <code>payload.getClass().getSuperclass()</code>) to find the most
+            specific type/channel mappings, the <classname>ErrorMessageExceptionTypeRouter</classname> navigates the hierarchy of
+            'exception causes' (e.g., <code>payload.getCause()</code>) to find the most specific <classname>Throwable</classname> type/channel mappings.
+        </para>
+            <para>
+                Below is a sample configuration for <classname>ErrorMessageExceptionTypeRouter</classname>.
+            </para>
+    <programlisting language="xml"><![CDATA[<int:exception-type-router input-channel="inputChannel"
+                           default-output-channel="defaultChannel">
+    <int:mapping exception-type="java.lang.IllegalArgumentException"
+                 channel="illegalChannel"/>
+    <int:mapping exception-type="java.lang.NullPointerException"
+                 channel="npeChannel"/>
 </int:exception-type-router>
 
 <int:channel id="illegalChannel" />
 <int:channel id="npeChannel" />]]></programlisting>
-  	</para>
-  </section>
+        </section>
+    </section>
+    <section id="router-namespace">
+        <title>Configuring (Generic) Router</title>
+        <section>
+            <title>Configuring a Content Based Router with XML</title>
+            <para>
+                The "router" element provides a simple way to connect a router to an input channel and also accepts the
+                optional <code>default-output-channel</code> attribute. The <code>ref</code> attribute references the bean name of a custom Router implementation
+                (extending <classname>AbstractMessageRouter</classname>):
+            </para>
 
-  <section id="router-namespace">
-  	<title>Configuring Router</title>
-  	<section>
-    <title>Configuring a Content Based Router with XML</title>
-    <para>
-    The "router" element provides a simple way to connect a router to an input channel and also accepts the
-      optional <code>default-output-channel</code> attribute. The <code>ref</code> attribute references the bean name of a custom Router implementation
-      (extending <classname>AbstractMessageRouter</classname>):
-      <programlisting language="xml"><![CDATA[<int:router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
+            <programlisting language="xml"><![CDATA[<int:router ref="payloadTypeRouter" input-channel="input1"
+            default-output-channel="defaultOutput1"/>
 
-<int:router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>
+<int:router ref="recipientListRouter" input-channel="input2"
+            default-output-channel="defaultOutput2"/>
 
-<int:router ref="customRouter" input-channel="input3" default-output-channel="defaultOutput3"/>
+<int:router ref="customRouter" input-channel="input3"
+            default-output-channel="defaultOutput3"/>
 
 <beans:bean id="customRouterBean class="org.foo.MyCustomRouter"/>]]></programlisting>
 
-      Alternatively, <code>ref</code> may point to a simple POJO that contains the @Router annotation (see below), or the
-      <code>ref</code> may be combined with an explicit <code>method</code> name. Specifying a <code>method</code> applies the same behavior 
-      described in the @Router annotation section below.
-      <programlisting language="xml"><![CDATA[<int:router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
-      Using a <code>ref</code> attribute is generally recommended if the custom router implementation is referenced in other
-      <code>&lt;router&gt;</code> definitions. However if the custom router implementation should be scoped to a
-      single definition of the <code>&lt;router&gt;</code>, you may provide an inner bean definition:
-<programlisting language="xml"><![CDATA[<int:router method="someMethod" input-channel="input3" default-output-channel="defaultOutput3">
-  <beans:bean class="org.foo.MyCustomRouter"/>
+            <para>
+                Alternatively, <code>ref</code> may point to a simple POJO that contains the @Router annotation (see below), or the
+                <code>ref</code> may be combined with an explicit <code>method</code> name. Specifying a <code>method</code> applies the same behavior
+                described in the @Router annotation section below.
+            </para>
+
+            <programlisting language="xml"><![CDATA[<int:router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
+
+            <para>
+               Using a <code>ref</code> attribute is generally recommended if the custom router implementation is referenced in other
+               <code>&lt;router&gt;</code> definitions. However if the custom router implementation should be scoped to a
+               single definition of the <code>&lt;router&gt;</code>, you may provide an inner bean definition:
+            </para>
+
+            <programlisting language="xml"><![CDATA[<int:router method="someMethod" input-channel="input3"
+            default-output-channel="defaultOutput3">
+    <beans:bean class="org.foo.MyCustomRouter"/>
 </int:router>]]></programlisting>
-    </para>
-    <note>
-      <para>
-        Using both the <code>ref</code> attribute and an inner handler definition in the same <code>&lt;router&gt;</code> configuration
-        is not allowed, as it creates an ambiguous condition, and an Exception will be thrown.
-      </para>
-    </note>
-    <para>
-    	<emphasis>Routers and the Spring Expression Language (SpEL)</emphasis>
-    </para>
-    <para>
-    Sometimes the routing logic may be simple and writing a separate class for it and configuring it as a bean may seem 
-    like overkill. As of Spring Integration 2.0 we offer an alternative where you can now use 
-    <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.htm">SpEL</ulink> 
-    to implement simple computations that previously required a custom POJO router. Generally a SpEL expression is evaluated and the 
-    result is mapped to a channel:
-   <programlisting language="xml"><![CDATA[
-   <int:router input-channel="inChannel" expression="payload.paymentType">
-        <int:mapping value="CASH" channel="cashPaymentChannel"/>
-        <int:mapping value="CREDIT" channel="authorizePaymentChannel"/>
-        <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>             
-   </int:router>
-]]></programlisting>
-    
-    To simplify things even more, the SpEL expression may evaluate to a channel name:
-    
-    <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="payload + 'Channel'"/>]]></programlisting>
-    In the above configuration the result channel will be computed by the SpEL expression which simply concatenates the value 
-    of the <code>payload</code> with the literal String 'Channel'.  
-    </para>
 
-    
-    <para>
-    Another value of SpEL for configuring routers is that an expression can actually return a <classname>Collection</classname>, 
-    effectively making every <code>&lt;router&gt;</code> a <emphasis>Recipient List Router</emphasis>. Whenever the expression returns 
-    multiple channel values the Message will be forwarded to each channel.
-    
-    <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="headers.channels"/>]]></programlisting>
-    
-    In the above configuration, if the Message includes a header with the name 'channels' the value of which is a 
-    <classname>List</classname> of channel names then the Message will be sent to each channel in the list.
-    
-    You may also find <emphasis>Collection Projection</emphasis> and <emphasis>Collection Selection</emphasis> 
-    expressions useful to select multiple channels. 
-    See <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12084">"http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e12084"</ulink>
-    </para>
-  </section>
+        <note>
+            <para>
+                Using both the <code>ref</code> attribute and an inner handler definition in the same <code>&lt;router&gt;</code> configuration
+                is not allowed, as it creates an ambiguous condition, and an Exception will be thrown.
+            </para>
+        </note>
+        <para>
+          <emphasis>Routers and the Spring Expression Language (SpEL)</emphasis>
+        </para>
+        <para>
+            Sometimes the routing logic may be simple and writing a separate class for
+            it and configuring it as a bean may seem like overkill. As of Spring Integration 2.0
+            we offer an alternative where you can now use SpEL to implement simple
+            computations that previously required a custom POJO router.
+        </para>
+        <note>
+            <para>
+                For more information about the Spring Expression Language, please
+                refer to the respective chapter in the Spring Framework Reference
+                Documentation at:
+            </para>
+            <para>
+                <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html"/>
+            </para>
+        </note>
+        <para>
+            Generally a SpEL expression is evaluated and the result is mapped to
+            a channel:
+        </para>
 
-  <section id="router-annotation">
-    <title>Configuring a Router with Annotations</title>
-    <para>
-      When using <interfacename>@Router</interfacename> to annotate a method, the method may return either a
-      <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the latter case,
-      the endpoint will resolve the channel name as it does for the default output channel. Additionally, the method may return
-      either a single value or a collection. If a collection is returned, the reply message will be sent to multiple
-      channels. To summarize, the following method signatures are all valid.
-      <programlisting language="java">@Router
+            <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="payload.paymentType">
+    <int:mapping value="CASH" channel="cashPaymentChannel"/>
+    <int:mapping value="CREDIT" channel="authorizePaymentChannel"/>
+    <int:mapping value="DEBIT" channel="authorizePaymentChannel"/>
+</int:router>]]></programlisting>
+
+        <para>
+            To simplify things even more, the SpEL expression may evaluate to a channel name:
+        </para>
+
+        <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="payload + 'Channel'"/>]]></programlisting>
+
+        <para>
+            In the above configuration the result channel will be computed by the SpEL
+            expression which simply concatenates the value of the <code>payload</code>
+            with the literal String 'Channel'.
+        </para>
+        <para>
+            Another value of SpEL for configuring routers is that an expression can actually return a <classname>Collection</classname>,
+            effectively making every <code>&lt;router&gt;</code> a <emphasis>Recipient List Router</emphasis>. Whenever the expression returns
+            multiple channel values the Message will be forwarded to each channel.
+        </para>
+
+        <programlisting language="xml"><![CDATA[<int:router input-channel="inChannel" expression="headers.channels"/>]]></programlisting>
+
+        <para>
+            In the above configuration, if the Message includes a header with the name 'channels' the value of which is a
+            <classname>List</classname> of channel names then the Message will be sent to each channel in the list.
+
+            You may also find <emphasis>Collection Projection</emphasis> and <emphasis>Collection Selection</emphasis>
+            expressions useful to select multiple channels. For further information,
+            please see:
+
+            <itemizedlist>
+                <listitem>
+                    <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/expressions.html#d0e12084"/>
+                </listitem>
+            </itemizedlist>
+        </para>
+
+        </section>
+
+        <section id="router-annotation">
+            <title>Configuring a Router with Annotations</title>
+            <para>
+                When using <interfacename>@Router</interfacename> to annotate a method, the method may return either a
+                <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the latter case,
+                the endpoint will resolve the channel name as it does for the default output channel. Additionally, the method may return
+                either a single value or a collection. If a collection is returned, the reply message will be sent to multiple
+                channels. To summarize, the following method signatures are all valid.
+            </para>
+
+            <programlisting language="java"><![CDATA[@Router
 public MessageChannel route(Message message) {...}
 
 @Router
-public List&lt;MessageChannel&gt; route(Message message) {...}
+public List<MessageChannel> route(Message message) {...}
 
 @Router
 public String route(Foo payload) {...}
 
 @Router
-public List&lt;String&gt; route(Foo payload) {...}</programlisting>
-    </para>
-    <para>
-      In addition to payload-based routing, a Message may be routed based on metadata available within the
-      message header as either a property or attribute. In this case, a method annotated with <interfacename>@Router</interfacename>
-      may include a parameter annotated with <interfacename>@Header</interfacename> which is mapped to a header value as illustrated 
-      below and documented in <xref linkend="annotations"/>.
-       
-      <programlisting language="java">@Router
-public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
-    </para>
-  </section>
-  	
-  </section>
-  
-  
-  <note>
+public List<String> route(Foo payload) {...}]]></programlisting>
+
+        <para>
+          In addition to payload-based routing, a Message may be routed based on metadata available within the
+          message header as either a property or attribute. In this case, a method annotated with <interfacename>@Router</interfacename>
+          may include a parameter annotated with <interfacename>@Header</interfacename> which is mapped to a header value as illustrated
+          below and documented in <xref linkend="annotations"/>.
+        </para>
+
+            <programlisting language="java"><![CDATA[@Router
+public List<String> route(@Header("orderStatus") OrderStatus status)]]></programlisting>
+        </section>
+    </section>
+
+    <note>
     For routing of XML-based Messages, including XPath support, see <xref linkend="xml"/>.
-  </note>
+    </note>
 
-  <section id="dynamic-routers">
-    <title>Dynamic Routers</title>
-    <para>
-    So as you can see, Spring Integration provides quite a few different router configurations for common
-    <emphasis>content-based routing</emphasis> use cases as well as the option of implementing custom routers as POJOs.
-    For example <classname>PayloadTypeRouter</classname> provides a simple way to configure a router which computes <code>channels</code>
-    based on the <code>payload type</code> of the incoming Message while <classname>HeaderValueRouter</classname> provides the
-    same convenience in configuring a router which computes <code>channels</code> by evaluating the value
-    of a particular Message Header. There are also <emphasis>expression-based</emphasis> (SpEL) routers where the <code>channel</code>
-    is determined based on evaluating an expression. Thus, these type of routers exhibit some dynamic characteristics.
-    </para>
-    <para>
-    However these routers all require <emphasis>static configuration</emphasis>. Even in the case of
-    expression-based routers, the expression itself is defined as part of the router configuration which means that
-    <emphasis>the same expression operating on the same value will always result in the computation of the same channel</emphasis>.
-    This is acceptable in most cases since such routes are well defined and therefore predictable. But there are times when we
-    need to change router configurations dynamically so message flows may be routed to a different channel.
-    </para>
-    <para> <emphasis>Example:</emphasis> </para>
-    <para>
-    You might want to bring down some part of your system for maintenance and temporarily re-reroute
-    messages to a different message flow. Or you may want to introduce more granularity to your message flow by adding another
-    route to handle a more concrete type of java.lang.Number (in the case of <classname>PayloadTypeRouter</classname>).
-    </para>
-    <para>
-    Unfortunately with static router configuration to accomplish this you would have to bring down your entire application,
-    change the configuration of the router (change routes) and bring it back up. This is obviously not the solution.
-    </para>
-    <para> 
-    The <ulink url="http://www.eaipatterns.com/DynamicRouter.html">Dynamic Router</ulink> 
-    pattern describes the mechanisms by which one can change/configure routers dynamically without
-    bringing down the system or individual routers. 
-    </para>
-    <para>
-    Before we get into the specifics of how this is accomplished in Spring Integration let's quickly summarize the
-    typical flow of the router, which consists of 3 simple steps:
-    <itemizedlist>
-        <listitem>
-          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is a value calculated by the
-          router once it receives the Message. Typically it is a <classname>String</classname> or and instance of the actual
-          <classname>MessageChannel</classname>.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code>. We'll describe
-          specifics of this process in a moment.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual <classname>MessageChannel</classname> </para>
-        </listitem>
-      </itemizedlist>
-    </para>
+    <section id="dynamic-routers">
+        <title>Dynamic Routers</title>
+        <para>
+            So as you can see, Spring Integration provides quite a few different router configurations for common
+            <emphasis>content-based routing</emphasis> use cases as well as the option of implementing custom routers as POJOs.
+            For example <classname>PayloadTypeRouter</classname> provides a simple way to configure a router which computes <code>channels</code>
+            based on the <code>payload type</code> of the incoming Message while <classname>HeaderValueRouter</classname> provides the
+            same convenience in configuring a router which computes <code>channels</code> by evaluating the value
+            of a particular Message Header. There are also <emphasis>expression-based</emphasis> (SpEL) routers where the <code>channel</code>
+            is determined based on evaluating an expression. Thus, these type of routers exhibit some dynamic characteristics.
+        </para>
+        <para>
+            However these routers all require <emphasis>static configuration</emphasis>. Even in the case of
+            expression-based routers, the expression itself is defined as part of the router configuration which means that
+            <emphasis>the same expression operating on the same value will always result in the computation of the same channel</emphasis>.
+            This is acceptable in most cases since such routes are well defined and therefore predictable. But there are times when we
+            need to change router configurations dynamically so message flows may be routed to a different channel.
+        </para>
+        <para><emphasis>Example:</emphasis></para>
+        <para>
+            You might want to bring down some part of your system for maintenance and temporarily re-reroute
+            messages to a different message flow. Or you may want to introduce more granularity to your message flow by adding another
+            route to handle a more concrete type of <classname>java.lang.Number</classname> (in the case of <classname>PayloadTypeRouter</classname>).
+        </para>
+        <para>
+            Unfortunately with static router configuration to accomplish this, you would have to bring down your entire application,
+            change the configuration of the router (change routes) and bring it back up. This is obviously not the solution.
+        </para>
+        <para>
+            The <ulink url="http://www.eaipatterns.com/DynamicRouter.html">Dynamic Router</ulink>
+            pattern describes the mechanisms by which one can change/configure routers dynamically without
+            bringing down the system or individual routers. 
+        </para>
+        <para>
+            Before we get into the specifics of how this is accomplished in Spring Integration, let's quickly summarize the
+            typical flow of the router, which consists of 3 simple steps:
+        </para>
+        <itemizedlist>
+            <listitem>
+              <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is a value calculated by the
+              router once it receives the Message. Typically it is a <classname>String</classname> or and instance of the actual
+              <classname>MessageChannel</classname>.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code>. We'll describe
+              specifics of this process in a moment.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual <classname>MessageChannel</classname> </para>
+            </listitem>
+        </itemizedlist>
 
-    <para>
-    There is not much that can be done with regard to dynamic routing if Step 1 results in the actual instance of the
-    <classname>MessageChannel</classname> simply because the <classname>MessageChannel</classname> is the <emphasis>final product</emphasis> of any
-    router's job. However, if Step 1 results in a <code>channel identifier</code> that is not an instance of <classname>MessageChannel</classname>,
-    then there are quite a few possibilities to influence the process of deriving the <classname>Message Channel</classname>.
-    Lets look at couple of the examples in the context of the 3 steps mentioned above: 
-    </para>
-    <para>
-    <emphasis>Payload Type Router</emphasis>
-    </para>
-    <para>
+        <para>
+            There is not much that can be done with regard to dynamic routing if Step 1 results in the actual instance of the
+            <classname>MessageChannel</classname>, simply because the <classname>MessageChannel</classname> is the <emphasis>final product</emphasis> of any
+            router's job. However, if Step 1 results in a <code>channel identifier</code> that is not an instance of <classname>MessageChannel</classname>,
+            then there are quite a few possibilities to influence the process of deriving the <classname>Message Channel</classname>.
+            Lets look at couple of the examples in the context of the 3 steps mentioned above: 
+        </para>
+        <para>
+            <emphasis>Payload Type Router</emphasis>
+        </para>
+
     <programlisting language="xml"><![CDATA[<int:payload-type-router input-channel="routingChannel">
-  <int:mapping type="java.lang.String"  channel="channel1" />
-  <int:mapping type="java.lang.Integer" channel="channel2" />
+    <int:mapping type="java.lang.String"  channel="channel1" />
+    <int:mapping type="java.lang.Integer" channel="channel2" />
 </int:payload-type-router>]]></programlisting>
-    </para>
-    <para>
-    Within the context of the Payload Type Router the 3 steps mentioned above would be realized as:
-    <itemizedlist>
-        <listitem>
-          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the fully qualified name of the payload type
-          (e.g., java.lang.String).</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where
-           the result of the previous step is used to select the appropriate value from the <emphasis>payload type mapping</emphasis>
-           defined via <code>mapping</code> element.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
-          <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
-          reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
-          previous step.</para>
-        </listitem>
-      </itemizedlist>
-      In other words each step feeds the next step until the process completes.
-    </para>
-    <para>
-    <emphasis>Header Value Router</emphasis>
-    </para>
-    <para>
-    <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">
-  <int:mapping value="foo" channel="fooChannel" />
-  <int:mapping value="bar" channel="barChannel" />
+
+        <para>
+            Within the context of the Payload Type Router the 3 steps mentioned above would be realized as:
+        </para>
+        <itemizedlist>
+            <listitem>
+              <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the fully qualified name of the payload type
+              (e.g., java.lang.String).</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where
+               the result of the previous step is used to select the appropriate value from the <emphasis>payload type mapping</emphasis>
+               defined via <code>mapping</code> element.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
+              <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
+              reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
+              previous step.</para>
+            </listitem>
+        </itemizedlist>
+        <para>
+            In other words, each step feeds the next step until the process completes.
+        </para>
+        <para>
+            <emphasis>Header Value Router</emphasis>
+        </para>
+
+        <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">
+    <int:mapping value="foo" channel="fooChannel" />
+    <int:mapping value="bar" channel="barChannel" />
 </int:header-value-router>]]></programlisting>
-    </para>
-    <para>
-    Similar to the PayloadTypeRouter:
-    <itemizedlist>
-        <listitem>
-          <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the value of the header identified by the
-          <code>header-name</code> attribute.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where
-           the result of the previous step is used to select the appropriate value from the <emphasis>general mapping</emphasis>
-           defined via <code>mapping</code> element.</para>
-        </listitem>
-        <listitem>
-          <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
-          <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
-          reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
-          previous step.</para>
-        </listitem>
-      </itemizedlist>
-    </para>
-    <para>
-    The above two configurations of two different router types look almost identical.
-    However if we look at the alternate configuration of the <classname>HeaderValueRouter</classname> we clearly see that
-    there is no <code>mapping</code> sub element:
-    <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">]]></programlisting>
-    But the configuration is still perfectly valid. So the natural question is what about the mapping in the Step 2?
-    </para>
-    <para>
-    What this means is that Step 2 is now an optional step. If mapping is not defined then the <code>channel identifier</code>
-    value computed in Step 1 will automatically be treated as the <code>channel name</code> which will now be resolved to the
-    actual <classname>MessageChannel</classname> in the Step 3. What it also means is that Step 2 is one of the key steps to
-    provide dynamic characteristics to the routers, since it introduces a process which
-    <emphasis>allows you to change the way 'channel identifier' resolves to 'channel name'</emphasis>,
-    thus influencing the process of determining the final instance of the <classname>MessageChannel</classname> from the initial
-    <code>channel identifier</code>. 
-    </para>
-    <para><emphasis>For Example:</emphasis> </para>
-    <para>
-    In the above configuration let's assume that the <code>testHeader</code> value is 'kermit' which is now a <code>channel identifier</code>
-     (Step 1). Since there is no mapping in this router, resolving this <code>channel identifier</code> to a <code>channel name</code>
-     (Step 2) is impossible and this <code>channel identifier</code> is now treated as <code>channel name</code>. However what if
-     there was a mapping but for a different value? The end result would still be the same and that is:
-     <emphasis>if new value cannot be determined through the process of resolving the 'channel identifier' to a 'channel name',
-     such 'channel identifier' becomes 'channel name'.</emphasis>
-    </para>
-    <para>
-    So all that is left is for Step 3 to resolve the <code>channel name</code> ('kermit') to an actual instance of the
-    <classname>MessageChannel</classname> identified by this name. That will be done via the default
-    <interface>ChannelResolver</interface> implementation which is a <classname>BeanFactoryChannelResolver</classname>. It
-    basically does a bean lookup for the name provided. So now all messages which contain the header/value pair as <code>testHeader=kermit</code>
-    are going to be routed to a <classname>MessageChannel</classname> whose bean name (id) is 'kermit'.
-    </para>
-    <para>
-    But what if you want to route these messages to the 'simpson' channel? Obviously changing a static configuration will work,
-    but will also require bringing your system down. However if you had access to the <code>channel identifier</code> map, then you
-    could just introduce a new mapping where the header/value pair is now <code>kermit=simpson</code>, thus allowing Step 2 to treat
-    'kermit' as a <code>channel identifier</code> while resolving it to 'simpson' as the <code>channel name</code> .
-    </para>
-    <para>
-    The same obviously applies for <classname>PayloadTypeRouter</classname>  where you can now remap or remove a particular <emphasis>payload type
-    mapping</emphasis>. In fact, it applies to every other router including <emphasis>expression-based</emphasis> routers since their computed values
-    will now have a chance to go through Step 2 to be additionally resolved to the actual <code>channel name</code>.
-    </para>
-    <para>
-    In Spring Integration 2.0 the routers hierarchy underwent significant refactoring so that now any router that is a subclass of the
-    <classname>AbstractMessageRouter</classname> (which includes all framework defined routers) is a Dynamic Router simply because the
-    <code>channelIdentiferMap</code> is defined at the <classname>AbstractMessageRouter</classname> level. That map's setter method is
-    exposed as a public method along with 'setChannelMapping' and 'removeChannelMapping' methods. These allow you to change/add/remove
-    router mappings at runtime as long as you have a reference to the router itself. It also means that you could expose these same
-    configuration options via JMX (see <xref linkend="jmx"/>) or the Spring Integration ControlBus (see <xref linkend="control-bus"/>) functionality. 
-    </para>
 
-    <para>
-    <emphasis>Control Bus</emphasis>
-    </para>
-    <para>
-    One way to manage the router mappings is through the <ulink url="http://www.eaipatterns.com/ControlBus.html">Control Bus</ulink>
-    pattern which exposes a Control Channel where you can send
-    control messages to manage and monitor Spring Integration components, including routers.
-    For more information about the Control Bus see <xref linkend="control-bus"/>. Typically you would send a control message asking to invoke a
-    particular operation on a particular managed component (e.g., router). The two managed operations (methods) that are
-     specific to changing the router resolution process are:
-    <itemizedlist>
-        <listitem>
-          <para><code>public void setChannelMapping(String channelIdentifier, String channelName)</code> -
-          will allow you to add a new or modify an existing mapping between <code>channel identifier</code> and <code>channel name</code></para>
-        </listitem>
-        <listitem>
-          <para><code>public void removeChannelMapping(String channelIdentifier)</code> -
-          will allow you to remove a particular channel mapping, thus disconnecting the relationship between
-          <code>channel identifier</code> and <code>channel name</code> </para>
-        </listitem>
-      </itemizedlist>
-    </para>
-    <para>
-    You can also expose a router instance with Spring's JMS support and then use your favorite JMX client (e.g., JConsole) to
-    manage those operations (methods) for changing the router's configuration. For more information on Spring Integration
-    management and monitoring please visit <xref linkend="jmx"/>.
-    </para>
-  </section>
+        <para>
+            Similar to the PayloadTypeRouter:
+        </para>
+        <itemizedlist>
+            <listitem>
+              <para><emphasis>Step 1</emphasis> - Compute <code>channel identifier</code> which is the value of the header identified by the
+              <code>header-name</code> attribute.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 2</emphasis> - Resolve <code>channel identifier</code> to <code>channel name</code> where
+               the result of the previous step is used to select the appropriate value from the <emphasis>general mapping</emphasis>
+               defined via <code>mapping</code> element.</para>
+            </listitem>
+            <listitem>
+              <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
+              <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
+              reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
+              previous step.</para>
+            </listitem>
+        </itemizedlist>
 
+        <para>
+            The above two configurations of two different router types look almost identical.
+            However if we look at the alternate configuration of the <classname>HeaderValueRouter</classname> we clearly see that
+            there is no <code>mapping</code> sub element:
+        </para>
+            <programlisting language="xml"><![CDATA[<int:header-value-router input-channel="inputChannel" header-name="testHeader">]]></programlisting>
+        <para>
+            But the configuration is still perfectly valid. So the natural question is what about the mapping in the Step 2?
+        </para>
+        <para>
+            What this means is that Step 2 is now an optional step. If <code>mapping</code> is not defined then the <code>channel identifier</code>
+            value computed in Step 1 will automatically be treated as the <code>channel name</code>, which will now be resolved to the
+            actual <classname>MessageChannel</classname> as in Step 3. What it also means is that Step 2 is one of the key steps to
+            provide dynamic characteristics to the routers, since it introduces a process which
+            <emphasis>allows you to change the way 'channel identifier' resolves to 'channel name'</emphasis>,
+            thus influencing the process of determining the final instance of the <classname>MessageChannel</classname> from the initial
+            <code>channel identifier</code>. 
+        </para>
+        <para><emphasis>For Example:</emphasis> </para>
+        <para>
+            In the above configuration let's assume that the <code>testHeader</code> value is 'kermit' which is now a <code>channel identifier</code>
+            (Step 1). Since there is no mapping in this router, resolving this <code>channel identifier</code> to a <code>channel name</code>
+            (Step 2) is impossible and this <code>channel identifier</code> is now treated as <code>channel name</code>. However what if
+            there was a mapping but for a different value? The end result would still be the same and that is:
+            <emphasis>if a new value cannot be determined through the process of resolving the 'channel identifier' to a 'channel name',
+            such 'channel identifier' becomes 'channel name'.</emphasis>
+        </para>
+        <para>
+            So all that is left is for Step 3 to resolve the <code>channel name</code> ('kermit') to an actual instance of the
+            <classname>MessageChannel</classname> identified by this name. That will be done via the default
+            <interface>ChannelResolver</interface> implementation which is a <classname>BeanFactoryChannelResolver</classname>. It
+            basically does a bean lookup for the name provided. So now all messages which contain the header/value pair as <code>testHeader=kermit</code>
+            are going to be routed to a <classname>MessageChannel</classname> whose bean name (id) is 'kermit'.
+        </para>
+        <para>
+            But what if you want to route these messages to the 'simpson' channel? Obviously changing a static configuration will work,
+            but will also require bringing your system down. However if you had access to the <code>channel identifier</code> map, then you
+            could just introduce a new mapping where the header/value pair is now <code>kermit=simpson</code>, thus allowing Step 2 to treat
+            'kermit' as a <code>channel identifier</code> while resolving it to 'simpson' as the <code>channel name</code> .
+        </para>
+        <para>
+            The same obviously applies for <classname>PayloadTypeRouter</classname>, where you can now remap or remove a particular <emphasis>payload type
+            mapping</emphasis>. In fact, it applies to every other router, including <emphasis>expression-based</emphasis> routers, since their computed values
+            will now have a chance to go through Step 2 to be additionally resolved to the actual <code>channel name</code>.
+        </para>
+        <para>
+            In Spring Integration 2.0 the router hierarchy underwent significant refactoring, so that now any router that is a subclass of the
+            <classname>AbstractMessageRouter</classname> (which includes all framework defined routers) is a Dynamic Router simply because the
+            <code>channelIdentiferMap</code> is defined at the <classname>AbstractMessageRouter</classname> level. That map's setter method is
+            exposed as a public method along with 'setChannelMapping' and 'removeChannelMapping' methods. These allow you to change/add/remove
+            router mappings at runtime as long as you have a reference to the router itself. It also means that you could expose these same
+            configuration options via JMX (see <xref linkend="jmx"/>) or the Spring Integration ControlBus (see <xref linkend="control-bus"/>) functionality. 
+        </para>
+
+        <section id="dynamic-routers-control-bus">
+            <title>Manage Router Mappings using the Control Bus</title>
+            <para>
+                One way to manage the router mappings is through the <ulink url="http://www.eaipatterns.com/ControlBus.html">Control Bus</ulink>
+                pattern which exposes a Control Channel where you can send
+                control messages to manage and monitor Spring Integration components, including routers.
+            </para>
+            <note>
+                <para>
+                    For more information about the Control Bus, please see chapter <emphasis><xref linkend="control-bus"/></emphasis>.
+                </para>
+            </note>
+            <para>
+                Typically you would send a control message asking to invoke a
+                particular operation on a particular managed component (e.g. router). The two managed operations (methods) that are
+                specific to changing the router resolution process are:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para><code>public void setChannelMapping(String channelIdentifier, String channelName)</code> -
+                    will allow you to add a new or modify an existing mapping between <code>channel identifier</code> and <code>channel name</code></para>
+                </listitem>
+                <listitem>
+                  <para><code>public void removeChannelMapping(String channelIdentifier)</code> -
+                  will allow you to remove a particular channel mapping, thus disconnecting the relationship between
+                  <code>channel identifier</code> and <code>channel name</code> </para>
+                </listitem>
+            </itemizedlist>
+        </section>
+        <section id="dynamic-routers-jmx">
+            <title>Manage Router Mappings using JMX</title>
+            <para>
+                You can also expose a router instance with Spring's JMX support, and then use your favorite JMX client (e.g., JConsole) to
+                manage those operations (methods) for changing the router's configuration.
+            </para>
+            <note>
+                <para>
+                    For more information about Spring Integration's JMX suppor, please see chapter <emphasis><xref linkend="jmx" endterm="jmx.title"/></emphasis>.
+                </para>
+            </note>
+        </section>
+    </section>
 </section>
