@@ -725,12 +725,7 @@
                 factory.
             </para>
             <para>
-                It is not currently possible to set this to an infinite value
-                (0); the maximum value can be set using a SpEL expression as
-                follows.
-                <programlisting>
-                    so-timeout="#{T(java.lang.Integer).MAX_VALUE}"
-                </programlisting>
+                Setting the attribute to 0 will enable an infinite timeout.
             </para>
         </note>
     </para>
@@ -867,7 +862,9 @@
               <entry>Y</entry>
               <entry></entry>
               <entry>Defaults to 0 (infinity), except when the connection
-                     factory is used by collaborating adapters, where it
+                     factory is used by collaborating adapters, and for
+                     server connection factories with single-use="true". 
+                     In those cases, it
                      defaults to the default reply timeout (10 seconds).
                      See the section about collaborating adapters above
                      and <classname>java.net.Socket. setSoTimeout()</classname>.
