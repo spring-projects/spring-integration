@@ -57,26 +57,30 @@
         <firstname>David</firstname>
         <surname>Turanski</surname>
       </author>
+      <author>
+        <firstname>Gunnar</firstname>
+        <surname>Hillert</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>© SpringSource Inc., 2011</para></legalnotice>
   </bookinfo>
 
   <toc></toc>
- 
+
   <xi:include href="./preface.xml"/>
- 
+
   <part id="whats-new-in-2-part">
     <title>What's new in Spring Integration 2.0</title>
     <partintro id="spring-integration-intro">
     	 <para>
-    	 For those who are already familiar with Spring Integration, this chapter provides a brief overview of 
+    	 For those who are already familiar with Spring Integration, this chapter provides a brief overview of
     	 the new features of version 2.0.
 		</para>
     </partintro>
     <xi:include href="./whats-new-in-2.xml"/>
   </part>
-  
+
   <part id="spring-integration-introduction">
     <title>Overview of Spring Integration Framework</title>
     <partintro id="spring-integration-intro">
@@ -92,7 +96,7 @@
     </partintro>
     <xi:include href="./overview.xml"/>
   </part>
-  
+
   <part id="spring-integration-core-messaging">
     <title>Core Messaging</title>
     <partintro id="spring-integration-core-msg">
@@ -103,7 +107,7 @@
 			The section also contains material about System Management, including the Control Bus and Message History support.
 		</para>
     </partintro>
-    
+
    <xi:include href="./messaging-channels.xml"/>
    <xi:include href="./message-construction.xml"/>
    <xi:include href="./message-routing.xml"/>
@@ -119,10 +123,10 @@
 		</para>
     </partintro>
       <xi:include href="./amqp.xml"/>
-      <xi:include href="./event.xml"/> 
-      <xi:include href="./feed.xml"/> 
-      <xi:include href="./file.xml"/> 
-      <xi:include href="./ftp.xml"/> 
+      <xi:include href="./event.xml"/>
+      <xi:include href="./feed.xml"/>
+      <xi:include href="./file.xml"/>
+      <xi:include href="./ftp.xml"/>
       <xi:include href="./gemfire.xml"/>
       <xi:include href="./http.xml"/>
       <xi:include href="./ip.xml"/>

@@ -49,6 +49,8 @@
       and <interfacename>org.w3c.dom.Document</interfacename> payloads are supported.  Custom conversion to a
       <interfacename>Source</interfacename> is also supported by injecting an implementation of
       <interfacename>SourceFactory</interfacename>.
+    </para>
+    <para>
       <programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer"
       class="org.springframework.integration.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
@@ -67,18 +69,21 @@
       the payload into an alternative xml format.  To achieve this configure a
       <interfacename>ResultTransformer</interfacename>.  Two implementations are provided, one which converts to
       <classname>String</classname> and another which converts to <interfacename>Document</interfacename>.
+    </para>
+
       <programlisting language="xml"><![CDATA[<bean id="marshallingTransformer"
       class="org.springframework.integration.xml.transformer.MarshallingTransformer">
-    <constructor-arg>
-        <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
-            <property name="contextPath" value="org.example" />
-        </bean>
-    </constructor-arg>
-    <constructor-arg>
-        <bean class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer" />
-    </constructor-arg>
+  <constructor-arg>
+    <bean class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+      <property name="contextPath" value="org.example"/>
+    </bean>
+  </constructor-arg>
+  <constructor-arg>
+    <bean
+      class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer"/>
+  </constructor-arg>
 </bean>]]></programlisting>
-    </para>
+
     <para>
       By default, the <classname>MarshallingTransformer</classname> will pass the payload Object
       to the <interfacename>Marshaller</interfacename>, but if its boolean <code>extractPayload</code> property
@@ -97,14 +102,18 @@
       by default <classname>XsltPayloadTransformer</classname> will create a message with a
       <interfacename>Result</interfacename> payload.  This can be customised by providing a
       <interfacename>ResultFactory</interfacename> and/or a <interfacename>ResultTransformer</interfacename>.
-      <programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer"
-      class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
-    <constructor-arg value="classpath:org/example/xsl/transform.xsl" />
-    <constructor-arg>
-        <bean class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer" />
-    </constructor-arg>
-</bean>]]></programlisting>
     </para>
+
+    <programlisting language="xml"><![CDATA[
+<bean id="xsltPayloadTransformer"
+      class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
+  <constructor-arg value="classpath:org/example/xsl/transform.xsl"/>
+  <constructor-arg>
+    <bean
+     class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer"/>
+  </constructor-arg>
+</bean>]]></programlisting>
+
   </section>
   <section id="xml-transformer-namespace">
 
@@ -116,21 +125,24 @@
       according to the type of the provided input channel.  The namespace support is designed
       to reduce the amount of xml configuration by allowing the creation of an endpoint and transformer
       using one element.
-      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+    </para>
+    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int="http://www.springframework.org/schema/integration"
-       xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-           http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-           http://www.springframework.org/schema/integration/xml
-           http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+    http://www.springframework.org/schema/integration/xml
+    http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
 </beans>]]></programlisting>
+    <para>
     The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
     Since the namespace is now creating an endpoint instance rather than a transformer,
     a poller can also be nested within the element to control the polling of the input channel.
+    </para>
     <programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input"
     output-channel="output"
@@ -141,9 +153,7 @@
     output-channel="output"
     unmarshaller="unmarshaller">
     <int:poller fixed-rate="2000"/>
-<int-xml:unmarshalling-transformer/>
-    ]]></programlisting>
-    </para>
+<int-xml:unmarshalling-transformer/>]]></programlisting>
 
     <para>
     The namespace support for the marshalling transformer requires an input channel, output channel and a
@@ -152,6 +162,8 @@
     reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
     to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
     specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
+    </para>
+
     <programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
      output-channel="output"
@@ -166,7 +178,6 @@
 
 <bean id="resultTransformer"
       class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
-</para>
 
   <para>
     Namespace support for the <classname>XsltPayloadTransformer</classname> allows either a resource to be passed in in order to create the
@@ -175,6 +186,7 @@
     be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
     be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
     is required before sending.
+  </para>
   <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
     input-channel="withResourceIn"
     output-channel="output"
@@ -184,7 +196,7 @@
     output-channel="output"
     xsl-templates="templates"
     result-transformer="resultTransformer"/>]]></programlisting>
-    </para>
+
     <para>
     Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
       and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
@@ -222,6 +234,7 @@
       messages.  The XPath splitter implements <interfacename>MessageHandler</interfacename> and should
       therefore be configured in conjunction with an appropriate endpoint (see the namespace support below
       for a simpler configuration alternative).
+    </para>
       <programlisting language="xml"><![CDATA[<bean id="splittingEndpoint"
       class="org.springframework.integration.endpoint.EventDrivenConsumer">
     <constructor-arg ref="orderChannel" />
@@ -234,76 +247,135 @@
     </constructor-arg>
 </bean>]]></programlisting>
 
-    </para>
   </section>
 
   <section id="xpath-routing">
-    <title>Routing xml messages using XPath</title>
- 
+    <title id="xpath-routing.title">Routing XML Messages using XPath</title>
     <para>
-      Similar to SpEL-based routers, Spring Integration provides support for routing messages based on the XPath expressions 
-      allowing you to create a Message Endpoint with an input channel but no output channel
-      since the output channel(s) is determined dynamically.  
-      <programlisting language="xml"><![CDATA[
-<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
-    <si-xml:xpath-expression expression="/order/type"/>
-</int-xml:xpath-router>	
-]]></programlisting>
+      Similar to SpEL-based routers, Spring Integration provides support for routing messages based on XPath expressions,
+      allowing you to create a Message Endpoint with an input channel but no output channel. Instead, one or more output
+      channels are determined dynamically.
     </para>
-    
-    <para>
-     Internally XPath expression will be evaluated as <emphasis>NODESET</emphasis> type and converted to a 
-      <classname>List&lt;String&gt;</classname> representing channel names. Typically such list will contain a single channel name.
-	  However, based on the result of an XPath Expression XPath router can also take on the characteristics of the <emphasis>Recipient List Router</emphasis> 
-	  if XPath Expression returns more then one value, thus resulting in the <classname>List&lt;String&gt;</classname> containing more 
-	  then one channel name. In that case Message will be sent to all channels in the list.	
-	  So assuming that the xml file passed to the router configured below contains many <code>responder</code> sub-elements representing channel names, 
-	  the message will be sent to all of those channels.
-	  
-	  <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
-<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
-    <int-xml:xpath-expression expression="/request/responders"/>
-</int-xml:xpath-router>	
-]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel">
+    <si-xml:xpath-expression expression="/order/type"/>
+</int-xml:xpath-router>]]></programlisting>
 
-    If the returned values do not represent the channel names additional mapping could be specified. For example if 
-    the <code>/request/responders</code> expression results in two values <code>responderA</code> and <code>responderB</code> but 
-    you don't want to couple the responder names to channel names you may provide additional mapping as such:
+    <note>
+       For an overview of attributes that are common among Routers, please see chapter:
+       <emphasis><xref linkend='router-common-parameters' endterm="router-common-parameters.title"/></emphasis>
+    </note>
+    <para>
+        Internally XPath expressions will be evaluated as <emphasis>NODESET</emphasis>
+        type and converted to a <classname>List&lt;String&gt;</classname> representing
+        channel names. Typically such a list will contain a single channel name.
+        However, based on the results of an XPath Expression, the XPath router can
+        also take on the characteristics of a <emphasis>Recipient List Router</emphasis>
+        if the XPath Expression returns more then one value. In that case, the
+        <classname>List&lt;String&gt;</classname> will contain more then one
+        channel name and consequently Messages will be sent to all channels in the list.
+    </para>
+    <para>
+        Thus, assuming that the XML file passed to the router configured below
+        contains many <code>responder</code> sub-elements representing channel names,
+        the message will be sent to all of those channels.
+    </para>
     <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
 <int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
     <int-xml:xpath-expression expression="/request/responders"/>
-    <int-xml:mapping value="responderA" channel="channelA"/>	
-    <int-xml:mapping value="responderB" channel="channelB"/>	
-</int-xml:xpath-router>	
+</int-xml:xpath-router>
 ]]></programlisting>
-    </para>
-    
-    <para>
-    As we already said the default evaluation type for XPath expressions is NODESET which is converted 
-	to a List&lt;String&gt; of channel names, thus handling single channel scenarios as well as multiple.
-	However certain XPath expressions may evaluate as String type from the very 
-	beginning (e.g., 'name(./node())' - which will return the name of the root node) thus resulting in 
-	the exception if default evaluation type (NODESET) is used. 
-	For these scenarious you may use <code>evaluate-as-string</code> attribute which will allow you to manage the 
-	evaluation type. It is FALSE by default, however if set to TRUE, the String evaluation type will be used.
-	For example if we want to route based on the name of the root node we can have use the following configuration:
-	
-	<programlisting language="xml"><![CDATA[<int-xml:xpath-router id="xpathRouterAsString" 
-		input-channel="xpathStringChannel" 
-		evaluate-as-string="true">
-	<int-xml:xpath-expression expression="name(./node())"/>	
-</int-xml:xpath-router>	
-]]></programlisting>
-    </para>
 
-	<para>The XPath Router does support custom implementations of the XmlPayloadConverter strategy, and when configuring
-	an 'xpath-router' element in XML, a reference to such an implementation may be provided via the 'converter' attribute.
-	However, the DefaultXmlPayloadConverter is used if this reference is not provided, and it
-	should be sufficient in most cases since it can convert from Node, Document, Source,
-	File, and String typed payloads. If you need to extend beyond the capabilities of
-	that default implementation, then an upstream Transformer is probably a better option
-	than providing a reference to a custom implementation of this strategy here.</para>
-    
+    <para>
+	    If the returned values do not represent the channel names directly, additional
+	    mapping parameters can be specified, in order to map those returned values to actual
+	    channel names. For example if the <code>/request/responders</code> expression
+	    results in two values <code>responderA</code> and <code>responderB</code> but
+	    you don't want to couple the responder names to channel names, you may provide
+	    additional mapping configuration such as the following:
+    </para>
+    <programlisting language="xml"><![CDATA[<!-- route the order to all responders-->
+<int-xml:xpath-router id="responderRouter" input-channel="orderChannel">
+    <int-xml:xpath-expression expression="/request/responders"/>
+    <int-xml:mapping value="responderA" channel="channelA"/>
+    <int-xml:mapping value="responderB" channel="channelB"/>
+</int-xml:xpath-router>
+]]></programlisting>
+
+    <para>
+	    As already mentioned, the default evaluation type for XPath expressions is
+	    <emphasis>NODESET</emphasis>, which is converted to a
+	    <code>List&lt;String&gt;</code> of channel names, therefore handling
+	    single channel scenarios as well as multiple ones.
+    </para>
+    <para>
+	    Nonetheless, certain XPath expressions may evaluate as String type from the
+	    very beginning. Take for example the following XPath Expression:
+	</para>
+    <programlisting language="xml"><![CDATA[name(./node())]]></programlisting>
+	<para>
+	    This expression will return the name of the root node. It will resulting
+	    in an exception, if the default evaluation type <emphasis>NODESET</emphasis>
+	    is being used.
+	</para>
+	<para>
+	    For these scenarious, you may use the <code>evaluate-as-string</code> attribute,
+	    which will allow you to manage the evaluation type. It is <code>FALSE</code>
+	    by default, however if set to <code>TRUE</code>, the String evaluation
+	    type will be used.
+	</para>
+    <note>
+        <para>
+            To provide some background information: XPath 1.0 specifies 4 data types:
+        </para>
+        <itemizedlist>
+            <listitem>Node-sets</listitem>
+            <listitem>Strings</listitem>
+            <listitem>Number</listitem>
+            <listitem>Boolean</listitem>
+        </itemizedlist>
+        <para>
+            When the XPath Router evaluates expressions using the optional
+            <code>evaluate-as-string</code> attribute, the return value is
+            determined per the <code>string()</code> function as defined in the
+            XPath specification. This means that if the expression selects
+            multiple nodes, it will return the string value of the first node.
+        </para>
+        <para>
+            For further information, please see:
+        </para>
+       <itemizedlist>
+           <listitem>Specification: XML Path Language (XPath) Version 1.0: http://www.w3.org/TR/xpath/</listitem>
+           <listitem>XPath specification - string() function: http://www.w3.org/TR/xpath/#function-string</listitem>
+       </itemizedlist>
+    </note>
+	<para>
+	    For example if we want to route based on the name of the root node, we
+	    can use the following configuration:
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-router id="xpathRouterAsString"
+        input-channel="xpathStringChannel"
+        evaluate-as-string="true">
+    <int-xml:xpath-expression expression="name(./node())"/>
+</int-xml:xpath-router>
+]]></programlisting>
+    <section id="xpath-routing-converter">
+	    <title>XML Payload Converter</title>
+	    <para>
+		    For XPath Routers, you can also specify the Converter to use when converting
+		    payloads prior to XPath evaluation. As such, the XPath Router supports
+		    custom implementations of the <classname>XmlPayloadConverter</classname> strategy,
+		    and when configuring an <code>xpath-router</code> element in XML, a reference
+		    to such an implementation may be provided via the <code>converter</code> attribute.
+		</para>
+		<para>
+		    If this reference is not explicitly provided, the <classname>DefaultXmlPayloadConverter</classname>
+		    is used. It should be sufficient in most cases, since it can convert from
+		    Node, Document, Source, File, and String typed payloads. If you need to
+		    extend beyond the capabilities of that default implementation, then an
+		    upstream Transformer is generally a better option in most cases, rather
+		    than providing a reference to a custom implementation of this strategy here.
+	    </para>
+    </section>
   </section>
 
   <section id="xpath-selector">
@@ -320,23 +392,25 @@
 
       <programlisting language="xml"><![CDATA[<!-- Interceptor which rejects messages that do not have a root element order  -->
 <bean id="orderSelectingInterceptor"
-      class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
-    <constructor-arg>
-        <bean class="org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector">
-            <constructor-arg value="boolean(/order)" />
-        </bean>
-    </constructor-arg>
+  class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+  <constructor-arg>
+   <bean
+    class="org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector">
+    <constructor-arg value="boolean(/order)" />
+   </bean>
+  </constructor-arg>
 </bean>
 
 <!--  Interceptor which rejects messages that are not version one orders -->
 <bean id="versionOneOrderSelectingInterceptor"
-      class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
-    <constructor-arg>
-        <bean class="org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector">
-            <constructor-arg value="/order/@version" index="0"/>
-            <constructor-arg value="1" index="1"/>
-        </bean>
-    </constructor-arg>
+  class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+  <constructor-arg>
+   <bean
+    class="org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector">
+    <constructor-arg value="/order/@version" index="0"/>
+    <constructor-arg value="1" index="1"/>
+   </bean>
+  </constructor-arg>
 </bean>]]></programlisting>
   </section>
 
@@ -351,12 +425,15 @@
     </para>
     <para>
     Let's look at the following transformer configuration:
+    </para>
     <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
       xpath-expression="/person/@name" />]]></programlisting>
-
+    <para>
     . . . and Message
+    </para>
     <programlisting language="java"><![CDATA[Message<?> message =
   MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();]]></programlisting>
+    <para>
     After sending this message to the 'inputChannel' the XPath transformer configured above will transform
     this XML Message to a simple Message with payload of 'John Doe' all based on
     the simple XPath Expression specified in the <code>xpath-expression</code> attribute.
@@ -372,13 +449,15 @@
     <para>
     You can configure the desired type by simply using <code>evaluation-type</code>
     attribute of the &lt;xpath-transformer/&gt; element.
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
-    evaluation-type="NUMBER_RESULT" output-channel="output"/>
-
-<int-xml:xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'"
-    evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
-]]></programlisting>
     </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
+                           evaluation-type="NUMBER_RESULT" output-channel="output"/>
+
+<int-xml:xpath-transformer input-channel="booleanInput"
+                           xpath-expression="/person/@married = 'true'"
+                           evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+]]></programlisting>
+
     <para>
     <emphasis>Node Mappers</emphasis>
     </para>
@@ -387,26 +466,33 @@
     implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by
     <classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a
     reference to a <classname>NodeMapper</classname> simply use <code>node-mapper</code> attribute:
+    </para>
     <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
-    node-mapper="testNodeMapper" output-channel="output"/>
-]]></programlisting>
+                           node-mapper="testNodeMapper" output-channel="output"/>]]></programlisting>
+    <para>
 . . . and Sample NodeMapper implementation:
+    </para>
 <programlisting language="java"><![CDATA[class TestNodeMapper implements NodeMapper {
   public Object mapNode(Node node, int nodeNum) throws DOMException {
     return node.getTextContent() + "-mapped";
   }
 }]]></programlisting>
-    </para>
+
     <para>
     <emphasis>XML Payload Converter</emphasis>
     </para>
     <para>
     You can also use an implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
     provide more granular transformation:
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type"
-    converter="testXmlPayloadConverter" output-channel="output"/>
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput"
+                           output-channel="output" xpath-expression="/test/@type"
+                           converter="testXmlPayloadConverter" />
 ]]></programlisting>
+
+    <para>
 . . . and Sample XmlPayloadConverter implementation:
+    </para>
 <programlisting language="java"><![CDATA[class TestXmlPayloadConverter implements XmlPayloadConverter {
   public Source convertToSource(Object object) {
     throw new UnsupportedOperationException();
@@ -426,12 +512,12 @@
     throw new UnsupportedOperationException();
   }
 }]]></programlisting>
-    </para>
-	<para>The DefaultXmlPayloadConverter is used if this reference is not provided, and it
-	should be sufficient in most cases since it can convert from Node, Document, Source,
-	File, and String typed payloads. If you need to extend beyond the capabilities of
-	that default implementation, then an upstream Transformer is probably a better option
-	than providing a reference to a custom implementation of this strategy here.</para>
+
+    <para>The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+    should be sufficient in most cases since it can convert from Node, Document, Source,
+    File, and String typed payloads. If you need to extend beyond the capabilities of
+    that default implementation, then an upstream Transformer is probably a better option
+    than providing a reference to a custom implementation of this strategy here.</para>
 
     <para>
     <emphasis>Combination of SpEL and XPath expressions</emphasis>
@@ -439,7 +525,9 @@
     <para>
     You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure
     them using <code>expression</code> attribute:
-    <programlisting language="xml"><![CDATA[int-xml:xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
+    <para>
     In the above case the overall result of the expression will be the result of the XPath expression multiplied by 2.
     </para>
   </section>
@@ -453,6 +541,7 @@
     &lt;xpath-expression/&gt; element.  So the following configurations of an xpath-selector are all valid and represent the general
     form of XPath namespace support.  All forms of XPath expression result in the creation of an
     <interfacename>XPathExpression</interfacename> using the Spring <classname>XPathExpressionFactory</classname>
+    </para>
     <programlisting language="xml"><![CDATA[<int-xml:xpath-selector id="xpathRefSelector"
                        xpath-expression="refToXpathExpression"
                        evaluation-result-type="boolean" />
@@ -484,10 +573,11 @@
     <util:entry key="ns1" value="www.example.org/one" />
     <util:entry key="ns2" value="www.example.org/two" />
 </util:map>]]></programlisting>
-    </para>
+
     <para>
       XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
-      <programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
+    </para>
+    <programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
 <int-xml:xpath-splitter id="orderItemSplitter"
                        input-channel="orderChannel"
                        output-channel="orderItemsChannel">
@@ -502,7 +592,7 @@
     <int-xml:xpath-expression expression="/order/items"/>
     <int:poller fixed-rate="2000"/>
 </int-xml:xpath-splitter>]]></programlisting>
-    </para>
+
   </section>
 
 </chapter>
