@@ -17,14 +17,22 @@ package org.springframework.integration.ip.tcp;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.ClientModeCapable;
+import org.springframework.integration.ip.tcp.connection.ClientModeConnectionManager;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpListener;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.util.Assert;
 
 /**
  * Inbound Gateway using a server connection factory - threading is controlled by the
@@ -38,11 +46,26 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
  * @since 2.0
  *
  */
-public class TcpInboundGateway extends MessagingGatewaySupport implements TcpListener, TcpSender {
+public class TcpInboundGateway extends MessagingGatewaySupport implements
+		TcpListener, TcpSender, ClientModeCapable {
 
-	private AbstractServerConnectionFactory connectionFactory;
-	
+	private volatile AbstractServerConnectionFactory serverConnectionFactory;
+
+	private volatile AbstractClientConnectionFactory clientConnectionFactory;
+
 	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
+
+	private volatile boolean isClientMode;
+
+	private volatile TaskScheduler scheduler;
+
+	private volatile long retryInterval = 60000;
+
+	private volatile ScheduledFuture<?> scheduledFuture;
+
+	private volatile ClientModeConnectionManager clientModeConnectionManager;
+
+	private volatile boolean active;
 
 	public boolean onMessage(Message<?> message) {
 		Message<?> reply = this.sendAndReceiveMessage(message);
@@ -73,16 +96,25 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 	 * @return true if the associated connection factory is listening.
 	 */
 	public boolean isListening() {
-		return connectionFactory.isListening();
-	
+		return this.serverConnectionFactory == null ? false
+				: this.serverConnectionFactory.isListening();
 	}
 
 	/**
-	 * 
+	 * Must be {@link AbstractClientConnectionFactory} or {@link AbstractServerConnectionFactory}.
+	 *
 	 * @param connectionFactory the Connection Factory
 	 */
-	public void setConnectionFactory(AbstractServerConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
+	public void setConnectionFactory(AbstractConnectionFactory connectionFactory) {
+		Assert.notNull(connectionFactory, "Connection factory must not be null");
+		if (connectionFactory instanceof AbstractServerConnectionFactory) {
+			this.serverConnectionFactory = (AbstractServerConnectionFactory) connectionFactory;
+		} else if (connectionFactory instanceof AbstractClientConnectionFactory) {
+			this.clientConnectionFactory = (AbstractClientConnectionFactory) connectionFactory;
+		} else {
+			throw new IllegalArgumentException("Connection factory must be either an " +
+					"AbstractServerConnectionFactory or an AbstractClientConnectionFactory");
+		}
 		connectionFactory.registerListener(this);
 		connectionFactory.registerSender(this);
 	}
@@ -98,10 +130,117 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 		return "ip:tcp-inbound-gateway";
 	}
 
-	/**
-	 * @return the connectionFactory
-	 */
-	protected AbstractServerConnectionFactory getConnectionFactory() {
-		return connectionFactory;
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		if (this.isClientMode) {
+			Assert.notNull(this.clientConnectionFactory,
+					"For client-mode, connection factory must be type='client'");
+			Assert.isTrue(!this.clientConnectionFactory.isSingleUse(),
+					"For client-mode, connection factory must have single-use='false'");
+		}
 	}
+
+	@Override // protected by super#lifecycleLock
+	protected void doStart() {
+		super.doStart();
+		if (!this.active) {
+			this.active = true;
+			if (this.serverConnectionFactory != null) {
+				this.serverConnectionFactory.start();
+			}
+			if (this.clientConnectionFactory != null) {
+				this.clientConnectionFactory.start();
+			}
+			if (this.isClientMode) {
+				ClientModeConnectionManager manager = new ClientModeConnectionManager(
+						this.clientConnectionFactory);
+				this.clientModeConnectionManager = manager;
+				this.scheduledFuture = this.getScheduler().scheduleAtFixedRate(manager, this.retryInterval);
+			}
+		}
+	}
+
+	@Override // protected by super#lifecycleLock
+	protected void doStop() {
+		super.doStop();
+		if (this.active) {
+			this.active = false;
+			if (this.scheduledFuture != null) {
+				this.scheduledFuture.cancel(true);
+			}
+			this.clientModeConnectionManager = null;
+			if (this.clientConnectionFactory != null) {
+				this.clientConnectionFactory.stop();
+			}
+			if (this.serverConnectionFactory != null) {
+				this.serverConnectionFactory.stop();
+			}
+		}
+	}
+
+	/**
+	 * @return the isClientMode
+	 */
+	public boolean isClientMode() {
+		return isClientMode;
+	}
+
+	/**
+	 * @param isClientMode
+	 *            the isClientMode to set
+	 */
+	public void setClientMode(boolean isClientMode) {
+		this.isClientMode = isClientMode;
+	}
+
+	/**
+	 * @return the scheduler
+	 */
+	protected TaskScheduler getScheduler() {
+		if (this.scheduler == null) {
+			ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+			scheduler.initialize();
+			this.scheduler = scheduler;
+		}
+		return scheduler;
+	}
+
+	/**
+	 * @param scheduler
+	 *            the scheduler to set
+	 */
+	public void setScheduler(TaskScheduler scheduler) {
+		this.scheduler = scheduler;
+	}
+
+	/**
+	 * @return the retryInterval
+	 */
+	public long getRetryInterval() {
+		return retryInterval;
+	}
+
+	/**
+	 * @param retryInterval
+	 *            the retryInterval to set
+	 */
+	public void setRetryInterval(long retryInterval) {
+		this.retryInterval = retryInterval;
+	}
+
+	public boolean isClientModeConnected() {
+		if (this.isClientMode && this.clientModeConnectionManager != null) {
+			return this.clientModeConnectionManager.isConnected();
+		} else {
+			return false;
+		}
+	}
+
+	public void retryConnection() {
+		if (this.active && this.isClientMode && this.clientModeConnectionManager != null) {
+			this.clientModeConnectionManager.run();
+		}
+	}
+
 }

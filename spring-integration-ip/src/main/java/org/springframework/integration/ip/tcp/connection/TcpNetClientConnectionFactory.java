@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
@@ -40,12 +41,12 @@ public class TcpNetClientConnectionFactory extends
 	}
 
 	/**
-	 * Obtains a connection - if {@link #setSingleUse(boolean)} was called with
-	 * true, a new connection is returned; otherwise a single connection is
-	 * reused for all requests while the connection remains open.
+	 * @return
+	 * @throws IOException
+	 * @throws SocketException
+	 * @throws Exception
 	 */
-	public TcpConnection getConnection() throws Exception {
-		this.checkActive();
+	protected TcpConnection getOrMakeConnection() throws Exception {
 		TcpConnection theConnection = this.getTheConnection();
 		if (theConnection != null && theConnection.isOpen()) {
 			return theConnection;
@@ -59,9 +60,6 @@ public class TcpNetClientConnectionFactory extends
 		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.getTaskExecutor().execute(connection);
-		if (!this.isSingleUse()) {
-			this.setTheConnection(connection);
-		}
 		this.harvestClosedConnections();
 		return connection;
 	}

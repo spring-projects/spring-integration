@@ -40,6 +40,12 @@ public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 				IpAdapterParserUtils.AUTO_STARTUP);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.PHASE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.CLIENT_MODE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.RETRY_INTERVAL);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SCHEDULER);
 		return builder.getBeanDefinition();
 	}
 

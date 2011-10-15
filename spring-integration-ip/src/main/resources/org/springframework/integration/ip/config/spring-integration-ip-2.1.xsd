@@ -156,6 +156,17 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+							 If set to true, causes the adapter to act as a client with respect to
+							 establishing the connection, rather than listening for incoming connections.
+							 Requires a type="client" connection factory, with single-use set to false.
+							 Defaults to true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="clientModeAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -198,6 +209,17 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+							 If set to true, causes the adapter to establish a connection when started,
+							 rather than when the first message is sent.
+							 Requires a type="client" connection factory, with single-use set to false.
+							 Defaults to true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="clientModeAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -256,6 +278,17 @@ task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="client-mode" type="xsd:string" use="optional" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+							 If set to true, causes the gateway to act as a client with respect to
+							 establishing the connection, rather than listening for incoming connections.
+							 Requires a type="client" connection factory, with single-use set to false.
+							 Defaults to true.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attributeGroup ref="clientModeAttributeGroup" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -523,4 +556,29 @@ default is 0. Values can be negative. See SmartLifeCycle.
 		</xsd:attribute>
 	</xsd:complexType>
 
+	<xsd:attributeGroup name="clientModeAttributeGroup">
+		<xsd:attribute name="retry-interval" type="xsd:string" use="optional" default="60000">
+			<xsd:annotation>
+				<xsd:documentation>
+				 When in client mode, specifies the retry interval, in milliseconds, if a connection
+				 cannot be established. Defaults to 60000.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="scheduler" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+				    When in client mode,
+					provide a reference to the TaskScheduler instance to
+					be used for establishing connections. If not provided, the default
+					will use a thread pool of size 1.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.scheduling.TaskScheduler" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 </xsd:schema>
