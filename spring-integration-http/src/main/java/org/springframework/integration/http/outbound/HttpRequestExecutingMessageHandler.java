@@ -228,9 +228,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		if (!this.shouldIncludeRequestBody() && this.extractPayloadExplicitlySet){
 			if (logger.isWarnEnabled()){
-				logger.warn("'extractPayload' attribute has no meaning in the context of this handler " +
-						"since provided HTTP Method is '" + this.httpMethod + "'. This attribute only has meaning " +
-						"for http methods methods other than GET");
+				logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" + 
+			           this.httpMethod + "', and no request body will be sent for that method.");		
 			}
 		}
 	}
