@@ -83,6 +83,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile Class<?> expectedResponseType;
 
 	private volatile boolean extractPayload = true;
+	
+	private volatile boolean extractPayloadExplicitlySet = false;
 
 	private volatile String charset = "UTF-8";
 
@@ -93,7 +95,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
-
+	
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -139,6 +141,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+		this.extractPayloadExplicitlySet = true;
 	}
 
 	/**
@@ -222,6 +225,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService != null) {
 			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+		if (!this.shouldIncludeRequestBody() && this.extractPayloadExplicitlySet){
+			if (logger.isWarnEnabled()){
+				logger.warn("The 'extractPayload' attribute has no meaning in the context of this handler since the provided HTTP Method is '" + 
+			           this.httpMethod + "', and no request body will be sent for that method.");		
+			}
 		}
 	}
 
