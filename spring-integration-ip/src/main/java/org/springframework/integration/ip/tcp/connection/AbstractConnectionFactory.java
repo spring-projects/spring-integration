@@ -67,7 +67,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile TcpSender sender;
 
-	private volatile int soTimeout;
+	private volatile int soTimeout = -1;
 
 	private volatile int soSendBufferSize;
 
