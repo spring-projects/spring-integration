@@ -61,7 +61,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 
 	private Map<String, TcpConnection> connections = new ConcurrentHashMap<String, TcpConnection>();
 
-	private volatile boolean autoStartup;
+	private volatile boolean autoStartup = true;
 
 	private volatile int phase;
 
@@ -237,9 +237,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	public boolean isRunning() {
-		boolean cfRunning = this.clientConnectionFactory != null ? this.clientConnectionFactory.isRunning() : false;
-		boolean sfRunning = this.serverConnectionFactory != null ? this.serverConnectionFactory.isRunning() : false;
-		return cfRunning | sfRunning;
+		return this.active;
 	}
 
 	public int getPhase() {
