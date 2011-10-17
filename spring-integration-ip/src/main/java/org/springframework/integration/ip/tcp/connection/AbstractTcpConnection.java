@@ -90,8 +90,9 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	public void afterSend(Message<?> message) throws Exception {
-		if (logger.isDebugEnabled())
+		if (logger.isDebugEnabled()) {
 			logger.debug("Message sent " + message);
+		}
 		if (this.singleUse) {
 			// if (we're a server socket, or a send-only socket), and soLinger <> 0, close
 			if ((this.isServer() || this.actualListener == null) && this.soLinger != 0) {

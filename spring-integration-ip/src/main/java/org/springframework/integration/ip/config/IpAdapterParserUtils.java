@@ -48,7 +48,7 @@ public abstract class IpAdapterParserUtils {
 	static final String SO_SEND_BUFFER_SIZE = "so-send-buffer-size";
 
 	static final String SO_KEEP_ALIVE = "so-keep-alive";
-	
+
 	static final String RECEIVE_BUFFER_SIZE = "receive-buffer-size";
 
 	static final String POOL_SIZE = "pool-size";
@@ -64,18 +64,12 @@ public abstract class IpAdapterParserUtils {
 	static final String MIN_ACKS_SUCCESS = "min-acks-for-success";
 
 	static final String TIME_TO_LIVE = "time-to-live";
-	
+
 	static final String USING_NIO = "using-nio";
-	
+
 	static final String USING_DIRECT_BUFFERS = "using-direct-buffers";
-	
+
 	static final String MESSAGE_FORMAT = "message-format";
-	
-	static final String CUSTOM_SOCKET_READER_CLASS_NAME = 
-							"custom-socket-reader-class-name";
-	
-	static final String CUSTOM_SOCKET_WRITER_CLASS_NAME = 
-							"custom-socket-writer-class-name";
 
 	static final String SO_LINGER = "so-linger";
 
@@ -88,9 +82,9 @@ public abstract class IpAdapterParserUtils {
 	static final String TASK_EXECUTOR = "task-executor";
 
 	static final String TCP_CONNECTION_TYPE = "type";
-	
+
 	static final String SERIALIZER = "serializer";
-	
+
 	static final String DESERIALIZER = "deserializer";
 
 	static final String SINGLE_USE = "single-use";
@@ -118,6 +112,8 @@ public abstract class IpAdapterParserUtils {
 	public static final String RETRY_INTERVAL = "retry-interval";
 
 	public static final String SCHEDULER = "scheduler";
+
+	private IpAdapterParserUtils() {}
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 

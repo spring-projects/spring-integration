@@ -21,8 +21,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
@@ -33,8 +31,6 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public abstract class AbstractInternetProtocolSendingMessageHandler extends AbstractMessageHandler implements CommonSocketOptions {
-
-	protected final Log logger = LogFactory.getLog(getClass());
 
 	private final SocketAddress destinationAddress;
 

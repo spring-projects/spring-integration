@@ -74,8 +74,9 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			connection.registerListener(listener);
 		}
 		if (listener != null || this.isSingleUse()) {
-			if (this.getSoTimeout() <= 0) {
+			if (this.getSoTimeout() < 0) {
 				try {
+					logger.warn("Default so-timeout may go to infinity in a future release, currently 10 seconds");
 					socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 				} catch (SocketException e) {
 					logger.error("Error setting default reply timeout", e);

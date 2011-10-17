@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
@@ -52,8 +50,6 @@ import org.springframework.util.Assert;
  */
 public class TcpSendingMessageHandler extends AbstractMessageHandler implements
 		TcpSender, SmartLifecycle, ClientModeCapable {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile AbstractConnectionFactory clientConnectionFactory;
 
