@@ -408,6 +408,7 @@ project('spring-integration-scripting') {
         testCompile project(":spring-integration-test")
         testCompile("org.jruby:jruby:1.6.3")
         testCompile("org.codehaus.groovy:groovy-all:1.7.5")
+        testCompile("org.python:jython-standalone:2.5.2")
     }
 }
 

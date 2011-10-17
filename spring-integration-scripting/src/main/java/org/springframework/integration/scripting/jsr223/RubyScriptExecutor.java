@@ -10,31 +10,26 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.springframework.integration.scripting;
+package org.springframework.integration.scripting.jsr223;
 
-import java.util.Map;
+import org.springframework.util.ClassUtils;
 
-import org.springframework.scripting.ScriptSource;
 
 /**
  * @author David Turanski
  * @since 2.1
+ *
  */
-public interface ScriptExecutor {
+ class RubyScriptExecutor extends DefaultScriptExecutor {
 
-	/**
-	 * 
-	 * @param scriptSource
-	 * @return
-	 */
-	public abstract Object executeScript(ScriptSource scriptSource);
-	
-	/** 
-	 * 
-	 * @param scriptSource
-	 * @param variables -bind variable
-	 * @return
-	 */
-	public abstract Object executeScript(ScriptSource scriptSource,Map<String,Object> variables);
-	
+	static {
+		if (ClassUtils.isPresent("org.jruby.embed.jsr223.JRubyEngine", System.class.getClassLoader())) {
+			System.setProperty("org.jruby.embed.localvariable.behavior", "transient");
+			System.setProperty("org.jruby.embed.localcontext.scope", "threadsafe");
+		}
+	}
+	 
+	public RubyScriptExecutor() {
+		super("ruby");
+	}
 }

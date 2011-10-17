@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  */
 public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
-	private final DefaultScriptExecutor scriptExecutor;
+	private final ScriptExecutor scriptExecutor;
 	private volatile ScriptSource scriptSource;
 	 
 
@@ -37,7 +37,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	 * @param scriptSource
 	 * @param scriptExecutor
 	 */
-	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, DefaultScriptExecutor scriptExecutor) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor) {
 		super();
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 
@@ -48,7 +48,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	 * @param scriptSource
 	 * @param scriptExecutor
 	 */
-	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator,DefaultScriptExecutor scriptExecutor) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptVariableGenerator scriptVariableGenerator, ScriptExecutor scriptExecutor) {
 		super(scriptVariableGenerator);
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 
@@ -60,7 +60,7 @@ public class ScriptExecutingMessageProcessor extends AbstractScriptExecutingMess
 	 * @param scriptExecutor
 	 * @param variables 
 	 */
-	public ScriptExecutingMessageProcessor(ScriptSource scriptSource,DefaultScriptExecutor scriptExecutor,Map<String,Object> variables ) {
+	public ScriptExecutingMessageProcessor(ScriptSource scriptSource, ScriptExecutor scriptExecutor,Map<String,Object> variables ) {
 		super(new DefaultScriptVariableGenerator(variables));
 		this.scriptSource = scriptSource;
 		this.scriptExecutor = scriptExecutor; 

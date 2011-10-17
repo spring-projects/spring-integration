@@ -50,9 +50,9 @@
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
-	to this channel's subscribers. Also, when using a TaskExecutor. 
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
+	to this channel's subscribers. Also, when using a TaskExecutor,
+	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
  	TaskExecutor dispatches to the handler on a separate Thread.
 	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
 				]]></xsd:documentation>
@@ -102,7 +102,7 @@
 							<xsd:element name="rendezvous-queue" type="rendezvousQueueType" />
 							<xsd:element name="dispatcher" type="dispatcherType" >
 								<xsd:annotation>
-									<xsd:documentation>Provides MessageDispatcher configuration 
+									<xsd:documentation>Provides MessageDispatcher configuration
 									(i.e., failover, load-balancing, task-executor)</xsd:documentation>
 								</xsd:annotation>
 							</xsd:element>
@@ -199,7 +199,7 @@
 				<xsd:documentation>
 					<![CDATA[
 	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
-	interface and provides logic based on which Messages will be prioritized. 
+	interface and provides logic based on which Messages will be prioritized.
 					]]>
 				</xsd:documentation>
 			</xsd:annotation>
@@ -281,9 +281,9 @@
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
-	to this channel's subscribers. Also, when using a TaskExecutor. 
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
+	to this channel's subscribers. Also, when using a TaskExecutor,
+	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
  	TaskExecutor dispatches to the handler on a separate Thread.
 	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
 				]]></xsd:documentation>
@@ -326,9 +326,9 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								<![CDATA[
-	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
-	to this channel's subscribers. Also, when using a TaskExecutor. 
-	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages
+	to this channel's subscribers. Also, when using a TaskExecutor,
+	keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the
  	TaskExecutor dispatches to the handler on a separate Thread.
 	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
 								]]>
@@ -342,10 +342,10 @@
 					</xsd:attribute>
 					<xsd:attribute name="error-handler" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation>	
-						       <![CDATA[  
-	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors. 
-	This is especially useful for handling errors that occur during asynchronous execution 
+							<xsd:documentation>
+						       <![CDATA[
+	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors.
+	This is especially useful for handling errors that occur during asynchronous execution
 	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
 								]]>
 							</xsd:documentation>
@@ -388,10 +388,10 @@
 		<xsd:attribute name="scope" type="xsd:string" />
 		<xsd:attribute name="datatype" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>	
-					<![CDATA[  
-	Allows you to identify this channel as Datatype channel and specify the type of the Message 
-	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel 
+				<xsd:documentation>
+					<![CDATA[
+	Allows you to identify this channel as Datatype channel and specify the type of the Message
+	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel
 	is a channel that accepts messages cotaining payload of certain type.
 					]]>
 				</xsd:documentation>
@@ -430,8 +430,8 @@
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
-						<xsd:documentation>	
-							<![CDATA[  
+						<xsd:documentation>
+							<![CDATA[
 	Provides mechanism to define method per channel mappings for this gateway
 							]]>
 						</xsd:documentation>
@@ -440,10 +440,10 @@
 						<xsd:sequence>
 							<xsd:element name="header" minOccurs="0" maxOccurs="unbounded" type="headerSubElementType">
 								<xsd:annotation>
-									<xsd:documentation>	
-										<![CDATA[  
+									<xsd:documentation>
+										<![CDATA[
 				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
-				the generated message will be enriched with these headers. 
+				the generated message will be enriched with these headers.
 										]]>
 									</xsd:documentation>
 								</xsd:annotation>
@@ -451,7 +451,7 @@
 						</xsd:sequence>
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
+								<xsd:documentation>
 									<![CDATA[
 										The name of the method
 									]]>
@@ -465,8 +465,8 @@
 						</xsd:attribute>
 						<xsd:attribute name="payload-expression" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
-									<![CDATA[  
+								<xsd:documentation>
+									<![CDATA[
 										Expression that should be evaluated to generate the payload.
 									]]>
 								</xsd:documentation>
@@ -474,7 +474,7 @@
 						</xsd:attribute>
 						<xsd:attribute name="request-channel" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
+								<xsd:documentation>
 									<![CDATA[
 										Identifies channel the message will be sent to upon invocation of this method
 									]]>
@@ -483,9 +483,9 @@
 						</xsd:attribute>
 						<xsd:attribute name="reply-channel" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
-										<![CDATA[  
-								Identifies channel this gateway will subscribe to to recieve reply Message. 
+								<xsd:documentation>
+										<![CDATA[
+								Identifies channel this gateway will subscribe to to receive reply Message.
 								The reply Message which will then be converted to the return type of the method signature.
 										]]>
 								</xsd:documentation>
@@ -493,10 +493,10 @@
 						</xsd:attribute>
 						<xsd:attribute name="request-timeout" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
-										<![CDATA[  
+								<xsd:documentation>
+										<![CDATA[
 								Provides the amount of time dispatcher would wait to send a message.
-								This timeout would only apply if there is a potential to block in the send call. 
+								This timeout would only apply if there is a potential to block in the send call.
 								For example if this gateway is hooked up to a Queue channel. 
 								Value is specified in milliseconds.
 										]]>
@@ -505,10 +505,10 @@
 						</xsd:attribute>
 						<xsd:attribute name="reply-timeout" type="xsd:string">
 							<xsd:annotation>
-								<xsd:documentation>	
-										<![CDATA[  
-								Allows you to specify how long this gateway will wait for the reply message 
-								before throwing an exception. By default it will wait indefinitely. 
+								<xsd:documentation>
+										<![CDATA[
+								Allows you to specify how long this gateway will wait for the reply message
+								before throwing an exception. By default it will wait indefinitely.
 								Value is specified in milliseconds
 										]]>
 								</xsd:documentation>
@@ -520,9 +520,9 @@
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
 			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
 				<xsd:annotation>
-					<xsd:documentation>	
-						<![CDATA[  
-							The name of the interface which will be exposed by this gateway. 
+					<xsd:documentation>
+						<![CDATA[
+							The name of the interface which will be exposed by this gateway.
 						]]>
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -534,8 +534,8 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>	
-										<![CDATA[  
+					<xsd:documentation>
+										<![CDATA[
 								Identifies default channel the messages will be sent to upon invocation of methods of this gateway
 										]]>
 					</xsd:documentation>
@@ -548,9 +548,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-reply-channel" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>	
-										<![CDATA[  
-								Identifies default channel this gateway will subscribe to to recieve reply Messages, which will then be 
+					<xsd:documentation>
+										<![CDATA[
+								Identifies default channel this gateway will subscribe to to receive reply Messages, which will then be
 								converted to the return type of the method signature.
 										]]>
 					</xsd:documentation>
@@ -573,10 +573,10 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-request-timeout" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>	
-							<![CDATA[  
+					<xsd:documentation>
+							<![CDATA[
 					Provides the amount of time dispatcher would wait to send a message.
-					This timeout would only apply if there is a potential to block in the send call. 
+					This timeout would only apply if there is a potential to block in the send call.
 					For example if this gateway is hooked up to a Queue channel. 
 					Value is specified in milliseconds.
 							]]>
@@ -585,10 +585,10 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-reply-timeout" type="xsd:string">
 				<xsd:annotation>
-					<xsd:documentation>	
-							<![CDATA[  
-					Allows you to specify how long this gateway will wait for the reply message 
-					before throwing an exception. By default it will wait indefinitely. 
+					<xsd:documentation>
+							<![CDATA[
+					Allows you to specify how long this gateway will wait for the reply message
+					before throwing an exception. By default it will wait indefinitely.
 					Value is specified in milliseconds.
 							]]>
 					</xsd:documentation>
@@ -599,9 +599,9 @@
 
 	<xsd:complexType name="headerSubElementType">
 		<xsd:annotation>
-			<xsd:documentation>	<![CDATA[  
+			<xsd:documentation>	<![CDATA[
 				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
-				the generated message will be enriched with these headers. 
+				the generated message will be enriched with these headers.
 			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="name" type="xsd:string" use="required">
@@ -613,14 +613,14 @@
 		</xsd:attribute>
 		<xsd:attribute name="value" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[  
+				<xsd:documentation><![CDATA[
 					The value of the header. Either this or 'expression' must be provided.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="expression" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[  
+				<xsd:documentation><![CDATA[
 					Expression to be evaluated to produce a value for the header.
 					Either this or 'value' must be provided.
 				]]></xsd:documentation>
@@ -636,8 +636,8 @@
 		</xsd:annotation>
 		<xsd:attribute name="request-channel" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>	
-						<![CDATA[  
+				<xsd:documentation>
+						<![CDATA[
 				Identifies channel the message will be sent to upon invocation of methods of this gateway
 						]]>
 				</xsd:documentation>
@@ -650,10 +650,10 @@
 		</xsd:attribute>
 		<xsd:attribute name="request-timeout" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>	
-							<![CDATA[  
+				<xsd:documentation>
+							<![CDATA[
 					Provides the amount of time dispatcher would wait to send a message.
-					This timeout would only apply if there is a potential to block in the send call. 
+					This timeout would only apply if there is a potential to block in the send call.
 					For example if this gateway is hooked up to a Queue channel. 
 					Value is specified in milliseconds.
 							]]>
@@ -681,14 +681,14 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:choice minOccurs="0" maxOccurs="1" >
-					<xsd:sequence> 
-						<xsd:element name="poller" type="basePollerType" /> 
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" /> 
-					</xsd:sequence> 
-					<xsd:sequence> 
-						<xsd:element ref="beans:bean" /> 
-						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" /> 
-					</xsd:sequence> 
+					<xsd:sequence>
+						<xsd:element name="poller" type="basePollerType" />
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+					<xsd:sequence>
+						<xsd:element ref="beans:bean" />
+						<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
 				</xsd:choice>
 				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
@@ -757,7 +757,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							<xsd:documentation>
 	Provide a name for the logger. This is useful when there are multiple logging Channel Adapters configured,
 	and you would like to differentiate them within the actual log. By default the logger name will be the
-	fully qualified class name of the LoggingHandler implementation. 
+	fully qualified class name of the LoggingHandler implementation.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -796,7 +796,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-				A reference to a bean defined in the application context. 
+				A reference to a bean defined in the application context.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -834,8 +834,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
-					Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+					Identifies channel attached to this adapter. Depending on the type of the adapter
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where
 					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
 				</xsd:documentation>
 			</xsd:annotation>
@@ -1183,8 +1183,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="ref" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Allows this poller to reference another instance of a top-level poller. 
-					[IMPORTANT] - This attribute is only allowed on inner poller definitions. 
+					Allows this poller to reference another instance of a top-level poller.
+					[IMPORTANT] - This attribute is only allowed on inner poller definitions.
 					Defining this attribute on a top-level poller definition will result in a configuration exception.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -1419,7 +1419,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					provided, then the specified header values will NOT overwrite any
 					existing ones with the same
 					header
-					names. 
+					names.
 					</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
@@ -1609,10 +1609,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="pattern-match" type="xsd:boolean" default="true">
 			<xsd:annotation>
 				<xsd:documentation>
-					Boolean flag that specifies whether values provided in 'header-names' should be treated as 
-					match patterns or literal values. For example header-names='foo*' would mean remove all 
-					headers that begin with 'foo' including the header named 'foo*'. However if you want to 
-					treat '*' as literal value setting this flag to FALSE will not perform pattern match and 
+					Boolean flag that specifies whether values provided in 'header-names' should be treated as
+					match patterns or literal values. For example header-names='foo*' would mean remove all
+					headers that begin with 'foo' including the header named 'foo*'. However if you want to
+					treat '*' as literal value setting this flag to FALSE will not perform pattern match and
 					the only header that will be removed is the one that is an exact match.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -1878,7 +1878,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					<xsd:attribute name="remove-message" type="xsd:boolean" default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-								If set to 'true' the Message will be removed from the MessageStore by 
+								If set to 'true' the Message will be removed from the MessageStore by
 								this transformer. Useful when Message can be 'claimed' only once. DEFAULT is 'false'.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -1919,7 +1919,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Message Filters that is used to decide whether a Message should be passed 
+				Defines a Message Filters that is used to decide whether a Message should be passed
 				along or dropped based on some criteria
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1952,8 +1952,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:complexContent>
 	</xsd:complexType>
 
-    <!-- 
-        Router Element Definitions 
+    <!--
+        Router Element Definitions
     -->
 
     <xsd:element name="header-value-router" type="headerValueRouterType">
@@ -1970,16 +1970,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
     <xsd:element name="recipient-list-router" type="recipientListRouterType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
-                Defines a Recipient List Router. A RecipientListRouter will send 
+                Defines a Recipient List Router. A RecipientListRouter will send
                 each received Message to a statically defined list of Message Channels.
-                
-                Another convenient option when configuring a RecipientListRouter 
+
+                Another convenient option when configuring a RecipientListRouter
                 is to define the 'selector-expression' for the 'mapping' sub elements.
                 The 'selector-expression' uses Spring Expression Language (SpEL)
-                and can be used as selectors for individual recipient channels. 
-                
-                This is similar to using a Filter at the beginning of 'chain' to 
-                act as a "Selective Consumer". However, in this case, it's all 
+                and can be used as selectors for individual recipient channels.
+
+                This is similar to using a Filter at the beginning of 'chain' to
+                act as a "Selective Consumer". However, in this case, it's all
                 combined rather concisely into the router's configuration.
             ]]></xsd:documentation>
         </xsd:annotation>
@@ -1993,7 +1993,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             ]]></xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-	
+
     <xsd:element name="exception-type-router" type="exceptionTypeRouterType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
@@ -2003,7 +2003,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             ]]></xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-	
+
     <xsd:element name="router" type="routerType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
@@ -2014,36 +2014,36 @@ endpoint itself is a Polling Consumer for a channel with a queue.
     </xsd:element>
 
 
-    <!-- 
-    
+    <!--
+
         Router Types
-    
+
     -->
 
     <!-- Type definitions used by the generic Router -->
-    
+
     <xsd:complexType name="commonRouterType" abstract="true">
         <xsd:complexContent>
             <xsd:extension base="abstractRouterType">
                 <xsd:attribute name="ref" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                            The "ref" attribute references the bean name of a custom 
+                            The "ref" attribute references the bean name of a custom
                             Router implementation. Typically that implementation will
                             be a simple POJO, but it may extend AbstractMessageRouter.
-                            
+
                             Provide the "method" attribute as well to clarify which
                             method should be invoked, Alternatively, the "ref" attribute
                             may point to an instance that contains the @Router annotation
                             on one of its methods.
-                            
+
                             Instead of using the "ref" attribute you may also provide
-                            the custom Router implementation as an inner bean 
+                            the custom Router implementation as an inner bean
                             definition.
-                            
-                            However, keep in mind that using both the "ref" attribute 
-                            and an inner handler definition in the same Router 
-                            configuration is not allowed, as it creates an 
+
+                            However, keep in mind that using both the "ref" attribute
+                            and an inner handler definition in the same Router
+                            configuration is not allowed, as it creates an
                             ambiguous condition, and an Exception will be thrown.
 
 							Additionally, instead of using "ref" and "method" at all,
@@ -2060,18 +2060,18 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     <xsd:annotation>
                         <xsd:documentation>
                             When implementing a custom Router using a plain POJO
-                            the "ref" attribute may be combined with an explicit 
-                            method name using the "method" attribute. 
-                            
-                            The referenced method may return either a MessageChannel 
-                            or a String type. Additionally, the method may return 
-                            either a single value or a collection. If a collection 
-                            is returned, the reply message will be sent to 
+                            the "ref" attribute may be combined with an explicit
+                            method name using the "method" attribute.
+
+                            The referenced method may return either a MessageChannel
+                            or a String type. Additionally, the method may return
+                            either a single value or a collection. If a collection
+                            is returned, the reply message will be sent to
                             multiple channels.
-                            
-                            Specifying a "method" attribute applies the same behavior 
+
+                            Specifying a "method" attribute applies the same behavior
                             as when using the @Router annotation on a single method
-                            within the object pointed to by the "ref". 
+                            within the object pointed to by the "ref".
                         </xsd:documentation>
                         <xsd:appinfo>
                             <tool:annotation>
@@ -2085,15 +2085,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:documentation>
                             SpEL Expression to be evaluated at runtime. Allows you
                             to implement simple computations without implementing
-                            a custom POJO router. Generally, the SpEL expression is 
-                            evaluated and the result is mapped to a channel using 
-                            "mapping" sub-elements. 
-                            
-                            However, if no "mapping" sub-element is present, the 
+                            a custom POJO router. Generally, the SpEL expression is
+                            evaluated and the result is mapped to a channel using
+                            "mapping" sub-elements.
+
+                            However, if no "mapping" sub-element is present, the
                             SpEL Expression will evaluate to a channel name directly.
-                            
-                            A SpEL expression may also return a Collection. Whenever 
-                            the expression returns multiple channel values the 
+
+                            A SpEL expression may also return a Collection. Whenever
+                            the expression returns multiple channel values the
                             Message will be forwarded to each channel.
 
                             Note that SpEL supports bean-references within expressions
@@ -2106,10 +2106,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:attribute name="channel-resolver" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[
-                            Provides a reference to a ChannelResolver that resolves 
-                            the return value to the name of a MessageChannel 
-                            within the application context. If none is provided, 
-                            the return value is expected to match a channel name 
+                            Provides a reference to a ChannelResolver that resolves
+                            the return value to the name of a MessageChannel
+                            within the application context. If none is provided,
+                            the return value is expected to match a channel name
                             exactly.
                         ]]></xsd:documentation>
                         <xsd:appinfo>
@@ -2132,28 +2132,28 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                           You can use SpEL Expressions to implement simple 
-                           computations. Generally a SpEL expression is evaluated 
-                           and the result is either a channel name or 
-                           alternatively the result can be mapped to a channel using the 
-                           'mapping' sub-element. 
-                           
-                           The SpEL expression can return a Collection, 
-                           effectively making this Router a Dynamic Recipient List 
-                           Router. Whenever the expression returns multiple 
-                           channel values the Message will be forwarded to 
-                           each channel.                    
+                           You can use SpEL Expressions to implement simple
+                           computations. Generally a SpEL expression is evaluated
+                           and the result is either a channel name or
+                           alternatively the result can be mapped to a channel using the
+                           'mapping' sub-element.
+
+                           The SpEL expression can return a Collection,
+                           effectively making this Router a Dynamic Recipient List
+                           Router. Whenever the expression returns multiple
+                           channel values the Message will be forwarded to
+                           each channel.
                             ]]></xsd:documentation>
-                        </xsd:annotation>   
-                    </xsd:element>                    
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="mapping"    type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                            Defines mapping rules for this router 
+                            Defines mapping rules for this router
                             (e.g., mapping value='foo' channel='myChannel')
                             ]]></xsd:documentation>
-                        </xsd:annotation>                           
+                        </xsd:annotation>
                     </xsd:element>
                     <xsd:any namespace="##other" processContents="strict"            minOccurs="0" maxOccurs="1" />
                 </xsd:sequence>
@@ -2161,7 +2161,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="routerTypeChain">
         <xsd:complexContent>
             <xsd:extension base="commonRouterType">
@@ -2171,12 +2171,12 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                            Defines mapping rules for this router 
+                            Defines mapping rules for this router
                             (e.g., mapping value='foo' channel='myChannel')
                             ]]></xsd:documentation>
-                        </xsd:annotation>                           
+                        </xsd:annotation>
                     </xsd:element>
-                </xsd:sequence>            
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2189,7 +2189,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 <xsd:attribute name="header-name" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation><![CDATA[
-                            Name of the header whose value will be used to 
+                            Name of the header whose value will be used to
                             route messages.
                         ]]></xsd:documentation>
                     </xsd:annotation>
@@ -2207,17 +2207,17 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				        <xsd:annotation>
 				            <xsd:documentation>
 				            <![CDATA[
-				            Defines mapping rules for this router 
+				            Defines mapping rules for this router
 				            (e.g., mapping value='foo' channel='myChannel')
 				            ]]></xsd:documentation>
-				        </xsd:annotation>                  
+				        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
                 <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="headerValueRouterTypeChain">
         <xsd:complexContent>
             <xsd:extension base="commonHeaderValueRouterType">
@@ -2226,12 +2226,12 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                            Defines mapping rules for this router 
+                            Defines mapping rules for this router
                             (e.g., mapping value='foo' channel='myChannel')
                             ]]></xsd:documentation>
-                        </xsd:annotation>                           
+                        </xsd:annotation>
                     </xsd:element>
-                </xsd:sequence>            
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -2253,20 +2253,20 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
 			            <xsd:annotation>
 			                <xsd:documentation>
-			                    An expression to be evaluated to determine if this recipient 
-			                    should be included in the recipient list for a given input 
+			                    An expression to be evaluated to determine if this recipient
+			                    should be included in the recipient list for a given input
 			                    Message. The evaluation result of the expression must be a boolean.
-			                    If this attribute is not defined, the channel will always be 
+			                    If this attribute is not defined, the channel will always be
 			                    among the list of recipients.
 			                </xsd:documentation>
-			            </xsd:annotation>                    
+			            </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
                 <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="recipientListRouterTypeChain">
         <xsd:complexContent>
             <xsd:extension base="commonRecipientListRouterType">
@@ -2274,21 +2274,21 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     <xsd:element name="recipient" type="recipientSelectorExpressionChannelType" minOccurs="1" maxOccurs="unbounded">
                         <xsd:annotation>
 			                <xsd:documentation>
-			                    An expression to be evaluated to determine if this recipient 
-			                    should be included in the recipient list for a given input 
+			                    An expression to be evaluated to determine if this recipient
+			                    should be included in the recipient list for a given input
 			                    Message. The evaluation result of the expression must be a boolean.
-			                    If this attribute is not defined, the channel will always be 
+			                    If this attribute is not defined, the channel will always be
 			                    among the list of recipients.
 			                </xsd:documentation>
 			            </xsd:annotation>
                     </xsd:element>
-                </xsd:sequence>            
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
     <!-- Type definitions used by the Payload Type Router -->
-    
+
     <xsd:complexType name="commonPayloadTypeRouterType" abstract="true">
         <xsd:complexContent>
             <xsd:extension base="abstractRouterType">
@@ -2303,8 +2303,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     <xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
                     <xsd:element name="mapping" type="mappingTypeChannelType" minOccurs="1" maxOccurs="unbounded">
                         <xsd:annotation>
-				            <xsd:documentation><![CDATA[Element defines the rules 
-				            for this router to map the type of a payload to the 
+				            <xsd:documentation><![CDATA[Element defines the rules
+				            for this router to map the type of a payload to the
 				            corresponding channel (e.g.
 				            <int:mapping value='java.lang.String' channel='stringChannel'/>).
 				            ]]></xsd:documentation>
@@ -2315,7 +2315,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="payloadTypeRouterTypeChain">
         <xsd:complexContent>
             <xsd:extension base="commonPayloadTypeRouterType">
@@ -2325,18 +2325,18 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                             <xsd:documentation>
                             <![CDATA[
                             Element defines the rules for this router to map the type
-                            of a payload to the corresponding channel. 
+                            of a payload to the corresponding channel.
                             (e.g., <int:mapping value='java.lang.String' channel='stringChannel'/>)
                             ]]></xsd:documentation>
-                        </xsd:annotation>                    
-                    </xsd:element>                    
-                </xsd:sequence>            
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
     <!-- Type definitions used by the Exception Type Router -->
-    
+
     <xsd:complexType name="commonExceptionTypeRouterType" abstract="true">
         <xsd:complexContent>
             <xsd:extension base="abstractRouterType">
@@ -2353,22 +2353,22 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                            Element defines the rules for this router to map the 
-                            exception type of the payload to the corresponding channel. 
+                            Element defines the rules for this router to map the
+                            exception type of the payload to the corresponding channel.
                             (e.g. <int:mapping exception-type='java.lang.NullPointerException' channel='npeChannel'/>)
-                            
-                            The most specific matching exception type is determined 
-                            by navigating the hierarchy of 'exception causes' 
+
+                            The most specific matching exception type is determined
+                            by navigating the hierarchy of 'exception causes'
                             (e.g., payload.getCause()).
                             ]]></xsd:documentation>
-                        </xsd:annotation>  
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
                 <xsd:attributeGroup ref="topLevelRouterAttributeGroup"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
     <xsd:complexType name="exceptionTypeRouterTypeChain">
         <xsd:complexContent>
             <xsd:extension base="commonExceptionTypeRouterType">
@@ -2377,39 +2377,39 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[
-                            Element defines the rules for this router to map the 
-                            exception type of the payload to the corresponding channel. 
+                            Element defines the rules for this router to map the
+                            exception type of the payload to the corresponding channel.
                             (e.g. <int:mapping exception-type='java.lang.NullPointerException' channel='npeChannel'/>)
-                            
-                            The most specific matching exception type is determined 
-                            by navigating the hierarchy of 'exception causes' 
+
+                            The most specific matching exception type is determined
+                            by navigating the hierarchy of 'exception causes'
                             (e.g., payload.getCause()).
                             ]]></xsd:documentation>
-                        </xsd:annotation> 
+                        </xsd:annotation>
                     </xsd:element>
-                </xsd:sequence>            
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-          
-    <!-- 
-    The following complex types define the attributes used for the Router 
+
+    <!--
+    The following complex types define the attributes used for the Router
     sub-elements - "mapping" and "recipient"
      -->
 
     <xsd:complexType name="mappingExceptionTypeChannelType">
         <xsd:attribute name="exception-type" type="xsd:string">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[The exception type of the payload 
+                <xsd:documentation><![CDATA[The exception type of the payload
                 that this mapping will match, e.g. 'java.lang.IllegalArgumentException']]>
                 </xsd:documentation>
-            </xsd:annotation>        
+            </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="channel" type="xsd:string">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[The channel the matching message will be 
+                <xsd:documentation><![CDATA[The channel the matching message will be
                 send to.]]>
-                </xsd:documentation>            
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -2423,7 +2423,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="value" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                A value of the evaluation token that will be mapped to a channel reference 
+                A value of the evaluation token that will be mapped to a channel reference
                 (e.g., mapping value='foo' channel='myChannel')
                 </xsd:documentation>
             </xsd:annotation>
@@ -2446,14 +2446,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
     <xsd:complexType name="mappingTypeChannelType">
         <xsd:attribute name="type" type="xsd:string">
 	        <xsd:annotation>
-	            <xsd:documentation><![CDATA[The type of the payload that this mapping 
+	            <xsd:documentation><![CDATA[The type of the payload that this mapping
 	            will match, e.g. 'java.lang.String' or 'java.lang.Integer']]>
 	            </xsd:documentation>
-	        </xsd:annotation>         
+	        </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="channel" type="xsd:string">
 	        <xsd:annotation>
-	            <xsd:documentation><![CDATA[The channel the matching message will be 
+	            <xsd:documentation><![CDATA[The channel the matching message will be
 	            send to.]]>
 	            </xsd:documentation>
                 <xsd:appinfo>
@@ -2469,19 +2469,19 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="selector-expression" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>
-                    An expression to be evaluated to determine if this recipient 
-                    should be included in the recipient list for a given input 
+                    An expression to be evaluated to determine if this recipient
+                    should be included in the recipient list for a given input
                     Message. The evaluation result of the expression must be a boolean.
-                    If this attribute is not defined, the channel will always be 
+                    If this attribute is not defined, the channel will always be
                     among the list of recipients.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="channel" type="xsd:string" use="required">
             <xsd:annotation>
-                <xsd:documentation><![CDATA[The channel (recepient) that the 
+                <xsd:documentation><![CDATA[The channel (recepient) that the
                     message will be send to.]]>
-                </xsd:documentation>            
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -2490,31 +2490,34 @@ endpoint itself is a Polling Consumer for a channel with a queue.
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-        
-    <!-- 
+
+    <!--
      The top level router attribute group contains all all attributes that are commonly
      used for all Top-Level-Routers (Defined outside of Chains).
     -->
-    
-    <xsd:attributeGroup name="topLevelRouterAttributeGroup">        
+
+    <xsd:attributeGroup name="topLevelRouterAttributeGroup">
         <xsd:attribute name="id" type="xsd:string">
 	        <xsd:annotation>
-	            <xsd:documentation><![CDATA[Identifies the underlying Spring bean 
-	                definition (EventDrivenConsumer).
+	            <xsd:documentation><![CDATA[Identifies the underlying Spring bean
+	                  definition which in case of Routers is an instance of
+	                  EventDrivenConsumer or PollingConsumer depending on whether
+	                  the Router's "input-channel" is a "SubscribableChannel" or
+                      "PollableChannel", respectively. This is an "optional" attribute.
 	                ]]></xsd:documentation>
 	        </xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="auto-startup" default="true">
             <xsd:annotation>
                 <xsd:documentation>
-                    Lifecycle attribute signaling if this component should be 
+                    Lifecycle attribute signaling if this component should be
                     started during Application Context startup. Defaults to true.
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>            
-        </xsd:attribute>        
+            </xsd:simpleType>
+        </xsd:attribute>
         <xsd:attribute name="input-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:appinfo>
@@ -2539,25 +2542,25 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         </xsd:attribute>
     </xsd:attributeGroup>
 
-    <!-- 
-     The base router type definition contains all attributes that are used across 
-     all routers AND are applicable to BOTH Top-Level-Elements and Routers defined 
+    <!--
+     The base router type definition contains all attributes that are used across
+     all routers AND are applicable to BOTH Top-Level-Elements and Routers defined
      in Chains.
     -->
-    
+
 	<xsd:complexType name="abstractRouterType" abstract="true">
         <xsd:attribute name="default-output-channel" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation>
-                    Reference to the channel where Messages should be sent if 
-                    channel resolution fails to return any channels. If no 
-                    default output channel is provided, the router will throw an 
+                    Reference to the channel where Messages should be sent if
+                    channel resolution fails to return any channels. If no
+                    default output channel is provided, the router will throw an
                     Exception.
-                    
-                    If you would like to silently drop those messages instead, 
-                    add the "nullChannel" as the default output channel attribute 
+
+                    If you would like to silently drop those messages instead,
+                    add the "nullChannel" as the default output channel attribute
                     value.
-                </xsd:documentation>            
+                </xsd:documentation>
                 <xsd:appinfo>
                     <tool:annotation kind="ref">
                         <tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -2568,8 +2571,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="timeout" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify the maximum amount of time in milliseconds to wait 
-					when sending Messages to the target MessageChannels. By 
+					Specify the maximum amount of time in milliseconds to wait
+					when sending Messages to the target MessageChannels. By
 					default the send will block indefinitely.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -2577,7 +2580,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="ignore-send-failures" default="false">
 			<xsd:annotation>
 				<xsd:documentation>
-					Specify whether a failure to send to a single channel should 
+					Specify whether a failure to send to a single channel should
 					be ignored. Otherwise MessageDeliveryExceptions will be thrown.
 					Defaults to false.
 				</xsd:documentation>
@@ -2595,26 +2598,26 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>			
+            </xsd:simpleType>
 		</xsd:attribute>
         <xsd:attribute name="resolution-required" default="true">
             <xsd:annotation>
                 <xsd:documentation>
-                    Specify whether channel names must always be successfully resolved 
-                    to existing channel instances. 
-                    
+                    Specify whether channel names must always be successfully resolved
+                    to existing channel instances.
+
                     If set to 'true', a MessagingException will be raised in case
-                    the channel cannot be resolved. Setting this attribute to 'false', 
-                    will cause any unresovable channels to be ignored.  
-                                     
-                    If not explicitly set, 'resolution-required' will 
-                    default to 'true'. 
+                    the channel cannot be resolved. Setting this attribute to 'false',
+                    will cause any unresovable channels to be ignored.
+
+                    If not explicitly set, 'resolution-required' will
+                    default to 'true'.
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>            
-        </xsd:attribute>		
+            </xsd:simpleType>
+        </xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="splitter">
@@ -2695,8 +2698,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:attribute name="expire-groups-upon-completion" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							Boolean flag specifying if MessageGroup should be removed once completed. Useful for 
-							handling late arrival use cases where messages arriving with the correlationKey that 
+							Boolean flag specifying if MessageGroup should be removed once completed. Useful for
+							handling late arrival use cases where messages arriving with the correlationKey that
 							is the same as the completed MessageGroup will be discarded. Default is 'false'
 						</xsd:documentation>
 					</xsd:annotation>
@@ -2713,7 +2716,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							decision algorithm.
 						</xsd:documentation>
 					</xsd:annotation>
-				</xsd:attribute>		
+				</xsd:attribute>
 				<xsd:attribute name="release-strategy-expression" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
@@ -2734,7 +2737,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-							A reference to a bean that implements the release strategy. 
+							A reference to a bean that implements the release strategy.
 							The bean can be an implementation of the
 							ReleaseStrategy interface or a POJO
 						</xsd:documentation>
@@ -2753,8 +2756,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
-							A reference to a bean that implements the decision algorithm as to whether a given 
-							message group is complete. The bean can be an implementation of the 
+							A reference to a bean that implements the decision algorithm as to whether a given
+							message group is complete. The bean can be an implementation of the
 							CorrelationStrategy interface or a POJO.
 							</xsd:documentation>
 					</xsd:annotation>
@@ -2774,7 +2777,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>A SpEL expression which implements correlation decision 
+						<xsd:documentation>A SpEL expression which implements correlation decision
 						algorithm to apply to the Message (e.g., payload.getPerson().getId() - correlate
 						 based on the 'id' of the 'person' attribute of the message payload object)</xsd:documentation>
 					</xsd:annotation>
@@ -2811,9 +2814,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-						Specifies whether messages that expired should be aggregated and sent to the 'output-channel' or 'replyChannel'. 
-						Messages are expired when their containing MessageGroup expires. One of the ways of expiring MessageGroups is by 
-						configuring a MessageGroupStoreReaper. However MessageGroups can alternatively be expired by simply calling 
+						Specifies whether messages that expired should be aggregated and sent to the 'output-channel' or 'replyChannel'.
+						Messages are expired when their containing MessageGroup expires. One of the ways of expiring MessageGroups is by
+						configuring a MessageGroupStoreReaper. However MessageGroups can alternatively be expired by simply calling
 						MessageGroupStore.expireMessageGroup(groupId). That could be accomplished via a ControlBus operation
 						or by simply invoking that method if you have a reference to the MessageGroupStore instance.
 						</xsd:documentation>
@@ -2885,7 +2888,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						<xsd:documentation>
 							Reference to a bean in this Application Context that implements ChannelInterceptor
 						</xsd:documentation>
-					</xsd:annotation>  
+					</xsd:annotation>
 					<xsd:complexType>
 						<xsd:attribute name="bean" use="required">
 							<xsd:annotation>
@@ -2904,7 +2907,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
 						<xsd:documentation>
-						Alows you to configure a Wire Tap interceptor that will send a copy of the message to a 
+						Alows you to configure a Wire Tap interceptor that will send a copy of the message to a
 						channel identified by 'channel' attribute.
 						</xsd:documentation>
 					</xsd:annotation>
@@ -3144,7 +3147,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         </xsd:complexContent>
       </xsd:complexType>
     </xsd:element>
-    
+
 	<xsd:element name="channel-interceptor">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -3153,7 +3156,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-			    <xsd:any namespace="##any" processContents="strict" minOccurs="0" maxOccurs="1" />				
+			    <xsd:any namespace="##any" processContents="strict" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="pattern" type="xsd:string" use="optional">
 				<xsd:annotation>
@@ -3193,7 +3196,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:annotation>
 			<xsd:documentation>
 			Allows you to register Converters (implementation of the Converter interface) that will
-be automatically registered with the ConversionService. ConversionService itself does not have to be 
+be automatically registered with the ConversionService. ConversionService itself does not have to be
 explicitly defined since the default ConversionService will be registered under the name 'integrationConversionService'
 unless bean with this name is already registered.
 			</xsd:documentation>
@@ -3223,7 +3226,7 @@ unless bean with this name is already registered.
 		<xsd:annotation>
 			<xsd:documentation>
 				<![CDATA[
-Will register Message History writer which will track message hostory. There can 
+Will register Message History writer which will track message hostory. There can
 only be one Message History writer per ApplicationContext hierarchy.
 					]]>
 			</xsd:documentation>
@@ -3263,7 +3266,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				that will be available include:
 				   1) any that are annotated with @ManagedAttribute or @ManagedOperation
 				   2) Lifecycle methods
-				   3) get/set or shutdown methods on configurable TaskExecutors or TaskSchedulers 
+				   3) get/set or shutdown methods on configurable TaskExecutors or TaskSchedulers
 			]]></xsd:documentation>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -3287,7 +3290,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 				<xsd:documentation>
 					Specify the maximum amount of time in milliseconds to wait when sending a reply
 					Message to the
-					output channel. By default the send will block for one second. 
+					output channel. By default the send will block for one second.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

@@ -21,7 +21,6 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,27 +42,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class Jsr223ServiceActivatorTests {
-	
+
 	@Autowired
 	private MessageChannel referencedScriptInput;
 
 	@Autowired
 	private MessageChannel inlineScriptInput;
-	
+
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
 
-	
-
-
 	@Test
-	public void referencedScriptAndCustomiser() throws Exception{
-	
+	public void referencedScript() throws Exception {
+
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -75,20 +72,21 @@ public class Jsr223ServiceActivatorTests {
 		String value2 = (String) replyChannel.receive(0).getPayload();
 		String value3 = (String) replyChannel.receive(0).getPayload();
 		System.out.println(value1 + "\n" + value2 + "\n" + value3);
-		assertTrue(value1.startsWith("ruby-test-1-foo - bar"));
-		assertTrue(value2.startsWith("ruby-test-2-foo - bar"));
-		assertTrue(value3.startsWith("ruby-test-3-foo - bar"));
-		// because we are using 'prototype bean the suffix date will be different
+		assertTrue(value1.startsWith("python-test-1-foo - bar"));
+		assertTrue(value2.startsWith("python-test-2-foo - bar"));
+		assertTrue(value3.startsWith("python-test-3-foo - bar"));
 
+		// because we are using 'prototype bean the suffix date will be
+		// different
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
-		
+
 		assertNull(replyChannel.receive(0));
 	}
-	
+
 	@Test
-	public void withScriptVariableGenerator() throws Exception{
-	
+	public void withScriptVariableGenerator() throws Exception {
+
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -102,17 +100,18 @@ public class Jsr223ServiceActivatorTests {
 		assertTrue(value1.startsWith("ruby-test-1-foo - bar"));
 		assertTrue(value2.startsWith("ruby-test-2-foo - bar"));
 		assertTrue(value3.startsWith("ruby-test-3-foo - bar"));
-		// because we are using 'prototype bean the suffix date will be different
+		// because we are using 'prototype bean the suffix date will be
+		// different
 
 		assertFalse(value1.substring(26).equals(value2.substring(26)));
 		assertFalse(value2.substring(26).equals(value3.substring(26)));
-	
+
 		assertNull(replyChannel.receive(0));
 	}
 
 	@Test
-	public void inlineScript() throws Exception{
-		
+	public void inlineScript() throws Exception {
+
 		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.setBeanName("returnAddress");
 		for (int i = 1; i <= 3; i++) {
@@ -123,21 +122,21 @@ public class Jsr223ServiceActivatorTests {
 		assertEquals("inline-test-2", replyChannel.receive(0).getPayload());
 		assertEquals("inline-test-3", replyChannel.receive(0).getPayload());
 		assertNull(replyChannel.receive(0));
-		
+
 	}
-	
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void inlineScriptAndVariables() throws Exception{
+
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void inlineScriptAndVariables() throws Exception {
 		new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-context.xml", this.getClass());
 	}
-	
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void variablesAndScriptVariableGenerator() throws Exception{
-		new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml", this.getClass());
+
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void variablesAndScriptVariableGenerator() throws Exception {
+		new ClassPathXmlApplicationContext("Jsr223ServiceActivatorTests-fail-withgenerator-context.xml",
+				this.getClass());
 	}
 
-
-	public static class SampleScriptVariSource implements ScriptVariableGenerator{
+	public static class SampleScriptVariSource implements ScriptVariableGenerator {
 		public Map<String, Object> generateScriptVariables(Message<?> message) {
 			Map<String, Object> variables = new HashMap<String, Object>();
 			variables.put("foo", "foo");
