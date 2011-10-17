@@ -143,18 +143,6 @@ public class RouterParserTests {
 	}
 
 	@Test
-	public void channelResolverConfigured() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		Object channelResolverBean = context.getBean("testChannelResolver");
-		Object endpoint = context.getBean("routerWithChannelResolver");
-		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
-		ChannelResolver channelResolver = (ChannelResolver)
-				new DirectFieldAccessor(router).getPropertyValue("channelResolver");
-		assertSame(channelResolverBean, channelResolver);
-	}
-
-	@Test
 	public void sequence() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
