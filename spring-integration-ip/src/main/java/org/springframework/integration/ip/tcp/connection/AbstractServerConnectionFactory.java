@@ -84,11 +84,12 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		connection.setSerializer(this.getSerializer());
 		connection.setSingleUse(this.isSingleUse());
 		/*
-		 * If we have a collaborating outbound channel adapter and we are configured
+		 * If we are configured
 		 * for single use; need to enforce a timeout on the socket so we will close
-		 * it some period after the response was sent (timeout on the next read).
+		 * if the client connects, but sends nothing. (Protect against DoS).
+		 * Behavior can be overridden by explicitly setting the timeout to zero.
 		 */
-		if (this.isSingleUse() && this.getSoTimeout() <= 0 && listener != null) {
+		if (this.isSingleUse() && this.getSoTimeout() < 0) {
 			try {
 				socket.setSoTimeout(DEFAULT_REPLY_TIMEOUT);
 			} catch (SocketException e) {

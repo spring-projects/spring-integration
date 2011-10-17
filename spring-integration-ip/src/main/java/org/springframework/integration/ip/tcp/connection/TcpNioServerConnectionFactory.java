@@ -113,7 +113,8 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	private void doSelect(ServerSocketChannel server, final Selector selector)
 			throws IOException, ClosedChannelException, SocketException {
 		while (this.isActive()) {
-			int selectionCount = selector.select(this.getSoTimeout());
+			int soTimeout = this.getSoTimeout();
+			int selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
 			this.processNioSelections(selectionCount, selector, server, this.connections);			
 		}
 	}

@@ -122,7 +122,8 @@ public class TcpNioClientConnectionFactory extends
 			this.selector = Selector.open();
 			while (this.isActive()) {
 				SocketChannel newChannel;
-				int selectionCount = selector.select(this.getSoTimeout());
+				int soTimeout = this.getSoTimeout();
+				int selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
 				while ((newChannel = newChannels.poll()) != null) {
 					newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
 				}
