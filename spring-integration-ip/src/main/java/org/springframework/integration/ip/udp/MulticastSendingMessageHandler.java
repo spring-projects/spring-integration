@@ -98,7 +98,16 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	}
 
 	@Override
-	protected synchronized DatagramSocket getSocket() throws IOException {
+	protected DatagramSocket getSocket() throws IOException {
+		if (this.getTheSocket() == null) {
+			synchronized (this) {
+				createSocket();
+			}
+		}
+		return this.getTheSocket();
+	}
+
+	private void createSocket() throws IOException {
 		if (this.getTheSocket() == null) {
 			MulticastSocket socket;
 			if (this.isAcknowledge()) {
@@ -128,7 +137,6 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 			}
 			this.setSocket(socket);
 		}
-		return this.getTheSocket();
 	}
 	
 

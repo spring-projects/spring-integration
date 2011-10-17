@@ -44,8 +44,9 @@ public class ByteArrayRawSerializer extends AbstractByteArraySerializer {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite = 0;
-		if (logger.isDebugEnabled()) 
+		if (logger.isDebugEnabled()) {
 			logger.debug("Available to read:" + inputStream.available());
+		}
 		while (bite >= 0) {
 			bite = inputStream.read();
 			if (bite < 0) {

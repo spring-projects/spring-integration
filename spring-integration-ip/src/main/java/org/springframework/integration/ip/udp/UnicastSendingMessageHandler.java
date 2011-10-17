@@ -239,8 +239,9 @@ public class UnicastSendingMessageHandler extends
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
 		}
 		finally {
-			if (countdownLatch != null)
+			if (countdownLatch != null) {
 				this.ackControl.remove(messageId);
+			}
 		}
 	}
 
