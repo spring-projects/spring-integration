@@ -25,8 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 
 import static junit.framework.Assert.fail;
 
@@ -59,6 +62,63 @@ public class SessionFactoryTests {
 			}
 		}	
 	}
+	
+	@Test
+	public void testStaleConnection() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session sessionA = Mockito.mock(Session.class);
+		Session sessionB = Mockito.mock(Session.class);
+		Mockito.when(sessionA.isOpen()).thenReturn(true);
+		Mockito.when(sessionB.isOpen()).thenReturn(false);
+		
+		Mockito.when(sessionFactory.getSession()).thenReturn(sessionA);
+		Mockito.when(sessionFactory.getSession()).thenReturn(sessionB);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
+		cachingFactory.setSessionCacheSize(2);
+		cachingFactory.afterPropertiesSet();
+		
+		Session firstSession = cachingFactory.getSession();
+		Session secondSession = cachingFactory.getSession();
+		secondSession.close();
+		Session nonStaleSession = cachingFactory.getSession();
+		assertEquals(TestUtils.getPropertyValue(firstSession, "targetSession"), TestUtils.getPropertyValue(nonStaleSession, "targetSession"));
+	}
+	
+	@Test
+	public void testSameSessionFromThePool() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session session = Mockito.mock(Session.class);
+		Mockito.when(sessionFactory.getSession()).thenReturn(session);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
+		cachingFactory.setSessionCacheSize(1);
+		cachingFactory.afterPropertiesSet();
+		
+		Session s1 = cachingFactory.getSession();
+		s1.close();
+		Session s2 = cachingFactory.getSession();
+		s2.close();
+		assertEquals(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s2, "targetSession"));
+		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
+	}
+	
+	@Test (expected=IllegalStateException.class) // timeout expire
+	public void testSessionWaitExpire() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session session = Mockito.mock(Session.class);
+		Mockito.when(sessionFactory.getSession()).thenReturn(session);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
+		cachingFactory.setSessionCacheSize(2);
+		cachingFactory.setSessionWaitTimeout(3000);
+		cachingFactory.afterPropertiesSet();
+		
+		cachingFactory.getSession();
+		cachingFactory.getSession();
+		cachingFactory.getSession();
+	}
+	
 	@Test
 	@Ignore
 	public void testConnectionLimit() throws Exception{
@@ -77,7 +137,7 @@ public class SessionFactoryTests {
 				public void run() {		
 					try {
 						Session session = factory.getSession();
-						Thread.sleep(random.nextInt(10000));
+						Thread.sleep(random.nextInt(5000));
 						session.close();
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -87,7 +147,8 @@ public class SessionFactoryTests {
 			});
 		}
 		executor.shutdown();
-		executor.awaitTermination(1000, TimeUnit.SECONDS);
+		executor.awaitTermination(100, TimeUnit.SECONDS);
+
 		assertEquals(0, failures.get());
 	}
 }

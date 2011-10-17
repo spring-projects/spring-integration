@@ -42,13 +42,13 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
-	public static final int DEFAULT_SESSION_LIMIT = 10;
+	public static final int DEFAULT_SESSION_LIMIT = -1;
 	
 	private final AtomicInteger concurrentSessions = new AtomicInteger(0);
 	
 	private volatile int sessionCacheSize = DEFAULT_SESSION_LIMIT;
 
-	private volatile long sessionWaitTimeout = 5000;
+	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
 
 	private volatile LinkedBlockingQueue<Session> queue;
 
@@ -87,32 +87,34 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 				else {
 					session = this.queue.poll();
 				}
-			}
-					
-			if (session == null || !session.isOpen()) {
-				if (session != null && logger.isTraceEnabled()) {
-					logger.trace("Located session in the pool but it is stale, will create new one.");				
-					concurrentSessions.getAndDecrement();				
-				}
 				
+				if (session != null && !session.isOpen()){
+					concurrentSessions.decrementAndGet();		
+					return this.getSession();
+				}
+			}		
+			
+			if (session == null){
 				int sessionsCount = 0;
+				
 				synchronized (lock) {
-					session = this.sessionFactory.getSession();
+					session = this.sessionFactory.getSession();	
 					sessionsCount = concurrentSessions.incrementAndGet();
 				}
-				
+							
 				if (logger.isDebugEnabled()) {
 					logger.debug("Created new Session");
 				}
 				if (sessionsCount == this.sessionCacheSize){
 					if (logger.isInfoEnabled()){
-						logger.info("Concurrent remote sessions threshold has been reached: " + this.sessionCacheSize +
-								". No more new session will be created.");
+						logger.info("Session cache size threshold has been reached: " + this.sessionCacheSize);
 					}
 				}
 			}
-			else if (logger.isTraceEnabled()) {
-				logger.trace("Using session from the pool");
+			else {
+				if (logger.isTraceEnabled()){
+					logger.trace("Using session from the pool");
+				}			
 			}
 			return new CachedSession(session);
 		} catch (Exception e) {
@@ -122,7 +124,12 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 	}
 	
 	public void afterPropertiesSet() throws Exception {
-		this.queue = new LinkedBlockingQueue<Session>(this.sessionCacheSize);
+		if (this.sessionCacheSize > -1){
+			this.queue = new LinkedBlockingQueue<Session>(this.sessionCacheSize);
+		}
+		else {
+			this.queue = new LinkedBlockingQueue<Session>();
+		}
 	}
 
 	public void destroy() {
