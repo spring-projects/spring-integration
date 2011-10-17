@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,23 +30,23 @@ import org.springframework.integration.MessageChannel;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */  
-public class ErrorMessageExceptionTypeRouter extends AbstractMessageRouter {
+public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
-		String channelIdentifier = null;
+	protected List<Object> getChannelKeys(Message<?> message) {
+		String mostSpecificCause = null;
 		Object payload = message.getPayload();
-		if (payload != null && (payload instanceof Throwable) && this.channelIdentifierMap != null) {
-			Throwable mostSpecificCause = (Throwable) payload;
-			while (mostSpecificCause != null) {
-				String mappedChannelIdentifier = this.channelIdentifierMap.get(mostSpecificCause.getClass().getName());
-				if (mappedChannelIdentifier != null) {
-					channelIdentifier = mappedChannelIdentifier;
+		if (payload instanceof Throwable) {
+			Throwable cause = (Throwable) payload;
+			while (cause != null) {
+				String causeName = cause.getClass().getName();
+				if (this.getChannelMappings().keySet().contains(causeName)) {
+					mostSpecificCause = causeName;
 				}
-				mostSpecificCause = mostSpecificCause.getCause();
+				cause = cause.getCause();
 			}
 		}
-		return Collections.singletonList((Object) channelIdentifier);
+		return Collections.singletonList((Object) mostSpecificCause);
 	}
 
 }

@@ -19,7 +19,6 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -41,7 +41,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
@@ -143,18 +143,6 @@ public class RouterParserTests {
 	}
 
 	@Test
-	public void channelResolverConfigured() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"routerParserTests.xml", this.getClass());
-		Object channelResolverBean = context.getBean("testChannelResolver");
-		Object endpoint = context.getBean("routerWithChannelResolver");
-		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
-		ChannelResolver channelResolver = (ChannelResolver)
-				new DirectFieldAccessor(router).getPropertyValue("channelResolver");
-		assertSame(channelResolverBean, channelResolver);
-	}
-
-	@Test
 	public void sequence() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
@@ -196,7 +184,7 @@ public class RouterParserTests {
 		}
 	}
 
-	public static class TestRouterImplementation extends AbstractMessageRouter {
+	public static class TestRouterImplementation extends AbstractMappingMessageRouter {
 
 		private final MessageChannel channel;
 
@@ -206,7 +194,7 @@ public class RouterParserTests {
 
 
 		@Override
-		protected List<Object> getChannelIdentifiers(Message<?> message) {
+		protected List<Object> getChannelKeys(Message<?> message) {
 			return Collections.singletonList((Object)this.channel);
 		}
 	}

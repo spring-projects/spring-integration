@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.router.HeaderValueRouter;
 
 /**
  * Parser for the &lt;header-value-router/&gt; element.
@@ -33,8 +34,7 @@ public class HeaderValueRouterParser extends AbstractRouterParser {
 
 	@Override
 	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.HeaderValueRouter");
+		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(HeaderValueRouter.class);
 		headerValueRouterBuilder.addConstructorArgValue(element.getAttribute("header-name"));
 		return headerValueRouterBuilder.getBeanDefinition();
 	}

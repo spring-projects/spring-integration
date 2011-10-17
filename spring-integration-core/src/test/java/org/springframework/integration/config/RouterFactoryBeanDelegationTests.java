@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,7 +50,7 @@ public class RouterFactoryBeanDelegationTests {
 	private PollableChannel discard;
 
 	@Autowired @Qualifier("org.springframework.integration.config.RouterFactoryBean#0")
-	private AbstractMessageRouter router;
+	private AbstractMappingMessageRouter router;
 
 
 	@Test

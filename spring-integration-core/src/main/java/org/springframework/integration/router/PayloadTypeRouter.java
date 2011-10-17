@@ -31,7 +31,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class PayloadTypeRouter extends AbstractMessageRouter {
+public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 
 	private static final String ARRAY_SUFFIX = "[]";
 
@@ -45,13 +45,8 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	 *    preferring direct interface over indirect subclass
 	 */
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
-		String channelName = this.getChannelName(message);
-		return (channelName != null) ? Collections.<Object>singletonList(channelName) : null;
-	}
-
-	private String getChannelName(Message<?> message) {
-		if (CollectionUtils.isEmpty(this.channelIdentifierMap)) {
+	protected List<Object> getChannelKeys(Message<?> message) {
+		if (CollectionUtils.isEmpty(this.getChannelMappings())) {
 			return null;
 		}
 		Class<?> type = message.getPayload().getClass();
@@ -59,13 +54,15 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		if (isArray) {
 			type = type.getComponentType();
 		}
-		return this.findClosestMatch(type, isArray);
+		String closestMatch =  this.findClosestMatch(type, isArray);
+		return (closestMatch != null) ? Collections.<Object>singletonList(closestMatch) : null;
 	}
+
 
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new ArrayList<String>();
-		for (String candidate : this.channelIdentifierMap.keySet()) {
+		for (String candidate : this.getChannelMappings().keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
 					continue;
@@ -96,7 +93,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			return null;
 		}
 		// we have a winner
-		return this.channelIdentifierMap.get(matches.get(0));		
+		return matches.get(0);
 	}
 
 	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {
