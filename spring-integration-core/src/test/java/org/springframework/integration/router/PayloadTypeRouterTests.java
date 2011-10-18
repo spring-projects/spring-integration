@@ -51,7 +51,7 @@ public class PayloadTypeRouterTests {
 		payloadTypeChannelMap.put(String.class.getName(), "stringChannel");
 		payloadTypeChannelMap.put(Integer.class.getName(), "integerChannel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		
 		Message<String> message1 = new GenericMessage<String>("test");
@@ -98,7 +98,7 @@ public class PayloadTypeRouterTests {
 		Map<String, String> payloadTypeChannelMap = new ConcurrentHashMap<String, String>();
 		payloadTypeChannelMap.put(Number.class.getName(), "numberChannel");
 		PayloadTypeRouter router = new PayloadTypeRouter();
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<Integer> message = new GenericMessage<Integer>(99);
@@ -138,7 +138,7 @@ public class PayloadTypeRouterTests {
 		
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 	
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<Integer> message = new GenericMessage<Integer>(99);
@@ -166,7 +166,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<Integer> message = new GenericMessage<Integer>(99);
@@ -193,7 +193,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -224,7 +224,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -255,7 +255,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -286,7 +286,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 			
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -315,7 +315,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<Integer> message = new GenericMessage<Integer>(99);
@@ -356,7 +356,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message = new GenericMessage<String>("test");
@@ -383,7 +383,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<Integer> message = new GenericMessage<Integer>(99);
@@ -412,7 +412,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
@@ -440,7 +440,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message1 = new GenericMessage<String>("test");
@@ -481,7 +481,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -515,7 +515,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());
@@ -548,7 +548,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		
 		router.setBeanFactory(beanFactory);
-		router.setChannelIdentifierMap(payloadTypeChannelMap);
+		router.setChannelMappings(payloadTypeChannelMap);
 		
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<C1> message = new GenericMessage<C1>(new C1());

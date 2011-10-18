@@ -19,6 +19,7 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,7 +70,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile boolean resolutionRequired = true;
 
-	protected volatile Map<String, String> channelIdentifierMap = new ConcurrentHashMap<String, String>();
+	private final Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
 
 	/**
@@ -96,27 +97,44 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Allows you to set the map which will map channel identifiers to channel names.
-	 * Channel names will be resolve via {@link ChannelResolver}
-	 * @param channelIdentifierMap
+	 * Provide mappings from channel keys to channel names.
+	 * Channel names will be resolved by the {@link ChannelResolver}.
 	 */
-	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
-		this.channelIdentifierMap.clear();
-		this.channelIdentifierMap.putAll(channelIdentifierMap);
-	}
-
-	@ManagedOperation
-	public void setChannelMapping(String channelIdentifier, String channelName) {
-		this.channelIdentifierMap.put(channelIdentifier, channelName);
+	public void setChannelMappings(Map<String, String> channelMappings) {
+		this.channelMappings.clear();
+		this.channelMappings.putAll(channelMappings);
 	}
 
 	/**
-	 * Removes channel mapping for a give channel identifier
-	 * @param channelIdentifier
+	 * Returns an unmodifiable version of the channel mappings.
+	 * This is intended for use by subclasses only.
+	 */
+	protected Map<String, String> getChannelMappings() {
+		return Collections.unmodifiableMap(this.channelMappings);
+	}
+
+	/**
+	 * Returns a mapped value for a given key, if present.
+	 * This is intended for use by subclasses only.
+	 */
+	protected String getChannelMapping(String key) {
+		return this.channelMappings.get(key);
+	}
+
+	/**
+	 * Add a channel mapping from the provided key to channel name.
 	 */
 	@ManagedOperation
-	public void removeChannelMapping(String channelIdentifier) {
-		this.channelIdentifierMap.remove(channelIdentifier);
+	public void setChannelMapping(String key, String channelName) {
+		this.channelMappings.put(key, channelName);
+	}
+
+	/**
+	 * Remove a channel mapping for the given key if present.
+	 */
+	@ManagedOperation
+	public void removeChannelMapping(String key) {
+		this.channelMappings.remove(key);
 	}
 
 	/**
@@ -194,7 +212,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Subclasses must implement this method to return the channel identifiers.
+	 * Subclasses must implement this method to return the channel keys.
 	 */
 	protected abstract List<Object> getChannelIdentifiers(Message<?> message);
 
@@ -265,25 +283,25 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return channel;
 	}
 
-	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
-		if (channelIdentifier.indexOf(',') != -1) {
-			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
+	private void addChannelFromString(Collection<MessageChannel> channels, String channelKey, Message<?> message) {
+		if (channelKey.indexOf(',') != -1) {
+			for (String name : StringUtils.commaDelimitedListToStringArray(channelKey)) {
 				addChannelFromString(channels, name, message);
 			}
 			return;
 		}
 
-		// if the channelIdentifierMap contains a mapping, we'll use the mapped value
-		// otherwise, the String-based channelIdentifier itself will be used as the channel name
-		String channelName = channelIdentifier;
-		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)) {
-			channelName = channelIdentifierMap.get(channelIdentifier);
+		// if the channelMappings contains a mapping, we'll use the mapped value
+		// otherwise, the String-based channelKey itself will be used as the channel name
+		String channelName = channelKey;
+		if (!CollectionUtils.isEmpty(channelMappings) && channelMappings.containsKey(channelKey)) {
+			channelName = channelMappings.get(channelKey);
 		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
 		}
 		if (this.suffix != null) {
-			channelName = channelName + suffix;
+			channelName = channelName + this.suffix;
 		}
 		MessageChannel channel = resolveChannelForName(channelName, message);
 		if (channel != null) {

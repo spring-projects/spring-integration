@@ -28,7 +28,12 @@ import org.w3c.dom.Element;
  * @since 2.0.4
  */
 public class ErrorMessageExceptionTypeRouterParser extends AbstractRouterParser {
-	
+
+	@Override
+	protected String getMappingKeyAttributeName() {
+		return "exception-type";
+	}
+
 	@Override
 	protected BeanDefinition doParseRouter(Element element,
 			ParserContext parserContext) {
@@ -36,9 +41,5 @@ public class ErrorMessageExceptionTypeRouterParser extends AbstractRouterParser 
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.ErrorMessageExceptionTypeRouter");
 		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
-	
-	@Override
-	protected String getMappingKeyAttributeValue(){
-		return "exception-type";
-	}
+
 }

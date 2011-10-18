@@ -24,6 +24,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -51,23 +52,27 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 		BeanDefinition beanDefinition = this.doParseRouter(element, parserContext);
 		if (beanDefinition != null) {
 			// check if mapping is provided otherwise returned values will be treated as channel names
-			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
-			if (childElements != null && childElements.size() > 0) {
-				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
-				for (Element childElement : childElements) {
-					String key = childElement.getAttribute(this.getMappingKeyAttributeValue());
-					channelMap.put(key, childElement.getAttribute("channel"));
+			List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
+			if (!CollectionUtils.isEmpty(mappingElements)) {
+				ManagedMap<String, String> channelMappings = new ManagedMap<String, String>();
+				for (Element mappingElement : mappingElements) {
+					String key = mappingElement.getAttribute(this.getMappingKeyAttributeName());
+					channelMappings.put(key, mappingElement.getAttribute("channel"));
 				}
-				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
+				beanDefinition.getPropertyValues().add("channelMappings", channelMappings);
 			}
 		}
 		return beanDefinition;
 	}
 
-	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
-	
-	protected String getMappingKeyAttributeValue(){
+	/**
+	 * Returns the name of the attribute that provides a key for the
+	 * channel mappings. This can be overridden by subclasses.
+	 */
+	protected String getMappingKeyAttributeName() {
 		return "value";
 	}
+
+	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
 
 }

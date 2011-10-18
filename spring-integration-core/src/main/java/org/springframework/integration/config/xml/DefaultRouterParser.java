@@ -48,11 +48,11 @@ public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParse
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
 		if (!CollectionUtils.isEmpty(mappingElements)) {
-			ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
+			ManagedMap<String, String> channelMappings = new ManagedMap<String, String>();
 			for (Element mappingElement : mappingElements) {
-				channelMap.put(mappingElement.getAttribute("value"), mappingElement.getAttribute("channel"));
+				channelMappings.put(mappingElement.getAttribute("value"), mappingElement.getAttribute("channel"));
 			}
-			builder.addPropertyValue("channelIdentifierMap", channelMap);
+			builder.addPropertyValue("channelMappings", channelMappings);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");

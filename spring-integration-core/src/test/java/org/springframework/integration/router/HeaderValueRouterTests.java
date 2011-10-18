@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,12 +90,12 @@ public class HeaderValueRouterTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void resolveChannelNameFromMap() {
 		StaticApplicationContext context = new StaticApplicationContext();
-		ManagedMap channelMap = new ManagedMap();
-		channelMap.put("testKey", "testChannel");
+		ManagedMap channelMappings = new ManagedMap();
+		channelMappings.put("testKey", "testChannel");
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelMappings", channelMappings);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
@@ -112,12 +112,12 @@ public class HeaderValueRouterTests {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void resolveChannelNameFromMapAndCustomeResolver() {
 		final StaticApplicationContext context = new StaticApplicationContext();
-		ManagedMap channelMap = new ManagedMap();
-		channelMap.put("testKey", "testChannel");
+		ManagedMap channelMappings = new ManagedMap();
+		channelMappings.put("testKey", "testChannel");
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
-		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelMappings", channelMappings);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new ChannelResolver() {
 			public MessageChannel resolveChannelName(String channelName) {

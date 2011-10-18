@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		
 		router.setBeanFactory(beanFactory);
 
@@ -95,7 +95,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 
 		router.setDefaultOutputChannel(defaultChannel);
@@ -116,7 +116,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -152,7 +152,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setResolutionRequired(true);
 		router.handleMessage(message);
@@ -170,7 +170,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -191,7 +191,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
-		router.setChannelIdentifierMap(exceptionTypeChannelMap);
+		router.setChannelMappings(exceptionTypeChannelMap);
 		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);

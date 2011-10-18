@@ -375,6 +375,7 @@ public class RouterTests {
 		
 		String channel = "channel1";
 
+		@SuppressWarnings("unused")
 		public String getChannel() {
 			return this.channel;
 		}

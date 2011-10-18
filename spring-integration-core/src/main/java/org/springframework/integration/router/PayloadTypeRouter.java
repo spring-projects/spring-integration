@@ -51,7 +51,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	}
 
 	private String getChannelName(Message<?> message) {
-		if (CollectionUtils.isEmpty(this.channelIdentifierMap)) {
+		if (CollectionUtils.isEmpty(this.getChannelMappings())) {
 			return null;
 		}
 		Class<?> type = message.getPayload().getClass();
@@ -65,7 +65,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
 		List<String> matches = new ArrayList<String>();
-		for (String candidate : this.channelIdentifierMap.keySet()) {
+		for (String candidate : this.getChannelMappings().keySet()) {
 			if (isArray) {
 				if (!candidate.endsWith(ARRAY_SUFFIX)) {
 					continue;
@@ -96,7 +96,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			return null;
 		}
 		// we have a winner
-		return this.channelIdentifierMap.get(matches.get(0));		
+		return this.getChannelMapping(matches.get(0));		
 	}
 
 	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {

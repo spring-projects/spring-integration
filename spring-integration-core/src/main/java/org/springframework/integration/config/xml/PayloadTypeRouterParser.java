@@ -29,7 +29,12 @@ import org.w3c.dom.Element;
  * @since 1.0.3
  */
 public class PayloadTypeRouterParser extends AbstractRouterParser {
-	
+
+	@Override
+	protected String getMappingKeyAttributeName() {
+		return "type";
+	}
+
 	@Override
 	protected BeanDefinition doParseRouter(Element element,
 			ParserContext parserContext) {
@@ -37,9 +42,5 @@ public class PayloadTypeRouterParser extends AbstractRouterParser {
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
 		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
-	
-	@Override
-	protected String getMappingKeyAttributeValue(){
-		return "type";
-	}
+
 }

@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile Map<String, String> channelIdentifierMap;
+	private volatile Map<String, String> channelMappings;
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -67,8 +67,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		this.ignoreSendFailures = ignoreSendFailures;
 	}
 	
-	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
-		this.channelIdentifierMap = channelIdentifierMap;
+	public void setChannelMappings(Map<String, String> channelMappings) {
+		this.channelMappings = channelMappings;
 	}
 
 	@Override
@@ -103,8 +103,8 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
-		if (this.channelIdentifierMap != null) {
-			router.setChannelIdentifierMap(this.channelIdentifierMap);
+		if (this.channelMappings != null) {
+			router.setChannelMappings(this.channelMappings);
 		}
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);

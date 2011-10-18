@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,19 @@ public class ErrorMessageExceptionTypeRouter extends AbstractMessageRouter {
 
 	@Override
 	protected List<Object> getChannelIdentifiers(Message<?> message) {
-		String channelIdentifier = null;
+		String channel = null;
 		Object payload = message.getPayload();
-		if (payload != null && (payload instanceof Throwable) && this.channelIdentifierMap != null) {
+		if (payload instanceof Throwable) {
 			Throwable mostSpecificCause = (Throwable) payload;
 			while (mostSpecificCause != null) {
-				String mappedChannelIdentifier = this.channelIdentifierMap.get(mostSpecificCause.getClass().getName());
-				if (mappedChannelIdentifier != null) {
-					channelIdentifier = mappedChannelIdentifier;
+				String mappedChannel = this.getChannelMapping(mostSpecificCause.getClass().getName());
+				if (mappedChannel != null) {
+					channel = mappedChannel;
 				}
 				mostSpecificCause = mostSpecificCause.getCause();
 			}
 		}
-		return Collections.singletonList((Object) channelIdentifier);
+		return Collections.singletonList((Object) channel);
 	}
 
 }
