@@ -68,6 +68,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		this.sessionFactory = sessionFactory;
 	}
 
+
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
 	}
@@ -78,11 +79,12 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 	
 	protected String getTemporaryFileSuffix() {
-		return temporaryFileSuffix;
+		return this.temporaryFileSuffix;
 	}
 
 	public void setTemporaryDirectory(File temporaryDirectory) {
@@ -136,7 +138,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 						try {
 							file.delete();
 						}
-						catch (Throwable th) {
+						catch (Throwable t) {
 							// ignore
 						}
 					}
@@ -160,7 +162,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				byte[] bytes = null;
 				if (payload instanceof String) {
-					bytes = ((String) payload).getBytes(charset);
+					bytes = ((String) payload).getBytes(this.charset);
 				}
 				else {
 					bytes = (byte[]) payload;
@@ -169,7 +171,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
-							"java.io.File, java.lang.String and byte[]");
+							"java.io.File, java.lang.String, and byte[]");
 			}
 			return sendableFile;
 		}
@@ -185,17 +187,15 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (!StringUtils.hasText(remoteDirectory)) {
 			remoteDirectory = "";
 		}
-		else if (!remoteDirectory.endsWith(remoteFileSeparator)) {
-			remoteDirectory += remoteFileSeparator; 
+		else if (!remoteDirectory.endsWith(this.remoteFileSeparator)) {
+			remoteDirectory += this.remoteFileSeparator; 
 		}
 		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
-		
-		if (this.autoCreateDirectory){
-			this.ensureDirectoryExists(session, remoteDirectory, remoteDirectory);
+		if (this.autoCreateDirectory) {
+			session.mkdir(remoteDirectory);
 		}
-		
 		try {
 			session.write(fileInputStream, tempFilePath);
 			// then rename it to its final name
@@ -209,35 +209,4 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private void ensureDirectoryExists(Session session, String remoteDirectory, String originalRemoteDirectory){
-		try {
-			session.list(remoteDirectory);
-		} catch (IOException e) {
-			if (logger.isDebugEnabled()){
-				logger.debug("Directory '" + remoteDirectory + "' does not exist. Will attempt to auto-create it");
-			}		
-			int nextSeparatorIndex = remoteDirectory.lastIndexOf(this.remoteFileSeparator);
-			if (nextSeparatorIndex <= 0){
-				throw new MessagingException("Failed to auto-create directory '" + originalRemoteDirectory + "'");
-			}
-			else {
-				remoteDirectory = remoteDirectory.substring(0, nextSeparatorIndex);
-				this.ensureDirectoryExists(session, remoteDirectory, originalRemoteDirectory);
-			}
-		}
-		String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
-		String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, this.remoteFileSeparator);
-		String directory = remoteDirectory + this.remoteFileSeparator;
-		for (String directorySegment : directories) {
-			directory += directorySegment+this.remoteFileSeparator;
-			if (logger.isDebugEnabled()){
-				logger.debug("Creating '" + directory + "'");
-			}	
-			try {
-				session.mkdir(directory);
-			} catch (Exception e) {
-				throw new MessagingException("Failed to auto-create directory '" + directory + "'");
-			}
-		}
-	}
 }

@@ -8,8 +8,8 @@
 		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd">
 
 	<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
-		<property name="host" value="192.168.1.155"/>
-		<property name="username" value="oleg"/>
+		<property name="host" value="192.168.28.143"/>
+		<property name="username" value="user"/>
 		<property name="password" value="password"/>
 		<property name="bufferSize" value="1000000"/>
 	</bean>
@@ -17,7 +17,8 @@
 	<int:channel id="ftpChannel"/>
 
 	<int-ftp:outbound-channel-adapter 
+				auto-create-directory="true"
 				session-factory="ftpSessionFactory" 
-				remote-directory="/home/ozhurakousky"
+				remote-directory="./dsf/sdfsfs/sdffs"
 				channel="ftpChannel"/>	
 </beans>

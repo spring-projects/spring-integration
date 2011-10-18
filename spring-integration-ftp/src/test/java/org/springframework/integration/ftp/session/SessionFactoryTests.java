@@ -15,12 +15,12 @@
  */
 package org.springframework.integration.ftp.session;
 
-import static junit.framework.Assert.fail;
-
 import java.lang.reflect.Field;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Test;
+
+import static junit.framework.Assert.fail;
 
 /**
  * @author Oleg Zhurakousky
@@ -47,7 +47,6 @@ public class SessionFactoryTests {
 					fail();
 				}
 			}
-		}
-		
+		}	
 	}
 }
