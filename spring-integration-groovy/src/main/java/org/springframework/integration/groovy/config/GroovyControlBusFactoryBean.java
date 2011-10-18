@@ -38,7 +38,7 @@ import org.springframework.util.CustomizableThreadCreator;
  * @author Mark Fisher
  * @since 2.0
  */
-public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
+public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
 	private volatile Long sendTimeout;
 
