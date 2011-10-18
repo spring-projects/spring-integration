@@ -45,6 +45,7 @@
 			local-directory="file:local-test-dir"
 			auto-create-local-directory="false"
 			remote-file-separator="."
+			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			temporary-file-suffix=".bar"
 			comparator="comparator"
 			delete-remote-files="${delete.remote.files}">

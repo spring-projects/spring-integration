@@ -108,6 +108,15 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			            	</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="local-filename-generator-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+							Allows you to provide SpEL expression which will compute the file name of 
+					the local file (transfered file). Root object of SpEL is the name of the original 
+					file (e.g., "#this.toUpperCase() + '.a'" where #this represents the original name of the remote file)
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="filename-regex" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>

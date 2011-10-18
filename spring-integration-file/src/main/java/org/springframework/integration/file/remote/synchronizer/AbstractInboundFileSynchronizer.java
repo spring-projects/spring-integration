@@ -26,8 +26,9 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.session.Session;
@@ -49,6 +50,8 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
+	
+	private static final StandardEvaluationContext context = new StandardEvaluationContext();
 
 	private String remoteFileSeparator = "/";
 	/**
@@ -57,6 +60,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private volatile String temporaryFileSuffix =".writing";
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
+	
+	private volatile Expression localFilenameGeneratorExpression;
 
 	/**
 	 * the path on the remote mount as a String.
@@ -80,6 +85,11 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	private boolean deleteRemoteFiles;
 
 
+	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
+		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
+		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
+	}
+	
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
@@ -159,6 +169,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 
 	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
+		String localFileName = this.generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;
 		if (!this.isFile(remoteFile)) {
 			if (logger.isDebugEnabled()) {
@@ -166,7 +177,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			}
 			return;
 		}
-		File localFile = new File(localDirectory, remoteFileName);
+				
+		File localFile = new File(localDirectory, localFileName);
 		if (!localFile.exists()) {
 			String tempFileName = localFile.getAbsolutePath() + this.temporaryFileSuffix;
 			File tempFile = new File(tempFileName);
@@ -197,6 +209,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				catch (Exception ignored2) {
 				}
 			}
+			
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
 					session.remove(remoteFilePath);
@@ -206,6 +219,13 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 				}
 			}
 		}
+	}
+	
+	private String generateLocalFileName(String remoteFileName){
+		if (this.localFilenameGeneratorExpression != null){
+			return this.localFilenameGeneratorExpression.getValue(context, remoteFileName, String.class);
+		}
+		return remoteFileName;
 	}
 
 	protected abstract boolean isFile(F file);
