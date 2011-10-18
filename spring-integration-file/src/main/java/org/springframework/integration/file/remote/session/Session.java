@@ -46,5 +46,4 @@ public interface Session {
 	void close();
 	
 	boolean isOpen();
-	
 }

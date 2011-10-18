@@ -15,17 +15,16 @@
  */
 package org.springframework.integration.sftp.config;
 
-import static junit.framework.Assert.assertTrue;
-
 import java.io.File;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+
+import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousy
@@ -72,11 +71,10 @@ public class SftpInboundOutboundSanitySample {
 		MessageChannel ftpChannel = ac.getBean("ftpChannel", MessageChannel.class);
 		ftpChannel.send(new GenericMessage<File>(fileA));
 		ftpChannel.send(new GenericMessage<File>(fileB));
-		Thread.sleep(3000);
+		Thread.sleep(6000);
 		fileA = new File("remote-target-dir/a.test-foo");
 		fileB = new File("remote-target-dir/b.test-foo");
 		assertTrue(fileA.exists());
 		assertTrue(fileB.exists());
 	}
-
 }

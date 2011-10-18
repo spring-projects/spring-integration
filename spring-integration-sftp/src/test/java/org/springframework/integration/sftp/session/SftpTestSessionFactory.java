@@ -19,11 +19,11 @@ import org.springframework.integration.file.remote.session.Session;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * 
  */
 public class SftpTestSessionFactory {
 
-	public static Session createSftpSession(com.jcraft.jsch.Session jschSession){
+	public static Session createSftpSession(com.jcraft.jsch.Session jschSession) {
 		SftpSession sftpSession = new SftpSession(jschSession);
 		sftpSession.connect();
 		return sftpSession;
