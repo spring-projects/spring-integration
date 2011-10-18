@@ -285,7 +285,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private void addChannelFromString(Collection<MessageChannel> channels, String channelKey, Message<?> message) {
 		if (channelKey.indexOf(',') != -1) {
-			for (String name : StringUtils.commaDelimitedListToStringArray(channelKey)) {
+			for (String name : StringUtils.tokenizeToStringArray(channelKey, ",")) {
 				addChannelFromString(channels, name, message);
 			}
 			return;
