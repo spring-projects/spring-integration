@@ -16,6 +16,7 @@
 				cache-sessions="false"
 				charset="UTF-8"
 				auto-create-local-directory="true"
+				auto-startup="false"
 				delete-remote-files="true"
 				filename-pattern="*.txt"
 				local-directory="."
