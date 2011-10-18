@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,71 +16,38 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.MessageChannel;
+import java.io.File;
+
+import org.springframework.integration.config.AbstractSimpleMessageHandlerFactoryBean;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
-import org.springframework.integration.support.channel.ChannelResolver;
-
-import java.io.File;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  * @since 1.0.3
  */
-public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWritingMessageHandler>, BeanFactoryAware {
-
-	private volatile FileWritingMessageHandler handler;
-
-	private volatile BeanFactory beanFactory;
-
+public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
+	
 	private volatile File directory;
 
-	private volatile MessageChannel outputChannel;
-
-	private volatile ChannelResolver channelResolver;
-
 	private volatile String charset;
-
+	
 	private volatile FileNameGenerator fileNameGenerator;
-
+	
 	private volatile Boolean deleteSourceFiles;
-
+	
 	private volatile Boolean autoCreateDirectory;
-
+	
 	private volatile Boolean requiresReply;
-
+	
 	private volatile Long sendTimeout;
-
-	private volatile Integer order;
 	
 	private volatile String temporaryFileSuffix;
-
-	private final Object initializationMonitor = new Object();
-
-
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
+	
 	public void setDirectory(File directory) {
 		this.directory = directory;
-	}
-	
-	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
-		this.temporaryFileSuffix = temporaryFileSuffix;
-	}
-
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
 	}
 
 	public void setCharset(String charset) {
@@ -107,62 +74,32 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 		this.sendTimeout = sendTimeout;
 	}
 
-	public void setOrder(Integer order) {
-		this.order = order;
+	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
-
-	public FileWritingMessageHandler getObject() throws Exception {
-		if (this.handler == null) {
-			initHandler();
+	
+	@Override
+	protected FileWritingMessageHandler createHandler() {
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(this.directory);
+		if (this.charset != null) {
+			handler.setCharset(this.charset);
 		}
-		return this.handler;
-	}
-
-	public Class<?> getObjectType() {
-		return FileWritingMessageHandler.class;
-	}
-
-	public boolean isSingleton() {
-		return true;
-	}
-
-	private void initHandler() {
-		synchronized (this.initializationMonitor) {
-			if (this.handler != null) {
-				return;
-			}
-			this.handler = new FileWritingMessageHandler(this.directory);
-			if (this.outputChannel != null) {
-				this.handler.setOutputChannel(this.outputChannel);
-			}
-			if (this.channelResolver != null) {
-				this.handler.setChannelResolver(this.channelResolver);
-			}
-			if (this.charset != null) {
-				this.handler.setCharset(this.charset);
-			}
-			if (this.fileNameGenerator != null) {
-				this.handler.setFileNameGenerator(this.fileNameGenerator);
-			}
-			if (this.deleteSourceFiles != null) {
-				this.handler.setDeleteSourceFiles(this.deleteSourceFiles);
-			}
-			if (this.autoCreateDirectory != null) {
-				this.handler.setAutoCreateDirectory(this.autoCreateDirectory);
-			}
-			if (this.requiresReply != null) {
-				this.handler.setRequiresReply(this.requiresReply);
-			}
-			if (this.sendTimeout != null) {
-				this.handler.setSendTimeout(this.sendTimeout);
-			}
-			if (this.order != null) {
-				this.handler.setOrder(this.order);
-			}
-			this.handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
-			this.handler.setBeanFactory(this.beanFactory);
-			this.handler.afterPropertiesSet();
+		if (this.fileNameGenerator != null) {
+			handler.setFileNameGenerator(this.fileNameGenerator);
 		}
+		if (this.deleteSourceFiles != null) {
+			handler.setDeleteSourceFiles(this.deleteSourceFiles);
+		}
+		if (this.autoCreateDirectory != null) {
+			handler.setAutoCreateDirectory(this.autoCreateDirectory);
+		}
+		if (this.requiresReply != null) {
+			handler.setRequiresReply(this.requiresReply);
+		}
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout);
+		}
+		handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
+		return handler;
 	}
-
 }

@@ -37,7 +37,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
+public class ExpressionControlBusFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler> {
 
 	private volatile Long sendTimeout;
 
