@@ -22,6 +22,8 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.DefaultAggregatingMessageGroupProcessor;
+import org.springframework.integration.aggregator.ExpressionEvaluatingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -35,37 +37,17 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
-public class AggregatorParser extends AbstractConsumerEndpointParser {
-
+public class AggregatorParser extends AbstractCorrelatingMessageHandlerParser {
+	
 	private static final String RELEASE_STRATEGY_REF_ATTRIBUTE = "release-strategy";
 
 	private static final String RELEASE_STRATEGY_METHOD_ATTRIBUTE = "release-strategy-method";
 
 	private static final String RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE = "release-strategy-expression";
-
-	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
-
-	private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
-
-	private static final String CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE = "correlation-strategy-expression";
-
-	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
-
-	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
-
-	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
-
-	private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
-
-	private static final String SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE = "send-partial-result-on-expiry";
-
+	
 	private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
-
-	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
 	
 	private static final String EXPIRE_GROUPS_UPON_COMPLETION = "expire-groups-upon-completion";
-
-	private static final String KEEP_RELEASED_MESSAGES = "keep-released-messages";
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
@@ -92,14 +74,12 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		else {
 			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
 				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-						+ ".aggregator.ExpressionEvaluatingMessageGroupProcessor");
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageGroupProcessor.class);
 				adapterBuilder.addConstructorArgValue(expression);
 				builder.addConstructorArgValue(adapterBuilder.getBeanDefinition());
 			}
 			else {
-				builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultAggregatingMessageGroupProcessor")
+				builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(DefaultAggregatingMessageGroupProcessor.class)
 						.getBeanDefinition());
 			}
 		}
@@ -109,60 +89,15 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 			processorBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
 					"java.lang.String");
 		}
-
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, MESSAGE_STORE_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
+		
+		this.doParse(builder, element, processor, parserContext);
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPIRE_GROUPS_UPON_COMPLETION);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, KEEP_RELEASED_MESSAGES);
+		
 		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
 				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder,
 				processor, parserContext);
-		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
-				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
-				element, builder, processor, parserContext);
+
 		return builder;
 	}
-
-	private void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
-			String expressionAttribute, String beanProperty, String adapterClass, Element element,
-			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
-		final String beanRef = element.getAttribute(beanRefAttribute);
-		final String beanMethod = element.getAttribute(methodRefAttribute);
-		final String expression = element.getAttribute(expressionAttribute);
-		BeanMetadataElement adapter = null;
-		if (StringUtils.hasText(beanRef)) {
-			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
-		}
-		else if (processor != null) {
-			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
-		}
-		else if (StringUtils.hasText(expression)) {
-			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
-							+ adapterClass);
-			adapterBuilder.addConstructorArgValue(expression);
-			adapter = adapterBuilder.getBeanDefinition();
-		}
-		else {
-			adapter = this.createAdapter(null, beanMethod, adapterClass, parserContext);
-		}
-		builder.addPropertyValue(beanProperty, adapter);
-	}
-
-	private BeanMetadataElement createAdapter(BeanMetadataElement ref, String method, String unqualifiedClassName,
-			ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config." + unqualifiedClassName
-						+ "FactoryBean");
-		builder.addConstructorArgValue(ref);
-		if (StringUtils.hasText(method)) {
-			builder.addConstructorArgValue(method);
-		}
-		return builder.getBeanDefinition();
-	}
-
 }
