@@ -61,6 +61,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile String charset = "UTF-8";
 
 	private volatile String remoteFileSeparator = "/";
+	
+//	private final ConHash
 
 
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
@@ -193,7 +195,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
 		
 		if (this.autoCreateDirectory){
-			this.ensureDirectoryExists(session, remoteDirectory, remoteDirectory);
+			session.mkdir(remoteDirectory);
 		}
 		
 		try {
@@ -206,38 +208,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 		finally {
 			fileInputStream.close();
-		}
-	}
-
-	private void ensureDirectoryExists(Session session, String remoteDirectory, String originalRemoteDirectory){
-		try {
-			session.list(remoteDirectory);
-		} catch (IOException e) {
-			if (logger.isDebugEnabled()){
-				logger.debug("Directory '" + remoteDirectory + "' does not exist. Will attempt to auto-create it");
-			}		
-			int nextSeparatorIndex = remoteDirectory.lastIndexOf(this.remoteFileSeparator);
-			if (nextSeparatorIndex <= 0){
-				throw new MessagingException("Failed to auto-create directory '" + originalRemoteDirectory + "'");
-			}
-			else {
-				remoteDirectory = remoteDirectory.substring(0, nextSeparatorIndex);
-				this.ensureDirectoryExists(session, remoteDirectory, originalRemoteDirectory);
-			}
-		}
-		String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
-		String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, this.remoteFileSeparator);
-		String directory = remoteDirectory + this.remoteFileSeparator;
-		for (String directorySegment : directories) {
-			directory += directorySegment+this.remoteFileSeparator;
-			if (logger.isDebugEnabled()){
-				logger.debug("Creating '" + directory + "'");
-			}	
-			try {
-				session.mkdir(directory);
-			} catch (Exception e) {
-				throw new MessagingException("Failed to auto-create directory '" + directory + "'");
-			}
 		}
 	}
 }

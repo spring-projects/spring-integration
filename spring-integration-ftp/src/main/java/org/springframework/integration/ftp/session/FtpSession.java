@@ -24,7 +24,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 
@@ -123,5 +122,19 @@ class FtpSession implements Session {
 				logger.warn("failed to create directory '" + directory + "'", e);
 			}
 		}
+	}
+
+	// is not called by the framework since 'mkdir' for FTP can create directories recursively
+	public boolean isDirExists(String path) { 
+		try {
+			this.client.pasv();
+			this.client.port(this.client.getRemoteAddress(), 65000);
+			int stat = this.client.nlst(path);
+			return stat == 150;
+		}
+		catch (Exception e) {
+			// ignore
+		}
+		return false;
 	}
 }

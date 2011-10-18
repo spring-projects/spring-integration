@@ -15,7 +15,11 @@
  */
 package org.springframework.integration.sftp.session;
 
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.remote.session.Session;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Oleg Zhurakousky
@@ -27,5 +31,30 @@ public class SftpTestSessionFactory {
 		SftpSession sftpSession = new SftpSession(jschSession);
 		sftpSession.connect();
 		return sftpSession;
+	}
+	
+	@Test
+	@Ignore
+	public void testPerformance() throws Exception{
+		DefaultSftpSessionFactory sessionFactory = new DefaultSftpSessionFactory();
+		sessionFactory.setHost("localhost");
+		sessionFactory.setPrivateKey(new ClassPathResource("org/springframework/integration/sftp/config/sftp_rsa"));
+		sessionFactory.setPrivateKeyPassphrase("springintegration");
+		sessionFactory.setPort(22);
+		sessionFactory.setUser("user");
+
+		Session session = sessionFactory.getSession();
+		
+		String remoteDir = ".";
+		StopWatch existWatch = new StopWatch();
+		existWatch.start();
+		session.isDirExists(remoteDir);
+		existWatch.stop();
+		
+		StopWatch listWatch = new StopWatch();
+		listWatch.start();
+		session.list(remoteDir);
+		listWatch.stop();
+		System.out.println("Elapsed time for directoy exists call: via isDirExists(): " + existWatch.getTotalTimeMillis() + " mls; via list(): " + listWatch.getLastTaskTimeMillis() + " mls;");
 	}
 }

@@ -47,4 +47,6 @@ public interface Session {
 	
 	boolean isOpen();
 	
+	boolean isDirExists(String path);
+	
 }

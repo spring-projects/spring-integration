@@ -270,7 +270,11 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			}
+			public boolean isDirExists(String path) {
+				return true;
+			} 
+		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File outFile = new File(this.tmpDir + "/f1");
@@ -323,7 +327,11 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			} 
+			public boolean isDirExists(String path) {
+				return true;
+			} 
+		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
 		File outFile = new File(this.tmpDir + "/f1");
@@ -374,7 +382,11 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			} 
+			public boolean isDirExists(String path)  {
+				return true;
+			} 
+		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File out = new File(this.tmpDir + "/x/f1");
 		assertTrue(out.exists());
