@@ -138,8 +138,9 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				Message<byte[]> message = null;
 				try {
 					message = mapper.toMessage(packet);
-					if (logger.isDebugEnabled())
+					if (logger.isDebugEnabled()) {
 						logger.debug("Received:" + message);
+					}
 				}
 				catch (Exception e) {
 					logger.error("Failed to map packet to message ", e);

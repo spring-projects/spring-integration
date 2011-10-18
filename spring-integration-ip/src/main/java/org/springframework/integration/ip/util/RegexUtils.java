@@ -42,4 +42,5 @@ public abstract class RegexUtils {
 		return out;
 	}
 
+	private RegexUtils() {}
 }

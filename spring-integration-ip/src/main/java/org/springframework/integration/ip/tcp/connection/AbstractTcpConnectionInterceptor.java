@@ -170,7 +170,7 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 			return this.realSender;
 		}
 		TcpSender sender = this.getSender();
-		while (sender != null && sender instanceof AbstractTcpConnectionInterceptor) {
+		while (sender instanceof AbstractTcpConnectionInterceptor) {
 			sender = ((AbstractTcpConnectionInterceptor) sender).getSender();
 		}
 		this.realSender = sender != null;

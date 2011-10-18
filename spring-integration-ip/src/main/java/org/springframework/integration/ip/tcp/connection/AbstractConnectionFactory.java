@@ -34,9 +34,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
@@ -53,9 +50,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
-		implements ConnectionFactory, Runnable, SmartLifecycle, BeanNameAware  {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
+		implements ConnectionFactory, Runnable, SmartLifecycle {
 
 	protected static final int DEFAULT_REPLY_TIMEOUT = 10000;
 
@@ -67,7 +62,7 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 
 	private volatile TcpSender sender;
 
-	private volatile int soTimeout;
+	private volatile int soTimeout = -1;
 
 	private volatile int soSendBufferSize;
 
