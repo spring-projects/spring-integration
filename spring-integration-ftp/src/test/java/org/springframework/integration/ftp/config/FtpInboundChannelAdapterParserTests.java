@@ -18,6 +18,8 @@ package org.springframework.integration.ftp.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,6 +54,7 @@ public class FtpInboundChannelAdapterParserTests {
 		ApplicationContext ac = 
 			new ClassPathXmlApplicationContext("FtpInboundChannelAdapterParserTests-context.xml", this.getClass());
 		SourcePollingChannelAdapter adapter = ac.getBean("ftpInbound", SourcePollingChannelAdapter.class);
+		assertFalse(TestUtils.getPropertyValue(adapter, "autoStartup", Boolean.class));
 		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
 		assertNotNull(comparator);
 		assertEquals("ftpInbound", adapter.getComponentName());
