@@ -21,11 +21,9 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -52,10 +50,6 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 	protected final BeanDefinition parseRouter(Element element, ParserContext parserContext) {
 		BeanDefinition beanDefinition = this.doParseRouter(element, parserContext);
 		if (beanDefinition != null) {
-			String channelResolver = element.getAttribute("channel-resolver");
-			if (StringUtils.hasText(channelResolver)){
-				beanDefinition.getPropertyValues().add("channelResolver", new RuntimeBeanReference(channelResolver));
-			}
 			// check if mapping is provided otherwise returned values will be treated as channel names
 			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
 			if (childElements != null && childElements.size() > 0) {

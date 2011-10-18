@@ -18,14 +18,13 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;router/&gt; element.
@@ -34,9 +33,6 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  */
 public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParser {
-
-	private static final String CHANNEL_RESOLVER_PROPERTY = "channelResolver";
-
 
 	@Override
 	String getFactoryBeanClassName() {
@@ -50,30 +46,13 @@ public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParse
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String resolverBeanName = element.getAttribute("channel-resolver");
 		List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
 		if (!CollectionUtils.isEmpty(mappingElements)) {
-			if (StringUtils.hasText(resolverBeanName)) {
-				parserContext.getReaderContext().error(
-						"The 'channel-resolver' attribute and 'mapping' sub-elements are mutually exclusive.",
-						parserContext.extractSource(element));
-			}
-			BeanDefinitionBuilder channelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".support.channel.BeanFactoryChannelResolver");
 			ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
 			for (Element mappingElement : mappingElements) {
 				channelMap.put(mappingElement.getAttribute("value"), mappingElement.getAttribute("channel"));
 			}
 			builder.addPropertyValue("channelIdentifierMap", channelMap);
-			builder.addPropertyValue(CHANNEL_RESOLVER_PROPERTY, channelResolverBuilder.getBeanDefinition());
-		}
-		else if (StringUtils.hasText(resolverBeanName)) {
-			builder.addPropertyReference(CHANNEL_RESOLVER_PROPERTY, resolverBeanName);
-		}
-		else {
-			RootBeanDefinition resolverBeanDefintion = new RootBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".support.channel.BeanFactoryChannelResolver");
-			builder.addPropertyValue(CHANNEL_RESOLVER_PROPERTY, resolverBeanDefintion);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
