@@ -20,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -50,14 +51,13 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 
 
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			this.registerNullChannel(registry);
-			if (!beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)){
+			if (!beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
 				this.registerErrorChannel(registry);
 			}
-			if (!beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)){
+			if (!beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
 				this.registerTaskScheduler(registry);
 			}
 			this.registerIdGeneratorConfigurer(registry);
@@ -93,9 +93,9 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 * {@link IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME}.
 	 */
 	private void registerNullChannel(BeanDefinitionRegistry registry) {
-		if (registry.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)){
+		if (registry.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
 			BeanDefinition nullChannelDefinition = registry.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-			if (nullChannelDefinition.getBeanClassName().equals(equals(NullChannel.class.getName()))){
+			if (NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
 				return;
 			}
 			else {
@@ -117,10 +117,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 */
 	private void registerErrorChannel(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {
-			logger
-					.info("No bean named '"
-							+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME
-							+ "' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
+			logger.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
+					"' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
 		}
 		RootBeanDefinition errorChannelDef = new RootBeanDefinition();
 		errorChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE
@@ -128,15 +126,15 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(errorChannelDef,
 				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
-		BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
+		BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
 		loggingHandlerBuilder.addConstructorArgValue("ERROR");
-		BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
+		BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
 		loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
-		BeanComponentDefinition componentDefinition = new BeanComponentDefinition(loggingEndpointBuilder
-				.getBeanDefinition(), ERROR_LOGGER_BEAN_NAME);
+		BeanComponentDefinition componentDefinition = new BeanComponentDefinition(
+				loggingEndpointBuilder.getBeanDefinition(), ERROR_LOGGER_BEAN_NAME);
 		BeanDefinitionReaderUtils.registerBeanDefinition(componentDefinition, registry);
 	}
 
@@ -145,24 +143,21 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 */
 	private void registerTaskScheduler(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {
-			logger
-					.info("No bean named '"
-							+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
-							+ "' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
+			logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
+					"' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
 		}
-		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
+		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
 		schedulerBuilder.addPropertyValue("poolSize", 10);
 		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
 		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
-		BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-						+ ".channel.MessagePublishingErrorHandler");
-		errorHandlerBuilder.addPropertyReference("defaultErrorChannel",
-				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
+		errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		schedulerBuilder.addPropertyValue("errorHandler", errorHandlerBuilder.getBeanDefinition());
-		BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(schedulerBuilder
-				.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
+		BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(
+				schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
 		BeanDefinitionReaderUtils.registerBeanDefinition(schedulerComponent, registry);
 	}
+
 }
