@@ -16,17 +16,6 @@
 
 package org.springframework.integration.ftp.inbound;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -37,10 +26,24 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
-
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.ftp.filters.FtpRegexPatternFileListFilter;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
@@ -76,27 +79,32 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
 		synchronizer.setFilter(new FtpRegexPatternFileListFilter(".*\\.test$"));
+		
+		ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+		Expression expression = expressionParser.parseExpression("#this.toUpperCase() + '.a'");
+		synchronizer.setLocalFilenameGeneratorExpression(expression);
 
 		FtpInboundFileSynchronizingMessageSource ms = 
 				new FtpInboundFileSynchronizingMessageSource(synchronizer);
+		
 		ms.setAutoCreateLocalDirectory(true);
 
 		ms.setLocalDirectory(localDirectoy);
 		ms.afterPropertiesSet();
 		Message<File> atestFile =  ms.receive();
 		assertNotNull(atestFile);
-		assertEquals("a.test", atestFile.getPayload().getName());
+		assertEquals("A.TEST.a", atestFile.getPayload().getName());
 		Message<File> btestFile =  ms.receive();
 		assertNotNull(btestFile);
-		assertEquals("b.test", btestFile.getPayload().getName());
+		assertEquals("B.TEST.a", btestFile.getPayload().getName());
 		Message<File> nothing =  ms.receive();
 		assertNull(nothing);
 		
 		// two times because on the third receive (above) the internal queue will be empty, so it will attempt
 		verify(synchronizer, times(2)).synchronizeToLocalDirectory(localDirectoy);
 
-		assertTrue(new File("test/a.test").exists());
-		assertTrue(new File("test/b.test").exists());
+		assertTrue(new File("test/A.TEST.a").exists());
+		assertTrue(new File("test/B.TEST.a").exists());
 	}
 
 

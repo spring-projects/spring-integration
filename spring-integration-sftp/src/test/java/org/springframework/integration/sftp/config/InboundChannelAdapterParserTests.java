@@ -73,6 +73,7 @@ public class InboundChannelAdapterParserTests {
 		Comparator<File> comparator = TestUtils.getPropertyValue(adapter, "source.fileSource.toBeReceived.q.comparator", Comparator.class);
 		assertNotNull(comparator);
 		SftpInboundFileSynchronizer synchronizer =  (SftpInboundFileSynchronizer) TestUtils.getPropertyValue(source, "synchronizer");
+		assertNotNull(TestUtils.getPropertyValue(synchronizer, "localFilenameGeneratorExpression"));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(synchronizer, "remoteFileSeparator");
 		assertEquals(".bar", TestUtils.getPropertyValue(synchronizer, "temporaryFileSuffix", String.class));
 		assertNotNull(remoteFileSeparator);

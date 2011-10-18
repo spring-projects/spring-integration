@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -54,6 +55,14 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		// configure the InboundFileSynchronizer properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
+		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");
+		
+		if (StringUtils.hasText(localFileGeneratorExpression)){
+			BeanDefinitionBuilder localFileGeneratorExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
+			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
+		}
+		
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
