@@ -6,32 +6,253 @@
   <section id="xml-intro">
     <title>Introduction</title>
     <para>
-      Spring Integration's XML support extends the Spring Integration Core with
-      implementations of splitter, transformer, selector and router designed
-      to make working with xml messages in Spring Integration simple.  The provided messaging
-      components are designed to work with xml represented in a range of formats including
-      instances of
+      Spring Integration's XML support extends the core of Spring Integration with
+      the following components:
+    </para>
+    <itemizedlist>
+        <listitem>
+            <para><emphasis><link linkend='xml-transformation'>Marshalling Transformer</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-transformation'>Unmarshalling Transformer</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-transformation'>Xslt Transformer</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-xpath-transformer'>XPath Transformer</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-xpath-splitting'>XPath Splitter</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-xpath-routing'>XPath Router</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-xpath-header-enricher'>XPath Header Enricher</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-xpath-filter'>XPath Filter</link></emphasis></para>
+        </listitem>
+        <listitem>
+            <para><emphasis><link linkend='xml-validating-filter'>Validating Filter</link></emphasis></para>
+        </listitem>
+
+    </itemizedlist>
+    <para>
+      These components are designed to make working with XML messages in Spring Integration simple.
+      The provided messaging components are designed to work with XML represented
+      in a range of formats including instances of
       <classname>java.lang.String</classname>, <interfacename>org.w3c.dom.Document</interfacename>
       and <interfacename>javax.xml.transform.Source</interfacename>.  It should be noted however that
       where a DOM representation is required, for example in order to evaluate an XPath expression,
       the <classname>String</classname> payload will be converted into the required type and then
-      converted back again to <classname>String</classname>.  Components that require an instance of
-      <interfacename>DocumentBuilder</interfacename> will create a namespace aware instance if one is
-      not provided.  Where greater control of the document being created is required an appropriately
-      configured instance of <interfacename>DocumentBuilder</interfacename> should be provided.
-      </para>
+      converted back again to <classname>String</classname>. Components that require an instance of
+      <interfacename>DocumentBuilder</interfacename> will create a namespace-aware instance if one is
+      not provided. In cases where you require greater control over document creation, you can
+      provide an appropriately configured instance of <interfacename>DocumentBuilder</interfacename>.
+    </para>
+  </section>
+  <section id="xpath-namespace-support">
+    <title>Namespace Support</title>
+    <para>
+    All components within the Spring Integration XML module provide namespace
+    support. In order to enable namespace support, you need to import the respective
+    schema for the Spring Integration XML Module. A typical setup is shown below:
+    </para>
+    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/xml
+    http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+</beans>]]></programlisting>
+
+    <section id="xml-xpath-expressions">
+        <title>XPath Expressions</title>
+        <para>
+            Many of the components within the Spring Integration XML module work
+            with XPath Expressions. Each of those components will either reference
+            an XPath Expression that has been defined as top-level element or via
+            a nested <code>&lt;xpath-expression/&gt;</code> element.
+        </para>
+        <para>
+            All forms of XPath expressions result in the creation of an
+            <interfacename>XPathExpression</interfacename> using the Spring
+            <classname>org.springframework.xml.xpath.XPathExpressionFactory</classname>.
+            When creating XPath expressions, the best XPath implementation that
+            is available on the classpath is being used, either JAXP 1.3+ or Jaxen,
+            whereby JAXP is preferred.
+        </para>
+        <note>
+            Spring Integration under the covers uses the XPath functionality as
+            provided by the <emphasis>Spring Web Services</emphasis> project
+            (http://www.springsource.org/spring-web-services). Specifically,
+            Spring Web Services' XML module (spring-xml-x.x.x.jar) is being used.
+            Therefore, for a deeper understanding, please refer to the respective
+            documentation as well at:
+
+            <itemizedlist>
+		        <listitem>
+		            <ulink url="http://static.springsource.org/spring-ws/sites/2.0/reference/html/common.html#xpath">
+		                http://static.springsource.org/spring-ws/sites/2.0/reference/html/common.html#xpath
+		            </ulink>
+		        </listitem>
+	        </itemizedlist>
+
+        </note>
+        <para>
+            Here is an overview of all available configuration parameters of the
+            <code>xpath-expression</code> element:
+        </para>
+        <programlisting language="xml"><![CDATA[<int-xml:xpath-expression expression=""     ]]><co id="xpath-expression-xml01-co" linkends="xpath-expression-xml01" /><![CDATA[
+		          id=""             ]]><co id="xpath-expression-xml02-co" linkends="xpath-expression-xml02" /><![CDATA[
+		          namespace-map=""  ]]><co id="xpath-expression-xml03-co" linkends="xpath-expression-xml03" /><![CDATA[
+		          ns-prefix=""      ]]><co id="xpath-expression-xml04-co" linkends="xpath-expression-xml04" /><![CDATA[
+		          ns-uri="">        ]]><co id="xpath-expression-xml05-co" linkends="xpath-expression-xml05" /><![CDATA[
+    <map></map>                           ]]><co id="xpath-expression-xml06-co" linkends="xpath-expression-xml06" /><![CDATA[
+</int-xml:xpath-expression>]]></programlisting>
+    <para>
+        <calloutlist>
+            <callout arearefs="xpath-expression-xml01-co" id="xpath-expression-xml01">
+                <para>
+                    Defines an XPath xpression.
+                    <emphasis>Required</emphasis>.
+                </para>
+            </callout>
+            <callout arearefs="xpath-expression-xml02-co" id="xpath-expression-xml02">
+                <para>
+                    The Identifier of the underlying bean definition. Will be an instance of
+                    <classname>org.springframework.xml.xpath.XPathExpression</classname>
+                    <emphasis>Optional</emphasis>.
+                </para>
+            </callout>
+            <callout arearefs="xpath-expression-xml03-co" id="xpath-expression-xml03">
+                <para>
+                    Reference to a map containing namespaces. The key of the map
+                    defines the namespace prefix and the value of the map sets the
+                    namespace URI. It is not valid to specify both this attribute
+                    and the <code>map</code> sub element, or setting the
+                    <code>ns-prefix</code> and <code>ns-uri</code> attribute.
+                    <emphasis>Optional</emphasis>.</para>
+            </callout>
+            <callout arearefs="xpath-expression-xml04-co" id="xpath-expression-xml04">
+                <para>
+                    Allows you to set the namspace prefix directly as and attribute
+                    on the XPath expression element. If you set <code>ns-prefix</code>,
+                    you must also set the <code>ns-uri</code> attribute.
+                    <emphasis>Optional</emphasis>.
+                </para>
+            </callout>
+            <callout arearefs="xpath-expression-xml05-co" id="xpath-expression-xml05">
+                <para>
+                    Allows you to set the namspace URI directly as an attribute
+                    on the XPath expression element. If you set <code>ns-uri</code>,
+                    you must also set the <code>ns-prefix</code> attribute.
+                    <emphasis>Optional</emphasis>.
+                </para>
+            </callout>
+            <callout arearefs="xpath-expression-xml06-co" id="xpath-expression-xml06">
+                <para>
+                    Defines a map containing namespaces. Only one map child element
+                    is allowed. The key of the map  defines the namespace prefix
+                    and the value of the map sets the namespace URI.
+                </para>
+                <para>
+                    It is not valid to specify both this sub-element
+                    and the <code>map</code> attribute, or setting the
+                    <code>ns-prefix</code> and <code>ns-uri</code> attributes.
+                    <emphasis>Optional</emphasis>.
+                </para>
+            </callout>
+        </calloutlist>
+    </para>
+    <section>
+        <title>Providing Namespaces (Optional) to XPath Expressions</title>
+        <para>
+	        For the XPath Expression Element, namespace information can be optionally
+	        provided as configuration parameters. As such, namespaces can be defined
+	        using one of the following 3 choices:
+        </para>
+        <itemizedlist>
+            <listitem>Reference a map using the <code>namespace-map</code> attribute</listitem>
+            <listitem>Provide a map of namespaces using the <code>map</code> sub-element</listitem>
+            <listitem>Specifying the <code>ns-prefix</code> and the <code>ns-uri</code> attribute</listitem>
+        </itemizedlist>
+        <para>
+            All three options are mutially exlusive. Only one option can be set.
+        </para>
+    </section>
+    <para>
+        Below, please find several different usage examples on how to use XPath
+        expressions using the XML namespace support including the various option for
+        setting the XML namespaces as discussed above.
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-filter id="filterReferencingXPathExpression"
+                      xpath-expression-ref="refToXpathExpression"/>
+
+<int-xml:xpath-expression id="refToXpathExpression" expression="/name"/>
+
+<int-xml:xpath-filter id="filterWithoutNamespace">
+   <int-xml:xpath-expression expression="/name"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithOneNamespace">
+    <int-xml:xpath-expression expression="/ns1:name"
+                              ns-prefix="ns1" ns-uri="www.example.org"/>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithTwoNamespaces">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type">
+        <map>
+            <entry key="ns1" value="www.example.org/one"/>
+            <entry key="ns2" value="www.example.org/two"/>
+        </map>
+    </int-xml:xpath-expression>
+</int-xml:xpath-filter>
+
+<int-xml:xpath-filter id="filterWithNamespaceMapReference">
+    <int-xml:xpath-expression expression="/ns1:name/ns2:type"
+                              namespace-map="defaultNamespaces"/>
+</int-xml:xpath-filter>
+
+<util:map id="defaultNamespaces">
+    <util:entry key="ns1" value="www.example.org/one"/>
+    <util:entry key="ns2" value="www.example.org/two"/>
+</util:map>]]></programlisting>
+
+    </section>
   </section>
   <section id="xml-transformation">
-    <title>Transforming xml payloads</title>
-  <para>
-      This section will explain the workings of
-      <classname>UnmarshallingTransformer</classname>,
-      <classname>MarshallingTransformer</classname>,
-      <classname>XsltPayloadTransformer</classname>
-      and how to configure them as
-      <emphasis>beans</emphasis>.  All of the provided xml transformers extend
+    <title>Transforming XML Payloads</title>
+    <section id="xml-transformation-beans">
+      <title>Configuring Transformers as Beans</title>
+	  <para>
+	      This section will explain the workings of the following transformers
+	      and how to configure them as <emphasis>beans</emphasis>:
+	  </para>
+
+      <itemizedlist>
+        <listitem>
+            <para><classname>UnmarshallingTransformer</classname></para>
+        </listitem>
+        <listitem>
+            <para><classname>MarshallingTransformer</classname></para>
+        </listitem>
+        <listitem>
+            <para><classname>XsltPayloadTransformer</classname></para>
+        </listitem>
+      </itemizedlist>
+
+      <para>
+      All of the provided XML transformers extend
       <classname>AbstractTransformer</classname> or <classname>AbstractPayloadTransformer</classname>
-      and therefore implement <interfacename>Transformer</interfacename>.  When configuring xml
+      and therefore implement <interfacename>Transformer</interfacename>.  When configuring XML
       transformers as beans in Spring Integration you would normally configure the transformer
       in conjunction with either a <classname>MessageTransformingChannelInterceptor</classname> or a
       <classname>MessageTransformingHandler</classname>.  This allows the transformer to be used as either an interceptor,
@@ -40,7 +261,7 @@
       elements in XML.
     </para>
     <para>
-      <classname>UnmarshallingTransformer</classname> allows an xml <interfacename>Source</interfacename>
+      <classname>UnmarshallingTransformer</classname> allows an XML <interfacename>Source</interfacename>
       to be unmarshalled using implementations of Spring OXM <interfacename>Unmarshaller</interfacename>.
       Spring OXM provides several implementations supporting marshalling and unmarshalling using JAXB,
       Castor and JiBX amongst others.  Since the unmarshaller requires an instance of
@@ -62,11 +283,11 @@
     </para>
     <para>
       The <classname>MarshallingTransformer</classname> allows an object graph to be converted
-      into xml using a Spring OXM <interfacename>Marshaller</interfacename>.  By default the
+      into XML using a Spring OXM <interfacename>Marshaller</interfacename>.  By default the
       <classname>MarshallingTransformer</classname> will return a <classname>DomResult</classname>.
       However the type of result can be controlled by configuring an alternative <interfacename>ResultFactory</interfacename>
       such as <classname>StringResultFactory</classname>.  In many cases it will be more convenient to transform
-      the payload into an alternative xml format.  To achieve this configure a
+      the payload into an alternative XML format.  To achieve this configure a
       <interfacename>ResultTransformer</interfacename>.  Two implementations are provided, one which converts to
       <classname>String</classname> and another which converts to <interfacename>Document</interfacename>.
     </para>
@@ -94,7 +315,7 @@
       out-of-the-box <interfacename>Marshaller</interfacename> implementations.
     </para>
     <para>
-      <classname>XsltPayloadTransformer</classname> transforms xml payloads using xsl.
+      <classname>XsltPayloadTransformer</classname> transforms XML payloads using xsl.
       The transformer requires an instance of either <interfacename>Resource</interfacename> or
       <interfacename>Templates</interfacename>.  Passing in a <interfacename>Templates</interfacename> instance
       allows for greater configuration of the <interfacename>TransformerFactory</interfacename> used to create
@@ -104,8 +325,7 @@
       <interfacename>ResultFactory</interfacename> and/or a <interfacename>ResultTransformer</interfacename>.
     </para>
 
-    <programlisting language="xml"><![CDATA[
-<bean id="xsltPayloadTransformer"
+    <programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer"
       class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
   <constructor-arg value="classpath:org/example/xsl/transform.xsl"/>
   <constructor-arg>
@@ -115,35 +335,22 @@
 </bean>]]></programlisting>
 
   </section>
-  <section id="xml-transformer-namespace">
-
-    <title>Namespace support for xml transformers</title>
-    <para>
-      Namespace support for all xml transformers is provided in the Spring Integration xml namespace,
-      a template for which can be seen below.  The namespace support for transformers creates an instance of either
-      <classname>EventDrivenConsumer</classname> or <classname>PollingConsumer</classname>
-      according to the type of the provided input channel.  The namespace support is designed
-      to reduce the amount of xml configuration by allowing the creation of an endpoint and transformer
-      using one element.
-    </para>
-    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:int="http://www.springframework.org/schema/integration"
-  xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-    http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-    http://www.springframework.org/schema/integration/xml
-    http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
-</beans>]]></programlisting>
-    <para>
-    The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
-    Since the namespace is now creating an endpoint instance rather than a transformer,
-    a poller can also be nested within the element to control the polling of the input channel.
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
+	  <section id="xml-transformer-namespace">
+	    <title>Namespace Support for XML Transformers</title>
+	    <para>
+	      Namespace support for all XML transformers is provided in the Spring Integration XML namespace,
+	      a template for which can be seen below.  The namespace support for transformers creates an instance of either
+	      <classname>EventDrivenConsumer</classname> or <classname>PollingConsumer</classname>
+	      according to the type of the provided input channel.  The namespace support is designed
+	      to reduce the amount of XML configuration by allowing the creation of an endpoint and transformer
+	      using one element.
+	    </para>
+	    <para>
+	    The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
+	    Since the namespace is now creating an endpoint instance rather than a transformer,
+	    a poller can also be nested within the element to control the polling of the input channel.
+	    </para>
+	    <programlisting language="xml"><![CDATA[<int-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input"
     output-channel="output"
     unmarshaller="unmarshaller"/>
@@ -155,16 +362,16 @@
     <int:poller fixed-rate="2000"/>
 <int-xml:unmarshalling-transformer/>]]></programlisting>
 
-    <para>
-    The namespace support for the marshalling transformer requires an input channel, output channel and a
-    reference to a marshaller.  The optional <code>result-type</code> attribute can be used to control the type of result created,
-    valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a
-    reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
-    to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
-    specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
-    </para>
+	    <para>
+	    The namespace support for the marshalling transformer requires an <code>input-channel</code>, <code>output-channel</code> and a
+	    reference to a <code>marshaller</code>.  The optional <code>result-type</code> attribute can be used to control the type of result created,
+	    valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a
+	    reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
+	    to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
+	    specified in order to convert the created <interfacename>Result</interfacename> after marshalling.
+	    </para>
 
-    <programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
+	    <programlisting language="xml"><![CDATA[<int-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
      output-channel="output"
      marshaller="marshaller"
@@ -179,15 +386,15 @@
 <bean id="resultTransformer"
       class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
 
-  <para>
-    Namespace support for the <classname>XsltPayloadTransformer</classname> allows either a resource to be passed in in order to create the
-    <interfacename>Templates</interfacename> instance or alternatively a precreated <interfacename>Templates</interfacename>
-    instance can be passed in as a reference.  In common with the marshalling transformer the type of the result output can
-    be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
-    be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
-    is required before sending.
-  </para>
-  <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
+	  <para>
+	    Namespace support for the <classname>XsltPayloadTransformer</classname> allows either a resource to be passed in in order to create the
+	    <interfacename>Templates</interfacename> instance or alternatively a precreated <interfacename>Templates</interfacename>
+	    instance can be passed in as a reference.  In common with the marshalling transformer the type of the result output can
+	    be controlled by specifying either the result-factory or <code>result-type</code> attribute.  A <code>result-transfomer</code> attribute can also
+	    be used to reference an implementation of <interfacename>ResultTransfomer</interfacename> where conversion of the result
+	    is required before sending.
+	  </para>
+	  <programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="xsltTransformerWithResource"
     input-channel="withResourceIn"
     output-channel="output"
     xsl-resource="org/springframework/integration/xml/config/test.xsl"/>
@@ -197,11 +404,11 @@
     xsl-templates="templates"
     result-transformer="resultTransformer"/>]]></programlisting>
 
-    <para>
-    Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
-      and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
-        Spring Integration provides two convenient ways to accomplish this. Just look at the following XML snippet.
-<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="paramHeadersCombo"
+	    <para>
+	    Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
+	      and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
+	        Spring Integration provides two convenient ways to accomplish this. Just look at the following XML snippet.
+	<programlisting language="xml"><![CDATA[<int-xml:xslt-transformer id="paramHeadersCombo"
       input-channel="paramHeadersComboChannel"
     output-channel="output"
     xsl-resource="classpath:transformer.xslt"
@@ -210,19 +417,124 @@
     <int-xml:xslt-param name="helloParameter" value="hello"/>
     <int-xml:xslt-param name="firstName" expression="headers.fname"/>
 </int-xml:xslt-transformer>]]></programlisting>
-        If message header names match 1:1 to parameter names, you can simply use <code>xslt-param-headers</code> attribute. There you can also use wildcards for
-        simple pattern matching which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
+	        If message header names match 1:1 to parameter names, you can simply use <code>xslt-param-headers</code> attribute. There you can also use wildcards for
+	        simple pattern matching which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".
+	    </para>
+	    <para>
+	        You can also configure individual xslt parameters via &lt;xslt-param/&gt; sub element. There you can use <code>expression</code> or <code>value</code> attribute.
+	        The <code>expression</code> attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context.
+	        The <code>value</code> attribute just like any <code>value</code> in Spring beans allows you to specify simple scalar vallue. YOu can also use property placeholders (e.g., ${some.value})
+	        So as you can see, with the <code>expression</code> and <code>value</code> attribute xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.
+	    </para>
+	  </section>
+  </section>
+  <section id="xml-xpath-transformer">
+    <title>Transforming XML Messages Using XPath</title>
+    <para>
+      When it comes to message transformation XPath is a great way to transform Messages that have XML
+      payloads by defining XPath transformers via &lt;xpath-transformer/&gt; element.
     </para>
     <para>
-        You can also configure individual xslt parameters via &lt;xslt-param/&gt; sub element. There you can use <code>expression</code> or <code>value</code> attribute.
-        The <code>expression</code> attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context.
-        The <code>value</code> attribute just like any <code>value</code> in Spring beans allows you to specify simple scalar vallue. YOu can also use property placeholders (e.g., ${some.value})
-        So as you can see, with the <code>expression</code> and <code>value</code> attribute xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.
+    <emphasis>Simple XPath transformation</emphasis>
     </para>
-  </section>
+    <para>
+    Let's look at the following transformer configuration:
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
+      xpath-expression="/person/@name" />]]></programlisting>
+    <para>
+    . . . and Message
+    </para>
+    <programlisting language="java"><![CDATA[Message<?> message =
+  MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();]]></programlisting>
+    <para>
+    After sending this message to the 'inputChannel' the XPath transformer configured above will transform
+    this XML Message to a simple Message with payload of 'John Doe' all based on
+    the simple XPath Expression specified in the <code>xpath-expression</code> attribute.
+    </para>
+    <para>
+    XPath also has the capability to perform simple conversion of extracted elements
+    to a desired type. Valid return types are defined in <classname>javax.xml.xpath.XPathConstants</classname> and follows
+    the conversion rules specified by the <interfacename>javax.xml.xpath.XPath</interfacename> interface.
+    </para>
+    <para>
+    The following constants are defined by the <classname>XPathConstants</classname> class: <emphasis>BOOLEAN, DOM_OBJECT_MODEL, NODE, NODESET, NUMBER, STRING</emphasis>
+    </para>
+    <para>
+    You can configure the desired type by simply using the <code>evaluation-type</code>
+    attribute of the <code>&lt;xpath-transformer/&gt;</code> element.
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
+                           evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
-  <section id="xpath-splitting">
-    <title>Splitting xml messages</title>
+<int-xml:xpath-transformer input-channel="booleanInput"
+                           xpath-expression="/person/@married = 'true'"
+                           evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+]]></programlisting>
+
+    <para>
+    <emphasis>Node Mappers</emphasis>
+    </para>
+    <para>
+    If you need to provide custom mapping for the node extracted by the XPath expression simply provide a reference to the
+    implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by
+    <classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a
+    reference to a <classname>NodeMapper</classname> simply use <code>node-mapper</code> attribute:
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
+                           node-mapper="testNodeMapper" output-channel="output"/>]]></programlisting>
+    <para>
+. . . and Sample NodeMapper implementation:
+    </para>
+<programlisting language="java"><![CDATA[class TestNodeMapper implements NodeMapper {
+  public Object mapNode(Node node, int nodeNum) throws DOMException {
+    return node.getTextContent() + "-mapped";
+  }
+}]]></programlisting>
+
+    <para>
+    <emphasis>XML Payload Converter</emphasis>
+    </para>
+    <para>
+    You can also use an implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
+    provide more granular transformation:
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput"
+                           output-channel="output" xpath-expression="/test/@type"
+                           converter="testXmlPayloadConverter" />
+]]></programlisting>
+
+    <para>
+. . . and Sample XmlPayloadConverter implementation:
+    </para>
+<programlisting language="java"><![CDATA[class TestXmlPayloadConverter implements XmlPayloadConverter {
+  public Source convertToSource(Object object) {
+    throw new UnsupportedOperationException();
+  }
+  //
+  public Node convertToNode(Object object) {
+    try {
+      return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+          new InputSource(new StringReader("<test type='custom'/>")));
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+  //
+  public Document convertToDocument(Object object) {
+    throw new UnsupportedOperationException();
+  }
+}]]></programlisting>
+
+    <para>The DefaultXmlPayloadConverter is used if this reference is not provided, and it
+    should be sufficient in most cases since it can convert from Node, Document, Source,
+    File, and String typed payloads. If you need to extend beyond the capabilities of
+    that default implementation, then an upstream Transformer is probably a better option
+    than providing a reference to a custom implementation of this strategy here.</para>
+
+  </section><section id="xml-xpath-splitting">
+    <title>Splitting XML Messages</title>
     <para>
       <classname>XPathMessageSplitter</classname> supports messages with either
       <classname>String</classname> or <interfacename>Document</interfacename> payloads.
@@ -247,10 +559,29 @@
     </constructor-arg>
 </bean>]]></programlisting>
 
+    <para>
+      XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
+    </para>
+    <programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
+<int-xml:xpath-splitter id="orderItemSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel">
+    <int-xml:xpath-expression expression="/order/items"/>
+</int-xml:xpath-splitter>
+
+<!-- Split the order into items creating a new document for each item-->
+<int-xml:xpath-splitter id="orderItemDocumentSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel"
+                       create-documents="true">
+    <int-xml:xpath-expression expression="/order/items"/>
+    <int:poller fixed-rate="2000"/>
+</int-xml:xpath-splitter>]]></programlisting>
+
   </section>
 
-  <section id="xpath-routing">
-    <title id="xpath-routing.title">Routing XML Messages using XPath</title>
+  <section id="xml-xpath-routing">
+    <title id="xml-xpath-routing.title">Routing XML Messages Using XPath</title>
     <para>
       Similar to SpEL-based routers, Spring Integration provides support for routing messages based on XPath expressions,
       allowing you to create a Message Endpoint with an input channel but no output channel. Instead, one or more output
@@ -377,221 +708,326 @@
 	    </para>
     </section>
   </section>
-
-  <section id="xpath-selector">
-    <title>Selecting xml messages using XPath</title>
+  <section id="xml-xpath-header-enricher">
+    <title>XPath Header Enricher</title>
     <para>
-      Two <interfacename>MessageSelector</interfacename> implementations are provided,
-      <classname>BooleanTestXPathMessageSelector</classname> and <classname>StringValueTestXPathMessageSelector</classname>.
-      <classname>BooleanTestXPathMessageSelector</classname> requires an XPathExpression which evaluates to a boolean,
-      for example <emphasis>boolean(/one/two)</emphasis> which will only select messages which have an element named
-      two which is a child of a root element named one.  <classname>StringValueTestXPathMessageSelector</classname>
-      evaluates any XPath expression as a <classname>String</classname> and compares the result with the provided value.
+        The XPath Header Enricher defines a Header Enricher Message Transformer
+        that evaluates XPath expressions against the message payload and inserts
+        the result of the evaluation into a messsage header.
+    </para>
+    <para>
+        Please see below for an overview of all available configuration parameters:
+    </para>
+    <programlisting language="xml"><![CDATA[<int-xml:xpath-header-enricher default-overwrite="true"   ]]><co id="xpath-header-enricher-xml01-co" linkends="xpath-header-enricher-xml01" /><![CDATA[
+	                           id=""                      ]]><co id="xpath-header-enricher-xml02-co" linkends="xpath-header-enricher-xml02" /><![CDATA[
+	                           input-channel=""           ]]><co id="xpath-header-enricher-xml03-co" linkends="xpath-header-enricher-xml03" /><![CDATA[
+	                           output-channel=""          ]]><co id="xpath-header-enricher-xml04-co" linkends="xpath-header-enricher-xml04" /><![CDATA[
+	                           should-skip-nulls="true">  ]]><co id="xpath-header-enricher-xml05-co" linkends="xpath-header-enricher-xml05" /><![CDATA[
+    <int:poller></int:poller>                             ]]><co id="xpath-header-enricher-xml06-co" linkends="xpath-header-enricher-xml06" /><![CDATA[
+    <int-xml:header name=""                               ]]><co id="xpath-header-enricher-xml07-co" linkends="xpath-header-enricher-xml07" /><![CDATA[
+                    evaluation-type="STRING_RESULT"       ]]><co id="xpath-header-enricher-xml08-co" linkends="xpath-header-enricher-xml08" /><![CDATA[
+                    overwrite="true"                      ]]><co id="xpath-header-enricher-xml09-co" linkends="xpath-header-enricher-xml09" /><![CDATA[
+                    xpath-expression=""                   ]]><co id="xpath-header-enricher-xml10-co" linkends="xpath-header-enricher-xml10" /><![CDATA[
+                    xpath-expression-ref=""/>             ]]><co id="xpath-header-enricher-xml11-co" linkends="xpath-header-enricher-xml11" /><![CDATA[
+</int-xml:xpath-header-enricher>]]>
+    </programlisting>
+    <para>
+	    <calloutlist>
+	        <callout arearefs="xpath-header-enricher-xml01-co" id="xpath-header-enricher-xml01">
+	            <para>
+	                Specify the default boolean value for whether to overwrite existing
+	                header values. This will only take effect for sub-elements that
+	                do not provide their own 'overwrite' attribute. If the 'default-
+					overwrite' attribute is not provided, then the specified header
+					values will NOT overwrite any existing ones with the same header names.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml02-co" id="xpath-header-enricher-xml02">
+	            <para>
+	                Id for the underlying bean definition.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml03-co" id="xpath-header-enricher-xml03">
+	            <para>The receiving Message channel of this endpoint. <emphasis>Optional</emphasis>.</para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml04-co" id="xpath-header-enricher-xml04">
+                    Channel to which enriched messages shall be send to. <emphasis>Optional</emphasis>.
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml05-co" id="xpath-header-enricher-xml05">
+	            <para>
+					Specify whether null values, such as might be returned from
+					an expression evaluation, should be skipped. The default value
+					is true. Set this to false if a null value should trigger removal of the
+					corresponding header instead.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml06-co" id="xpath-header-enricher-xml06">
+	            <para>
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml07-co" id="xpath-header-enricher-xml07">
+	            <para>
+	                The name of the header to be enriched.
+	                <emphasis>Mandatory</emphasis>.
+	             </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml08-co" id="xpath-header-enricher-xml08">
+	            <para>
+	                The result type expected from the XPath evaluation. This will be the type of the header value.
+	                The following values are allowed: BOOLEAN_RESULT, STRING_RESULT, NUMBER_RESULT, NODE_RESULT and NODE_LIST_RESULT.
+	                Defaults internally to <code>XPathEvaluationType.STRING_RESULT</code> if not set. <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-header-enricher-xml09-co" id="xpath-header-enricher-xml09">
+	            <para>
+	                Boolean value to indicate whether this header value should overwrite an existing header value for
+                    the same name if already present on the input Message.
+	            </para>
+	        </callout>
+            <callout arearefs="xpath-header-enricher-xml10-co" id="xpath-header-enricher-xml10">
+                <para>
+                    The XPath Expression as a String. Either this attribute or
+                    <code>xpath-expression-ref</code> must be provided, but not both.
+                </para>
+            </callout>
+            <callout arearefs="xpath-header-enricher-xml11-co" id="xpath-header-enricher-xml11">
+                <para>
+                    The XPath Expression reference. Either this attribute or
+                    <code>xpath-expression</code> must be provided, but not both.
+                </para>
+            </callout>
+	    </calloutlist>
+	</para>
+  </section>
+  <section id="xml-xpath-filter">
+    <title>Using the XPath Filter</title>
+    <para>
+	    This component defines an XPath-based Message Filter. Under the covers this
+	    components uses a <code>MessageFilter</code> that wraps an instance
+	    of <code>AbstractXPathMessageSelector</code>.
+	</para>
+	<note>
+	    Please also refer to the chapter on <link linkend='filter'>
+	    Message Filters</link> for further details.
+	</note>
+	<para>
+	    In order to use the XPath Filter you must as a minimum provide an XPath
+	    Expression either by declaring the <code>xpath-expression</code> sub-element
+	    or by referencing an XPath Expression using the <code>xpath-expression-ref</code>
+	    attribute.
+    </para>
+    <para>
+	    If the provided XPath expression will evaluate to a <code>boolean</code>
+	    value, no further configuration parameters are necessary. However, if
+	    the XPath expression will evaluate to a String, the <code>match-value</code>
+	    attribute should be specified against which the evaluation result will
+	    be matched.
+	</para>
+	<para>
+	    There are three options for the <code>match-type</code>:
+	</para>
+	<itemizedlist>
+	    <listitem>
+	        <emphasis role="bold">exact</emphasis> - correspond to <code>equals</code> on <code>java.lang.String</code>.
+	        The underlying implementation uses a <code>StringValueTestXPathMessageSelector</code>
+	    </listitem>
+	    <listitem>
+	        <emphasis role="bold">case-insensitive</emphasis> - correspond to <code>equals-ignore-case</code> on <code>java.lang.String</code>.
+	        The underlying implementation uses a <code>StringValueTestXPathMessageSelector</code>
+	    </listitem>
+	    <listitem>
+	        <emphasis role="bold">regex</emphasis> - matches operations one <code>java.lang.String</code>.
+	        The underlying implementation uses a <code>RegexTestXPathMessageSelector</code>
+	    </listitem>
+	</itemizedlist>
+	<para>
+	    When providing a 'match-type' value of 'regex', the value provided with
+	    thos <code>match-value</code> attribute must be a valid Regular Expression.
     </para>
 
+    <note>
+        In prior versions of Spring Integration the functionality of the XPath Filter
+        was configured using the <code>xpath-selector</code> element. However, in order
+        to provide a more consistent behavior within the Spring Integration Framework,
+        <emphasis role="bold">the <code>xpath-selector</code> element is deprecated as of version 2.1</emphasis>.
 
-      <programlisting language="xml"><![CDATA[<!-- Interceptor which rejects messages that do not have a root element order  -->
-<bean id="orderSelectingInterceptor"
-  class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
-  <constructor-arg>
-   <bean
-    class="org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector">
-    <constructor-arg value="boolean(/order)" />
-   </bean>
-  </constructor-arg>
-</bean>
+        Please use <code>&lt;xpath-filter&gt;</code> instead. It provides the same
+        set of functionality. In fact it still uses the same <code>MessageSelectors</code>
+        internally.
+    </note>
 
-<!--  Interceptor which rejects messages that are not version one orders -->
-<bean id="versionOneOrderSelectingInterceptor"
-  class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
-  <constructor-arg>
-   <bean
-    class="org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector">
-    <constructor-arg value="/order/@version" index="0"/>
-    <constructor-arg value="1" index="1"/>
-   </bean>
-  </constructor-arg>
-</bean>]]></programlisting>
+	<programlisting language="xml"><![CDATA[<int-xml:xpath-filter discard-channel=""                     ]]><co id="xpath-filter-xml01-co" linkends="xpath-filter-xml01" /><![CDATA[
+                      id=""                                  ]]><co id="xpath-filter-xml02-co" linkends="xpath-filter-xml02" /><![CDATA[
+                      input-channel=""                       ]]><co id="xpath-filter-xml03-co" linkends="xpath-filter-xml03" /><![CDATA[
+                      match-type="exact"                     ]]><co id="xpath-filter-xml04-co" linkends="xpath-filter-xml04" /><![CDATA[
+                      match-value=""                         ]]><co id="xpath-filter-xml05-co" linkends="xpath-filter-xml05" /><![CDATA[
+                      output-channel=""                      ]]><co id="xpath-filter-xml06-co" linkends="xpath-filter-xml06" /><![CDATA[
+                      throw-exception-on-rejection="false"   ]]><co id="xpath-filter-xml07-co" linkends="xpath-filter-xml07" /><![CDATA[
+                      xpath-expression-ref="">               ]]><co id="xpath-filter-xml08-co" linkends="xpath-filter-xml08" /><![CDATA[
+    <int-xml:xpath-expression ... />                         ]]><co id="xpath-filter-xml09-co" linkends="xpath-filter-xml09" /><![CDATA[
+    <int:poller ... />                                       ]]><co id="xpath-filter-xml10-co" linkends="xpath-filter-xml10" /><![CDATA[
+</int-xml:xpath-filter>]]></programlisting>
+    <para>
+	<calloutlist>
+	    <callout arearefs="xpath-filter-xml01-co" id="xpath-filter-xml01">
+	        <para>
+	            Message Channel where you want rejected messages to be sent.
+	            <emphasis>Optional</emphasis>.
+	        </para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml02-co" id="xpath-filter-xml02">
+	        <para>
+	            Id for the underlying bean definition.
+	            <emphasis>Optional</emphasis>.
+	        </para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml03-co" id="xpath-filter-xml03">
+	        <para>The receiving Message channel of this endpoint. <emphasis>Optional</emphasis>.</para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml04-co" id="xpath-filter-xml04">
+	        <para>
+	            Type of match to apply between the XPath evaluation result and
+	            the <emphasis>match-value</emphasis>.
+                Default is <emphasis>exact</emphasis>. <emphasis>Optional</emphasis>.</para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml05-co" id="xpath-filter-xml05">
+	        <para>
+	            String value to be matched against the XPath evaluation result.
+	            If this attribute is not provided, then the XPath evaluation
+	            MUST produce a boolean result directly.
+                <emphasis>Optional</emphasis>.
+            </para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml06-co" id="xpath-filter-xml06">
+	        <para>
+	            The channel to which Messages that matched the filter criterias
+	            shall be dispatched to. <emphasis>Optional</emphasis>.
+	        </para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml07-co" id="xpath-filter-xml07">
+	        <para>
+	             By default, this property is set to <emphasis>false</emphasis>
+	             and rejected Messages (Messages that did not match the filter
+	             criteria) will be silently dropped. However, if set to
+	             <emphasis>true</emphasis> message rejection will result in an
+	             error condition and the exception will be propagated upstream
+	             to the caller.
+	             <emphasis>Optional</emphasis>.
+	         </para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml08-co" id="xpath-filter-xml08">
+	        <para>Reference to an XPath expression instance to evaluate.</para>
+	    </callout>
+	    <callout arearefs="xpath-filter-xml09-co" id="xpath-filter-xml09">
+	        <para>
+	            This sub-element sets the XPath expression to be evaluated. If
+	            this is not defined you MUST define the <code> xpath-expression-ref</code>
+	            attribute. Also, only one <code>xpath-expression</code> element
+	            can be set.
+	        </para>
+	    </callout>
+        <callout arearefs="xpath-filter-xml10-co" id="xpath-filter-xml10">
+            <para>
+                <emphasis>Optional</emphasis>.
+            </para>
+        </callout>
+	</calloutlist></para>
   </section>
 
-  <section id="xpath-transformer">
-    <title>Transforming xml messages using XPath</title>
+  <section id="xml-validating-filter">
+    <title>XML Validating Filter</title>
     <para>
-      When it comes to message transformation XPath is a great way to transform Messages that have XML
-      payloads by defining XPath transformers via &lt;xpath-transformer/&gt; element.
+        The XML Validating Filter allows you to validate incoming messages against
+        provided schema instances. The following schema types are supported:
     </para>
-    <para>
-    <emphasis>Simple XPath transformation</emphasis>
-    </para>
-    <para>
-    Let's look at the following transformer configuration:
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="inputChannel" output-channel="outputChannel"
-      xpath-expression="/person/@name" />]]></programlisting>
-    <para>
-    . . . and Message
-    </para>
-    <programlisting language="java"><![CDATA[Message<?> message =
-  MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();]]></programlisting>
-    <para>
-    After sending this message to the 'inputChannel' the XPath transformer configured above will transform
-    this XML Message to a simple Message with payload of 'John Doe' all based on
-    the simple XPath Expression specified in the <code>xpath-expression</code> attribute.
-    </para>
-    <para>
-    XPath also has capability to perform simple conversion of extracted elements
-    to a desired type. Valid return types are defined in <classname>XPathConstants</classname> and follows
-    the conversion rules specified by the <classname>XPath</classname>.
-    </para>
-    <para>
-    The following constants are defined by the <classname>XPathConstants</classname>: <emphasis>BOOLEAN, DOM_OBJECT_MODEL, NODE, NODESET, NUMBER, STRING</emphasis>
-    </para>
-    <para>
-    You can configure the desired type by simply using <code>evaluation-type</code>
-    attribute of the &lt;xpath-transformer/&gt; element.
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="numberInput" xpath-expression="/person/@age"
-                           evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
-<int-xml:xpath-transformer input-channel="booleanInput"
-                           xpath-expression="/person/@married = 'true'"
-                           evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
-]]></programlisting>
+    <itemizedlist>
+        <listitem>xml-schema (http://www.w3.org/2001/XMLSchema)</listitem>
+        <listitem>relax-ng (http://relaxng.org/ns/structure/1.0)</listitem>
+    </itemizedlist>
 
     <para>
-    <emphasis>Node Mappers</emphasis>
+        Messages that fail validation can either be
+        silently dropped or they can be forwarded to a definable <code>discard-channel</code>.
+        Furthermore you can configure this filter to throw an <code>Exception</code>
+        in case validation fails.
     </para>
     <para>
-    If you need to provide custom mapping for the node extracted by the XPath expression simply provide a reference to the
-    implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by
-    <classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a
-    reference to a <classname>NodeMapper</classname> simply use <code>node-mapper</code> attribute:
+        Please see below for an overview of all available configuration parameters:
     </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age"
-                           node-mapper="testNodeMapper" output-channel="output"/>]]></programlisting>
+    <programlisting language="xml"><![CDATA[<int-xml:validating-filter discard-channel=""                   ]]><co id="xpath-validating-filter-xml01-co" linkends="xpath-validating-filter-xml01" /><![CDATA[
+                           id=""                                ]]><co id="xpath-validating-filter-xml02-co" linkends="xpath-validating-filter-xml02" /><![CDATA[
+                           input-channel=""                     ]]><co id="xpath-validating-filter-xml03-co" linkends="xpath-validating-filter-xml03" /><![CDATA[
+                           output-channel=""                    ]]><co id="xpath-validating-filter-xml04-co" linkends="xpath-validating-filter-xml04" /><![CDATA[
+                           schema-location=""                   ]]><co id="xpath-validating-filter-xml05-co" linkends="xpath-validating-filter-xml05" /><![CDATA[
+                           schema-type="xml-schema"             ]]><co id="xpath-validating-filter-xml06-co" linkends="xpath-validating-filter-xml06" /><![CDATA[
+                           throw-exception-on-rejection="false" ]]><co id="xpath-validating-filter-xml07-co" linkends="xpath-validating-filter-xml07" /><![CDATA[
+                           xml-validator="">                    ]]><co id="xpath-validating-filter-xml08-co" linkends="xpath-validating-filter-xml08" /><![CDATA[
+    <int:poller .../>                                           ]]><co id="xpath-validating-filter-xml09-co" linkends="xpath-validating-filter-xml09" /><![CDATA[
+</int-xml:validating-filter>]]></programlisting>
     <para>
-. . . and Sample NodeMapper implementation:
+        <calloutlist>
+	        <callout arearefs="xpath-validating-filter-xml01-co" id="xpath-validating-filter-xml01">
+	            <para>
+	                Message Channel where you want rejected messages to be sent.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml02-co" id="xpath-validating-filter-xml02">
+	            <para>
+	                Id for the underlying bean definition.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml03-co" id="xpath-validating-filter-xml03">
+	            <para>The receiving Message channel of this endpoint. <emphasis>Optional</emphasis>.</para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml04-co" id="xpath-validating-filter-xml04">
+	            <para>
+	                Message Channel where you want accepted messages to be sent. <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml05-co" id="xpath-validating-filter-xml05">
+	            <para>
+	                Sets the location of the schema to validate the Message's payload against. Internally
+	                uses the <interfacename>org.springframework.core.io.Resource</interfacename> interface.
+	                You can set this attribute or the <code>xml-validator</code> attribute but not both.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml06-co" id="xpath-validating-filter-xml06">
+	            <para>
+	                Sets the schema type. Can be either <code>xml-schema</code> or <code>relax-ng</code>.
+	                <emphasis>Optional</emphasis>. If not set it defaults
+	                to <code>xml-schema</code> which internally translates to
+	                <classname>org.springframework.xml.validation.XmlValidatorFactory#SCHEMA_W3C_XML</classname>
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml07-co" id="xpath-validating-filter-xml07">
+	            <para>
+	                If <code>true</code> a <classname>MessageRejectedException</classname> is thrown
+	                in case validation fails for the provided Message's payload.
+	                 <emphasis>Optional</emphasis>. Defaults to <code>false</code> if not set.
+	             </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml08-co" id="xpath-validating-filter-xml08">
+	            <para>
+	                Reference to a custom <interfacename>sorg.springframework.xml.validation.XmlValidator</interfacename> strategy.
+	                You can set this attribute or the <code>schema-location</code> attribute but not both.
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+	        <callout arearefs="xpath-validating-filter-xml09-co" id="xpath-validating-filter-xml09">
+	            <para>
+	                <emphasis>Optional</emphasis>.
+	            </para>
+	        </callout>
+        </calloutlist>
     </para>
-<programlisting language="java"><![CDATA[class TestNodeMapper implements NodeMapper {
-  public Object mapNode(Node node, int nodeNum) throws DOMException {
-    return node.getTextContent() + "-mapped";
-  }
-}]]></programlisting>
-
-    <para>
-    <emphasis>XML Payload Converter</emphasis>
-    </para>
-    <para>
-    You can also use an implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to
-    provide more granular transformation:
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-transformer input-channel="customConverterInput"
-                           output-channel="output" xpath-expression="/test/@type"
-                           converter="testXmlPayloadConverter" />
-]]></programlisting>
-
-    <para>
-. . . and Sample XmlPayloadConverter implementation:
-    </para>
-<programlisting language="java"><![CDATA[class TestXmlPayloadConverter implements XmlPayloadConverter {
-  public Source convertToSource(Object object) {
-    throw new UnsupportedOperationException();
-  }
-  //
-  public Node convertToNode(Object object) {
-    try {
-      return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-          new InputSource(new StringReader("<test type='custom'/>")));
-    }
-    catch (Exception e) {
-      throw new IllegalStateException(e);
-    }
-  }
-  //
-  public Document convertToDocument(Object object) {
-    throw new UnsupportedOperationException();
-  }
-}]]></programlisting>
-
-    <para>The DefaultXmlPayloadConverter is used if this reference is not provided, and it
-    should be sufficient in most cases since it can convert from Node, Document, Source,
-    File, and String typed payloads. If you need to extend beyond the capabilities of
-    that default implementation, then an upstream Transformer is probably a better option
-    than providing a reference to a custom implementation of this strategy here.</para>
-
-    <para>
-    <emphasis>Combination of SpEL and XPath expressions</emphasis>
-    </para>
-    <para>
-    You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure
-    them using <code>expression</code> attribute:
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
-    <para>
-    In the above case the overall result of the expression will be the result of the XPath expression multiplied by 2.
-    </para>
-  </section>
-
-
-  <section id="xpath-namespace-support">
-    <title>XPath components namespace support</title>
-    <para>All XPath based components have namespace support allowing them to be configured as
-    Message Endpoints with the exception of the XPath selectors which are not designed to act as
-    endpoints.  Each component allows the XPath to either be referenced at the top level or configured via a nested
-    &lt;xpath-expression/&gt; element.  So the following configurations of an xpath-selector are all valid and represent the general
-    form of XPath namespace support.  All forms of XPath expression result in the creation of an
-    <interfacename>XPathExpression</interfacename> using the Spring <classname>XPathExpressionFactory</classname>
-    </para>
-    <programlisting language="xml"><![CDATA[<int-xml:xpath-selector id="xpathRefSelector"
-                       xpath-expression="refToXpathExpression"
-                       evaluation-result-type="boolean" />
-
-<int-xml:xpath-selector id="selectorWithNoNS" evaluation-result-type="boolean" >
-    <int-xml:xpath-expression expression="/name"/>
-</int-xml:xpath-selector>
-
-<int-xml:xpath-selector id="selectorWithOneNS" evaluation-result-type="boolean" >
-    <int-xml:xpath-expression expression="/ns1:name"
-                             ns-prefix="ns1" ns-uri="www.example.org" />
-</int-xml:xpath-selector>
-
-<int-xml:xpath-selector id="selectorWithTwoNS" evaluation-result-type="boolean" >
-    <int-xml:xpath-expression expression="/ns1:name/ns2:type">
-        <map>
-            <entry key="ns1" value="www.example.org/one" />
-            <entry key="ns2" value="www.example.org/two" />
-        </map>
-    </int-xml:xpath-expression>
-</int-xml:xpath-selector>
-
-<int-xml:xpath-selector id="selectorWithNamespaceMapRef" evaluation-result-type="boolean" >
-    <int-xml:xpath-expression expression="/ns1:name/ns2:type"
-                             namespace-map="defaultNamespaces"/>
-</int-xml:xpath-selector>
-
-<util:map id="defaultNamespaces">
-    <util:entry key="ns1" value="www.example.org/one" />
-    <util:entry key="ns2" value="www.example.org/two" />
-</util:map>]]></programlisting>
-
-    <para>
-      XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
-    </para>
-    <programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
-<int-xml:xpath-splitter id="orderItemSplitter"
-                       input-channel="orderChannel"
-                       output-channel="orderItemsChannel">
-    <int-xml:xpath-expression expression="/order/items"/>
-</int-xml:xpath-splitter>
-
-<!-- Split the order into items creating a new document for each item-->
-<int-xml:xpath-splitter id="orderItemDocumentSplitter"
-                       input-channel="orderChannel"
-                       output-channel="orderItemsChannel"
-                       create-documents="true">
-    <int-xml:xpath-expression expression="/order/items"/>
-    <int:poller fixed-rate="2000"/>
-</int-xml:xpath-splitter>]]></programlisting>
 
   </section>
 
