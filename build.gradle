@@ -274,6 +274,8 @@ project('spring-integration-groovy') {
         compile project(":spring-integration-scripting")
         compile "org.codehaus.groovy:groovy-all:1.7.5"
         compile "org.springframework:spring-context-support:$springVersion"
+        testCompile "org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion"
+        testCompile "org.codehaus.jackson:jackson-core-asl:$jacksonVersion"
     }
 }
 

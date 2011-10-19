@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:ws="http://www.springframework.org/schema/integration/ws"
+       xmlns:util='http://www.springframework.org/schema/util'
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
+			http://www.springframework.org/schema/util 
+			http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <ws:inbound-gateway request-channel="inputChannel" unmarshaller="marshaller"/>
+
+    <si:channel id="inputChannel"/>
+
+    <bean id="marshaller" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.springframework.oxm.support.AbstractMarshaller"/>
+    </bean>
+
+</beans>

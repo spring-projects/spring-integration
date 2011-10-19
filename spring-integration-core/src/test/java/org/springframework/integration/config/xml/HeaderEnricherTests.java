@@ -16,10 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Date;
 
 import org.junit.Test;
@@ -37,161 +33,175 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class HeaderEnricherTests {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
-	@Test
-	public void replyChannel() {
-		PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
-		MessageChannel inputChannel = context.getBean("replyChannelInput", MessageChannel.class);
-		inputChannel.send(new GenericMessage<String>("test"));
-		Message<?> result = replyChannel.receive(0);
-		assertNotNull(result);
-		assertEquals("TEST", result.getPayload());
-		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
-	}
+    @Test
+    public void replyChannel() {
+        PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
+        MessageChannel inputChannel = context.getBean("replyChannelInput", MessageChannel.class);
+        inputChannel.send(new GenericMessage<String>("test"));
+        Message<?> result = replyChannel.receive(0);
+        assertNotNull(result);
+        assertEquals("TEST", result.getPayload());
+        assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+    }
 
-	@Test
-	public void errorChannel() {
-		PollableChannel errorChannel = context.getBean("testErrorChannel", PollableChannel.class);
-		MessageChannel inputChannel = context.getBean("errorChannelInput", MessageChannel.class);
-		inputChannel.send(new GenericMessage<String>("test"));
-		Message<?> errorMessage = errorChannel.receive(1000);
-		assertNotNull(errorMessage);
-		Object errorPayload = errorMessage.getPayload();
-		assertEquals(MessageTransformationException.class, errorPayload.getClass());
-		Message<?> failedMessage = ((MessageTransformationException) errorPayload).getFailedMessage();
-		assertEquals("test", failedMessage.getPayload());
-		assertEquals(errorChannel, failedMessage.getHeaders().getErrorChannel());
-	}
+    @Test
+    public void errorChannel() {
+        PollableChannel errorChannel = context.getBean("testErrorChannel", PollableChannel.class);
+        MessageChannel inputChannel = context.getBean("errorChannelInput", MessageChannel.class);
+        inputChannel.send(new GenericMessage<String>("test"));
+        Message<?> errorMessage = errorChannel.receive(1000);
+        assertNotNull(errorMessage);
+        Object errorPayload = errorMessage.getPayload();
+        assertEquals(MessageTransformationException.class, errorPayload.getClass());
+        Message<?> failedMessage = ((MessageTransformationException) errorPayload).getFailedMessage();
+        assertEquals("test", failedMessage.getPayload());
+        assertEquals(errorChannel, failedMessage.getHeaders().getErrorChannel());
+    }
 
-	@Test
-	public void correlationIdValue() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals("ABC", result.getHeaders().getCorrelationId());
-	}
+    @Test
+    public void correlationIdValue() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals("ABC", result.getHeaders().getCorrelationId());
+    }
 
-	@Test
-	public void correlationIdValueWithType() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		Object correlationId = result.getHeaders().getCorrelationId();
-		assertEquals(Long.class, correlationId.getClass());
-		assertEquals(new Long(123), correlationId);
-	}
+    @Test
+    public void correlationIdValueWithType() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        Object correlationId = result.getHeaders().getCorrelationId();
+        assertEquals(Long.class, correlationId.getClass());
+        assertEquals(new Long(123), correlationId);
+    }
 
-	@Test
-	public void correlationIdRef() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(new Integer(123), result.getHeaders().getCorrelationId());
-	}
+    @Test
+    public void correlationIdRef() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(new Integer(123), result.getHeaders().getCorrelationId());
+    }
 
-	@Test
-	public void expirationDateValue() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(new Long(1111), result.getHeaders().getExpirationDate());
-	}
+    @Test
+    public void expirationDateValue() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(new Long(1111), result.getHeaders().getExpirationDate());
+    }
 
-	@Test
-	public void expirationDateRef() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(new Long(9999), result.getHeaders().getExpirationDate());
-	}
+    @Test
+    public void expirationDateRef() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(new Long(9999), result.getHeaders().getExpirationDate());
+    }
 
-	@Test
-	public void priority() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(new Integer(42), result.getHeaders().getPriority());
-	}
+    @Test
+    public void priority() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(new Integer(42), result.getHeaders().getPriority());
+    }
 
-	@Test
-	public void expressionUsingPayload() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<TestBean>(new TestBean("foo")));
-		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get("testHeader"));
-	}
+    @Test
+    public void expressionUsingPayload() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<TestBean>(new TestBean("foo")));
+        assertNotNull(result);
+        assertEquals("foobar", result.getHeaders().get("testHeader"));
+    }
 
-	@Test
-	public void expressionUsingHeader() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
-		Message<?> result = template.sendAndReceive(channel, message);
-		assertNotNull(result);
-		assertEquals("foobar", result.getHeaders().get("testHeader2"));
-	}
+    @Test
+    public void expressionUsingHeader() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
+        Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
+        Message<?> result = template.sendAndReceive(channel, message);
+        assertNotNull(result);
+        assertEquals("foobar", result.getHeaders().get("testHeader2"));
+    }
 
-	@Test
-	public void expressionWithDateType() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		Object headerValue = result.getHeaders().get("currentDate");
-		assertEquals(Date.class, headerValue.getClass());
-		Date date = (Date) headerValue;
-		assertTrue(new Date().getTime() - date.getTime() < 1000);
-	}
+    @Test
+    public void expressionWithDateType() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        Object headerValue = result.getHeaders().get("currentDate");
+        assertEquals(Date.class, headerValue.getClass());
+        Date date = (Date) headerValue;
+        assertTrue(new Date().getTime() - date.getTime() < 1000);
+    }
 
-	@Test
-	public void expressionWithLongType() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(Long.class, result.getHeaders().get("number").getClass());
-		assertEquals(new Long(12345), result.getHeaders().get("number"));
-	}
+    @Test
+    public void expressionWithLongType() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(Long.class, result.getHeaders().get("number").getClass());
+        assertEquals(new Long(12345), result.getHeaders().get("number"));
+    }
 
-	@Test
-	public void refWithMethod() {
-		MessagingTemplate template = new MessagingTemplate();
-		MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
-		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
-		assertNotNull(result);
-		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
-		assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
-	}
+    @Test
+    public void refWithMethod() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
+        assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
+    }
+
+    @Test
+    public void innerBean() {
+        MessagingTemplate template = new MessagingTemplate();
+        MessageChannel channel = context.getBean("innerBeanChannel", MessageChannel.class);
+        Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+        assertNotNull(result);
+        assertFalse(TestBean.class.equals(result.getHeaders().get("innerBean").getClass()));
+//        TestBean testHeader = (TestBean) result.getHeaders().get("innerBean");
+//		assertEquals("testBean", testHeader.getName());
+    }
 
 
-	public static class TestBean {
+    public static class TestBean {
 
-		private final String name;
+        private final String name;
 
-		TestBean(String name) {
-			this.name = name;
-		}
+        TestBean(String name) {
+            this.name = name;
+        }
 
-		public String getName() {
-			return this.name;
-		}
-	}
+        public String getName() {
+            return this.name;
+        }
+    }
 
 }

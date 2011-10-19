@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,6 +33,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -61,7 +63,16 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 	}
 
-
+ /*   @Test
+	public void checkConfigWithExpression() {
+		Object adapter = context.getBean("adapterC");
+		Object handler = TestUtils.getPropertyValue(adapter, "handler");
+		assertEquals(ExpressionEvaluatingMessageProcessor.class, handler.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(99, handlerAccessor.getPropertyValue("order"));
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+	}
+*/
 	static class TestBean {
 
 		public void out(Object o) {
