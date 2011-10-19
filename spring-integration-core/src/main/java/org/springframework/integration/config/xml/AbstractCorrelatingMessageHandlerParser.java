@@ -39,8 +39,6 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
 
-	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
-
 	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
 
 	private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
@@ -55,7 +53,6 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 				element, builder, processor, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, MESSAGE_STORE_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
