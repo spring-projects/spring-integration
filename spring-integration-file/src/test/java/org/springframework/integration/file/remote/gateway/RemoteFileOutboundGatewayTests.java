@@ -271,9 +271,6 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean isOpen() {
 				return open;
 			}
-			public boolean isDirExists(String path) {
-				return true;
-			} 
 		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
@@ -328,9 +325,6 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean isOpen() {
 				return open;
 			} 
-			public boolean isDirExists(String path) {
-				return true;
-			} 
 		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
@@ -382,9 +376,6 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} 
-			public boolean isDirExists(String path)  {
-				return true;
 			} 
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));

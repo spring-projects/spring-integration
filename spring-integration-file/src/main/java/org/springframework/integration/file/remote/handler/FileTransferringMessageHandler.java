@@ -62,9 +62,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 
 	private volatile String remoteFileSeparator = "/";
 	
-//	private final ConHash
-
-
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;

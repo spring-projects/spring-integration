@@ -18,10 +18,7 @@ package org.springframework.integration.ftp.session;
 import java.lang.reflect.Field;
 
 import org.apache.commons.net.ftp.FTPClient;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.integration.file.remote.session.Session;
-import org.springframework.util.StopWatch;
 
 import static junit.framework.Assert.fail;
 
@@ -51,28 +48,5 @@ public class SessionFactoryTests {
 				}
 			}
 		}	
-	}
-	
-	@Test
-	@Ignore
-	public void testPerformance() throws Exception{
-		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
-		sessionFactory.setHost("192.168.28.143");
-		sessionFactory.setUsername("user");
-		sessionFactory.setPassword("password");
-
-		Session session = sessionFactory.getSession();
-		
-		String remoteDir = ".";
-		StopWatch existWatch = new StopWatch();
-		existWatch.start();
-		session.isDirExists(remoteDir);
-		existWatch.stop();
-		
-		StopWatch listWatch = new StopWatch();
-		listWatch.start();
-		session.list(remoteDir);
-		listWatch.stop();
-		System.out.println("Elapsed time for directoy exists call: via isDirExists(): " + existWatch.getTotalTimeMillis() + " mls; via list(): " + listWatch.getLastTaskTimeMillis() + " mls;");
 	}
 }

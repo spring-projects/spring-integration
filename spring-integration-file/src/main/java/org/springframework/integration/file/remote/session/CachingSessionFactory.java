@@ -152,10 +152,6 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		public void mkdir(String directory) throws IOException {
 			this.targetSession.mkdir(directory);
 		}
-
-		public boolean isDirExists(String path) {
-			return this.targetSession.isDirExists(path);
-		}
 	}
 
 }

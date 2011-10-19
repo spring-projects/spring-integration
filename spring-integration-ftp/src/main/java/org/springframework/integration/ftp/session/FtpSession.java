@@ -123,18 +123,4 @@ class FtpSession implements Session {
 			}
 		}
 	}
-
-	// is not called by the framework since 'mkdir' for FTP can create directories recursively
-	public boolean isDirExists(String path) { 
-		try {
-			this.client.pasv();
-			this.client.port(this.client.getRemoteAddress(), 65000);
-			int stat = this.client.nlst(path);
-			return stat == 150;
-		}
-		catch (Exception e) {
-			// ignore
-		}
-		return false;
-	}
 }

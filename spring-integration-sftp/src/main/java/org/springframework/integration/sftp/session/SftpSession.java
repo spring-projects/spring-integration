@@ -69,17 +69,6 @@ class SftpSession implements Session {
 			throw new NestedIOException("Failed to remove file: "+ e);
 		}
 	}
-	
-	public boolean isDirExists(String path){
-		try {
-			this.channel.lstat(path);
-			return true;
-		}
-		catch (SftpException e) {
-			// ignore
-		}
-		return false;
-	}
 
 	@SuppressWarnings("unchecked")
 	public LsEntry[] list(String path) throws IOException {
@@ -190,7 +179,7 @@ class SftpSession implements Session {
 
 	private void mkdirRecursively(String remoteDirectory, String originalRemoteDirectory) throws SftpException{
 		String remoteFileSeparator = "/";
-		if (this.isDirExists(remoteDirectory)){
+		if (this.exists(remoteDirectory)){
 			String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
 			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
 			String directory = remoteDirectory + remoteFileSeparator;
@@ -215,5 +204,15 @@ class SftpSession implements Session {
 				this.mkdirRecursively(remoteDirectory, originalRemoteDirectory);
 			}
 		}
+	}
+	private boolean exists(String path){
+		try {
+			this.channel.lstat(path);
+			return true;
+		}
+		catch (SftpException e) {
+			// ignore
+		}
+		return false;
 	}
 }

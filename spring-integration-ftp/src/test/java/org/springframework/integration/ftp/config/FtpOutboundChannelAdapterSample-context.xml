@@ -19,6 +19,6 @@
 	<int-ftp:outbound-channel-adapter 
 				auto-create-directory="true"
 				session-factory="ftpSessionFactory" 
-				remote-directory="./sdfdsf/sdfsf/sdfdfs"
+				remote-directory="./dsf/sdfsfs/sdffs"
 				channel="ftpChannel"/>	
 </beans>
