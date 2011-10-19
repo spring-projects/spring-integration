@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,24 @@
 package org.springframework.integration.ftp.session;
 
 import java.lang.reflect.Field;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.session.Session;
+import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.test.util.TestUtils;
 
 import static junit.framework.Assert.fail;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,5 +61,88 @@ public class SessionFactoryTests {
 				}
 			}
 		}	
+	}
+	
+	@Test
+	public void testStaleConnection() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session sessionA = Mockito.mock(Session.class);
+		Session sessionB = Mockito.mock(Session.class);
+		Mockito.when(sessionA.isOpen()).thenReturn(true);
+		Mockito.when(sessionB.isOpen()).thenReturn(false);
+		
+		Mockito.when(sessionFactory.getSession()).thenReturn(sessionA);
+		Mockito.when(sessionFactory.getSession()).thenReturn(sessionB);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+		
+		Session firstSession = cachingFactory.getSession();
+		Session secondSession = cachingFactory.getSession();
+		secondSession.close();
+		Session nonStaleSession = cachingFactory.getSession();
+		assertEquals(TestUtils.getPropertyValue(firstSession, "targetSession"), TestUtils.getPropertyValue(nonStaleSession, "targetSession"));
+	}
+	
+	@Test
+	public void testSameSessionFromThePool() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session session = Mockito.mock(Session.class);
+		Mockito.when(sessionFactory.getSession()).thenReturn(session);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+		
+		Session s1 = cachingFactory.getSession();
+		s1.close();
+		Session s2 = cachingFactory.getSession();
+		s2.close();
+		assertEquals(TestUtils.getPropertyValue(s1, "targetSession"), TestUtils.getPropertyValue(s2, "targetSession"));
+		Mockito.verify(sessionFactory, Mockito.times(2)).getSession();
+	}
+	
+	@Test (expected=IllegalStateException.class) // timeout expire
+	public void testSessionWaitExpire() throws Exception{
+		SessionFactory sessionFactory = Mockito.mock(SessionFactory.class);
+		Session session = Mockito.mock(Session.class);
+		Mockito.when(sessionFactory.getSession()).thenReturn(session);
+		
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+
+		cachingFactory.setSessionWaitTimeout(3000);
+		
+		cachingFactory.getSession();
+		cachingFactory.getSession();
+		cachingFactory.getSession();
+	}
+	
+	@Test
+	@Ignore
+	public void testConnectionLimit() throws Exception{
+		ExecutorService executor = Executors.newCachedThreadPool();
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		sessionFactory.setHost("192.168.28.143");
+		sessionFactory.setPassword("password");
+		sessionFactory.setUsername("user");
+		final CachingSessionFactory factory = new CachingSessionFactory(sessionFactory, 2);
+
+		final Random random = new Random();
+		final AtomicInteger failures = new AtomicInteger();
+		for (int i = 0; i < 30; i++) {
+			executor.execute(new Runnable() {	
+				public void run() {		
+					try {
+						Session session = factory.getSession();
+						Thread.sleep(random.nextInt(5000));
+						session.close();
+					} catch (Exception e) {
+						e.printStackTrace();
+						failures.incrementAndGet();
+					}
+				}
+			});
+		}
+		executor.shutdown();
+		executor.awaitTermination(10000, TimeUnit.SECONDS);
+
+		assertEquals(0, failures.get());
 	}
 }

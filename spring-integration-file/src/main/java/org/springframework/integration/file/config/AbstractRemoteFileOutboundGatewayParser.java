@@ -15,20 +15,27 @@
  */
 package org.springframework.integration.file.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.1
  *
  */
 public abstract class AbstractRemoteFileOutboundGatewayParser extends
 		AbstractConsumerEndpointParser {
+	
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
 	protected String getInputChannelAttributeName() {
@@ -39,16 +46,30 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName());
 		// build the SessionFactory and provide as a constructor argument
-		String cacheSessions = element.getAttribute("cache-sessions");
-		if ("false".equalsIgnoreCase(cacheSessions)) {
-			builder.addConstructorArgReference(element.getAttribute("session-factory"));
+		
+		// This whole block must be refactored once cache-session attribute is removed
+		String sessionFactoryName = element.getAttribute("session-factory");
+		BeanDefinition sessionFactoryDefinition = parserContext.getReaderContext().getRegistry().getBeanDefinition(sessionFactoryName);
+		String sessionFactoryClassName = sessionFactoryDefinition.getBeanClassName();
+		if (StringUtils.hasText(sessionFactoryClassName) && sessionFactoryClassName.endsWith(CachingSessionFactory.class.getName())){
+			builder.addConstructorArgValue(sessionFactoryDefinition);
 		}
 		else {
-			BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.file.remote.session.CachingSessionFactory");
-			sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-			builder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+			String cacheSessions = element.getAttribute("cache-sessions");
+			if (StringUtils.hasText(cacheSessions)){
+				logger.warn("The 'cache-sessions' attribute is deprecated since v2.1. Consider configuring CachingSessionFactory explicitly");	
+			}
+			if ("false".equalsIgnoreCase(cacheSessions)) {
+				builder.addConstructorArgReference(element.getAttribute("session-factory"));
+			}
+			else {		
+				BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(CachingSessionFactory.class);		
+				sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
+				builder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+			}
 		}
+		// end of what needs to be refactored once cache-session is removed
+		
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
