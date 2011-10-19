@@ -2704,6 +2704,20 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="release-strategy" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.lang.Object" />
+							</tool:annotation>
+						</xsd:appinfo>
+						<xsd:documentation>
+							A reference to a bean that implements the release strategy.
+							The bean can be an implementation of the
+							ReleaseStrategy interface or a POJO
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="release-strategy-method" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -2729,20 +2743,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	<xsd:complexType name="correlating-message-handler-type">
 		<xsd:complexContent>
 			<xsd:extension base="innerEndpointDefinitionAware">
-				<xsd:attribute name="release-strategy" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object" />
-							</tool:annotation>
-						</xsd:appinfo>
-						<xsd:documentation>
-							A reference to a bean that implements the release strategy.
-							The bean can be an implementation of the
-							ReleaseStrategy interface or a POJO
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="keep-released-messages" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>Will store messages after their release. Mainly used for monitoring purposes. Default is 'true'</xsd:documentation>
