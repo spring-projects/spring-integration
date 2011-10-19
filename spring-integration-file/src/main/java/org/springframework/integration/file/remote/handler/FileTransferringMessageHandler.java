@@ -61,11 +61,13 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile String charset = "UTF-8";
 
 	private volatile String remoteFileSeparator = "/";
-	
+
+
 	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
+
 
 	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
 		this.autoCreateDirectory = autoCreateDirectory;
@@ -77,11 +79,12 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
+		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 	
 	protected String getTemporaryFileSuffix() {
-		return temporaryFileSuffix;
+		return this.temporaryFileSuffix;
 	}
 
 	public void setTemporaryDirectory(File temporaryDirectory) {
@@ -135,7 +138,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 						try {
 							file.delete();
 						}
-						catch (Throwable th) {
+						catch (Throwable t) {
 							// ignore
 						}
 					}
@@ -159,7 +162,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 				sendableFile = new File(this.temporaryDirectory, tempFileName); // will only create temp file for String/byte[]
 				byte[] bytes = null;
 				if (payload instanceof String) {
-					bytes = ((String) payload).getBytes(charset);
+					bytes = ((String) payload).getBytes(this.charset);
 				}
 				else {
 					bytes = (byte[]) payload;
@@ -168,7 +171,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			}
 			else {
 				throw new IllegalArgumentException("Unsupported payload type. The only supported payloads are " +
-							"java.io.File, java.lang.String and byte[]");
+							"java.io.File, java.lang.String, and byte[]");
 			}
 			return sendableFile;
 		}
@@ -184,17 +187,15 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (!StringUtils.hasText(remoteDirectory)) {
 			remoteDirectory = "";
 		}
-		else if (!remoteDirectory.endsWith(remoteFileSeparator)) {
-			remoteDirectory += remoteFileSeparator; 
+		else if (!remoteDirectory.endsWith(this.remoteFileSeparator)) {
+			remoteDirectory += this.remoteFileSeparator; 
 		}
 		String remoteFilePath = remoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
-		
-		if (this.autoCreateDirectory){
+		if (this.autoCreateDirectory) {
 			session.mkdir(remoteDirectory);
 		}
-		
 		try {
 			session.write(fileInputStream, tempFilePath);
 			// then rename it to its final name
@@ -207,4 +208,5 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			fileInputStream.close();
 		}
 	}
+
 }

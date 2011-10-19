@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 
@@ -50,7 +51,7 @@ class FtpSession implements Session {
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		boolean completed = this.client.deleteFile(path);
-		if (!completed){
+	 	if (!completed) {
 			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
 		}
 		return completed;
@@ -62,25 +63,28 @@ class FtpSession implements Session {
 		return this.client.listFiles(path);
 	}
 
-	public void read(String path, OutputStream fos) throws IOException{
+	public void read(String path, OutputStream fos) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		Assert.notNull(fos, "outputStream must not be null");
 		boolean completed = this.client.retrieveFile(path, fos);
-		if (!completed){
-			throw new IOException("Failed to copy '" + path + "'. Server replied with: " + client.getReplyString());
+		if (!completed) {
+			throw new IOException("Failed to copy '" + path +
+					"'. Server replied with: " + this.client.getReplyString());
 		}
 		logger.info("File have been successfully transfered to: " + path);
 	}
 
-	public void write(InputStream inputStream, String path) throws IOException{
+	public void write(InputStream inputStream, String path) throws IOException {
 		Assert.notNull(inputStream, "inputStream must not be null");
 		Assert.hasText(path, "path must not be null");
-		boolean completed = client.storeFile(path, inputStream);
-		if (!completed){
+		boolean completed = this.client.storeFile(path, inputStream);
+		if (!completed) {
 			throw new IOException("Failed to write to '" + path 
-					+ "'. Server replied with: " + client.getReplyString());
+					+ "'. Server replied with: " + this.client.getReplyString());
 		}
-		logger.info("File have been successfully transfered to: " + path);
+		if (logger.isInfoEnabled()) {
+			logger.info("File has been successfully transfered to: " + path);
+		}
 	}
 
 	public void close() {
@@ -96,21 +100,24 @@ class FtpSession implements Session {
 
 	public boolean isOpen() {
 		try {
-			client.noop();
-		} catch (Exception e) {
+			this.client.noop();
+		}
+		catch (Exception e) {
 			return false;
 		}
 		return true;
 	}
 
 	public void rename(String pathFrom, String pathTo) throws IOException{
-		client.deleteFile(pathTo);
-		boolean completed = client.rename(pathFrom, pathTo);
-		if (!completed){
+		this.client.deleteFile(pathTo);
+		boolean completed = this.client.rename(pathFrom, pathTo);
+		if (!completed) {
 			throw new IOException("Failed to rename '" + pathFrom + 
-					"' to " + pathTo + "'. Server replied with: " + client.getReplyString());
+					"' to " + pathTo + "'. Server replied with: " + this.client.getReplyString());
 		}
-		logger.info("File have been successfully renamed from: " + pathFrom + " to " + pathTo);
+		if (logger.isInfoEnabled()) {
+			logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
+		}
 	}
 
 	public void mkdir(String directory) throws IOException {
@@ -123,4 +130,5 @@ class FtpSession implements Session {
 			}
 		}
 	}
+
 }
