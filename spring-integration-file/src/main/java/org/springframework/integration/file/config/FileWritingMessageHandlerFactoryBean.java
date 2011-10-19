@@ -80,45 +80,26 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 	
 	@Override
 	protected FileWritingMessageHandler createHandler() {
-		if (this.handler == null) {
-			initHandler();
+		FileWritingMessageHandler handler = new FileWritingMessageHandler(this.directory);
+		if (this.charset != null) {
+			handler.setCharset(this.charset);
 		}
-		return this.handler;
-	}
-
-	private void initHandler() {
-		synchronized (this.initializationMonitor) {
-			if (this.handler != null) {
-				return;
-			}
-			this.handler = new FileWritingMessageHandler(this.directory);
-			if (this.outputChannel != null) {
-				this.handler.setOutputChannel(this.outputChannel);
-			}
-			if (this.charset != null) {
-				this.handler.setCharset(this.charset);
-			}
-			if (this.fileNameGenerator != null) {
-				this.handler.setFileNameGenerator(this.fileNameGenerator);
-			}
-			if (this.deleteSourceFiles != null) {
-				this.handler.setDeleteSourceFiles(this.deleteSourceFiles);
-			}
-			if (this.autoCreateDirectory != null) {
-				this.handler.setAutoCreateDirectory(this.autoCreateDirectory);
-			}
-			if (this.requiresReply != null) {
-				this.handler.setRequiresReply(this.requiresReply);
-			}
-			if (this.sendTimeout != null) {
-				this.handler.setSendTimeout(this.sendTimeout);
-			}
-			if (this.order != null) {
-				this.handler.setOrder(this.order);
-			}
-			this.handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
-			this.handler.setBeanFactory(this.beanFactory);
-			this.handler.afterPropertiesSet();
+		if (this.fileNameGenerator != null) {
+			handler.setFileNameGenerator(this.fileNameGenerator);
 		}
+		if (this.deleteSourceFiles != null) {
+			handler.setDeleteSourceFiles(this.deleteSourceFiles);
+		}
+		if (this.autoCreateDirectory != null) {
+			handler.setAutoCreateDirectory(this.autoCreateDirectory);
+		}
+		if (this.requiresReply != null) {
+			handler.setRequiresReply(this.requiresReply);
+		}
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout);
+		}
+		handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
+		return handler;
 	}
 }

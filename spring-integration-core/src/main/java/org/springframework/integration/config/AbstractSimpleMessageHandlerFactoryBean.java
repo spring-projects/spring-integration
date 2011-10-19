@@ -31,17 +31,17 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractSimpleMessageHandlerFactoryBean<M extends MessageHandler> implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
-	protected volatile M handler;
+	private volatile M handler;
 
-	protected volatile MessageChannel outputChannel;
+	private volatile MessageChannel outputChannel;
 
-	protected volatile Integer order;
+	private volatile Integer order;
 
-	protected BeanFactory beanFactory;
+	private BeanFactory beanFactory;
 
 	private volatile boolean initialized;
 
-	protected final Object initializationMonitor = new Object();
+	private final Object initializationMonitor = new Object();
 
 
 	public AbstractSimpleMessageHandlerFactoryBean() {
