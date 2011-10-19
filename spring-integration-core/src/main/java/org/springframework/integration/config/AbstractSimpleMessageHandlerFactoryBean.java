@@ -27,10 +27,11 @@ import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  */
-public abstract class AbstractSimpleMessageHandlerFactoryBean implements FactoryBean<MessageHandler>, BeanFactoryAware {
+public abstract class AbstractSimpleMessageHandlerFactoryBean<M extends MessageHandler> implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
-	private volatile MessageHandler handler;
+	private volatile M handler;
 
 	private volatile MessageChannel outputChannel;
 
@@ -63,7 +64,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean implements Factory
 		return this.beanFactory;
 	}
 
-	public MessageHandler getObject() throws Exception {
+	public M getObject() throws Exception {
 		if (this.handler == null) {
 			this.handler = this.createHandlerInternal();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
@@ -80,7 +81,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean implements Factory
 		return this.handler;
 	}
 
-	protected final MessageHandler createHandlerInternal() {
+	protected final M createHandlerInternal() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				// There was a problem when this method was called already
@@ -103,7 +104,7 @@ public abstract class AbstractSimpleMessageHandlerFactoryBean implements Factory
 		return handler;
 	}
 
-	protected abstract MessageHandler createHandler();
+	protected abstract M createHandler();
 
 	public Class<? extends MessageHandler> getObjectType() {
 		if (this.handler != null) {

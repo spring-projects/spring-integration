@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Alexander Peters
  */
-abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean {
+abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler>{
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true,
 			true));
