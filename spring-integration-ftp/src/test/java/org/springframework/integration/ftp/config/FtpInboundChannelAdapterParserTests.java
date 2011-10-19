@@ -66,6 +66,7 @@ public class FtpInboundChannelAdapterParserTests {
 		
 		FtpInboundFileSynchronizer fisync = 
 			(FtpInboundFileSynchronizer) TestUtils.getPropertyValue(inbound, "synchronizer");
+		assertNotNull(TestUtils.getPropertyValue(fisync, "localFilenameGeneratorExpression"));
 		assertEquals(".foo", TestUtils.getPropertyValue(fisync, "temporaryFileSuffix", String.class));
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(fisync, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);

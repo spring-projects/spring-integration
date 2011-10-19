@@ -116,6 +116,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				filename-pattern="*.txt"
 				remote-directory="some/remote/path"
 				remote-file-separator="/"
+				local-filename-generator-expression="#this.toUpperCase() + '.a'"
 				local-directory=".">
 			<int:poller fixed-rate="1000"/>
 </int-ftp:inbound-channel-adapter>]]></programlisting>
@@ -124,6 +125,15 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	element while also providing values for various attributes such as <code>local-directory</code>, <code>filename-pattern</code> 
 	(which is based on simple pattern matching, not regular expressions), and of course the reference to a <code>session-factory</code>.
 	</para>
+	<para>
+	By default the transferred file will carry the same name as the original file. If you want to override this behavior you 
+	can set <code>local-filename-generator-expression</code> attribute which allows you to provide SpEL Expression to generate 
+	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context 
+	is <classname>Message</classname>, Inbound adapter generates <classname>Message</classname> based on the transferred file 
+	which means that <classname>Message</classname> does not exist yet at the time of Expression evaluation. So the root object 
+	of the SpEL Evaluation Context is the original name of the remote file (String)
+	</para>
+	
   	<para>
 	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
 	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression 

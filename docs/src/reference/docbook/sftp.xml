@@ -80,6 +80,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 			remote-directory="/foo/bar"
 			local-directory="file:target/foo"
 			auto-create-local-directory="true"
+			local-filename-generator-expression="#this.toUpperCase() + '.a'"
 			delete-remote-files="false">
 		<int:poller fixed-rate="1000"/>
 </int-sftp:inbound-channel-adapter>]]></programlisting>
@@ -89,6 +90,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	- where files are going to be transferred TO and <code>remote-directory</code> - the remote source directory where files are
 	going to be transferred FROM -
 	as well as other attributes including a <code>session-factory</code> reference to the bean we configured earlier. 
+	</para>
+	<para>
+	By default the transferred file will carry the same name as the original file. If you want to override this behavior you 
+	can set <code>local-filename-generator-expression</code> attribute which allows you to provide SpEL Expression to generate 
+	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context 
+	is <classname>Message</classname>, Inbound adapter generates <classname>Message</classname> based on the transferred file 
+	which means that <classname>Message</classname> does not exist yet at the time of Expression evaluation. So the root object 
+	of the SpEL Evaluation Context is the original name of the remote file (String)
 	</para>
   	<para>
 	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 

@@ -21,6 +21,7 @@
 				filename-pattern="*.txt"
 				local-directory="."
 				remote-file-separator=""
+				local-filename-generator-expression="#this.toUpperCase() + '.a'"
 				comparator="comparator"
 				temporary-file-suffix=".foo"
 				remote-directory="foo/bar">
