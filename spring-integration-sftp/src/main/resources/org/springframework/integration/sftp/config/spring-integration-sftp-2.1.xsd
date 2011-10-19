@@ -195,8 +195,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-	            	Identifies channel attached to this adapter. Depending on the type of the adapter 
-					this channel could be the receiving channel (e.g., outbound-channel-adapter) or channel where 
+	            	Identifies the channel attached to this adapter. Depending on the type of the adapter 
+					this channel could be the receiving channel (e.g., outbound-channel-adapter) or the channel where 
 					messages will be sent to by this adapter (e.g., inbound-channel-adapter).
 	            	</xsd:documentation>
 				</xsd:annotation>
@@ -209,7 +209,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-	            	Allows you to specify a reference to  
+	            	Allows you to specify a reference to a
 	            	[org.springframework.integration.file.filters.FileListFilter] bean.
 	            	</xsd:documentation>
 				</xsd:annotation>
@@ -217,15 +217,25 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:attribute name="filename-pattern" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	            	Allows you to provide file name pattern to determine the file names that needs to be scanned 
-	            	and is based on simple pattern matching algorithm (e.g., "*.txt, fo*.txt" etc.)
+	            	Allows you to provide a file name pattern to determine the file names that need to be scanned.
+	            	This is based on simple pattern matching (e.g., "*.txt, fo*.txt" etc.)
 	            	</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="local-filename-generator-expression" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+					Allows you to provide a SpEL expression to generate the file name of 
+					the local (transferred) file. The root object of the SpEL evaluation is the name of the original 
+					file. For example, a valid expression would be "#this.toUpperCase() + '.a'" where #this represents the
+					original name of the remote file.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="filename-regex" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	            	Allows you to provide Regular Expression to determine the file names that needs to be scanned.
+	            	Allows you to provide a Regular Expression to determine the file names that need to be scanned.
 	            	 (e.g., "f[o]+\.txt" etc.)
 	            	</xsd:documentation>
 				</xsd:annotation>
@@ -233,28 +243,28 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:attribute name="remote-file-separator" type="xsd:string" default="/">
 				<xsd:annotation>
 					<xsd:documentation>
-					Allows you to provide remote file/directory separator character. DEFAULT: '/' 
+					Allows you to provide a remote file/directory separator character. DEFAULT: '/' 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required">
 				<xsd:annotation>
 				    <xsd:documentation>
-					Identifies directory path (e.g., "/temp/mytransfers") where file will be transferred FROM.
+					Identifies the directory path (e.g., "/temp/mytransfers") where files will be transferred FROM.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="local-directory" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-					Identifies directory path (e.g., "/local/mytransfers") where file will be transferred TO.
+					Identifies the directory path (e.g., "/local/mytransfers") where files will be transferred TO.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="auto-create-local-directory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-					Tells this adapter if local directory must be auto-created if it doesn''t exist. Default is TRUE.
+					Tells this adapter if the local directory must be auto-created if it doesn't exist. Default is TRUE.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
