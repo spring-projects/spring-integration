@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2010 the original author or authors.
+ *  Copyright 2002-2011 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
@@ -59,135 +61,146 @@ import static org.mockito.Mockito.when;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class WebServiceInboundGatewayParserTests {
 
-	@Autowired
-	@Qualifier("requestsMarshalling")
-	PollableChannel requestsMarshalling;
-	
-	@Autowired
-	@Qualifier("requestsSimple")
-	PollableChannel requestsSimple;
-	
-	@Autowired
-	@Qualifier("customErrorChannel")
-	MessageChannel customErrorChannel;
-	
-	@Autowired
-	@Qualifier("requestsVerySimple")
-	MessageChannel requestsVerySimple;
+    @Autowired
+    @Qualifier("requestsMarshalling")
+    PollableChannel requestsMarshalling;
 
-	@Test
-	public void configOk() throws Exception {
-		// config valid
-	}
+    @Autowired
+    @Qualifier("requestsSimple")
+    PollableChannel requestsSimple;
 
-	//Simple
-	@Autowired
-	@Qualifier("simple")
-	SimpleWebServiceInboundGateway simpleGateway;
+    @Autowired
+    @Qualifier("customErrorChannel")
+    MessageChannel customErrorChannel;
 
-	@Test
-	public void simpleGatewayProperties() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(simpleGateway);
-		assertThat(
-				(MessageChannel) accessor.getPropertyValue("requestChannel"),
-				is(requestsVerySimple));
-		
-		assertThat(
-				(MessageChannel) accessor.getPropertyValue("errorChannel"),
-				is(customErrorChannel));
-	}
+    @Autowired
+    @Qualifier("requestsVerySimple")
+    MessageChannel requestsVerySimple;
 
-	//extractPayload = false
-	@Autowired
-	@Qualifier("extractsPayload")
-	SimpleWebServiceInboundGateway payloadExtractingGateway;
+    @Test
+    public void configOk() throws Exception {
+        // config valid
+    }
 
-	@Test
-	public void extractPayloadSet() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				payloadExtractingGateway);
-		assertThat((Boolean) accessor.getPropertyValue("extractPayload"),
-				is(false));
-	}
+    //Simple
+    @Autowired
+    @Qualifier("simple")
+    SimpleWebServiceInboundGateway simpleGateway;
 
-	//marshalling
-	@Autowired
-	@Qualifier("marshalling")
-	MarshallingWebServiceInboundGateway marshallingGateway;
-	
-	@Autowired
-	AbstractMarshaller marshaller;
+    @Test
+    public void simpleGatewayProperties() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(simpleGateway);
+        assertThat(
+                (MessageChannel) accessor.getPropertyValue("requestChannel"),
+                is(requestsVerySimple));
 
-	@Test
-	public void marshallersSet() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
-		assertThat((AbstractMarshaller) accessor.getPropertyValue("marshaller"),
-				is(marshaller));
-		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
-				is(marshaller));
-		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
+        assertThat(
+                (MessageChannel) accessor.getPropertyValue("errorChannel"),
+                is(customErrorChannel));
+    }
 
-		assertThat(
-				(MessageChannel) accessor.getPropertyValue("errorChannel"),
-				is(customErrorChannel));
-	}
+    //extractPayload = false
+    @Autowired
+    @Qualifier("extractsPayload")
+    SimpleWebServiceInboundGateway payloadExtractingGateway;
 
-	@Test
-	public void testMessageHistoryWithMarshallingGateway() throws Exception {
-		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
-		Unmarshaller unmarshaller = mock(Unmarshaller.class);
-		when(unmarshaller.unmarshal((Source)Mockito.any())).thenReturn("hello");
-		marshallingGateway.setUnmarshaller(unmarshaller);
-		marshallingGateway.invoke(context);
-		Message<?> message = requestsMarshalling.receive(100);
-		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
-	}
+    @Test
+    public void extractPayloadSet() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(
+                payloadExtractingGateway);
+        assertThat((Boolean) accessor.getPropertyValue("extractPayload"),
+                is(false));
+    }
 
-	@Test
-	public void testMessageHistoryWithSimpleGateway() throws Exception {
-		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
-		payloadExtractingGateway.invoke(context);
-		Message<?> message = requestsSimple.receive(100);
-		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
-		System.out.println(componentHistoryRecord);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
-	}
+    //marshalling
+    @Autowired
+    @Qualifier("marshalling")
+    MarshallingWebServiceInboundGateway marshallingGateway;
 
-	@Autowired
-	private SimpleWebServiceInboundGateway headerMappingGateway;
+    @Autowired
+    AbstractMarshaller marshaller;
 
-	@Autowired
-	private HeaderMapper<SoapHeader> testHeaderMapper;
+    @Test
+    public void marshallersSet() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
+        assertThat((AbstractMarshaller) accessor.getPropertyValue("marshaller"),
+                is(marshaller));
+        assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
+                is(marshaller));
+        assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
 
-	@Test
-	public void testHeaderMapperReference() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
-		Object headerMapper = accessor.getPropertyValue("headerMapper");
-		assertEquals(testHeaderMapper, headerMapper);
-	}
+        assertThat(
+                (MessageChannel) accessor.getPropertyValue("errorChannel"),
+                is(customErrorChannel));
+    }
+
+    @Test
+    public void testMessageHistoryWithMarshallingGateway() throws Exception {
+        MessageContext context = new DefaultMessageContext(new StubMessageFactory());
+        Unmarshaller unmarshaller = mock(Unmarshaller.class);
+        when(unmarshaller.unmarshal((Source) Mockito.any())).thenReturn("hello");
+        marshallingGateway.setUnmarshaller(unmarshaller);
+        marshallingGateway.invoke(context);
+        Message<?> message = requestsMarshalling.receive(100);
+        MessageHistory history = MessageHistory.read(message);
+        assertNotNull(history);
+        Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
+        assertNotNull(componentHistoryRecord);
+        assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+    }
+
+    @Test
+    public void testMessageHistoryWithSimpleGateway() throws Exception {
+        MessageContext context = new DefaultMessageContext(new StubMessageFactory());
+        payloadExtractingGateway.invoke(context);
+        Message<?> message = requestsSimple.receive(100);
+        MessageHistory history = MessageHistory.read(message);
+        assertNotNull(history);
+        Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
+        System.out.println(componentHistoryRecord);
+        assertNotNull(componentHistoryRecord);
+        assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
+    }
+
+    @Autowired
+    private SimpleWebServiceInboundGateway headerMappingGateway;
+
+    @Autowired
+    private HeaderMapper<SoapHeader> testHeaderMapper;
+
+    @Test
+    public void testHeaderMapperReference() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(headerMappingGateway);
+        Object headerMapper = accessor.getPropertyValue("headerMapper");
+        assertEquals(testHeaderMapper, headerMapper);
+    }
+
+    @Test(expected = BeanDefinitionStoreException.class)
+    public void testInvalidInboundGatewayWithoutMarshaller() throws Exception {
+        new ClassPathXmlApplicationContext("invalidInboundGatewayWithoutMarshaller.xml", this.getClass());
+    }
+
+    @Test(expected = BeanDefinitionStoreException.class)
+    public void testInvalidInboundGatewayWithHeaderMapperAndMarshaller() throws Exception {
+        new ClassPathXmlApplicationContext("invalidInboundGatewayWithBothHeaderMapperAndMarshaller.xml", this.getClass());
+    }
 
 
-	@SuppressWarnings("unused")
-	private static class TestHeaderMapper implements HeaderMapper<SoapHeader> {
+    @SuppressWarnings("unused")
+    private static class TestHeaderMapper implements HeaderMapper<SoapHeader> {
 
-		public void fromHeaders(MessageHeaders headers, SoapHeader target) {
-		}
+        public void fromHeaders(MessageHeaders headers, SoapHeader target) {
+        }
 
-		public Map<String, ?> toHeaders(SoapHeader source) {
-			return Collections.emptyMap();
-		}
-	}
+        public Map<String, ?> toHeaders(SoapHeader source) {
+            return Collections.emptyMap();
+        }
+    }
 
 }

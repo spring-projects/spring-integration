@@ -13,7 +13,9 @@
 		<queue capacity="2"/>
 	</channel>
 
-	<outbound-channel-adapter id="adapter" channel="channel" ref="bean" method="out" order="99" auto-startup="false"/>
+    <channel id="channelC"/>
+
+    <outbound-channel-adapter id="adapter" channel="channel" ref="bean" method="out" order="99" auto-startup="false"/>
 
 	<beans:bean id="bean"
 		class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
@@ -22,6 +24,8 @@
 		<beans:bean class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
 		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" /> 
 	</outbound-channel-adapter>
+
+    <!--<outbound-channel-adapter id="adapterC" channel="channelC" order="99" auto-startup="false" expression="@bean.out(payload)"/>-->
 
 	<task:executor id="executor" pool-size="5" /> 
 

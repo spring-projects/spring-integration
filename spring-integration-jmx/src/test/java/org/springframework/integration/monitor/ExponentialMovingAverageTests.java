@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,8 @@ import org.junit.Test;
 
 /**
  * @author Dave Syer
- * 
+ * @author Artem Bilan
+ *
  */
 public class ExponentialMovingAverageTests {
 
@@ -59,7 +60,8 @@ public class ExponentialMovingAverageTests {
 		assertFalse(0==history.getStandardDeviation());
 		history.reset();
 		assertEquals(0, history.getStandardDeviation(), 0.01);
-		assertEquals("[N=0, min=0.000000, max=0.000000, mean=0.000000, sigma=0.000000]", history.toString());
+        //Make this test OS independent (INT-2165)
+        assertEquals(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d), history.toString());
 	}
 
 }

@@ -1,91 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<header-enricher input-channel="replyChannelInput" output-channel="echoInput"> 
-		<reply-channel ref="testReplyChannel"/>
-	</header-enricher>
+    <header-enricher input-channel="replyChannelInput" output-channel="echoInput">
+        <reply-channel ref="testReplyChannel"/>
+    </header-enricher>
 
-	<transformer input-channel="echoInput" expression="payload.toUpperCase()"/>
+    <transformer input-channel="echoInput" expression="payload.toUpperCase()"/>
 
-	<channel id="testReplyChannel">
-		<queue/>
-	</channel>
+    <channel id="testReplyChannel">
+        <queue/>
+    </channel>
 
-	<channel id="errorChannelInput">
-		<queue/>
-	</channel>
+    <channel id="errorChannelInput">
+        <queue/>
+    </channel>
 
-	<header-enricher input-channel="errorChannelInput" output-channel="failInput">
-		<poller max-messages-per-poll="1" fixed-delay="3000"/>
-		<error-channel ref="testErrorChannel"/>
-	</header-enricher>
+    <header-enricher input-channel="errorChannelInput" output-channel="failInput">
+        <poller max-messages-per-poll="1" fixed-delay="3000"/>
+        <error-channel ref="testErrorChannel"/>
+    </header-enricher>
 
-	<transformer input-channel="failInput" expression="payload.noSuchProperty"/>
+    <transformer input-channel="failInput" expression="payload.noSuchProperty"/>
 
-	<channel id="testErrorChannel">
-		<queue/>
-	</channel>
+    <channel id="testErrorChannel">
+        <queue/>
+    </channel>
 
-	<header-enricher input-channel="correlationIdValueInput">
-		<correlation-id value="ABC"/> 
-	</header-enricher>
+    <header-enricher input-channel="correlationIdValueInput">
+        <correlation-id value="ABC"/>
+    </header-enricher>
 
-	<header-enricher input-channel="correlationIdValueWithTypeInput">
-		<correlation-id value="123" type="java.lang.Long"/> 
-	</header-enricher>
+    <header-enricher input-channel="correlationIdValueWithTypeInput">
+        <correlation-id value="123" type="java.lang.Long"/>
+    </header-enricher>
 
-	<header-enricher input-channel="correlationIdRefInput">
-		<correlation-id ref="testCorrelationId"/> 
-	</header-enricher>
+    <header-enricher input-channel="correlationIdRefInput">
+        <correlation-id ref="testCorrelationId"/>
+    </header-enricher>
 
-	<beans:bean id="testCorrelationId" class="java.lang.Integer">
-		<beans:constructor-arg value="123"/>
-	</beans:bean>
+    <beans:bean id="testCorrelationId" class="java.lang.Integer">
+        <beans:constructor-arg value="123"/>
+    </beans:bean>
 
-	<header-enricher input-channel="expirationDateValueInput">
-		<expiration-date value="1111"/>
-	</header-enricher>
+    <header-enricher input-channel="expirationDateValueInput">
+        <expiration-date value="1111"/>
+    </header-enricher>
 
-	<header-enricher input-channel="expirationDateRefInput">
-		<expiration-date ref="testExpirationDate"/>
-	</header-enricher>
+    <header-enricher input-channel="expirationDateRefInput">
+        <expiration-date ref="testExpirationDate"/>
+    </header-enricher>
 
-	<beans:bean id="testExpirationDate" class="java.lang.Long">
-		<beans:constructor-arg value="9999"/>
-	</beans:bean>
+    <beans:bean id="testExpirationDate" class="java.lang.Long">
+        <beans:constructor-arg value="9999"/>
+    </beans:bean>
 
-	<header-enricher input-channel="priorityInput">
-		<priority value="42"/>
-	</header-enricher>
+    <header-enricher input-channel="priorityInput">
+        <priority value="42"/>
+    </header-enricher>
 
-	<header-enricher input-channel="payloadExpressionInput">
-		<header name="testHeader" expression="payload.name + 'bar'"/>
-	</header-enricher>
+    <header-enricher input-channel="payloadExpressionInput">
+        <header name="testHeader" expression="payload.name + 'bar'"/>
+    </header-enricher>
 
-	<header-enricher input-channel="headerExpressionInput">
-		<header name="testHeader2" expression="headers.testHeader1 + 'bar'"/>
-	</header-enricher>
+    <header-enricher input-channel="headerExpressionInput">
+        <header name="testHeader2" expression="headers.testHeader1 + 'bar'"/>
+    </header-enricher>
 
-	<header-enricher input-channel="expressionWithDateTypeInput">
-		<header name="currentDate" expression="new java.util.Date()" type="java.util.Date"/>
-	</header-enricher>
+    <header-enricher input-channel="expressionWithDateTypeInput">
+        <header name="currentDate" expression="new java.util.Date()" type="java.util.Date"/>
+    </header-enricher>
 
-	<header-enricher input-channel="expressionWithLongTypeInput">
-		<header name="number" expression="12345" type="java.lang.Long"/>
-	</header-enricher>
+    <header-enricher input-channel="expressionWithLongTypeInput">
+        <header name="number" expression="12345" type="java.lang.Long"/>
+    </header-enricher>
 
-	<header-enricher input-channel="refWithMethod">
-		<header name="testHeader" ref="testBean" method="getName"/>
-	</header-enricher>
+    <header-enricher input-channel="refWithMethod">
+        <header name="testHeader" ref="testBean" method="getName"/>
+    </header-enricher>
 
-	<beans:bean id="testBean" class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
-		<beans:constructor-arg value="testBeanForMethodInvoker"/>
-	</beans:bean>
+    <header-enricher input-channel="innerBeanChannel">
+        <header name="innerBean">
+            <bean xmlns="http://www.springframework.org/schema/beans"
+                  class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+                <constructor-arg value="testBean"/>
+            </bean>
+        </header>
+    </header-enricher>
+
+    <beans:bean id="testBean" class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+        <beans:constructor-arg value="testBeanForMethodInvoker"/>
+    </beans:bean>
 
 </beans:beans>
