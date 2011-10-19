@@ -36,47 +36,46 @@ import org.springframework.integration.util.UpperBound;
  * @author Mark Fisher
  * @since 2.0
  */
-public class CachingSessionFactory implements SessionFactory, DisposableBean{
+public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
+
 	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
 
-	private volatile LinkedBlockingQueue<Session> queue = new LinkedBlockingQueue<Session>();
+	private final LinkedBlockingQueue<Session> queue = new LinkedBlockingQueue<Session>();
 
 	private final SessionFactory sessionFactory;
 
-	private final UpperBound sessionSizeManager;
-	
+	private final UpperBound sessionPermits;
+
+
 	public CachingSessionFactory(SessionFactory sessionFactory) {
 		this(sessionFactory, 0);
 	}
 	
 	public CachingSessionFactory(SessionFactory sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
-		this.sessionSizeManager = new UpperBound(sessionCacheSize);
+		this.sessionPermits = new UpperBound(sessionCacheSize);
 	}
-	
+
+
 	/**
-	 * Sets the limit of how long it will wait for a session to become available after which 
-	 * it will throw {@link IllegalStateException}.
+	 * Sets the limit of how long to wait for a session to become available. 
+	 * 
+	 * @throws {@link IllegalStateException} if the wait expires prior to a Session becoming available.
 	 */
 	public void setSessionWaitTimeout(long sessionWaitTimeout) {
 		this.sessionWaitTimeout = sessionWaitTimeout;
 	}
 
 	public Session getSession() {	
-		try {
-			boolean permitted = this.sessionSizeManager.tryAcquire(this.sessionWaitTimeout);
-			if (!permitted){
-				throw new IllegalStateException("Timed out while waiting to aquire Session");
-			}		
-			Session session = this.doGetSession();
-			return new CachedSession(session);
-		} catch (Exception e) {
-			Thread.currentThread().interrupt();
-			throw new IllegalStateException("Exception was received during attempt to obtain Session", e);
+		boolean permitted = this.sessionPermits.tryAcquire(this.sessionWaitTimeout);
+		if (!permitted) {
+			throw new IllegalStateException("Timed out while waiting to aquire a Session.");
 		}
+		Session session = this.doGetSession();
+		return new CachedSession(session);
 	}
 
 	public void destroy() {
@@ -86,13 +85,12 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean{
 			}
 		}
 	}
-	
-	private Session doGetSession() throws InterruptedException {
-		Session session = this.queue.poll();
 
-		if (session != null && !session.isOpen()){
+	private Session doGetSession() {
+		Session session = this.queue.poll();
+		if (session != null && !session.isOpen()) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Received stale Session, will attempt to get a new one");
+				logger.debug("Received a stale Session, will attempt to get a new one.");
 			}
 			return this.doGetSession();
 		}
@@ -106,7 +104,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean{
 		try {
 			if (session != null) {
 				session.close();
-			}	
+			}
 		}
 		catch (Throwable e) {
 			if (logger.isWarnEnabled()) {
@@ -127,10 +125,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean{
 
 		public void close() {
 			if (logger.isDebugEnabled()){
-				logger.debug("Releasing Session back into the pool");
+				logger.debug("Releasing Session back to the pool.");
 			}
 			queue.add(targetSession);
-			sessionSizeManager.release();
+			sessionPermits.release();
 		}
 
 		public boolean remove(String path) throws IOException{
@@ -161,4 +159,5 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean{
 			this.targetSession.mkdir(directory);
 		}
 	}
+
 }

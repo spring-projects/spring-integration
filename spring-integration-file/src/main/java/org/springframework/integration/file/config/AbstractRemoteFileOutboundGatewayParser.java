@@ -30,10 +30,8 @@ import org.w3c.dom.Element;
  * @author Gary Russell
  * @author Oleg Zhurakousky
  * @since 2.1
- *
  */
-public abstract class AbstractRemoteFileOutboundGatewayParser extends
-		AbstractConsumerEndpointParser {
+public abstract class AbstractRemoteFileOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -45,19 +43,21 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getGatewayClassName());
-		// build the SessionFactory and provide as a constructor argument
-		
+
+		// build the SessionFactory and provide it as a constructor argument
+
 		// This whole block must be refactored once cache-session attribute is removed
 		String sessionFactoryName = element.getAttribute("session-factory");
 		BeanDefinition sessionFactoryDefinition = parserContext.getReaderContext().getRegistry().getBeanDefinition(sessionFactoryName);
 		String sessionFactoryClassName = sessionFactoryDefinition.getBeanClassName();
-		if (StringUtils.hasText(sessionFactoryClassName) && sessionFactoryClassName.endsWith(CachingSessionFactory.class.getName())){
+		if (StringUtils.hasText(sessionFactoryClassName) && sessionFactoryClassName.endsWith(CachingSessionFactory.class.getName())) {
 			builder.addConstructorArgValue(sessionFactoryDefinition);
 		}
 		else {
 			String cacheSessions = element.getAttribute("cache-sessions");
-			if (StringUtils.hasText(cacheSessions)){
-				logger.warn("The 'cache-sessions' attribute is deprecated since v2.1. Consider configuring CachingSessionFactory explicitly");	
+			if (StringUtils.hasText(cacheSessions) && logger.isWarnEnabled()) {
+				logger.warn("The 'cache-sessions' attribute is deprecated as of version 2.1." +
+						"Please configure a CachingSessionFactory explicitly instead.");
 			}
 			if ("false".equalsIgnoreCase(cacheSessions)) {
 				builder.addConstructorArgReference(element.getAttribute("session-factory"));
@@ -69,7 +69,7 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends
 			}
 		}
 		// end of what needs to be refactored once cache-session is removed
-		
+
 		builder.addConstructorArgValue(element.getAttribute("command"));
 		builder.addConstructorArgValue(element.getAttribute(EXPRESSION_ATTRIBUTE));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "command-options", "options");
@@ -96,14 +96,17 @@ public abstract class AbstractRemoteFileOutboundGatewayParser extends
 		if (count > 1) {
 			parserContext.getReaderContext().error("at most one of 'filename-pattern', " +
 					"'filename-regex', or 'filter' is allowed on remote file inbound adapter", element);
-		} else if (hasFilter) {
+		}
+		else if (hasFilter) {
 			builder.addPropertyReference("filter", filter);
-		} else if (hasFileNamePattern) {
+		}
+		else if (hasFileNamePattern) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					this.getSimplePatternFileListFilterClassname());
 			filterBuilder.addConstructorArgValue(fileNamePattern);
 			builder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
-		} else if (hasFileNameRegex) {
+		}
+		else if (hasFileNameRegex) {
 			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					this.getRegexPatternFileListFilterClassname());
 			filterBuilder.addConstructorArgValue(fileNameRegex);

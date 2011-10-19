@@ -346,22 +346,21 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   <section id="ftp-session-caching">
 	<title>FTP Session Caching</title>
 	<para>
-	
-	Since version 2.1 we've exposed more flexibility with regard to session management for remote file adapters (e.g., FTP, SFTP etc).
-    In previous versions the sessions were cached automatically. And although we did expose <code>cache-session</code> attribute which would 
-    allow you to turn auto caching off it was still not sufficient when it came to other session caching attributes. 
-    For example; One of the requirement we received was to control session limit if remote server imposes client connection limit. 
-    Now such behavior is controlled by the <classname>CachingSessionFactory</classname> and its <code>sessionCacheSize</code> and 
-    <code>sessionWaitTimeout</code> properties. As its name suggest <code>sessionCacheSize</code> property controls how many active 
-    sessions this adapter will maintain in its cache (DEFAULT unbounded). If <code>sessionCacheSize</code> threshold has been reached any 
-    attempt to get more session will block until session becomes available or until wait time for a session to become available 
-    expires (DEFAULT Integer.MAX_VALUE). The wait time for a session to become available can also be controlled via <code>sessionWaitTimeout</code> 
-    property.
+		As of version 2.1 we've exposed more flexibility with regard to session management for remote file adapters (e.g., FTP, SFTP etc).
+	    In previous versions the sessions were cached automatically by default. We did expose a <code>cache-sessions</code> attribute for
+	    disabling the auto caching, but that solution did not provide a way to configure other session caching attributes. For example, one
+	    of the requested features was to support a limit on the number of sessions created since a remote server may impose a limit on the
+	    number of client connections. To support that requirement and other configuration options, we decided to promote explicit definition
+	    of the <classname>CachingSessionFactory</classname> instance. That provides the <code>sessionCacheSize</code> and <code>sessionWaitTimeout</code>
+	    properties. As its name suggests, the  <code>sessionCacheSize</code> property controls how many active sessions this adapter will
+	    maintain in its cache (the DEFAULT is unbounded). If the <code>sessionCacheSize</code> threshold has been reached, any attempt to
+	    acquire another session will block until either one of the cached sessions becomes available or until the wait time for a Session 
+	    expires (the DEFAULT wait time is Integer.MAX_VALUE). The <code>sessionWaitTimeout</code> property enables configuration of that value.
     </para>
     <para>
-    Since version 2.1 if you need you session to be cahced you can simply configure your default Session Factory as 
-    described above and than wrap it in the <classname>CachingSessionFactory</classname> while providing additional properties.
-    
+    If you want your Sessions to be cached, simply configure your default Session Factory as described above and then
+    wrap it in an instance of <classname>CachingSessionFactory</classname> where you may provide those additional properties.
+
     <programlisting language="xml"><![CDATA[<bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<property name="host" value="localhost"/>
 	</bean>
@@ -372,8 +371,8 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 		<property name="sessionWaitTimeout" value="1000"/>
 	</bean>]]></programlisting>
 	
-	In the above example you see <classname>CachingSessionFactory</classname> created with 
-	<code>sessionCacheSize</code> set to 10 with <code>sessionWait</code> timeout set to 1 second.
+	In the above example you see a <classname>CachingSessionFactory</classname> created with the
+	<code>sessionCacheSize</code> set to 10 and the <code>sessionWaitTimeout</code> set to 1 second (its value is in millliseconds).
 
 	</para>
   </section>
