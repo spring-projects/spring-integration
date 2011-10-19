@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
@@ -31,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
+public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean<MessageFilter> {
 
 	private volatile MessageChannel discardChannel;
 
@@ -53,7 +52,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	MessageFilter createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		MessageSelector selector = null;
 		if (targetObject instanceof MessageSelector) {
 			selector = (MessageSelector) targetObject;
@@ -68,7 +67,7 @@ public class FilterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	MessageFilter createExpressionEvaluatingHandler(Expression expression) {
 		return this.createFilter(new ExpressionEvaluatingSelector(expression));
 	}
 

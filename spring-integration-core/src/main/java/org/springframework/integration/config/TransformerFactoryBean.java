@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
@@ -30,7 +29,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
+public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactoryBean<MessageTransformingHandler> {
 
 	private volatile Long sendTimeout;
 
@@ -39,7 +38,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	MessageTransformingHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		Transformer transformer = null;
 		if (targetObject instanceof Transformer) {
@@ -55,7 +54,7 @@ public class TransformerFactoryBean extends AbstractStandardMessageHandlerFactor
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	MessageTransformingHandler createExpressionEvaluatingHandler(Expression expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
 		return this.createHandler(transformer);
 	}
