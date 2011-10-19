@@ -127,11 +127,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	</para>
 	<para>
 	By default the transferred file will carry the same name as the original file. If you want to override this behavior you 
-	can set <code>local-filename-generator-expression</code> attribute which allows you to provide SpEL Expression to generate 
+	can set the <code>local-filename-generator-expression</code> attribute which allows you to provide a SpEL Expression to generate 
 	the name of the local file. Unlike outbound gateways and adapters where the root object of the SpEL Evaluation Context 
-	is <classname>Message</classname>, Inbound adapter generates <classname>Message</classname> based on the transferred file 
-	which means that <classname>Message</classname> does not exist yet at the time of Expression evaluation. So the root object 
-	of the SpEL Evaluation Context is the original name of the remote file (String)
+	is a <classname>Message</classname>, this inbound adapter does not yet have the Message at the time of evaluation since
+	that's what it ultimately generates with the transferred file as its payload. So, the root object of the SpEL Evaluation Context
+	is the original name of the remote file (String).
 	</para>
 	
   	<para>

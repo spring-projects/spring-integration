@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -50,17 +51,18 @@ import org.springframework.util.ObjectUtils;
  * @since 2.0
  */
 public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileSynchronizer, InitializingBean {
-	
-	private static final StandardEvaluationContext context = new StandardEvaluationContext();
 
-	private String remoteFileSeparator = "/";
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
+	private volatile String remoteFileSeparator = "/";
+
 	/**
 	 * Extension used when downloading files. We change it right after we know it's downloaded.
 	 */
 	private volatile String temporaryFileSuffix =".writing";
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-	
 	private volatile Expression localFilenameGeneratorExpression;
 
 	/**
@@ -82,14 +84,9 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	 * Should we <emphasis>delete</emphasis> the remote <b>source</b> files
 	 * after copying to the local directory? By default this is false.
 	 */
-	private boolean deleteRemoteFiles;
+	private volatile boolean deleteRemoteFiles;
 
 
-	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
-		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
-		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
-	}
-	
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
@@ -103,7 +100,12 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
-	
+
+	public void setLocalFilenameGeneratorExpression(Expression localFilenameGeneratorExpression) {
+		Assert.notNull(localFilenameGeneratorExpression, "'localFilenameGeneratorExpression' must not be null");
+		this.localFilenameGeneratorExpression = localFilenameGeneratorExpression;
+	}
+
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
@@ -223,7 +225,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	
 	private String generateLocalFileName(String remoteFileName){
 		if (this.localFilenameGeneratorExpression != null){
-			return this.localFilenameGeneratorExpression.getValue(context, remoteFileName, String.class);
+			return this.localFilenameGeneratorExpression.getValue(evaluationContext, remoteFileName, String.class);
 		}
 		return remoteFileName;
 	}
