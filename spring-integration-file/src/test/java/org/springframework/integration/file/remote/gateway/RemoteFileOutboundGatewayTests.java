@@ -270,7 +270,8 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			}
+		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File outFile = new File(this.tmpDir + "/f1");
@@ -323,7 +324,8 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			} 
+		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
 		File outFile = new File(this.tmpDir + "/f1");
@@ -374,7 +376,8 @@ public class RemoteFileOutboundGatewayTests {
 			}
 			public boolean isOpen() {
 				return open;
-			} });
+			} 
+		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File out = new File(this.tmpDir + "/x/f1");
 		assertTrue(out.exists());

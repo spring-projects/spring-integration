@@ -25,9 +25,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.NestedIOException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -167,12 +169,50 @@ class SftpSession implements Session {
 		}	
 	}
 
-	public void mkdir(String directory) throws IOException {
-		try {
-			this.channel.mkdir(directory);
+	public void mkdir(String remoteDirectory) throws IOException {
+		try {	
+			this.mkdirRecursively(remoteDirectory, remoteDirectory);
 		} catch (SftpException e) {
-			throw new NestedIOException("failed to create remote directory '" + directory + "'.", e);
+			throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", e);
 		}
 	}
 
+	private void mkdirRecursively(String remoteDirectory, String originalRemoteDirectory) throws SftpException{
+		String remoteFileSeparator = "/";
+		if (this.exists(remoteDirectory)){
+			String missingDirectoryPath = originalRemoteDirectory.substring(remoteDirectory.length());
+			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
+			String directory = remoteDirectory + remoteFileSeparator;
+			for (String directorySegment : directories) {
+				directory += directorySegment + remoteFileSeparator;
+				if (logger.isDebugEnabled()){
+					logger.debug("Creating '" + directory + "'");
+				}	
+				this.channel.mkdir(directory);
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()){
+				logger.debug("Directory '" + remoteDirectory + "' does not exist. Will attempt to auto-create it");
+			}		
+			int nextSeparatorIndex = remoteDirectory.lastIndexOf(remoteFileSeparator);
+			if (nextSeparatorIndex <= 0){
+				throw new MessagingException("Failed to auto-create directory '" + originalRemoteDirectory + "'");
+			}
+			else {
+				remoteDirectory = remoteDirectory.substring(0, nextSeparatorIndex);
+				this.mkdirRecursively(remoteDirectory, originalRemoteDirectory);
+			}
+		}
+	}
+	private boolean exists(String path){
+		try {
+			this.channel.lstat(path);
+			return true;
+		}
+		catch (SftpException e) {
+			// ignore
+		}
+		return false;
+	}
 }
