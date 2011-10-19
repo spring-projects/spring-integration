@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,12 @@ package org.springframework.integration.file.remote.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.util.UpperBound;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -41,41 +40,41 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
-	public static final int DEFAULT_POOL_SIZE = 10;
 
+	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
 
-	private final Queue<Session> queue;
+	private final LinkedBlockingQueue<Session> queue = new LinkedBlockingQueue<Session>();
 
 	private final SessionFactory sessionFactory;
 
-	private final int maxPoolSize;
+	private final UpperBound sessionPermits;
 
 
 	public CachingSessionFactory(SessionFactory sessionFactory) {
-		this(sessionFactory, DEFAULT_POOL_SIZE);
+		this(sessionFactory, 0);
 	}
-
-	public CachingSessionFactory(SessionFactory sessionFactory, int maxPoolSize) {
+	
+	public CachingSessionFactory(SessionFactory sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
-		this.maxPoolSize = maxPoolSize;
-		this.queue = new ArrayBlockingQueue<Session>(this.maxPoolSize, true);
+		this.sessionPermits = new UpperBound(sessionCacheSize);
 	}
 
 
-	public Session getSession() {
-		Session session = this.queue.poll();
-		if (session == null || !session.isOpen()) {
-			if (session != null && logger.isTraceEnabled()) {
-				logger.trace("Located session in the pool but it is stale, will create new one.");
-			}
-			session = this.sessionFactory.getSession();
-			if (logger.isTraceEnabled()) {
-				logger.trace("Created new session");
-			}
+	/**
+	 * Sets the limit of how long to wait for a session to become available. 
+	 * 
+	 * @throws {@link IllegalStateException} if the wait expires prior to a Session becoming available.
+	 */
+	public void setSessionWaitTimeout(long sessionWaitTimeout) {
+		this.sessionWaitTimeout = sessionWaitTimeout;
+	}
+
+	public Session getSession() {	
+		boolean permitted = this.sessionPermits.tryAcquire(this.sessionWaitTimeout);
+		if (!permitted) {
+			throw new IllegalStateException("Timed out while waiting to aquire a Session.");
 		}
-		else if (logger.isTraceEnabled()) {
-			logger.trace("Using session from the pool");
-		}
+		Session session = this.doGetSession();
 		return new CachedSession(session);
 	}
 
@@ -87,11 +86,25 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 	}
 
+	private Session doGetSession() {
+		Session session = this.queue.poll();
+		if (session != null && !session.isOpen()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received a stale Session, will attempt to get a new one.");
+			}
+			return this.doGetSession();
+		}
+		else if (session == null){
+			session = this.sessionFactory.getSession();
+		}
+		return session;
+	}
+
 	private void closeSession(Session session) {
 		try {
 			if (session != null) {
 				session.close();
-			}	
+			}
 		}
 		catch (Throwable e) {
 			if (logger.isWarnEnabled()) {
@@ -111,18 +124,11 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		}
 
 		public void close() {
-			if (queue.size() < maxPoolSize) {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Releasing target session back to the pool");
-				}
-				queue.add(targetSession);
+			if (logger.isDebugEnabled()){
+				logger.debug("Releasing Session back to the pool.");
 			}
-			else {
-				if (logger.isTraceEnabled()) {
-					logger.trace("Disconnecting target session");
-				}
-				targetSession.close();
-			}
+			queue.add(targetSession);
+			sessionPermits.release();
 		}
 
 		public boolean remove(String path) throws IOException{

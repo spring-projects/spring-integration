@@ -18,12 +18,17 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,34 +40,41 @@ import org.springframework.util.StringUtils;
  */
 public abstract class AbstractRemoteFileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+	
 	@Override
 	protected final BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder synchronizerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				this.getInboundFileSynchronizerClassname());
 
-		// build the SessionFactory and provide as a constructor argument
-		String cacheSessions = element.getAttribute("cache-sessions");
-		if ("false".equalsIgnoreCase(cacheSessions)) {
-			synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+		// This whole block must be refactored once the cache-session attribute is removed
+		String sessionFactoryName = element.getAttribute("session-factory");
+		BeanDefinition sessionFactoryDefinition = parserContext.getReaderContext().getRegistry().getBeanDefinition(sessionFactoryName);
+		String sessionFactoryClassName = sessionFactoryDefinition.getBeanClassName();
+		if (StringUtils.hasText(sessionFactoryClassName) && sessionFactoryClassName.endsWith(CachingSessionFactory.class.getName())) {
+			synchronizerBuilder.addConstructorArgValue(sessionFactoryDefinition);
 		}
 		else {
-			BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.file.remote.session.CachingSessionFactory");
-			sessionFactoryBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-			synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+			String cacheSessions = element.getAttribute("cache-sessions");
+			if (StringUtils.hasText(cacheSessions) && logger.isWarnEnabled()) {
+				logger.warn("The 'cache-sessions' attribute is deprecated as of version 2.1. " +
+						"Please configure a CachingSessionFactory explicitly instead.");
+			}
+			if ("false".equalsIgnoreCase(cacheSessions)) {
+				synchronizerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
+			}
+			else {
+				BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(CachingSessionFactory.class);		
+				sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
+				synchronizerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
+			}
 		}
+		// end of what needs to be refactored once cache-session is removed
 
 		// configure the InboundFileSynchronizer properties
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "remote-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "delete-remote-files");
-		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");
-		
-		if (StringUtils.hasText(localFileGeneratorExpression)){
-			BeanDefinitionBuilder localFileGeneratorExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
-			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
-			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
-		}
-		
+
 		String remoteFileSeparator = element.getAttribute("remote-file-separator");
 		synchronizerBuilder.addPropertyValue("remoteFileSeparator", remoteFileSeparator);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(synchronizerBuilder, element, "temporary-file-suffix");
@@ -72,11 +84,17 @@ public abstract class AbstractRemoteFileInboundChannelAdapterParser extends Abst
 		BeanDefinitionBuilder messageSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getMessageSourceClassname());
 		messageSourceBuilder.addConstructorArgValue(synchronizerBuilder.getBeanDefinition());
 		String comparator = element.getAttribute("comparator");
-		if (StringUtils.hasText(comparator)){
+		if (StringUtils.hasText(comparator)) {
 			messageSourceBuilder.addConstructorArgReference(comparator);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "local-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageSourceBuilder, element, "auto-create-local-directory");
+		String localFileGeneratorExpression = element.getAttribute("local-filename-generator-expression");
+		if (StringUtils.hasText(localFileGeneratorExpression)) {
+			BeanDefinitionBuilder localFileGeneratorExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			localFileGeneratorExpressionBuilder.addConstructorArgValue(localFileGeneratorExpression);
+			synchronizerBuilder.addPropertyValue("localFilenameGeneratorExpression", localFileGeneratorExpressionBuilder.getBeanDefinition());
+		}
 		return messageSourceBuilder.getBeanDefinition();
 	}
 
