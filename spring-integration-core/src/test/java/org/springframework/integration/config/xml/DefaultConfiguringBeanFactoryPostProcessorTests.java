@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,29 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -66,6 +70,22 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
 		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
 		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
+	}
+	
+	@Test
+	public void taskSchedulerNotRegisteredMoreThanOnce() {
+		ClassPathXmlApplicationContext superParentApplicationContext = new ClassPathXmlApplicationContext("superParentApplicationContext.xml", this.getClass());
+		ClassPathXmlApplicationContext parentApplicationContext = 
+				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/parentApplicationContext.xml"}, superParentApplicationContext);
+		ClassPathXmlApplicationContext childApplicationContext = 
+				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/childApplicationContext.xml"}, parentApplicationContext);
+		System.out.println(Arrays.asList(childApplicationContext.getBeanDefinitionNames()));
+		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler", TaskScheduler.class);
+        TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);
+
+        assertNotNull("Child task scheduler was null", childScheduler);
+        assertNotNull("Parent task scheduler was null", parentScheduler);
+        assertEquals("Different schedulers in parent and child", parentScheduler, childScheduler );
 	}
 
 }

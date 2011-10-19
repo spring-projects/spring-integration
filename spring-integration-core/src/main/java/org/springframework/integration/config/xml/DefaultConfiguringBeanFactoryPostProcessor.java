@@ -54,8 +54,12 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			this.registerNullChannel(registry);
-			this.registerErrorChannelIfNecessary(registry);
-			this.registerTaskSchedulerIfNecessary(registry);
+			if (!beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
+				this.registerErrorChannel(registry);
+			}
+			if (!beanFactory.containsBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
+				this.registerTaskScheduler(registry);
+			}
 			this.registerIdGeneratorConfigurer(registry);
 		}
 		else if (logger.isWarnEnabled()) {
@@ -89,9 +93,9 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 * {@link IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME}.
 	 */
 	private void registerNullChannel(BeanDefinitionRegistry registry) {
-		if (registry.isBeanNameInUse(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-			BeanDefinition bDef = registry.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-			if (bDef.getBeanClassName().equals(NullChannel.class.getName())) {
+		if (registry.containsBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+			BeanDefinition nullChannelDefinition = registry.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			if (NullChannel.class.getName().equals(nullChannelDefinition.getBeanClassName())) {
 				return;
 			}
 			else {
@@ -109,63 +113,51 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 
 	/**
-	 * Register an error channel in the given BeanDefinitionRegistry if not yet present. The bean name for which this is
-	 * checking is defined by the constant {@link IntegrationContextUtils#ERROR_CHANNEL_BEAN_NAME}.
+	 * Register an error channel in the given BeanDefinitionRegistry. 
 	 */
-	private void registerErrorChannelIfNecessary(BeanDefinitionRegistry registry) {
-		if (!registry.isBeanNameInUse(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
-			if (logger.isInfoEnabled()) {
-				logger
-						.info("No bean named '"
-								+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME
-								+ "' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
-			}
-			RootBeanDefinition errorChannelDef = new RootBeanDefinition();
-			errorChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE
-					+ ".channel.PublishSubscribeChannel");
-			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(errorChannelDef,
-					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
-			BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
-			loggingHandlerBuilder.addConstructorArgValue("ERROR");
-			BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
-			loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
-			BeanComponentDefinition componentDefinition = new BeanComponentDefinition(loggingEndpointBuilder
-					.getBeanDefinition(), ERROR_LOGGER_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(componentDefinition, registry);
+	private void registerErrorChannel(BeanDefinitionRegistry registry) {
+		if (logger.isInfoEnabled()) {
+			logger.info("No bean named '" + IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME +
+					"' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.");
 		}
+		RootBeanDefinition errorChannelDef = new RootBeanDefinition();
+		errorChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE
+				+ ".channel.PublishSubscribeChannel");
+		BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(errorChannelDef,
+				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
+		BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
+		loggingHandlerBuilder.addConstructorArgValue("ERROR");
+		BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
+		loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
+		BeanComponentDefinition componentDefinition = new BeanComponentDefinition(
+				loggingEndpointBuilder.getBeanDefinition(), ERROR_LOGGER_BEAN_NAME);
+		BeanDefinitionReaderUtils.registerBeanDefinition(componentDefinition, registry);
 	}
 
 	/**
-	 * Register a TaskScheduler in the given BeanDefinitionRegistry if not yet present. The bean name for which this is
-	 * checking is defined by the constant {@link IntegrationContextUtils#TASK_SCHEDULER_BEAN_NAME}.
+	 * Register a TaskScheduler in the given BeanDefinitionRegistry. 
 	 */
-	private void registerTaskSchedulerIfNecessary(BeanDefinitionRegistry registry) {
-		if (!registry.isBeanNameInUse(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
-			if (logger.isInfoEnabled()) {
-				logger
-						.info("No bean named '"
-								+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME
-								+ "' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
-			}
-			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition("org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
-			schedulerBuilder.addPropertyValue("poolSize", 10);
-			schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
-			schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
-			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-							+ ".channel.MessagePublishingErrorHandler");
-			errorHandlerBuilder.addPropertyReference("defaultErrorChannel",
-					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			schedulerBuilder.addPropertyValue("errorHandler", errorHandlerBuilder.getBeanDefinition());
-			BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(schedulerBuilder
-					.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerComponent, registry);
+	private void registerTaskScheduler(BeanDefinitionRegistry registry) {
+		if (logger.isInfoEnabled()) {
+			logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
+					"' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
 		}
+		BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
+		schedulerBuilder.addPropertyValue("poolSize", 10);
+		schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
+		schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
+		BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
+		errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		schedulerBuilder.addPropertyValue("errorHandler", errorHandlerBuilder.getBeanDefinition());
+		BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(
+				schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
+		BeanDefinitionReaderUtils.registerBeanDefinition(schedulerComponent, registry);
 	}
 
 }
