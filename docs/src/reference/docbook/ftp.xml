@@ -368,10 +368,13 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	
 	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
 		<constructor-arg ref="ftpSessionFactory"/>
-		<property name="sessionCacheSize" value="10"/>
+		<constructor-arg value="10"/>
 		<property name="sessionWaitTimeout" value="1000"/>
 	</bean>]]></programlisting>
 	
+	In the above example you see <classname>CachingSessionFactory</classname> created with 
+	<code>sessionCacheSize</code> set to 10 with <code>sessionWait</code> timeout set to 1 second.
+
 	</para>
   </section>
 </chapter>

@@ -74,9 +74,7 @@ public class SessionFactoryTests {
 		Mockito.when(sessionFactory.getSession()).thenReturn(sessionA);
 		Mockito.when(sessionFactory.getSession()).thenReturn(sessionB);
 		
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
-		cachingFactory.setSessionCacheSize(2);
-		cachingFactory.afterPropertiesSet();
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
 		
 		Session firstSession = cachingFactory.getSession();
 		Session secondSession = cachingFactory.getSession();
@@ -91,9 +89,7 @@ public class SessionFactoryTests {
 		Session session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
 		
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
-		cachingFactory.setSessionCacheSize(1);
-		cachingFactory.afterPropertiesSet();
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
 		
 		Session s1 = cachingFactory.getSession();
 		s1.close();
@@ -109,10 +105,9 @@ public class SessionFactoryTests {
 		Session session = Mockito.mock(Session.class);
 		Mockito.when(sessionFactory.getSession()).thenReturn(session);
 		
-		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory);
-		cachingFactory.setSessionCacheSize(2);
+		CachingSessionFactory cachingFactory = new CachingSessionFactory(sessionFactory, 2);
+
 		cachingFactory.setSessionWaitTimeout(3000);
-		cachingFactory.afterPropertiesSet();
 		
 		cachingFactory.getSession();
 		cachingFactory.getSession();
@@ -127,9 +122,8 @@ public class SessionFactoryTests {
 		sessionFactory.setHost("192.168.28.143");
 		sessionFactory.setPassword("password");
 		sessionFactory.setUsername("user");
-		final CachingSessionFactory factory = new CachingSessionFactory(sessionFactory);
-		factory.setSessionCacheSize(2);
-		factory.afterPropertiesSet();
+		final CachingSessionFactory factory = new CachingSessionFactory(sessionFactory, 2);
+
 		final Random random = new Random();
 		final AtomicInteger failures = new AtomicInteger();
 		for (int i = 0; i < 30; i++) {
@@ -147,7 +141,7 @@ public class SessionFactoryTests {
 			});
 		}
 		executor.shutdown();
-		executor.awaitTermination(100, TimeUnit.SECONDS);
+		executor.awaitTermination(10000, TimeUnit.SECONDS);
 
 		assertEquals(0, failures.get());
 	}

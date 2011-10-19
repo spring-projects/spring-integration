@@ -305,15 +305,18 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
     Since version 2.1 if you need you session to be cahced you can simply configure your default Session Factory as 
     described above and than wrap it in the <classname>CachingSessionFactory</classname> while providing additional properties.
     
-    <programlisting language="xml"><![CDATA[<bean id="ftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
+    <programlisting language="xml"><![CDATA[<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<property name="host" value="localhost"/>
 	</bean>
 	
 	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
-		<constructor-arg ref="ftpSessionFactory"/>
+		<constructor-arg ref="sftpSessionFactory"/>
 		<property name="sessionCacheSize" value="10"/>
 		<property name="sessionWaitTimeout" value="1000"/>
 	</bean>]]></programlisting>
+	
+	In the above example you see <classname>CachingSessionFactory</classname> created with 
+	<code>sessionCacheSize</code> set to 10 with <code>sessionWait</code> timeout set to 1 second.
 
   	</para>
   </section>

@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.util.UpperBound;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -38,32 +36,25 @@ import org.springframework.beans.factory.InitializingBean;
  * @author Mark Fisher
  * @since 2.0
  */
-public class CachingSessionFactory implements SessionFactory, DisposableBean, InitializingBean {
+public class CachingSessionFactory implements SessionFactory, DisposableBean{
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
-	public static final int DEFAULT_SESSION_LIMIT = -1;
-	
-	private final AtomicInteger concurrentSessions = new AtomicInteger(0);
-	
-	private volatile int sessionCacheSize = DEFAULT_SESSION_LIMIT;
-
 	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
 
-	private volatile LinkedBlockingQueue<Session> queue;
+	private volatile LinkedBlockingQueue<Session> queue = new LinkedBlockingQueue<Session>();
 
 	private final SessionFactory sessionFactory;
 
-	private final Object lock = new Object();
-
+	private final UpperBound sessionSizeManager;
+	
 	public CachingSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
+		this(sessionFactory, 0);
 	}
-	/**
-	 * Sets the limit of concurrent sessions to be maintained by this session factory
-	 */
-	public void setSessionCacheSize(int sessionCacheSize) {
-		this.sessionCacheSize = sessionCacheSize;
+	
+	public CachingSessionFactory(SessionFactory sessionFactory, int sessionCacheSize) {
+		this.sessionFactory = sessionFactory;
+		this.sessionSizeManager = new UpperBound(sessionCacheSize);
 	}
 	
 	/**
@@ -76,59 +67,15 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 
 	public Session getSession() {	
 		try {
-			Session session = null;
-			synchronized (lock) {
-				if (concurrentSessions.get() == this.sessionCacheSize){
-					session = this.queue.poll(this.sessionWaitTimeout, TimeUnit.MILLISECONDS);
-					if (session == null){
-						throw new IllegalStateException("Timed out while attempting to obtain session form the local cache");
-					}
-				}
-				else {
-					session = this.queue.poll();
-				}
-				
-				if (session != null && !session.isOpen()){
-					concurrentSessions.decrementAndGet();		
-					return this.getSession();
-				}
+			boolean permitted = this.sessionSizeManager.tryAcquire(this.sessionWaitTimeout);
+			if (!permitted){
+				throw new IllegalStateException("Timed out while waiting to aquire Session");
 			}		
-			
-			if (session == null){
-				int sessionsCount = 0;
-				
-				synchronized (lock) {
-					session = this.sessionFactory.getSession();	
-					sessionsCount = concurrentSessions.incrementAndGet();
-				}
-							
-				if (logger.isDebugEnabled()) {
-					logger.debug("Created new Session");
-				}
-				if (sessionsCount == this.sessionCacheSize){
-					if (logger.isInfoEnabled()){
-						logger.info("Session cache size threshold has been reached: " + this.sessionCacheSize);
-					}
-				}
-			}
-			else {
-				if (logger.isTraceEnabled()){
-					logger.trace("Using session from the pool");
-				}			
-			}
+			Session session = this.doGetSession();
 			return new CachedSession(session);
 		} catch (Exception e) {
 			Thread.currentThread().interrupt();
 			throw new IllegalStateException("Exception was received during attempt to obtain Session", e);
-		}
-	}
-	
-	public void afterPropertiesSet() throws Exception {
-		if (this.sessionCacheSize > -1){
-			this.queue = new LinkedBlockingQueue<Session>(this.sessionCacheSize);
-		}
-		else {
-			this.queue = new LinkedBlockingQueue<Session>();
 		}
 	}
 
@@ -138,6 +85,21 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 				this.closeSession(session);
 			}
 		}
+	}
+	
+	private Session doGetSession() throws InterruptedException {
+		Session session = this.queue.poll();
+
+		if (session != null && !session.isOpen()){
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received stale Session, will attempt to get a new one");
+			}
+			return this.doGetSession();
+		}
+		else if (session == null){
+			session = this.sessionFactory.getSession();
+		}
+		return session;
 	}
 
 	private void closeSession(Session session) {
@@ -168,6 +130,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean, In
 				logger.debug("Releasing Session back into the pool");
 			}
 			queue.add(targetSession);
+			sessionSizeManager.release();
 		}
 
 		public boolean remove(String path) throws IOException{
