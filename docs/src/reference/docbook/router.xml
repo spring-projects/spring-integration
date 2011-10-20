@@ -23,7 +23,7 @@
               <para><emphasis><link linkend='router-implementations-recipientlistrouter'>Recipient List Router</link></emphasis></para>
           </listitem>
           <listitem>
-              <para><emphasis><link linkend='xpath-routing'>XPath Router (Part of the XML Module)</link></emphasis></para>
+              <para><emphasis><link linkend='xml-xpath-routing'>XPath Router (Part of the XML Module)</link></emphasis></para>
           </listitem>
           <listitem>
               <para><emphasis><link linkend='router-implementations-exception-router'>Error Message Exception Type Router</link></emphasis></para>
@@ -529,7 +529,7 @@
       <section id="router-implementations-xpath-router">
           <title>XPath Router</title>
           <para>The XPath Router is part of the XML Module. As such, please read chapter
-              <emphasis><xref linkend='xpath-routing' endterm="xpath-routing.title"/></emphasis>
+              <emphasis><xref linkend='xml-xpath-routing' endterm="xml-xpath-routing.title"/></emphasis>
           </para>
         </section>
 
