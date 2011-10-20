@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Alexander Peters
  */
-abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<MessageHandler>{
+abstract class AbstractStandardMessageHandlerFactoryBean<H extends MessageHandler> extends AbstractSimpleMessageHandlerFactoryBean<H> {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true,
 			true));
@@ -57,8 +57,8 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 		this.expression = expression;
 	}
 
-	protected MessageHandler createHandler() {
-		MessageHandler handler;
+	protected H createHandler() {
+		H handler;
 		if (this.targetObject == null) {
 			Assert.isTrue(!StringUtils.hasText(this.targetMethodName),
 					"The target method is only allowed when a target object (ref or inner bean) is also provided.");
@@ -82,17 +82,17 @@ abstract class AbstractStandardMessageHandlerFactoryBean extends AbstractSimpleM
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
 	 */
-	abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
+	abstract H createMethodInvokingHandler(Object targetObject, String targetMethodName);
 
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	H createExpressionEvaluatingHandler(Expression expression) {
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
 	}
 
-	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
+	<T> H createMessageProcessingHandler(MessageProcessor<T> processor) {
 		return this.createMethodInvokingHandler(processor, "processMessage");
 	}
 
-	MessageHandler createDefaultHandler() {
+	H createDefaultHandler() {
 		throw new IllegalArgumentException("Exactly one of the 'targetObject' or 'expression' property is required.");
 	}
 

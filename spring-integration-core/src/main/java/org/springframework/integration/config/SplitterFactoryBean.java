@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import org.springframework.expression.Expression;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
@@ -31,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
+public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBean<AbstractMessageSplitter> {
 
 	private volatile Long sendTimeout;
 
@@ -63,7 +62,7 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	AbstractMessageSplitter createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		AbstractMessageSplitter splitter = this.extractTypeIfPossible(targetObject, AbstractMessageSplitter.class);
 		if (splitter == null) {
@@ -74,8 +73,8 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
 					+ "object is an implementation of AbstractMessageSplitter");
 			this.configureSplitter(splitter);
-			if (targetObject instanceof MessageHandler) {
-				return (MessageHandler) targetObject;
+			if (targetObject instanceof AbstractMessageSplitter) {
+				return (AbstractMessageSplitter) targetObject;
 			}
 		}
 		return splitter;
@@ -88,12 +87,12 @@ public class SplitterFactoryBean extends AbstractStandardMessageHandlerFactoryBe
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	AbstractMessageSplitter createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
 	@Override
-	MessageHandler createDefaultHandler() {
+	AbstractMessageSplitter createDefaultHandler() {
 		return this.configureSplitter(new DefaultMessageSplitter());
 	}
 

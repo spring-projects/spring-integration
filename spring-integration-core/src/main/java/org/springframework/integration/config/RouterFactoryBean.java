@@ -17,7 +17,6 @@ import java.util.Map;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
@@ -33,7 +32,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
-public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
+public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean<AbstractMessageRouter> {
 
 	private volatile ChannelResolver channelResolver;
 	
@@ -79,7 +78,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	}
 
 	@Override
-	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+	AbstractMessageRouter createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
@@ -90,15 +89,15 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
 					+ "object is an implementation of AbstractMessageRouter");
 			this.configureRouter(router);
-			if (targetObject instanceof MessageHandler) {
-				return (MessageHandler) targetObject;
+			if (targetObject instanceof AbstractMessageRouter) {
+				return (AbstractMessageRouter) targetObject;
 			}
 		}
 		return router;
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
+	AbstractMessageRouter createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
