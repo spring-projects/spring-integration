@@ -46,11 +46,6 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	 */
 	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {
-		String channelName = this.getChannelName(message);
-		return (channelName != null) ? Collections.<Object>singletonList(channelName) : null;
-	}
-
-	private String getChannelName(Message<?> message) {
 		if (CollectionUtils.isEmpty(this.getChannelMappings())) {
 			return null;
 		}
@@ -59,8 +54,10 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		if (isArray) {
 			type = type.getComponentType();
 		}
-		return this.findClosestMatch(type, isArray);
+		String closestMatch =  this.findClosestMatch(type, isArray);
+		return (closestMatch != null) ? Collections.<Object>singletonList(closestMatch) : null;
 	}
+
 
 	private String findClosestMatch(Class<?> type, boolean isArray) {
 		int minTypeDiffWeight = Integer.MAX_VALUE;
