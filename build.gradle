@@ -125,7 +125,7 @@ configure(javaprojects) {
     springVersion = '3.0.6.RELEASE'
     springAmqpVersion = '1.0.0.RELEASE'
     springDataMongoVersion = '1.0.0.M4'
-    springDataRedisVersion = '1.0.0.M4'
+    springDataRedisVersion = '1.0.0.RC1'
     springGemfireVersion = '1.1.0.M3'
     springSecurityVersion = '3.0.6.RELEASE'
     springWsVersion = '2.0.2.RELEASE'
