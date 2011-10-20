@@ -41,7 +41,7 @@ import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
@@ -184,7 +184,7 @@ public class RouterParserTests {
 		}
 	}
 
-	public static class TestRouterImplementation extends AbstractMessageRouter {
+	public static class TestRouterImplementation extends AbstractMappingMessageRouter {
 
 		private final MessageChannel channel;
 

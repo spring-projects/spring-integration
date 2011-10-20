@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-class AbstractMessageProcessingRouter extends AbstractMessageRouter {
+class AbstractMessageProcessingRouter extends AbstractMappingMessageRouter {
 
 	private final MessageProcessor<Object> messageProcessor;
 

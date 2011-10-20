@@ -44,7 +44,7 @@ public class RouterTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelRaisesMessageDeliveryExceptionByDefault() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@Override
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return null;
@@ -56,7 +56,7 @@ public class RouterTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelIdentifierUsingChannelResolverRaisesMessageDeliveryExceptionByDefault() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@Override
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return null;
@@ -70,7 +70,7 @@ public class RouterTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelIdentifierInListRaisesMessageDeliveryExceptionByDefault() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@Override
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return Collections.singletonList(null);
@@ -84,7 +84,7 @@ public class RouterTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelNameArrayRaisesMessageDeliveryExceptionByDefault() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return new ArrayList<Object>();
 			}
@@ -97,7 +97,7 @@ public class RouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelMappingIsRequiredWhenResolvingChannelNames() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message){
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
@@ -109,7 +109,7 @@ public class RouterTests {
 
 	@Test
 	public void beanFactoryWithRouter() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannel" });
@@ -126,7 +126,7 @@ public class RouterTests {
 
 	@Test
 	public void beanFactoryWithRouterAndMultipleCommaSeparatedChannelNames() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannel1,testChannel2" });
@@ -154,7 +154,7 @@ public class RouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelResolutionIsRequiredByDefault() {
 		
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannelDoesNotExist", "testChannel" });
@@ -172,7 +172,7 @@ public class RouterTests {
 	@Test
 	public void unresolvableChannelIdentifierInListAreIgnoredWhenResolutionRequiredIsFalse() {
 		
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannelDoesNotExist", "testChannel" });
@@ -193,7 +193,7 @@ public class RouterTests {
 	
 	@Test
 	public void beanFactoryWithRouterAndChannelPrefix() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel" });
@@ -214,7 +214,7 @@ public class RouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void beanFactoryWithRouterAndChannelPrefixFailing() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testing_MyChannel" });
@@ -233,7 +233,7 @@ public class RouterTests {
 	
 	@Test
 	public void beanFactoryWithRouterAndChannelSuffix() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel" });
@@ -253,7 +253,7 @@ public class RouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void beanFactoryWithRouterAndChannelSuffixFailing() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel_withSuffix" });
@@ -272,7 +272,7 @@ public class RouterTests {
 	
 	@Test
 	public void beanFactoryWithRouterAndChannelIdentifiersInListWithinAList() {
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				
@@ -312,7 +312,7 @@ public class RouterTests {
 		final QueueChannel testChannel1 = new QueueChannel();
 		final QueueChannel testChannel2 = new QueueChannel();
 		
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 
 			protected List<Object> getChannelKeys(Message<?> message) {
 				
@@ -349,7 +349,7 @@ public class RouterTests {
 		final QueueChannel testChannel1 = new QueueChannel();
 		final QueueChannel testChannel2 = new QueueChannel();
 		
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new Integer[] { 100, 200 });
@@ -387,7 +387,7 @@ public class RouterTests {
 				
 		final QueueChannel testChannel1 = new QueueChannel();
 
-		AbstractMessageRouter router = new AbstractMessageRouter() {
+		AbstractMappingMessageRouter router = new AbstractMappingMessageRouter() {
 			@SuppressWarnings("unchecked")
 			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new CustomObjectWithChannelName[] { new CustomObjectWithChannelName() });

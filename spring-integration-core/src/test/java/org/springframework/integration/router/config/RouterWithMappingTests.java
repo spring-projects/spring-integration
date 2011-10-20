@@ -28,7 +28,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,7 +87,7 @@ public class RouterWithMappingTests {
 		assertNull(fooChannelForExpression.receive(0));
 		assertNull(barChannelForExpression.receive(0));
 		// validate dynamics
-		AbstractMessageRouter router = (AbstractMessageRouter) TestUtils.getPropertyValue(spelRouter, "handler");
+		AbstractMappingMessageRouter router = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(spelRouter, "handler");
 		router.setChannelMapping("baz", "fooChannelForExpression");
 		expressionRouter.send(message3);
 		assertNull(defaultChannelForExpression.receive(10));

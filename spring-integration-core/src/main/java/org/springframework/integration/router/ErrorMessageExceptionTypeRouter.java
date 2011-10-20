@@ -30,7 +30,7 @@ import org.springframework.integration.MessageChannel;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */  
-public class ErrorMessageExceptionTypeRouter extends AbstractMessageRouter {
+public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
 	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {

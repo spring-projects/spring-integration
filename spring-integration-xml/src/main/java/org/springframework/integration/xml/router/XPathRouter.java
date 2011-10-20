@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
@@ -38,7 +38,7 @@ import org.w3c.dom.Node;
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  */
-public class XPathRouter extends AbstractMessageRouter {
+public class XPathRouter extends AbstractMappingMessageRouter {
 
 	private volatile NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
 

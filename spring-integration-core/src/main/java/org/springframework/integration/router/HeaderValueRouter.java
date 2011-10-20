@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class HeaderValueRouter extends AbstractMessageRouter {
+public class HeaderValueRouter extends AbstractMappingMessageRouter {
 
 	private final String headerName;
 

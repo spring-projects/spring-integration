@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.router;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -39,7 +40,7 @@ import org.springframework.util.Assert;
  * the values can be provided via the {@link #setRecipients(List)} method.
  * <p/>
  * For more advanced, programmatic control of dynamic recipient lists, consider
- * using the @Router annotation or extending {@link AbstractMessageRouter} instead.
+ * using the @Router annotation or extending {@link AbstractMappingMessageRouter} instead.
  * <p/>
  * Contrary to a standard &lt;router .../&gt; this handler will try to send to
  * all channels that are configured as recipients. It is to channels what a
@@ -90,8 +91,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	}
 
 	@Override
-	protected List<Object> getChannelKeys(Message<?> message) {
-		List<Object> channels = new ArrayList<Object>();
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		List<Recipient> recipientList = this.recipients;
 		for (Recipient recipient : recipientList) {
 			if (recipient.accept(message)) {

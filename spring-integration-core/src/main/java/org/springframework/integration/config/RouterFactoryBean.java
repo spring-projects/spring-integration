@@ -18,7 +18,7 @@ import java.util.Map;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
@@ -74,7 +74,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
+		AbstractMappingMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMappingMessageRouter.class);
 		if (router == null) {
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
@@ -95,14 +95,14 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
-	private AbstractMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
+	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
 		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) 
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
 		return router;
 	}
 
-	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
+	private AbstractMappingMessageRouter configureRouter(AbstractMappingMessageRouter router) {
 		if (this.channelMappings != null) {
 			router.setChannelMappings(this.channelMappings);
 		}

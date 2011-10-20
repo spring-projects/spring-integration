@@ -31,7 +31,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class PayloadTypeRouter extends AbstractMessageRouter {
+public class PayloadTypeRouter extends AbstractMappingMessageRouter {
 
 	private static final String ARRAY_SUFFIX = "[]";
 

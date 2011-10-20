@@ -37,7 +37,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -181,7 +181,7 @@ public class XPathRouterParserTests {
 		assertNull(channelB.receive(10));
 		
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterEmpty", EventDrivenConsumer.class);
-		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.setChannelMapping("channelA", "channelB");
 		inputChannel.send(docMessage);
 		assertNotNull(channelB.receive(10));
@@ -201,7 +201,7 @@ public class XPathRouterParserTests {
 		assertNotNull(channelB.receive(10));
 		
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMapping", EventDrivenConsumer.class);
-		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		inputChannel.send(docMessage);
 		assertNotNull(channelA.receive(10));
@@ -223,7 +223,7 @@ public class XPathRouterParserTests {
 		assertNull(channelB.receive(10));
 		
 		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMappingMultiChannel", EventDrivenConsumer.class);
-		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		AbstractMappingMessageRouter xpathRouter = (AbstractMappingMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
 		xpathRouter.removeChannelMapping("channelA");
 		xpathRouter.removeChannelMapping("channelB");
 		inputChannel.send(docMessage);
