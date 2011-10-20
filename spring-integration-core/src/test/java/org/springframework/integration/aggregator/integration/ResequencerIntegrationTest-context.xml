@@ -6,8 +6,8 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 
-	<int:resequencer id="resequencerLight" input-channel="resequencerLightInput" output-channel="outputChannel" release-partial-sequences="true"
-		keep-released-messages="false"/>
+	<int:resequencer id="resequencerLight" input-channel="resequencerLightInput" output-channel="outputChannel" 
+					 release-partial-sequences="true"/>
 	
 	<int:channel id="outputChannel">
 		<int:queue/>

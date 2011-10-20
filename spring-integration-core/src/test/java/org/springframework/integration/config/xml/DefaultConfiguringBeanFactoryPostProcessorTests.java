@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
@@ -79,7 +77,6 @@ public class DefaultConfiguringBeanFactoryPostProcessorTests {
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/parentApplicationContext.xml"}, superParentApplicationContext);
 		ClassPathXmlApplicationContext childApplicationContext = 
 				new ClassPathXmlApplicationContext(new String[]{"org/springframework/integration/config/xml/childApplicationContext.xml"}, parentApplicationContext);
-		System.out.println(Arrays.asList(childApplicationContext.getBeanDefinitionNames()));
 		TaskScheduler parentScheduler = childApplicationContext.getParent().getBean("taskScheduler", TaskScheduler.class);
         TaskScheduler childScheduler = childApplicationContext.getBean("taskScheduler", TaskScheduler.class);
 

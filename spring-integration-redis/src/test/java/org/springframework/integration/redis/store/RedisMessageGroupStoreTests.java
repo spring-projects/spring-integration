@@ -94,8 +94,8 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.removeMessageGroup(1);
 		MessageGroup messageGroupA = store.getMessageGroup(1);
 		assertNotSame(messageGroup, messageGroupA);
-		assertEquals(0, messageGroupA.getMarked().size());
-		assertEquals(0, messageGroupA.getUnmarked().size());
+//		assertEquals(0, messageGroupA.getMarked().size());
+		assertEquals(0, messageGroupA.getMessages().size());
 		assertEquals(0, messageGroupA.size());
 		
 		// make sure the store is properly rebuild from Redis
@@ -103,8 +103,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		messageGroup = store.getMessageGroup(1);
 		
-		assertEquals(0, messageGroup.getMarked().size());
-		assertEquals(0, messageGroup.getUnmarked().size());
+		assertEquals(0, messageGroup.getMessages().size());
 		assertEquals(0, messageGroup.size());
 	}
 	
@@ -177,58 +176,6 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store.removeMessageFromGroup(1, new GenericMessage<String>("2"));
 	}
 	
-	@Test
-	@RedisAvailable
-	public void testMarkAllMessagesInMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("2"));
-		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
-
-		assertEquals(3, messageGroup.getUnmarked().size());
-		assertEquals(0, messageGroup.getMarked().size());
-		messageGroup = store.markMessageGroup(messageGroup);
-
-		assertEquals(0, messageGroup.getUnmarked().size());
-		assertEquals(3, messageGroup.getMarked().size());
-		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
-
-		messageGroup = store.getMessageGroup(1);
-		assertEquals(0, messageGroup.getUnmarked().size());
-		assertEquals(3, messageGroup.getMarked().size());
-	}
-	
-	@Test
-	@RedisAvailable
-	public void testMarkMessageInMessageGroup() throws Exception{	
-		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
-		RedisMessageStore store = new RedisMessageStore(jcf);
-
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		Message<?> messageToMark = new GenericMessage<String>("1");
-		store.addMessageToGroup(messageGroup.getGroupId(), messageToMark);
-		store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("2"));
-		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
-		
-		assertEquals(3, messageGroup.getUnmarked().size());
-		assertEquals(0, messageGroup.getMarked().size());
-		messageGroup = store.markMessageFromGroup(1, messageToMark);
-		assertEquals(2, messageGroup.getUnmarked().size());
-		assertEquals(1, messageGroup.getMarked().size());
-		
-		// make sure the store is properly rebuild from Redis
-		store = new RedisMessageStore(jcf);
-
-		messageGroup = store.getMessageGroup(1);
-		assertEquals(2, messageGroup.getUnmarked().size());
-		assertEquals(1, messageGroup.getMarked().size());
-	}
-	
 	
 	
 	@Test
@@ -243,15 +190,13 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		store1.addMessageToGroup(1, message);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 		
-		assertEquals(2, messageGroup.getUnmarked().size());
-		assertEquals(0, messageGroup.getMarked().size());
+		assertEquals(2, messageGroup.getMessages().size());
 		
 		RedisMessageStore store3 = new RedisMessageStore(jcf);
 		
-		messageGroup = store3.markMessageFromGroup(1, message);
+		messageGroup = store3.removeMessageFromGroup(1, message);
 		
-		assertEquals(1, messageGroup.getUnmarked().size());
-		assertEquals(1, messageGroup.getMarked().size());
+		assertEquals(1, messageGroup.getMessages().size());
 	}
 	
 	@Test
@@ -305,7 +250,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.execute(new Runnable() {	
 				public void run() {			
 					MessageGroup group = store1.addMessageToGroup(1, message);
-					if (group.getUnmarked().size() != 1){
+					if (group.getMessages().size() != 1){
 						failures.add("ADD");
 						throw new AssertionFailedError("Failed on ADD");
 					}	
@@ -314,7 +259,7 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 			executor.execute(new Runnable() {	
 				public void run() {
 					MessageGroup group = store2.removeMessageFromGroup(1, message);
-					if (group.getUnmarked().size() != 0){
+					if (group.getMessages().size() != 0){
 						failures.add("REMOVE");
 						throw new AssertionFailedError("Failed on Remove");
 					}	

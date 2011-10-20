@@ -22,18 +22,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.core.serializer.support.DeserializingConverter;
 import org.springframework.core.serializer.support.SerializingConverter;
+import org.springframework.dao.DataAccessException;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
@@ -43,6 +48,7 @@ import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -83,6 +89,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
 
+	private static final String LIST_MESSAGEIDS_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
+
 	private static final String COUNT_ALL_GROUPS = "SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
 	private static final String COUNT_ALL_MARKED_MESSAGES_IN_GROUPS = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where MARKED=1 AND REGION=?";
@@ -101,8 +109,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
 
-	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE, MESSAGE_BYTES)"
-			+ " values (?, ?, ?, ?, 0, 0, 0, ?)";
+	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE)"
+			+ " values (?, ?, ?, ?, 0, 0, 0)";
 
 	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -266,9 +274,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return list.get(0);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public <T> Message<T> addMessage(final Message<T> message) {
 		if (message.getHeaders().containsKey(SAVED_KEY)) {
-			@SuppressWarnings("unchecked")
 			Message<T> saved = (Message<T>) getMessage(message.getHeaders().getId());
 			if (saved != null) {
 				if (saved.equals(message)) {
@@ -280,6 +288,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final long createdDate = System.currentTimeMillis();
 		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE)
 				.setHeader(CREATED_DATE_KEY, new Long(createdDate)).build();
+		
+		Map innerMap = (Map) new DirectFieldAccessor(result.getHeaders()).getPropertyValue("headers");
+		// using reflection to set ID since it is immutable through MessageHeaders
+		innerMap.put(MessageHeaders.ID, message.getHeaders().get(MessageHeaders.ID));
+		
 		final String messageId = getKey(result.getHeaders().getId());
 		final byte[] messageBytes = serializer.convert(result);
 
@@ -300,7 +313,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final long createdDate = System.currentTimeMillis();
 		final String messageId = getKey(message.getHeaders().getId());
 		final String groupKey = getKey(groupId);
-		final byte[] messageBytes = serializer.convert(message);
 
 		jdbcTemplate.update(getQuery(CREATE_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
@@ -309,10 +321,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(2, region);
 				ps.setTimestamp(3, new Timestamp(createdDate));
 				ps.setString(4, groupKey);
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});
-
+		this.addMessage(message);
 		return getMessageGroup(groupId);
 
 	}
@@ -334,25 +345,20 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	public MessageGroup getMessageGroup(Object groupId) {
 		String key = getKey(groupId);
-		final List<Message<?>> marked = new ArrayList<Message<?>>();
-		final List<Message<?>> unmarked = new ArrayList<Message<?>>();
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final AtomicReference<Date> date = new AtomicReference<Date>();
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 		
+		final AtomicInteger size = new AtomicInteger();
 		jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_GROUP_KEY), new Object[] { key, region },
+				
 				new RowCallbackHandler() {
-					int count = 0;
-
 					public void processRow(ResultSet rs) throws SQLException {
-						int markedFlag = rs.getInt("MARKED");
-						Message<?> message = mapper.mapRow(rs, count++);
-						if (markedFlag > 0) {
-							marked.add(message);
-						}
-						else {
-							unmarked.add(message);
-						}
+						size.incrementAndGet();
+						
+						messages.add(getMessage(UUID.fromString(rs.getString("MESSAGE_ID"))));
+
 						date.set(rs.getTimestamp("CREATED_DATE"));
 						
 						completeFlag.set(rs.getInt("COMPLETE") > 0);
@@ -360,17 +366,19 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 						lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
 					}
 				});
-		if (marked.isEmpty() && unmarked.isEmpty()) {
+		
+		if (size.get() == 0){
 			return new SimpleMessageGroup(groupId);
 		}
 		Assert.state(date.get() != null, "Could not locate created date for groupId=" + groupId);
 		long timestamp = date.get().getTime();
 		boolean complete = completeFlag.get().booleanValue();
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(unmarked, marked, groupId, timestamp, complete);
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
 		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
+		
 		return messageGroup;
 	}
 
@@ -404,6 +412,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(3, messageId);
 			}
 		});
+		this.removeMessage(messageToRemove.getHeaders().getId());
 		return getMessageGroup(groupId);
 	}
 
@@ -431,6 +440,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public void removeMessageGroup(Object groupId) {
 
 		final String groupKey = getKey(groupId);
+		
+		for (UUID messageIds : this.getMessageIdsForGroup(groupId)) {
+			this.removeMessage(messageIds);
+		}
 
 		jdbcTemplate.update(getQuery(DELETE_MESSAGE_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
@@ -439,6 +452,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(2, region);
 			}
 		});
+		
 	}
 	
 	public void completeGroup(Object groupId) {
@@ -469,6 +483,46 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(4, region);
 			}
 		});
+	}
+	
+	public Message<?> pollMessageFromGroup(Object groupId) {
+		String key = getKey(groupId);
+		
+		UUID messageId = jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
+				new ResultSetExtractor<UUID>() {
+			public UUID extractData(ResultSet rs)
+					throws SQLException, DataAccessException {
+				if (rs.next()) {
+					UUID uuid = UUID.fromString(rs.getString(1));
+					return uuid;
+				}
+				return null;
+			}
+		});
+
+		if (messageId != null){
+			Message<?> message = this.getMessage(messageId);
+			this.removeMessageFromGroup(groupId, message);
+			return message;
+		}
+		return null;
+	}
+	
+	private List<UUID> getMessageIdsForGroup(Object groupId){
+		String key = getKey(groupId);
+		
+		final List<UUID> messageIds = new ArrayList<UUID>();
+		
+		jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
+				new RowCallbackHandler() {
+
+					public void processRow(ResultSet rs) throws SQLException {
+						messageIds.add(UUID.fromString(rs.getString(1)));
+					}
+					
+				}
+		);
+		return messageIds;
 	}
 
 	public Iterator<MessageGroup> iterator() {

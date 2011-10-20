@@ -74,19 +74,14 @@ public class MessageStoreTests {
 		assertEquals(1, store.getMessageCountForAllMessageGroups());
 	}
 
-	@Test
-	public void testMarkedGroupSizes() throws Exception {
-		TestMessageStore store = new TestMessageStore();
-		assertEquals(0, store.getMarkedMessageCountForAllMessageGroups());
-	}
-
 	private static class TestMessageStore extends AbstractMessageGroupStore {
 
 		@SuppressWarnings("unchecked")
 		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new GenericMessage<String>("foo")), "bar");
 
 		private boolean removed = false;
-
+		
+		
 		public Iterator<MessageGroup> iterator() {
 			return Arrays.asList(testMessages).iterator();
 		}
@@ -124,6 +119,11 @@ public class MessageStoreTests {
 		public void completeGroup(Object groupId) {
 
 			throw new UnsupportedOperationException();
+		}
+
+		public Message<?> pollMessageFromGroup(Object groupId) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 	}

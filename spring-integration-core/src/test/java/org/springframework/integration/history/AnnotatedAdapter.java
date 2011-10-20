@@ -32,7 +32,6 @@ public class AnnotatedAdapter implements ApplicationContextAware{
 
 	@SuppressWarnings("serial")
 	public void handle(Message<?> message) {
-        System.out.println("Message: " + message);
         applicationContext.publishEvent(new ApplicationEvent(message) {});
 	}
 

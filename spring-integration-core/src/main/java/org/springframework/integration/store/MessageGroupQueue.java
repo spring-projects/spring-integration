@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,11 +71,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public Iterator<Message<?>> iterator() {
-		return getUnmarked().iterator();
+		return getMessages().iterator();
 	}
 
 	public int size() {
-		return getUnmarked().size();
+		return this.messageGroupStore.getMessageGroup(groupId).size();
 	}
 
 	public boolean offer(Message<?> e) {
@@ -92,22 +92,17 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public Message<?> peek() {
-		Collection<Message<?>> unmarked = getUnmarked();
-		if (unmarked.isEmpty()) {
+		Collection<Message<?>> messages = getMessages();
+		if (messages.isEmpty()) {
 			return null;
 		}
-		return unmarked.iterator().next();
+		return messages.iterator().next();
 	}
 
 	public Message<?> poll() {
-		Message<?> result;
+		Message<?> result = null;
 		synchronized (storeLock) {
-			Collection<Message<?>> unmarked = getUnmarked();
-			if (unmarked.isEmpty()) {
-				return null;
-			}
-			result = unmarked.iterator().next();
-			messageGroupStore.removeMessageFromGroup(groupId, result);
+			result = this.messageGroupStore.pollMessageFromGroup(groupId);
 		}
 		synchronized (writeLock) {
 			writeLock.notifyAll();
@@ -116,26 +111,24 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public int drainTo(Collection<? super Message<?>> c) {
-		Collection<Message<?>> unmarked;
 		synchronized (storeLock) {
-			unmarked = getUnmarked();
-			c.addAll(unmarked);
-			messageGroupStore.markMessageGroup(messageGroupStore.getMessageGroup(groupId));
+			for (Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId); message != null;) {
+				c.add(message);	
+			}
 		}
 		synchronized (writeLock) {
 			writeLock.notifyAll();
 		}
-		return unmarked.size();
+		return this.messageGroupStore.getMessageGroup(groupId).size();
 	}
 
 	public int drainTo(Collection<? super Message<?>> c, int maxElements) {
 		ArrayList<Message<?>> list = new ArrayList<Message<?>>();
 		synchronized (storeLock) {
-			Iterator<Message<?>> unmarked = getUnmarked().iterator();
-			for (int i = 0; i < maxElements && unmarked.hasNext(); i++) {
-				Message<?> message = unmarked.next();
-				messageGroupStore.removeMessageFromGroup(groupId, message);
-				list.add(message);
+			Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
+			for (int i = 0; i < maxElements && message != null; i++) {
+				list.add(message);	
+				message = this.messageGroupStore.pollMessageFromGroup(groupId);
 			}
 		}
 		synchronized (writeLock) {
@@ -195,8 +188,8 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return message;
 	}
 
-	private Collection<Message<?>> getUnmarked() {
-		return messageGroupStore.getMessageGroup(groupId).getUnmarked();
+	private Collection<Message<?>> getMessages(){
+		return messageGroupStore.getMessageGroup(groupId).getMessages();
 	}
 
 }

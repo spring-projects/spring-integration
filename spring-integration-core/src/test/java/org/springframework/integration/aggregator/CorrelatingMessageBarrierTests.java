@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -122,10 +122,8 @@ public class CorrelatingMessageBarrierTests {
 		private final ConcurrentMap<Object, Semaphore> keyLocks = new ConcurrentHashMap<Object, Semaphore>();
 
 		public boolean canRelease(MessageGroup messageGroup) {
-			// System.out.println("Trying to release group: " + messageGroup + "\n to thread: " + Thread.currentThread());
 			Object correlationKey = messageGroup.getGroupId();
 			Semaphore lock = lockForKey(correlationKey);
-			// System.out.println(Thread.currentThread() + " got lock: " + lock);
 			return lock.tryAcquire();
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -60,7 +60,7 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 
 	public boolean canRelease(MessageGroup messages) {
 		long elapsedTime = System.currentTimeMillis() - findEarliestTimestamp(messages);
-		return messages.isComplete() || messages.getUnmarked().size() >= threshold || elapsedTime > timeout;
+		return messages.isComplete() || messages.getMessages().size() >= threshold || elapsedTime > timeout;
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class TimeoutCountSequenceSizeReleaseStrategy implements ReleaseStrategy 
 	 */
 	private long findEarliestTimestamp(MessageGroup messages) {
 		long result = Long.MAX_VALUE;
-		for (Message<?> message : messages.getUnmarked()) {
+		for (Message<?> message : messages.getMessages()) {
 			long timestamp = message.getHeaders().getTimestamp();
 			if (timestamp < result) {
 				result = timestamp;

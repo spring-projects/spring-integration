@@ -32,15 +32,8 @@ import org.springframework.integration.Message;
 public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object groupId;
-
-	// Guards(marked, unmarked)
-	private final Object lock = new Object();
-
-	// @GuardedBy(lock)
-	public final BlockingQueue<Message<?>> marked = new LinkedBlockingQueue<Message<?>>();
-
-	// @GuardedBy(lock)
-	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
+	
+	public final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
 	
 	private volatile int lastReleasedMessageSequence;
 
@@ -49,50 +42,26 @@ public class SimpleMessageGroup implements MessageGroup {
 	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
-		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), groupId, System
-				.currentTimeMillis(), false);
+		this(Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false);
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object groupId) {
-		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis(), false);
+	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId) {
+		this(messages, groupId, System.currentTimeMillis(), false);
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked,
-			Object groupId, long timestamp, boolean complete) {
+	public SimpleMessageGroup(Collection<? extends Message<?>> messages, Object groupId, long timestamp, boolean complete) {
 		this.groupId = groupId;
 		this.timestamp = timestamp;
 		this.complete = complete;
-		synchronized (lock) {
-			for (Message<?> message : unmarked) {
-				addUnmarked(message);
-			}
-			for (Message<?> message : marked) {
-				addMarked(message);
-			}
+		for (Message<?> message : messages) {
+			addMessage(message);
 		}
 	}
 
-	public SimpleMessageGroup(MessageGroup template) {
-		this.groupId = template.getGroupId();
-		this.complete = template.isComplete();
-		synchronized (lock) {
-			// Explicit iteration to work around bug in JDK (before 1.6.0_20
-			for (Message<?> message : template.getMarked()) {
-				if (message != null) {
-					this.marked.add(message);
-				}
-			}
-			for (Message<?> message : template.getUnmarked()) {
-				if (message != null) {
-					this.unmarked.add(message);
-				}
-			}
-		}
-		this.timestamp = template.getTimestamp();
+	public SimpleMessageGroup(MessageGroup messageGroup) {
+		this(messageGroup.getMessages(), messageGroup.getGroupId(), messageGroup.getTimestamp(), messageGroup.isComplete());
 	}
 	
-	
-
 	public long getTimestamp() {
 		return timestamp;
 	}
@@ -102,52 +71,27 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public void add(Message<?> message) {
-		addUnmarked(message);
+		addMessage(message);
 	}
 
 	public void remove(Message<?> message) {
-		synchronized (lock) {
-			marked.remove(message);
-			unmarked.remove(message);
-		}
+		messages.remove(message);
 	}
 	
 	public int getLastReleasedMessageSequenceNumber() {
 		return lastReleasedMessageSequence;
 	}
 
-	private boolean addUnmarked(Message<?> message) {
-		if (isMember(message)) {
-			return false;
-		}
-		synchronized (lock) {
-			return this.unmarked.offer(message);
-		}
+	private boolean addMessage(Message<?> message) {
+		return this.messages.offer(message);
 	}
 
-	private boolean addMarked(Message<?> message) {
-		if (isMember(message)) {
-			return false;
-		}
-		synchronized (lock) {
-			return this.marked.offer(message);
-		}
-	}
-
-	public Collection<Message<?>> getUnmarked() {
-		synchronized (lock) {
-			return Collections.unmodifiableCollection(unmarked);
-		}
+	public Collection<Message<?>> getMessages() {
+		return Collections.unmodifiableCollection(messages);
 	}
 	
 	public void setLastReleasedMessageSequenceNumber(int sequenceNumber){
 		this.lastReleasedMessageSequence = sequenceNumber;
-	}
-
-	public Collection<Message<?>> getMarked() {
-		synchronized (lock) {
-			return Collections.unmodifiableCollection(marked);
-		}
 	}
 
 	public Object getGroupId() {
@@ -169,39 +113,17 @@ public class SimpleMessageGroup implements MessageGroup {
 		return getOne().getHeaders().getSequenceSize();
 	}
 
-	/**
-	 * Mark the given message in this group. If the message is not part of this group then this call has no effect.
-	 */
-	public void mark(Message<?> messageToMark) {
-		synchronized (lock) {
-			unmarked.remove(messageToMark);
-			marked.offer(messageToMark);
-		}
-	}
-
-	public void markAll() {
-		synchronized (lock) {
-			unmarked.drainTo(marked);
-		}
-	}
-
 	public int size() {
-		synchronized (lock) {
-			return marked.size() + unmarked.size();
-		}
+		return this.messages.size();
 	}
 
 	public Message<?> getOne() {
-		Message<?> one = unmarked.peek();
-		if (one == null) {
-			one = marked.peek();
-		}
+		Message<?> one = messages.peek();
 		return one;
 	}
 	
 	public void clear(){
-		this.marked.clear();
-		this.unmarked.clear();
+		this.messages.clear();
 	}
 
 	/**
@@ -220,12 +142,7 @@ public class SimpleMessageGroup implements MessageGroup {
 				return true;
 			}
 			else {
-				synchronized (lock) {
-					if (containsSequenceNumber(unmarked, messageSequenceNumber)
-							|| containsSequenceNumber(marked, messageSequenceNumber)) {
-						return true;
-					}
-				}
+				return this.containsSequenceNumber(messages, messageSequenceNumber);
 			}
 		}
 		return false;
@@ -245,9 +162,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	public String toString() {
 		return "SimpleMessageGroup{" +
 				"groupId=" + groupId +
-				", lock=" + lock +
-				", marked=" + marked +
-				", unmarked=" + unmarked +
+				", messages=" + messages +
 				", timestamp=" + timestamp +
 				'}';
 	}

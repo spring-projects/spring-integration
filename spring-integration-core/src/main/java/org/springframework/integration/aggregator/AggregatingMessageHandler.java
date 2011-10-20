@@ -31,7 +31,6 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 
 	private volatile boolean expireGroupsUponCompletion = false;
 
-
 	public AggregatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		super(processor, store, correlationStrategy, releaseStrategy);
@@ -71,16 +70,8 @@ public class AggregatingMessageHandler extends AbstractCorrelatingMessageHandler
 			remove(messageGroup);
 		}
 		else {
-			if (this.keepReleasedMessages){
-				messageStore.markMessageGroup(messageGroup);
-			}
-			else {
-				for (Message<?> message : messageGroup.getMarked()) {
-					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
-				}
-				for (Message<?> message : messageGroup.getUnmarked()) {
-					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
-				}
+			for (Message<?> message : messageGroup.getMessages()) {
+				this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), message);
 			}
 		}	
 	}
