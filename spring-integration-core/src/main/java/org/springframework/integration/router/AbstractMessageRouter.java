@@ -41,7 +41,6 @@ import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -111,14 +110,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	protected Map<String, String> getChannelMappings() {
 		return Collections.unmodifiableMap(this.channelMappings);
-	}
-
-	/**
-	 * Returns a mapped value for a given key, if present.
-	 * This is intended for use by subclasses only.
-	 */
-	protected String getChannelMapping(String key) {
-		return this.channelMappings.get(key);
 	}
 
 	/**
@@ -213,8 +204,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	/**
 	 * Subclasses must implement this method to return the channel keys.
+	 * A "key" might be present in this router's "channelMappings", or it
+	 * could be the channel's name or even the Message Channel instance itself.
 	 */
-	protected abstract List<Object> getChannelIdentifiers(Message<?> message);
+	protected abstract List<Object> getChannelKeys(Message<?> message);
 
 
 	@Override
@@ -255,8 +248,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		Collection<Object> channelsReturned = this.getChannelIdentifiers(message);
-		addToCollection(channels, channelsReturned, message);
+		Collection<Object> channelKeys = this.getChannelKeys(message);
+		addToCollection(channels, channelKeys, message);
 		return channels;
 	}
 
@@ -264,21 +257,18 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		if (this.channelResolver == null) {
 			this.onInit();
 		}
-		Assert.state(this.channelResolver != null,
-				"unable to resolve channel names, no ChannelResolver available");
+		Assert.state(this.channelResolver != null, "unable to resolve channel names, no ChannelResolver available");
 		MessageChannel channel = null;
 		try {
 			channel = this.channelResolver.resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
 			if (this.resolutionRequired) {
-				throw new MessagingException(message,
-						"failed to resolve channel name '" + channelName + "'", e);
+				throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'", e);
 			}
 		}
 		if (channel == null && this.resolutionRequired) {
-			throw new MessagingException(message,
-					"failed to resolve channel name '" + channelName + "'");
+			throw new MessagingException(message, "failed to resolve channel name '" + channelName + "'");
 		}
 		return channel;
 	}
@@ -294,8 +284,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		// if the channelMappings contains a mapping, we'll use the mapped value
 		// otherwise, the String-based channelKey itself will be used as the channel name
 		String channelName = channelKey;
-		if (!CollectionUtils.isEmpty(channelMappings) && channelMappings.containsKey(channelKey)) {
-			channelName = channelMappings.get(channelKey);
+		if (this.channelMappings.containsKey(channelKey)) {
+			channelName = this.channelMappings.get(channelKey);
 		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
@@ -309,38 +299,36 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 	}
 
-	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
-		if (channelIndicators == null) {
+	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelKeys, Message<?> message) {
+		if (channelKeys == null) {
 			return;
 		}
-		for (Object channelIndicator : channelIndicators) {
-			if (channelIndicator == null) {
+		for (Object channelKey : channelKeys) {
+			if (channelKey == null) {
 				continue;
 			}
-			else if (channelIndicator instanceof MessageChannel) {
-				channels.add((MessageChannel) channelIndicator);
+			else if (channelKey instanceof MessageChannel) {
+				channels.add((MessageChannel) channelKey);
 			}
-			else if (channelIndicator instanceof MessageChannel[]) {
-				channels.addAll(Arrays.asList((MessageChannel[]) channelIndicator));
+			else if (channelKey instanceof MessageChannel[]) {
+				channels.addAll(Arrays.asList((MessageChannel[]) channelKey));
 			}
-			else if (channelIndicator instanceof String) {
-				addChannelFromString(channels, (String) channelIndicator, message);
+			else if (channelKey instanceof String) {
+				addChannelFromString(channels, (String) channelKey, message);
 			}
-			else if (channelIndicator instanceof String[]) {
-				for (String indicatorName : (String[]) channelIndicator) {
+			else if (channelKey instanceof String[]) {
+				for (String indicatorName : (String[]) channelKey) {
 					addChannelFromString(channels, indicatorName, message);
 				}
 			}
-			else if (channelIndicator instanceof Collection) {
-				addToCollection(channels, (Collection<?>) channelIndicator, message);
+			else if (channelKey instanceof Collection) {
+				addToCollection(channels, (Collection<?>) channelKey, message);
 			}
-			else if (this.getRequiredConversionService().canConvert(channelIndicator.getClass(), String.class)) {
-				addChannelFromString(channels,
-						this.getConversionService().convert(channelIndicator, String.class), message);
+			else if (this.getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
+				addChannelFromString(channels, this.getConversionService().convert(channelKey, String.class), message);
 			}
 			else {
-				throw new MessagingException(
-						"unsupported return type for router [" + channelIndicator.getClass() + "]");
+				throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
 			}
 		}
 	}

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractRouterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xml.router.XPathRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -36,15 +37,13 @@ import org.springframework.util.StringUtils;
  */
 public class XPathRouterParser extends AbstractRouterParser {
 
-	private XPathExpressionParser xpathParser = new XPathExpressionParser();
+	private final XPathExpressionParser xpathParser = new XPathExpressionParser();
 
 
 	@Override
 	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder xpathRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.xml.router.XPathRouter");
-		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
-				element.getNamespaceURI(), "xpath-expression");
+		BeanDefinitionBuilder xpathRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(XPathRouter.class);
+		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
 		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "At most one xpath-expression child may be specified.");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(xpathRouterBuilder, element, "evaluate-as-string");
@@ -53,8 +52,7 @@ public class XPathRouterParser extends AbstractRouterParser {
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
 				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (xPathExpressionChildPresent) {
-			BeanDefinition beanDefinition = this.xpathParser.parse(
-					(Element) xPathExpressionNodes.item(0), parserContext);
+			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
 			xpathRouterBuilder.addConstructorArgValue(beanDefinition);
 		}
 		else { 

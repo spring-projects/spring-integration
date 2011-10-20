@@ -33,20 +33,20 @@ import org.springframework.integration.MessageChannel;
 public class ErrorMessageExceptionTypeRouter extends AbstractMessageRouter {
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
-		String channel = null;
+	protected List<Object> getChannelKeys(Message<?> message) {
+		String mostSpecificCause = null;
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable) {
-			Throwable mostSpecificCause = (Throwable) payload;
-			while (mostSpecificCause != null) {
-				String mappedChannel = this.getChannelMapping(mostSpecificCause.getClass().getName());
-				if (mappedChannel != null) {
-					channel = mappedChannel;
+			Throwable cause = (Throwable) payload;
+			while (cause != null) {
+				String causeName = cause.getClass().getName();
+				if (this.getChannelMappings().keySet().contains(causeName)) {
+					mostSpecificCause = causeName;
 				}
-				mostSpecificCause = mostSpecificCause.getCause();
+				cause = cause.getCause();
 			}
 		}
-		return Collections.singletonList((Object) channel);
+		return Collections.singletonList((Object) mostSpecificCause);
 	}
 
 }

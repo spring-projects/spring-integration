@@ -45,7 +45,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 	 *    preferring direct interface over indirect subclass
 	 */
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		String channelName = this.getChannelName(message);
 		return (channelName != null) ? Collections.<Object>singletonList(channelName) : null;
 	}
@@ -96,7 +96,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 			return null;
 		}
 		// we have a winner
-		return this.getChannelMapping(matches.get(0));		
+		return matches.get(0);//this.getMappedChannelName(matches.get(0));		
 	}
 
 	private int determineTypeDifferenceWeight(String candidate, Class<?> type, int level) {

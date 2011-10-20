@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
@@ -40,7 +41,7 @@ public class MultiChannelRouterTests {
 	public void routeWithChannelMapping() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIdentifiers(Message<?> message) {
+			public List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"channel1", "channel2"});
 			}
 		};
@@ -64,7 +65,7 @@ public class MultiChannelRouterTests {
 	public void channelNameLookupFailure() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIdentifiers(Message<?> message) {
+			public List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"} );
 			}
 		};
@@ -78,7 +79,7 @@ public class MultiChannelRouterTests {
 	public void channelMappingNotAvailable() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			public List<Object> getChannelIdentifiers(Message<?> message) {
+			public List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};

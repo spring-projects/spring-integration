@@ -46,7 +46,7 @@ public class RouterTests {
 	public void nullChannelRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return null;
 			}		
 		};
@@ -58,7 +58,7 @@ public class RouterTests {
 	public void nullChannelIdentifierUsingChannelResolverRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return null;
 			}
 		};
@@ -72,7 +72,7 @@ public class RouterTests {
 	public void nullChannelIdentifierInListRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@Override
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return Collections.singletonList(null);
 			}
 		};
@@ -85,7 +85,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelNameArrayRaisesMessageDeliveryExceptionByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return new ArrayList<Object>();
 			}
 		};
@@ -99,7 +99,7 @@ public class RouterTests {
 	public void channelMappingIsRequiredWhenResolvingChannelNames() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message){
+			protected List<Object> getChannelKeys(Message<?> message){
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
@@ -111,7 +111,7 @@ public class RouterTests {
 	public void beanFactoryWithRouter() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannel" });
 			}
 		};
@@ -128,7 +128,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndMultipleCommaSeparatedChannelNames() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannel1,testChannel2" });
 			}
 		};
@@ -156,7 +156,7 @@ public class RouterTests {
 		
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannelDoesNotExist", "testChannel" });
 			}
 		};
@@ -174,7 +174,7 @@ public class RouterTests {
 		
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testChannelDoesNotExist", "testChannel" });
 			}
 		};
@@ -195,7 +195,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndChannelPrefix() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel" });
 			}
 		};
@@ -216,7 +216,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndChannelPrefixFailing() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "testing_MyChannel" });
 			}
 		};
@@ -235,7 +235,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndChannelSuffix() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel" });
 			}
 		};
@@ -255,7 +255,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndChannelSuffixFailing() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] { "MyChannel_withSuffix" });
 			}
 		};
@@ -274,7 +274,7 @@ public class RouterTests {
 	public void beanFactoryWithRouterAndChannelIdentifiersInListWithinAList() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				
 				List<String> channelNames1 = CollectionUtils.arrayToList(new String[] { "channel1" });
 				List<String> channelNames2 = CollectionUtils.arrayToList(new String[] { "channel2" });
@@ -314,7 +314,7 @@ public class RouterTests {
 		
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				
 				MessageChannel[] channelNames1 = new MessageChannel[] { testChannel1 };
 				MessageChannel[] channelNames2 = new MessageChannel[] { testChannel2 };
@@ -351,7 +351,7 @@ public class RouterTests {
 		
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new Integer[] { 100, 200 });
 			}
 		};
@@ -389,7 +389,7 @@ public class RouterTests {
 
 		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
-			protected List<Object> getChannelIdentifiers(Message<?> message) {
+			protected List<Object> getChannelKeys(Message<?> message) {
 				return CollectionUtils.arrayToList(new CustomObjectWithChannelName[] { new CustomObjectWithChannelName() });
 			}
 		};

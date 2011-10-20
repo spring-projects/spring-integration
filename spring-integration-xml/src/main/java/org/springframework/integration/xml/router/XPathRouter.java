@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,10 +113,10 @@ public class XPathRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
-		if (this.evaluateAsString){		
-			return Collections.singletonList((Object)this.xPathExpression.evaluateAsString(node));
+		if (this.evaluateAsString) {
+			return Collections.singletonList((Object) this.xPathExpression.evaluateAsString(node));
 		}
 		else {
 			return this.xPathExpression.evaluate(node, this.nodeMapper);

@@ -55,7 +55,7 @@ class AbstractMessageProcessingRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		return Collections.singletonList(result);
 	}

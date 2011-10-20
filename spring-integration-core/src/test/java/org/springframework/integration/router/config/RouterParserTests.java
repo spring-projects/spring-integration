@@ -19,7 +19,6 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,6 +28,7 @@ import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -194,7 +194,7 @@ public class RouterParserTests {
 
 
 		@Override
-		protected List<Object> getChannelIdentifiers(Message<?> message) {
+		protected List<Object> getChannelKeys(Message<?> message) {
 			return Collections.singletonList((Object)this.channel);
 		}
 	}

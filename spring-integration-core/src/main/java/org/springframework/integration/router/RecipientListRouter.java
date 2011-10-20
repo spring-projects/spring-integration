@@ -90,7 +90,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	}
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		List<Object> channels = new ArrayList<Object>();
 		List<Recipient> recipientList = this.recipients;
 		for (Recipient recipient : recipientList) {
