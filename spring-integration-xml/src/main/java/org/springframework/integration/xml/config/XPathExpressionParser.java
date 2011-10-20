@@ -17,11 +17,8 @@
 package org.springframework.integration.xml.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -30,11 +27,13 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;xpath-expression&gt; element.
- * 
+ *
  * @author Jonas Partner
  */
 public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
@@ -61,36 +60,37 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		String nsPrefix = element.getAttribute("ns-prefix");
 		String nsUri = element.getAttribute("ns-uri");
 		String namespaceMapRef = element.getAttribute("namespace-map");
+
+		List<Element> mapElements = DomUtils.getChildElementsByTagName(element, "map");
+
 		boolean prefixProvided = StringUtils.hasText(nsPrefix);
 		boolean namespaceProvided = StringUtils.hasText(nsUri);
 		boolean namespaceMapProvided = StringUtils.hasText(namespaceMapRef);
+
+		boolean mapSubElementProvided = !mapElements.isEmpty();
+
 		if (prefixProvided || namespaceProvided) {
 			Assert.isTrue(prefixProvided && namespaceProvided,
 					"Both 'ns-prefix' and 'ns-uri' must be specified if one is specified.");
-			Assert.isTrue(!namespaceMapProvided, "It is not valid to specify both namespace and namespace-map.");
+			Assert.isTrue(!namespaceMapProvided, "It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'namespace-map' attribute.");
+			Assert.isTrue(!mapSubElementProvided, "It is not valid to specify both, the namespace attributes ('ns-prefix' and 'ns-uri') and the 'map' sub-element.");
+		} else if (mapSubElementProvided) {
+			Assert.isTrue(!namespaceMapProvided, "It is not valid to specify both, the 'namespace-map' attribute and the 'map' sub-element.");
 		}
+
 		builder.setFactoryMethod("createXPathExpression");
 		builder.addConstructorArgValue(expression);
+
 		if (prefixProvided) {
-			Map<String, String> namespaceMap = new HashMap<String, String>();
+			Map<String, String> namespaceMap = new HashMap<String, String>(1);
 			namespaceMap.put(nsPrefix, nsUri);
 			builder.addConstructorArgValue(namespaceMap);
-		}
-		else if (StringUtils.hasText(namespaceMapRef)) {
+		} else if (namespaceMapProvided) {
 			builder.addConstructorArgReference(namespaceMapRef);
-		}
-		else if (element.getChildNodes().getLength() > 0) {
-			NodeList nodeList = element.getChildNodes();
-			Element mapElement = null;
-			int elementCount = 0;
-			for (int i = 0; i < nodeList.getLength(); i++) {
-				Node currentNode = nodeList.item(i);
-				if (currentNode.getNodeType() == Node.ELEMENT_NODE) {
-					mapElement = (Element) currentNode;
-					elementCount++;
-				}
-			}
-			Assert.isTrue(elementCount == 1, "only one namespace map child allowed");
+		} else if (mapSubElementProvided) {
+
+			Element mapElement = mapElements.get(0);
+
 			if (mapElement != null) {
 				builder.addConstructorArgValue(this.parseNamespaceMapElement(
 						mapElement, parserContext, builder.getBeanDefinition()));
