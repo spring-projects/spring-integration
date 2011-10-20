@@ -86,14 +86,16 @@
             <interfacename>XPathExpression</interfacename> using the Spring
             <classname>org.springframework.xml.xpath.XPathExpressionFactory</classname>.
             When creating XPath expressions, the best XPath implementation that
-            is available on the classpath is being used, either JAXP 1.3+ orJaxen,
+            is available on the classpath is being used, either JAXP 1.3+ or Jaxen,
             whereby JAXP is preferred.
         </para>
         <note>
             Spring Integration under the covers uses the XPath functionality as
-            provided by the <emphasis>Spring Web Services</emphasis> project. Specifically, Spring Web Services'
-            XML module (spring-xml-x.x.x.jar) is being used. Therefore, for a deeper
-            understanding, please refer to the respective documentation as well at:
+            provided by the <emphasis>Spring Web Services</emphasis> project
+            (http://www.springsource.org/spring-web-services). Specifically,
+            Spring Web Services' XML module (spring-xml-x.x.x.jar) is being used.
+            Therefore, for a deeper understanding, please refer to the respective
+            documentation as well at:
 
             <itemizedlist>
 		        <listitem>
@@ -125,7 +127,7 @@
             </callout>
             <callout arearefs="xpath-expression-xml02-co" id="xpath-expression-xml02">
                 <para>
-                    The Id for the underlying bean definition. Will be an instance of
+                    The Identifier of the underlying bean definition. Will be an instance of
                     <classname>org.springframework.xml.xpath.XPathExpression</classname>
                     <emphasis>Optional</emphasis>.
                 </para>
@@ -135,7 +137,7 @@
                     Reference to a map containing namespaces. The key of the map
                     defines the namespace prefix and the value of the map sets the
                     namespace URI. It is not valid to specify both this attribute
-                    and the <code>map</code>-sub element, or setting the
+                    and the <code>map</code> sub element, or setting the
                     <code>ns-prefix</code> and <code>ns-uri</code> attribute.
                     <emphasis>Optional</emphasis>.</para>
             </callout>
@@ -163,7 +165,7 @@
                 </para>
                 <para>
                     It is not valid to specify both this sub-element
-                    and the <code>map</code>-attribute, or setting the
+                    and the <code>map</code> attribute, or setting the
                     <code>ns-prefix</code> and <code>ns-uri</code> attributes.
                     <emphasis>Optional</emphasis>.
                 </para>
@@ -361,8 +363,8 @@
 <int-xml:unmarshalling-transformer/>]]></programlisting>
 
 	    <para>
-	    The namespace support for the marshalling transformer requires an input channel, output channel and a
-	    reference to a marshaller.  The optional <code>result-type</code> attribute can be used to control the type of result created,
+	    The namespace support for the marshalling transformer requires an <code>input-channel</code>, <code>output-channel</code> and a
+	    reference to a <code>marshaller</code>.  The optional <code>result-type</code> attribute can be used to control the type of result created,
 	    valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a
 	    reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative
 	    to setting the <code>result-type</code> attribute using the <code>result-factory</code> attribute.  An optional <code>result-transformer</code> can also be
@@ -912,7 +914,8 @@
 	             and rejected Messages (Messages that did not match the filter
 	             criteria) will be silently dropped. However, if set to
 	             <emphasis>true</emphasis> message rejection will result in an
-	             error condition.
+	             error condition and the exception will be propagated upstream
+	             to the caller.
 	             <emphasis>Optional</emphasis>.
 	         </para>
 	    </callout>
@@ -921,7 +924,7 @@
 	    </callout>
 	    <callout arearefs="xpath-filter-xml09-co" id="xpath-filter-xml09">
 	        <para>
-	            This sub-element sets the XPath expression to be evaluates. If
+	            This sub-element sets the XPath expression to be evaluated. If
 	            this is not defined you MUST define the <code> xpath-expression-ref</code>
 	            attribute. Also, only one <code>xpath-expression</code> element
 	            can be set.
