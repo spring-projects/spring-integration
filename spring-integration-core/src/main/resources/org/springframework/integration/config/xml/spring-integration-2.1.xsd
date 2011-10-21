@@ -594,6 +594,18 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="async-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+							<![CDATA[
+					Provide a reference to an implementation of java.util.concurrent.Executor
+					to use for any of the interface methods that have a Future return type.
+					This Executor will only be used for those async methods; the sync methods
+					will be invoked in the caller's thread.
+							]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
