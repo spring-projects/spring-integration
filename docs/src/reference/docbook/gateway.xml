@@ -1,103 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="gateway"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Inbound Messaging Gateways</title>
-
+  <title>Messaging Gateways</title>
+  <para>
+      The primary purpose of a Gateway is to hide the messaging API provided by
+      Spring Integration. It allows your application's business logic to be completely
+      unaware of the Spring Integration API and using a generic Gateway, your code
+      interacts instead with a simple interface, only.
+  </para>
   <section id="gateway-proxy">
-    <title>GatewayProxyFactoryBean</title>
+    <title>Enter the GatewayProxyFactoryBean</title>
     <para>
-      Working with Objects instead of Messages is an improvement. However, it would be even better to have no
-      dependency on the Spring Integration API at all - including the gateway class. For that reason, Spring
-      Integration also provides a <classname>GatewayProxyFactoryBean</classname> that generates a proxy for
-      any interface and internally invokes the gateway methods shown below. 
-      <programlisting language="java"><![CDATA[
-package org.cafeteria;
+      As mentioned above, it would be great to have no dependency on the Spring
+      Integration API at all - including the gateway class. For that reason, Spring
+      Integration provides the <classname>GatewayProxyFactoryBean</classname> that
+      generates a proxy for any interface and internally invokes the gateway
+      methods shown below. Using dependency injection you can then expose the interface
+      to your business methods.
+    </para>
+    <para>
+      Here is an example of an interface that can be used to interact with Spring
+      Integration:
+    </para>
+
+    <programlisting language="java"><![CDATA[package org.cafeteria;
 
 public interface Cafe {
 
-		void placeOrder(Order order);
-	
-}
-]]></programlisting>
-     
+    void placeOrder(Order order);
+
+}]]></programlisting>
+
+  </section>
+  <section id="gateway-namespace">
+    <title>Gateway XML Namespace Support</title>
+    <para>
       Namespace support is also
       provided which allows you to configure such an interface as a service as demonstrated by the following example.
+    </para>
       <programlisting language="xml"><![CDATA[<int:gateway id="cafeService"
          service-interface="org.cafeteria.Cafe"
          default-request-channel="requestChannel"
          default-reply-channel="replyChannel"/>]]></programlisting>
-         
+    <para>
       With this configuration defined, the "cafeService" can now be injected into other beans, and the code that invokes the methods on that
       proxied instance of the Cafe interface has no awareness of the Spring Integration API. The general
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
       an example that uses this "gateway" element (in the Cafe demo).
-      <important>
-      Typically you don't have to specify the <code>default-reply-channel</code> since a Gateway will 
-      auto-create a temporary, anonymous reply channel where it will listen for the reply.
-      However, there are some cases which may prompt you to define a <code>default-reply-channel</code> (or <code>reply-channel</code> 
-      with adapter gateways such as HTTP, JMS, etc.).
-	  For some background, we'll quickly discuss some of the inner-workings of the Gateway.
-      A Gateway will create a temporary point-to-point reply channel which is anonymous and is added 
-      to the Message Headers with the name <code>replyChannel</code>. 
-      When providing an explicit <code>default-reply-channel</code> (<code>reply-channel</code> with remote adapter gateways), 
-      you have the option to point to a publish-subscribe channel, which is so named because you can add more than one subscriber to it.
-      Internally Spring Integration will create a Bridge between the temporary <code>replyChannel</code> and the explicitly defined 
-      <code>default-reply-channel</code>. 
+    </para>
+  </section>
+    <section id="gateway-default-reply-channel">
+      <title>Setting the Default Reply Channel</title>
+      <para>
+	      Typically you don't have to specify the <code>default-reply-channel</code>,
+	      since a Gateway will auto-create a temporary, anonymous reply channel,
+	      where it will listen for the reply. However, there are some cases which
+	      may prompt you to define a <code>default-reply-channel</code> (or <code>reply-channel</code>
+	      with adapter gateways such as HTTP, JMS, etc.).
+	  </para>
+	  <para>
+		  For some background, we'll quickly discuss some of the inner-workings of the Gateway.
+	      A Gateway will create a temporary point-to-point reply channel which is anonymous and is added
+	      to the Message Headers with the name <code>replyChannel</code>.
+	      When providing an explicit <code>default-reply-channel</code> (<code>reply-channel</code> with remote adapter gateways),
+	      you have the option to point to a publish-subscribe channel, which is so named because you can add more than one subscriber to it.
+	      Internally Spring Integration will create a Bridge between the temporary <code>replyChannel</code> and the explicitly defined
+	      <code>default-reply-channel</code>.
+      </para>
+      <para>
+		  So let's say you want your reply to go not only to the gateway, but also to some other consumer. In this case you
+		  would want two things: <emphasis>a) a named channel you can subscribe to and b) that channel is a publish-subscribe-channel.</emphasis>
+		  The default strategy used by the gateway will not satisfy those needs, because the reply channel added to the header is anonymous and
+		  point-to-point. This means that no other subscriber can get a handle to it and even if it could, the channel
+		  has point-to-point behavior such that only one subscriber would get the Message. So by defining a <code>default-reply-channel</code>
+		  you can point to a channel of your choosing, which in this case would be a <code>publish-subscribe-channel</code>.
+		  The Gateway would create a bridge from it to the temporary, anonymous reply channel that is stored in the header.
+      </para>
+      <para>
+	      Another case where you might want to provide a reply channel explicitly is for monitoring or auditing via an interceptor
+	      (e.g., wiretap). You need a named channel in order to configure a Channel Interceptor.
+      </para>
+    </section>
+    <section id="gateway-configuration-annotations">
+      <title>Gateway Configuration with Annotations and/or XML</title>
+      <para>
+        The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
+        'default-reply-channel' is that you may also provide per-method channel references by using the
+        <classname>@Gateway</classname> annotation.
+      </para>
 
-	  So let's say you want your reply to go not only to the gateway, but also to some other consumer. In this case you 
-	  would want two things: <emphasis>a) a named channel you can subscribe to and b) that channel is a publish-subscribe-channel.</emphasis> 
-	  The default strategy used by the gateway will not satisfy those needs, because the reply channel added to the header is anonymous and 
-	  point-to-point. This means that no other subscriber can get a handle to it and even if it could, the channel 
-	  has point-to-point behavior such that only one subscriber would get the Message. So by defining a <code>default-reply-channel</code> 
-	  you can point to a channel of your choosing which in this case would be a <code>publish-subscribe-channel</code>.
-	  The Gateway would create a bridge from it to the temporary, anonymous reply channel that is stored in the header.
-
-      Another case where you might want to provide a reply channel explicitly is for monitoring or auditing via an interceptor
-      (e.g., wiretap). You need a named channel in order to configure a Channel Interceptor. 
-      </important>
-  </para>
-    <para>
-      The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
-      'default-reply-channel' is that you may also provide per-method channel references by using the
-      @Gateway annotation.
       <programlisting language="java"><![CDATA[ public interface Cafe {
 
      @Gateway(requestChannel="orders")
      void placeOrder(Order order);
 
  }]]></programlisting>
-    You may alternatively provide such content in <code>method</code> sub-elements if you prefer XML configuration (see the next paragraph).
+    <para>
+      You may alternatively provide such content in <code>method</code> sub-elements if you prefer XML configuration (see the next paragraph).
     </para>
     <para>
       It is also possible to pass values to be interpreted as Message headers on the Message
       that is created and sent to the request channel by using the @Header annotation:
+    </para>
     <programlisting language="java"><![CDATA[ public interface FileWriter {
 
      @Gateway(requestChannel="filesOut")
      void write(byte[] content, @Header(FileHeaders.FILENAME) String filename);
 
  }]]></programlisting>
-    </para>
 
     <para>
-    If you prefer the XML approach of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements
-    to the gateway configuration.
+      If you prefer the XML approach of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements
+      to the gateway configuration.
+    </para>
+
      <programlisting language="xml"><![CDATA[<int:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
       default-request-channel="inputC">
   <int:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
       <int:method name="echoUpperCase" request-channel="inputB"/>
       <int:method name="echoViaDefault"/>
 </int:gateway>]]></programlisting>
-    </para>
+
     <para>
       You can also provide individual headers per method invocation via XML.
       This could be very useful if the headers you want to set are static in nature and you don't want
       to embed them in the gateway's method signature via <classname>@Header</classname> annotations.
       For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes
       will be done based on what type of request was initiated (single quote or all quotes). Determining the
-      type of the request by evaluating what gateway method was invoked, although possible would
+      type of the request by evaluating what gateway method was invoked, although possible, would
       violate the separation of concerns paradigm (the method is a java artifact),  but expressing your
       intention (meta information) via Message headers is natural in a Messaging architecture.
+    </para>
 
       <programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway"
          service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
@@ -108,12 +141,63 @@ public interface Cafe {
     <int:header name="RESPONSE_TYPE" value="ALL"/>
   </int:method>
 </int:gateway>]]></programlisting>
-  In the above case you can clearly see how a different value will be set for the 'RESPONSE_TYPE'
-  header based on the gateway's method.
-    </para>
     <para>
+      In the above case you can clearly see how a different value will be set for the 'RESPONSE_TYPE'
+      header based on the gateway's method.
+    </para>
+
+    </section>
+    <section id="gateway-calling-no-argument-methods">
+      <title>Invoking No-Argument Methods</title>
+      <para>
+          When invoking methods on a Gateway interface that does not have any arguments,
+          the default behavior is to <emphasis>receive</emphasis> a <code>Message</code> from a
+          <interfacename>PollableChannel</interfacename>.
+      </para>
+      <para>
+          At times however, you may want to trigger no-arguments methods so that
+          you can in-fact interact with other components downstream that do not require
+          user-provided parameters, e.g. triggering no-argument SQL calls or Stored
+          Procedures.
+      </para>
+      <para>
+          In order to achieve <emphasis>send-and-receive</emphasis> semantics, you must provide a payload.
+          In order to generate a payloads method parameters on the interface are
+          not necessary. You can either use the <code>@Payload</code> annotation
+          or the <code>payload-expression</code> attribute in XML on the <code>method</code>
+          sub-element. Below please find a few examples of what the payloads could be:
+      </para>
+
+      <itemizedlist>
+          <listitem>a literal string</listitem>
+          <listitem>#method (for the method name)</listitem>
+          <listitem>new java.util.Date()</listitem>
+          <listitem>@someBean.someMethod()'s return value</listitem>
+      </itemizedlist>
+
+      <para>
+          Here is an example using the <code>@Payload</code> annotation:
+      </para>
+      <programlisting language="xml"><![CDATA[public interface Cafe {
+
+    @Payload("new java.util.Date()")
+    List<Order> retrieveOpenOrders();
+
+}]]></programlisting>
+      <para>
+		If a method has no argument and no return value, but does contain a
+		payload expression, it will be treated as a <emphasis>send-only</emphasis>
+		operation.
+      </para>
+    </section>
+
+    <section id="gateway-error-handling">
+      <title>Error Handling </title>
+      <para>
+
     Of course, the Gateway invocation might result in errors.
-    By default any error that has occurred downstream will be re-thrown as a MessagingException (RuntimeException)
+    By default any error that has occurred downstream will be re-thrown as a
+    <classname>MessagingException</classname> (RuntimeException)
     upon the Gateway's method invocation. However there are times when you may want
     to simply log the error rather than propagating it, or you may want to treat an
     Exception as a valid reply, by mapping it to a Message that will conform to some
@@ -122,7 +206,7 @@ public interface Cafe {
     <emphasis>error-channel</emphasis> attribute. In the example below, you can see
     that a 'transformer' is used to create a reply Message from the Exception.
     </para>
-    <para>
+
 <programlisting language="xml"><![CDATA[<int:gateway id="sampleGateway"
     default-request-channel="gatewayChannel"
     service-interface="foo.bar.SimpleGateway"
@@ -131,7 +215,7 @@ public interface Cafe {
 <int:transformer input-channel="exceptionTransformationChannel"
         ref="exceptionTransformer" method="createErrorResponse"/>
 ]]></programlisting>
-
+    <para>
   The <emphasis>exceptionTransformer</emphasis> could be a simple POJO that
   knows how to create the expected error response objects. That would then be
   the payload that is sent back to the caller. Obviously, you could do many
@@ -188,16 +272,18 @@ of this chapter.
       that is exactly what Spring Integration uses to support an <emphasis>Asynchronous Gateway</emphasis>.
       </para>
       <para>
-    From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as a regular Gateway.
+         From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as a regular Gateway.
+      </para>
       <programlisting language="xml"><![CDATA[<int:gateway id="mathService" 
      service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
      default-request-channel="requestChannel"/>]]></programlisting>
+     <para>
       However the Gateway Interface (service-interface) is a bit different.
-
+     </para>
       <programlisting language="java">public interface MathServiceGateway {
   Future&lt;Integer&gt; multiplyByTwo(int i);
 }</programlisting>
-    </para>
+
     <para>
     As you can see from the example above the return type for the gateway method is a <classname>Future</classname>. When
     <classname>GatewayProxyFactoryBean</classname> sees that the
@@ -300,7 +386,7 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
             <para>
                 * <emphasis>reply-timeout</emphasis> is unbounded for <emphasis>&lt;gateway/&gt;</emphasis>
                 elements (created by the GatewayProxyFactoryBean). Inbound gateways for external integration
-                (ws, http, etc.) share many characteristics and attributes with these gateways. However, 
+                (ws, http, etc.) share many characteristics and attributes with these gateways. However,
                 for those inbound gateways, the default <emphasis>reply-timeout</emphasis> is 1000
                 milliseconds (1 second). If a downstream async handoff is made to another thread, you may need to
                 increase this attribute to allow enough time for the flow to complete before the
