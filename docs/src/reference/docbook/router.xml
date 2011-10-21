@@ -97,10 +97,6 @@
                     <entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry><entry><imagedata fileref="images/tickmark.png"/></entry>
                   </row>
                 <row>
-                    <entry>channel-resolver</entry>
-                    <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                  </row>
-                <row>
                     <entry>method</entry>
                     <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
                   </row>
@@ -187,10 +183,6 @@
                   <row>
                       <entry>order</entry>
                       <entry></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
-                  </row>
-                  <row>
-                      <entry>channel-resolver</entry>
-                      <entry><imagedata fileref="images/tickmark.png"/></entry><entry></entry><entry></entry><entry></entry><entry></entry><entry></entry>
                   </row>
                   <row>
                       <entry>method</entry>
@@ -793,8 +785,8 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             </listitem>
             <listitem>
               <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
-              <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
-              reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
+              <classname>MessageChannel</classname> as a reference to a bean within the Application Context
+              (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
               previous step.</para>
             </listitem>
         </itemizedlist>
@@ -825,8 +817,8 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
             </listitem>
             <listitem>
               <para><emphasis>Step 3</emphasis> - Resolve <code>channel name</code> to the actual instance of the
-              <classname>MessageChannel</classname> where using <classname>ChannelResolver</classname>, the router will obtain a
-              reference to a bean (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
+              <classname>MessageChannel</classname> as a reference to a bean within the Application Context
+              (which is hopefully a <classname>MessageChannel</classname>) identified by the result of the
               previous step.</para>
             </listitem>
         </itemizedlist>
@@ -860,9 +852,8 @@ public List<String> route(@Header("orderStatus") OrderStatus status)]]></program
         </para>
         <para>
             So all that is left is for Step 3 to resolve the <code>channel name</code> ('kermit') to an actual instance of the
-            <classname>MessageChannel</classname> identified by this name. That will be done via the default
-            <interface>ChannelResolver</interface> implementation which is a <classname>BeanFactoryChannelResolver</classname>. It
-            basically does a bean lookup for the name provided. So now all messages which contain the header/value pair as <code>testHeader=kermit</code>
+            <classname>MessageChannel</classname> identified by this name. That basically involves a bean lookup
+            for the name provided. So now all messages which contain the header/value pair as <code>testHeader=kermit</code>
             are going to be routed to a <classname>MessageChannel</classname> whose bean name (id) is 'kermit'.
         </para>
         <para>

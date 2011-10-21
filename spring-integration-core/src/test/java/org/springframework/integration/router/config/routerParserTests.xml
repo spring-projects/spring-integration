@@ -80,10 +80,6 @@
 	<channel id="timeoutRouterChannel"/>
 	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" timeout="1234" input-channel="timeoutRouterChannel"/>
 
-	<channel id="channelResolverRouterChannel"/>
-	<router id="routerWithChannelResolver" input-channel="channelResolverRouterChannel"
-		ref="payloadAsChannelNameRouter" channel-resolver="testChannelResolver"/>
-	
 	<beans:bean id="testChannelResolver"
 		class="org.springframework.integration.router.config.RouterParserTests$TestChannelResover"/>
 
