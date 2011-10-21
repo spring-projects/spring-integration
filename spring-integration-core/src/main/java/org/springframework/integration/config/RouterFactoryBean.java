@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,10 +18,9 @@ import java.util.Map;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,9 +34,7 @@ import org.springframework.util.StringUtils;
  */
 public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean {
 
-	private volatile ChannelResolver channelResolver;
-	
-	private volatile Map<String, String> channelIdentifierMap;
+	private volatile Map<String, String> channelMappings;
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -49,10 +46,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 
 	private volatile Boolean ignoreSendFailures;
 
-
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
-	}
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
@@ -74,14 +67,14 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		this.ignoreSendFailures = ignoreSendFailures;
 	}
 	
-	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
-		this.channelIdentifierMap = channelIdentifierMap;
+	public void setChannelMappings(Map<String, String> channelMappings) {
+		this.channelMappings = channelMappings;
 	}
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
+		AbstractMappingMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMappingMessageRouter.class);
 		if (router == null) {
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
@@ -102,19 +95,16 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
-	private AbstractMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
+	private AbstractMappingMessageRouter createMethodInvokingRouter(Object targetObject, String targetMethodName) {
 		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) 
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
 		return router;
 	}
 
-	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
-		if (this.channelResolver != null) {
-			router.setChannelResolver(this.channelResolver);
-		}
-		if (this.channelIdentifierMap != null) {
-			router.setChannelIdentifierMap(this.channelIdentifierMap);
+	private AbstractMappingMessageRouter configureRouter(AbstractMappingMessageRouter router) {
+		if (this.channelMappings != null) {
+			router.setChannelMappings(this.channelMappings);
 		}
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);

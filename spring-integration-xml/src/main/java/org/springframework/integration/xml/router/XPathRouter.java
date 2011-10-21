@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
@@ -38,7 +38,7 @@ import org.w3c.dom.Node;
  * @author Jonas Partner
  * @author Oleg Zhurakousky
  */
-public class XPathRouter extends AbstractMessageRouter {
+public class XPathRouter extends AbstractMappingMessageRouter {
 
 	private volatile NodeMapper<Object> nodeMapper = new TextContentNodeMapper();
 
@@ -113,10 +113,10 @@ public class XPathRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		Node node = this.converter.convertToNode(message.getPayload());
-		if (this.evaluateAsString){		
-			return Collections.singletonList((Object)this.xPathExpression.evaluateAsString(node));
+		if (this.evaluateAsString) {
+			return Collections.singletonList((Object) this.xPathExpression.evaluateAsString(node));
 		}
 		else {
 			return this.xPathExpression.evaluate(node, this.nodeMapper);

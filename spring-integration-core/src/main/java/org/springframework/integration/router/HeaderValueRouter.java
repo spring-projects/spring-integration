@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class HeaderValueRouter extends AbstractMessageRouter {
+public class HeaderValueRouter extends AbstractMappingMessageRouter {
 
 	private final String headerName;
 
@@ -43,7 +43,7 @@ public class HeaderValueRouter extends AbstractMessageRouter {
 	}
 
 	@Override
-	protected List<Object> getChannelIdentifiers(Message<?> message) {
+	protected List<Object> getChannelKeys(Message<?> message) {
 		Object value = message.getHeaders().get(this.headerName);
 		if (value instanceof String && ((String) value).indexOf(',') != -1) {
 			value = StringUtils.tokenizeToStringArray((String) value, ",", true, true);

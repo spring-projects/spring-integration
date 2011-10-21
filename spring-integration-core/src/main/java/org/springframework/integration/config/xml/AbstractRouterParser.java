@@ -21,11 +21,11 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.config.RouterFactoryBean;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -37,8 +37,7 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 
 	@Override
 	protected final BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
@@ -52,28 +51,28 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 	protected final BeanDefinition parseRouter(Element element, ParserContext parserContext) {
 		BeanDefinition beanDefinition = this.doParseRouter(element, parserContext);
 		if (beanDefinition != null) {
-			String channelResolver = element.getAttribute("channel-resolver");
-			if (StringUtils.hasText(channelResolver)){
-				beanDefinition.getPropertyValues().add("channelResolver", new RuntimeBeanReference(channelResolver));
-			}
 			// check if mapping is provided otherwise returned values will be treated as channel names
-			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
-			if (childElements != null && childElements.size() > 0) {
-				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
-				for (Element childElement : childElements) {
-					String key = childElement.getAttribute(this.getMappingKeyAttributeValue());
-					channelMap.put(key, childElement.getAttribute("channel"));
+			List<Element> mappingElements = DomUtils.getChildElementsByTagName(element, "mapping");
+			if (!CollectionUtils.isEmpty(mappingElements)) {
+				ManagedMap<String, String> channelMappings = new ManagedMap<String, String>();
+				for (Element mappingElement : mappingElements) {
+					String key = mappingElement.getAttribute(this.getMappingKeyAttributeName());
+					channelMappings.put(key, mappingElement.getAttribute("channel"));
 				}
-				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
+				beanDefinition.getPropertyValues().add("channelMappings", channelMappings);
 			}
 		}
 		return beanDefinition;
 	}
 
-	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
-	
-	protected String getMappingKeyAttributeValue(){
+	/**
+	 * Returns the name of the attribute that provides a key for the
+	 * channel mappings. This can be overridden by subclasses.
+	 */
+	protected String getMappingKeyAttributeName() {
 		return "value";
 	}
+
+	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
 
 }
