@@ -150,19 +150,19 @@ public interface Cafe {
     <section id="gateway-calling-no-argument-methods">
       <title>Invoking No-Argument Methods</title>
       <para>
-          When invoking methods on a Gateway interface that does not have any arguments,
+          When invoking methods on a Gateway interface that do not have any arguments,
           the default behavior is to <emphasis>receive</emphasis> a <code>Message</code> from a
           <interfacename>PollableChannel</interfacename>.
       </para>
       <para>
-          At times however, you may want to trigger no-arguments methods so that
-          you can in-fact interact with other components downstream that do not require
+          At times however, you may want to trigger no-argument methods so that
+          you can in fact interact with other components downstream that do not require
           user-provided parameters, e.g. triggering no-argument SQL calls or Stored
           Procedures.
       </para>
       <para>
           In order to achieve <emphasis>send-and-receive</emphasis> semantics, you must provide a payload.
-          In order to generate a payloads method parameters on the interface are
+          In order to generate a payload, method parameters on the interface are
           not necessary. You can either use the <code>@Payload</code> annotation
           or the <code>payload-expression</code> attribute in XML on the <code>method</code>
           sub-element. Below please find a few examples of what the payloads could be:
