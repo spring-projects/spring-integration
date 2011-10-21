@@ -41,7 +41,7 @@ import org.springframework.util.xml.DomUtils;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper"
+		"default-request-channel", "default-reply-channel", "error-channel", "message-mapper", "async-executor"
 	};
 
 	private static String[] innerAttributes = new String[] {
@@ -81,6 +81,7 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "defaultRequestTimeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "async-executor");
 	}
 
 	private void postProcessGateway(BeanDefinitionBuilder builder, Element element) {

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.gateway;
 
+import java.util.concurrent.Future;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Payload;
 
@@ -41,5 +43,7 @@ public interface TestService {
 
 	@Payload("#method + #args.length")
 	String requestReplyWithPayloadAnnotation();
+
+	Future<Message<?>> async(String s);
 
 }
