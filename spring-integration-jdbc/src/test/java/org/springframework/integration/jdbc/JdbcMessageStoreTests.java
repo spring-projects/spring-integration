@@ -162,6 +162,7 @@ public class JdbcMessageStoreTests {
 	public void testAddAndUpdateWithChange() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
+		Thread.sleep(1);
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
 		assertNotSame(copy, result);
