@@ -164,7 +164,7 @@ public class JdbcMessageStoreTests {
 		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).setHeader("newHeader", 1).build();
 		Message<String> result = messageStore.addMessage(copy);
-		assertNotSame(copy, result);
+		assertNotSame(saved, result);
 		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY, "newHeader"));
 		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
 	}
