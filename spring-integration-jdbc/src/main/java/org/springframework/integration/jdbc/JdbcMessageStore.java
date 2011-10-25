@@ -485,29 +485,28 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 	}
 	
-	public Message<?> pollMessageFromGroup(Object groupId) {
+	public Message<?> pollMessageFromGroup(final Object groupId) {
 		String key = getKey(groupId);
 		
-		UUID messageId = jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
-				new ResultSetExtractor<UUID>() {
-			public UUID extractData(ResultSet rs)
+		return jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
+				new ResultSetExtractor<Message<?>>() {
+			public Message<?> extractData(ResultSet rs)
 					throws SQLException, DataAccessException {
-				if (rs.next()) {
+				while (rs.next()) {
 					UUID uuid = UUID.fromString(rs.getString(1));
-					return uuid;
+					if (uuid != null){
+						Message<?> message = getMessage(uuid);
+						if (message != null){
+							removeMessageFromGroup(groupId, message);
+							return message;
+						}
+					}
 				}
 				return null;
 			}
 		});
-
-		if (messageId != null){
-			Message<?> message = this.getMessage(messageId);
-			this.removeMessageFromGroup(groupId, message);
-			return message;
-		}
-		return null;
 	}
-	
+
 	private List<UUID> getMessageIdsForGroup(Object groupId){
 		String key = getKey(groupId);
 		
