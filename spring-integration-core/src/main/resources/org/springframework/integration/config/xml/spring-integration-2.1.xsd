@@ -981,6 +981,109 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:element name="enricher">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an endpoint that passes a Message to its request-channel
+				and then expects a reply Message. The reply Message then becomes
+				the root object for evaluation of expressions to enriche the
+				target payload.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="enricher-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="enricher-type">
+		<xsd:sequence>
+			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="property" type="propertySubElementType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Each property sub-element provides the name of a property (via the required 'name' attribute).
+						That property should be settable on the target payload instance. Exactly one of the 'value'
+						or 'expression' attributes must be provided as well. The former for a literal value to set,
+						and the latter for a SpEL expression to be evaluated. The root object of the evaluation
+						context is the Message that was returned from the flow initiated by this enricher. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="request-channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					Channel to which a Message will be sent to get the data to use for enrichment.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Channel where a reply Message is expected. This is optional; typically the auto-generated
+					temporary reply channel is sufficient.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="should-clone-payload">
+			<xsd:annotation>
+				<xsd:documentation>
+					Boolean value indicating whether any payload that implements Cloneable should be cloned
+					prior to sending the Message to the request chanenl for acquiring the enriching data.
+					The cloned version would be used as the target payload for the ultimate reply.
+					Default is false.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+    			<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="propertySubElementType">
+		<xsd:annotation>
+			<xsd:documentation>	<![CDATA[
+				Sub-element type for the 'enricher' element.
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The name of the property on the target payload.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="value" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The value of the property. Either this or 'expression' must be provided.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					Expression to be evaluated to produce a value for the property.
+					Either this or 'value' must be provided.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
 	<xsd:element name="delayer">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -1113,6 +1216,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:element name="transformer"       type="expressionOrInnerEndpointDefinitionAware" />
 			<xsd:element name="header-enricher"   type="header-enricher-type" />
 			<xsd:element name="header-filter"     type="header-filter-type" />
+			<xsd:element name="enricher"         type="enricher-type" />
 			<xsd:element name="filter"         type="filter-type" />
 			<xsd:element name="aggregator"     type="aggregator-type" />
 			<xsd:element name="resequencer"    type="resequencer-type" />
