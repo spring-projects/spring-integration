@@ -45,7 +45,6 @@ public class MessageStoreTests {
 		assertEquals(0L, server.getAttribute(name, "MessageCount"));
 		assertEquals(0, server.getAttribute(name, "MessageGroupCount"));
 		assertEquals(0, server.getAttribute(name, "MessageCountForAllMessageGroups"));
-		assertEquals(0, server.getAttribute(name, "MarkedMessageCountForAllMessageGroups"));
 	}
 
 }
