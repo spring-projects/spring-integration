@@ -67,14 +67,14 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
 		boolean canRelease = false;
 		
-		Collection<Message<?>> unmarked = messageGroup.getUnmarked();
+		Collection<Message<?>> messages = messageGroup.getMessages();
 		
-		if (releasePartialSequences && !unmarked.isEmpty()) {
+		if (releasePartialSequences && !messages.isEmpty()) {
 			
 			if (logger.isTraceEnabled()) {
 				logger.trace("Considering partial release of group [" + messageGroup + "]");
 			}
-			List<Message<?>> sorted = new ArrayList<Message<?>>(unmarked);
+			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, comparator);
 			
 			int nextSequenceNumber = sorted.get(0).getHeaders().getSequenceNumber();
@@ -85,7 +85,7 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 			}	
 		}
 		else {
-			int size = messageGroup.getUnmarked().size();
+			int size = messages.size();
 			
 			if (size == 0){
 				canRelease = true;

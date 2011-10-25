@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import java.util.Collection;
 import org.springframework.integration.Message;
 
 /**
- * A group of messages that are correlated with each other and should be processed in the same context. The group is
- * divided into marked and unmarked messages. The marked messages are typically already processed, the unmarked messages
- * are to be processed in the future.
+ * A group of messages that are correlated with each other and should be processed in the same context. 
  * <p/>
  * The message group allows implementations to be mutable, but this behavior is optional. Implementations should take
  * care to document their thread safety and mutability.
+ * 
+ * @author Dave Syer
+ * @author Oleg Zhurakousky
  */
 public interface MessageGroup {
 
@@ -36,14 +37,9 @@ public interface MessageGroup {
 	boolean canAdd(Message<?> message);
 
 	/**
-	 * @return unmarked messages in the group at time of the invocation
+	 * Returns all available Messages from the group at the time of invocation
 	 */
-	Collection<Message<?>> getUnmarked();
-
-	/**
-	 * @return marked messages in the group at the time of the invocation
-	 */
-	Collection<Message<?>> getMarked();
+	Collection<Message<?>> getMessages();
 
 	/**
 	 * @return the key that links these messages together
@@ -71,7 +67,7 @@ public interface MessageGroup {
 	int getSequenceSize();
 
 	/**
-	 * @return the total number of messages (marked and unmarked) in this group
+	 * @return the total number of messages in this group
 	 */
 	int size();
 

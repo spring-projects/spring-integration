@@ -70,7 +70,6 @@ public class JdbcMessageStoreChannelTests {
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
 		assertEquals(1, messageStore.getMessageGroup("input-queue").size());
-		assertEquals(1, messageStore.getMessageGroup("input-queue").getUnmarked().size());
 	}
 	
 	@Test
@@ -89,7 +88,6 @@ public class JdbcMessageStoreChannelTests {
 		assertEquals(0, Service.messages.size());
 		// But inside the transaction the message is still there
 		assertEquals(1, messageStore.getMessageGroup("input-queue").size());
-		assertEquals(1, messageStore.getMessageGroup("input-queue").getUnmarked().size());
 	}
 	
 	public static class Service {

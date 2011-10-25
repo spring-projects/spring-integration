@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,11 @@ public class ExpressionEvaluatingReleaseStrategy extends ExpressionEvaluatingMes
 	}
 
 	/**
-	 * Evaluate the expression provided on the unmarked messages (a collection) in the group and return the result (must
+	 * Evaluate the expression provided on the messages (a collection) in the group and return the result (must
 	 * be boolean).
 	 */
 	public boolean canRelease(MessageGroup messages) {
-		return ((Boolean) process(messages.getUnmarked())).booleanValue();
+		return ((Boolean) process(messages.getMessages())).booleanValue();
 	}
 
 }

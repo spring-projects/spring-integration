@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import org.springframework.integration.store.MessageGroup;
  * A {@link ReleaseStrategy} that releases only the first <code>n</code> messages, where <code>n</code> is a threshold.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * 
  */
 public class MessageCountReleaseStrategy implements ReleaseStrategy {
@@ -41,12 +42,12 @@ public class MessageCountReleaseStrategy implements ReleaseStrategy {
 	}
 
 	/**
-	 * Release the group if it has more messages than the threshold and has not previously been released. Previous
-	 * releases leave an imprint on the group in the form of marked messages. It is possible that more messages than the
-	 * threshold could be released, but only if multiple consumers receive messages from the same group concurrently.
+	 * Release the group if it has more messages than the threshold and has not previously been released. 
+	 * It is possible that more messages than the threshold could be released, but only if multiple consumers 
+	 * receive messages from the same group concurrently.
 	 */
 	public boolean canRelease(MessageGroup group) {
-		return group.size() >= threshold && group.getMarked().size() == 0;
+		return group.size() >= threshold;
 	}
 
 }

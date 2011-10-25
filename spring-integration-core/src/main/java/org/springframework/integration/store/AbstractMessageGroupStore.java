@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 /**
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * 
  * @since 2.0
  *
@@ -77,15 +78,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	}
 
 	@ManagedAttribute
-	public int getMarkedMessageCountForAllMessageGroups() {
-		int count = 0;
-		for (MessageGroup group : this) {
-			count += group.getMarked().size();
-		}
-		return count;
-	}
-	
-	@ManagedAttribute
 	public int getMessageGroupCount() {
 		int count = 0;
 		for (@SuppressWarnings("unused") MessageGroup group : this) {
@@ -112,7 +104,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		if (exception != null) {
 			throw exception;
 		}
-	
 	}
 
 }

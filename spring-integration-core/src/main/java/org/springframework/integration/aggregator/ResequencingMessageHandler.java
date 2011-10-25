@@ -48,7 +48,7 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 	@Override
 	protected void afterRelease(MessageGroup messageGroup, Collection<Message<?>> completedMessages) {
 			
-		int size = messageGroup.getUnmarked().size() + messageGroup.getMarked().size();
+		int size = messageGroup.getMessages().size();
 		int sequenceSize = 0;
 		Message<?> message = messageGroup.getOne();
 		if (message != null){
@@ -62,17 +62,8 @@ public class ResequencingMessageHandler extends AbstractCorrelatingMessageHandle
 			if (completedMessages != null){ 
 				int lastReleasedSequenceNumber = this.findLastReleasedSequenceNumber(messageGroup.getGroupId(), completedMessages);
 				messageStore.setLastReleasedSequenceNumberForGroup(messageGroup.getGroupId(), lastReleasedSequenceNumber);
-				
-				if (this.keepReleasedMessages){
-					Object id = messageGroup.getGroupId();
-					for (Message<?> msg : completedMessages) {
-						messageStore.markMessageFromGroup(id, msg);
-					}
-				}
-				else {
-					for (Message<?> msg : completedMessages) {
-						this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), msg);
-					}
+				for (Message<?> msg : completedMessages) {
+					this.messageStore.removeMessageFromGroup(messageGroup.getGroupId(), msg);
 				}
 			}
 		}

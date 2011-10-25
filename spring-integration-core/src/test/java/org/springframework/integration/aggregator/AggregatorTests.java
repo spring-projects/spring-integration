@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -130,7 +130,7 @@ public class AggregatorTests {
 	public void testTrackedCorrelationIdsCapacityAtLimit() {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		// this.aggregator.setTrackedCorrelationIdCapacity(3);
+
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
 		assertEquals(1, replyChannel.receive(100).getPayload());
@@ -149,7 +149,7 @@ public class AggregatorTests {
 	public void testTrackedCorrelationIdsCapacityPassesLimit() {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		// this.aggregator.setTrackedCorrelationIdCapacity(3);
+
 		this.aggregator.setDiscardChannel(discardChannel);
 		this.aggregator.handleMessage(createMessage(1, 1, 1, 1, replyChannel, null));
 		assertEquals(1, replyChannel.receive(100).getPayload());
@@ -238,7 +238,7 @@ public class AggregatorTests {
 	private class MultiplyingProcessor implements MessageGroupProcessor {
 		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
-			for (Message<?> message : group.getUnmarked()) {
+			for (Message<?> message : group.getMessages()) {
 				product *= (Integer) message.getPayload();
 			}
 			return product;

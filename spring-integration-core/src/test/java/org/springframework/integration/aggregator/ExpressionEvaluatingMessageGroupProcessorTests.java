@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	@Test
 	public void testProcessAndSendWithSizeExpressionEvaluated() throws Exception {
-		when(group.getUnmarked()).thenReturn(messages);
+		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root.size()");
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
@@ -70,7 +70,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	@Test
 	public void testProcessAndCheckHeaders() throws Exception {
-		when(group.getUnmarked()).thenReturn(messages);
+		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root");
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
@@ -80,7 +80,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	@Test
 	public void testProcessAndSendWithProjectionExpressionEvaluated() throws Exception {
-		when(group.getUnmarked()).thenReturn(messages);
+		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("![payload]");
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
@@ -97,7 +97,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	@Test
 	public void testProcessAndSendWithFilterAndProjectionExpressionEvaluated() throws Exception {
-		when(group.getUnmarked()).thenReturn(messages);
+		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor("?[payload>2].![payload]");
 		Object result = processor.processMessageGroup(group);
 		assertTrue(result instanceof Message<?>);
@@ -112,7 +112,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 
 	@Test
 	public void testProcessAndSendWithFilterAndProjectionAndMethodInvokingExpressionEvaluated() throws Exception {
-		when(group.getUnmarked()).thenReturn(messages);
+		when(group.getMessages()).thenReturn(messages);
 		processor = new ExpressionEvaluatingMessageGroupProcessor(String.format("T(%s).sum(?[payload>2].![payload])",
 				getClass().getName()));
 		Object result = processor.processMessageGroup(group);

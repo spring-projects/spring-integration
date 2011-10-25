@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -40,6 +40,7 @@ import org.springframework.integration.store.SimpleMessageStore;
  * for each correlation key.
  *
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  *
  * @see CorrelatingMessageHandler
  */
@@ -102,9 +103,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 					if (releaseStrategy.canRelease(group)) {
 						Message<?> nextMessage = null;
 
-						Iterator<Message<?>> unmarked = group.getUnmarked().iterator();
-						if (unmarked.hasNext()) {
-							nextMessage = unmarked.next();
+						Iterator<Message<?>> messages = group.getMessages().iterator();
+						if (messages.hasNext()) {
+							nextMessage = messages.next();
 							store.removeMessageFromGroup(key, nextMessage);
 							if (log.isDebugEnabled()) {
 								log.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));

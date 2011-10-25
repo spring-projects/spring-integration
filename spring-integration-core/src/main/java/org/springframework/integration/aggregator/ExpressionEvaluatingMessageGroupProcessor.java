@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,12 +54,12 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 	}
 
 	/**
-	 * Evaluate the expression provided on the unmarked messages (a collection) in the group, and delegate to the
+	 * Evaluate the expression provided on the messages (a collection) in the group, and delegate to the
 	 * {@link MessagingTemplate} to send downstream.
 	 */
 	@Override
 	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
-		return processor.process(group.getUnmarked());
+		return processor.process(group.getMessages());
 	}
 
 }

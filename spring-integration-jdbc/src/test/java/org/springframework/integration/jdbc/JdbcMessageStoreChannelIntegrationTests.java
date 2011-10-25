@@ -81,7 +81,7 @@ public class JdbcMessageStoreChannelIntegrationTests {
 		Service.await(1000);
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
-		// but unless we use a transactin here there is a chance that the queue will
+		// but unless we use a transaction here there is a chance that the queue will
 		// appear empty....
 		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
 

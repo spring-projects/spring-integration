@@ -47,15 +47,13 @@ public class AggregatorSupportedUseCasesTests {
 		QueueChannel discardChannel = new QueueChannel();
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
-		defaultHandler.setKeepReleasedMessages(false);
 		
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setSequenceSize(5).setCorrelationId("A").setSequenceNumber(i).build());
 		}
 		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
 		assertNull(discardChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getUnmarked().size());
-		assertEquals(0, store.getMessageGroup("A").getMarked().size());
+		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 		
 		// send another message with the same correlation id and see it in the discard channel
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
@@ -65,7 +63,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setSequenceSize(5).setCorrelationId("A").setSequenceNumber(3).build());
 		assertNull(discardChannel.receive(0));
-		assertEquals(1, store.getMessageGroup("A").getUnmarked().size());
+		assertEquals(1, store.getMessageGroup("A").getMessages().size());
 	}
 	
 	@Test
@@ -75,15 +73,13 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setDiscardChannel(discardChannel);
 		defaultHandler.setReleaseStrategy(new SampleSizeReleaseStrategy());
-		defaultHandler.setKeepReleasedMessages(false);
 		
 		for (int i = 0; i < 5; i++) {
 			defaultHandler.handleMessage(MessageBuilder.withPayload(i).setCorrelationId("A").build());
 		}
 		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
 		assertNull(discardChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getUnmarked().size());
-		assertEquals(0, store.getMessageGroup("A").getMarked().size());
+		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 		
 		// send another message with the same correlation id and see it in the discard channel
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
@@ -93,7 +89,7 @@ public class AggregatorSupportedUseCasesTests {
 		defaultHandler.setExpireGroupsUponCompletion(true);
 		defaultHandler.handleMessage(MessageBuilder.withPayload("foo").setCorrelationId("A").build());
 		assertNull(discardChannel.receive(0));
-		assertEquals(1, store.getMessageGroup("A").getUnmarked().size());
+		assertEquals(1, store.getMessageGroup("A").getMessages().size());
 	}
 	
 	@Test
@@ -146,13 +142,13 @@ public class AggregatorSupportedUseCasesTests {
 		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
 		assertEquals(5, ((List<?>)outputChannel.receive(0).getPayload()).size());
 		assertNull(discardChannel.receive(0));
-		assertEquals(2, store.getMessageGroup("A").getUnmarked().size());
+		assertEquals(2, store.getMessageGroup("A").getMessages().size());
 	}
 	
 	private class SampleSizeReleaseStrategy implements ReleaseStrategy {
 
 		public boolean canRelease(MessageGroup group) {
-			return group.getUnmarked().size() == 5;
+			return group.getMessages().size() == 5;
 		}
 		
 	}

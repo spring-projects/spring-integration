@@ -85,13 +85,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private final Object correlationLocksMonitor = new Object();
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
-	
-	protected volatile boolean keepReleasedMessages = true;
-
-
-	public void setKeepReleasedMessages(boolean keepReleasedMessages) {
-		this.keepReleasedMessages = keepReleasedMessages;
-	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -288,7 +281,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				logger.debug("Discarding messages of partially complete group with key ["
 						+ correlationKey + "] to: " + discardChannel);
 			}
-			for (Message<?> message : group.getUnmarked()) {
+			for (Message<?> message : group.getMessages()) {
 				discardChannel.send(message);
 			}
 		}
@@ -307,6 +300,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 		}
+		
 		Object result = outputProcessor.processMessageGroup(group);
 		Collection<Message<?>> partialSequence = null;
 		if (result instanceof Collection<?>) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,13 +58,13 @@ public class SequenceSizeReleaseStrategyTests {
 	}
 
 	@Test
-	public void testEmptyUnmarked() {
+	public void testEmptyGroup() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		Message<String> message = MessageBuilder.withPayload("test1").setSequenceSize(1).build();
 		messages.add(message);
-		messages.mark(message);
+		messages.remove(message);
 		assertTrue(releaseStrategy.canRelease(messages));
 	}
 
