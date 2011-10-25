@@ -92,7 +92,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -112,7 +112,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -132,7 +132,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -156,7 +156,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
@@ -180,7 +180,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4]"));
 	}
@@ -200,7 +200,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -220,7 +220,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -247,7 +247,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		});
 		processor.setConversionService(conversionService);
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -276,7 +276,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
@@ -302,7 +302,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
-		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
 		Object result = processor.processMessageGroup(messageGroupMock);
 		assertTrue(((Message<?>)result).getPayload() instanceof Iterator<?>);
 	}

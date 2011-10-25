@@ -85,19 +85,16 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		Message<?> messageB = new GenericMessage<String>("B");
 		store.addMessageToGroup(1, messageA);
 		messageGroup = store.addMessageToGroup(1, messageB);
-		assertEquals(0, messageGroup.getMarked().size());
-		assertEquals(2, messageGroup.getUnmarked().size());
+		assertEquals(2, messageGroup.size());
 		
-		messageGroup = store.markMessageFromGroup(1, messageA);
-		assertEquals(1, messageGroup.getMarked().size());
-		assertEquals(1, messageGroup.getUnmarked().size());
+		messageGroup = store.removeMessageFromGroup(1, messageA);
+		assertEquals(1, messageGroup.size());
 		
 		// validate that the updates were propagated to Mongo as well
 		store = new MongoDbMessageStore(mongoDbFactory);
 		
 		messageGroup = store.getMessageGroup(1);
-		assertEquals(1, messageGroup.getMarked().size());
-		assertEquals(1, messageGroup.getUnmarked().size());
+		assertEquals(1, messageGroup.size());
 	}
 	
 	@Test
@@ -169,33 +166,6 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testMarkAllMessagesInMessageGroup() throws Exception {	
-		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
-		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		
-		MessageGroup messageGroup = store.getMessageGroup(1);
-		
-		store.addMessageToGroup(1, new GenericMessage<String>("1"));
-		store.addMessageToGroup(1, new GenericMessage<String>("2"));
-		messageGroup = store.addMessageToGroup(1, new GenericMessage<String>("3"));
-		
-		assertEquals(3, messageGroup.getUnmarked().size());
-		assertEquals(0, messageGroup.getMarked().size());
-		
-		messageGroup = store.markMessageGroup(messageGroup);
-
-		assertEquals(0, messageGroup.getUnmarked().size());
-		assertEquals(3, messageGroup.getMarked().size());
-		
-		store = new MongoDbMessageStore(mongoDbFactory);
-		
-		messageGroup = store.getMessageGroup(1);
-		assertEquals(0, messageGroup.getUnmarked().size());
-		assertEquals(3, messageGroup.getMarked().size());
-	}
-	
-	@Test
-	@MongoDbAvailable
 	public void testMultipleMessageStores() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store1 = new MongoDbMessageStore(mongoDbFactory);
@@ -210,12 +180,12 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		
 		MessageGroup messageGroup = store3.getMessageGroup(1);
 		
-		assertEquals(3, messageGroup.getUnmarked().size());
+		assertEquals(3, messageGroup.size());
 		
 		store3.removeMessageFromGroup(1, message);
 		
 		messageGroup = store2.getMessageGroup(1);
-		assertEquals(2, messageGroup.getUnmarked().size());
+		assertEquals(2, messageGroup.size());
 	}
 	
 	@Test

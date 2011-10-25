@@ -63,7 +63,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
 		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();
 		Set<String> conflictKeys = new HashSet<String>();
-		for (Message<?> message : group.getUnmarked()) {
+		for (Message<?> message : group.getMessages()) {
 			MessageHeaders currentHeaders = message.getHeaders();
 			for (String key : currentHeaders.keySet()) {
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)

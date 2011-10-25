@@ -59,7 +59,6 @@ public class ObjectToMapTransformerTests {
 
 		Message<?> transformedMessage = transformer.transform(message);
 		Map<String, Object> transformedMap = (Map<String, Object>) transformedMessage.getPayload();
-		System.out.println(transformedMap);
 		assertNotNull(transformedMap);
 		
 		Object valueFromTheMap = null;

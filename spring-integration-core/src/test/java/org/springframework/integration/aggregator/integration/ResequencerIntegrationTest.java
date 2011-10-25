@@ -85,8 +85,7 @@ public class ResequencerIntegrationTest {
 		assertEquals((Integer)6, message6.getHeaders().getSequenceNumber());
 		
 		
-		assertEquals(0, store.getMessageGroup("A").getUnmarked().size());
-		assertEquals(0, store.getMessageGroup("A").getMarked().size());
+		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 	}
 	
 	@Test 
@@ -109,7 +108,6 @@ public class ResequencerIntegrationTest {
 		inputChannel.send(message2);
 		assertNotNull(outputChannel.receive(0));
 		assertNotNull(outputChannel.receive(0));
-		assertEquals(0, store.getMessageGroup("A").getUnmarked().size());
-		assertEquals(3, store.getMessageGroup("A").getMarked().size());
+		assertEquals(0, store.getMessageGroup("A").getMessages().size());
 	}
 }

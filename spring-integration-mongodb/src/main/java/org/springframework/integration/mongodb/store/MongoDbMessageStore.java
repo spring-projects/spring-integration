@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,6 +34,7 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
 import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
+import org.springframework.data.mongodb.core.query.Order;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.Message;
@@ -49,9 +48,12 @@ import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.DBObject;
+
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
@@ -67,8 +69,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private final static String GROUP_ID_KEY = "_groupId";
 
-	private final static String MARKED_KEY = "_marked";
-	
 	private final static String GROUP_COMPLETE_KEY = "_group_complete";
 	
 	private final static String LAST_RELEASED_SEQUENCE_NUMBER = "_last_released_sequence";
@@ -76,6 +76,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private final static String GROUP_TIMESTAMP_KEY = "_group_timestamp";
 
 	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
+	
+	private final static String CREATED_DATE = "_createdDate";
 
 
 	private final MongoTemplate template;
@@ -135,8 +137,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
-		List<Message<?>> unmarkedMessages = new ArrayList<Message<?>>();
-		List<Message<?>> markedMessages = new ArrayList<Message<?>>();
+		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
 		int lastReleasedSequenceNumber = 0;
 		boolean completeGroup = false;
@@ -148,17 +149,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 		
 		for (MessageWrapper messageWrapper : messageWrappers) {
-			if (messageWrapper.isMarked()) {
-				markedMessages.add(messageWrapper.getMessage());
-			}
-			else {
-				unmarkedMessages.add(messageWrapper.getMessage());
-			}
+			messages.add(messageWrapper.getMessage());
 		}
-		SimpleMessageGroup messageGroup = new SimpleMessageGroup(unmarkedMessages, markedMessages, groupId, timestamp, completeGroup);
+		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
+		
 		return messageGroup;
 	}
 
@@ -177,28 +174,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return this.getMessageGroup(groupId);
 	}
 
-	public MessageGroup markMessageGroup(MessageGroup group) {
-		Assert.notNull(group, "'group' must not be null");
-		Object groupId = group.getGroupId();
-		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
-		for (MessageWrapper messageWrapper : messageWrappers) {
-			this.markMessageFromGroup(groupId, messageWrapper.getMessage());
-		}
-		return this.getMessageGroup(groupId);
-	}
-
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 		this.removeMessage(messageToRemove.getHeaders().getId());
 		return this.getMessageGroup(groupId);
-	}
-
-	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
-		Update update = Update.update(MARKED_KEY, true);
-		Query q = whereMessageIdIs(messageToMark.getHeaders().getId());
-		this.template.updateFirst(q, update, this.collectionName);
-		return this.getMessageGroup(groupId);	    
 	}
 
 	public void removeMessageGroup(Object groupId) {
@@ -231,6 +211,19 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
 	}
+	
+	public Message<?> pollMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
+		Message<?> message = null;
+		
+		if (!CollectionUtils.isEmpty(messageWrappers)){
+			message = messageWrappers.get(0).getMessage();
+			this.removeMessageFromGroup(groupId, message);
+		}
+		
+		return message;
+	}
 
 	/*
 	 * Common Queries
@@ -246,6 +239,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	private static Query whereGroupIdExists() {
 		return new Query(where(GROUP_ID_KEY).exists(true));
+	}
+	
+	private static Query whereGroupIdIsOrdered(Object groupId) {
+		Query q = new Query(where(GROUP_ID_KEY).is(groupId)).limit(1);
+		q.sort().on(CREATED_DATE, Order.ASCENDING);
+		return q;
 	}
 
 
@@ -272,7 +271,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		public void write(Object source, DBObject target) {
 			Message<?> message = null;
 			Object groupId = null;
-			boolean marked = false;
+
 			boolean groupComplete = false;
 			long groupTimestamp = 0;
 			int lastReleasedSequenceNumber = 0;
@@ -280,7 +279,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				MessageWrapper wrapper = (MessageWrapper) source;
 				message = wrapper.getMessage();
 				groupId = wrapper.getGroupId();
-				marked = wrapper.isMarked();
 				groupComplete = wrapper.isCompletedGroup();
 				lastReleasedSequenceNumber = wrapper.getLastReleasedSequenceNumber();
 				groupTimestamp = wrapper.getGroupTimestamp();
@@ -289,6 +287,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				Class<?> sourceType = (source != null) ? source.getClass() : null;
 				throw new IllegalArgumentException("Unexpected source type [" + sourceType + "]. Should be a MessageWrapper.");
 			}
+			target.put(CREATED_DATE, System.currentTimeMillis());
 			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
 			if (groupId != null) {
 				target.put(GROUP_ID_KEY, groupId);
@@ -296,9 +295,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				target.put(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
 				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
 			}
-			if (marked) {
-				target.put(MARKED_KEY, marked);
-			}
+			
 			super.write(message, target);
 		}
 
@@ -341,8 +338,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				if (lastReleasedSequenceNumber != null){
 					wrapper.setLastReleasedSequenceNumber(lastReleasedSequenceNumber);
 				}
-				
-				wrapper.setMarked(source.get(MARKED_KEY) != null);
 					
 				if (completeGroup != null){
 					wrapper.setCompletedGroup(completeGroup.booleanValue());
@@ -376,8 +371,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 		private volatile Object groupId;
 
-		private volatile boolean marked;
-
 		private final Message<?> message;
 		
 		private volatile long groupTimestamp; 
@@ -406,20 +399,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			return groupId;
 		}
 
-		public boolean isMarked() {
-			return marked;
-		}
-
 		public Message<?> getMessage() {
 			return message;
 		}
 		
 		public void setGroupId(Object groupId) {
 			this.groupId = groupId;
-		}
-
-		public void setMarked(boolean marked) {
-			this.marked = marked;
 		}
 
 		public void setGroupTimestamp(long groupTimestamp) {

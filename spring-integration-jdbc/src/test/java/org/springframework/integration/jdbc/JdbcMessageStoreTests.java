@@ -16,21 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -50,6 +40,16 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -77,7 +77,7 @@ public class JdbcMessageStoreTests {
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNull(messageStore.getMessage(message.getHeaders().getId()));
+		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertNotNull(result);
 		assertThat(saved, sameExceptIgnorableHeaders(result));
@@ -111,7 +111,7 @@ public class JdbcMessageStoreTests {
 		});
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.addMessage(message);
-		assertNull(messageStore.getMessage(message.getHeaders().getId()));
+		assertNotNull(messageStore.getMessage(message.getHeaders().getId()));
 		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());
@@ -263,31 +263,8 @@ public class JdbcMessageStoreTests {
 		messageStore.addMessageToGroup(groupId, message);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
 		assertEquals(2, group.size());
-		Iterator<Message<?>> iterator = group.getUnmarked().iterator();
-		assertEquals("foo", iterator.next().getPayload());
-		assertEquals("bar", iterator.next().getPayload());
-	}
-
-	@Test
-	@Transactional
-	public void testAddAndMarkMessageGroup() throws Exception {
-		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
-		MessageGroup group = messageStore.getMessageGroup(groupId);
-		group = messageStore.markMessageGroup(group);
-		assertEquals(1, group.getMarked().size());
-	}
-
-	@Test
-	@Transactional
-	public void testAddAndMarkMessageInGroup() throws Exception {
-		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
-		messageStore.addMessageToGroup(groupId, message);
-		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
-		MessageGroup group = messageStore.markMessageFromGroup(groupId, message);
-		assertEquals(1, group.getMarked().size());
+		assertEquals("foo", messageStore.pollMessageFromGroup(groupId).getPayload());
+		assertEquals("bar", messageStore.pollMessageFromGroup(groupId).getPayload());
 	}
 
 	@Test

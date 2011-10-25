@@ -37,17 +37,6 @@ public interface MessageGroupStore {
 	 */
 	@ManagedAttribute
 	int getMessageCountForAllMessageGroups();
-
-	/**
-	 * Optional attribute giving the number of marked messages in the store for all groups. Implementations may decline
-	 * to respond by throwing an exception.
-	 * 
-	 * @return the number of marked messages in each group
-	 * @throws UnsupportedOperationException if not implemented
-	 */
-	@ManagedAttribute
-	int getMarkedMessageCountForAllMessageGroups();
-
 	/**
 	 * Optional attribute giving the number of  message groups. Implementations may decline
 	 * to respond by throwing an exception.
@@ -73,15 +62,7 @@ public interface MessageGroupStore {
 	 * @param message a message
 	 */
 	MessageGroup addMessageToGroup(Object groupId, Message<?> message);
-
-	/**
-	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
-	 * messages become marked.
-	 * 
-	 * @param group a MessageGroup with no unmarked messages
-	 */
-	MessageGroup markMessageGroup(MessageGroup group);
-
+	
 	/**
 	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is
 	 * no longer present in the group.
@@ -89,14 +70,6 @@ public interface MessageGroupStore {
 	 * @param messageToRemove the message to be removed
 	 */
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
-
-	/**
-	 * Persist a mark on a single message from the group. The group is modified to reflect that 'messageToMark' is no
-	 * longer unmarked but became marked instead.
-	 * @param key the groupId for the group containing the message
-	 * @param messageToMark the message to be marked
-	 */
-	MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
 
 	/**
 	 * Remove the message group with this id.
@@ -135,6 +108,13 @@ public interface MessageGroupStore {
 	 * Returns the iterator of currently accumulated {@link MessageGroup}s
 	 */
 	Iterator<MessageGroup> iterator();
+	
+	
+	/**
+	 * Polls Message from this {@link MessageGroup} (in FIFO style if supported by the implementation)
+	 * while also removing the polled {@link Message}
+	 */
+	Message<?> pollMessageFromGroup(Object groupId);
 	
 	/**
 	 * Completes this MessageGroup. Completion of the MessageGroup generally means 

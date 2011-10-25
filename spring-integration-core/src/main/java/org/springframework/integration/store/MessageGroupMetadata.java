@@ -17,9 +17,8 @@
 package org.springframework.integration.store;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.springframework.integration.Message;
@@ -34,13 +33,12 @@ import org.springframework.util.Assert;
 public class MessageGroupMetadata implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-
+	
+	private final static String CREATED_DATE = "CREATED_DATE";
 
 	private final Object groupId;
 
-	private final List<UUID> markedMessageIds;
-
-	private final List<UUID> unmarkedMessageIds;
+	private final TreeMap<Long, UUID> messageCreationDateToIdMappings;
 
 	private final boolean complete;
 
@@ -48,17 +46,16 @@ public class MessageGroupMetadata implements Serializable{
 
 	private final int lastReleasedMessageSequenceNumber;
 
-
 	public MessageGroupMetadata(MessageGroup messageGroup) {
+		
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
 		this.groupId = messageGroup.getGroupId();
-		this.markedMessageIds = new ArrayList<UUID>();
-		for (Message<?> message : messageGroup.getMarked()) {
-			this.markedMessageIds.add(message.getHeaders().getId());
-		}
-		this.unmarkedMessageIds = new ArrayList<UUID>();
-		for (Message<?> message : messageGroup.getUnmarked()) {
-			this.unmarkedMessageIds.add(message.getHeaders().getId());
+		this.messageCreationDateToIdMappings = new TreeMap<Long, UUID>();
+
+		for (Message<?> message : messageGroup.getMessages()) {
+			Long createdDate = (Long) message.getHeaders().get(CREATED_DATE);
+			Assert.notNull(createdDate > 0,  CREATED_DATE  + " must not be null");
+			this.messageCreationDateToIdMappings.put(createdDate, message.getHeaders().getId());
 		}
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
@@ -69,13 +66,13 @@ public class MessageGroupMetadata implements Serializable{
 	public Object getGroupId() {
 		return this.groupId;
 	}
-
-	public List<UUID> getMarkedMessageIds() {
-		return Collections.unmodifiableList(markedMessageIds);
+	
+	public Iterator<UUID> messageIdIterator(){
+		return this.messageCreationDateToIdMappings.values().iterator();
 	}
-
-	public List<UUID> getUnmarkedMessageIds() {
-		return Collections.unmodifiableList(this.unmarkedMessageIds);
+	
+	public UUID firstId(){
+		return messageCreationDateToIdMappings.firstEntry().getValue();
 	}
 
 	public boolean isComplete() {

@@ -39,6 +39,13 @@ public final class UpperBound {
 	public UpperBound(int capacity) {
 		this.semaphore = (capacity > 0) ? new Semaphore(capacity, true) : null;
 	}
+	
+	public int availablePermits(){
+		if (semaphore == null){
+			return Integer.MAX_VALUE;
+		}
+		return this.semaphore.availablePermits();
+	}
 
 
 	/**
