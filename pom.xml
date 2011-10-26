@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration</artifactId>
-  <version>2.1.0.M3</version>
+  <version>2.1.0.BUILD-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Spring Integration</name>
   <modules>
