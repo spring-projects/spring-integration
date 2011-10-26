@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,6 +46,14 @@ public class AmqpInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("rabbitInbound.adapter");
 		assertEquals(DirectChannel.class, channel.getClass());
 		assertEquals(AmqpInboundChannelAdapter.class, adapter.getClass());
+		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertEquals(0, TestUtils.getPropertyValue(adapter, "phase"));
 	}
 
+	@Test
+	public void verifyLifeCycle() {
+		Object adapter = context.getBean("autoStartFalse.adapter");
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
+	}
 }

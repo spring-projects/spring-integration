@@ -369,6 +369,13 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Boolean value indicating whether this endpoint should start automatically.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="containerAttributes">
