@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-redis</artifactId>
-  <version>2.1.0.BUILD-SNAPSHOT</version>
+  <version>2.1.0.M3</version>
   <name>Spring Integration Redis Support</name>
   <licenses>
     <license>
@@ -114,9 +114,9 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.M3</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -140,6 +140,12 @@
       <groupId>cglib</groupId>
       <artifactId>cglib-nodep</artifactId>
       <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.M3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -177,12 +183,6 @@
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
