@@ -11,6 +11,9 @@
 
 	<amqp:inbound-channel-adapter id="rabbitInbound" queue-names="inboundchanneladapter.test.1"/>
 
+	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"/>
+
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>

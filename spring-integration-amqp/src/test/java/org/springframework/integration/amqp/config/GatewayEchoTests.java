@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
+import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -28,4 +29,9 @@ public class GatewayEchoTests {
 		new ClassPathXmlApplicationContext("GatewayEchoTests-context.xml", GatewayEchoTests.class);
 	}
 
+	@Test
+	/**
+	 * Dummy test to satisfy maven in some environments.
+	 */
+	public void test() {}
 }

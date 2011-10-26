@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
@@ -48,8 +49,16 @@ public class AmqpInboundGatewayParserTests {
 		TestConverter testConverter = context.getBean("testConverter", TestConverter.class);
 		assertSame(testConverter, gatewayConverter);
 		assertSame(testConverter, templateConverter);
+		assertEquals(Boolean.TRUE, TestUtils.getPropertyValue(gateway, "autoStartup"));
+		assertEquals(0, TestUtils.getPropertyValue(gateway, "phase"));
 	}
 
+	@Test
+	public void verifyLifeCycle() {
+		Object gateway = context.getBean("autoStartFalseGateway");
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(gateway, "autoStartup"));
+		assertEquals(123, TestUtils.getPropertyValue(gateway, "phase"));
+	}
 
 	private static class TestConverter extends SimpleMessageConverter {}
 

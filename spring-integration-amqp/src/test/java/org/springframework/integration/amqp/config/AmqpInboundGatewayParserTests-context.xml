@@ -20,4 +20,8 @@
 
 	<bean id="testConverter" class="org.springframework.integration.amqp.config.AmqpInboundGatewayParserTests$TestConverter"/>
 
+	<si-amqp:inbound-gateway id="autoStartFalseGateway" request-channel="requests" queue-names="test"
+			connection-factory="rabbitConnectionFactory" message-converter="testConverter"
+			auto-startup="false" phase="123"/>
+
 </beans>
