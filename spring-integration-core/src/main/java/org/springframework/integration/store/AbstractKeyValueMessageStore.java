@@ -42,8 +42,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
 	
 	protected static final String CREATED_DATE = "CREATED_DATE";
-
-
+	
 	// MessageStore methods
 	
 	public Message<?> getMessage(UUID id) {
@@ -68,7 +67,10 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		if (message != null) {
 			Assert.isInstanceOf(Message.class, message);
 		}
-		return (Message<?>) message;
+		if (message != null){
+			return this.normalizeMessage((Message<?>) message);
+		}
+		return null;
 	}
 
 	@ManagedAttribute
@@ -146,7 +148,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
-		SimpleMessageGroup messageGroup = this.buildMessageGroup(this.getMessageGroup(groupId), true);
+		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
 		messageGroup.complete();
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
@@ -182,9 +184,15 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
 			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
 			
-			Message<?> message = this.removeMessage(messageGroupMetadata.firstId());
-			Message<?> normalizedMessage = this.normalizeMessage(message);
-			return normalizedMessage;
+			UUID firstId = messageGroupMetadata.firstId();
+			if (firstId != null){
+				Message<?> message = this.removeMessage(firstId);
+				
+				messageGroupMetadata.remove(message.getHeaders().getId());
+				this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
+				
+				return message;
+			}
 		}
 		return null;
 	}
@@ -273,8 +281,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	
 	private Message<?> getRawMessage(UUID id) {
 		Assert.notNull(id, "'id' must not be null");
-		Object message = this.doRetrieve(MESSAGE_KEY_PREFIX + id);
-		Assert.isInstanceOf(Message.class, message);	
+		Object message = this.doRetrieve(MESSAGE_KEY_PREFIX + id);	
 		return (Message<?>) message;
 	}
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beansProjectDescription>
 	<version>1</version>
-	<pluginVersion><![CDATA[2.8.0.201108100015-M1]]></pluginVersion>
+	<pluginVersion><![CDATA[2.8.0.201110170010-RELEASE]]></pluginVersion>
 	<configSuffixes>
 		<configSuffix><![CDATA[xml]]></configSuffix>
 	</configSuffixes>
@@ -9,6 +9,7 @@
 	<configs>
 		<config>src/test/java/org/springframework/integration/gemfire/inbound/GemfireInboundChannelAdapterTests-context.xml</config>
 		<config>src/test/java/org/springframework/integration/gemfire/outbound/GemfireOutboundChannelAdapterTests-context.xml</config>
+		<config>src/test/java/org/springframework/integration/gemfire/store/gemfire-queue-context.xml</config>
 	</configs>
 	<configSets>
 	</configSets>
