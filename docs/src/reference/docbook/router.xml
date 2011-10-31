@@ -289,13 +289,44 @@
               </varlistentry>
               <varlistentry><term><emphasis role="bold">ignore-send-failures</emphasis></term>
                   <listitem>
-                  <para>
-                      If set to <emphasis>true</emphasis>, any failures that
-                      occur while trying to send to a single channel will be
-                      ignored. Otherwise, a <code>MessageDeliveryExceptions</code>
-                      will be thrown. This attribute defaults to
-                      <emphasis>false</emphasis>.
-                  </para>
+	                  <para>
+	                      If set to <emphasis>true</emphasis>, failures to send to a
+	                      message channel will be ignored. If set to <emphasis>false</emphasis>,
+	                      a <classname>MessageDeliveryException</classname>  will
+	                      be thrown instead, and if the router resolves more than
+	                      one channel, any subsequent channels will not receive
+	                      the message.
+	                  </para>
+	                  <para>
+	                      The exact behavior of this attribute depends on the type
+	                      of the <code>Channel</code> messages are sent to. For
+	                      example, when using direct channels (single threaded),
+	                      send-failures can be caused by exceptions thrown by components
+	                      much further down-stream. On the other side, when sending
+	                      messages to a simple queue channel (asynchronous) the
+	                      likelyhood of an exception to be thrown is rather remote.
+	                  </para>
+	                  <note>
+	                      While most routers will route to a single channel, they
+	                      are allowed to return more than one channel name. The
+	                      <code>recipient-list-router</code>, for instance, does
+	                      exactly that.
+
+                          If you set this attribute to <emphasis>true</emphasis>
+                          on a router that only routes to a single channel, any
+                          caused exception is simply swallowed, which usually makes
+                          little sense to do. In that case it would be better to
+                          catch the exception in an error flow at the flow entry
+                          point.
+
+                          Therefore, setting the <code>ignore-send-failures</code>
+                          attribute to <emphasis>true</emphasis> usually makes
+                          more sense when the router implementation returns more
+                          than one channel name.
+	                  </note>
+	                  <para>
+	                      This attribute defaults to <emphasis>false</emphasis>.
+	                  </para>
                   </listitem>
               </varlistentry>
               <varlistentry><term><emphasis role="bold">timeout</emphasis></term>

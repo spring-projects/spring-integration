@@ -1009,7 +1009,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 						That property should be settable on the target payload instance. Exactly one of the 'value'
 						or 'expression' attributes must be provided as well. The former for a literal value to set,
 						and the latter for a SpEL expression to be evaluated. The root object of the evaluation
-						context is the Message that was returned from the flow initiated by this enricher. 
+						context is the Message that was returned from the flow initiated by this enricher.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -2679,11 +2679,18 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:attribute>
 		<xsd:attribute name="ignore-send-failures" default="false">
 			<xsd:annotation>
-				<xsd:documentation>
-					Specify whether a failure to send to a single channel should
-					be ignored. Otherwise MessageDeliveryExceptions will be thrown.
-					Defaults to false.
-				</xsd:documentation>
+				<xsd:documentation><![CDATA[
+					If set to "true", failures to send to a message channel will
+					be ignored. If set to "false", a MessageDeliveryException will be
+					thrown instead and if the router resolves more than one channel,
+					any subsequent channels will not receive the message.
+
+					Please be aware, that when using direct channels (single threaded),
+					send-failures can be caused by exceptions thrown by components
+					much further down-stream.
+
+					This attribute defaults to false.
+				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
