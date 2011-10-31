@@ -8,7 +8,8 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
-	<xsd:import namespace="http://www.springframework.org/schema/integration" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.1.xsd"/>
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
@@ -278,6 +279,15 @@
 	Base type for 'channel' and 'publish-subscribe-channel'.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="interceptors" type="integration:channelInterceptorsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A list of ChannelInterceptor instances to be applied to this channel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
