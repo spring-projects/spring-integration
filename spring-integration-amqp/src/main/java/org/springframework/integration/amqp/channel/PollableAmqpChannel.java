@@ -16,6 +16,7 @@
 
 package org.springframework.integration.amqp.channel;
 
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -26,12 +27,20 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
+ * A {@link PollableChannel} implementation that is backed by an AMQP Queue.
+ * Messages will be sent to the default (no-name) exchange with that Queue's
+ * name as the routing key.
+ * 
  * @author Mark Fisher
  * @since 2.1
  */
 public class PollableAmqpChannel extends AbstractAmqpChannel implements PollableChannel {
 
 	private final String channelName;
+
+	private volatile String queueName;
+
+	private volatile AmqpAdmin amqpAdmin;
 
 
 	public PollableAmqpChannel(String channelName, AmqpTemplate amqpTemplate) {
@@ -41,26 +50,50 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 	}
 
 
+	/**
+	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
+	 * implicitly with the channelName prefixed by the 'queueNamePrefix' (if provided). The implicit
+	 * creation will require that either an AmqpAdmin instance has been provided or that the configured
+	 * AmqpTemplate is an instance of RabbitTemplate.
+	 */
+	public void setQueueName(String queueName) {
+		this.queueName = queueName;
+	}
+
+	/**
+	 * Provide an instance of AmqpAdmin for implicitly declaring Queues if the queueName is not provided.
+	 * When providing a RabbitTemplate implementation, this is not stricly necessary since a RabbitAdmin
+	 * instance can be created from the template's ConnectionFactory reference.
+	 */
+	public void setAmqpAdmin(AmqpAdmin amqpAdmin) {
+		this.amqpAdmin = amqpAdmin;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
-		if (!(amqpTemplate instanceof RabbitTemplate)) {
-			throw new IllegalArgumentException("AmqpTemplate must be a RabbitTemplate");
+		if (this.queueName == null) {
+			if (this.amqpAdmin == null && amqpTemplate instanceof RabbitTemplate) {
+				this.amqpAdmin = new RabbitAdmin(((RabbitTemplate) amqpTemplate).getConnectionFactory());				
+			}
+			Assert.notNull(this.amqpAdmin,
+					"If no queueName is configured explicitly, an AmqpAdmin instance must be provided, " +
+					"or the AmqpTemplate must be a RabbitTemplate since the Queue needs to be declared.");
+			this.queueName = this.channelName;
+			this.amqpAdmin.declareQueue(new Queue(this.queueName));
 		}
-		RabbitTemplate rabbitTemplate = (RabbitTemplate) amqpTemplate;
-		RabbitAdmin admin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
-		String queueName = "si." + this.channelName;
-		Queue queue = new Queue(queueName);
-		admin.declareQueue(queue);
-		rabbitTemplate.setRoutingKey(queueName);
-		rabbitTemplate.setQueue(queueName);
+	}
+
+	@Override
+	protected String getRoutingKey() {
+		return this.queueName;
 	}
 
 	public Message<?> receive() {
 		if (!this.getInterceptors().preReceive(this)) {
  			return null;
  		}
-		Object object = this.getAmqpTemplate().receiveAndConvert();
+		Object object = this.getAmqpTemplate().receiveAndConvert(this.queueName);
 		if (object == null) {
 			return null;
 		}

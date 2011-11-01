@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -33,8 +34,9 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
+import org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
-import org.springframework.integration.amqp.channel.SubscribableAmqpChannel;
+import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -62,7 +64,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private final boolean messageDriven;
 
-	private final RabbitTemplate rabbitTemplate = new RabbitTemplate();
+	private final AmqpTemplate amqpTemplate = new RabbitTemplate();
 
 	private volatile SimpleMessageListenerContainer container;
 
@@ -132,11 +134,21 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	 */
 
 	public void setEncoding(String encoding) {
-		this.rabbitTemplate.setEncoding(encoding);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setEncoding(encoding);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("AmqpTemplate is not a RabbitTemplate, so configured 'encoding' value will be ignored.");
+		}
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
-		this.rabbitTemplate.setMessageConverter(messageConverter);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("AmqpTemplate is not a RabbitTemplate, so configured MessageConverter will be ignored.");
+		}
 	}
 
 	/*
@@ -145,17 +157,23 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	public void setChannelTransacted(boolean channelTransacted) {
 		this.channelTransacted = channelTransacted;
-		this.rabbitTemplate.setChannelTransacted(channelTransacted);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setChannelTransacted(channelTransacted);
+		}
 	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
-		this.rabbitTemplate.setConnectionFactory(this.connectionFactory);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setConnectionFactory(this.connectionFactory);
+		}
 	}
 
 	public void setMessagePropertiesConverter(MessagePropertiesConverter messagePropertiesConverter) {
-		this.rabbitTemplate.setMessagePropertiesConverter(messagePropertiesConverter);
 		this.messagePropertiesConverter = messagePropertiesConverter;
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setMessagePropertiesConverter(messagePropertiesConverter);
+		}
 	}
 
 	/*
@@ -235,12 +253,17 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	protected AbstractAmqpChannel createInstance() throws Exception {
 		if (this.messageDriven) {
 			this.container = this.createContainer();
-			this.channel = new SubscribableAmqpChannel(this.beanName, this.container, this.rabbitTemplate, this.isPubSub);
+			if (this.isPubSub) {
+				this.channel = new PublishSubscribeAmqpChannel(this.beanName, this.container, this.amqpTemplate);
+			}
+			else {
+				this.channel = new PointToPointSubscribableAmqpChannel(this.beanName, this.container, this.amqpTemplate);
+			}
 		}
 		else {
 			Assert.isTrue(!Boolean.TRUE.equals(this.isPubSub),
 					"An AMQP 'publish-subscribe-channel' must be message-driven.");
-			this.channel = new PollableAmqpChannel(this.beanName, this.rabbitTemplate);
+			this.channel = new PollableAmqpChannel(this.beanName, this.amqpTemplate);
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
 			this.channel.setInterceptors(this.interceptors);
