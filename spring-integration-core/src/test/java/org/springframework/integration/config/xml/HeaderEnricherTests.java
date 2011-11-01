@@ -16,10 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.Date;
 
 import org.junit.Test;
@@ -37,8 +33,11 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -180,6 +179,38 @@ public class HeaderEnricherTests {
 		assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
 	}
 
+	@Test
+	public void ref() {
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("ref", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+		assertNotNull(result);
+		assertEquals(TestBean.class, result.getHeaders().get("testHeader").getClass());
+		TestBean testBeanForRef = context.getBean("testBean1", TestBean.class);
+		assertSame(testBeanForRef, result.getHeaders().get("testHeader"));
+	}
+
+	@Test
+	public void innerBean() {
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("innerBean", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+		assertNotNull(result);
+		assertEquals(TestBean.class, result.getHeaders().get("testHeader").getClass());
+		TestBean testBeanForInnerBean = new TestBean("testBeanForInnerBean");
+		assertEquals(testBeanForInnerBean, result.getHeaders().get("testHeader"));
+	}
+
+	@Test
+	public void innerBeanWithMethod() {
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("innerBeanWithMethod", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
+		assertNotNull(result);
+		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
+		assertEquals("testBeanForInnerBeanWithMethod", result.getHeaders().get("testHeader"));
+	}
+
 
 	public static class TestBean {
 
@@ -191,6 +222,23 @@ public class HeaderEnricherTests {
 
 		public String getName() {
 			return this.name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			TestBean testBean = (TestBean) o;
+
+			if (name != null ? !name.equals(testBean.name) : testBean.name != null) return false;
+
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			return name != null ? name.hashCode() : 0;
 		}
 	}
 
