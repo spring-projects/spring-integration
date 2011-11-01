@@ -302,7 +302,7 @@
 	                      of the <code>Channel</code> messages are sent to. For
 	                      example, when using direct channels (single threaded),
 	                      send-failures can be caused by exceptions thrown by components
-	                      much further down-stream. On the other side, when sending
+	                      much further down-stream. However, when sending
 	                      messages to a simple queue channel (asynchronous) the
 	                      likelyhood of an exception to be thrown is rather remote.
 	                  </para>
