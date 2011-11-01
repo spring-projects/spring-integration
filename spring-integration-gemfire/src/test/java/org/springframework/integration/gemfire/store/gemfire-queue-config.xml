@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
+	
+	
+	<int:channel id="gemfireQueue">
+		<int:queue message-store="gemfireStore"/>
+	</int:channel>
+	
+	<int:bridge input-channel="gemfireQueue" output-channel="outputQueue">
+		<int:poller fixed-rate="1000" max-messages-per-poll="200"/>
+	</int:bridge>
+	
+	<int:channel id="outputQueue">
+		<int:queue/>
+	</int:channel>
+	
+	<bean id="gemfireStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+		<constructor-arg ref="gemfireCache"/>
+	</bean>
+	
+	<bean id="gemfireCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
+
+</beans>
