@@ -18,11 +18,13 @@ package org.springframework.integration.monitor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Dave Syer
- * 
+ * @author Artem Bilan
+ *
  */
 public class ExponentialMovingAverageTests {
 
@@ -59,7 +61,8 @@ public class ExponentialMovingAverageTests {
 		assertFalse(0==history.getStandardDeviation());
 		history.reset();
 		assertEquals(0, history.getStandardDeviation(), 0.01);
-		assertEquals("[N=0, min=0.000000, max=0.000000, mean=0.000000, sigma=0.000000]", history.toString());
+		// INT-2165
+		assertEquals(String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", 0, 0d, 0d, 0d, 0d), history.toString());
 	}
 
 }
