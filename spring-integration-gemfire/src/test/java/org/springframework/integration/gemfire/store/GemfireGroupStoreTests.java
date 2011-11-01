@@ -296,6 +296,22 @@ public class GemfireGroupStoreTests {
 		inputA.send(m3);
 		assertNotNull(outputA.receive(1000));
 	}
+	@Test
+	public void testQueue() throws Exception{
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("gemfire-queue-config.xml", this.getClass());
+		
+		QueueChannel gemfireQueue = context.getBean("gemfireQueue", QueueChannel.class);
+		QueueChannel outputQueue = context.getBean("outputQueue", QueueChannel.class);
+		
+		for (int i = 0; i < 20; i++) {
+			gemfireQueue.send(new GenericMessage<String>("Hello"));
+			Thread.sleep(1);
+		}
+		for (int i = 0; i < 20; i++) {
+			assertNotNull(outputQueue.receive(1));
+		}
+		assertNull(outputQueue.receive(1));
+	}
 	
 	@Before
 	public void init() throws Exception{

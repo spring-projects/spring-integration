@@ -18,6 +18,7 @@ package org.springframework.integration.store;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -62,6 +63,16 @@ public class MessageGroupMetadata implements Serializable{
 		this.lastReleasedMessageSequenceNumber = messageGroup.getLastReleasedMessageSequenceNumber();
 	}
 
+	public void remove(UUID messageId){
+		long currentTimestamp = 0;
+		for (Entry<Long, UUID> entry : messageCreationDateToIdMappings.entrySet()) {
+			if (entry.getValue().equals(messageId)){
+				currentTimestamp = entry.getKey();
+				break;
+			}
+		}
+		this.messageCreationDateToIdMappings.remove(currentTimestamp);
+	}
 
 	public Object getGroupId() {
 		return this.groupId;
@@ -72,7 +83,11 @@ public class MessageGroupMetadata implements Serializable{
 	}
 	
 	public UUID firstId(){
-		return messageCreationDateToIdMappings.firstEntry().getValue();
+		Entry<Long, UUID> firstEntry = messageCreationDateToIdMappings.firstEntry();
+		if (firstEntry != null){
+			return firstEntry.getValue();
+		}
+		return null;
 	}
 
 	public boolean isComplete() {
