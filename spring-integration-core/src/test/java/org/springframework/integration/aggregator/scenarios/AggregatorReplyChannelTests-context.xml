@@ -13,6 +13,6 @@
 
 	<splitter id="splitter" input-channel="input" output-channel="aggregatorChannel"/>
 
-	<aggregator id="aggregator" input-channel="aggregatorChannel"/>
+	<aggregator id="aggregator" input-channel="aggregatorChannel" auto-startup="true"/>
 
 </beans:beans>
