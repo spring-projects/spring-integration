@@ -259,18 +259,66 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="queue-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
+	implicitly with the same name as the channel itself (the "id" of this element). If this channel is
+	not message-driven, the implicit creation will require that either an AmqpAdmin instance has been
+	provided via the "amqp-admin" attribute or that the configured AmqpTemplate is an instance of RabbitTemplate.
+	If the channel is message-driven, the AmqpAdmin will be created using the underlying listener container's
+	ConnectionFactory.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="amqp-admin" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	An AmqpAdmin instance to use when declaring a Queue implicitly. This is only needed if an explicit
+	"queue-name" is not provided and the channel is not message-driven. Even then, if the referenced
+	AmqpTemplate is an instance of RabbitTemplate, the AmqpAdmin can be constructed from that template's
+	ConnectionFactory.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.amqp.core.AmqpAdmin"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="publish-subscribe-channel" type="channelType">
+	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
 	Creates a publish-subscribe-channel that is backed by an AMQP FanoutExchange.
 	Always message-driven (subscribable).
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="exchange" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to a FanoutExchange instance to which this channel should send Messages. If not provided,
+	a FanoutExchange will be declared with this channel's name prefixed by "si.fanout.".
+	A Queue will be declared automatically and bound to that exchange to handle the consumer role
+	of this channel. 
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.amqp.core.FanoutExchange"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="channelType">

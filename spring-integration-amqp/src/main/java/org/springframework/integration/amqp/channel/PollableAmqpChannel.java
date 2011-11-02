@@ -52,9 +52,8 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	/**
 	 * Provide an explicitly configured queue name. If this is not provided, then a Queue will be created
-	 * implicitly with the channelName prefixed by the 'queueNamePrefix' (if provided). The implicit
-	 * creation will require that either an AmqpAdmin instance has been provided or that the configured
-	 * AmqpTemplate is an instance of RabbitTemplate.
+	 * implicitly with the channelName as its name. The implicit creation will require that either an AmqpAdmin
+	 * instance has been provided or that the configured AmqpTemplate is an instance of RabbitTemplate.
 	 */
 	public void setQueueName(String queueName) {
 		this.queueName = queueName;
@@ -62,7 +61,7 @@ public class PollableAmqpChannel extends AbstractAmqpChannel implements Pollable
 
 	/**
 	 * Provide an instance of AmqpAdmin for implicitly declaring Queues if the queueName is not provided.
-	 * When providing a RabbitTemplate implementation, this is not stricly necessary since a RabbitAdmin
+	 * When providing a RabbitTemplate implementation, this is not strictly necessary since a RabbitAdmin
 	 * instance can be created from the template's ConnectionFactory reference.
 	 */
 	public void setAmqpAdmin(AmqpAdmin amqpAdmin) {
