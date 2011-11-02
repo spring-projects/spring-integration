@@ -2010,44 +2010,38 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
     <xsd:complexType name="claimCheckOutType">
         <xsd:complexContent>
-	        <xsd:extension base="commonClaimCheckType">
-		               <xsd:sequence minOccurs="0" maxOccurs="1">
-				            <xsd:element ref="poller" />
-				        </xsd:sequence>
-	                    <xsd:attribute name="remove-message" default="false">
-	                        <xsd:annotation>
-	                            <xsd:documentation>
-	                                If set to 'true' the Message will be removed
-	                                from the MessageStore by this transformer.
-	                                Useful when the Message can be 'claimed' only
-	                                once. DEFAULT is 'false'.
-	                            </xsd:documentation>
-	                        </xsd:annotation>
-				            <xsd:simpleType>
-				                <xsd:union memberTypes="xsd:boolean xsd:string" />
-				            </xsd:simpleType>
-	                    </xsd:attribute>
-	                    <xsd:attributeGroup ref="inputOutputChannelGroup" />
+	        <xsd:extension base="commonClaimCheckOutType">
+                <xsd:sequence minOccurs="0" maxOccurs="1">
+                    <xsd:element ref="poller" />
+                </xsd:sequence>
+                <xsd:attributeGroup ref="inputOutputChannelGroup" />
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="claimCheckOutTypeChain">
         <xsd:complexContent>
+            <xsd:extension base="commonClaimCheckOutType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="commonClaimCheckOutType">
+        <xsd:complexContent>
             <xsd:extension base="commonClaimCheckType">
-                        <xsd:attribute name="remove-message" default="false">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    If set to 'true' the Message will be removed
-                                    from the MessageStore by this transformer.
-                                    Useful when Message can be 'claimed' only
-                                    once. DEFAULT is 'false'.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                            <xsd:simpleType>
-                                <xsd:union memberTypes="xsd:boolean xsd:string" />
-                            </xsd:simpleType>
-                        </xsd:attribute>
+	            <xsd:attribute name="remove-message" default="false">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        If set to 'true' the Message will be removed
+	                        from the MessageStore by this transformer.
+	                        Useful when Message can be 'claimed' only
+	                        once. DEFAULT is 'false'.
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	                <xsd:simpleType>
+	                    <xsd:union memberTypes="xsd:boolean xsd:string" />
+	                </xsd:simpleType>
+	            </xsd:attribute>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
