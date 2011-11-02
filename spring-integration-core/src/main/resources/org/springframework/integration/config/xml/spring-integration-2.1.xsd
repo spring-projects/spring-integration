@@ -1235,8 +1235,8 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:element name="map-to-object-transformer"  type="map-to-object-transformer-type" />
 			<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type" />
 			<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type" />
-			<xsd:element name="claim-check-in"  type="claimCheckTransformerType" />
-			<xsd:element name="claim-check-out" type="claimCheckTransformerType" />
+			<xsd:element name="claim-check-in"  type="claimCheckInTypeChain" />
+			<xsd:element name="claim-check-out" type="claimCheckOutTypeChain" />
 			<xsd:element name="control-bus"     type="control-bus-type" />
 			<xsd:element name="chain"           type="chain-type" />
 		</xsd:choice>
@@ -1969,51 +1969,90 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="claim-check-in" type="claimCheckTransformerType">
+    <!-- Claim Check -->
+
+	<xsd:element name="claim-check-in" type="claimCheckInType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that stores a Message and returns a new Message whose
-				payload is the id of
-				the stored Message.
+				Defines a Transformer that stores a Message and returns a new
+				Message, whose payload is the id of the stored Message.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="claim-check-out">
+    <xsd:complexType name="claimCheckInType">
+        <xsd:complexContent>
+            <xsd:extension base="commonClaimCheckType">
+                <xsd:sequence minOccurs="0" maxOccurs="1">
+                    <xsd:element ref="poller" />
+                </xsd:sequence>
+                <xsd:attributeGroup ref="inputOutputChannelGroup" />
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="claimCheckInTypeChain">
+        <xsd:complexContent>
+            <xsd:extension base="commonClaimCheckType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+	<xsd:element name="claim-check-out" type="claimCheckOutType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that accepts a Message whose payload is a UUID and
-				retrieves the Message
-				associated with that id from a MessageStore if
-				available (else null).
+				Defines a Transformer that accepts a Message whose payload is a
+				UUID and retrieves the Message associated with that id from a
+				MessageStore if available (else null).
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="claimCheckTransformerType">
-					<xsd:attribute name="remove-message" type="xsd:boolean" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-								If set to 'true' the Message will be removed from the MessageStore by
-								this transformer. Useful when Message can be 'claimed' only once. DEFAULT is 'false'.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="claimCheckTransformerType">
-		<xsd:sequence minOccurs="0" maxOccurs="1">
-			<xsd:element ref="poller" />
-		</xsd:sequence>
+    <xsd:complexType name="claimCheckOutType">
+        <xsd:complexContent>
+	        <xsd:extension base="commonClaimCheckOutType">
+                <xsd:sequence minOccurs="0" maxOccurs="1">
+                    <xsd:element ref="poller" />
+                </xsd:sequence>
+                <xsd:attributeGroup ref="inputOutputChannelGroup" />
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="claimCheckOutTypeChain">
+        <xsd:complexContent>
+            <xsd:extension base="commonClaimCheckOutType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="commonClaimCheckOutType">
+        <xsd:complexContent>
+            <xsd:extension base="commonClaimCheckType">
+	            <xsd:attribute name="remove-message" default="false">
+	                <xsd:annotation>
+	                    <xsd:documentation>
+	                        If set to 'true' the Message will be removed
+	                        from the MessageStore by this transformer.
+	                        Useful when Message can be 'claimed' only
+	                        once. DEFAULT is 'false'.
+	                    </xsd:documentation>
+	                </xsd:annotation>
+	                <xsd:simpleType>
+	                    <xsd:union memberTypes="xsd:boolean xsd:string" />
+	                </xsd:simpleType>
+	            </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+	<xsd:complexType name="commonClaimCheckType">
 		<xsd:attribute name="message-store" default="messageStore">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to the MessageStore to be used by this Claim Check transformer.
-					If not specified, the
-					default reference will be to a bean named 'messageStore'.
+					Reference to the MessageStore to be used by this Claim Check
+					transformer. If not specified, the default reference will be
+					to a bean named 'messageStore'.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -2022,7 +2061,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attributeGroup ref="inputOutputChannelGroup" />
 	</xsd:complexType>
 
 	<xsd:complexType name="specialized-transformer-type">
@@ -3423,12 +3461,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" >
-			<xsd:annotation>
-			<xsd:documentation>
-					Lifecycle attribute signaling if this component should be started during Application Context startup.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+        <xsd:attribute name="auto-startup" default="true">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Lifecycle attribute signaling if this component should be
+                    started during Application Context startup. Defaults to true.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+                <xsd:union memberTypes="xsd:boolean xsd:string" />
+            </xsd:simpleType>
+        </xsd:attribute>
 	</xsd:attributeGroup>
 </xsd:schema>
