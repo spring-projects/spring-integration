@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2011 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
 
 /**
  * Base class for parsers that create an instance of {@link AbstractCorrelatingMessageHandler}
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  *
@@ -34,7 +34,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 	private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
 
 	private static final String CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE = "correlation-strategy-expression";
-	
+
 	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
 
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
@@ -46,7 +46,7 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 	private static final String SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE = "send-partial-result-on-expiry";
 
 	private static final String KEEP_RELEASED_MESSAGES = "keep-released-messages";
-	
+
 	protected void doParse(BeanDefinitionBuilder builder, Element element, BeanMetadataElement processor, ParserContext parserContext){
 		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
 				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
@@ -55,10 +55,9 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, KEEP_RELEASED_MESSAGES);
 	}
-	
+
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
 			String expressionAttribute, String beanProperty, String adapterClass, Element element,
 			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
