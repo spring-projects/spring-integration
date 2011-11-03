@@ -53,16 +53,19 @@ public class AmqpChannelParser extends AbstractChannelParser {
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "acknowledge-mode");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "advice-chain");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "amqp-admin");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "channel-transacted");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "encoding");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "exchange");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expose-listener-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-properties-converter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "prefetch-count");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "queue-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "recovery-interval");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "shutdown-timeout");
