@@ -36,13 +36,29 @@ public abstract class AbstractAmqpChannel extends AbstractMessageChannel {
 	}
 
 
+	/**
+	 * Subclasses may override this method to return an Exchange name.
+	 * By default, Messages will be sent to the no-name Direct Exchange.
+	 */
+	protected String getExchangeName() {
+		return "";
+	}
+
+	/**
+	 * Subclasses may override this method to return a routing key.
+	 * By default, there will be no routing key (empty string).
+	 */
+	protected String getRoutingKey() {
+		return "";
+	}
+
 	AmqpTemplate getAmqpTemplate() {
 		return this.amqpTemplate;
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		this.amqpTemplate.convertAndSend(message);
+		this.amqpTemplate.convertAndSend(this.getExchangeName(), this.getRoutingKey(), message);
 		return true;
 	}
 

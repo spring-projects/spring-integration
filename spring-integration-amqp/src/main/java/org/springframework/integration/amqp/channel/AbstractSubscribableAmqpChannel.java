@@ -18,25 +18,23 @@ package org.springframework.integration.amqp.channel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
-import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -44,24 +42,21 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.1
  */
-public class SubscribableAmqpChannel extends AbstractAmqpChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
+abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
 
 	private final String channelName;
 
 	private final SimpleMessageListenerContainer container;
 
-	private final boolean isPubSub;
-
 	private volatile MessageDispatcher dispatcher;
 
 
-	public SubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate, boolean isPubSub) {
+	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
 		super(amqpTemplate);
 		Assert.notNull(container, "container must not be null");
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 		this.container = container;
-		this.isPubSub = isPubSub;
 	}
 
 
@@ -76,67 +71,45 @@ public class SubscribableAmqpChannel extends AbstractAmqpChannel implements Subs
 	@Override
 	public void onInit() throws Exception {
 		super.onInit();
-		this.configureDispatcher();
-		AmqpTemplate amqpTemplate = this.getAmqpTemplate();
-		if (!(amqpTemplate instanceof RabbitTemplate)) {
-			throw new IllegalArgumentException("AmqpTemplate must be a RabbitTemplate");
-		}
-		RabbitTemplate rabbitTemplate = (RabbitTemplate) amqpTemplate;
-		RabbitAdmin admin = new RabbitAdmin(rabbitTemplate.getConnectionFactory());
-		if (this.isPubSub) {
-			FanoutExchange exchange = new FanoutExchange("si.fanout." + this.channelName);
-			admin.declareExchange(exchange);
-			Queue queue = admin.declareQueue();
-			Binding binding = BindingBuilder.bind(queue).to(exchange);
-			admin.declareBinding(binding);
-			this.container.setQueues(queue);
-			rabbitTemplate.setExchange(exchange.getName());
-		}
-		else {
-			String queueName = "si." + this.channelName;
-			Queue queue = new Queue(queueName);
-			admin.declareQueue(queue);
-			this.container.setQueues(queue);
-			rabbitTemplate.setRoutingKey(queueName);
-		}
-		MessageListener listener = new DispatchingMessageListener(rabbitTemplate, this.dispatcher);
+		this.dispatcher = this.createDispatcher();
+		AmqpAdmin admin = new RabbitAdmin(this.container.getConnectionFactory());
+		Queue queue = this.initializeQueue(admin, this.channelName);
+		this.container.setQueues(queue);
+		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
+				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
+				: new SimpleMessageConverter();
+		MessageListener listener = new DispatchingMessageListener(converter, this.dispatcher);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
 		}
-		rabbitTemplate.afterPropertiesSet();
 	}
 
-	private void configureDispatcher() {
-		if (this.isPubSub) {
-			this.dispatcher = new BroadcastingDispatcher();
-		}
-		else {
-			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
-			unicastingDispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
-			this.dispatcher = unicastingDispatcher;
-		}
-	}
+	protected abstract MessageDispatcher createDispatcher();
+
+	protected abstract Queue initializeQueue(AmqpAdmin admin, String channelName);
 
 
 	private static class DispatchingMessageListener implements MessageListener {
 
 		private final Log logger = LogFactory.getLog(this.getClass());
 
-		private final RabbitTemplate rabbitTemplate;
-
 		private final MessageDispatcher dispatcher;
 
+		private final MessageConverter converter;
 
-		private DispatchingMessageListener(RabbitTemplate rabbitTemplate, MessageDispatcher dispatcher) {
-			this.rabbitTemplate = rabbitTemplate;
+
+		private DispatchingMessageListener(MessageConverter converter, MessageDispatcher dispatcher) {
+			Assert.notNull(converter, "MessageConverter must not be null");
+			Assert.notNull(dispatcher, "MessageDispatcher must not be null");
+			this.converter = converter;
 			this.dispatcher = dispatcher;
 		}
 
 
 		public void onMessage(org.springframework.amqp.core.Message message) {
 			try {
-				Object converted = this.rabbitTemplate.getMessageConverter().fromMessage(message);
+				Object converted = this.converter.fromMessage(message);
 				if (converted != null) {
 					Message<?> messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
 							: MessageBuilder.withPayload(converted).build();

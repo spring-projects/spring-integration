@@ -22,6 +22,9 @@ import java.util.concurrent.Executor;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.amqp.core.AcknowledgeMode;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -29,12 +32,14 @@ import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.amqp.channel.AbstractAmqpChannel;
+import org.springframework.integration.amqp.channel.PointToPointSubscribableAmqpChannel;
 import org.springframework.integration.amqp.channel.PollableAmqpChannel;
-import org.springframework.integration.amqp.channel.SubscribableAmqpChannel;
+import org.springframework.integration.amqp.channel.PublishSubscribeAmqpChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -42,10 +47,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * If point-to-point, we send to the default exchange with the routing key
- * equal to "si.[beanName]" and we declare that same Queue and register a listener
+ * equal to "[beanName]" and we declare that same Queue and register a listener
  * if message-driven or poll explicitly otherwise. If publish-subscribe, we declare
  * a FanoutExchange named "si.fanout.[beanName]" and we send to that without any
  * routing key, and on the receiving side, we create an anonymous Queue that is
@@ -62,9 +68,15 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	private final boolean messageDriven;
 
-	private final RabbitTemplate rabbitTemplate = new RabbitTemplate();
+	private final AmqpTemplate amqpTemplate = new RabbitTemplate();
 
 	private volatile SimpleMessageListenerContainer container;
+
+	private volatile AmqpAdmin amqpAdmin;
+
+	private volatile FanoutExchange exchange;
+
+	private volatile String queueName;
 
 	private volatile boolean autoStartup = true;
 
@@ -127,16 +139,55 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 		this.interceptors = interceptors;
 	}
 
+	/**
+	 * This is an optional reference to an AmqpAdmin to use when
+	 * declaring a Queue implicitly for a PollableAmqpChannel. It
+	 * is not needed for the message-driven (Subscribable) channels
+	 * since those are able to create a RabbitAdmin instance using
+	 * the underlying listener container's ConnectionFactory.
+	 */
+	public void setAmqpAdmin(AmqpAdmin amqpAdmin) {
+		this.amqpAdmin = amqpAdmin;
+	}
+
+	/**
+	 * Set the FanoutExchange to use. This is only relevant for
+	 * publish-subscribe-channels, and even then if not provided,
+	 * a FanoutExchange will be implicitly created.
+	 */
+	public void setExchange(FanoutExchange exchange) {
+		this.exchange = exchange;
+	}
+
+	/**
+	 * Set the Queue name to use. This is only relevant for
+	 * point-to-point channels, even then if not provided,
+	 * a Queue will be implicitly created.
+	 */
+	public void setQueueName(String queueName) {
+		this.queueName = queueName;
+	}
+
 	/*
 	 * Template-only properties
 	 */
 
 	public void setEncoding(String encoding) {
-		this.rabbitTemplate.setEncoding(encoding);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setEncoding(encoding);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("AmqpTemplate is not a RabbitTemplate, so configured 'encoding' value will be ignored.");
+		}
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
-		this.rabbitTemplate.setMessageConverter(messageConverter);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setMessageConverter(messageConverter);
+		}
+		else if (logger.isInfoEnabled()) {
+			logger.info("AmqpTemplate is not a RabbitTemplate, so configured MessageConverter will be ignored.");
+		}
 	}
 
 	/*
@@ -145,17 +196,23 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 
 	public void setChannelTransacted(boolean channelTransacted) {
 		this.channelTransacted = channelTransacted;
-		this.rabbitTemplate.setChannelTransacted(channelTransacted);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setChannelTransacted(channelTransacted);
+		}
 	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
-		this.rabbitTemplate.setConnectionFactory(this.connectionFactory);
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setConnectionFactory(this.connectionFactory);
+		}
 	}
 
 	public void setMessagePropertiesConverter(MessagePropertiesConverter messagePropertiesConverter) {
-		this.rabbitTemplate.setMessagePropertiesConverter(messagePropertiesConverter);
 		this.messagePropertiesConverter = messagePropertiesConverter;
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).setMessagePropertiesConverter(messagePropertiesConverter);
+		}
 	}
 
 	/*
@@ -235,12 +292,37 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	protected AbstractAmqpChannel createInstance() throws Exception {
 		if (this.messageDriven) {
 			this.container = this.createContainer();
-			this.channel = new SubscribableAmqpChannel(this.beanName, this.container, this.rabbitTemplate, this.isPubSub);
+			if (this.amqpTemplate instanceof InitializingBean) {
+				((InitializingBean) this.amqpTemplate).afterPropertiesSet();
+			}
+			if (this.isPubSub) {
+				PublishSubscribeAmqpChannel pubsub = new PublishSubscribeAmqpChannel(
+						this.beanName, this.container, this.amqpTemplate);
+				if (this.exchange != null) {
+					pubsub.setExchange(this.exchange);
+				}
+				this.channel = pubsub;
+			}
+			else {
+				PointToPointSubscribableAmqpChannel p2p = new PointToPointSubscribableAmqpChannel(
+						this.beanName, this.container, this.amqpTemplate);
+				if (StringUtils.hasText(this.queueName)) {
+					p2p.setQueueName(this.queueName);
+				}
+				this.channel = p2p;
+			}
 		}
 		else {
 			Assert.isTrue(!Boolean.TRUE.equals(this.isPubSub),
 					"An AMQP 'publish-subscribe-channel' must be message-driven.");
-			this.channel = new PollableAmqpChannel(this.beanName, this.rabbitTemplate);
+			PollableAmqpChannel pollable = new PollableAmqpChannel(this.beanName, this.amqpTemplate);
+			if (this.amqpAdmin != null) {
+				pollable.setAmqpAdmin(this.amqpAdmin);
+			}
+			if (StringUtils.hasText(this.queueName)) {
+				pollable.setQueueName(this.queueName);
+			}
+			this.channel = pollable;
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
 			this.channel.setInterceptors(this.interceptors);
