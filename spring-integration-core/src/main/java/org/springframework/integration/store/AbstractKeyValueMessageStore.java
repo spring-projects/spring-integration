@@ -186,12 +186,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			
 			UUID firstId = messageGroupMetadata.firstId();
 			if (firstId != null){
-				Message<?> message = this.removeMessage(firstId);
-				
-				messageGroupMetadata.remove(message.getHeaders().getId());
+				messageGroupMetadata.remove(firstId);
 				this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
-				
-				return message;
+				return this.removeMessage(firstId);
 			}
 		}
 		return null;
