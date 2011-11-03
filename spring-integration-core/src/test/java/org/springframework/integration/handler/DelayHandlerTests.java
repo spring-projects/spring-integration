@@ -16,10 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -36,11 +32,16 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
 public class DelayHandlerTests {
@@ -63,6 +64,7 @@ public class DelayHandlerTests {
 	public void noDelayHeaderAndDefaultDelayIsZero() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(0);
 		ResultHandler resultHandler = new ResultHandler();
+		delayHandler.setGroupId("FOO");
 		delayHandler.setOutputChannel(output);
 		delayHandler.afterPropertiesSet();
 		input.subscribe(delayHandler);
@@ -77,6 +79,7 @@ public class DelayHandlerTests {
 	public void noDelayHeaderAndDefaultDelayIsPositive() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(10);
 		ResultHandler resultHandler = new ResultHandler();
+		delayHandler.setGroupId("FOO");
 		delayHandler.setOutputChannel(output);
 		delayHandler.afterPropertiesSet();
 		input.subscribe(delayHandler);
@@ -91,6 +94,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderAndDefaultDelayWouldTimeout() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -98,7 +102,7 @@ public class DelayHandlerTests {
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", 100).build();
+				.setHeader("delay", 100).build();
 		input.send(message);
 		this.waitForLatch(1000);
 		assertSame(message, resultHandler.lastMessage);
@@ -108,6 +112,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsNegativeAndDefaultDelayWouldTimeout() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -115,7 +120,7 @@ public class DelayHandlerTests {
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", -7000).build();
+				.setHeader("delay", -7000).build();
 		input.send(message);
 		this.waitForLatch(1000);
 		assertSame(message, resultHandler.lastMessage);
@@ -125,6 +130,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsInvalidFallsBackToDefaultDelay() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -132,7 +138,7 @@ public class DelayHandlerTests {
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", "not a number").build();
+				.setHeader("delay", "not a number").build();
 		input.send(message);
 		this.waitForLatch(1000);
 		assertSame(message, resultHandler.lastMessage);
@@ -143,13 +149,14 @@ public class DelayHandlerTests {
 	public void delayHeaderIsDateInTheFutureAndDefaultDelayWouldTimeout() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
 		delayHandler.setDelayHeaderName("delay");
+		delayHandler.setGroupId("FOO");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
 		delayHandler.afterPropertiesSet();
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", new Date(new Date().getTime() + 150)).build();
+				.setHeader("delay", new Date(new Date().getTime() + 150)).build();
 		input.send(message);
 		this.waitForLatch(3000);
 		assertSame(message, resultHandler.lastMessage);
@@ -159,6 +166,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsDateInThePastAndDefaultDelayWouldTimeout() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -166,7 +174,7 @@ public class DelayHandlerTests {
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
+				.setHeader("delay", new Date(new Date().getTime() - 60 * 1000)).build();
 		input.send(message);
 		this.waitForLatch(3000);
 		assertSame(message, resultHandler.lastMessage);
@@ -176,6 +184,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsNullDateAndDefaultDelayIsZero() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -184,7 +193,7 @@ public class DelayHandlerTests {
 		output.subscribe(resultHandler);
 		Date nullDate = null;
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", nullDate).build();
+				.setHeader("delay", nullDate).build();
 		input.send(message);
 		this.waitForLatch(3000);
 		assertSame(message, resultHandler.lastMessage);
@@ -194,6 +203,7 @@ public class DelayHandlerTests {
 	@Test(expected = TestTimedOutException.class)
 	public void delayHeaderIsFutureDateAndTimesOut() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -202,7 +212,7 @@ public class DelayHandlerTests {
 		output.subscribe(resultHandler);
 		Date future = new Date(new Date().getTime() + 60 * 1000);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", future).build();
+				.setHeader("delay", future).build();
 		input.send(message);
 		this.waitForLatch(50);
 		assertSame(message, resultHandler.lastMessage);
@@ -212,6 +222,7 @@ public class DelayHandlerTests {
 	@Test
 	public void delayHeaderIsValidStringAndDefaultDelayWouldTimeout() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		ResultHandler resultHandler = new ResultHandler();
 		delayHandler.setOutputChannel(output);
@@ -219,7 +230,7 @@ public class DelayHandlerTests {
 		input.subscribe(delayHandler);
 		output.subscribe(resultHandler);
 		Message<?> message = MessageBuilder.withPayload("test")
-			.setHeader("delay", "20").build();
+				.setHeader("delay", "20").build();
 		input.send(message);
 		this.waitForLatch(1000);
 		assertSame(message, resultHandler.lastMessage);
@@ -229,6 +240,7 @@ public class DelayHandlerTests {
 	@Test
 	public void verifyShutdownWithoutWaitingByDefault() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.afterPropertiesSet();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
@@ -253,6 +265,7 @@ public class DelayHandlerTests {
 	@Test
 	public void verifyShutdownWithWait() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setWaitForTasksToCompleteOnShutdown(true);
 		delayHandler.afterPropertiesSet();
 		delayHandler.handleMessage(new GenericMessage<String>("foo"));
@@ -278,6 +291,7 @@ public class DelayHandlerTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionWithNoDelay() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setOutputChannel(output);
 		delayHandler.afterPropertiesSet();
 		input.subscribe(delayHandler);
@@ -293,6 +307,7 @@ public class DelayHandlerTests {
 	@Test
 	public void errorChannelHeaderAndHandlerThrowsExceptionWithDelay() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.setOutputChannel(output);
 		delayHandler.afterPropertiesSet();
@@ -329,6 +344,7 @@ public class DelayHandlerTests {
 		context.refresh();
 		DirectChannel customErrorChannel = (DirectChannel) context.getBean(errorChannelName);
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setBeanFactory(context);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.setOutputChannel(output);
@@ -366,6 +382,7 @@ public class DelayHandlerTests {
 		DirectChannel defaultErrorChannel = (DirectChannel) context.getBean(
 				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setGroupId("FOO");
 		delayHandler.setBeanFactory(context);
 		delayHandler.setDelayHeaderName("delay");
 		delayHandler.setOutputChannel(output);
@@ -393,6 +410,40 @@ public class DelayHandlerTests {
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 
+	@Test
+	public void reschedulePersistedMessages() throws Exception {
+		MessageGroupStore messageGroupStore = new SimpleMessageStore();
+		ResultHandler resultHandler = new ResultHandler();
+		output.subscribe(resultHandler);
+
+		DelayHandler delayHandler = new DelayHandler(100);
+		delayHandler.setMessageStore(messageGroupStore);
+		delayHandler.setOutputChannel(output);
+		delayHandler.setGroupId("FOO");
+		delayHandler.afterPropertiesSet();
+
+		input.subscribe(delayHandler);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		input.send(message);
+
+		delayHandler.destroy();
+
+		assertTrue(messageGroupStore.getMessageGroup("FOO").size() == 1);
+		assertSame(message, messageGroupStore.getMessageGroup("FOO").getOne());
+
+		//restart simulation
+
+		DelayHandler delayHandler1 = new DelayHandler(100);
+		delayHandler1.setMessageStore(messageGroupStore);
+		delayHandler1.setOutputChannel(output);
+		delayHandler1.setGroupId("FOO");
+		delayHandler1.afterPropertiesSet();
+
+		this.waitForLatch(1000);
+
+		assertTrue(messageGroupStore.getMessageGroup("FOO").size() == 0);
+		assertSame(message, resultHandler.lastMessage);
+	}
 
 	private void waitForLatch(long timeout) {
 		try {

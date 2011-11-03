@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import java.util.Date;
-import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,8 +33,7 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.store.*;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
@@ -52,12 +50,12 @@ import org.springframework.util.Assert;
  * therefore, the calling thread does not block. The advantage of this approach
  * is that many delays can be managed concurrently, even very long delays,
  * without producing a buildup of blocked Threads.
- * <p>
+ * <p/>
  * One thing to keep in mind, however, is that any active transactional context
  * will not propagate from the original sender to the eventual recipient. This
  * is a side-effect of passing the Message to the output channel after the
  * delay with a different Thread in control.
- * <p>
+ * <p/>
  * When this handler's 'delayHeaderName' property is configured, that value, if
  * present on a Message, will take precedence over the handler's 'defaultDelay'
  * value. The actual header value may be a long, a String that can be parsed
@@ -67,11 +65,12 @@ import org.springframework.util.Assert;
  * seconds from the current time). If the value is a Date, it will be
  * delayed at least until that Date occurs (i.e. the delay in that case is
  * equivalent to <code>headerDate.getTime() - new Date().getTime()</code>).
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
-public class DelayHandler extends IntegrationObjectSupport implements MessageHandler, MessageProducer, Ordered, DisposableBean {
+public class DelayHandler extends IntegrationObjectSupport implements MessageHandler, MessageProducer, GroupIdAware, Ordered, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -85,12 +84,13 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private volatile ChannelResolver channelResolver;
 
-	private volatile MessageStore messageStore;
+	private volatile MessageGroupStore messageStore;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
+	private Object groupId;
 
 	/**
 	 * Create a DelayHandler with the given default delay. The sending of Messages after
@@ -114,7 +114,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	 * Set the default delay in milliseconds. If no 'delayHeaderName' property
 	 * has been provided, the default delay will be applied to all Messages. If
 	 * a delay should <emphasis>only</emphasis> be applied to Messages with a
-	 * header, then set this value to 0. 
+	 * header, then set this value to 0.
 	 */
 	public void setDefaultDelay(long defaultDelay) {
 		this.defaultDelay = defaultDelay;
@@ -133,7 +133,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	 * Specify the {@link MessageStore} that should be used to store Messages
 	 * while awaiting the delay.
 	 */
-	public void setMessageStore(MessageStore messageStore) {
+	public void setMessageStore(MessageGroupStore messageStore) {
 		this.messageStore = messageStore;
 	}
 
@@ -156,9 +156,10 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	 * Set whether to wait for scheduled tasks to complete on shutdown.
 	 * <p>Default is "false". Switch this to "true" if you prefer
 	 * fully completed tasks at the expense of a longer shutdown phase.
-	 * <p>
+	 * <p/>
 	 * This property will only have an effect for TaskScheduler implementations
 	 * that extend from {@link ExecutorConfigurationSupport}.
+	 *
 	 * @see ExecutorConfigurationSupport#setWaitForTasksToCompleteOnShutdown(boolean)
 	 */
 	public void setWaitForTasksToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
@@ -173,12 +174,20 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 		return this.order;
 	}
 
+	public Object getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(Object groupId) {
+		this.groupId = groupId;
+	}
+
 	@Override
 	public String getComponentType() {
 		return "delayer";
 	}
 
-	protected void onInit() throws Exception{
+	protected void onInit() throws Exception {
 		if (this.getTaskScheduler() instanceof ExecutorConfigurationSupport) {
 			((ExecutorConfigurationSupport) this.getTaskScheduler()).setWaitForTasksToCompleteOnShutdown(this.waitForTasksToCompleteOnShutdown);
 		}
@@ -192,8 +201,28 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 		if (this.getTaskScheduler() instanceof InitializingBean) {
 			((InitializingBean) this.getTaskScheduler()).afterPropertiesSet();
 		}
-		if (this.getBeanFactory() != null){
+		if (this.getBeanFactory() != null) {
 			this.channelResolver = new BeanFactoryChannelResolver(this.getBeanFactory());
+		}
+		reschedulePersistedMessagesUponRestart();
+	}
+
+	/**
+	 * Reads 'messageGroup' for this messageHandler by 'groupId' from 'messageStore'
+	 * and schedules its messages for sending to 'replyChannel' by their determined 'delay'.
+	 * <p/>
+	 * Since this method is invoked during beanFactory initialization
+	 * and it is bad point to lock main thread for waiting when messages will be send, it doesn't check
+	 * <code>if (delay > 0)</code> and puts all messages to 'taskScheduler' for the future releasing by force.
+	 *
+	 * @since 2.1
+	 */
+	private void reschedulePersistedMessagesUponRestart() {
+		MessageGroup messageGroup = messageStore.getMessageGroup(groupId);
+		messageStore.removeMessageGroup(groupId);
+		for (Message<?> message : messageGroup.getMessages()) {
+			long delay = this.determineDelayForMessage(message);
+			this.releaseMessageAfterDelay(message, delay);
 		}
 	}
 
@@ -232,11 +261,11 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
 		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		final Message<?> storedMessage = this.messageStore.addMessage(message);
+		messageStore.addMessageToGroup(groupId, message);
 		this.getTaskScheduler().schedule(new Runnable() {
 			public void run() {
 				try {
-					releaseMessage(storedMessage.getHeaders().getId());
+					releaseMessage(message);
 				}
 				catch (Exception e) {
 					Exception exception = new MessageHandlingException(message, "Failed to deliver Message after delay.", e);
@@ -260,10 +289,10 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 		}, new Date(System.currentTimeMillis() + delay));
 	}
 
-	private void releaseMessage(UUID id) {
+	private void releaseMessage(Message<?> message) {
 		Assert.state(this.messageStore != null, "MessageStore must not be null");
-		Message<?> message = this.messageStore.removeMessage(id);
-		Assert.notNull(message, "Message with id: " + id + " no longer exists in MessageStore.");
+		this.messageStore.removeMessageFromGroup(groupId, message);
+		Assert.notNull(message, "Message with id: " + message.getHeaders().getId() + " no longer exists in MessageStore.");
 		this.sendMessageToReplyChannel(message);
 	}
 

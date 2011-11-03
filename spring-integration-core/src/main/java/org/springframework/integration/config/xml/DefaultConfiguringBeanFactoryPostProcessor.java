@@ -22,10 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.*;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -38,9 +35,10 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * A {@link BeanFactoryPostProcessor} implementation that provides default beans for the error handling and task
  * scheduling if those beans have not already been explicitly defined within the registry. It also registers a single
  * null channel with the bean name "nullChannel".
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
@@ -53,6 +51,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			this.registerBeanPostProcessors(beanFactory);
 			this.registerNullChannel(registry);
 			if (!beanFactory.containsBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
 				this.registerErrorChannel(registry);
@@ -113,7 +112,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 
 	/**
-	 * Register an error channel in the given BeanDefinitionRegistry. 
+	 * Register an error channel in the given BeanDefinitionRegistry.
 	 */
 	private void registerErrorChannel(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {
@@ -139,7 +138,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	}
 
 	/**
-	 * Register a TaskScheduler in the given BeanDefinitionRegistry. 
+	 * Register a TaskScheduler in the given BeanDefinitionRegistry.
 	 */
 	private void registerTaskScheduler(BeanDefinitionRegistry registry) {
 		if (logger.isInfoEnabled()) {
@@ -158,6 +157,16 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(
 				schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
 		BeanDefinitionReaderUtils.registerBeanDefinition(schedulerComponent, registry);
+	}
+
+	/**
+	 * Register common Integration BeanPostProcessors in the given ConfigurableBeanFactory.
+	 *
+	 * @param beanFactory - an ApplicationContext instance of {@link ConfigurableBeanFactory}.
+	 */
+
+	private void registerBeanPostProcessors(ConfigurableBeanFactory beanFactory) {
+		beanFactory.addBeanPostProcessor(new GroupIdAwareBeanPostProcessor());
 	}
 
 }
