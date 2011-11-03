@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -36,7 +37,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Content Enricher is a Message Transformer that invokes any downstream message flow via
  * its request channel and then applies values from the reply Message to the original payload.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */
@@ -70,6 +71,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		if (replyChannel != null) {
 			this.gateway.setReplyChannel(replyChannel);
 		}
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
 
 
@@ -123,7 +125,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
 			Object value = valueExpression.getValue(this.evaluationContext, replyMessage);
-			propertyExpression.setValue(targetPayload, value);
+			propertyExpression.setValue(this.evaluationContext, targetPayload, value);
 		}
 		return targetPayload;
 	}
