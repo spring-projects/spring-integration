@@ -169,10 +169,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 	
 	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {
-		if (!groupIdToMessageGroup.containsKey(groupId)) {
-			groupIdToMessageGroup.putIfAbsent(groupId, new SimpleMessageGroup(groupId));
+		SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+		if (group == null) {
+			SimpleMessageGroup newGroup = new SimpleMessageGroup(groupId);
+			SimpleMessageGroup previousGroup = this.groupIdToMessageGroup.putIfAbsent(groupId, newGroup);
+			group = (previousGroup == null) ? newGroup : previousGroup;
 		}
-		return groupIdToMessageGroup.get(groupId);
+		return group;
 	}
 
 }
