@@ -97,6 +97,34 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
+	 * By default the original message's payload will be used as the actual payload
+	 * that will be send to the request-channel.
+	 *
+	 * By providing a SpEL expression as value for this setter, a subset of the
+	 * original payload, a header value or any other resolvable SpEL expression
+	 * can be used as the basis for the payload, that will be send to the
+	 * request-channel.
+	 *
+	 * For the Expression evaluation the full message is available as the <b>root object</b>.
+	 *
+	 * For instance the following SpEL expressions (among others) are possible:
+	 *
+	 * <ul>
+	 *    <li>payload.foo</li>
+	 *    <li>headers.foobar</li>
+	 *    <li>new java.util.Date()</li>
+	 *    <li>'foo' + 'bar'</li>
+	 * </ul>
+	 *
+	 * If more sophisticated logic is required (e.g. changing the message
+	 * headers etc.) please use additional downstream transformers.
+	 *
+	 */
+	public void setRequestPayloadExpression(Expression requestPayloadExpression) {
+		this.requestPayloadExpression = requestPayloadExpression;
+	}
+
+	/**
 	 * Specify whether to clone payload objects to create the target object.
 	 * This is only applicable for payload types that implement Cloneable.
 	 */
@@ -129,21 +157,21 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			targetPayload = requestPayload;
 		}
 
-		final Message<?> replyMessage;
+		final Message<?> actualRequestMessage;
 
 	    if (this.requestPayloadExpression==null) {
-	    	replyMessage = this.gateway.sendAndReceiveMessage(requestMessage);
+
+	    	actualRequestMessage = requestMessage;
+
 		} else {
 
 			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.evaluationContext, requestMessage);
-
-			Message<?> requestMessageWithCustomPayload = MessageBuilder.withPayload(requestMessagePayload)
-					                                                   .copyHeaders(requestMessage.getHeaders())
-			                                                           .build();
-
-			replyMessage = this.gateway.sendAndReceiveMessage(requestMessageWithCustomPayload);
-
+			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
+					                             .copyHeaders(requestMessage.getHeaders())
+			                                     .build();
 		}
+
+	    final Message<?> replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
 
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
@@ -184,23 +212,5 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			return super.sendAndReceiveMessage(object);
 		}
 	}
-
-	/**
-	 * By default the original message's payload will be used as payload
-	 * that will be send to the request-channel.
-	 *
-	 * By providing a SpEL expression as value for this setter, a subset of the
-	 * original payload, a header value or any other resolvable SpEL expression
-	 * can be used as the basis for the payload, that will be send to the
-	 * request-channel.
-	 *
-	 * If more sophisticated logic is required (e.g. changing the message
-	 * headers etc.) please use additional downstream transformers.
-	 *
-	 */
-	public void setRequestPayloadExpression(Expression requestPayloadExpression) {
-		this.requestPayloadExpression = requestPayloadExpression;
-	}
-
 
 }

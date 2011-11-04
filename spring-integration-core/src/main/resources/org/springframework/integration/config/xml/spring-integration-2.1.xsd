@@ -1062,6 +1062,17 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     resolvable SpEL expression can be used as the basis for the payload,
                     that will be send to the request-channel.
 
+                    For the Expression evaluation the full message is available
+                    as the 'root object'.
+
+                    For instance the following SpEL expressions (among others)
+                    are possible:
+
+                    - payload.foo
+                    - headers.foobar
+                    - new java.util.Date()
+                    - 'foo' + 'bar'
+
                     If more sophisticated logic is required (e.g. changing the
                     message headers etc.) please use additional downstream transformers.
                 ]]></xsd:documentation>
