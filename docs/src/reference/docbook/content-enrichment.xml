@@ -1,115 +1,168 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="content-enricher"
     xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Content Enricher</title>
+    <title>Content Enricher</title>
 
-  <section id="content-enricher-introduction">
-    <title>Introduction</title>
-   <para>
-   At times you may have a requirement to enhance a request with more information than was 
-   provided by the target system. The <link href="http://www.eaipatterns.com/DataEnricher.html">Content Enricher</link> pattern 
-   describes various scenarios as well as the component (Enricher), which allows you to address such requirements.
-   </para>
-  </section>
-  
-  <section id="header-enricher">
-    <title>Header Enricher</title>
-   
-    <para>
-    If you only need to add headers to a Message, and they are not dynamically determined by the Message content,
-    then referencing a custom implementation of a Transformer may be overkill. For that reason, 
-    Spring Integration provides support for the <emphasis>Header Enricher</emphasis> pattern. It is exposed via
-    the <code>&lt;header-enricher&gt;</code> element.   
-    
+    <section id="content-enricher-introduction">
+        <title>Introduction</title>
+	    <para>
+		    At times you may have a requirement to enhance a request with more
+		    information than was provided by the target system. The
+		    <link href="http://www.eaipatterns.com/DataEnricher.html">Content Enricher</link>
+		    pattern describes various scenarios as well as the component
+		    (Enricher), which allows you to address such requirements.
+	    </para>
+        <para>
+            The Spring Integration <code>Core</code> module includes 2 enrichers:
+        </para>
+        <itemizedlist>
+            <listitem>Header Enricher</listitem>
+            <listitem>(Generic) Enricher</listitem>
+        </itemizedlist>
+        <para>
+	        Furthermore, several <emphasis>Adapter specific Header Enrichers</emphasis>
+	        are included as well:
+	    </para>
+        <itemizedlist>
+            <listitem>XPath Header Enricher (XML Module)</listitem>
+            <listitem>Email Header Enricher (Mail Module)</listitem>
+            <listitem>XMPP Header Enricher (XMPP Module)</listitem>
+        </itemizedlist>
+	    <para>
+	        Please go to the adapter specific sections of this reference manual
+	        to learn more about those adapters.
+	    </para>
+    </section>
+
+    <section id="header-enricher">
+        <title>Header Enricher</title>
+
+	    <para>
+		    If you only need to add headers to a Message, and they are not
+		    dynamically determined by the Message content, then referencing a
+		    custom implementation of a Transformer may be overkill. For that reason,
+		    Spring Integration provides support for the <emphasis>Header Enricher</emphasis>
+		    pattern. It is exposed via the <code>&lt;header-enricher&gt;</code> element.
+	    </para>
+
 	    <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
      <int:header name="foo" value="123"/>
      <int:header name="bar" ref="someBean"/>
 </int:header-enricher>]]></programlisting>
 
-    </para>
-    <para>
-    The <emphasis>Header Enricher</emphasis> also provides helpful sub-elements to set well-known header names.
-    <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+	    <para>
+	        The <emphasis>Header Enricher</emphasis> also provides helpful sub-elements
+	        to set well-known header names.
+	    </para>
+
+        <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
 		<int:error-channel ref="applicationErrorChannel"/>
 		<int:reply-channel ref="quoteReplyChannel"/>
 		<int:correlation-id value="123"/>
 		<int:priority value="HIGHEST"/>
 		<int:header name="bar" ref="someBean"/>
 </int:header-enricher>]]></programlisting>
-	
-	In the above configuration you can clearly see that for well-known headers such as <code>errorChannel</code>, 
-	<code>correlationId</code>, <code>priority</code>, <code>replyChannel</code>etc., instead of using generic
-    <emphasis>&lt;header&gt;</emphasis> sub-elements where you would have to provide both header 'name' and 'value',
-    you can use convenient sub-elements to set those values directly.
-    </para>
 
-    <para>
-    	<emphasis>POJO Support</emphasis>
-    </para>
-    <para>
-      Often a header value cannot be defined statically and has to be determined dynamically based on some content in the Message. That is why 
-      <emphasis>Header Enricher</emphasis> allows you to also specify a bean 'ref' and 'method' that will calculate the 
-      header value. Let's look at the following configuration:
+		<para>
+			In the above configuration you can clearly see that for well-known
+			headers such as <code>errorChannel</code>, <code>correlationId</code>,
+			<code>priority</code>, <code>replyChannel</code>etc., instead of
+			using generic <emphasis>&lt;header&gt;</emphasis> sub-elements where
+			you would have to provide both header 'name' and 'value', you can use
+			convenient sub-elements to set those values directly.
+	    </para>
 
-      <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+	    <para>
+	    	<emphasis>POJO Support</emphasis>
+	    </para>
+
+	    <para>
+	        Often a header value cannot be defined statically and has to be
+	        determined dynamically based on some content in the Message. That is why
+	        <emphasis>Header Enricher</emphasis> allows you to also specify a bean
+	        reference using the <code>ref</code> and <code>method</code> attribute.
+	        The specified method will calculate the header value. Let's look at
+	        the following configuration:
+	    </para>
+
+        <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
     <int:header name="foo" method="computeValue" ref="myBean"/>
 </int:header-enricher>
 
 <bean id="myBean" class="foo.bar.MyBean"/>]]></programlisting>
 
-<programlisting language="java"><![CDATA[public class MyBean {
+        <programlisting language="java"><![CDATA[public class MyBean {
     public String computeValue(String payload){
         return payload.toUpperCase() + "_US";
     }
 
 }]]></programlisting>
-    </para>
-    <para>
-    You can also configure your POJO as inner bean
+
+        <para>
+            You can also configure your POJO as inner bean:
+        </para>
 
 <programlisting language="xml"><![CDATA[<int:header-enricher  input-channel="inputChannel" output-channel="outputChannel">
 	<int:header name="some_header">
             <bean class="org.MyEnricher"/>
         </int:header>
 </int:header-enricher>]]></programlisting>
+	    <para>
+	        as well as point to a Groovy script:
+	    </para>
 
-as well as point to a Groovy script
-
-<programlisting language="xml"><![CDATA[<int:header-enricher  input-channel="inputChannel" output-channel="outputChannel">
+        <programlisting language="xml"><![CDATA[<int:header-enricher  input-channel="inputChannel" output-channel="outputChannel">
 		<int:header name="some_header">
             <int-groovy:script location="org/SampleGroovyHeaderEnricher.groovy"/>
         </int:header>
 </int:header-enricher>]]></programlisting>
 
-    </para>
+	    <para>
+	    	<emphasis>SpEL Support</emphasis>
+	    </para>
+	    <para>
+	        In Spring Integration 2.0 we have introduced the convenience of the
+	        <link href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">Spring Expression Language (SpEL)</link>
+	        to help configure many different components. The <emphasis>Header
+	        Enricher</emphasis> is one of them.
 
-    <para>
-    	<emphasis>SpEL Support</emphasis>
-    </para>
-    <para>
-    In Spring Integration 2.0 we have introduced the convenience of the
-    <link href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html">Spring Expression Language (SpEL)</link>
-     to help configure many different components. The <emphasis>Header Enricher</emphasis> is one of them. 
+		    Looking again at the POJO example above, you can see that the computation
+		    logic to determine the header value is actually pretty simple. A natural
+		    question would be: "is there a simpler way to accomplish this?". That
+		    is where SpEL shows its true power.
+	    </para>
 
-	Looking again at the POJO example above, you can see that the computation logic to determine the header value is actually pretty simple. 
-	A natural question would be: "is there a simpler way to accomplish this?". That is where SpEL shows its true power.
-
-	<programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
+	    <programlisting language="xml"><![CDATA[<int:header-enricher input-channel="in" output-channel="out">
 	<int:header name="foo" expression="payload.toUpperCase() + '_US'"/>
 </int:header-enricher>]]></programlisting>
 
-	As you can see, by using SpEL for such simple cases, we no longer have to provide a separate class and configure 
-	it in the application context. All we need is the <emphasis>expression</emphasis> attribute configured with a valid 
-	SpEL expression. The 'payload' and 'headers' variables are bound to the SpEL Evaluation Context, 
-	giving you full access to the incoming Message.
-    </para>
-    <para>
-    	<emphasis>Adapter specific Header Enrichers</emphasis>
-    </para>
-    <para>
-    As you go through the manual, you will see that as an added convenience,
-    Spring Integration also provides adapter specific Header Enrichers (e.g., MAIL, XMPP, etc.)
- 	</para>
-  </section>
+	    <para>
+			As you can see, by using SpEL for such simple cases, we no longer have
+			to provide a separate class and configure it in the application context.
+			All we need is the <emphasis>expression</emphasis> attribute configured
+			with a valid SpEL expression. The 'payload' and 'headers' variables
+			are bound to the SpEL Evaluation Context, giving you full access to
+			the incoming Message.
+	    </para>
 
+    </section>
+
+    <section id="generic-enricher">
+        <title>(Generic) Enricher</title>
+        <para></para>
+
+        <programlisting language="xml"><![CDATA[<int:enricher request-channel=""
+              auto-startup=""
+              id=""
+              input-channel=""
+              order=""
+              output-channel=""
+              reply-channel=""
+              send-timeout=""
+              should-clone-payload="true">
+    <int:poller></int:poller>
+    <int:property name="" expression=""/>
+    <int:property name="" value=""/>
+</int:enricher>]]></programlisting>
+    </section>
 </section>

@@ -32,7 +32,7 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the 'enricher' element.
- * 
+ *
  * @author Mark Fisher
  * @since 2.1
  */
@@ -75,7 +75,17 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 			}
 			builder.addPropertyValue("propertyExpressions", propertyExpressions);
 		}
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-clone-payload");
+
+		String requestPayloadExpression = element.getAttribute("request-payload-expression");
+
+		if (StringUtils.hasText(requestPayloadExpression)) {
+			BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionFactoryBean.class);
+			expressionBuilder.addConstructorArgValue(requestPayloadExpression);
+			builder.addPropertyValue("requestPayloadExpression", expressionBuilder.getBeanDefinition());
+		}
+
 		return builder;
 	}
 

@@ -31,6 +31,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -53,6 +54,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private volatile boolean shouldClonePayload = false;
 
+	private Expression requestPayloadExpression;
 
 	/**
 	 * Create a Content Enricher with the given request channel. An anonymous reply channel
@@ -95,6 +97,34 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 	/**
+	 * By default the original message's payload will be used as the actual payload
+	 * that will be send to the request-channel.
+	 *
+	 * By providing a SpEL expression as value for this setter, a subset of the
+	 * original payload, a header value or any other resolvable SpEL expression
+	 * can be used as the basis for the payload, that will be send to the
+	 * request-channel.
+	 *
+	 * For the Expression evaluation the full message is available as the <b>root object</b>.
+	 *
+	 * For instance the following SpEL expressions (among others) are possible:
+	 *
+	 * <ul>
+	 *    <li>payload.foo</li>
+	 *    <li>headers.foobar</li>
+	 *    <li>new java.util.Date()</li>
+	 *    <li>'foo' + 'bar'</li>
+	 * </ul>
+	 *
+	 * If more sophisticated logic is required (e.g. changing the message
+	 * headers etc.) please use additional downstream transformers.
+	 *
+	 */
+	public void setRequestPayloadExpression(Expression requestPayloadExpression) {
+		this.requestPayloadExpression = requestPayloadExpression;
+	}
+
+	/**
 	 * Specify whether to clone payload objects to create the target object.
 	 * This is only applicable for payload types that implement Cloneable.
 	 */
@@ -110,23 +140,46 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Object targetPayload = requestMessage.getPayload();
-		if (targetPayload instanceof Cloneable && this.shouldClonePayload) {
+
+		final Object requestPayload = requestMessage.getPayload();
+
+		final Object targetPayload;
+
+		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
 			try {
-				Method cloneMethod = targetPayload.getClass().getMethod("clone", new Class<?>[0]);
-				targetPayload = ReflectionUtils.invokeMethod(cloneMethod, targetPayload);
+				Method cloneMethod = requestPayload.getClass().getMethod("clone", new Class<?>[0]);
+				targetPayload = ReflectionUtils.invokeMethod(cloneMethod, requestPayload);
 			}
 			catch (Exception e) {
 				throw new MessageHandlingException(requestMessage, "Failed to clone payload object", e);
 			}
+		} else {
+			targetPayload = requestPayload;
 		}
-		Message<?> replyMessage = this.gateway.sendAndReceiveMessage(requestMessage);
+
+		final Message<?> actualRequestMessage;
+
+	    if (this.requestPayloadExpression==null) {
+
+	    	actualRequestMessage = requestMessage;
+
+		} else {
+
+			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.evaluationContext, requestMessage);
+			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
+					                             .copyHeaders(requestMessage.getHeaders())
+			                                     .build();
+		}
+
+	    final Message<?> replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
 			Object value = valueExpression.getValue(this.evaluationContext, replyMessage);
 			propertyExpression.setValue(this.evaluationContext, targetPayload, value);
 		}
+
 		return targetPayload;
 	}
 
