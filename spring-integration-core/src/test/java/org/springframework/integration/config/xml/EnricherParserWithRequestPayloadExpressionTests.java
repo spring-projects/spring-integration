@@ -17,8 +17,8 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 
 import java.util.Map;
 
@@ -46,7 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class EnricherParserTests {
+public class EnricherParserWithRequestPayloadExpressionTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -63,16 +63,18 @@ public class EnricherParserTests {
 		assertEquals(99, enricher.getOrder());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(enricher);
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
-		assertEquals(true, accessor.getPropertyValue("shouldClonePayload"));
-		assertNull(accessor.getPropertyValue("requestPayloadExpression"));
+		assertEquals(false, accessor.getPropertyValue("shouldClonePayload"));
+
+		Expression requestPayloadExpression = (Expression) accessor.getPropertyValue("requestPayloadExpression");
+		assertEquals("payload.age", requestPayloadExpression.getExpressionString());
 
 		Map<Expression, Expression> propertyExpressions = (Map<Expression, Expression>) accessor.getPropertyValue("propertyExpressions");
 		for (Map.Entry<Expression, Expression> e : propertyExpressions.entrySet()) {
 			if ("name".equals(e.getKey().getExpressionString())) {
-				assertEquals("payload.sourceName", e.getValue().getExpressionString());
+				assertEquals("'Name as SpEL'", e.getValue().getExpressionString());
 			}
 			else if ("age".equals(e.getKey().getExpressionString())) {
-				assertEquals("42", e.getValue().getExpressionString());
+				assertEquals("payload.sourceName", e.getValue().getExpressionString());
 			}
 			else {
 				throw new IllegalStateException("expected 'name' and 'age' only, not: " + e.getKey().getExpressionString());
@@ -86,17 +88,27 @@ public class EnricherParserTests {
 		requests.subscribe(new AbstractReplyProducingMessageHandler() {
 			@Override
 			protected Object handleRequestMessage(Message<?> requestMessage) {
-				return new Source("foo");
+
+				assertTrue("Expected the payload of the requestMessage to be a String",
+						requestMessage.getPayload() instanceof Integer);
+
+				Integer payload = (Integer) requestMessage.getPayload();
+				assertEquals("Expected value: 99", Integer.valueOf(99), payload);
+
+				return new Source(String.valueOf(payload));
 			}
 		});
+
 		Target original = new Target();
+		original.setAge(99);
+
 		Message<?> request = MessageBuilder.withPayload(original).build();
 		context.getBean("input", MessageChannel.class).send(request);
 		Message<?> reply = context.getBean("output", PollableChannel.class).receive(0);
 		Target enriched = (Target) reply.getPayload();
-		assertEquals("foo", enriched.getName());
-		assertEquals(42, enriched.getAge());
-		assertNotSame(original, enriched);
+		assertEquals("Name as SpEL", enriched.getName());
+		assertEquals(99, enriched.getAge());
+		assertSame(original, enriched);
 	}
 
 
