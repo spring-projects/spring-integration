@@ -37,6 +37,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
 
@@ -90,10 +91,15 @@ public class GemfireGroupStoreTests {
 		
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("1"));
 		messageGroup = store.getMessageGroup(1);
-
+		assertEquals(1, messageGroup.size());
+		Thread.sleep(1); //since it adds to a local region some times CREATED_DATE ends up to be the same
+		// Unrealistic in a real scenario
+		
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), message);
 		messageGroup = store.getMessageGroup(1);
-
+		assertEquals(2, messageGroup.size());
+		Thread.sleep(1);
+		
 		messageGroup = store.addMessageToGroup(messageGroup.getGroupId(), new GenericMessage<String>("3"));
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(3, messageGroup.size());
@@ -323,6 +329,7 @@ public class GemfireGroupStoreTests {
 	@After
 	public void cleanup(){
 		this.cache.close();
+		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}
 	
 }
