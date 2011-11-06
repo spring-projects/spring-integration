@@ -41,6 +41,8 @@ import org.springframework.util.CollectionUtils;
  */
 @ManagedResource
 public class SimpleMessageStore extends AbstractMessageGroupStore implements MessageStore, MessageGroupStore {
+	
+	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
 
@@ -50,8 +52,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	private final UpperBound groupUpperBound;
 	
-	private final Object lock = new Object();
-
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
 	 * capacity is less than 1. The capacities are applied independently to messages stored via
@@ -109,6 +109,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
 			return new SimpleMessageGroup(groupId);
@@ -121,25 +122,39 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		SimpleMessageGroup group = getMessageGroupInternal(groupId);
-		group.add(message);
-		return group;
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			if (group == null) {
+				group = new SimpleMessageGroup(groupId);
+				this.groupIdToMessageGroup.putIfAbsent(groupId, group);
+			}
+			group.add(message);
+			return group;
+		}
 	}
 
 	public void removeMessageGroup(Object groupId) {
+		Object lock = this.obtainLock(groupId);
 		synchronized (lock) {
 			if (!groupIdToMessageGroup.containsKey(groupId)) {
 				return;
 			}
+				
 			groupUpperBound.release(groupIdToMessageGroup.get(groupId).size());
 			groupIdToMessageGroup.remove(groupId);
 		}
 	}
 
-	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
-		SimpleMessageGroup group = getMessageGroupInternal(key);
-		group.remove(messageToRemove);
-		return group;
+	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to remove Message from the MessageGroup");
+			group.remove(messageToRemove);			
+			return group;
+		}
 	}
 
 	public Iterator<MessageGroup> iterator() {
@@ -147,13 +162,23 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 	
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
-		SimpleMessageGroup group = getMessageGroupInternal(groupId);
-		group.setLastReleasedMessageSequenceNumber(sequenceNumber);
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to set 'lastReleasedSequenceNumber'");
+			group.setLastReleasedMessageSequenceNumber(sequenceNumber);
+		}
 	}
 
 	public void completeGroup(Object groupId) {
-		SimpleMessageGroup group = getMessageGroupInternal(groupId);
-		group.complete();
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to complete the MessageGroup");
+			group.complete();	
+		}
 	}
 
 	public Message<?> pollMessageFromGroup(Object groupId) {
@@ -168,14 +193,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return message;
 	}
 	
-	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {
-		SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
-		if (group == null) {
-			SimpleMessageGroup newGroup = new SimpleMessageGroup(groupId);
-			SimpleMessageGroup previousGroup = this.groupIdToMessageGroup.putIfAbsent(groupId, newGroup);
-			group = (previousGroup == null) ? newGroup : previousGroup;
+	private Object obtainLock(Object groupId){
+		Object lock = this.locks.get(groupId);
+		if (lock == null){
+			Object newLock = new Object();
+			Object previousLock = this.locks.putIfAbsent(groupId, newLock);
+			lock = (previousLock == null) ? newLock : previousLock;
 		}
-		return group;
+		return lock;
 	}
-
 }
