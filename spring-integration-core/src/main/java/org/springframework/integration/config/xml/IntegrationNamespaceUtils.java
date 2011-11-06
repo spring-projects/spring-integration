@@ -20,10 +20,12 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -203,11 +205,23 @@ public abstract class IntegrationNamespaceUtils {
 	public static BeanComponentDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext) {
 		// parses out the inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
+		if (CollectionUtils.isEmpty(childElements)){
+			childElements = DomUtils.getChildElementsByTagName(element, "gateway");
+		}
+		
 		BeanComponentDefinition innerComponentDefinition = null;
 		if (childElements != null && childElements.size() == 1) {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
-			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
+			BeanDefinitionHolder bdHolder = null;
+			if ("gateway".equals(beanElement.getLocalName())){
+				BeanDefinition definition = delegate.parseCustomElement(beanElement);
+				bdHolder = new BeanDefinitionHolder(definition, BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry()));
+			}
+			else {
+				bdHolder = delegate.parseBeanDefinitionElement(beanElement);
+			}
+			
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
 			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());

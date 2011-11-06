@@ -419,14 +419,16 @@
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:element name="gateway">
+	
+	<xsd:element name="gateway" type="gatewayType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Messaging Gateway.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
+	</xsd:element>
+		
+		<xsd:complexType name="gatewayType">
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
 					<xsd:annotation>
@@ -607,7 +609,6 @@
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
-	</xsd:element>
 
 	<xsd:complexType name="headerSubElementType">
 		<xsd:annotation>
@@ -894,6 +895,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+					<xsd:choice minOccurs="0" maxOccurs="2">
+						<xsd:element name="gateway" type="gatewayType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attributeGroup ref="inputOutputChannelGroup" />
 					<xsd:attribute name="requires-reply" type="xsd:string" use="optional">
 						<xsd:annotation>
