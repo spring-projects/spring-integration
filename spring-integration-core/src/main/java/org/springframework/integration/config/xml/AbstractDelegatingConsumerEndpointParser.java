@@ -50,7 +50,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		if (innerDefinition != null) {
 			if (hasRef || hasExpression || expressionElement != null) {
 				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured.", source);
+						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/> or </gateway>) is configured.", source);
 				return null;
 			}
 			builder.addPropertyValue("targetObject", innerDefinition);
@@ -86,7 +86,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		}
 		else if (!this.hasDefaultOption()) {
 			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
-					"or inner bean (<bean/>) definition is required for element " +
+					" inner bean (<bean/>) definition or '</gateway>' is required for element " +
 					IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
 			return null;
 		}
