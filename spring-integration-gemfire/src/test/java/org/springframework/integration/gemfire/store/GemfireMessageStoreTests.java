@@ -16,10 +16,13 @@
 
 package org.springframework.integration.gemfire.store;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
 
@@ -31,12 +34,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class GemfireMessageStoreTests {
 
+	private Cache cache;
+	
 	@Test
 	public void addAndGetMessage() throws Exception {
-		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
-		cacheFactoryBean.afterPropertiesSet();
-		Cache cache = (Cache)cacheFactoryBean.getObject();
-		GemfireMessageStore store = new GemfireMessageStore(cache);
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
 		store.afterPropertiesSet();
 		
 		Message<?> message = MessageBuilder.withPayload("test").build();
@@ -45,4 +47,16 @@ public class GemfireMessageStoreTests {
 		assertEquals(message, retrieved);
 	}
 
+	@Before
+	public void init() throws Exception{
+		CacheFactoryBean cacheFactoryBean = new CacheFactoryBean();
+		cacheFactoryBean.afterPropertiesSet();
+		this.cache = (Cache)cacheFactoryBean.getObject();
+	}
+	
+	@After
+	public void cleanup(){
+		this.cache.close();
+		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
+	}
 }
