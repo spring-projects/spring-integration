@@ -329,7 +329,7 @@ public class GemfireGroupStoreTests {
 	@After
 	public void cleanup(){
 		this.cache.close();
-		Assert.isTrue(this.cache.isClosed(), "Cache did not closed after close() call");
+		Assert.isTrue(this.cache.isClosed(), "Cache did not close after close() call");
 	}
 	
 }
