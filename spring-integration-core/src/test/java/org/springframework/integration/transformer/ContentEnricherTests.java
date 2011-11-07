@@ -18,6 +18,10 @@ package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +30,7 @@ import org.junit.Test;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -57,6 +62,34 @@ public class ContentEnricherTests {
 		enricher.handleMessage(requestMessage);
 		Message<?> reply = replyChannel.receive(0);
 		assertEquals("Doe, John", ((Target) reply.getPayload()).getName());
+	}
+
+	@Test
+	public void testSimplePropertyWithoutUsingRequestChannel() {
+		QueueChannel replyChannel = new QueueChannel();
+		ContentEnricher enricher = new ContentEnricher();
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		propertyExpressions.put("name", parser.parseExpression("'just a static string'"));
+		enricher.setPropertyExpressions(propertyExpressions);
+		Target target = new Target("replace me");
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+		enricher.handleMessage(requestMessage);
+		Message<?> reply = replyChannel.receive(0);
+		assertEquals("just a static string", ((Target) reply.getPayload()).getName());
+	}
+
+	@Test
+	public void testContentEnricherWithNullRequestChannel() {
+
+		try {
+		    new ContentEnricher(null);
+		} catch (IllegalArgumentException e) {
+            assertEquals("requestChannel must not be null", e.getMessage());
+            return;
+		}
+
+		fail("Expected an IllegalArgumentException to be thrown.");
 	}
 
 	@Test
@@ -108,6 +141,98 @@ public class ContentEnricherTests {
 		assertNotSame(target, result);
 	}
 
+	@Test
+	public void clonePayloadIgnored() {
+		QueueChannel replyChannel = new QueueChannel();
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new Source("John", "Doe");
+			}
+		});
+		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		enricher.setShouldClonePayload(true);
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
+		enricher.setPropertyExpressions(propertyExpressions);
+		TargetUser target = new TargetUser();
+        target.setName("replace me");
+
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+		enricher.handleMessage(requestMessage);
+		Message<?> reply = replyChannel.receive(0);
+		TargetUser result = (TargetUser) reply.getPayload();
+		assertEquals("Doe, John", result.getName());
+
+		assertSame(target, result);
+	}
+
+	@Test
+	public void clonePayloadWithFailure() {
+		QueueChannel replyChannel = new QueueChannel();
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new Source("John", "Doe");
+			}
+		});
+		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		enricher.setShouldClonePayload(true);
+		SpelExpressionParser parser = new SpelExpressionParser();
+		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
+		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
+		enricher.setPropertyExpressions(propertyExpressions);
+		UncloneableTargetUser target = new UncloneableTargetUser();
+        target.setName("replace me");
+
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+
+		try {
+		    enricher.handleMessage(requestMessage);
+		} catch (MessageHandlingException e) {
+			assertEquals("Failed to clone payload object", e.getMessage());
+            return;
+		}
+
+		fail("Expected a MessageHandlingException to be thrown.");
+
+	}
+
+	@Test
+	public void testLifeCycleMethodsWithoutRequestChannel() {
+		ContentEnricher enricher = new ContentEnricher();
+
+		enricher.afterPropertiesSet();
+
+		assertTrue(enricher.isRunning());
+		enricher.stop();
+		assertTrue(enricher.isRunning());
+	}
+
+	@Test
+	public void testLifeCycleMethodsWithRequestChannel() {
+
+		DirectChannel requestChannel = new DirectChannel();
+		requestChannel.subscribe(new AbstractReplyProducingMessageHandler() {
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				return new Source("John", "Doe");
+			}
+		});
+		ContentEnricher enricher = new ContentEnricher(requestChannel);
+
+		enricher.afterPropertiesSet();
+
+		enricher.start();
+		assertTrue(enricher.isRunning());
+		enricher.stop();
+		assertFalse(enricher.isRunning());
+		enricher.start();
+		assertTrue(enricher.isRunning());
+	}
 
 	@SuppressWarnings("unused")
 	private static final class Source {
@@ -163,6 +288,45 @@ public class ContentEnricherTests {
 			Target clone = new Target(this.name);
 			clone.setChild(this.child);
 			return clone;
+		}
+	}
+
+	public static final class TargetUser {
+
+		private volatile String name;
+
+		public TargetUser() {
+			this.name = "default";
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+	}
+
+	public static final class UncloneableTargetUser implements Cloneable {
+
+		private volatile String name;
+
+		public UncloneableTargetUser() {
+			this.name = "default";
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public Object clone() {
+			throw new IllegalStateException("Cloning not possible");
 		}
 	}
 

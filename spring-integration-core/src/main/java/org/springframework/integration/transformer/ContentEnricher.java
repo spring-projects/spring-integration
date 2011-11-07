@@ -46,7 +46,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
 
-	private final Gateway gateway = new Gateway();
+	private final Gateway gateway;
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -55,6 +55,15 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	private volatile boolean shouldClonePayload = false;
 
 	private Expression requestPayloadExpression;
+
+	/**
+	 * Create a Content Enricher without providing a request channel. This is
+	 * useful when only static values shall be enriched.
+	 */
+	public ContentEnricher() {
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+		this.gateway = null;
+	}
 
 	/**
 	 * Create a Content Enricher with the given request channel. An anonymous reply channel
@@ -69,6 +78,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public ContentEnricher(MessageChannel requestChannel, MessageChannel replyChannel) {
 		Assert.notNull(requestChannel, "requestChannel must not be null");
+
+		this.gateway = new Gateway();
+
 		this.gateway.setRequestChannel(requestChannel);
 		if (replyChannel != null) {
 			this.gateway.setReplyChannel(replyChannel);
@@ -135,7 +147,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	@Override
 	public void onInit() {
 		super.onInit();
-		this.gateway.afterPropertiesSet();
+
+		if (this.gateway != null) {
+		    this.gateway.afterPropertiesSet();
+		}
+
 	}
 
 	@Override
@@ -171,7 +187,13 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			                                     .build();
 		}
 
-	    final Message<?> replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+	    final Message<?> replyMessage;
+
+	    if (this.gateway == null) {
+	    	replyMessage = actualRequestMessage;
+	    } else {
+	    	replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+	    }
 
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
@@ -184,20 +206,36 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	}
 
 
-	/*
-	 * Lifecycle implementation
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * has no effect as in that case no Gateway is initialized.
 	 */
-
 	public void start() {
-		this.gateway.start();
+		if (this.gateway != null) {
+			this.gateway.start();
+		}
 	}
 
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * has no effect as in that case no Gateway is initialized.
+	 */
 	public void stop() {
-		this.gateway.stop();
+		if (this.gateway != null) {
+			this.gateway.stop();
+		}
 	}
 
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * will return always return true as no Gateway is initialized.
+	 */
 	public boolean isRunning() {
-		return this.gateway.isRunning();
+		if (this.gateway != null) {
+			return this.gateway.isRunning();
+		} else {
+			return true;
+		}
 	}
 
 

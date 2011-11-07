@@ -43,10 +43,15 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 		final BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ContentEnricher.class);
 		String requestChannel = element.getAttribute("request-channel");
 		String replyChannel = element.getAttribute("reply-channel");
-		builder.addConstructorArgReference(requestChannel);
+
+		if (StringUtils.hasText(requestChannel)) {
+			builder.addConstructorArgReference(requestChannel);
+		}
+
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addConstructorArgReference(replyChannel);
 		}
+
 		List<Element> propertyElements = DomUtils.getChildElementsByTagName(element, "property");
 		if (!CollectionUtils.isEmpty(propertyElements)) {
 			ManagedMap<String, Object> propertyExpressions = new ManagedMap<String, Object>();
