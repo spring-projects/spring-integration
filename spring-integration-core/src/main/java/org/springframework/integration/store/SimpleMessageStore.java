@@ -38,6 +38,8 @@ import org.springframework.util.Assert;
  */
 @ManagedResource
 public class SimpleMessageStore extends AbstractMessageGroupStore implements MessageStore, MessageGroupStore {
+	
+	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
 
@@ -116,16 +118,28 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		SimpleMessageGroup group = getMessageGroupInternal(groupId);
-		group.add(message);
-		return group;
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			if (group == null) {
+				group = new SimpleMessageGroup(groupId);
+				this.groupIdToMessageGroup.putIfAbsent(groupId, group);
+			}
+			group.add(message);
+			return group;
+		}
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
 		Object groupId = group.getGroupId();
-		SimpleMessageGroup internal = getMessageGroupInternal(groupId);
-		internal.markAll();
-		return internal;
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup internalGroup = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to remove Message from the MessageGroup");
+			internalGroup.markAll();
+			return internalGroup;
+		}
 	}
 
 	public void removeMessageGroup(Object groupId) {
@@ -136,16 +150,26 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		groupIdToMessageGroup.remove(groupId);
 	}
 
-	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
-		SimpleMessageGroup group = getMessageGroupInternal(key);
-		group.remove(messageToRemove);
-		return group;
+	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to remove Message from the MessageGroup");
+			group.remove(messageToRemove);			
+			return group;
+		}
 	}
 
-	public MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark) {
-		SimpleMessageGroup group = getMessageGroupInternal(key);
-		group.mark(messageToMark);
-		return group;
+	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
+		Object lock = this.obtainLock(groupId);
+		synchronized (lock) {
+			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
+			Assert.notNull(group, "MessageGroup for groupId '" + groupId + "' " +
+					"can not be located while attempting to mark Message from the MessageGroup");
+			group.mark(messageToMark);
+			return group;
+		}	
 	}
 
 	@Override
@@ -153,14 +177,14 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
 	}
 
-	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {
-		SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
-		if (group == null) {
-			SimpleMessageGroup newGroup = new SimpleMessageGroup(groupId);
-			SimpleMessageGroup previousGroup = this.groupIdToMessageGroup.putIfAbsent(groupId, newGroup);
-			group = (previousGroup == null) ? newGroup : previousGroup;
+	private Object obtainLock(Object groupId){
+		Object lock = this.locks.get(groupId);
+		if (lock == null){
+			Object newLock = new Object();
+			Object previousLock = this.locks.putIfAbsent(groupId, newLock);
+			lock = (previousLock == null) ? newLock : previousLock;
 		}
-		return group;
+		return lock;
 	}
 
 }
