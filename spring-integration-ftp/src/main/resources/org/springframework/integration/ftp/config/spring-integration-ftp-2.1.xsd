@@ -24,12 +24,23 @@
 						type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Allows you to provide SpEL expression which
-								will compute directory
-								path
-								where file will be transferred TO
+								Allows you to provide a SpEL expression which
+								will compute the directory
+								path where the files will be transferred to
 								(e.g., "headers.['remote_dir'] +
 								'/myTransfers'");
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="temporary-remote-directory-expression"
+						type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to provide a SpEL expression which
+								will compute the temporary directory
+								path where files will be transferred to before they are moved to the remote-directory
+								(e.g., "headers.['remote_dir'] +
+								'/temp/myTransfers'");
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -365,7 +376,15 @@
 					use="optional">
 					<xsd:annotation>
 						<xsd:documentation>
-							Identifies the directory path (e.g., "/temp/mytransfers")
+							Identifies the remote directory path (e.g., "/remote/mytransfers")
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="temporary-remote-directory" type="xsd:string"
+					use="optional">
+					<xsd:annotation>
+						<xsd:documentation>
+							Identifies the remote temporary directory path (e.g., "/remote/temp/mytransfers")
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

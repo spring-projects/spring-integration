@@ -27,6 +27,7 @@
 				remote-file-separator="."
 				temporary-file-suffix=".bar"
 				remote-directory="foo/bar"
+				temporary-remote-directory="foo/baz"
 				order="23"/>
 				
 	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithExpression"

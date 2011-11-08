@@ -27,6 +27,7 @@
 				session-factory="ftpSessionFactory"
 				cache-sessions="false"
 				remote-directory="foo/bar"
+				temporary-remote-directory="baz/abc"
 				charset="UTF-8"
 				remote-file-separator="."
 				temporary-file-suffix=".foo"
@@ -42,6 +43,7 @@
 				temporary-file-suffix=".foo"
 				remote-filename-generator="fileNameGenerator"
 				order="12"/>
+				
 
 	<int-ftp:outbound-channel-adapter id="simpleAdapter"
 				channel="ftpChannel" 
