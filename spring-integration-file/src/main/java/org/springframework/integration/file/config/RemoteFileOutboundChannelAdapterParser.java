@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file.config;
 
-import org.w3c.dom.Element;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -26,10 +24,15 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -40,8 +43,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 	private final Log logger = LogFactory.getLog(this.getClass());
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.remote.handler.FileTransferringMessageHandler");
+		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
 
 		// This whole block must be refactored once cache-session attribute is removed
 		String sessionFactoryName = element.getAttribute("session-factory");
@@ -70,26 +72,8 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 
-		// configure remote directory expression
-		String remoteDirectory = element.getAttribute("remote-directory");
-		String remoteDirectoryExpression = element.getAttribute("remote-directory-expression");
-		boolean hasRemoteDirectory = StringUtils.hasText(remoteDirectory);
-		boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
-		if (!(hasRemoteDirectory ^ hasRemoteDirectoryExpression)) {
-			throw new BeanDefinitionStoreException("exactly one of 'remote-directory' or 'remote-directory-expression' " +
-					"is required on a remote file outbound adapter");
-		}
-		BeanDefinition remoteDirectoryExpressionDefinition = null;
-		if (hasRemoteDirectory) {
-			remoteDirectoryExpressionDefinition = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
-			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
-		}
-		else if (hasRemoteDirectoryExpression) {
-			remoteDirectoryExpressionDefinition = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");	
-			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
-		}
-		handlerBuilder.addPropertyValue("remoteDirectoryExpression", remoteDirectoryExpressionDefinition);
-
+		this.configureRemoteDirectories(element, handlerBuilder);
+		
 		// configure remote FileNameGenerator
 		String remoteFileNameGenerator = element.getAttribute("remote-filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("remote-filename-generator-expression");
@@ -104,8 +88,7 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 				handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
 			}
 			else {
-				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						"org.springframework.integration.file.DefaultFileNameGenerator");
+				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultFileNameGenerator.class);
 				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
 				handlerBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 			}
@@ -113,6 +96,39 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "remote-file-separator");
 		return handlerBuilder.getBeanDefinition();
+	}
+	
+	private void configureRemoteDirectories(Element element, BeanDefinitionBuilder handlerBuilder){
+		this.doConfigureRemoteDirectory(element, handlerBuilder, "remote-directory", "remote-directory-expression", "remoteDirectoryExpression", true);
+		this.doConfigureRemoteDirectory(element, handlerBuilder, "temporary-remote-directory", "temporary-remote-directory-expression", "temporaryRemoteDirectoryExpression", false);
+	}
+	
+	private void doConfigureRemoteDirectory(Element element, BeanDefinitionBuilder handlerBuilder, 
+			                                String directoryAttribute, String directoryExpressionAttribute, 
+			                                String directoryExpressionPropertyName, boolean atLeastOneRequired){
+		String remoteDirectory = element.getAttribute(directoryAttribute);
+		String remoteDirectoryExpression = element.getAttribute(directoryExpressionAttribute);
+		boolean hasRemoteDirectory = StringUtils.hasText(remoteDirectory);
+		boolean hasRemoteDirectoryExpression = StringUtils.hasText(remoteDirectoryExpression);
+		if (atLeastOneRequired){
+			if (!(hasRemoteDirectory ^ hasRemoteDirectoryExpression)) {
+				throw new BeanDefinitionStoreException("exactly one of '" + directoryAttribute + "' or '" + directoryExpressionAttribute + "' " +
+						"is required on a remote file outbound adapter");
+			}
+		}
+		
+		BeanDefinition remoteDirectoryExpressionDefinition = null;
+		if (hasRemoteDirectory) {
+			remoteDirectoryExpressionDefinition = new RootBeanDefinition(LiteralExpression.class);
+			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectory);
+		}
+		else if (hasRemoteDirectoryExpression) {
+			remoteDirectoryExpressionDefinition = new RootBeanDefinition(ExpressionFactoryBean.class);	
+			remoteDirectoryExpressionDefinition.getConstructorArgumentValues().addGenericArgumentValue(remoteDirectoryExpression);
+		}
+		if (remoteDirectoryExpressionDefinition != null){
+			handlerBuilder.addPropertyValue(directoryExpressionPropertyName, remoteDirectoryExpressionDefinition);
+		}
 	}
 
 }
