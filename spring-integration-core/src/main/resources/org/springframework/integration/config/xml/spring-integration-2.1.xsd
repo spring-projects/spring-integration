@@ -986,7 +986,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:documentation>
 				Defines an endpoint that passes a Message to its request-channel
 				and then expects a reply Message. The reply Message then becomes
-				the root object for evaluation of expressions to enriche the
+				the root object for evaluation of expressions to enrich the
 				target payload.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -1068,7 +1068,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                     as value for the 'request-payload-expression' attribute, a
                     subset of the original payload, a header value or any other
                     resolvable SpEL expression can be used as the basis for the payload,
-                    that will be send to the request-channel.
+                    that will be sent to the request-channel.
 
                     For the Expression evaluation the full message is available
                     as the 'root object'.
