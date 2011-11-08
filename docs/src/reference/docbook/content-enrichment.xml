@@ -16,17 +16,17 @@
             The Spring Integration <code>Core</code> module includes 2 enrichers:
         </para>
         <itemizedlist>
-            <listitem>Header Enricher</listitem>
-            <listitem>(Generic) Enricher</listitem>
+            <listitem><link linkend='header-enricher'>Header Enricher</link></listitem>
+            <listitem><link linkend='payload-enricher'>Payload Enricher</link></listitem>
         </itemizedlist>
         <para>
 	        Furthermore, several <emphasis>Adapter specific Header Enrichers</emphasis>
 	        are included as well:
 	    </para>
         <itemizedlist>
-            <listitem>XPath Header Enricher (XML Module)</listitem>
-            <listitem>Email Header Enricher (Mail Module)</listitem>
-            <listitem>XMPP Header Enricher (XMPP Module)</listitem>
+            <listitem><link linkend='xml-xpath-header-enricher'>XPath Header Enricher (XML Module)</link></listitem>
+            <listitem><link linkend='mail-namespace'>Mail Header Enricher (Mail Module)</link></listitem>
+            <listitem><link linkend='xmpp-message-outbound-channel-adapter'>XMPP Header Enricher (XMPP Module)</link></listitem>
         </itemizedlist>
 	    <para>
 	        Please go to the adapter specific sections of this reference manual
@@ -147,22 +147,309 @@
 
     </section>
 
-    <section id="generic-enricher">
-        <title>(Generic) Enricher</title>
-        <para></para>
+    <section id="payload-enricher">
+        <title>Payload Enricher</title>
+        <para>
+            In certain situations the Header Enricher, as discussed above, may
+            not be sufficient and payloads themselves may have to be enriched
+            with additional information. For example, order messages that enter
+            the Spring Integration messaging system have to look up the order's
+            customer based on the provided customer number and then enrich the original
+            payload with that information.
+        </para>
+        <para>
+            Since Spring Integration 2.1, the Payload Enricher is provided. A
+            Payload Enricher defines an endpoint that passes a <interfacename>
+            Message</interfacename> to the exposed request channel and then
+            expects a reply message. The reply message then becomes the root object
+            for evaluation of expressions to enrich the target payload.
+        </para>
+        <para>
+            The Payload Enricher provides full XML namespace support via the <code>enricher</code>
+            element. In order to send request messages, the payload enricher has a
+            <code>request-channel</code> attribute that allows you to dispatch
+            messages to a request channel.
+        </para>
+        <para>
+            Basically by defining the request channel, the Payload Enricher acts
+            as a Gateway, waiting for the message that were sent to the request
+            channel to return, and the Enricher then augments the message's payload with
+            the data provided by the reply message.
+        </para>
+        <para>
+            When sending messages to the request channel you also have the option
+            to only send a subset of the original payload using the
+            <code>request-payload-expression</code> attribute.
+        </para>
+        <para>
+            The enriching of payloads is configured through SpEL expressions,
+            providing users with a maximum degree of flexibility. Therefore, users
+            are not only able to enrich payloads with direct values from the reply channel's
+            <interfacename>Message</interfacename>, but they can use SpEL
+            expressions to extract a subset from that Message, only, or to apply
+            addtional inline transformations, allowing them to further manipulate
+            the data.
+        </para>
+        <para>
+            If you only need to enrich payloads with static values, you don't have
+            to provide the <code>request-channel</code> attribute.
+        </para>
+        <note>
+            Enrichers are a variant of Transformers and in many cases you could
+            use a Payload Enricher or a generic Transformer implementation to add
+            additional data to your messages payloads. Thus, familiarize yourself
+            with all transformation-capable components that are provided by Spring
+            Integration and carefully select the implementation that semantically
+            fits your business case best.
+        </note>
 
-        <programlisting language="xml"><![CDATA[<int:enricher request-channel=""
-              auto-startup=""
-              id=""
-              input-channel=""
-              order=""
-              output-channel=""
-              reply-channel=""
-              send-timeout=""
-              should-clone-payload="true">
-    <int:poller></int:poller>
-    <int:property name="" expression=""/>
+        <section id="payload-enricher-configuration">
+            <title>Configuration</title>
+
+	        <para>
+	            Below, please find an overview of all available configuration options that
+	            are available for the payload enricher:
+	        </para>
+
+            <programlisting language="xml"><![CDATA[<int:enricher request-channel=""                          ]]><co id="payload-enricher01-co" linkends="payload-enricher01" /><![CDATA[
+              auto-startup="true"                         ]]><co id="payload-enricher02-co" linkends="payload-enricher02" /><![CDATA[
+              id=""                                       ]]><co id="payload-enricher03-co" linkends="payload-enricher03" /><![CDATA[
+              order=""                                    ]]><co id="payload-enricher04-co" linkends="payload-enricher04" /><![CDATA[
+              output-channel=""                           ]]><co id="payload-enricher05-co" linkends="payload-enricher05" /><![CDATA[
+              request-payload-expression=""               ]]><co id="payload-enricher06-co" linkends="payload-enricher06" /><![CDATA[
+              reply-channel=""                            ]]><co id="payload-enricher07-co" linkends="payload-enricher07" /><![CDATA[
+              send-timeout=""                             ]]><co id="payload-enricher08-co" linkends="payload-enricher08" /><![CDATA[
+              should-clone-payload="false">               ]]><co id="payload-enricher09-co" linkends="payload-enricher09" /><![CDATA[
+    <int:poller></int:poller>                             ]]><co id="payload-enricher10-co" linkends="payload-enricher10" /><![CDATA[
+    <int:property name="" expression=""/>  ]]><co id="payload-enricher11-co" linkends="payload-enricher11" /><![CDATA[
     <int:property name="" value=""/>
 </int:enricher>]]></programlisting>
+
+	        <para>
+	            <calloutlist>
+	                <callout arearefs="payload-enricher01-co" id="payload-enricher01">
+	                    <para>
+	                        Channel to which a Message will be sent to get the data to use for enrichment.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher02-co" id="payload-enricher02">
+	                    <para>
+	                        Lifecycle attribute signaling if this component should be
+	                        started during Application Context startup. Defaults to true.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher03-co" id="payload-enricher03">
+	                    <para>
+	                        Id of the underlying bean definition, which is either
+	                        an <classname>EventDrivenConsumer</classname> or a
+	                        <classname>PollingConsumer</classname>.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher04-co" id="payload-enricher04">
+	                    <para>
+	                        Specifies the order for invocation when this endpoint is
+	                        connected as a subscriber to a channel. This is particularly
+	                        relevant when that channel is using a "failover" dispatching
+	                        strategy. It has no effect when this endpoint itself is a
+	                        Polling Consumer for a channel with a queue.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher05-co" id="payload-enricher05">
+	                    <para>
+	                        Identifies the Message channel where a Message will
+	                        be sent after it is being processed by this endpoint.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher06-co" id="payload-enricher06">
+	                    <para>
+	                        By default the original message's payload will be used as
+	                        payload that will be send to the <code>request-channel</code>.
+	                        By specifying a SpEL expression as value for the
+	                        <code>request-payload-expression</code> attribute, a
+	                        subset of the original payload, a header value or any other
+	                        resolvable SpEL expression can be used as the basis for the
+	                        payload, that will be sent to the request-channel.
+	                    </para>
+	                    <para>
+	                        For the Expression evaluation the full message is available
+	                        as the 'root object'.
+	                    </para>
+	                    <para>
+	                        For instance the following SpEL expressions (among others)
+	                        are possible:
+	                    </para>
+	                    <itemizedlist>
+	                        <listitem>payload.foo</listitem>
+	                        <listitem>headers.foobar</listitem>
+	                        <listitem>new java.util.Date()</listitem>
+	                        <listitem>'foo' + 'bar'</listitem>
+	                    </itemizedlist>
+	                    <para>
+	                        If more sophisticated logic is required (e.g. changing the
+	                        message headers etc.) please use additional downstream transformers.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher07-co" id="payload-enricher07">
+	                    <para>
+	                        Channel where a reply Message is expected. This is optional; typically the auto-generated
+	                        temporary reply channel is sufficient.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher08-co" id="payload-enricher08">
+	                    <para>
+	                        Maximum amount of time in milliseconds to wait when
+	                        sending a message to the channel, if such channel may block.
+	                    </para>
+	                    <para>
+	                        For example, a Queue Channel can block until space is
+	                        available, if its maximum capacity has been reached. Internally
+	                        the send timeout is set on the <classname>MessagingTemplate</classname>
+	                        and ultimately applied when invoking the send operation on the
+	                        <interfacename>MessageChannel</interfacename>.
+	                    </para>
+	                    <para>
+	                        By default the send timeout is set to '-1', which may cause
+	                        the send operation on the <interfacename>MessageChannel</interfacename>,
+	                        depending on the implementation, to block indefinitely.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher09-co" id="payload-enricher09">
+	                    <para>
+	                        Boolean value indicating whether any payload that implements
+	                        <interfacename>Cloneable</interfacename> should be cloned
+	                        prior to sending the Message to the request chanenl for
+	                        acquiring the enriching data. The cloned version would be
+	                        used as the target payload for the ultimate reply.
+	                        Default is <code>false</code>.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher10-co" id="payload-enricher10">
+	                    <para>
+	                        Allows you to configure a Message Poller if this endpoint
+	                        is a Polling Consumer.
+	                        <emphasis>Optional</emphasis>.
+	                    </para>
+	                </callout>
+	                <callout arearefs="payload-enricher11-co" id="payload-enricher11">
+	                    <para>
+                            Each <code>property</code> sub-element provides the
+                            name of a property (via the mandatory <code>name</code>
+                            attribute). That property should  be settable on the
+                            target payload instance. Exactly one of the <code>value</code>
+                            or <code>expression</code> attributes must be provided
+                            as well. The former for a literal value to set, and the
+                            latter for a SpEL expression to be evaluated. The root
+                            object of the evaluation context is the Message that was
+                            returned from the flow initiated by this enricher.
+	                    </para>
+	                </callout>
+	            </calloutlist>
+	        </para>
+
+        </section>
+
+        <section id="payload-enricher-examples">
+            <title>Examples</title>
+
+            <para>
+	            Below, please find several examples of using a Payload Enricher
+	            in various situations.
+	        </para>
+
+	        <para>
+	            In the following example, a <classname>User</classname> object is passed
+	            as the payload of the <interfacename>Message</interfacename>. The
+	            <classname>User</classname> has several properties but only the
+	            <code>username</code> is set initially. The Enricher's
+	            <code>request-channel</code> attribute below is configured to
+	            pass the <classname>User</classname> on to the <code>findUserServiceChannel</code>.
+	        </para>
+	        <para>
+	            Through the implicitly set <code>reply-channel</code> a
+	            <classname>User</classname> object is returned and using the
+	            <code>property</code> sub-element, properties from the reply are
+	            extracted and used to enrich the original payload.
+	        </para>
+
+            <programlisting language="xml"><![CDATA[<int:enricher id="findUserEnricher"
+              input-channel="findUserEnricherChannel"
+              request-channel="findUserServiceChannel">
+    <int:property name="email"    expression="payload.email"/>
+    <int:property name="password" expression="payload.password"/>
+</int:enricher>]]></programlisting>
+
+	        <note>
+	            The code samples shown here, are part of the <emphasis>Spring
+	            Integration Samples</emphasis> project. Please feel free to
+	            check it out at:
+
+	            <ulink url="https://github.com/SpringSource/spring-integration-samples"/>
+
+	        </note>
+
+	        <para><emphasis>How do I pass only a subset of data to the request channel?</emphasis></para>
+	        <para>
+	            Using a <code>request-payload-expression</code> attribute
+	            a single property of the payload can be passed on to the request
+	            channel instead of the full message. In the example below on the
+	            username property is passed on to the request channel. Keep in mind,
+	            that alwhough only the username is passed on, the resulting message
+	            send to the request channel will contain the full set of
+	            <classname>MessageHeaders</classname>.
+	        </para>
+
+            <programlisting language="xml"><![CDATA[<int:enricher id="findUserByUsernameEnricher"
+              input-channel="findUserByUsernameEnricherChannel"
+              request-channel="findUserByUsernameServiceChannel"
+              request-payload-expression="payload.username">
+    <int:property name="email"    expression="payload.email"/>
+    <int:property name="password" expression="payload.password"/>
+</int:enricher>]]></programlisting>
+
+	        <para><emphasis>How can I enrich payloads that consist of Collection data?</emphasis></para>
+	        <para>
+	            In the following example, instead of a <classname>User</classname> object,
+	            a <interfacename>Map</interfacename> is passed in. The
+	            <interfacename>Map</interfacename> contains the username under the map
+	            key <code>username</code>. Only the <code>username</code> is passed on
+	            to the request channel. The reply contains a full <classname>User</classname> object, which
+	            is ultimately added to the <interfacename>Map</interfacename> under the
+	            <code>user</code> key.
+	        </para>
+
+            <programlisting language="xml"><![CDATA[<int:enricher id="findUserWithMapEnricher"
+              input-channel="findUserWithMapEnricherChannel"
+              request-channel="findUserByUsernameServiceChannel"
+              request-payload-expression="payload.username">
+    <int:property name="user"    expression="payload"/>
+</int:enricher>]]></programlisting>
+
+	        <para><emphasis>How can I enrich payloads with static information without using a request channel?</emphasis></para>
+	        <para>
+	           Here is an example that does not use a request channel at all,
+	           but solely enriches the message's payload with static values. But please
+	           be aware that the word 'static' is used loosly here. You can still use
+	           SpEL expressions for setting those values.
+	        </para>
+
+            <programlisting language="xml"><![CDATA[<int:enricher id="userEnricher"
+              input-channel="input">
+    <int:property name="user.updateDate" expression="new java.util.Date()"/>
+    <int:property name="user.firstName" value="foo"/>
+    <int:property name="user.lastName"  value="bar"/>
+    <int:property name="user.age"       value="42"/>
+</int:enricher>]]></programlisting>
+
+        </section>
+
     </section>
 </section>
