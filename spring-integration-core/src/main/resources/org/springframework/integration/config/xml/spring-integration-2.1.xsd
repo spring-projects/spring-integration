@@ -1014,10 +1014,14 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
-		<xsd:attribute name="request-channel" type="xsd:string" use="required">
+		<xsd:attribute name="request-channel" type="xsd:string" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Channel to which a Message will be sent to get the data to use for enrichment.
+					Channel to which a Message will be sent to get the data to use
+					for enrichment. This attribute is optional. Not specifying a
+					'request-channel' is useful in situations, where only static
+					values shall be used for enrichment using the 'property'
+					sub-element.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -1045,6 +1049,10 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					Boolean value indicating whether any payload that implements Cloneable should be cloned
 					prior to sending the Message to the request chanenl for acquiring the enriching data.
 					The cloned version would be used as the target payload for the ultimate reply.
+
+					If the payload does NOT implement 'Cloneable', then setting this
+					attribute to 'true' has NO effect.
+
 					Default is false.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -1089,7 +1097,11 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="name" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-					The name of the property on the target payload.
+					The name of the property on the target payload. Please be aware
+					that this value is a SpEL expression, also. For example, if
+					your payload is represented by a 'java.util.Map', you can add new
+					Map entries using the 'name' attribute, e.g. name='foo' would add a new
+					Map entry with key 'foo'.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
