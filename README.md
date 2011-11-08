@@ -5,17 +5,29 @@ Spring Integration
 
 To check out the project and build from source, do the following:
 
-    git clone --recursive git://github.com/SpringSource/spring-integration.git
+    git clone git://github.com/SpringSource/spring-integration.git
     cd spring-integration
     ./gradlew build
 
-> Note: the **<code>--recursive</code>** switch above is important, as spring-integration uses
-> *git submodules*, which must themselves be cloned and initialized. If **<code>--recursive</code>**
-> is omitted, the checkout becomes a multi-step process.
+If you encounter out of memory errors during the build, increase available heap and permgen for Gradle:
 
-If you encounter heap space errors during the build, increase the heap size for Gradle:
+    GRADLE_OPTS='-XX:MaxPermSize=1024m -Xmx1024m'
 
-    GRADLE_OPTS="-Xmx1024m"
+To build and install jars into your local Maven cache:
+
+    ./gradlew install
+
+To build api Javadoc (results will be in `build/api`):
+
+    ./gradlew api
+
+To build reference documentation (results will be in `build/reference`):
+
+    ./gradlew reference
+
+To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`)
+
+    ./gradlew dist
 
 # Using Eclipse
 
@@ -35,14 +47,6 @@ free of errors.
 To generate IDEA metadata (.iml and .ipr files), do the following:
 
     ./gradlew idea
-
-# Generating JavaDoc
-
-To build the JavaDoc, do the following from within the root directory:
-
-    ./gradlew :docs:api
-
-The result will be available in **'docs/build/api'**.
 
 # OSGI Notes
 
@@ -69,4 +73,5 @@ The result will be available in **'docs/build/api'**.
 
 # Resources
 
-For more information, please visit the Spring Integration website at: [http://www.springsource.org/spring-integration](http://www.springsource.org/spring-integration)
+For more information, please visit the Spring Integration website at:
+[http://www.springsource.org/spring-integration](http://www.springsource.org/spring-integration)
