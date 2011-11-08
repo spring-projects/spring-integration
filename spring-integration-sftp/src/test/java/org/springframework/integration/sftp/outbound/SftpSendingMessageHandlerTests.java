@@ -52,19 +52,24 @@ public class SftpSendingMessageHandlerTests {
 
 	@Test
 	public void testHandleFileMessage() throws Exception {
-		File file = new File("remote-target-dir", "template.mf.test");
-		if (file.exists()){
-			file.delete();
-		}
-		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		SessionFactory sessionFactory = new TestSftpSessionFactory();
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("payload + '.test'");
 		handler.setFileNameGenerator(fGenerator);
-		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage<File>(new File("template.mf")));
-		assertTrue(new File("remote-target-dir", "template.mf.test").exists());
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp", new File("."));
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName() + ".test");
+		destFile.deleteOnExit();
+
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
 	}
 
 	@Test

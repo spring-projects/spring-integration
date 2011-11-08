@@ -98,21 +98,26 @@ public class FtpSendingMessageHandlerTests {
 	
 	@Test
 	public void testHandleFileMessage() throws Exception {
-		File file = new File("remote-target-dir/template.mf.test");
-		if (file.exists()){
-			file.delete();
-		}
-		assertFalse(file.exists());
-		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
-		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
-		handler.setFileNameGenerator(new FileNameGenerator() {	
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
+		handler.setFileNameGenerator(new FileNameGenerator() {
 			public String generateFileName(Message<?> message) {
 				return ((File)message.getPayload()).getName() + ".test";
 			}
 		});
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage<File>(new File("template.mf")));
-		assertTrue(file.exists());
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName() + ".test");
+		destFile.deleteOnExit();
+
+		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
 	}
 
 

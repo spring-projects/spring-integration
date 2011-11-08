@@ -11,7 +11,6 @@ task generateSql {
     group = "Build"
     description = "Generates schema creation and drop scripts for supported databases."
 
-    repositories { mavenRepo urls: 'http://objectstyle.org/maven2/' }
     configurations { vpp }
     dependencies { vpp 'foundrylogic.vpp:vpp:2.2.1' }
 
