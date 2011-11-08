@@ -52,11 +52,16 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
+
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
@@ -82,10 +87,13 @@ public class ContentEnricherTests {
 	@Test
 	public void testContentEnricherWithNullRequestChannel() {
 
+	    ContentEnricher enricher = new ContentEnricher();
+	    enricher.setReplyChannel(new QueueChannel());
+
 		try {
-		    new ContentEnricher(null);
+		    enricher.afterPropertiesSet();
 		} catch (IllegalArgumentException e) {
-            assertEquals("requestChannel must not be null", e.getMessage());
+            assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
             return;
 		}
 
@@ -102,11 +110,15 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("child.name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
+
 		Target target = new Target("test");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
@@ -126,12 +138,16 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
+
 		Target target = new Target("replace me");
 		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
 		enricher.handleMessage(requestMessage);
@@ -151,12 +167,16 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
+
 		TargetUser target = new TargetUser();
         target.setName("replace me");
 
@@ -179,12 +199,16 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+
 		enricher.setShouldClonePayload(true);
 		SpelExpressionParser parser = new SpelExpressionParser();
 		Map<String, Expression> propertyExpressions = new HashMap<String, Expression>();
 		propertyExpressions.put("name", parser.parseExpression("payload.lastName + ', ' + payload.firstName"));
 		enricher.setPropertyExpressions(propertyExpressions);
+		enricher.afterPropertiesSet();
+
 		UncloneableTargetUser target = new UncloneableTargetUser();
         target.setName("replace me");
 
@@ -222,7 +246,9 @@ public class ContentEnricherTests {
 				return new Source("John", "Doe");
 			}
 		});
-		ContentEnricher enricher = new ContentEnricher(requestChannel);
+
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
 
 		enricher.afterPropertiesSet();
 
