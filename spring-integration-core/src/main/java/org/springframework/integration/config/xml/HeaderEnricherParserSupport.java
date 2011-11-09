@@ -118,22 +118,43 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					String ref = headerElement.getAttribute("ref");
 					String method = headerElement.getAttribute("method");
 					String expression = headerElement.getAttribute("expression");
-					Element beanElement = DomUtils.getChildElementByTagName(headerElement, "bean");
-					Element scriptElement = DomUtils.getChildElementByTagName(headerElement, "script");
-					Element expressionElement = DomUtils.getChildElementByTagName(headerElement, "expression");
 
-					BeanDefinition innerComponentDefinition = null;
+					Element beanElement = null;
+					Element scriptElement = null;
+					Element expressionElement = null;
+
+					List<Element> subElements = DomUtils.getChildElements(headerElement);
+
+					if (!subElements.isEmpty()) {
+
+						Element subElement = subElements.get(0);
+
+						String subElementLocalName = subElement.getLocalName();
+						if ("bean".equals(subElementLocalName)) {
+							beanElement = subElement;
+						}
+						else if ("script".equals(subElementLocalName)) {
+							scriptElement = subElement;
+						}
+						else if ("expression".equals(subElementLocalName)) {
+							expressionElement = subElement;
+						}
+						if (beanElement == null && scriptElement == null && expressionElement == null) {
+							parserContext.getReaderContext().error("Only 'bean', 'script' or 'expression' can be defined as sub-element", element);
+						}
+					}
 
 					if (StringUtils.hasText(expression) && expressionElement != null) {
 						parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
 					}
-
 
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
 					boolean hasMethod = StringUtils.hasText(method);
 					boolean isExpression = StringUtils.hasText(expression) || expressionElement != null;
 					boolean isScript = scriptElement != null;
+
+					BeanDefinition innerComponentDefinition = null;
 
 					if (beanElement != null) {
 						innerComponentDefinition = parserContext.getDelegate().parseBeanDefinitionElement(beanElement).getBeanDefinition();

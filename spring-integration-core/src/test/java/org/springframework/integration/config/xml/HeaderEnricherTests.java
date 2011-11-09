@@ -22,7 +22,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -211,6 +213,10 @@ public class HeaderEnricherTests {
 		assertEquals("testBeanForInnerBeanWithMethod", result.getHeaders().get("testHeader"));
 	}
 
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void testFailConfigUnexpectedSubElement() {
+		new ClassPathXmlApplicationContext("HeaderEnricherWithUnexpectedSubElementForHeader-fail-context.xml", this.getClass());
+	}
 
 	public static class TestBean {
 
