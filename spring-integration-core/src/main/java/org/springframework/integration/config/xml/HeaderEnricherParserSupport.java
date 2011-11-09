@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -35,9 +36,10 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Base support class for 'header-enricher' parsers.
- * 
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 public abstract class HeaderEnricherParserSupport extends AbstractTransformerParser {
@@ -64,7 +66,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		ManagedMap headers = new ManagedMap();
 		this.processHeaders(element, headers, parserContext);
@@ -90,7 +92,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					headerName = elementToNameMap.get(elementName);
 					headerType = elementToTypeMap.get(elementName);
 					if (headerType != null && StringUtils.hasText(headerElement.getAttribute("type"))) {
-						parserContext.getReaderContext().error("The " + elementName 
+						parserContext.getReaderContext().error("The " + elementName
 								+ " header does not accept a 'type' attribute. The required type is ["
 								+ headerType.getName() + "]", element);
 					}
@@ -116,33 +118,58 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					String ref = headerElement.getAttribute("ref");
 					String method = headerElement.getAttribute("method");
 					String expression = headerElement.getAttribute("expression");
-		
-					List<Element> subElements = DomUtils.getChildElements(headerElement);
-					
-					BeanDefinition innerComponentDefinition = null;
+
+					Element beanElement = null;
+					Element scriptElement = null;
 					Element expressionElement = null;
-					if (subElements != null && subElements.size() == 1) {
-						Element beanElement = subElements.get(0);
-						if ("expression".equals(beanElement.getNodeName())){
-							expressionElement = beanElement;
-							if (StringUtils.hasText(expression) && expressionElement != null) {
-								parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
-								return;
-							}
-						} 
-						else if ("bean".equals(beanElement.getNodeName())){
-							innerComponentDefinition = parserContext.getDelegate().parseBeanDefinitionElement(beanElement).getBeanDefinition();
+
+					List<Element> subElements = DomUtils.getChildElements(headerElement);
+
+					if (!subElements.isEmpty()) {
+
+						Element subElement = subElements.get(0);
+
+						String subElementLocalName = subElement.getLocalName();
+						if ("bean".equals(subElementLocalName)) {
+							beanElement = subElement;
 						}
-						else {
-							innerComponentDefinition = parserContext.getDelegate().parseCustomElement(beanElement);
+						else if ("script".equals(subElementLocalName)) {
+							scriptElement = subElement;
+						}
+						else if ("expression".equals(subElementLocalName)) {
+							expressionElement = subElement;
+						}
+						if (beanElement == null && scriptElement == null && expressionElement == null) {
+							parserContext.getReaderContext().error("Only 'bean', 'script' or 'expression' can be defined as sub-element", element);
 						}
 					}
+
+					if (StringUtils.hasText(expression) && expressionElement != null) {
+						parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
+					}
+
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
 					boolean hasMethod = StringUtils.hasText(method);
 					boolean isExpression = StringUtils.hasText(expression) || expressionElement != null;
+					boolean isScript = scriptElement != null;
+
+					BeanDefinition innerComponentDefinition = null;
+
+					if (beanElement != null) {
+						innerComponentDefinition = parserContext.getDelegate().parseBeanDefinitionElement(beanElement).getBeanDefinition();
+					}
+					else if (isScript) {
+						innerComponentDefinition = parserContext.getDelegate().parseCustomElement(scriptElement);
+					}
+
 					boolean isCustomBean = innerComponentDefinition != null;
-					
+
+					if (hasMethod && isScript) {
+						parserContext.getReaderContext().error("The 'method' attribute can't be used when defined 'script' sub-element", element);
+					}
+
+
 					if (!(isValue ^ (isRef ^ (isExpression ^ isCustomBean)))) {
 						parserContext.getReaderContext().error(
 								"Exactly one of the 'ref', 'value', 'expression' or inner bean is required.", element);
@@ -178,17 +205,22 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						valueProcessorBuilder.addConstructorArgValue(headerType);
 					}
-					else if (isCustomBean){
-						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
-						valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
-						if (hasMethod){
-							valueProcessorBuilder.addConstructorArgValue(method);
-						} 
+					else if (isCustomBean) {
+						if (StringUtils.hasText(headerElement.getAttribute("type"))) {
+							parserContext.getReaderContext().error(
+									"The 'type' attribute cannot be used with the inner beans.", element);
+						}
+						if (hasMethod || isScript) {
+							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
+							valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
+							valueProcessorBuilder.addConstructorArgValue(hasMethod ? method : null);
+						}
 						else {
-							valueProcessorBuilder.addConstructorArgValue(null);
-						}		
-						headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
+							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+							valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
+						}
 					}
 					else {
 						if (StringUtils.hasText(headerElement.getAttribute("type"))) {

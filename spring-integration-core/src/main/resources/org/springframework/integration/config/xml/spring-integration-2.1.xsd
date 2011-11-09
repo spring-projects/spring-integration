@@ -1649,6 +1649,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				The 'type' attribute allows for the specification of the expected
 				type when using a 'value'
 				or 'expression', but it is optional.
+				Also for a header value can be defined one of 'bean', 'script' or
+				'expression' sub-elements, but they mutually exclusive
+				with attributes defined above.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
