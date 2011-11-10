@@ -446,6 +446,7 @@
         </l:l10n>
     </l:i18n>
 
+    <xsl:param name="ulink.footnotes">true</xsl:param>
 <!--###################################################
         colored and hyphenated links
     ################################################### -->
