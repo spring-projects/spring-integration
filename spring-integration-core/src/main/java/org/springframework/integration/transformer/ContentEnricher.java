@@ -42,13 +42,12 @@ import org.springframework.util.ReflectionUtils;
  * original payload.
  *
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
-
-	private Gateway gateway = null;
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -58,8 +57,12 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private Expression requestPayloadExpression;
 
-	private MessageChannel requestChannel;
-	private MessageChannel replyChannel;
+	private volatile MessageChannel requestChannel;
+
+	private volatile MessageChannel replyChannel;
+
+	private volatile Gateway gateway = null;
+
 
 	/**
 	 * Provide the map of expressions to evaluate when enriching the target payload.
@@ -143,33 +146,24 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	@Override
 	public void onInit() {
 		super.onInit();
-
 		if (this.replyChannel != null) {
 			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
 		}
-
 		if (this.requestChannel != null) {
 		    this.gateway = new Gateway();
 		    this.gateway.setRequestChannel(requestChannel);
-
 			if (replyChannel != null) {
 				this.gateway.setReplyChannel(replyChannel);
 			}
-
 			this.gateway.afterPropertiesSet();
 		}
-
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
-
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-
 		final Object requestPayload = requestMessage.getPayload();
-
 		final Object targetPayload;
-
 		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
 			try {
 				Method cloneMethod = requestPayload.getClass().getMethod("clone", new Class<?>[0]);
@@ -178,39 +172,32 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			catch (Exception e) {
 				throw new MessageHandlingException(requestMessage, "Failed to clone payload object", e);
 			}
-		} else {
+		}
+		else {
 			targetPayload = requestPayload;
 		}
-
 		final Message<?> actualRequestMessage;
-
-	    if (this.requestPayloadExpression==null) {
-
-	    	actualRequestMessage = requestMessage;
-
-		} else {
-
+		if (this.requestPayloadExpression == null) {
+			actualRequestMessage = requestMessage;
+		}
+		else {
 			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.evaluationContext, requestMessage);
 			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
-					                             .copyHeaders(requestMessage.getHeaders())
-			                                     .build();
+					.copyHeaders(requestMessage.getHeaders()).build();
 		}
-
-	    final Message<?> replyMessage;
-
-	    if (this.gateway == null) {
-	    	replyMessage = actualRequestMessage;
-	    } else {
-	    	replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
-	    }
-
+		final Message<?> replyMessage;
+		if (this.gateway == null) {
+			replyMessage = actualRequestMessage;
+		}
+		else {
+			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+		}
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
 			Object value = valueExpression.getValue(this.evaluationContext, replyMessage);
 			propertyExpression.setValue(this.evaluationContext, targetPayload, value);
 		}
-
 		return targetPayload;
 	}
 
@@ -242,7 +229,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	public boolean isRunning() {
 		if (this.gateway != null) {
 			return this.gateway.isRunning();
-		} else {
+		}
+		else {
 			return true;
 		}
 	}
