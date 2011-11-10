@@ -29,6 +29,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.NotReadablePropertyException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
@@ -141,6 +142,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			if (interceptorListWrapper != null) {
 				return (List<ChannelInterceptor>) new DirectFieldAccessor(interceptorListWrapper).getPropertyValue("interceptors");
 			}
+		}
+		catch (NotReadablePropertyException e) {
+			// Channel doesn't support interceptors - null return logged by caller
 		}
 		catch (Exception e) {
 			// interceptors not supported, will return null
