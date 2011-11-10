@@ -189,6 +189,44 @@ public class Kid {
     Also, if using the 'ref' attribute, you must point to a 'prototype' scoped bean, otherwise
     a BeanCreationException will be thrown. 
     </note>
+    <para>
+        <emphasis>JSON Transformers</emphasis>
+    </para>
+    <para>
+        <emphasis>Object to JSON</emphasis> and <emphasis>JSON to Object</emphasis> transformers are provided. 
+    </para>
+    <para>
+        <programlisting language="xml"><![CDATA[<int:object-to-json-transformer input-channel="objectMapperInput"/>]]></programlisting>
+        <programlisting language="xml"><![CDATA[<int:json-to-object-transformer input-channel="objectMapperInput"
+    type="foo.MyDomainObject"/>]]></programlisting>
+    </para>
+    <para>
+        These use a vanilla Jackson ObjectMapper by default. If you wish to customize the ObjectMapper (for example,
+        to configure the 'ALLOW_COMMENTS' feature when parsing JSON), you can supply a reference to your custom ObjectMapper bean using
+        the object-mapper attribute.
+    </para>
+    <para>
+        <programlisting language="xml"><![CDATA[<int:json-to-object-transformer input-channel="objectMapperInput"
+    type="foo.MyDomainObject" object-mapper="customObjectMapper"/>]]></programlisting>
+    </para>
+    <para>
+        You may wish to consider using a FactoryBean or simple factory method to create the ObjectMapper with
+        the required characteristics.
+    </para>
+    <para>
+        <programlisting language="java"><![CDATA[public class ObjectMapperFactory {
+    
+    public static ObjectMapper getMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+        return mapper;
+    }
+}]]></programlisting>
+    </para>
+    <para>
+        <programlisting language="xml"><![CDATA[<bean id="customObjectMapper" class="foo.ObjectMapperFactory"
+            factory-method="getMapper"/>]]></programlisting>
+    </para>
   </section>
 
   <section id="transformer-annotation">
