@@ -16,9 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -40,8 +37,6 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, TrackableComponent, Orderable {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile boolean shouldTrack = false;
 

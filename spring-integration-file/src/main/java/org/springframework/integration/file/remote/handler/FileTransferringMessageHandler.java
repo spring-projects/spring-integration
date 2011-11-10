@@ -53,6 +53,8 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile boolean autoCreateDirectory = false;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
+	
+	private volatile ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -81,6 +83,11 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
 		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
+	}
+	
+	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
+		Assert.notNull(temporaryRemoteDirectoryExpression, "temporaryRemoteDirectoryExpression must not be null");
+		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
 	
 	protected String getTemporaryFileSuffix() {
@@ -116,8 +123,12 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 			Session session = this.sessionFactory.getSession();
 			try {
 				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
+				String temporaryRemoteDirectory = remoteDirectory;
+				if (this.temporaryDirectoryExpressionProcessor != null){
+					temporaryRemoteDirectory = this.directoryExpressionProcessor.processMessage(message);
+				}
 				String fileName = this.fileNameGenerator.generateFileName(message);
-				this.sendFileToRemoteDirectory(file, remoteDirectory, fileName, session);
+				this.sendFileToRemoteDirectory(file, temporaryRemoteDirectory, remoteDirectory, fileName, session);
 			}
 			catch (FileNotFoundException e) {
 				throw new MessageDeliveryException(message,
@@ -180,19 +191,19 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String remoteDirectory, String fileName, Session session) 
+	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session session) 
 			throws FileNotFoundException, IOException {
 		
+		
 		FileInputStream fileInputStream = new FileInputStream(file);
-		if (!StringUtils.hasText(remoteDirectory)) {
-			remoteDirectory = "";
-		}
-		else if (!remoteDirectory.endsWith(this.remoteFileSeparator)) {
-			remoteDirectory += this.remoteFileSeparator; 
-		}
+
+		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
+		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
+		
 		String remoteFilePath = remoteDirectory + fileName;
+		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with .writing extension
-		String tempFilePath = remoteFilePath + this.temporaryFileSuffix;
+		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
 		if (this.autoCreateDirectory) {
 			session.mkdir(remoteDirectory);
 		}
@@ -207,6 +218,16 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		finally {
 			fileInputStream.close();
 		}
+	}
+	
+	private String normalizeDirectoryPath(String directoryPath){
+		if (!StringUtils.hasText(directoryPath)) {
+			directoryPath = "";
+		}
+		else if (!directoryPath.endsWith(this.remoteFileSeparator)) {
+			directoryPath += this.remoteFileSeparator; 
+		}
+		return directoryPath;
 	}
 
 }
