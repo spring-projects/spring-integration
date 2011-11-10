@@ -36,17 +36,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Content Enricher is a Message Transformer that invokes any downstream message flow via
- * its request channel and then applies values from the reply Message to the original payload.
+ * Content Enricher is a Message Transformer that can augment a message's payload
+ * with either static values or by optionally invoking a downstream message flow
+ * via its request channel and then applying values from the reply Message to the
+ * original payload.
  *
  * @author Mark Fisher
+ * @author Gunnar Hillert
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
 
 	private final Map<Expression, Expression> propertyExpressions = new HashMap<Expression, Expression>();
-
-	private final Gateway gateway = new Gateway();
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -56,25 +57,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private Expression requestPayloadExpression;
 
-	/**
-	 * Create a Content Enricher with the given request channel. An anonymous reply channel
-	 * will be created for each request.
-	 */
-	public ContentEnricher(MessageChannel requestChannel) {
-		this(requestChannel, null);
-	}
+	private volatile MessageChannel requestChannel;
 
-	/**
-	 * Create a Content Enricher with the given request and reply channels.
-	 */
-	public ContentEnricher(MessageChannel requestChannel, MessageChannel replyChannel) {
-		Assert.notNull(requestChannel, "requestChannel must not be null");
-		this.gateway.setRequestChannel(requestChannel);
-		if (replyChannel != null) {
-			this.gateway.setReplyChannel(replyChannel);
-		}
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
-	}
+	private volatile MessageChannel replyChannel;
+
+	private volatile Gateway gateway = null;
 
 
 	/**
@@ -94,6 +81,25 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 				this.propertyExpressions.put(parser.parseExpression(key), value);
 			}
 		}
+	}
+
+	/**
+	 * Sets the content enricher's request channel. If specified, then an internal
+	 * {@link Gateway} will be initialized. Setting a request channel is optional.
+	 * Not setting a request channel is useful in situations where
+	 * message payloads shall be enriched with static values only.
+	 */
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.requestChannel = requestChannel;
+	}
+
+	/**
+	 * Sets the content enricher's reply channel. If not specified, yet the request
+	 * channel is set, an anonymous reply channel will automatically created
+	 * for each request.
+	 */
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.replyChannel = replyChannel;
 	}
 
 	/**
@@ -132,19 +138,32 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		this.shouldClonePayload = shouldClonePayload;
 	}
 
+
+    /**
+     * Initializes the Content Enricher. Will instantiate an internal Gateway if
+     * the requestChannel is set.
+     */
 	@Override
 	public void onInit() {
 		super.onInit();
-		this.gateway.afterPropertiesSet();
+		if (this.replyChannel != null) {
+			Assert.notNull(this.requestChannel, "If the replyChannel is set, then the requestChannel must not be null");
+		}
+		if (this.requestChannel != null) {
+		    this.gateway = new Gateway();
+		    this.gateway.setRequestChannel(requestChannel);
+			if (replyChannel != null) {
+				this.gateway.setReplyChannel(replyChannel);
+			}
+			this.gateway.afterPropertiesSet();
+		}
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-
 		final Object requestPayload = requestMessage.getPayload();
-
 		final Object targetPayload;
-
 		if (requestPayload instanceof Cloneable && this.shouldClonePayload) {
 			try {
 				Method cloneMethod = requestPayload.getClass().getMethod("clone", new Class<?>[0]);
@@ -153,51 +172,67 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			catch (Exception e) {
 				throw new MessageHandlingException(requestMessage, "Failed to clone payload object", e);
 			}
-		} else {
+		}
+		else {
 			targetPayload = requestPayload;
 		}
-
 		final Message<?> actualRequestMessage;
-
-	    if (this.requestPayloadExpression==null) {
-
-	    	actualRequestMessage = requestMessage;
-
-		} else {
-
+		if (this.requestPayloadExpression == null) {
+			actualRequestMessage = requestMessage;
+		}
+		else {
 			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.evaluationContext, requestMessage);
 			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
-					                             .copyHeaders(requestMessage.getHeaders())
-			                                     .build();
+					.copyHeaders(requestMessage.getHeaders()).build();
 		}
-
-	    final Message<?> replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
-
+		final Message<?> replyMessage;
+		if (this.gateway == null) {
+			replyMessage = actualRequestMessage;
+		}
+		else {
+			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+		}
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
 			Object value = valueExpression.getValue(this.evaluationContext, replyMessage);
 			propertyExpression.setValue(this.evaluationContext, targetPayload, value);
 		}
-
 		return targetPayload;
 	}
 
 
-	/*
-	 * Lifecycle implementation
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * has no effect as in that case no Gateway is initialized.
 	 */
-
 	public void start() {
-		this.gateway.start();
+		if (this.gateway != null) {
+			this.gateway.start();
+		}
 	}
 
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * has no effect as in that case no Gateway is initialized.
+	 */
 	public void stop() {
-		this.gateway.stop();
+		if (this.gateway != null) {
+			this.gateway.stop();
+		}
 	}
 
+	/**
+	 * Lifecycle implementation. If no requestChannel is defined, this method
+	 * will return always return true as no Gateway is initialized.
+	 */
 	public boolean isRunning() {
-		return this.gateway.isRunning();
+		if (this.gateway != null) {
+			return this.gateway.isRunning();
+		}
+		else {
+			return true;
+		}
 	}
 
 
