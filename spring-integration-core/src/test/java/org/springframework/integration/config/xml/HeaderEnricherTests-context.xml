@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<header-enricher input-channel="replyChannelInput" output-channel="echoInput"> 
+	<header-enricher input-channel="replyChannelInput" output-channel="echoInput">
 		<reply-channel ref="testReplyChannel"/>
 	</header-enricher>
 
@@ -33,15 +33,15 @@
 	</channel>
 
 	<header-enricher input-channel="correlationIdValueInput">
-		<correlation-id value="ABC"/> 
+		<correlation-id value="ABC"/>
 	</header-enricher>
 
 	<header-enricher input-channel="correlationIdValueWithTypeInput">
-		<correlation-id value="123" type="java.lang.Long"/> 
+		<correlation-id value="123" type="java.lang.Long"/>
 	</header-enricher>
 
 	<header-enricher input-channel="correlationIdRefInput">
-		<correlation-id ref="testCorrelationId"/> 
+		<correlation-id ref="testCorrelationId"/>
 	</header-enricher>
 
 	<beans:bean id="testCorrelationId" class="java.lang.Integer">
@@ -84,8 +84,32 @@
 		<header name="testHeader" ref="testBean" method="getName"/>
 	</header-enricher>
 
+	<header-enricher input-channel="ref">
+		<header name="testHeader" ref="testBean1"/>
+	</header-enricher>
+
+	<header-enricher input-channel="innerBean">
+		<header name="testHeader">
+			<beans:bean class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+				<beans:constructor-arg value="testBeanForInnerBean"/>
+			</beans:bean>
+		</header>
+	</header-enricher>
+
+	<header-enricher input-channel="innerBeanWithMethod">
+		<header name="testHeader" method="getName">
+			<beans:bean class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+				<beans:constructor-arg value="testBeanForInnerBeanWithMethod"/>
+			</beans:bean>
+		</header>
+	</header-enricher>
+
 	<beans:bean id="testBean" class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
 		<beans:constructor-arg value="testBeanForMethodInvoker"/>
+	</beans:bean>
+
+	<beans:bean id="testBean1" class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+		<beans:constructor-arg value="testBeanForRef"/>
 	</beans:bean>
 
 </beans:beans>
