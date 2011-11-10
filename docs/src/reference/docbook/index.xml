@@ -70,15 +70,20 @@
 
   <xi:include href="./preface.xml"/>
 
-  <part id="whats-new-in-2-part">
-    <title>What's new in Spring Integration 2.0</title>
+  <part id="whats-new-part">
+    <title>What's new?</title>
     <partintro id="spring-integration-intro">
-    	 <para>
-    	 For those who are already familiar with Spring Integration, this chapter provides a brief overview of
-    	 the new features of version 2.0.
+    	<para>
+    	 For those who are already familiar with Spring Integration, this chapter
+    	 provides a brief overview of the new features of version 2.1. If you are
+    	 interested in the changes and features, that were introduced in earlier
+    	 versions, please take a look at chapter:
+
+         <xref linkend="history"/>
+
 		</para>
     </partintro>
-    <xi:include href="./whats-new-in-2.xml"/>
+    <xi:include href="./whats-new.xml"/>
   </part>
 
   <part id="spring-integration-introduction">
@@ -154,5 +159,6 @@
 	  <xi:include href="./samples.xml"/>
 	  <xi:include href="./configuration.xml"/>
 	  <xi:include href="./resources.xml"/>
+	  <xi:include href="./history.xml"/>
   </part>
 </book>
