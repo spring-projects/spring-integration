@@ -16,9 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.NamedComponent;
@@ -36,8 +33,6 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
-	
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile MessageSource<?> source;
 
