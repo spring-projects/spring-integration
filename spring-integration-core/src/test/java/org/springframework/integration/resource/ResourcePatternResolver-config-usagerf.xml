@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
+
+
+	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel" 
+									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + 'testUsage*'}"
+									      filter="rlFilter" auto-startup="true">
+		<int:poller fixed-rate="5000" max-messages-per-poll="100"/>
+	</int:resource-inbound-channel-adapter>
+	
+	<bean id="rlFilter" class="org.springframework.integration.resource.ResourcePatternResolverParserTests.OneItemAndNeverAgainResourceListFilter"/>
+	
+	<int:channel id="resultChannel">
+		<int:queue/>
+	</int:channel>
+	
+</beans>
