@@ -154,6 +154,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String TRANSFER_ENCODING = "Transfer-Encoding";
 
+	public  static final String TRANSFERRED_COOKIE = "http_transferredCookie";
+
 	private static final String UPGRADE = "Upgrade";
 
 	private static final String USER_AGENT = "User-Agent";
@@ -193,6 +195,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			RANGE,
 			REFERER,
 			TE,
+			TRANSFERRED_COOKIE,
 			UPGRADE,
 			USER_AGENT,
 			VIA,
@@ -224,6 +227,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 			SET_COOKIE,
 			TRAILER,
 			TRANSFER_ENCODING,
+			TRANSFERRED_COOKIE,
 			VARY,
 			VIA,
 			WARNING,

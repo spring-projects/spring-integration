@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.Source;
 
@@ -88,6 +91,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile String charset = "UTF-8";
 
+	private volatile boolean transferSetCookieHeaders = true; //TODO: default false;
+
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
@@ -95,7 +100,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
-	
+
+	private final Pattern cookieNameExtractorPattern = Pattern.compile("([^=]+)");
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -215,6 +221,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
+	/**
+	 * @param transferSetCookieHeaders the transferSetCookieHeaders to set
+	 */
+	public void setTransferSetCookieHeaders(boolean transferSetCookieHeaders) {
+		this.transferSetCookieHeaders = transferSetCookieHeaders;
+	}
+
 	@Override
 	public void onInit() {
 		super.onInit();
@@ -245,7 +258,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
-				Map<String, ?> headers = this.headerMapper.toHeaders(httpResponse.getHeaders());
+				HttpHeaders httpHeaders = httpResponse.getHeaders();
+				if (this.transferSetCookieHeaders) {
+					httpHeaders = this.doConvertSetCookie(httpHeaders);
+				}
+				Map<String, ?> headers = this.headerMapper.toHeaders(httpHeaders);
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
 					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
@@ -269,6 +286,25 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
+	private HttpHeaders doConvertSetCookie(HttpHeaders headers) {
+		HttpHeaders modifiableHeaders = new HttpHeaders();
+		for (Entry<String, List<String>> entry : headers.entrySet()) {
+			String key = entry.getKey();
+			if (key.equalsIgnoreCase("Set-Cookie")) {
+				List<String> cookies = headers.get("Set-Cookie");
+				modifiableHeaders.put(DefaultHttpHeaderMapper.TRANSFERRED_COOKIE, cookies);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Converted Set-Cookie to "
+							+ DefaultHttpHeaderMapper.TRANSFERRED_COOKIE + ": "
+							+ cookies);
+				}
+			} else {
+				modifiableHeaders.put(key, headers.get(key));
+			}
+		}
+		return modifiableHeaders;
+	}
+
 	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
 		return (this.extractPayload) ? this.createHttpEntityFromPayload(message)
@@ -281,8 +317,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			// payload is already an HttpEntity, just return it as-is
 			return (HttpEntity<?>) payload;
 		}
-		HttpHeaders httpHeaders = new HttpHeaders();
-		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		HttpHeaders httpHeaders = this.mapHeaders(message);
 		if (!shouldIncludeRequestBody()) {
 			return new HttpEntity<Object>(httpHeaders);
 		}
@@ -302,13 +337,55 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message) {
-		HttpHeaders httpHeaders = new HttpHeaders();
-		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		HttpHeaders httpHeaders = mapHeaders(message);
 		if (shouldIncludeRequestBody()) {
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
 		return new HttpEntity<Object>(httpHeaders);
+	}
+
+	protected HttpHeaders mapHeaders(Message<?> message) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		if (this.transferSetCookieHeaders) {
+			doTransferCookies(httpHeaders);
+		}
+		return httpHeaders;
+	}
+
+	private void doTransferCookies(HttpHeaders httpHeaders) {
+		List<String> transferredCookies = httpHeaders.remove(DefaultHttpHeaderMapper.TRANSFERRED_COOKIE);
+		if (transferredCookies != null) {
+			List<String> currentCookies = httpHeaders.get("Cookie");
+			if (currentCookies == null) {
+				currentCookies = new ArrayList<String>();
+			}
+			Map<String, String> currentCookiesAsMap = this.cookiesToMap(currentCookies);
+			Map<String, String> transferredCookiesAsMap = this.cookiesToMap(transferredCookies);
+			for (Entry<String, String> transferredCookie : transferredCookiesAsMap.entrySet()) {
+				String name = transferredCookie.getKey();
+				currentCookiesAsMap.put(name, transferredCookie.getValue());
+			}
+			List<String> mergedCookies = new ArrayList<String>(currentCookiesAsMap.values());
+			httpHeaders.put("Cookie", mergedCookies);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Transferred Cookies: " + transferredCookies);
+			}
+		}
+	}
+
+	private Map<String, String> cookiesToMap(List<String> cookies) {
+		Map<String, String> map = new HashMap<String, String>();
+		for (String cookie : cookies) {
+			Matcher matcher = this.cookieNameExtractorPattern.matcher(cookie);
+			String key = cookie;
+			if (matcher.find()) {
+				key = matcher.group(1).toLowerCase();
+			}
+			map.put(key, cookie);
+		}
+		return map;
 	}
 
 	@SuppressWarnings("unchecked")
