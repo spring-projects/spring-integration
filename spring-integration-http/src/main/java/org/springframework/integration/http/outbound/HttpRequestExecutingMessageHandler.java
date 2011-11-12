@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.transform.Source;
 
@@ -88,6 +89,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile String charset = "UTF-8";
 
+	private volatile boolean transferCookies = false;
+
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
@@ -95,7 +98,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
-	
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -215,6 +217,16 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
+	/**
+	 * Set to true if you wish 'Set-Cookie' headers in responses to be
+	 * transferred as 'Cookie' headers in subsequent interactions for
+	 * a message.
+	 * @param transferCookies the transferCookies to set.
+	 */
+	public void setTransferCookies(boolean transferCookies) {
+		this.transferCookies = transferCookies;
+	}
+
 	@Override
 	public void onInit() {
 		super.onInit();
@@ -245,7 +257,11 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
-				Map<String, ?> headers = this.headerMapper.toHeaders(httpResponse.getHeaders());
+				HttpHeaders httpHeaders = httpResponse.getHeaders();
+				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
+				if (this.transferCookies) {
+					this.doConvertSetCookie(headers);
+				}
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
 					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
@@ -269,6 +285,27 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
+	/**
+	 * Convert Set-Cookie to Cookie
+	 */
+	private void doConvertSetCookie(Map<String, Object> headers) {
+		String keyName = null;
+		for (String key : headers.keySet()) {
+			if (key.equalsIgnoreCase(DefaultHttpHeaderMapper.SET_COOKIE)) {
+				keyName = key;
+				break;
+			}
+		}
+		if (keyName != null) {
+			Object cookies = headers.remove(keyName);
+			headers.put(DefaultHttpHeaderMapper.COOKIE, cookies);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Converted Set-Cookie header to Cookie for: "
+						+ cookies);
+			}
+		}
+	}
+
 	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
 		return (this.extractPayload) ? this.createHttpEntityFromPayload(message)
@@ -281,8 +318,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			// payload is already an HttpEntity, just return it as-is
 			return (HttpEntity<?>) payload;
 		}
-		HttpHeaders httpHeaders = new HttpHeaders();
-		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		HttpHeaders httpHeaders = this.mapHeaders(message);
 		if (!shouldIncludeRequestBody()) {
 			return new HttpEntity<Object>(httpHeaders);
 		}
@@ -302,13 +338,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	private HttpEntity<?> createHttpEntityFromMessage(Message<?> message) {
-		HttpHeaders httpHeaders = new HttpHeaders();
-		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		HttpHeaders httpHeaders = mapHeaders(message);
 		if (shouldIncludeRequestBody()) {
 			httpHeaders.setContentType(new MediaType("application", "x-java-serialized-object"));
 			return new HttpEntity<Object>(message, httpHeaders);
 		}
 		return new HttpEntity<Object>(httpHeaders);
+	}
+
+	protected HttpHeaders mapHeaders(Message<?> message) {
+		HttpHeaders httpHeaders = new HttpHeaders();
+		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
+		return httpHeaders;
 	}
 
 	@SuppressWarnings("unchecked")

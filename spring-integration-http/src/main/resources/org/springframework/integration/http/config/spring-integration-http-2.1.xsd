@@ -505,6 +505,15 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="auto-startup" type="xsd:string" />
+					<xsd:attribute name="transfer-cookies" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	When set to "true", if a response contains a 'Set-Cookie' header, it will mapped to a 'Cookie' header. This enables simple
+	cookie handling where subsequent HTTP interactions in the same message flow can use a cookie
+	supplied by the server. Default "false".
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
