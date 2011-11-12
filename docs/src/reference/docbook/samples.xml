@@ -281,7 +281,7 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para><emphasis>Composed Message Processor</emphasis> </para>
       <para>
       The <emphasis>Composed Message Processor</emphasis> pattern describes rules around building endpoints that maintain control over message flow which
-      consists of multiple message processors. In Sprig Integration <emphasis>Composed Message Processor</emphasis> pattern is implemented via
+      consists of multiple message processors. In Spring Integration <emphasis>Composed Message Processor</emphasis> pattern is implemented via
       <emphasis>&lt;chain&gt;</emphasis> element.
       <mediaobject>
           <imageobject role="fo">
