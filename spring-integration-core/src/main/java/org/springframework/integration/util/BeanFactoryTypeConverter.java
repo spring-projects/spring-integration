@@ -94,7 +94,8 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	}
 
 	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
-		if (targetType.getType() == Void.class || targetType.getType() == Void.TYPE) {
+		// TODO maybe tentative decision... Echoes with org.springframework.expression.common.ExpressionUtils.convertTypedValue()
+		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {
 			return null;
 		}
 		if (conversionService.canConvert(sourceType, targetType)) {

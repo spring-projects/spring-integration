@@ -19,6 +19,8 @@
 
 	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
+	<outbound-channel-adapter id="expressionConsumer" expression="@testBean.store(payload)"/>
+
 	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" 
 							 channel="queueChannel" auto-startup="false">
 		<poller max-messages-per-poll="1" fixed-delay="10000"/>
