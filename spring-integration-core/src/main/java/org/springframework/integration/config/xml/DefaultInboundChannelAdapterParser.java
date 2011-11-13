@@ -34,10 +34,11 @@ import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;inbound-channel-adapter/&gt; element.
- * 
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
-public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
@@ -46,6 +47,7 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 		String sourceRef = element.getAttribute("ref");
 		String methodName = element.getAttribute("method");
 		String expressionString = element.getAttribute("expression");
+//		TODO Add check for mutually exclusive options: inner or ref, or expression and expression without method. @see  DefaultOutboundChannelAdapterParser
 		if (innnerBeanDef != null) {
 			if (StringUtils.hasText(sourceRef)) {
 				parserContext.getReaderContext().error(
@@ -67,7 +69,7 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 			result = new RuntimeBeanReference(expressionBeanName);
 		}
 		else if (StringUtils.hasText(sourceRef)) {
-			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef); 
+			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef);
 			if (StringUtils.hasText(methodName)) {
 				result = this.parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
 			}
