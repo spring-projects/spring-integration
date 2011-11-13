@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,18 @@ package org.springframework.integration.groovy.config;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 import groovy.lang.GroovyObject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -33,9 +38,15 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Dave Syer
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -47,7 +58,7 @@ public class GroovyControlBusTests {
 
 	@Autowired
 	private PollableChannel output;
-	
+
 	@Autowired
 	private MyGroovyCustomizer groovyCustomizer;
 
@@ -61,6 +72,49 @@ public class GroovyControlBusTests {
 		assertTrue(this.groovyCustomizer.executed);
 	}
 
+	@Test //INT-2567
+	public void testOperationWithCustomScope() {
+		Message<?> message = MessageBuilder.withPayload("def result = threadScopedService.convert('testString')").build();
+		this.input.send(message);
+		assertEquals("cat", output.receive(0).getPayload());
+	}
+
+	@Test //INT-2567
+	public void testFailOperationWithCustomScope() {
+		try {
+			Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
+			this.input.send(message);
+			fail("Expected BeanCreationException");
+		}
+		catch (Exception e) {
+			Throwable cause = e.getCause();
+			assertTrue("Expected BeanCreationException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanCreationException);
+			assertTrue(cause.getMessage().contains("requestScopedService"));
+		}
+	}
+
+	@Test //INT-2567
+	public void testOperationWithRequestCustomScope() {
+		RequestContextHolder.setRequestAttributes(new MockRequestAttributes());
+		Message<?> message = MessageBuilder.withPayload("def result = requestScopedService.convert('testString')").build();
+		this.input.send(message);
+		assertEquals("cat", output.receive(0).getPayload());
+	}
+
+	@Test //INT-2567
+	public void testFailOperationOnNonManagedComponent() {
+		try {
+			Message<?> message = MessageBuilder.withPayload("def result = nonManagedService.convert('testString')").build();
+			this.input.send(message);
+			fail("Expected BeanCreationNotAllowedException");
+		}
+		catch (MessageHandlingException e) {
+			Throwable cause = e.getCause();
+			assertTrue("Expected BeanCreationNotAllowedException, got " + cause.getClass() + ":" + cause.getMessage(), cause instanceof BeanCreationNotAllowedException);
+			assertTrue(cause.getMessage().contains("nonManagedService"));
+		}
+	}
+
 	@ManagedResource
 	public static class Service {
 
@@ -69,14 +123,59 @@ public class GroovyControlBusTests {
 			return "cat";
 		}
 	}
-	
-	public static class MyGroovyCustomizer implements GroovyObjectCustomizer{
+
+
+	public static class NonManagedService {
+
+		public String convert(String input) {
+			return "cat";
+		}
+	}
+
+	public static class MyGroovyCustomizer implements GroovyObjectCustomizer {
 		private volatile boolean executed;
-		
+
 		public void customize(GroovyObject goo) {
 			this.executed = true;
 		}
-		
+
+	}
+
+	private static class MockRequestAttributes implements RequestAttributes {
+
+		private Map<String, Object> fakeRequest = new HashMap<String, Object>();
+
+		public Object getAttribute(String name, int scope) {
+			return fakeRequest.get(name);
+		}
+
+		public void setAttribute(String name, Object value, int scope) {
+			fakeRequest.put(name, value);
+		}
+
+		public void removeAttribute(String name, int scope) {
+		}
+
+		public String[] getAttributeNames(int scope) {
+			return null;
+		}
+
+		public void registerDestructionCallback(String name, Runnable callback, int scope) {
+
+		}
+
+		public Object resolveReference(String key) {
+			return null;
+		}
+
+		public String getSessionId() {
+			return null;
+		}
+
+		public Object getSessionMutex() {
+			return null;
+		}
+
 	}
 
 }
