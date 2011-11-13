@@ -11,13 +11,32 @@
 		<queue/>
 	</channel>
 
+	 <beans:bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <beans:property name="scopes">
+            <beans:map>
+                <beans:entry key="thread" value="org.springframework.context.support.SimpleThreadScope"/>
+                <beans:entry key="request" value="org.springframework.web.context.request.RequestScope"/>
+            </beans:map>
+        </beans:property>
+    </beans:bean>
+
 	<groovy:control-bus input-channel="input" output-channel="output" send-timeout="100" order="1" auto-startup="true"
 						customizer="groovyCustomizer"/>
 
 	<beans:bean id="service" class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service" />
-	
-	<beans:bean id="groovyCustomizer" 
-			class="org.springframework.integration.groovy.config.GroovyControlBusTests.MyGroovyCustomizer"/>
-	
+
+	<beans:bean id="threadScopedService"
+				scope="thread"
+				class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service" />
+
+	<beans:bean id="requestScopedService"
+				scope="request"
+				class="org.springframework.integration.groovy.config.GroovyControlBusTests$Service" />
+
+	<beans:bean id="nonManagedService" class="org.springframework.integration.groovy.config.GroovyControlBusTests$NonManagedService" />
+
+	<beans:bean id="groovyCustomizer"
+			class="org.springframework.integration.groovy.config.GroovyControlBusTests$MyGroovyCustomizer"/>
+
 
 </beans:beans>

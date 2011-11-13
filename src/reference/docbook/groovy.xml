@@ -85,10 +85,13 @@
     <para>
        <important>
         Be careful about using managed beans with custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
-        inside an <emphasis>async</emphasis> message flow. If <emphasis>The Control Bus' customizer</emphasis> can't expose a bean
-        from the application context, it skips that bean. For example, if a custom scope's context is not established, the attempt
-        to get a bean within that scope will trigger a <classname>BeanCreationException</classname>. In that case, such a bean
-        will be ignored, and the customizer will continue with other beans.
+        inside an <emphasis>async</emphasis> message flow. <emphasis>The Control Bus' customizer</emphasis> injects
+        <classname>GroovyVariableResolverBinding</classname> with delegation to <classname>ApplicationContext</classname>
+        into <emphasis>Command scripts</emphasis>, which resolves Groovy variables as managed Spring beans at runtime.
+        <classname>GroovyVariableResolverBinding</classname> applies <classname>ControlBusBeanFilter</classname> on resolved beans
+        to determine if they are <emphasis>managed beans</emphasis>. And you may end up with some <classname>BeansException</classname>
+        during <emphasis>Command script's</emphasis> executing. For example, if a custom scope's context is not established, the attempt
+        to get a bean within that scope will trigger a <classname>BeanCreationException</classname>.
        </important>
     </para>
     <para>
