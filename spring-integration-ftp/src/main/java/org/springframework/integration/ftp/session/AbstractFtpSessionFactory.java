@@ -62,13 +62,13 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 
 	/**
-	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants.
-	 * <br>
-	 * ASCII_FILE_TYPE=0; <br> 
-	 * EBCDIC_FILE_TYPE=1; <br>
-	 * BINARY_FILE_TYPE=3 (DEFAULT);<br>
-	 * LOCAL_FILE_TYPE=4;
-	 *  
+	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants:
+	 * <ul>
+	 * <li>{@link org.apache.commons.net.ftp.FTP#ASCII_FILE_TYPE}</li>
+	 * <li>{@link org.apache.commons.net.ftp.FTP#EBCDIC_FILE_TYPE}</li>
+	 * <li>{@link org.apache.commons.net.ftp.FTP#BINARY_FILE_TYPE} (DEFAULT)</li>
+	 * <li>{@link org.apache.commons.net.ftp.FTP#LOCAL_FILE_TYPE}</li>
+	 * </ul>
 	 * @param fileType
 	 */
 	public void setFileType(int fileType) {
