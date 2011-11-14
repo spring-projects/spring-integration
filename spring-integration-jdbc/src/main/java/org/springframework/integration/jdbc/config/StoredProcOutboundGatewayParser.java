@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2011 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -27,10 +27,10 @@ import org.w3c.dom.Element;
 /**
  * @author Gunnar Hillert
  * @since 2.1
- * 
+ *
  */
 public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointParser {
-	
+
 	protected boolean shouldGenerateId() {
 		return false;
 	}
@@ -47,18 +47,18 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 
 		String dataSourceRef       = gatewayElement.getAttribute("data-source");
 		String storedProcedureName = gatewayElement.getAttribute("stored-procedure-name");
-		
+
 		builder.addConstructorArgReference(dataSourceRef);
 		builder.addConstructorArgValue(storedProcedureName);
-		
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "is-function");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "ignore-column-meta-data");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "expect-single-result");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "return-value-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "use-payload-as-parameter-source");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
-		
-		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "skip-undeclared-results");
+
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);
@@ -85,5 +85,5 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 	protected String getInputChannelAttributeName() {
 		return "request-channel";
 	}
-	
+
 }
