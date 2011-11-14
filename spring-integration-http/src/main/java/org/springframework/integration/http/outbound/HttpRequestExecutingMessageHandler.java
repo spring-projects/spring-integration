@@ -91,7 +91,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile String charset = "UTF-8";
 
-	private volatile boolean transferSetCookieHeaders = true; //TODO: default false;
+	private volatile boolean transferCookies = false;
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = DefaultHttpHeaderMapper.outboundMapper();
 
@@ -222,10 +222,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
-	 * @param transferSetCookieHeaders the transferSetCookieHeaders to set
+	 * Set to true if you wish 'Set-Cookie' headers in responses to be
+	 * transferred as 'Cookie' headers in subsequent interactions for
+	 * a message.
+	 * @param transferCookies the transferCookies to set.
 	 */
-	public void setTransferSetCookieHeaders(boolean transferSetCookieHeaders) {
-		this.transferSetCookieHeaders = transferSetCookieHeaders;
+	public void setTransferCookies(boolean transferCookies) {
+		this.transferCookies = transferCookies;
 	}
 
 	@Override
@@ -259,7 +262,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
-				if (this.transferSetCookieHeaders) {
+				if (this.transferCookies) {
 					httpHeaders = this.doConvertSetCookie(httpHeaders);
 				}
 				Map<String, ?> headers = this.headerMapper.toHeaders(httpHeaders);
@@ -348,7 +351,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	protected HttpHeaders mapHeaders(Message<?> message) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
-		if (this.transferSetCookieHeaders) {
+		if (this.transferCookies) {
 			doTransferCookies(httpHeaders);
 		}
 		return httpHeaders;

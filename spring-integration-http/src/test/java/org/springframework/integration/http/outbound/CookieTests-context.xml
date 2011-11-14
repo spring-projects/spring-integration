@@ -10,6 +10,7 @@
 	<int:channel id="ch1" />
 
 	<int-http:outbound-gateway url="http://localhost:18080/it/" request-channel="ch1" reply-channel="ch2"
+		transfer-cookies="true"
 		request-factory="requestFactory"
 	/>
 
@@ -18,12 +19,14 @@
 	<int:transformer input-channel="ch2" output-channel="ch3" expression="'Hello, again!'" />
 
 	<int-http:outbound-gateway url="http://localhost:18080/it/" request-channel="ch3" reply-channel="ch4"
+		transfer-cookies="true"
 		request-factory="requestFactory"
 	/>
 
 	<int:transformer input-channel="ch4" output-channel="ch5" expression="'Hello, once more!'" />
 
 	<int-http:outbound-gateway url="http://localhost:18080/it/" request-channel="ch5" reply-channel="ch6"
+		transfer-cookies="true"
 		request-factory="requestFactory"
 	/>
 
