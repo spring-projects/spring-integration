@@ -11,7 +11,7 @@
 
     <int:channel id="requestChannel"/>
     <int:channel id="replyChannel"/>
-    
+
     <jdbc:embedded-database id="datasource" type="HSQL"/>
 
     <int-jdbc:stored-proc-outbound-gateway request-channel="requestChannel" stored-procedure-name="GET_PRIME_NUMBERS" data-source="datasource"
@@ -19,15 +19,16 @@
                                            id="storedProcedureOutboundGateway"
                                            ignore-column-meta-data="false"
                                            is-function="false"
+                                           skip-undeclared-results="false"
                                            order="2"
                                            reply-channel="replyChannel"
                                            request-timeout="555"
                                            return-value-required="false">
-                                           
+
         <int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
         <int-jdbc:sql-parameter-definition name="password" direction="OUT"                            />
         <int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>
-        <int-jdbc:sql-parameter-definition name="description" />                                           
+        <int-jdbc:sql-parameter-definition name="description" />
         <int-jdbc:parameter name="username"    value="kenny"   type="java.lang.String"/>
         <int-jdbc:parameter name="description" value="Who killed Kenny?"/>
         <int-jdbc:parameter name="password"    expression="payload.username"/>
@@ -35,6 +36,6 @@
         <int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
 
     </int-jdbc:stored-proc-outbound-gateway>
-    
+
     <int:poller default="true" fixed-rate="10000"/>
 </beans>
