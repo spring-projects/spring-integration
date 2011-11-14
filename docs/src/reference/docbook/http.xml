@@ -100,6 +100,17 @@ By default the HTTP request will be generated using an instance of <classname>Si
 In the case of the Outbound Gateway, the reply message produced by the gateway will contain all Message Headers present in the request message.
     	</note>
     </para>
+    <para><emphasis>Cookies</emphasis></para>
+    <para>
+      Basic cookie support is provided by the <emphasis>transfer-cookies</emphasis> attribute on the outbound gateway. When
+      set to true (default is false), a <emphasis>Set-Cookie</emphasis> header received from the server in a response, will be inserted into
+      the reply message in header <emphasis>http_transferredCookie</emphasis>. This header will be transferred to the
+      <emphasis>Cookie</emphasis> header on subsequent sends to gateways that also have <emphasis>transfer-cookies</emphasis>
+      set to true. This enables simple stateful interactions, such as...
+    </para>
+    <para>
+      <emphasis>...-&gt;logonGateway-&gt;...-&gt;doWorkGateway-&gt;...-&gt;logoffGateway-&gt;...</emphasis>
+    </para>
   </section>
 
   <section id="http-namespace">
