@@ -131,7 +131,7 @@ new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</progr
     </para>
     <para>
     There is also a convenient implementation of <interfacename>Message</interfacename> designed to communicate 
-    error conditions. THis implementation takes <classname>Throwable</classname> object as its payload:
+    error conditions. This implementation takes <classname>Throwable</classname> object as its payload:
       <programlisting language="java">ErrorMessage message = new ErrorMessage(someThrowable);
 
 Throwable t = message.getPayload();</programlisting>
