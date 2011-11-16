@@ -171,13 +171,11 @@
 					</xsd:attribute>
 					<xsd:attribute name="max-rows-per-poll" type="xsd:string">
 						<xsd:annotation>
-							<xsd:appinfo>
-								<xsd:documentation>
-									Limits the number of rows extracted per query (otherwise all rows
-									are extracted into the
-									outgoing message).
-								</xsd:documentation>
-							</xsd:appinfo>
+							<xsd:documentation>
+								Limits the number of rows extracted per query (otherwise all rows
+								are extracted into the
+								outgoing message).
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string" use="required">
@@ -361,6 +359,18 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+                    <xsd:attribute name="max-rows-per-poll" type="xsd:string">
+                        <xsd:annotation>
+	                        <xsd:documentation>
+	                            When using a select query, you can set a
+	                            custom limit regarding the number of rows
+	                            extracted. Otherwise by default only the first
+	                            row will be extracted into the outgoing message.
+
+	                            If set to '0' all rows are extracted.
+	                        </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
 					<xsd:attribute name="request-sql-parameter-source-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

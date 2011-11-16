@@ -27,10 +27,11 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
- * 
+ *
  * @since 2.0
  */
 public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
@@ -67,7 +68,10 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 	}
 
 	public void setMaxRowsPerPoll(int maxRows) {
+
+		Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
 		poller.setMaxRowsPerPoll(maxRows);
+
 	}
 
 	@Override
