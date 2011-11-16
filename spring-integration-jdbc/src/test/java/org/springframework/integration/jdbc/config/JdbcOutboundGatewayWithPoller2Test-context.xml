@@ -18,11 +18,11 @@
 		<int:queue />
 	</int:channel>
 
-	<int-jdbc:outbound-gateway id="jdbcOutboundGateway" query="select * from bazz where id=:headers[id]" update="insert into bazz (id, status, name) values (:headers[id], 0, :payload[foo])"
-		request-channel="target" reply-channel="output" data-source="dataSource" auto-startup="true" reply-timeout="444">
+	<int-jdbc:outbound-gateway query="select * from bazz where id=:headers[id]" update="insert into bazz (id, status, name) values (:headers[id], 0, :payload[foo])"
+		request-channel="target" reply-channel="output" data-source="dataSource" auto-startup="true" max-rows-per-poll="10">
 		<int:poller fixed-rate="1000"/>
 	</int-jdbc:outbound-gateway>
-	
+
     <jdbc:embedded-database id="dataSource" type="H2"/>
 
     <jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">

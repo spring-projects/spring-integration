@@ -1,11 +1,11 @@
 /*
  * Copyright 2002-2011 the original author or authors.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
@@ -60,7 +59,7 @@ public class JdbcOutboundGatewayParserTests {
 		setUp("handlingMapPayloadJdbcOutboundGatewayTest.xml", getClass());
 		assertTrue(context.containsBean("jdbcGateway"));
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
-		channel.send(message); 
+		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
 		assertEquals("Wrong name", "bar", map.get("name"));
@@ -139,6 +138,40 @@ public class JdbcOutboundGatewayParserTests {
         
     }
 	
+    @Test
+    public void testDefaultMaxMessagesPerPollIsSet() throws Exception {
+
+    	ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
+
+    	PollingConsumer pollingConsumer = ac.getBean(PollingConsumer.class);
+
+        DirectFieldAccessor accessor = new DirectFieldAccessor(pollingConsumer);
+        Object source = accessor.getPropertyValue("handler");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
+        accessor = new DirectFieldAccessor(source);
+        Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRowsPerPoll");
+        assertEquals("maxRowsPerPoll should default to 1", Integer.valueOf(1),  maxRowsPerPoll);
+
+    }
+
+    @Test
+    public void testMaxMessagesPerPollIsSet() throws Exception {
+
+    	ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithPoller2Test-context.xml", this.getClass());
+
+    	PollingConsumer pollingConsumer = ac.getBean(PollingConsumer.class);
+
+        DirectFieldAccessor accessor = new DirectFieldAccessor(pollingConsumer);
+        Object source = accessor.getPropertyValue("handler");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("poller"); //JdbcPollingChannelAdapter
+        accessor = new DirectFieldAccessor(source);
+        Integer maxRowsPerPoll = (Integer) accessor.getPropertyValue("maxRowsPerPoll");
+        assertEquals("maxRowsPerPoll should default to 10", Integer.valueOf(10),  maxRowsPerPoll);
+
+    }
+
 	@After
 	public void tearDown() {
 		if (context != null) {
