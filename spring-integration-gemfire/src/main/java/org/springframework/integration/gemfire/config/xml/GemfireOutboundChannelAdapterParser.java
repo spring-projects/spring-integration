@@ -44,7 +44,7 @@ public class GemfireOutboundChannelAdapterParser extends AbstractOutboundChannel
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder cacheWritingMessageHandler = BeanDefinitionBuilder.genericBeanDefinition(
 				GEMFIRE_OUTBOUND_CACHE_WRITING_MESSAGE_HANDLER);
-		if (!StringUtils.hasText(REGION_ATTRIBUTE)){
+		if (!element.hasAttribute(REGION_ATTRIBUTE)){
 			parserContext.getReaderContext().error("'region' attribute is required.",element);
 		}
 		 

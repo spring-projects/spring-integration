@@ -53,7 +53,7 @@ public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterPa
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element, EXPRESSION_ATTRIBUTE,PAYLOAD_EXPRESSION_PROPERTY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(listeningMessageProducer, element, CACHE_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 	 	
-		if (!StringUtils.hasText(REGION_ATTRIBUTE)){
+		if (!element.hasAttribute(REGION_ATTRIBUTE)){
 			parserContext.getReaderContext().error("'region' attribute is required.",element);
 		}
 		 

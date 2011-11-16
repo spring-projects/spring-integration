@@ -59,11 +59,11 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, EXPRESSION_ATTRIBUTE,PAYLOAD_EXPRESSION_PROPERTY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 	 	
-		if (!StringUtils.hasText(QUERY_LISTENER_CONTAINER_ATTRIBUTE)){
+		if (!element.hasAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE)){
 			parserContext.getReaderContext().error("'query-listener-container' attribute is required.",element);
 		}
 		
-		if (!StringUtils.hasText(QUERY_ATTRIBUTE)){
+		if (!element.hasAttribute(QUERY_ATTRIBUTE)){
 			parserContext.getReaderContext().error("'query' attribute is required.",element);
 		}
 		 
