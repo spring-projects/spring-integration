@@ -21,13 +21,16 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -43,27 +46,27 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	private final StoredProcExecutor executor;
 
 	private volatile boolean expectSingleResult = false;
-	
+
     /**
-     * Constructor taking {@link DataSource} from which the DB Connection can be 
+     * Constructor taking {@link DataSource} from which the DB Connection can be
      * obtained and the name of the stored procedure or function to
      * execute to retrieve new rows.
      *
      * @param dataSource used to create a {@link SimpleJdbcTemplate}
-     * @param storedProcedureName 
+     * @param storedProcedureName
      */
     public StoredProcOutboundGateway(DataSource dataSource, String storedProcedureName) {
-    	
+
     	Assert.notNull(dataSource, "dataSource must not be null.");
     	Assert.hasText(storedProcedureName, "storedProcedureName must not be null and cannot be empty.");
-    	
+
     	this.executor = new StoredProcExecutor(dataSource, storedProcedureName);
 
     }
 
     /**
      * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
-     * and ensures the appropriate {@link SqlParameterSourceFactory} is defined 
+     * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
      * when {@link ProcedureParameter} are passed in.
      */
     @Override
@@ -74,19 +77,19 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
     @Override
     protected Object handleRequestMessage(Message<?> requestMessage) {
-    	
+
         Map<String, Object> resultMap = executor.executeStoredProcedure(requestMessage);
-        
+
         final Object payload;
-        
+
         if (resultMap.isEmpty()) {
             payload = null;
         } else {
-        	
+
         	if (this.expectSingleResult && resultMap.size() == 1) {
                 payload = resultMap.values().iterator().next();
         	} else if (this.expectSingleResult && resultMap.size() > 1) {
-        		
+
         		throw new MessageHandlingException(requestMessage,
         				"Stored Procedure/Function call returned more than "
         		      + "1 result object and expectSingleResult was 'true'. ");
@@ -94,11 +97,11 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
         	} else {
         		payload = resultMap;
         	}
-        
+
         }
-        
+
         return MessageBuilder.withPayload(payload).copyHeaders(requestMessage.getHeaders()).build();
-    
+
     }
 
     /**
@@ -142,80 +145,121 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
     }
 
     /**
+     * If true, the JDBC parameter definitions for the stored procedure are not
+     * automatically derived from the underlying JDBC connection. In that case
+     * you must pass in {@link SqlParameter} explicitly..
      *
-     * @param ignoreColumnMetaData
+     * @param ignoreColumnMetaData Defaults to <code>false</code>.
      */
     public void setIgnoreColumnMetaData(boolean ignoreColumnMetaData) {
         this.executor.setIgnoreColumnMetaData(ignoreColumnMetaData);
     }
 
     /**
+     * Indicates the procedure's return value should be included in the results
+     * returned.
      *
      * @param returnValueRequired
      */
     public void setReturnValueRequired(boolean returnValueRequired) {
     	this.executor.setReturnValueRequired(returnValueRequired);
     }
-    
+
+    /**
+     * Custom Stored Procedure parameters that may contain static values
+     * or Strings representing an {@link Expression}.
+     */
 	public void setProcedureParameters(List<ProcedureParameter> procedureParameters) {
 		this.executor.setProcedureParameters(procedureParameters);
 	}
-	
+
+	/**
+	 * Indicates whether a Stored Procedure or a Function is being executed.
+	 * The default value is false.
+	 *
+	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 */
 	public void setIsFunction(boolean isFunction) {
 		this.executor.setFunction(isFunction);
 	}
 
 	/**
 	 * This parameter indicates that only one result object shall be returned from
-	 * the Stored Procedure/Function Call. If set to true, a resultMap that contains 
+	 * the Stored Procedure/Function Call. If set to true, a resultMap that contains
 	 * only 1 element, will have that 1 element extracted and returned as payload.
-	 * 
-	 * If the resultMap contains more than 1 element and expectSingleResult is true, 
-	 * then a {@link MessagingException} is thrown. 
-	 * 
+	 *
+	 * If the resultMap contains more than 1 element and expectSingleResult is true,
+	 * then a {@link MessagingException} is thrown.
+	 *
 	 * Otherwise the complete resultMap is returned as the {@link Message} payload.
-	 * 
-	 * Important Note: Several databases such as H2 are not fully supported. 
-	 * The H2 database, for example, does not fully support the {@link CallableStatement} 
-	 * semantics and when executing function calls against H2, a result list is 
-	 * returned rather than a single value. 
-	 * 
-	 * Therefore, even if you set expectSingleResult = true, you may end up with 
+	 *
+	 * Important Note: Several databases such as H2 are not fully supported.
+	 * The H2 database, for example, does not fully support the {@link CallableStatement}
+	 * semantics and when executing function calls against H2, a result list is
+	 * returned rather than a single value.
+	 *
+	 * Therefore, even if you set expectSingleResult = true, you may end up with
 	 * a collection being returned.
-	 * 
+	 *
 	 * @param expectSingleResult
 	 */
 	public void setExpectSingleResult(boolean expectSingleResult) {
 		this.expectSingleResult = expectSingleResult;
 	}
 
-    /**
-     * 
-     * @param sqlParameterSourceFactory
-     */
+	/**
+	 * Provides the ability to set a custom {@link SqlParameterSourceFactory}.
+	 * Keep in mind that if {@link ProcedureParameter} are set explicitly and
+	 * you would like to provide a custom {@link SqlParameterSourceFactory},
+     * then you must provide an instance of {@link ExpressionEvaluatingSqlParameterSourceFactory}.
+	 *
+	 * If not the SqlParameterSourceFactory will be replaced by the default
+	 * {@link ExpressionEvaluatingSqlParameterSourceFactory}.
+	 *
+	 * @param sqlParameterSourceFactory
+	 */
     public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
     	this.executor.setSqlParameterSourceFactory(sqlParameterSourceFactory);
     }
-    
+
 	/**
-	 * If set to 'true', the payload of the Message will be used as a source for 
-	 * providing parameters. If false the entire Message will be available as a 
-	 * source for parameters. 
-	 * 
+	 * If set to 'true', the payload of the Message will be used as a source for
+	 * providing parameters. If false the entire Message will be available as a
+	 * source for parameters.
+	 *
 	 * If no {@link ProcedureParameter} are passed in, this property will default to
 	 * 'true'. This means that using a default {@link BeanPropertySqlParameterSourceFactory}
-	 * the bean properties of the payload will be used as a source for parameter values for 
+	 * the bean properties of the payload will be used as a source for parameter values for
 	 * the to-be-executed Stored Procedure or Function.
-	 * 
-	 * However, if {@link ProcedureParameter} are passed in, then this property 
-	 * will by default evaluate to 'false'. {@link ProcedureParameter} allow for 
+	 *
+	 * However, if {@link ProcedureParameter} are passed in, then this property
+	 * will by default evaluate to 'false'. {@link ProcedureParameter} allow for
 	 * SpEl Expressions to be provided and therefore it is highly beneficial to
 	 * have access to the entire {@link Message}.
-	 * 
-	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source. 
+	 *
+	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
 	 */
     public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
     	this.executor.setUsePayloadAsParameterSource(usePayloadAsParameterSource);
     }
-    
+
+	/**
+	 * If this variable is set to <code>true</code> then all results from a stored
+	 * procedure call that don't have a corresponding {@link SqlOutParameter}
+	 * declaration will be bypassed.
+	 *
+	 * E.g. Stored Procedures may return an update count value, even though your
+	 * Stored Procedure only declared a single result parameter. The exact behavior
+	 * depends on the used database.
+	 *
+	 * The value is set on the underlying {@link JdbcTemplate}.
+	 *
+	 * Only few developers will probably ever like to process update counts, thus
+	 * the value defaults to <code>true</code>.
+	 *
+	 */
+    public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
+    	this.executor.setSkipUndeclaredResults(skipUndeclaredResults);
+	}
+
 }

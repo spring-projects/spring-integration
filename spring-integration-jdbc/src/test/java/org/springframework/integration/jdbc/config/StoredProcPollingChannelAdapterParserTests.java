@@ -61,6 +61,19 @@ public class StoredProcPollingChannelAdapterParserTests {
     }
 
     @Test
+    public void testSkipUndeclaredResultsAttributeSet() throws Exception {
+        setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
+
+        DirectFieldAccessor accessor = new DirectFieldAccessor(this.pollingAdapter);
+        Object source = accessor.getPropertyValue("source");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("executor");
+        accessor = new DirectFieldAccessor(source);
+        boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
+        assertTrue("skipUndeclaredResults was not set and should default to 'true'", skipUndeclaredResults);
+    }
+
+    @Test
     public void testProcedurepParametersAreSet() throws Exception {
         setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
