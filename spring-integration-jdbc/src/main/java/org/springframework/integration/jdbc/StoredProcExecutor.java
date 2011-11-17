@@ -26,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
@@ -65,7 +66,7 @@ public class StoredProcExecutor implements InitializingBean {
     /**
      * Uses the {@link SimpleJdbcCall} implementation for executing Stored Procedures.
      */
-    private final SimpleJdbcCallOperations jdbcCallOperations;
+    private final SimpleJdbcCall jdbcCallOperations;
 
     /**
      * Name of the stored procedure or function to be executed.
@@ -80,6 +81,16 @@ public class StoredProcExecutor implements InitializingBean {
      * parameter definitions, this flag can be set to 'true'. It defaults to 'false'.
      */
     private volatile boolean   ignoreColumnMetaData = false;
+
+	/**
+	 * If this variable is set to true then all results from a stored procedure call
+	 * that don't have a corresponding SqlOutParameter declaration will be bypassed.
+	 *
+	 * The value is set on the underlying {@link JdbcTemplate}.
+	 *
+	 * Value defaults to <code>true</code>.
+	 */
+    private volatile boolean  skipUndeclaredResults = true;
 
     /**
      * If your database system is not fully supported by Spring and thus obtaining
@@ -203,6 +214,8 @@ public class StoredProcExecutor implements InitializingBean {
         } else {
             this.jdbcCallOperations.withProcedureName(this.storedProcedureName);
         }
+
+        this.jdbcCallOperations.getJdbcTemplate().setSkipUndeclaredResults(this.skipUndeclaredResults);
 
     }
 
@@ -333,19 +346,67 @@ public class StoredProcExecutor implements InitializingBean {
         return this.storedProcedureName;
     }
 
+	/**
+	 * If set to 'true', the payload of the Message will be used as a source for
+	 * providing parameters. If false the entire Message will be available as a
+	 * source for parameters.
+	 *
+	 * If no {@link ProcedureParameter} are passed in, this property will default to
+	 * 'true'. This means that using a default {@link BeanPropertySqlParameterSourceFactory}
+	 * the bean properties of the payload will be used as a source for parameter values for
+	 * the to-be-executed Stored Procedure or Function.
+	 *
+	 * However, if {@link ProcedureParameter} are passed in, then this property
+	 * will by default evaluate to 'false'. {@link ProcedureParameter} allow for
+	 * SpEl Expressions to be provided and therefore it is highly beneficial to
+	 * have access to the entire {@link Message}.
+	 *
+	 * @param usePayloadAsParameterSource If false the entire {@link Message} is used as parameter source.
+	 */
     public void setUsePayloadAsParameterSource(boolean usePayloadAsParameterSource) {
         this.usePayloadAsParameterSource = usePayloadAsParameterSource;
     }
 
+	/**
+	 * Indicates whether a Stored Procedure or a Function is being executed.
+	 * The default value is false.
+	 *
+	 * @param isFunction If set to true an Sql Function is executed rather than a Stored Procedure.
+	 */
     public void setFunction(boolean isFunction) {
         this.isFunction = isFunction;
     }
 
+    /**
+     * Indicates the procedure's return value should be included in the results
+     * returned.
+     *
+     * @param returnValueRequired
+     */
     public void setReturnValueRequired(boolean returnValueRequired) {
         this.returnValueRequired = returnValueRequired;
     }
 
-    /**
+	/**
+	 * If this variable is set to <code>true</code> then all results from a stored
+	 * procedure call that don't have a corresponding {@link SqlOutParameter}
+	 * declaration will be bypassed.
+	 *
+	 * E.g. Stored Procedures may return an update count value, even though your
+	 * Stored Procedure only declared a single result parameter. The exact behavior
+	 * depends on the used database.
+	 *
+	 * The value is set on the underlying {@link JdbcTemplate}.
+	 *
+	 * Only few developers will probably ever like to process update counts, thus
+	 * the value defaults to <code>true</code>.
+	 *
+	 */
+    public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
+		this.skipUndeclaredResults = skipUndeclaredResults;
+	}
+
+	/**
      * If the Stored Procedure returns ResultSets you may provide a map of
      * {@link RowMapper} to convert the {@link ResultSet} to meaningful objects.
      *

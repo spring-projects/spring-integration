@@ -14,6 +14,7 @@
 package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -58,6 +59,19 @@ public class StoredProcOutboundGatewayParserTests {
         accessor = new DirectFieldAccessor(source);
         Object  storedProcedureName = accessor.getPropertyValue("storedProcedureName");
         assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName);
+    }
+
+    @Test
+    public void testSkipUndeclaredResultsAttributeSet() throws Exception {
+        setUp("storedProcOutboundGatewayParserTest.xml", getClass());
+
+        DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+        Object source = accessor.getPropertyValue("handler");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("executor");
+        accessor = new DirectFieldAccessor(source);
+        boolean  skipUndeclaredResults = (Boolean) accessor.getPropertyValue("skipUndeclaredResults");
+        assertFalse(skipUndeclaredResults);
     }
 
     @Test
