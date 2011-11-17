@@ -35,7 +35,8 @@
 			reply-channel="replies"
 			charset="UTF-8"
 			order="77"
-			auto-startup="false">
+			auto-startup="false"
+			transfer-cookies="true">
 		<uri-variable name="foo" expression="headers.bar"/>
 	</outbound-gateway>
 

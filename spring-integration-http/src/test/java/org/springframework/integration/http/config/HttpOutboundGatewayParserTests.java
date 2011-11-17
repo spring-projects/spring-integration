@@ -79,6 +79,7 @@ public class HttpOutboundGatewayParserTests {
 		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
 		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
+		assertEquals(false, handlerAccessor.getPropertyValue("transferCookies"));
 	}
 
 	@Test
@@ -125,6 +126,7 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 		assertEquals("responseHeader", mappedResponseHeaders[0]);
+		assertEquals(true, handlerAccessor.getPropertyValue("transferCookies"));
 	}
 
 
