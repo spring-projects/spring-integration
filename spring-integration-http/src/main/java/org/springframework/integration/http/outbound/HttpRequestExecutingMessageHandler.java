@@ -25,8 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.transform.Source;
 
@@ -100,8 +98,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private final RestTemplate restTemplate;
 
 	private final StandardEvaluationContext evaluationContext;
-
-	private final Pattern cookieNameExtractorPattern = Pattern.compile("([^=]+)");
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -262,10 +258,10 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				HttpHeaders httpHeaders = httpResponse.getHeaders();
+				Map<String, Object> headers = this.headerMapper.toHeaders(httpHeaders);
 				if (this.transferCookies) {
-					httpHeaders = this.doConvertSetCookie(httpHeaders);
+					this.doConvertSetCookie(headers);
 				}
-				Map<String, ?> headers = this.headerMapper.toHeaders(httpHeaders);
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
 					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
@@ -289,23 +285,25 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 	}
 
-	private HttpHeaders doConvertSetCookie(HttpHeaders headers) {
-		HttpHeaders modifiableHeaders = new HttpHeaders();
-		for (Entry<String, List<String>> entry : headers.entrySet()) {
-			String key = entry.getKey();
-			if (key.equalsIgnoreCase("Set-Cookie")) {
-				List<String> cookies = headers.get("Set-Cookie");
-				modifiableHeaders.put(DefaultHttpHeaderMapper.TRANSFERRED_COOKIE, cookies);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Converted Set-Cookie to "
-							+ DefaultHttpHeaderMapper.TRANSFERRED_COOKIE + ": "
-							+ cookies);
-				}
-			} else {
-				modifiableHeaders.put(key, headers.get(key));
+	/**
+	 * Convert Set-Cookie to Cookie
+	 */
+	private void doConvertSetCookie(Map<String, Object> headers) {
+		String keyName = null;
+		for (String key : headers.keySet()) {
+			if (key.equalsIgnoreCase(DefaultHttpHeaderMapper.SET_COOKIE)) {
+				keyName = key;
+				break;
 			}
 		}
-		return modifiableHeaders;
+		if (keyName != null) {
+			Object cookies = headers.remove(keyName);
+			headers.put(DefaultHttpHeaderMapper.COOKIE, cookies);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Converted Set-Cookie header to Cookie for: "
+						+ cookies);
+			}
+		}
 	}
 
 	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
@@ -351,44 +349,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	protected HttpHeaders mapHeaders(Message<?> message) {
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(message.getHeaders(), httpHeaders);
-		if (this.transferCookies) {
-			doTransferCookies(httpHeaders);
-		}
 		return httpHeaders;
-	}
-
-	private void doTransferCookies(HttpHeaders httpHeaders) {
-		List<String> transferredCookies = httpHeaders.remove(DefaultHttpHeaderMapper.TRANSFERRED_COOKIE);
-		if (transferredCookies != null) {
-			List<String> currentCookies = httpHeaders.get("Cookie");
-			if (currentCookies == null) {
-				currentCookies = new ArrayList<String>();
-			}
-			Map<String, String> currentCookiesAsMap = this.cookiesToMap(currentCookies);
-			Map<String, String> transferredCookiesAsMap = this.cookiesToMap(transferredCookies);
-			for (Entry<String, String> transferredCookie : transferredCookiesAsMap.entrySet()) {
-				String name = transferredCookie.getKey();
-				currentCookiesAsMap.put(name, transferredCookie.getValue());
-			}
-			List<String> mergedCookies = new ArrayList<String>(currentCookiesAsMap.values());
-			httpHeaders.put("Cookie", mergedCookies);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Transferred Cookies: " + transferredCookies);
-			}
-		}
-	}
-
-	private Map<String, String> cookiesToMap(List<String> cookies) {
-		Map<String, String> map = new HashMap<String, String>();
-		for (String cookie : cookies) {
-			Matcher matcher = this.cookieNameExtractorPattern.matcher(cookie);
-			String key = cookie;
-			if (matcher.find()) {
-				key = matcher.group(1).toLowerCase();
-			}
-			map.put(key, cookie);
-		}
-		return map;
 	}
 
 	@SuppressWarnings("unchecked")
