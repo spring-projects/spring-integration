@@ -100,7 +100,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String CONTENT_TYPE = "Content-Type";
 
-	private static final String COOKIE = "Cookie";
+	public  static final String COOKIE = "Cookie";
 
 	private static final String DATE = "Date";
 
@@ -146,7 +146,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private static final String SERVER = "Server";
 
-	private static final String SET_COOKIE = "Set-Cookie";
+	public  static final String SET_COOKIE = "Set-Cookie";
 
 	private static final String TE = "TE";
 
