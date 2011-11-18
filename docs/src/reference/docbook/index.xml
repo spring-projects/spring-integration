@@ -61,10 +61,6 @@
         <firstname>Gunnar</firstname>
         <surname>Hillert</surname>
       </author>
-		<author>
-        <firstname>Artem</firstname>
-        <surname>Bilan</surname>
-      </author>
     </authorgroup>
 
     <legalnotice><para>© SpringSource Inc., 2011</para></legalnotice>
