@@ -395,6 +395,9 @@
 					</xsd:attribute>
 					<xsd:attribute name="request-channel" type="xsd:string" use="required">
 						<xsd:annotation>
+						    <xsd:documentation>
+						        The receiving Message Channel of this endpoint.
+						    </xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -404,6 +407,10 @@
 					</xsd:attribute>
 					<xsd:attribute name="reply-channel" type="xsd:string">
 						<xsd:annotation>
+						    <xsd:documentation>
+						        Message Channel to which replies should be sent,
+						        after receiving the database response.
+						    </xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
@@ -675,10 +682,10 @@
 			</xsd:attribute>
 			<xsd:attribute name="return-value-required" default="false">
 				<xsd:annotation>
-					<xsd:appinfo>
-						<xsd:documentation>
-						</xsd:documentation>
-					</xsd:appinfo>
+                    <xsd:documentation>
+                        Indicates whether this procedure's return value
+                        should be included.
+                    </xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:union memberTypes="xsd:boolean xsd:string" />
@@ -869,6 +876,9 @@
 			<xsd:attribute name="request-channel" type="xsd:string"
 				use="required">
 				<xsd:annotation>
+				    <xsd:documentation>
+                        The receiving Message Channel of this endpoint.
+                    </xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
@@ -879,6 +889,10 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-channel" type="xsd:string">
 				<xsd:annotation>
+				    <xsd:documentation>
+                        Message Channel to which replies should be sent,
+                        after receiving the database response.
+                    </xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
@@ -1061,7 +1075,16 @@
 	</xsd:element>
 
 	<xsd:attributeGroup name="coreStoredProcComponentAttributes">
-		<xsd:attribute name="id" type="xsd:string" use="optional" />
+		<xsd:attribute name="id" type="xsd:string" use="optional">
+		    <xsd:annotation>
+		        <xsd:documentation>
+		            Identifies the underlying Spring bean definition, which is an
+		            instance of either 'EventDrivenConsumer' or 'PollingConsumer',
+		            depending on whether the component's input channel is a
+		            'SubscribableChannel' or 'PollableChannel'.
+		        </xsd:documentation>
+		    </xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="stored-procedure-name" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
