@@ -16,11 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
@@ -39,6 +34,10 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Mark Fisher
@@ -220,32 +219,6 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void testVoidMethodsExcludedByFlag() {
-		@SuppressWarnings("unused")
-		class VoidMethodsBean {
-			public void testVoidReturningMethods(String s) {
-				// do nothing
-			}
-			public int testVoidReturningMethods(int i) {
-				return i;
-			}
-		}
-		Exception exception = null;
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new VoidMethodsBean(),
-				"testVoidReturningMethods", true);
-		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
-		try {
-			processor.processMessage(MessageBuilder.withPayload("not_a_number").build());
-			fail();
-		}
-		catch (MessageHandlingException ex) {
-			// the only void method expects a number
-			exception = ex;
-		}
-		assertNotNull(exception);
-	}
-
-	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
@@ -330,29 +303,9 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
-	public void filterSelectsAnnotationMethodsOnly() {
-		OverloadedMethodBean bean = new OverloadedMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
-		processor.processMessage(MessageBuilder.withPayload(123).build());
-		assertNotNull(bean.lastArg);
-		assertEquals(String.class, bean.lastArg.getClass());
-		assertEquals("123", bean.lastArg);
-	}
-
-	@Test
-	public void filterSelectsNonVoidReturningMethodsOnly() {
-		OverloadedMethodBean bean = new OverloadedMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo", true);
-		processor.processMessage(MessageBuilder.withPayload(true).build());
-		assertNotNull(bean.lastArg);
-		assertEquals(String.class, bean.lastArg.getClass());
-		assertEquals("true", bean.lastArg);
-	}
-
-	@Test
 	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
 		AmbiguousMethodBean bean = new AmbiguousMethodBean();
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo", true);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
 		processor.processMessage(MessageBuilder.withPayload("true").build());
 		assertNotNull(bean.lastArg);
 		assertEquals(String.class, bean.lastArg.getClass());
@@ -525,6 +478,5 @@ public class MethodInvokingMessageProcessorTests {
 			this.lastArg = s;
 			return s;
 		}
-
 	}
 }
