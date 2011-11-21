@@ -25,6 +25,7 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,7 +34,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
@@ -190,11 +190,11 @@ public class WebServiceInboundGatewayParserTests {
 		public void fromHeadersToReply(MessageHeaders headers, SoapHeader target) {
 		}
 
-		public <V> Map<String, V> toHeadersFromRequest(SoapHeader source) {
+		public Map<String, Object> toHeadersFromRequest(SoapHeader source) {
 			return Collections.emptyMap();
 		}
 
-		public <V> Map<String, V> toHeadersFromReply(SoapHeader source) {
+		public Map<String, Object> toHeadersFromReply(SoapHeader source) {
 			return Collections.emptyMap();
 		}
 	}

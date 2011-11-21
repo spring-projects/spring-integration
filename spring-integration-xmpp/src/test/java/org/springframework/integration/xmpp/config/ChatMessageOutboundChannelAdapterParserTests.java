@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xmpp.config;
 
+import java.util.List;
+
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,15 +74,16 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		assertTrue(eventConsumer instanceof SubscribableChannel);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEventConsumer() {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
 		DefaultXmppHeaderMapper headerMapper = 
 				TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper", DefaultXmppHeaderMapper.class);
-		String[] requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", String[].class);
-		assertEquals(2, requestHeaderNames.length);
-		assertEquals("foo*", requestHeaderNames[0]);
-		assertEquals("bar*", requestHeaderNames[1]);
+		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
+		assertEquals(2, requestHeaderNames.size());
+		assertEquals("foo*", requestHeaderNames.get(0));
+		assertEquals("bar*", requestHeaderNames.get(1));
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
 

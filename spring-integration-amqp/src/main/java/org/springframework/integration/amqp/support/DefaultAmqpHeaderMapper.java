@@ -45,6 +45,8 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
+	
+	private static final String PREFIX = "";
 
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
@@ -68,12 +70,6 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
 	}
-
-
-	public DefaultAmqpHeaderMapper() {
-		super(AmqpHeaders.class);
-	}
-
 
 	/**
 	 * Extract "standard" headers from an AMQP MessageProperties instance.
@@ -270,8 +266,20 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 
 	@Override
-	protected List<String> getStandardOutboundHeaderNames() {
+	protected List<String> getStandardRequestHeaderNames() {
 		return STANDARD_HEADER_NAMES;
+	}
+
+
+	@Override
+	protected List<String> getStandardReplyHeaderNames() {
+		return STANDARD_HEADER_NAMES;
+	}
+
+
+	@Override
+	protected String getStandardHeaderPrefix() {
+		return PREFIX;
 	}
 
 }

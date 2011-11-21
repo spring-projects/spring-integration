@@ -67,16 +67,10 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 				logger.warn("Setting 'extract-payload' attribute has no effect when used with a marshalling Web Service Inbound Gateway.");
 			}
 		}
-//		String headerMapperRef = element.getAttribute("header-mapper");
-//		if (StringUtils.hasText(headerMapperRef)) {
-//			Assert.isTrue(!StringUtils.hasText(marshallerRef),
-//					"The 'header-mapper' attribute cannot be used when a 'marshaller' is provided.");
-//			builder.addPropertyReference("headerMapper", headerMapperRef);
-//		}
 	}
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, false, null);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultSoapHeaderMapper.class, null);
 	}
 }

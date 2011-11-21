@@ -19,6 +19,7 @@ package org.springframework.integration.ws.config;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,6 +30,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -51,8 +55,6 @@ import org.springframework.ws.soap.SoapMessageFactory;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
 import org.springframework.xml.namespace.QNameUtils;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -73,6 +75,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 			  "</SOAP-ENV:Body> " + 
 			  "</SOAP-ENV:Envelope>";
 		
+	@SuppressWarnings("unchecked")
 	@Test
 	public void headerMapperParserTest() throws Exception{
 		ApplicationContext context = new ClassPathXmlApplicationContext("ws-outbound-gateway-with-headermappers.xml", this.getClass());
@@ -80,14 +83,14 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DefaultSoapHeaderMapper headerMapper = TestUtils.getPropertyValue(gateway, "headerMapper", DefaultSoapHeaderMapper.class);
 		assertNotNull(headerMapper);
 		
-		String[] requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", String[].class);
-		assertEquals(2, requestHeaderNames.length);
-		assertEquals("foo*", requestHeaderNames[0]);
-		assertEquals("*baz*", requestHeaderNames[1]);
+		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
+		assertEquals(2, requestHeaderNames.size());
+		assertEquals("foo*", requestHeaderNames.get(0));
+		assertEquals("*baz*", requestHeaderNames.get(1));
 		
-		String[] responseHeaderNames = TestUtils.getPropertyValue(headerMapper, "replyHeaderNames", String[].class);
-		assertEquals(1, responseHeaderNames.length);
-		assertEquals("bar*", responseHeaderNames[0]);
+		List<String> responseHeaderNames = TestUtils.getPropertyValue(headerMapper, "replyHeaderNames", List.class);
+		assertEquals(1, responseHeaderNames.size());
+		assertEquals("bar*", responseHeaderNames.get(0));
 	}
 	
 	@Test

@@ -222,8 +222,7 @@ public abstract class IntegrationNamespaceUtils {
 	/**
 	 * Utility method to configure HeaderMapper for Inbound and Outbound channel adapters/gateway
 	 */
-	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext, Class<?> headerMapperClass, 
-										     boolean outbound, String replyHeaderValue){
+	public static void configureHeaderMapper(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext, Class<?> headerMapperClass, String replyHeaderValue){
 		String defaultMappedReplyHeadersAttributeName = "mapped-reply-headers";
 		if (!StringUtils.hasText(replyHeaderValue)){
 			replyHeaderValue = defaultMappedReplyHeadersAttributeName;

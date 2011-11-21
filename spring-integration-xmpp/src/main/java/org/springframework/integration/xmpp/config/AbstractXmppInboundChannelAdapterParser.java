@@ -47,7 +47,7 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, false, null);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, null);
 		
 		String connectionName = element.getAttribute("xmpp-connection");
 		

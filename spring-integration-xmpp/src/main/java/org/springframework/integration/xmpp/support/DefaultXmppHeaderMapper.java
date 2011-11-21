@@ -16,7 +16,9 @@
 
 package org.springframework.integration.xmpp.support;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
@@ -33,9 +35,17 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
+	
+	private static final String PREFIX = "";
+	
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
-	public DefaultXmppHeaderMapper() {
-		super(XmppHeaders.class);
+	static {
+		STANDARD_HEADER_NAMES.add(XmppHeaders.FROM);
+		STANDARD_HEADER_NAMES.add(XmppHeaders.SUBJECT);
+		STANDARD_HEADER_NAMES.add(XmppHeaders.THREAD);
+		STANDARD_HEADER_NAMES.add(XmppHeaders.TO);
+		STANDARD_HEADER_NAMES.add(XmppHeaders.TYPE);
 	}
 
 	@Override
@@ -124,4 +134,17 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 		target.setProperty(headerName, headerValue);
 	}
 
+	@Override
+	protected List<String> getStandardReplyHeaderNames() {
+		return STANDARD_HEADER_NAMES;
+	}
+
+	@Override
+	protected List<String> getStandardRequestHeaderNames() {
+		return STANDARD_HEADER_NAMES;
+	}
+	@Override
+	protected String getStandardHeaderPrefix() {
+		return PREFIX;
+	}
 }

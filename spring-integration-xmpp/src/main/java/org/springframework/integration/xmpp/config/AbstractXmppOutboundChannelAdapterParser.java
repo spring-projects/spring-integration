@@ -39,7 +39,7 @@ public abstract class AbstractXmppOutboundChannelAdapterParser extends AbstractO
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getHandlerClassName());
 		
-		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, true, null);
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultXmppHeaderMapper.class, null);
 		
 		String connectionName = element.getAttribute("xmpp-connection");
 		if (StringUtils.hasText(connectionName)){

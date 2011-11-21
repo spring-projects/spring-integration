@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.ws;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -43,10 +44,8 @@ import org.springframework.xml.namespace.QNameUtils;
  * @since 2.0
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> implements SoapHeaderMapper {
-
-	public DefaultSoapHeaderMapper() {
-		super(WebServiceHeaders.class);
-	}
+	
+	private static final String PREFIX = "";
 
 	@Override
 	protected Map<String, Object> extractStandardHeaders(SoapHeader source) {
@@ -95,4 +94,17 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> im
 		}
 	}
 
+	@Override
+	protected List<String> getStandardReplyHeaderNames() {
+		return Collections.emptyList();
+	}
+
+	@Override
+	protected List<String> getStandardRequestHeaderNames() {
+		return Collections.emptyList();
+	}
+	@Override
+	protected String getStandardHeaderPrefix() {
+		return PREFIX;
+	}
 }
