@@ -260,7 +260,6 @@ public class ChannelPublishingJmsMessageListener
 		this.extractReplyPayload = extractReplyPayload;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object result = jmsMessage;
 		if (this.extractRequestPayload) {
