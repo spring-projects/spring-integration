@@ -12,16 +12,17 @@
  */
 package org.springframework.integration.gemfire.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author David Turanski
+ * @author Dan Oxlade
  * @since 2.1
  *
  */
@@ -50,21 +51,19 @@ public class GemfireCqInboundChannelAdapterParser extends AbstractChannelAdapter
 	
 	private static final String QUERY_EVENTS_ATTRIBUTE = "query-events";
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.config.xml.AbstractChannelAdapterParser#doParse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext, java.lang.String)
-	 */
+	
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder continuousQueryMesageProducer = BeanDefinitionBuilder.genericBeanDefinition(GEMFIRE_INBOUND_CONTINUOUS_QUERY_MESSAGE_PRODUCER);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, EXPRESSION_ATTRIBUTE,PAYLOAD_EXPRESSION_PROPERTY);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(continuousQueryMesageProducer, element, QUERY_EVENTS_ATTRIBUTE, SUPPORTED_EVENT_TYPES_PROPERTY);
 	 	
-		if (!StringUtils.hasText(QUERY_LISTENER_CONTAINER_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'query-listener-container' attribute is required.",element);
+		if (!element.hasAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE)){
+			parserContext.getReaderContext().error("'" + QUERY_LISTENER_CONTAINER_ATTRIBUTE + "' attribute is required.",element);
 		}
 		
-		if (!StringUtils.hasText(QUERY_ATTRIBUTE)){
-			parserContext.getReaderContext().error("'query' attribute is required.",element);
+		if (!element.hasAttribute(QUERY_ATTRIBUTE)){
+			parserContext.getReaderContext().error("'" + QUERY_ATTRIBUTE + "' attribute is required.",element);
 		}
 		 
 		continuousQueryMesageProducer.addConstructorArgReference(element.getAttribute(QUERY_LISTENER_CONTAINER_ATTRIBUTE));
