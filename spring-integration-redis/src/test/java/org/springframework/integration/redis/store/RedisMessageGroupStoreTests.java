@@ -73,13 +73,13 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 		messageGroup = store.addMessageToGroup(1, message);
 		assertEquals(1, messageGroup.size());
 		long createdTimestamp = messageGroup.getTimestamp();
-		long updatedTimestamp = messageGroup.getUpdateTimestamp();
+		long updatedTimestamp = messageGroup.getLastModified();
 		assertEquals(createdTimestamp, updatedTimestamp);
 		Thread.sleep(1000);
 		message = new GenericMessage<String>("Hello");
 		messageGroup = store.addMessageToGroup(1, message);
 		createdTimestamp = messageGroup.getTimestamp();
-		updatedTimestamp = messageGroup.getUpdateTimestamp();
+		updatedTimestamp = messageGroup.getLastModified();
 		assertTrue(updatedTimestamp > createdTimestamp);
 		
 		// make sure the store is properly rebuild from Redis

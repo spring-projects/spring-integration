@@ -63,7 +63,7 @@ public class MessageGroupMetadata implements Serializable{
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
 		this.lastReleasedMessageSequenceNumber = messageGroup.getLastReleasedMessageSequenceNumber();
-		this.updateTimestamp = messageGroup.getUpdateTimestamp();
+		this.updateTimestamp = messageGroup.getLastModified();
 	}
 
 	public void remove(UUID messageId){

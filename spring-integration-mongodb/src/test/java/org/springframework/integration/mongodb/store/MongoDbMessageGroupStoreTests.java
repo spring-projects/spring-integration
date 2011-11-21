@@ -86,13 +86,13 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		messageGroup = store.addMessageToGroup(1, message);
 		assertEquals(1, messageGroup.size());
 		long createdTimestamp = messageGroup.getTimestamp();
-		long updatedTimestamp = messageGroup.getUpdateTimestamp();
+		long updatedTimestamp = messageGroup.getLastModified();
 		assertEquals(createdTimestamp, updatedTimestamp);
 		Thread.sleep(1000);
 		message = new GenericMessage<String>("Hello again");
 		messageGroup = store.addMessageToGroup(1, message);
 		createdTimestamp = messageGroup.getTimestamp();
-		updatedTimestamp = messageGroup.getUpdateTimestamp();
+		updatedTimestamp = messageGroup.getLastModified();
 		assertTrue(updatedTimestamp > createdTimestamp);
 		assertEquals(2, messageGroup.size());
 		

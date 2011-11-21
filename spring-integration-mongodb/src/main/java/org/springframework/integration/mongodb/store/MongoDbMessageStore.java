@@ -157,7 +157,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
-		messageGroup.setUpdateTimestamp(updateTimestamp);
+		messageGroup.setLastModified(updateTimestamp);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
@@ -171,7 +171,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
 
 		long messageGroupTimetasmp = messageGroup.getTimestamp();
-		long messageGroupUpdateTimetasmp = messageGroup.getUpdateTimestamp();
+		long messageGroupUpdateTimetasmp = messageGroup.getLastModified();
 		
 		if (messageGroupTimetasmp == 0){
 			messageGroupTimetasmp = System.currentTimeMillis();
