@@ -356,15 +356,22 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 					payload = requestParams;
 				}
 			}
+			
+			MessageBuilder<?> messageBuilder = null;
 
-			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers)
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL,
-							request.getURI().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-							request.getMethod().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
-							servletRequest.getUserPrincipal()).build();
-
+			if (payload instanceof Message<?>){
+				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload);
+			}
+			else {
+				messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
+			}
+			
+			Message<?> message = messageBuilder
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+					.build();
+			
 			Object reply = null;
 			if (this.expectReply) {
 				reply = this.sendAndReceiveMessage(message);
