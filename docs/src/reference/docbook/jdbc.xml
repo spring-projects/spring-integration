@@ -455,7 +455,7 @@
                 don't have to specify the Stored Procedure parameter definitions.
                 Instead, those parameters can be automatically derived from the
                 JDBC Meta-data. However, if you are using databases that are not
-                fully support, you must set those parameters explicitly using the
+                fully supported, you must set those parameters explicitly using the
                 <code>sql-parameter-definition</code> sub-element.
             </para>
             <para>
@@ -509,7 +509,7 @@
 
             <para><emphasis role="bold">poller</emphasis></para>
             <para>
-                Allows you to configure Message Poller if this endpoint is a
+                Allows you to configure a Message Poller if this endpoint is a
                 <classname>PollingConsumer</classname>
                 <emphasis>Optional</emphasis>.
             </para>
@@ -553,7 +553,7 @@
                 <emphasis>id</emphasis>,
                 <emphasis>name</emphasis> and
                 <emphasis>description</emphasis>. We also use a fully supported 
-                database. In that case the following configuration for an Stored
+                database. In that case the following configuration for a Stored
                 Procedure Oubound Adapter will be sufficient: 
             </para>
             <programlisting><![CDATA[<int-jdbc:stored-proc-outbound-channel-adapter data-source="dataSource"
@@ -629,7 +629,7 @@
                              <classname>JdbcTemplate</classname>.
                          </para>
                          <para>                   
-                             Only few developers will probably ever like to process
+                             Few developers will probably ever want to process
                              update counts, thus the value defaults to <code>true</code>.
                              <emphasis>Optional</emphasis>.
                          </para>
@@ -667,7 +667,7 @@
                              is connected as a subscriber to a channel. This is
                              particularly relevant when that channel is using a
                              <emphasis>failover</emphasis> dispatching strategy.
-                             It has no effect, when this endpoint itself is a
+                             It has no effect when this endpoint itself is a
                              Polling Consumer for a channel with a queue.
                             <emphasis>Optional</emphasis>.
                         </para>
@@ -725,8 +725,8 @@
 		                    Allows you to specify how long this gateway will wait 
 		                    for the reply message to be sent successfully before 
 		                    throwing an exception. Keep in mind that when sending 
-		                    to a <classname>DirectChannel</classname> (The invocation 
-		                    will occur in the sender's thread.) the failing of the 
+		                    to a <classname>DirectChannel</classname>, the invocation 
+		                    will occur in the sender's thread so the failing of the 
 		                    send operation may be caused by other components further
 		                    downstream. 
 		                    
@@ -758,7 +758,7 @@
                              <classname>JdbcTemplate</classname>.
                          </para>
                          <para>                   
-                             Only few developers will probably ever like to process
+                             Few developers will probably ever want to process
                              update counts, thus the value defaults to <code>true</code>.
                              <emphasis>Optional</emphasis>.
                          </para>
