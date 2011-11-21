@@ -63,6 +63,33 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 	}
 	
 	@Test
+	@RedisAvailable 
+	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		messageGroup = store.addMessageToGroup(1, message);
+		assertEquals(1, messageGroup.size());
+		long createdTimestamp = messageGroup.getTimestamp();
+		long updatedTimestamp = messageGroup.getLastModified();
+		assertEquals(createdTimestamp, updatedTimestamp);
+		Thread.sleep(1000);
+		message = new GenericMessage<String>("Hello");
+		messageGroup = store.addMessageToGroup(1, message);
+		createdTimestamp = messageGroup.getTimestamp();
+		updatedTimestamp = messageGroup.getLastModified();
+		assertTrue(updatedTimestamp > createdTimestamp);
+		
+		// make sure the store is properly rebuild from Redis
+		store = new RedisMessageStore(jcf);
+
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(2, messageGroup.size());
+	}
+	
+	@Test
 	@RedisAvailable
 	public void testMessageGroupWithAddedMessage() throws Exception{	
 		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
