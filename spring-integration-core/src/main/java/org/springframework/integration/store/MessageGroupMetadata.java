@@ -45,7 +45,7 @@ public class MessageGroupMetadata implements Serializable{
 
 	private final long timestamp;
 	
-	private volatile long updateTimestamp;
+	private volatile long lastModified;
 
 	private final int lastReleasedMessageSequenceNumber;
 
@@ -63,7 +63,7 @@ public class MessageGroupMetadata implements Serializable{
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
 		this.lastReleasedMessageSequenceNumber = messageGroup.getLastReleasedMessageSequenceNumber();
-		this.updateTimestamp = messageGroup.getLastModified();
+		this.lastModified = messageGroup.getLastModified();
 	}
 
 	public void remove(UUID messageId){
@@ -97,8 +97,8 @@ public class MessageGroupMetadata implements Serializable{
 		return this.complete;
 	}
 	
-	public long getUpdateTimestamp() {
-		return updateTimestamp;
+	public long getLastModified() {
+		return lastModified;
 	}
 
 	public long getTimestamp() {

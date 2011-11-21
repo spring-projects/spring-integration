@@ -250,7 +250,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			
 			SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, 
 						groupId, messageGroupMetadata.getTimestamp(), messageGroupMetadata.isComplete());
-			messageGroup.setLastModified(messageGroupMetadata.getUpdateTimestamp());
+			messageGroup.setLastModified(messageGroupMetadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(messageGroupMetadata.getLastReleasedMessageSequenceNumber());
 			return messageGroup;
 		}

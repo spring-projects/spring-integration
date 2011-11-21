@@ -385,7 +385,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		long timestamp = date.get().getTime();
 		boolean complete = completeFlag.get().booleanValue();
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
-		messageGroup.setLastModified(updateDate.get().getTime());
+		if (updateDate.get() != null){
+			messageGroup.setLastModified(updateDate.get().getTime());
+		}	
 		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);

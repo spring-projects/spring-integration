@@ -141,13 +141,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
-		long updateTimestamp = 0;
+		long lastmodified = 0;
 		int lastReleasedSequenceNumber = 0;
 		boolean completeGroup = false;
 		if (messageWrappers.size() > 0){
 			MessageWrapper messageWrapper = messageWrappers.get(0);
 			timestamp = messageWrapper.getGroupTimestamp();
-			updateTimestamp = messageWrapper.getGroupUpdateTimestamp();
+			lastmodified = messageWrapper.getGroupUpdateTimestamp();
 			completeGroup = messageWrapper.isCompletedGroup();
 			lastReleasedSequenceNumber = messageWrapper.getLastReleasedSequenceNumber();
 		}
@@ -157,7 +157,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
-		messageGroup.setLastModified(updateTimestamp);
+		messageGroup.setLastModified(lastmodified);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
@@ -170,12 +170,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Assert.notNull(message, "'message' must not be null");
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
 
-		long messageGroupTimetasmp = messageGroup.getTimestamp();
+		long messageGroupTimestamp = messageGroup.getTimestamp();
 		long messageGroupUpdateTimetasmp = messageGroup.getLastModified();
 		
-		if (messageGroupTimetasmp == 0){
-			messageGroupTimetasmp = System.currentTimeMillis();
-			messageGroupUpdateTimetasmp = messageGroupTimetasmp;
+		if (messageGroupTimestamp == 0){
+			messageGroupTimestamp = System.currentTimeMillis();
+			messageGroupUpdateTimetasmp = messageGroupTimestamp;
 		}
 		else {
 			messageGroupUpdateTimetasmp = System.currentTimeMillis();
@@ -183,7 +183,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.setGroupId(groupId);
-		wrapper.setGroupTimestamp(messageGroupTimetasmp);
+		wrapper.setGroupTimestamp(messageGroupTimestamp);
 		wrapper.setGroupUpdateTimestamp(messageGroupUpdateTimetasmp);
 		wrapper.setCompletedGroup(messageGroup.isComplete());
 		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
