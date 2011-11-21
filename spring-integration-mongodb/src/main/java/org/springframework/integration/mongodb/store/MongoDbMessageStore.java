@@ -147,7 +147,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		if (messageWrappers.size() > 0){
 			MessageWrapper messageWrapper = messageWrappers.get(0);
 			timestamp = messageWrapper.getGroupTimestamp();
-			lastmodified = messageWrapper.getGroupUpdateTimestamp();
+			lastmodified = messageWrapper.getLastModified();
 			completeGroup = messageWrapper.isCompletedGroup();
 			lastReleasedSequenceNumber = messageWrapper.getLastReleasedSequenceNumber();
 		}
@@ -171,20 +171,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
 
 		long messageGroupTimestamp = messageGroup.getTimestamp();
-		long messageGroupUpdateTimestamp = messageGroup.getLastModified();
+		long lastModified = messageGroup.getLastModified();
 		
 		if (messageGroupTimestamp == 0){
 			messageGroupTimestamp = System.currentTimeMillis();
-			messageGroupUpdateTimestamp = messageGroupTimestamp;
+			lastModified = messageGroupTimestamp;
 		}
 		else {
-			messageGroupUpdateTimestamp = System.currentTimeMillis();
+			lastModified = System.currentTimeMillis();
 		}
 		
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.setGroupId(groupId);
 		wrapper.setGroupTimestamp(messageGroupTimestamp);
-		wrapper.setGroupUpdateTimestamp(messageGroupUpdateTimestamp);
+		wrapper.setLastModified(lastModified);
 		wrapper.setCompletedGroup(messageGroup.isComplete());
 		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
 		
@@ -294,7 +294,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 			boolean groupComplete = false;
 			long groupTimestamp = 0;
-			long groupUpdateTimestamp = 0;
+			long lastModified = 0;
 			int lastReleasedSequenceNumber = 0;
 			if (source instanceof MessageWrapper) {
 				MessageWrapper wrapper = (MessageWrapper) source;
@@ -303,7 +303,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				groupComplete = wrapper.isCompletedGroup();
 				lastReleasedSequenceNumber = wrapper.getLastReleasedSequenceNumber();
 				groupTimestamp = wrapper.getGroupTimestamp();
-				groupUpdateTimestamp = wrapper.getGroupUpdateTimestamp();
+				lastModified = wrapper.getLastModified();
 			}
 			else {
 				Class<?> sourceType = (source != null) ? source.getClass() : null;
@@ -316,7 +316,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				target.put(GROUP_COMPLETE_KEY, groupComplete);
 				target.put(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
 				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
-				target.put(GROUP_UPDATE_TIMESTAMP_KEY, groupUpdateTimestamp);
+				target.put(GROUP_UPDATE_TIMESTAMP_KEY, lastModified);
 			}
 			
 			super.write(message, target);
@@ -347,7 +347,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
-				Long groupUpdateTimestamp = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
+				Long lastModified = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
 				Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE_NUMBER);
 				Boolean completeGroup = (Boolean)source.get(GROUP_COMPLETE_KEY);
 				
@@ -359,8 +359,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				if (groupTimestamp != null){
 					wrapper.setGroupTimestamp(groupTimestamp);
 				}
-				if (groupUpdateTimestamp != null){
-					wrapper.setGroupUpdateTimestamp(groupUpdateTimestamp);
+				if (lastModified != null){
+					wrapper.setLastModified(lastModified);
 				}
 				if (lastReleasedSequenceNumber != null){
 					wrapper.setLastReleasedSequenceNumber(lastReleasedSequenceNumber);
@@ -402,7 +402,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		
 		private volatile long groupTimestamp; 
 		
-		private volatile long groupUpdateTimestamp; 
+		private volatile long lastModified; 
 
 		private volatile int lastReleasedSequenceNumber; 
 
@@ -440,12 +440,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			this.groupTimestamp = groupTimestamp;
 		}
 		
-		public long getGroupUpdateTimestamp() {
-			return groupUpdateTimestamp;
+		public long getLastModified() {
+			return lastModified;
 		}
 
-		public void setGroupUpdateTimestamp(long groupUpdateTimestamp) {
-			this.groupUpdateTimestamp = groupUpdateTimestamp;
+		public void setLastModified(long lastModified) {
+			this.lastModified = lastModified;
 		}
 
 		public void setLastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
