@@ -243,17 +243,6 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testMarkedMessageGroupSizes() throws Exception {
-		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").build();
-		messageStore.addMessageToGroup(groupId, message);
-		assertEquals(0, messageStore.getMarkedMessageCountForAllMessageGroups());
-		messageStore.markMessageGroup(messageStore.getMessageGroup(groupId));
-		assertEquals(1, messageStore.getMarkedMessageCountForAllMessageGroups());
-	}
-
-	@Test
-	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
