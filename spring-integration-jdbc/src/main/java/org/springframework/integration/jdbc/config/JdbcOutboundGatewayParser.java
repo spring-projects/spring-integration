@@ -77,7 +77,8 @@ public class JdbcOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "keys-generated");
-
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "sendTimeout");
+		
 		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("outputChannel", replyChannel);

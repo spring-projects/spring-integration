@@ -58,7 +58,8 @@ public class StoredProcOutboundGatewayParser extends AbstractConsumerEndpointPar
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "use-payload-as-parameter-source");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, gatewayElement, "sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "skip-undeclared-results");
-
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, gatewayElement, "reply-timeout", "sendTimeout");
+		 
 		final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(gatewayElement, parserContext);
 		final ManagedList<BeanDefinition> sqlParameterDefinitionList   = StoredProcParserUtils.getSqlParameterDefinitionBeanDefinitions(gatewayElement, parserContext);
 		final ManagedMap<String, BeanDefinition> returningResultsetMap = StoredProcParserUtils.getReturningResultsetBeanDefinitions(gatewayElement, parserContext);

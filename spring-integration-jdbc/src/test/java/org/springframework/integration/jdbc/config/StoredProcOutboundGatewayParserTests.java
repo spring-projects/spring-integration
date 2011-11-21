@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
@@ -61,6 +62,25 @@ public class StoredProcOutboundGatewayParserTests {
         assertEquals("Wrong stored procedure name", "GET_PRIME_NUMBERS",  storedProcedureName);
     }
 
+    @Test
+    public void testReplyTimeoutIsSet() throws Exception {
+        setUp("storedProcOutboundGatewayParserTest.xml", getClass());
+
+        DirectFieldAccessor accessor = new DirectFieldAccessor(this.outboundGateway);
+        Object source = accessor.getPropertyValue("handler");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("messagingTemplate");
+        
+        MessagingTemplate messagingTemplate = (MessagingTemplate) source;
+
+        accessor = new DirectFieldAccessor(messagingTemplate);
+
+        Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
+        assertEquals("Wrong sendTimeout", Long.valueOf(555L),  sendTimeout);
+        
+    }
+
+    
     @Test
     public void testSkipUndeclaredResultsAttributeSet() throws Exception {
         setUp("storedProcOutboundGatewayParserTest.xml", getClass());

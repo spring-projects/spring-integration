@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -30,6 +31,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.jdbc.JdbcOutboundGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
@@ -97,7 +100,7 @@ public class JdbcOutboundGatewayParserTests {
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
 		assertEquals(1, payload.get("updated"));
 	}
-
+	
 	@Test
 	public void testWithPoller() throws Exception{
 		ApplicationContext ac = new ClassPathXmlApplicationContext("JdbcOutboundGatewayWithPollerTest-context.xml", this.getClass());
@@ -115,6 +118,26 @@ public class JdbcOutboundGatewayParserTests {
 		Map<String, ?> payload = (Map<String, ?>) reply.getPayload();
 		assertEquals("bar", payload.get("name"));
 	}
+
+    @Test
+    public void testReplyTimeoutIsSet() throws Exception {
+        setUp("JdbcOutboundGatewayWithPollerTest-context.xml", getClass());
+
+        PollingConsumer outboundGateway = this.context.getBean("jdbcOutboundGateway", PollingConsumer.class);
+        
+        DirectFieldAccessor accessor = new DirectFieldAccessor(outboundGateway);
+        Object source = accessor.getPropertyValue("handler");
+        accessor = new DirectFieldAccessor(source);
+        source = accessor.getPropertyValue("messagingTemplate");
+        
+        MessagingTemplate messagingTemplate = (MessagingTemplate) source;
+
+        accessor = new DirectFieldAccessor(messagingTemplate);
+
+        Long  sendTimeout = (Long) accessor.getPropertyValue("sendTimeout");
+        assertEquals("Wrong sendTimeout", Long.valueOf(444L),  sendTimeout);
+        
+    }
 	
 	@After
 	public void tearDown() {
