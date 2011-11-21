@@ -15,7 +15,10 @@
 
 	<channel id="requests"/>
 
-	<enricher id="enricher" input-channel="input" request-channel="requests" order="99" should-clone-payload="true" output-channel="output">
+	<enricher id="enricher" input-channel="input" 
+	                        request-channel="requests" request-timeout="1234"
+	                        reply-timeout="9876"
+	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
 	</enricher>

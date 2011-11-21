@@ -1043,6 +1043,24 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+        <xsd:attribute name="request-timeout" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    Set the timeout value for sending request messages in milliseconds. 
+                    If not explicitly configured, the default is one second.
+                    ]]>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="reply-timeout" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[
+                    Set the timeout value for receiving reply messages in milliseconds. 
+                    If not explicitly configured, the default is one second.
+                    ]]>
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
 		<xsd:attribute name="should-clone-payload">
 			<xsd:annotation>
 				<xsd:documentation>
