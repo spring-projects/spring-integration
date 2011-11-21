@@ -15,11 +15,6 @@
  */
 package org.springframework.integration.resource;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -29,8 +24,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.util.AcceptOnceUntilPurgedListFilter;
-import org.springframework.integration.util.ListFilter;
+import org.springframework.integration.util.AcceptOnceUntilPurgedElementFilter;
+import org.springframework.integration.util.ElementFilter;
 import org.springframework.util.Assert;
 
 /**
@@ -48,9 +43,7 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 	
 	private volatile ResourcePatternResolver patternResolver;
 	
-	private volatile ListFilter<Resource> filter = new AcceptOnceUntilPurgedListFilter<Resource>();
-
-	private final Queue<Resource> queuedResources = new ConcurrentLinkedQueue<Resource>();
+	private volatile ElementFilter<Resource> filter = new AcceptOnceUntilPurgedElementFilter<Resource>();
 
 	public void setPatternResolver(ResourcePatternResolver patternResolver) {
 		this.patternResolver = patternResolver;
@@ -60,35 +53,26 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 		this.pattern = pattern;
 	}
 	
-	public void setFilter(ListFilter<Resource> filter) {
+	public void setFilter(ElementFilter<Resource> filter) {
 		this.filter = filter;
 	}
 	
 	@Override
 	protected Resource doReceive() {
 		
-		Resource resource = queuedResources.poll();
-		if (resource == null){
-			this.synchronize();
-			resource = queuedResources.poll();
-		}
-	
-		return resource;
-	}
-	
-	private void synchronize(){
 		try {
 			Resource[] resources = this.patternResolver.getResources(this.pattern);
-			if (resources != null){
-				List<Resource> filteredResources = this.filter.filter(Arrays.asList(resources));
-				if (filteredResources != null){
-					this.queuedResources.addAll(filteredResources);
-				}	
-			}	
+			for (Resource resource : resources) {
+				Resource filteredResource = this.filter.filter(resource);
+				if (filteredResource != null){
+					return filteredResource;
+				}		
+			}
 		} catch (Exception e) {
 			throw new MessagingException("Attempt to retrieve Resources failed", e);
 		}
-		 
+	
+		return null;
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext)

@@ -15,15 +15,14 @@
  */
 package org.springframework.integration.util;
 
-import java.util.List;
 
 /**
- * Base strategy for filtering a list of elements
+ * Base strategy for filtering out an element
  * 
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public interface ListFilter<T> {
+public interface ElementFilter<T> {
 
-	List<T> filter(List<T> unfilteredList);
+	T filter(T unfilteredElement);
 }

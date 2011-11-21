@@ -747,12 +747,12 @@
 			<xsd:attribute name="filter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to the implementation of  org.springframework.integration.util.ListFilter.
-						The default one is AcceptOnceUntilPurgedListFilter.
+						Reference to the implementation of  org.springframework.integration.util.ElementFilter.
+						The default one is AcceptOnceUntilPurgedElementFilter.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.util.ListFilter" />
+							<tool:expected-type type="org.springframework.integration.util.ElementFilter" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

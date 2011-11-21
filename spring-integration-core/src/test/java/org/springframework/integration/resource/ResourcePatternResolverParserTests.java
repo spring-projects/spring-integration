@@ -16,10 +16,9 @@
 package org.springframework.integration.resource;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -28,7 +27,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.ListFilter;
+import org.springframework.integration.util.ElementFilter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,15 +115,15 @@ public class ResourcePatternResolverParserTests {
 		
 	}
 	
-	public static class OneItemAndNeverAgainResourceListFilter implements ListFilter<Resource> {
+	public static class OneItemAndNeverAgainResourceListFilter implements ElementFilter<Resource> {
 
 		private volatile boolean once = false;
 		
-		public List<Resource> filter(List<Resource> unfilteredList) {
+		public Resource filter(Resource unfilteredElement) {
 			
 			if (!once){
 				once = true;
-				return Collections.singletonList(unfilteredList.get(0));
+				return unfilteredElement;
 			}
 			return null;
 		}
