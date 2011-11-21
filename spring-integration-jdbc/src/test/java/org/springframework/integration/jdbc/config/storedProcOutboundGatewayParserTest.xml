@@ -22,7 +22,7 @@
                                            skip-undeclared-results="false"
                                            order="2"
                                            reply-channel="replyChannel"
-                                           request-timeout="555"
+                                           reply-timeout="555"
                                            return-value-required="false">
 
         <int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
