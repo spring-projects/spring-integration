@@ -171,20 +171,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
 
 		long messageGroupTimestamp = messageGroup.getTimestamp();
-		long messageGroupUpdateTimetasmp = messageGroup.getLastModified();
+		long messageGroupUpdateTimestamp = messageGroup.getLastModified();
 		
 		if (messageGroupTimestamp == 0){
 			messageGroupTimestamp = System.currentTimeMillis();
-			messageGroupUpdateTimetasmp = messageGroupTimestamp;
+			messageGroupUpdateTimestamp = messageGroupTimestamp;
 		}
 		else {
-			messageGroupUpdateTimetasmp = System.currentTimeMillis();
+			messageGroupUpdateTimestamp = System.currentTimeMillis();
 		}
 		
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.setGroupId(groupId);
 		wrapper.setGroupTimestamp(messageGroupTimestamp);
-		wrapper.setGroupUpdateTimestamp(messageGroupUpdateTimetasmp);
+		wrapper.setGroupUpdateTimestamp(messageGroupUpdateTimestamp);
 		wrapper.setCompletedGroup(messageGroup.isComplete());
 		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
 		
