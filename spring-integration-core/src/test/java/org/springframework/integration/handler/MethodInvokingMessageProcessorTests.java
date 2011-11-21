@@ -218,33 +218,6 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
 	}
 
-//	@Test
-//	public void testVoidMethodsExcludedByFlag() {
-//		@SuppressWarnings("unused")
-//		class VoidMethodsBean {
-//			public void testVoidReturningMethods(String s) {
-//				System.out.println("Hello");
-//				// do nothing
-//			}
-//			public int testVoidReturningMethods(int i) {
-//				return i;
-//			}
-//		}
-//		Exception exception = null;
-//		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new VoidMethodsBean(),
-//				"testVoidReturningMethods", true);
-//		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
-//		try {
-//			processor.processMessage(MessageBuilder.withPayload("not_a_number").build());
-//			fail();
-//		}
-//		catch (MessageHandlingException ex) {
-//			// the only void method expects a number
-//			exception = ex;
-//		}
-//		assertNotNull(exception);
-//	}
-
 	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
