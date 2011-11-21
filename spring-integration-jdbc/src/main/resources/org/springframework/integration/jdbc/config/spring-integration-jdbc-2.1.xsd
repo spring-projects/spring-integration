@@ -411,7 +411,20 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-timeout" type="xsd:string" />
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+					    <xsd:annotation>
+		                    <xsd:documentation><![CDATA[
+		                        Allows you to specify how long this gateway will wait for 
+		                        the reply message to be sent successfully before throwing 
+		                        an exception. Keep in mind that when sending to a 
+		                        DirectChannel (The invocation will occur in the sender's thread.) 
+		                        the failing of the send operation may be caused by other 
+		                        components further downstream. By default the Gateway will 
+		                        wait indefinitely. The value is specified in milliseconds.
+		                    ]]>
+		                    </xsd:documentation>
+		                </xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="keys-generated" type="xsd:boolean">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -887,7 +900,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="request-timeout" type="xsd:string" />
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+			    <xsd:annotation>
+			        <xsd:documentation><![CDATA[
+			            Allows you to specify how long this gateway will wait for 
+			            the reply message to be sent successfully before throwing 
+			            an exception. Keep in mind that when sending to a 
+			            DirectChannel (The invocation will occur in the sender's thread.) 
+			            the failing of the send operation may be caused by other 
+			            components further downstream. By default the Gateway will 
+			            wait indefinitely. The value is specified in milliseconds.
+			        ]]>
+			        </xsd:documentation>
+			    </xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="order">
 				<xsd:annotation>
 					<xsd:documentation>
