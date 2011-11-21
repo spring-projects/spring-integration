@@ -21,14 +21,12 @@ import org.springframework.expression.ExpressionException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.endpoint.MessageEndpoint;
-import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapMessage;
 
 /**
@@ -37,13 +35,13 @@ import org.springframework.ws.soap.SoapMessage;
  */
 abstract public class AbstractWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
 	
-	protected volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper(false);
+	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 	
 	public String getComponentType() {
 		return "ws:inbound-gateway";
 	}
 	
-	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {
+	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper must not be null");
 		this.headerMapper = headerMapper;
 	}
@@ -73,7 +71,7 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 		if (request instanceof SoapMessage) {
 			SoapMessage soapMessage = (SoapMessage) request;
-			Map<String, ?> headers = this.headerMapper.toHeaders(soapMessage.getSoapHeader());
+			Map<String, ?> headers = this.headerMapper.toHeadersFromRequest(soapMessage.getSoapHeader());
 			if (!CollectionUtils.isEmpty(headers)) {
 				builder.copyHeaders(headers);
 			}
@@ -82,7 +80,7 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	
 	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage){
 		if (response instanceof SoapMessage) {
-			this.headerMapper.fromHeaders(
+			this.headerMapper.fromHeadersToReply(
 					replyMessage.getHeaders(), ((SoapMessage) response).getSoapHeader());
 		}
 	}

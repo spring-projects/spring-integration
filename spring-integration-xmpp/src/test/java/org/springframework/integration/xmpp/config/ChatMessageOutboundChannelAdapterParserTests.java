@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
@@ -30,11 +31,11 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
+import org.springframework.integration.xmpp.support.XmppHeaderMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -55,7 +56,7 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 	private ApplicationContext context;
 	
 	@Autowired
-	private HeaderMapper<org.jivesoftware.smack.packet.Message> headerMapper;
+	private XmppHeaderMapper headerMapper;
 
 	@Test
 	public void testPollingConsumer() {

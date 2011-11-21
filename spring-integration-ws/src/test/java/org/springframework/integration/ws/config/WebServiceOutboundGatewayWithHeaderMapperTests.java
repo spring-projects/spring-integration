@@ -85,7 +85,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertEquals("foo*", requestHeaderNames[0]);
 		assertEquals("*baz*", requestHeaderNames[1]);
 		
-		String[] responseHeaderNames = TestUtils.getPropertyValue(headerMapper, "responseHeaderNames", String[].class);
+		String[] responseHeaderNames = TestUtils.getPropertyValue(headerMapper, "replyHeaderNames", String[].class);
 		assertEquals(1, responseHeaderNames.length);
 		assertEquals("bar*", responseHeaderNames[0]);
 	}

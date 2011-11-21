@@ -17,7 +17,9 @@
 package org.springframework.integration.xmpp.support;
 
 import org.jivesoftware.smack.packet.Message;
+
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.integration.mapping.RequestReplyHeaderMapper;
 
 /**
  * A convenience interface that extends {@link HeaderMapper}
@@ -26,5 +28,5 @@ import org.springframework.integration.mapping.HeaderMapper;
  * @author Mark Fisher
  * @since 2.1
  */
-public interface XmppHeaderMapper extends HeaderMapper<Message> {
+public interface XmppHeaderMapper extends RequestReplyHeaderMapper<Message> {
 }

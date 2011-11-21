@@ -20,7 +20,6 @@ import org.jivesoftware.smack.XMPPConnection;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareMessageHandler;
 import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
@@ -39,7 +38,7 @@ import org.springframework.util.StringUtils;
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
-	private volatile HeaderMapper<org.jivesoftware.smack.packet.Message> headerMapper = new DefaultXmppHeaderMapper(true);
+	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
 
 	public ChatMessageSendingMessageHandler() {
@@ -68,7 +67,7 @@ public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwar
 			Assert.state(StringUtils.hasText(to), "The '" + XmppHeaders.TO + "' header must not be null");
 			xmppMessage = new org.jivesoftware.smack.packet.Message(to);
 			if (this.headerMapper != null) {
-				this.headerMapper.fromHeaders(message.getHeaders(), xmppMessage);
+				this.headerMapper.fromHeadersToRequest(message.getHeaders(), xmppMessage);
 			}
 			xmppMessage.setBody((String) messageBody);
 		}

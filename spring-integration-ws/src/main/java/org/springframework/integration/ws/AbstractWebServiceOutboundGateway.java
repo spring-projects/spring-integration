@@ -35,7 +35,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
@@ -74,7 +73,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile boolean ignoreEmptyResponses = true;
 	
-	protected volatile HeaderMapper<SoapHeader> headerMapper = new DefaultSoapHeaderMapper(true);
+	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	public AbstractWebServiceOutboundGateway(String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
@@ -95,7 +94,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.uriTemplate = null;
 	}
 
-	public void setHeaderMapper(HeaderMapper<SoapHeader> headerMapper) {
+	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 
@@ -221,7 +220,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 			
 			if (message instanceof SoapMessage) {
 				SoapHeader target = ((SoapMessage)message).getSoapHeader();
-				headerMapper.fromHeaders(requestMessage.getHeaders(), target);
+				headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), target);
 				super.doWithMessage(message);
 			}
 			if (this.callbackDelegate != null) {

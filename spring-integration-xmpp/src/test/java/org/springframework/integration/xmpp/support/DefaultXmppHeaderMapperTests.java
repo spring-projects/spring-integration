@@ -37,7 +37,7 @@ public class DefaultXmppHeaderMapperTests {
 
 	@Test
 	public void fromHeadersStandardOutbound() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("userDefined1", "foo");
 		headerMap.put("userDefined2", "bar");
@@ -48,7 +48,7 @@ public class DefaultXmppHeaderMapperTests {
 		headerMap.put(XmppHeaders.TYPE, "headline");
 		MessageHeaders headers = new MessageHeaders(headerMap);
 		Message target = new Message();
-		mapper.fromHeaders(headers, target);
+		mapper.fromHeadersToRequest(headers, target);
 
 		// "standard" XMPP headers
 		assertEquals("test.thread", target.getThread());
@@ -68,7 +68,7 @@ public class DefaultXmppHeaderMapperTests {
 
 	@Test
 	public void fromHeadersUserDefinedOnly() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
 		mapper.setRequestHeaderNames(new String[] { "userDefined1", "userDefined2" });
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("userDefined1", "foo");
@@ -81,7 +81,7 @@ public class DefaultXmppHeaderMapperTests {
 		headerMap.put(XmppHeaders.TYPE, "headline");
 		MessageHeaders headers = new MessageHeaders(headerMap);
 		Message target = new Message();
-		mapper.fromHeaders(headers, target);
+		mapper.fromHeadersToRequest(headers, target);
 
 		// "standard" XMPP headers not included
 		assertNull(target.getThread());
@@ -104,14 +104,14 @@ public class DefaultXmppHeaderMapperTests {
 
 	@Test
 	public void toHeadersStandardOnly() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
 		Message source = new Message("test.to", Message.Type.headline);
 		source.setFrom("test.from");
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
 		source.setProperty("userDefined1", "foo");
 		source.setProperty("userDefined2", "bar");
-		Map<String, Object> headers = mapper.toHeaders(source);
+		Map<String, Object> headers = mapper.toHeadersFromRequest(source);
 		assertEquals("test.to", headers.get(XmppHeaders.TO));
 		assertEquals("test.from", headers.get(XmppHeaders.FROM));
 		assertEquals("test.subject", headers.get(XmppHeaders.SUBJECT));
@@ -123,15 +123,15 @@ public class DefaultXmppHeaderMapperTests {
 
 	@Test
 	public void toHeadersUserDefinedOnly() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
-		mapper.setResponseHeaderNames(new String[] { "userDefined*" });
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
+		mapper.setReplyHeaderNames(new String[] { "userDefined*" });
 		Message source = new Message("test.to", Message.Type.headline);
 		source.setFrom("test.from");
 		source.setSubject("test.subject");
 		source.setThread("test.thread");
 		source.setProperty("userDefined1", "foo");
 		source.setProperty("userDefined2", "bar");
-		Map<String, Object> headers = mapper.toHeaders(source);
+		Map<String, Object> headers = mapper.toHeadersFromReply(source);
 		assertNull(headers.get(XmppHeaders.TO));
 		assertNull(headers.get(XmppHeaders.FROM));
 		assertNull(headers.get(XmppHeaders.SUBJECT));

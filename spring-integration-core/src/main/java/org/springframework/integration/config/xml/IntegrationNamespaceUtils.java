@@ -230,23 +230,23 @@ public abstract class IntegrationNamespaceUtils {
 		}
 		boolean hasHeaderMapper = element.hasAttribute("header-mapper");
 		boolean hasMappedRequestHeaders = element.hasAttribute("mapped-request-headers");
-		boolean hasMappedResponseHeaders = element.hasAttribute(replyHeaderValue);
+		boolean hasMappedReplyHeaders = element.hasAttribute(replyHeaderValue);
 		
-		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedResponseHeaders)){
+		if (hasHeaderMapper && (hasMappedRequestHeaders || hasMappedReplyHeaders)){
 			parserContext.getReaderContext().error("The 'header-mapper' attribute is mutually exclusive with" +
-					" 'mapped-request-headers' or 'mapped-response-headers'. " +
+					" 'mapped-request-headers' or 'mapped-reply-headers'. " +
 					"You can only use one or the others", element);
 		}
 		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(rootBuilder, element, "header-mapper");
 		
-		if (hasMappedRequestHeaders || hasMappedResponseHeaders){
+		if (hasMappedRequestHeaders || hasMappedReplyHeaders){
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
 			
 			if (hasMappedRequestHeaders) {
 				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
 			}
-			if (hasMappedResponseHeaders) {
+			if (hasMappedReplyHeaders) {
 				headerMapperBuilder.addPropertyValue("replyHeaderNames", element.getAttribute(replyHeaderValue));
 			}
 			

@@ -37,6 +37,7 @@ import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
+import org.springframework.integration.ws.SoapHeaderMapper;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.support.AbstractMarshaller;
 import org.springframework.test.context.ContextConfiguration;
@@ -169,7 +170,7 @@ public class WebServiceInboundGatewayParserTests {
 	private SimpleWebServiceInboundGateway headerMappingGateway;
 
 	@Autowired
-	private HeaderMapper<SoapHeader> testHeaderMapper;
+	private SoapHeaderMapper testHeaderMapper;
 
 	@Test
 	public void testHeaderMapperReference() throws Exception {
@@ -180,13 +181,20 @@ public class WebServiceInboundGatewayParserTests {
 
 
 	@SuppressWarnings("unused")
-	private static class TestHeaderMapper implements HeaderMapper<SoapHeader> {
-
-		public void fromHeaders(MessageHeaders headers, SoapHeader target) {
+	private static class TestHeaderMapper implements SoapHeaderMapper {
+		
+		public void fromHeadersToRequest(MessageHeaders headers,
+				SoapHeader target) {
 		}
 
-		@SuppressWarnings("unchecked")
-		public Map<String, ?> toHeaders(SoapHeader source) {
+		public void fromHeadersToReply(MessageHeaders headers, SoapHeader target) {
+		}
+
+		public <V> Map<String, V> toHeadersFromRequest(SoapHeader source) {
+			return Collections.emptyMap();
+		}
+
+		public <V> Map<String, V> toHeadersFromReply(SoapHeader source) {
 			return Collections.emptyMap();
 		}
 	}

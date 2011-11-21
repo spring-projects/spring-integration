@@ -42,10 +42,10 @@ import org.springframework.xml.namespace.QNameUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> {
+public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> implements SoapHeaderMapper {
 
-	public DefaultSoapHeaderMapper(boolean outbound) {
-		super(WebServiceHeaders.class, outbound);
+	public DefaultSoapHeaderMapper() {
+		super(WebServiceHeaders.class);
 	}
 
 	@Override

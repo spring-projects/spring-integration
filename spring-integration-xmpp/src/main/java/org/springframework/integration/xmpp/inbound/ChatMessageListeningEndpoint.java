@@ -18,13 +18,11 @@ package org.springframework.integration.xmpp.inbound;
 
 import java.util.Map;
 
-import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.integration.xmpp.core.AbstractXmppConnectionAwareEndpoint;
 import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
 import org.springframework.integration.xmpp.support.XmppHeaderMapper;
@@ -46,7 +44,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 
 	private final PacketListener packetListener = new ChatMessagePublishingPacketListener();
 	
-	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper(false);
+	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
 
 	public ChatMessageListeningEndpoint() {
 		super();
@@ -94,7 +92,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 		public void processPacket(final Packet packet) {
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
-				Map<String, ?> mappedHeaders = headerMapper.toHeaders(xmppMessage);
+				Map<String, ?> mappedHeaders = headerMapper.toHeadersFromRequest(xmppMessage);
 				//Chat chat = xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread());
 	
 				String messageBody = xmppMessage.getBody();

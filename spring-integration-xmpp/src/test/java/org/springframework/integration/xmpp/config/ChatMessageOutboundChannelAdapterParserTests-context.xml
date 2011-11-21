@@ -36,13 +36,11 @@
 	</int-xmpp:outbound-channel-adapter>
 	
 	<bean id="headerMapper" class="org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper">
-		<constructor-arg value="true"/>
 		<property name="requestHeaderNames" value="foo*"/>
 	</bean>
 	
 	<int-xmpp:outbound-channel-adapter id="outboundNoChannelAdapter" 
 						xmpp-connection="testConnection">
-<!--		<int:poller fixed-rate="1000" max-messages-per-poll="1"/>-->
 	</int-xmpp:outbound-channel-adapter>
 
 </beans>

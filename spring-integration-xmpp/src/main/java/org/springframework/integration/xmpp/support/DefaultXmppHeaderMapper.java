@@ -29,12 +29,13 @@ import org.springframework.util.StringUtils;
  * Default implementation of {@link XmppHeaderMapper}.
  *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
 
-	public DefaultXmppHeaderMapper(boolean outbound) {
-		super(XmppHeaders.class, outbound);
+	public DefaultXmppHeaderMapper() {
+		super(XmppHeaders.class);
 	}
 
 	@Override

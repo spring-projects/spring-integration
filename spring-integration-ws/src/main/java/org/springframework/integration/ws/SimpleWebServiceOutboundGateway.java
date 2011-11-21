@@ -148,7 +148,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 					
 			if (message instanceof SoapMessage){			
 				SoapHeader soapHeader = ((SoapMessage)message).getSoapHeader();
-				Map<String, Object> mappedMessageHeaders = headerMapper.toHeaders(soapHeader);
+				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply(soapHeader);
 				Message<?> siMessage = MessageBuilder.withPayload(payload).copyHeaders(mappedMessageHeaders).build();
 				return siMessage;
 			}
