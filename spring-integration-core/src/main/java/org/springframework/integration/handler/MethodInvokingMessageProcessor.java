@@ -49,7 +49,7 @@ public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName, boolean canProcessMessageList) {
-		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, Object.class, canProcessMessageList);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, canProcessMessageList);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
