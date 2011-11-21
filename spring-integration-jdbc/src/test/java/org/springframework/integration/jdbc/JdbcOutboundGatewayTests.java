@@ -29,10 +29,6 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
  */
 public class JdbcOutboundGatewayTests {
 
-	/**
-	 * Test method for
-	 * {@link org.springframework.integration.jdbc.JdbcOutboundGateway#setMaxRowsPerPoll(int)}.
-	 */
 	@Test
 	public void testSetMaxRowsPerPollWithoutSelectQuery() {
 
@@ -43,6 +39,8 @@ public class JdbcOutboundGatewayTests {
 
 		try {
 			jdbcOutboundGateway.setMaxRowsPerPoll(10);
+			jdbcOutboundGateway.onInit();
+			
 		} catch (IllegalArgumentException e) {
 			assertEquals("If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.", e.getMessage());
 			return;
@@ -52,4 +50,26 @@ public class JdbcOutboundGatewayTests {
 
 	}
 
+	/**
+	 * Test method for
+	 * {@link org.springframework.integration.jdbc.JdbcOutboundGateway#setMaxRowsPerPoll(Integer)}.
+	 */
+	@Test
+	public void testSetMaxRowsPerPoll() {
+
+
+		DataSource dataSource = new EmbeddedDatabaseBuilder().build();
+
+		JdbcOutboundGateway jdbcOutboundGateway = new JdbcOutboundGateway(dataSource, "select * from DOES_NOT_EXIST");
+
+		try {
+			jdbcOutboundGateway.setMaxRowsPerPoll(null);
+		} catch (IllegalArgumentException e) {
+			assertEquals("MaxRowsPerPoll must not be null.", e.getMessage());
+			return;
+		}
+
+		fail("Expected an IllegalArgumentException to be thrown.");
+
+	}
 }

@@ -23,6 +23,8 @@ import org.w3c.dom.Element;
 
 /**
  * @author Dave Syer
+ * @author Gunnar Hillert
+ * 
  * @since 2.0
  *
  */
