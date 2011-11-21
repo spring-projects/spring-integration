@@ -25,7 +25,7 @@
 			http-method="PUT"
 			request-channel="requests"
 			request-factory="testRequestFactory"
-			request-timeout="1234"
+			reply-timeout="1234"
 			message-converters="converterList"
 			extract-request-payload="false"
 			expected-response-type="java.lang.String"

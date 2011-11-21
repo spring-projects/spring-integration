@@ -249,7 +249,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="reply-key" type="xsd:string" />
-					<xsd:attribute name="reply-timeout" type="xsd:string" />
+					<xsd:attribute name="request-timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -603,7 +603,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="request-timeout" type="xsd:string" />
+		<xsd:attribute name="reply-timeout" type="xsd:string" />
 	</xsd:complexType>
 
 </xsd:schema>
