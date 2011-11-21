@@ -95,7 +95,6 @@ public class AmqpOutboundGatewayParserTests {
 		// verify reply
 		QueueChannel queueChannel = context.getBean("fromRabbit", QueueChannel.class);
 		Message<?> replyMessage = queueChannel.receive(0);
-		System.out.println(replyMessage);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertEquals("foo", replyMessage.getHeaders().get("foo")); // copied from request Message
 		assertNull(replyMessage.getHeaders().get("foobar"));

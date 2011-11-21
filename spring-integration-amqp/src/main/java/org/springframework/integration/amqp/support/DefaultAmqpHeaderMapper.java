@@ -70,8 +70,8 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 
-	public DefaultAmqpHeaderMapper(boolean outbound) {
-		super(AmqpHeaders.class, outbound);
+	public DefaultAmqpHeaderMapper() {
+		super(AmqpHeaders.class);
 	}
 
 

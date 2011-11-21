@@ -38,7 +38,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void fromHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(AmqpHeaders.APP_ID, "test.appId");
 		headerMap.put(AmqpHeaders.CLUSTER_ID, "test.clusterId");
@@ -61,7 +61,7 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.USER_ID, "test.userId");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
-		headerMapper.fromHeaders(integrationHeaders, amqpProperties);
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		assertEquals("test.appId", amqpProperties.getAppId());
 		assertEquals("test.clusterId", amqpProperties.getClusterId());
 		assertEquals("test.contentEncoding", amqpProperties.getContentEncoding());
@@ -83,7 +83,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void toHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -106,7 +106,7 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
 		amqpProperties.setUserId("test.userId");
-		Map<String, Object> headerMap = headerMapper.toHeaders(amqpProperties);
+		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertEquals("test.appId", headerMap.get(AmqpHeaders.APP_ID));
 		assertEquals("test.clusterId", headerMap.get(AmqpHeaders.CLUSTER_ID));
 		assertEquals("test.contentEncoding", headerMap.get(AmqpHeaders.CONTENT_ENCODING));
@@ -128,36 +128,36 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void replyChannelNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.REPLY_CHANNEL, "foo");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
-		headerMapper.fromHeaders(integrationHeaders, amqpProperties);
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		assertEquals(null, amqpProperties.getHeaders().get(MessageHeaders.REPLY_CHANNEL));
 	}
 
 	@Test
 	public void errorChannelNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.ERROR_CHANNEL, "foo");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
-		headerMapper.fromHeaders(integrationHeaders, amqpProperties);
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		assertEquals(null, amqpProperties.getHeaders().get(MessageHeaders.ERROR_CHANNEL));
 	}
 
 	@Test // INT-2090
 	public void jsonTypeIdNotOverwritten() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 		JsonMessageConverter converter = new JsonMessageConverter();
 		MessageProperties amqpProperties = new MessageProperties();
 		converter.toMessage("123", amqpProperties);
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("__TypeId__", "java.lang.Integer");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
-		headerMapper.fromHeaders(integrationHeaders, amqpProperties);
+		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
 		assertEquals("java.lang.String", amqpProperties.getHeaders().get("__TypeId__"));
 		Object result = converter.fromMessage(new Message("123".getBytes(), amqpProperties));
 		assertEquals(String.class, result.getClass());

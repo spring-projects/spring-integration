@@ -242,13 +242,12 @@ public abstract class IntegrationNamespaceUtils {
 		
 		if (hasMappedRequestHeaders || hasMappedResponseHeaders){
 			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(headerMapperClass);
-			headerMapperBuilder.addConstructorArgValue(outbound);
 			
 			if (hasMappedRequestHeaders) {
 				headerMapperBuilder.addPropertyValue("requestHeaderNames", element.getAttribute("mapped-request-headers"));
 			}
 			if (hasMappedResponseHeaders) {
-				headerMapperBuilder.addPropertyValue("responseHeaderNames", element.getAttribute(replyHeaderValue));
+				headerMapperBuilder.addPropertyValue("replyHeaderNames", element.getAttribute(replyHeaderValue));
 			}
 			
 			rootBuilder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());

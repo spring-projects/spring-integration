@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
+public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMapper<T> {
 
 	public static final String STANDARD_REQUEST_HEADER_NAME_PATTERN = "STANDARD_REQUEST_HEADERS";
 
@@ -58,8 +58,6 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final boolean outbound; 
-	
 	private final String standardHeaderPrefix;
 
 	private volatile String userDefinedHeaderPrefix = "";
@@ -70,49 +68,19 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 
 	private volatile String[] requestHeaderNames = new String[0];
 
-	private volatile String[] responseHeaderNames = new String[0];
+	private volatile String[] replyHeaderNames = new String[0];
 
 
-	protected AbstractHeaderMapper(Class<?> headersClass, boolean outbound) {
+	protected AbstractHeaderMapper(Class<?> headersClass) {
 		Assert.notNull(headersClass, "headersClass must not be null");
-		this.outbound = outbound;
 		final StringBuilder prefixBuilder = new StringBuilder();
 		final List<String> headerNames = new ArrayList<String>();
 		this.introspectHeaderFields(headersClass, prefixBuilder, headerNames);
 		this.standardHeaderPrefix = prefixBuilder.toString();
 		this.standardRequestHeaderNames.addAll(headerNames);
 		this.standardReplyHeaderNames.addAll(headerNames);
-		if (outbound) {
-			this.responseHeaderNames = this.standardRequestHeaderNames.toArray(new String[0]);
-			this.requestHeaderNames = this.standardReplyHeaderNames.toArray(new String[0]);
-		}
-		else {
-			this.requestHeaderNames = this.standardRequestHeaderNames.toArray(new String[0]);
-			this.responseHeaderNames = this.standardReplyHeaderNames.toArray(new String[0]);			
-		}
-	}
-
-
-	private void introspectHeaderFields(Class<?> headersClass, final StringBuilder prefixBuilder, final List<String> headerNames) {
-		ReflectionUtils.doWithFields(headersClass, new FieldCallback() {
-			public void doWith(Field f) throws IllegalArgumentException, IllegalAccessException {
-				try {
-					String fieldName = f.getName();
-					Object fieldValue = f.get(null);
-					if (fieldValue instanceof String) {
-						if ("PREFIX".equals(fieldName)) {
-							prefixBuilder.append((String) fieldValue);
-						}
-						else {
-							headerNames.add((String) fieldValue);
-						}
-					}
-				}
-				catch (Exception e) {
-					// ignore
-				}
-			}
-		});
+		this.requestHeaderNames = this.standardRequestHeaderNames.toArray(new String[0]);
+		this.replyHeaderNames = this.standardReplyHeaderNames.toArray(new String[0]);			
 	}
 
 	/**
@@ -134,8 +102,8 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 	 * <p>
 	 * Any non-standard headers will be prefixed with the value specified by {@link #setOutboundPrefix(String)}.
 	 */
-	public void setResponseHeaderNames(String[] responseHeaderNames) {
-		this.responseHeaderNames = (responseHeaderNames != null) ? responseHeaderNames : new String[0];
+	public void setReplyHeaderNames(String[] replyHeaderNames) {
+		this.replyHeaderNames = (replyHeaderNames != null) ? replyHeaderNames : new String[0];
 	}
 
 	/**
@@ -151,16 +119,55 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 	}
 
 	/**
-	 * Maps headers from a Spring Integration MessageHeaders instance to the target instance.
+	 * Maps headers from a Spring Integration MessageHeaders instance to the target instance
+	 * matching on the set of REQUEST headers (if different).
 	 */
-	public void fromHeaders(MessageHeaders headers, T target) {
+	public void fromHeadersToRequest(MessageHeaders headers, T target) {
+		this.fromHeaders(headers, target, this.requestHeaderNames);
+	}
+	/**
+	 * Maps headers from a Spring Integration MessageHeaders instance to the target instance
+	 * matching on the set of REPLY headers (if different).
+	 */
+	public void fromHeadersToReply(MessageHeaders headers, T target) {
+		this.fromHeaders(headers, target, this.replyHeaderNames);
+	}
+	
+	public <V> Map<String, V> toHeadersFromRequest(T source) {
+		return this.toHeaders(source, this.requestHeaderNames);
+	}
+	
+	public <V> Map<String, V> toHeadersFromReply(T source) {
+		return this.toHeaders(source, this.replyHeaderNames);
+	}
+	
+	private void introspectHeaderFields(Class<?> headersClass, final StringBuilder prefixBuilder, final List<String> headerNames) {
+		ReflectionUtils.doWithFields(headersClass, new FieldCallback() {
+			public void doWith(Field f) throws IllegalArgumentException, IllegalAccessException {
+				try {
+					String fieldName = f.getName();
+					Object fieldValue = f.get(null);
+					if (fieldValue instanceof String) {
+						if ("PREFIX".equals(fieldName)) {
+							prefixBuilder.append((String) fieldValue);
+						}
+						else {
+							headerNames.add((String) fieldValue);
+						}
+					}
+				}
+				catch (Exception e) {
+					// ignore
+				}
+			}
+		});
+	}
+	
+	private void fromHeaders(MessageHeaders headers, T target, String[] headerPatterns){
 		try {
 			Map<String, Object> subset = new HashMap<String, Object>();
 			for (String headerName : headers.keySet()) {
-				boolean shouldMap = this.outbound				
-						? this.shouldMapRequestHeader(headerName)
-				        : this.shouldMapResponseHeader(headerName);
-				if (shouldMap) {
+				if (this.shouldMapHeader(headerName, headerPatterns)){
 					subset.put(headerName, headers.get(headerName));
 				}
 			}
@@ -195,25 +202,22 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 	 * Maps headers from a source instance to the MessageHeaders of a
 	 * Spring Integration Message.
 	 */
-	public <V> Map<String, V> toHeaders(T source) {
+	private <V> Map<String, V> toHeaders(T source, String[] headerPatterns) {
 		Map<String, V> headers = new HashMap<String, V>();
 		Map<String, Object> standardHeaders = this.extractStandardHeaders(source);
-		this.copyHeaders(this.standardHeaderPrefix, standardHeaders, headers);
+		this.copyHeaders(this.standardHeaderPrefix, standardHeaders, headers, headerPatterns);
 		Map<String, Object> userDefinedHeaders = this.extractUserDefinedHeaders(source);
-		this.copyHeaders(this.userDefinedHeaderPrefix, userDefinedHeaders, headers);
+		this.copyHeaders(this.userDefinedHeaderPrefix, userDefinedHeaders, headers, headerPatterns);
 		return headers;
 	}
 
 	@SuppressWarnings("unchecked")
-	private <V> void copyHeaders(String prefix, Map<String, Object> source, Map<String, V> target) {
+	private <V> void copyHeaders(String prefix, Map<String, Object> source, Map<String, V> target, String[] headerPatterns) {
 		if (!CollectionUtils.isEmpty(source)) {
 			for (Map.Entry<String, Object> entry : source.entrySet()) {
 				try {
 					String headerName = this.addPrefixIfNecessary(prefix, entry.getKey());
-					boolean shouldMap = this.outbound
-							? this.shouldMapResponseHeader(headerName)
-							: this.shouldMapRequestHeader(headerName);
-					if (shouldMap) {
+					if (this.shouldMapHeader(headerName, headerPatterns)){
 						target.put(headerName, (V) entry.getValue());
 					}
 				}
@@ -225,14 +229,6 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 				}
 			}
 		}
-	}
-
-	private boolean shouldMapRequestHeader(String headerName) {
-		return this.shouldMapHeader(headerName, this.requestHeaderNames);
-	}
-
-	private boolean shouldMapResponseHeader(String headerName) {
-		return this.shouldMapHeader(headerName, this.responseHeaderNames);
 	}
 
 	private boolean shouldMapHeader(String headerName, String[] patterns) {
@@ -270,15 +266,6 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 		return false;
 	}
 
-	private boolean containsElementIgnoreCase(List<String> headerNames, String name) {
-		for (String headerName : headerNames) {
-			if (headerName.equalsIgnoreCase(name)){
-				return true;
-			}
-		}
-		return false;
-	}
-
 	@SuppressWarnings("unchecked")
 	protected <V> V getHeaderIfAvailable(Map<String, Object> headers, String name, Class<V> type) {
 		Object value = headers.get(name);
@@ -291,6 +278,15 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 			}
 		}
 		return (V) value;
+	}
+	
+	private boolean containsElementIgnoreCase(List<String> headerNames, String name) {
+		for (String headerName : headerNames) {
+			if (headerName.equalsIgnoreCase(name)){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

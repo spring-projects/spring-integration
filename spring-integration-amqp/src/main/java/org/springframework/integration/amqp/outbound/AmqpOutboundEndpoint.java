@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * Adapter that converts and sends Messages to an AMQP Exchange.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
@@ -60,7 +61,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
 	@Override
 	protected void onInit() {
@@ -137,7 +138,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 				new MessagePostProcessor() {
 					public org.springframework.amqp.core.Message postProcessMessage(
 							org.springframework.amqp.core.Message message) throws AmqpException {
-						headerMapper.fromHeaders(requestMessage.getHeaders(), message.getMessageProperties());
+						headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
 						return message;
 					}
 				});
@@ -148,7 +149,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for send and receive");
 		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
 		MessageProperties amqpMessageProperties = new MessageProperties();
-		this.headerMapper.fromHeaders(requestMessage.getHeaders(), amqpMessageProperties);
+		this.headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpMessage = converter.toMessage(requestMessage.getPayload(), amqpMessageProperties);
 		org.springframework.amqp.core.Message amqpReplyMessage = this.amqpTemplate.sendAndReceive(exchangeName, routingKey, amqpMessage);
 		if (amqpReplyMessage == null) {
@@ -158,7 +159,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		MessageBuilder<?> builder = (replyObject instanceof Message)
 				? MessageBuilder.fromMessage((Message<?>) replyObject)
 				: MessageBuilder.withPayload(replyObject);
-		Map<String, ?> headers = this.headerMapper.toHeaders(amqpReplyMessage.getMessageProperties());
+		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(amqpReplyMessage.getMessageProperties());
 		builder.copyHeadersIfAbsent(headers);
 		return builder.build();
 	}
