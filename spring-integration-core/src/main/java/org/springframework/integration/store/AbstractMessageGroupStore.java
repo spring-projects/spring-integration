@@ -32,6 +32,8 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
+	
+	private volatile boolean timeoutOnIdle;
 
 	/**
 	 * 
@@ -51,6 +53,20 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			registerMessageGroupExpiryCallback(callback);
 		}
 	}
+	
+	public boolean isTimeoutOnIdle() {
+		return timeoutOnIdle;
+	}
+
+	/**
+	 * Allows you to override the rule for the timeout calculation. Typical timeout is based from the time
+	 * the {@link MessageGroup} was created. If you want the timeout to be based on the time 
+	 * the {@link MessageGroup} was idling (e.g., inactive from the last update) invoke this method with 'true'.
+	 * Default is 'false'.
+	 */
+	public void setTimeoutOnIdle(boolean timeoutOnIdle) {
+		this.timeoutOnIdle = timeoutOnIdle;
+	}
 
 	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
 		expiryCallbacks.add(callback);
@@ -60,7 +76,13 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 		int count = 0;
 		long threshold = System.currentTimeMillis() - timeout;
 		for (MessageGroup group : this) {
-			if (group.getTimestamp() <= threshold) {
+
+			long timestamp = group.getTimestamp();
+			if (this.isTimeoutOnIdle() && group.getLastModified() > 0) {
+			    timestamp = group.getLastModified();
+			}
+			
+			if (timestamp <= threshold) {
 				count++;
 				expire(group);
 			}

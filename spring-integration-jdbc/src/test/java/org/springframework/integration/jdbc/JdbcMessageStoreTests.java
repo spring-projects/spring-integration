@@ -243,17 +243,6 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testMarkedMessageGroupSizes() throws Exception {
-		String groupId = "X";
-		Message<String> message = MessageBuilder.withPayload("foo").build();
-		messageStore.addMessageToGroup(groupId, message);
-		assertEquals(0, messageStore.getMarkedMessageCountForAllMessageGroups());
-		messageStore.markMessageGroup(messageStore.getMessageGroup(groupId));
-		assertEquals(1, messageStore.getMarkedMessageCountForAllMessageGroups());
-	}
-
-	@Test
-	@Transactional
 	public void testOrderInMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
@@ -279,6 +268,55 @@ public class JdbcMessageStoreTests {
 		});
 		messageStore.expireMessageGroups(-10000);
 		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+	}
+	
+	@Test
+	@Transactional
+	public void testExpireMessageGroupOnCreateOnly() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
+				messageGroupStore.removeMessageGroup(group.getGroupId());
+			}
+		});
+		Thread.sleep(1000);
+		messageStore.expireMessageGroups(2000);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(1, group.size());
+		Thread.sleep(2000);
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		messageStore.expireMessageGroups(2000);
+		group = messageStore.getMessageGroup(groupId);
+		assertEquals(0, group.size());
+	}
+	
+	@Test
+	@Transactional
+	public void testExpireMessageGroupOnIdleOnly() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.setTimeoutOnIdle(true);
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
+				messageGroupStore.removeMessageGroup(group.getGroupId());
+			}
+		});
+		Thread.sleep(1000);
+		messageStore.expireMessageGroups(2000);
+		MessageGroup group = messageStore.getMessageGroup(groupId);
+		assertEquals(1, group.size());
+		Thread.sleep(2000);
+		messageStore.addMessageToGroup(groupId, MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		messageStore.expireMessageGroups(2000);
+		group = messageStore.getMessageGroup(groupId);
+		assertEquals(2, group.size());
+		Thread.sleep(2000);
+		messageStore.expireMessageGroups(1000);
+		group = messageStore.getMessageGroup(groupId);
 		assertEquals(0, group.size());
 	}
 

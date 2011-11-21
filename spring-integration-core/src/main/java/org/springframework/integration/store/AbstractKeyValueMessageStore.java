@@ -109,14 +109,14 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 		// build raw MessageGroup and add enriched Message to it
 		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
-		
+		rawGroup.setLastModified(System.currentTimeMillis());
 		rawGroup.add(enrichedMessage);
 		
 		// store MessageGroupMetadata built from enriched MG
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));		
 		
 		// return clean MG
-		return messageGroup;
+		return this.getMessageGroup(groupId);
 	}
 
 	/**
@@ -250,6 +250,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			
 			SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, 
 						groupId, messageGroupMetadata.getTimestamp(), messageGroupMetadata.isComplete());
+			messageGroup.setLastModified(messageGroupMetadata.getLastModified());
 			messageGroup.setLastReleasedMessageSequenceNumber(messageGroupMetadata.getLastReleasedMessageSequenceNumber());
 			return messageGroup;
 		}

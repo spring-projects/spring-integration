@@ -39,6 +39,8 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final long timestamp;
 	
+	private volatile long lastModified;
+	
 	private volatile boolean complete;
 
 	public SimpleMessageGroup(Object groupId) {
@@ -64,6 +66,14 @@ public class SimpleMessageGroup implements MessageGroup {
 	
 	public long getTimestamp() {
 		return timestamp;
+	}
+	
+	public void setLastModified(long lastModified){
+		this.lastModified = lastModified;
+	}
+	
+	public long getLastModified() {
+		return lastModified;
 	}
 
 	public boolean canAdd(Message<?> message) {
