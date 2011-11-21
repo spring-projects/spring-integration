@@ -80,5 +80,10 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the creation of this group
 	 */
 	long getTimestamp();
+	
+	/**
+	 * @return the timestamp (milliseconds since epoch) associated with the time this group was last updated
+	 */
+	long getUpdateTimestamp();
 
 }

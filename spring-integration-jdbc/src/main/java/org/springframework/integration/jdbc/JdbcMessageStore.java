@@ -89,7 +89,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by CREATED_DATE";
+	private static final String LIST_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, UPDATED_DATE, GROUP_KEY, MESSAGE_BYTES, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by UPDATED_DATE";
 
 	private static final String LIST_MESSAGEIDS_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? order by UPDATED_DATE";
 
@@ -308,8 +308,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		final String groupKey = getKey(groupId);
-		final long createdDate = this.getGroupCreatedDate(groupKey);
 		final long updatedDate = System.currentTimeMillis();
+		final long createdDate = this.getGroupCreatedDate(groupKey);
+		
 		final String messageId = getKey(message.getHeaders().getId());
 		
 
@@ -318,7 +319,13 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				logger.debug("Inserting message with id key=" + messageId + " and created date=" + createdDate);
 				ps.setString(1, messageId);
 				ps.setString(2, region);
-				ps.setTimestamp(3, new Timestamp(createdDate));
+				if (createdDate == 0){
+					ps.setTimestamp(3, new Timestamp(updatedDate));
+				}
+				else {
+					ps.setTimestamp(3, new Timestamp(createdDate));
+				}
+				
 				ps.setTimestamp(4, new Timestamp(updatedDate));
 				ps.setString(5, groupKey);
 			}
@@ -347,6 +354,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		String key = getKey(groupId);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final AtomicReference<Date> date = new AtomicReference<Date>();
+		final AtomicReference<Date> updateDate = new AtomicReference<Date>();
 		final AtomicReference<Boolean> completeFlag = new AtomicReference<Boolean>();
 		final AtomicReference<Integer> lastReleasedSequenceRef = new AtomicReference<Integer>();
 		
@@ -361,6 +369,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 						date.set(rs.getTimestamp("CREATED_DATE"));
 						
+						updateDate.set(rs.getTimestamp("UPDATED_DATE"));
+							
 						completeFlag.set(rs.getInt("COMPLETE") > 0);
 						
 						lastReleasedSequenceRef.set(rs.getInt("LAST_RELEASED_SEQUENCE"));
@@ -371,9 +381,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			return new SimpleMessageGroup(groupId);
 		}
 		Assert.state(date.get() != null, "Could not locate created date for groupId=" + groupId);
+		Assert.state(updateDate.get() != null, "Could not locate updated date for groupId=" + groupId);
 		long timestamp = date.get().getTime();
 		boolean complete = completeFlag.get().booleanValue();
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, complete);
+		messageGroup.setUpdateTimestamp(updateDate.get().getTime());
 		int lastReleasedSequenceNumber = lastReleasedSequenceRef.get();
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
@@ -518,12 +530,12 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				
 				new RowCallbackHandler() {
 					public void processRow(ResultSet rs) throws SQLException {
-						date.set(rs.getDate("CREATED_DATE").getTime());
+						date.set(rs.getTimestamp("CREATED_DATE").getTime());
 					}
 				});
 		Long returnedDate = date.get();
 		if (returnedDate == null){
-			return System.currentTimeMillis();
+			return 0;
 		}
 		else {
 			return returnedDate;

@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.integration.Message;
@@ -72,6 +73,34 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		assertEquals(retrievedMessage.getHeaders().getId(), messageA.getHeaders().getId());
 		// ensure that 'message_group' header that is only used internally is not propagated 
 		assertNull(retrievedMessage.getHeaders().get("message_group"));
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+
+		MessageGroup messageGroup = store.getMessageGroup(1);
+		Message<?> message = new GenericMessage<String>("Hello");
+		messageGroup = store.addMessageToGroup(1, message);
+		assertEquals(1, messageGroup.size());
+		long createdTimestamp = messageGroup.getTimestamp();
+		long updatedTimestamp = messageGroup.getUpdateTimestamp();
+		assertEquals(createdTimestamp, updatedTimestamp);
+		Thread.sleep(1000);
+		message = new GenericMessage<String>("Hello again");
+		messageGroup = store.addMessageToGroup(1, message);
+		createdTimestamp = messageGroup.getTimestamp();
+		updatedTimestamp = messageGroup.getUpdateTimestamp();
+		assertTrue(updatedTimestamp > createdTimestamp);
+		assertEquals(2, messageGroup.size());
+		
+		// make sure the store is properly rebuild from MongoDB
+		store = new MongoDbMessageStore(mongoDbFactory);
+
+		messageGroup = store.getMessageGroup(1);
+		assertEquals(2, messageGroup.size());
 	}
 	
 	@Test

@@ -74,6 +74,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	private final static String LAST_RELEASED_SEQUENCE_NUMBER = "_last_released_sequence";
 	
 	private final static String GROUP_TIMESTAMP_KEY = "_group_timestamp";
+	
+	private final static String GROUP_UPDATE_TIMESTAMP_KEY = "_group_update_timestamp";
 
 	private final static String PAYLOAD_TYPE_KEY = "_payloadType";
 	
@@ -139,11 +141,13 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
+		long updateTimestamp = 0;
 		int lastReleasedSequenceNumber = 0;
 		boolean completeGroup = false;
 		if (messageWrappers.size() > 0){
 			MessageWrapper messageWrapper = messageWrappers.get(0);
 			timestamp = messageWrapper.getGroupTimestamp();
+			updateTimestamp = messageWrapper.getGroupUpdateTimestamp();
 			completeGroup = messageWrapper.isCompletedGroup();
 			lastReleasedSequenceNumber = messageWrapper.getLastReleasedSequenceNumber();
 		}
@@ -151,7 +155,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		for (MessageWrapper messageWrapper : messageWrappers) {
 			messages.add(messageWrapper.getMessage());
 		}
+
 		SimpleMessageGroup messageGroup = new SimpleMessageGroup(messages, groupId, timestamp, completeGroup);
+		messageGroup.setUpdateTimestamp(updateTimestamp);
 		if (lastReleasedSequenceNumber > 0){
 			messageGroup.setLastReleasedMessageSequenceNumber(lastReleasedSequenceNumber);
 		}
@@ -163,10 +169,22 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
+
+		long messageGroupTimetasmp = messageGroup.getTimestamp();
+		long messageGroupUpdateTimetasmp = messageGroup.getUpdateTimestamp();
+		
+		if (messageGroupTimetasmp == 0){
+			messageGroupTimetasmp = System.currentTimeMillis();
+			messageGroupUpdateTimetasmp = messageGroupTimetasmp;
+		}
+		else {
+			messageGroupUpdateTimetasmp = System.currentTimeMillis();
+		}
 		
 		MessageWrapper wrapper = new MessageWrapper(message);
 		wrapper.setGroupId(groupId);
-		wrapper.setGroupTimestamp(messageGroup.getTimestamp());
+		wrapper.setGroupTimestamp(messageGroupTimetasmp);
+		wrapper.setGroupUpdateTimestamp(messageGroupUpdateTimetasmp);
 		wrapper.setCompletedGroup(messageGroup.isComplete());
 		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
 		
@@ -234,7 +252,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
-		return new Query(where(GROUP_ID_KEY).is(groupId));
+		Query q = new Query(where(GROUP_ID_KEY).is(groupId));
+		q.sort().on(GROUP_UPDATE_TIMESTAMP_KEY, Order.DESCENDING);
+		return q;
 	}
 
 	private static Query whereGroupIdExists() {
@@ -274,6 +294,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 			boolean groupComplete = false;
 			long groupTimestamp = 0;
+			long groupUpdateTimestamp = 0;
 			int lastReleasedSequenceNumber = 0;
 			if (source instanceof MessageWrapper) {
 				MessageWrapper wrapper = (MessageWrapper) source;
@@ -282,6 +303,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				groupComplete = wrapper.isCompletedGroup();
 				lastReleasedSequenceNumber = wrapper.getLastReleasedSequenceNumber();
 				groupTimestamp = wrapper.getGroupTimestamp();
+				groupUpdateTimestamp = wrapper.getGroupUpdateTimestamp();
 			}
 			else {
 				Class<?> sourceType = (source != null) ? source.getClass() : null;
@@ -294,6 +316,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				target.put(GROUP_COMPLETE_KEY, groupComplete);
 				target.put(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
 				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
+				target.put(GROUP_UPDATE_TIMESTAMP_KEY, groupUpdateTimestamp);
 			}
 			
 			super.write(message, target);
@@ -324,6 +347,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
+				Long groupUpdateTimestamp = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
 				Integer lastReleasedSequenceNumber = (Integer)source.get(LAST_RELEASED_SEQUENCE_NUMBER);
 				Boolean completeGroup = (Boolean)source.get(GROUP_COMPLETE_KEY);
 				
@@ -334,6 +358,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				}
 				if (groupTimestamp != null){
 					wrapper.setGroupTimestamp(groupTimestamp);
+				}
+				if (groupUpdateTimestamp != null){
+					wrapper.setGroupUpdateTimestamp(groupUpdateTimestamp);
 				}
 				if (lastReleasedSequenceNumber != null){
 					wrapper.setLastReleasedSequenceNumber(lastReleasedSequenceNumber);
@@ -375,6 +402,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		
 		private volatile long groupTimestamp; 
 		
+		private volatile long groupUpdateTimestamp; 
+
 		private volatile int lastReleasedSequenceNumber; 
 
 		private volatile boolean completedGroup;
@@ -409,6 +438,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 		public void setGroupTimestamp(long groupTimestamp) {
 			this.groupTimestamp = groupTimestamp;
+		}
+		
+		public long getGroupUpdateTimestamp() {
+			return groupUpdateTimestamp;
+		}
+
+		public void setGroupUpdateTimestamp(long groupUpdateTimestamp) {
+			this.groupUpdateTimestamp = groupUpdateTimestamp;
 		}
 
 		public void setLastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
