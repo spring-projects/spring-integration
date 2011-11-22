@@ -138,7 +138,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			}
 		}
 		this.removeMessage(messageToRemove.getHeaders().getId());
-
+		rawGroup.setLastModified(System.currentTimeMillis());
+		
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(rawGroup));
 		messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));
 		
@@ -150,6 +151,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
 		messageGroup.complete();
+		messageGroup.setLastModified(System.currentTimeMillis());
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 
@@ -174,6 +176,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(groupId, "'groupId' must not be null");
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
 		messageGroup.setLastReleasedMessageSequenceNumber(sequenceNumber);
+		messageGroup.setLastModified(System.currentTimeMillis());
 		this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, new MessageGroupMetadata(messageGroup));
 	}
 	
@@ -187,6 +190,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			UUID firstId = messageGroupMetadata.firstId();
 			if (firstId != null){
 				messageGroupMetadata.remove(firstId);
+				messageGroupMetadata.setLastModified(System.currentTimeMillis());
 				this.doStore(MESSAGE_GROUP_KEY_PREFIX + groupId, messageGroupMetadata);
 				return this.removeMessage(firstId);
 			}

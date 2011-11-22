@@ -109,6 +109,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, UPDATED_DATE, GROUP_KEY, MARKED, COMPLETE, LAST_RELEASED_SEQUENCE)"
 			+ " values (?, ?, ?, ?, ?, 0, 0, 0)";
+	
+	private static final String UPDATE_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=? where GROUP_KEY=? and REGION=?";
 
 	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -409,6 +411,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			}
 		});
 		this.removeMessage(messageToRemove.getHeaders().getId());
+		this.updateMessageGroup(groupKey);
 		return getMessageGroup(groupId);
 	}
 
@@ -458,12 +461,14 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(4, region);
 			}
 		});
+		this.updateMessageGroup(groupKey);
 	}
 	
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		String key = getKey(groupId);
 		
-		return jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
+		
+		Message<?> message = jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
 				new ResultSetExtractor<Message<?>>() {
 			public Message<?> extractData(ResultSet rs)
 					throws SQLException, DataAccessException {
@@ -480,25 +485,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				return null;
 			}
 		});
+		this.updateMessageGroup(key);
+		return message;
 	}
-
-	private List<UUID> getMessageIdsForGroup(Object groupId){
-		String key = getKey(groupId);
-		
-		final List<UUID> messageIds = new ArrayList<UUID>();
-		
-		jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
-				new RowCallbackHandler() {
-
-					public void processRow(ResultSet rs) throws SQLException {
-						messageIds.add(UUID.fromString(rs.getString(1)));
-					}
-					
-				}
-		);
-		return messageIds;
-	}
-
+	
 	public Iterator<MessageGroup> iterator() {
 
 		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
@@ -521,6 +511,36 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		};
 
 	}
+	
+	private void updateMessageGroup(final String groupId){
+		jdbcTemplate.update(getQuery(UPDATE_GROUP), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				logger.debug("Updating MessageGroup: " + groupId);
+				ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+				ps.setString(2, groupId);
+				ps.setString(3, region);
+			}
+		});
+	}
+
+	private List<UUID> getMessageIdsForGroup(Object groupId){
+		String key = getKey(groupId);
+		
+		final List<UUID> messageIds = new ArrayList<UUID>();
+		
+		jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
+				new RowCallbackHandler() {
+
+					public void processRow(ResultSet rs) throws SQLException {
+						messageIds.add(UUID.fromString(rs.getString(1)));
+					}
+					
+				}
+		);
+		return messageIds;
+	}
+
+	
 
 	private String getKey(Object input) {
 		return input == null ? null : UUIDConverter.getUUID(input).toString();

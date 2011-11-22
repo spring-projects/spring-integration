@@ -196,6 +196,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
 		this.removeMessage(messageToRemove.getHeaders().getId());
+		this.updateGroup(groupId);
 		return this.getMessageGroup(groupId);
 	}
 
@@ -222,12 +223,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Update update = Update.update(GROUP_COMPLETE_KEY, true);
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
+		this.updateGroup(groupId);
 	}
 
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Update update = Update.update(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber);
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
+		this.updateGroup(groupId);
 	}
 	
 	public Message<?> pollMessageFromGroup(Object groupId) {
@@ -239,7 +242,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			message = messageWrappers.get(0).getMessage();
 			this.removeMessageFromGroup(groupId, message);
 		}
-		
+		this.updateGroup(groupId);
 		return message;
 	}
 
@@ -265,6 +268,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Query q = new Query(where(GROUP_ID_KEY).is(groupId)).limit(1);
 		q.sort().on(CREATED_DATE, Order.ASCENDING);
 		return q;
+	}
+	
+	private void updateGroup(Object groupId) {
+		Update update = Update.update(GROUP_UPDATE_TIMESTAMP_KEY, System.currentTimeMillis());
+		Query q = whereGroupIdIs(groupId);
+		this.template.updateFirst(q, update, this.collectionName);
 	}
 
 
