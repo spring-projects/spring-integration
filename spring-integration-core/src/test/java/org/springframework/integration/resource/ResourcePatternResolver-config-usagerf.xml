@@ -9,10 +9,10 @@
 	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel" 
 									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + 'testUsage*'}"
 									      filter="rlFilter" auto-startup="true">
-		<int:poller fixed-rate="5000"/>
+		<int:poller fixed-rate="500"/>
 	</int:resource-inbound-channel-adapter>
 	
-	<bean id="rlFilter" class="org.springframework.integration.resource.ResourcePatternResolverParserTests.OneItemAndNeverAgainResourceListFilter"/>
+	<bean id="rlFilter" class="org.springframework.integration.resource.ResourceInboundChannelAdapterParserTests.OneItemAndNeverAgainResourceListFilter"/>
 	
 	<int:channel id="resultChannel">
 		<int:queue/>

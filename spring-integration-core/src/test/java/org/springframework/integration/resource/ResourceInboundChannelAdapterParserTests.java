@@ -41,9 +41,9 @@ import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @since 2.1
  */
-public class ResourcePatternResolverParserTests {
+public class ResourceInboundChannelAdapterParserTests {
 
 	@Test
 	public void testDefaultConfig(){
