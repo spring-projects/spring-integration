@@ -92,9 +92,10 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 	@Override
 	protected void populateStandardHeaders(Map<String, Object> headers, SoapMessage target) {
 		String soapAction = getHeaderIfAvailable(headers, WebServiceHeaders.SOAP_ACTION, String.class);
-		if (StringUtils.hasText(soapAction)) {
-			target.setSoapAction(soapAction);
-		}
+		if (!StringUtils.hasText(soapAction)) {
+            soapAction = "\"\"";
+        }
+		target.setSoapAction(soapAction);
 	}
 
 	@Override
