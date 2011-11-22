@@ -6,8 +6,8 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
 
 
-	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel" 
-									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + '/testUsage*'}"
+	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel"
+									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + T(java.lang.System).getProperty('file.separator') + 'testUsage*'}" 
 									      filter="customFilter" auto-startup="false">
 		<int:poller fixed-rate="500"/>
 	</int:resource-inbound-channel-adapter>
