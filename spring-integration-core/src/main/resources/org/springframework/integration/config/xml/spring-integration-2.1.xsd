@@ -1133,6 +1133,29 @@ endpoint itself is a Polling Consumer for a channel with a queue.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="requires-reply" use="optional" default="true">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+                If you specify a 'request-channel' you can optionally set the 
+                'requires-reply' attribute as well. If you set this attribute to 
+                'true', a reply must return a non-null value. 
+                
+                For example, you dispatch a message to the request-channel
+                (backed by a 'QueueChannel'). If the reply does not return within
+                the specified 'replyTimeout', then the reply message will end up 
+                being Null.
+                
+                By setting 'requires-reply' to 'true', a 'ReplyRequiredException'
+                will be raised for null reply messages. If 'requires-reply' is set 
+                to false, those messages are silently dropped. 
+                
+                This attribute defaults to 'true', if not specified.]]>
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:simpleType>
+                <xsd:union memberTypes="xsd:boolean xsd:string" />
+            </xsd:simpleType>            
+        </xsd:attribute>
 		<xsd:attribute name="should-clone-payload">
 			<xsd:annotation>
 				<xsd:documentation>
