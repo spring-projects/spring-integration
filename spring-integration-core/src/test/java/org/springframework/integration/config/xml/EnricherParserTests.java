@@ -17,8 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
@@ -96,6 +97,17 @@ public class EnricherParserTests {
 	}
 	
 	@Test
+	public void configurationCheckRequiresReply() {
+		
+		Object endpoint = context.getBean("enricher");
+		
+		boolean requiresReply = TestUtils.getPropertyValue(endpoint, "handler.requiresReply", Boolean.class);
+
+		assertTrue("Was expecting requiresReply to be 'false'", requiresReply);
+
+	}
+	
+	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
 		requests.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -114,7 +126,6 @@ public class EnricherParserTests {
 		assertNotSame(original, enriched);
 	}
 
-
 	private static class Source {
 
 		private final String sourceName;
@@ -128,7 +139,6 @@ public class EnricherParserTests {
 			return sourceName;
 		}
 	}
-
 
 	public static class Target implements Cloneable {
 
