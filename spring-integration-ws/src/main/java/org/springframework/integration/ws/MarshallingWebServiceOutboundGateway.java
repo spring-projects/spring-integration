@@ -34,7 +34,6 @@ import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.support.MarshallingUtils;
-import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
  * An outbound Messaging Gateway for invoking Web Services that also supports
@@ -107,13 +106,13 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	@Override
 	protected Object doHandle(String uri, Object requestPayload, WebServiceMessageCallback requestCallback) {
 		Object reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-				new RequestMessageCallback(requestCallback, requestPayload), new ResponseMessageextractor());
+				new RequestMessageCallback(requestCallback, requestPayload), new ResponseMessageExtractor());
 		return reply;
 	}
 	
 	
 	
-	private class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
+	private class RequestMessageCallback implements WebServiceMessageCallback {
 		
 		private final WebServiceMessageCallback requestCallback;
 		private final Object source;
@@ -132,7 +131,7 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		
 	}
 	
-	private class ResponseMessageextractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
+	private class ResponseMessageExtractor implements WebServiceMessageExtractor<Object> {
 		
 		public Object extractData(WebServiceMessage message)
 				throws IOException, TransformerException {

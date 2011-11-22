@@ -79,15 +79,15 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		Object reply = null;
 		if (requestPayload instanceof Source) {
 			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-					new RequestMessageCallback(requestCallback, (Source) requestPayload), new ResponseMessageextractor(null));
+					new RequestMessageCallback(requestCallback, (Source) requestPayload), new ResponseMessageExtractor(null));
 		}
 		else if (requestPayload instanceof String) {
 			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-						new RequestMessageCallback(requestCallback, new StringSource((String) requestPayload)), new ResponseMessageextractor(new StringResult()));
+						new RequestMessageCallback(requestCallback, new StringSource((String) requestPayload)), new ResponseMessageExtractor(new StringResult()));
 		}
 		else if (requestPayload instanceof Document) {
 			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-					new RequestMessageCallback(requestCallback, new DOMSource((Document) requestPayload)), new ResponseMessageextractor(new DOMResult()));
+					new RequestMessageCallback(requestCallback, new DOMSource((Document) requestPayload)), new ResponseMessageExtractor(new DOMResult()));
 		}
 		else {
 			throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
@@ -117,11 +117,11 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 		
 	}
 	
-	private class ResponseMessageextractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
+	private class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
 		
 		private final Result result;
 		
-		public ResponseMessageextractor(Result result){
+		public ResponseMessageExtractor(Result result){
 			this.result = result;
 		}
 

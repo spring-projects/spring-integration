@@ -36,8 +36,6 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
 	
-	private static final String PREFIX = "";
-	
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
@@ -145,6 +143,6 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 	@Override
 	protected String getStandardHeaderPrefix() {
-		return PREFIX;
+		return XmppHeaders.PREFIX;
 	}
 }

@@ -19,6 +19,7 @@ package org.springframework.integration.mapping;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -277,12 +278,16 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	/**
 	 * Returns the list of standard REQUEST headers. Implementation provided by a subclass
 	 */
-	protected abstract List<String> getStandardReplyHeaderNames();
+	protected List<String> getStandardReplyHeaderNames(){
+		return Collections.emptyList();
+	}
 
 	/**
 	 * Returns the PREFIX used by standard headers (if any)
 	 */
-	protected abstract List<String> getStandardRequestHeaderNames();
+	protected List<String> getStandardRequestHeaderNames(){
+		return Collections.emptyList();
+	}
 	
 	/**
 	 * Returns the list of standard REPLY headers. Implementation provided by a subclass

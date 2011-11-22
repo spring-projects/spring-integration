@@ -46,8 +46,6 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 	
-	private static final String PREFIX = "";
-
 	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
 
 	static {
@@ -279,7 +277,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 	@Override
 	protected String getStandardHeaderPrefix() {
-		return PREFIX;
+		return AmqpHeaders.PREFIX;
 	}
 
 }

@@ -19,7 +19,6 @@ package org.springframework.integration.ws;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -45,8 +44,6 @@ import org.springframework.xml.namespace.QNameUtils;
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> implements SoapHeaderMapper {
 	
-	private static final String PREFIX = "";
-
 	@Override
 	protected Map<String, Object> extractStandardHeaders(SoapHeader source) {
 		return Collections.emptyMap();
@@ -95,16 +92,7 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> im
 	}
 
 	@Override
-	protected List<String> getStandardReplyHeaderNames() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	protected List<String> getStandardRequestHeaderNames() {
-		return Collections.emptyList();
-	}
-	@Override
 	protected String getStandardHeaderPrefix() {
-		return PREFIX;
+		return WebServiceHeaders.PREFIX;
 	}
 }

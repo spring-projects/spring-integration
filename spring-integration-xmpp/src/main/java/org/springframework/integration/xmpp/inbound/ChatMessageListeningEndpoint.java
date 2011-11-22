@@ -93,8 +93,7 @@ public class ChatMessageListeningEndpoint extends AbstractXmppConnectionAwareEnd
 			if (packet instanceof org.jivesoftware.smack.packet.Message) {
 				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) packet;
 				Map<String, ?> mappedHeaders = headerMapper.toHeadersFromRequest(xmppMessage);
-				//Chat chat = xmppConnection.getChatManager().getThreadChat(xmppMessage.getThread());
-	
+				
 				String messageBody = xmppMessage.getBody();
 				/*
 				 * Since there are several types of chat messages with different ChatState (e.g., composing, paused etc) 
