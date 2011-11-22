@@ -76,6 +76,10 @@ public class MessageGroupMetadata implements Serializable{
 		}
 		this.messageCreationDateToIdMappings.remove(currentTimestamp);
 	}
+	
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
 
 	public Object getGroupId() {
 		return this.groupId;
