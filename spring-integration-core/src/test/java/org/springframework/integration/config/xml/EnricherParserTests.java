@@ -42,6 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
+ * 
  * @since 2.1
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -80,6 +82,19 @@ public class EnricherParserTests {
 		}
 	}
 
+	@Test
+	public void configurationCheckTimeoutParameters() {
+		
+		Object endpoint = context.getBean("enricher");
+		
+		Long requestTimeout = TestUtils.getPropertyValue(endpoint, "handler.requestTimeout", Long.class);
+		Long replyTimeout   = TestUtils.getPropertyValue(endpoint, "handler.replyTimeout", Long.class);
+
+		assertEquals(Long.valueOf(1234L), requestTimeout);
+		assertEquals(Long.valueOf(9876L), replyTimeout);
+
+	}
+	
 	@Test
 	public void integrationTest() {
 		SubscribableChannel requests = context.getBean("requests", SubscribableChannel.class);
