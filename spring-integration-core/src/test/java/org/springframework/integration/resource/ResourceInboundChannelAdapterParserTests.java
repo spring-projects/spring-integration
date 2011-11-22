@@ -19,12 +19,10 @@ package org.springframework.integration.resource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 
 import org.junit.Test;
 
@@ -37,7 +35,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CollectionFilter;
-import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -49,7 +46,7 @@ public class ResourceInboundChannelAdapterParserTests {
 	public void testDefaultConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		boolean autoStartup = TestUtils.getPropertyValue(resourceAdapter, "autoStartup", Boolean.class);
 		assertFalse(autoStartup);
@@ -67,7 +64,7 @@ public class ResourceInboundChannelAdapterParserTests {
 	public void testCustomPatternResolver(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
 		assertEquals(context.getBean("customResolver"), TestUtils.getPropertyValue(source, "patternResolver"));
 	}
@@ -105,31 +102,27 @@ public class ResourceInboundChannelAdapterParserTests {
 
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usagerf.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
 		assertNotNull(source);
-		assertEquals(context.getBean("rlFilter"), TestUtils.getPropertyValue(source, "filter"));
-		
+		TestCollectionFilter customFilter = context.getBean("customFilter", TestCollectionFilter.class);
+		assertEquals(customFilter, TestUtils.getPropertyValue(source, "filter"));
+
+		assertFalse(customFilter.invoked);
+		resourceAdapter.start();
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
-		
 		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(1000);
 		assertNotNull(message);
-		
-		message = (Message<Resource[]>) resultChannel.receive(1000);
-		assertNull(message);
-		
+		assertTrue(customFilter.invoked);
 	}
 
 
-	public static class OneItemAndNeverAgainResourceListFilter implements CollectionFilter<Resource> {
+	public static class TestCollectionFilter implements CollectionFilter<Resource> {
 
-		private volatile boolean once = false;
-		
+		private volatile boolean invoked = false;
+
 		public Collection<Resource> filter(Collection<Resource> unfilteredResources) {
-			if (!once && !CollectionUtils.isEmpty(unfilteredResources)) {
-				once = true;
-				return Collections.singletonList(unfilteredResources.iterator().next());
-			}
-			return null;
+			this.invoked = true;
+			return unfilteredResources;
 		}
 	}
 

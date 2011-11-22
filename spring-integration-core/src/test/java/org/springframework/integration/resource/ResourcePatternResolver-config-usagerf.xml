@@ -7,12 +7,12 @@
 
 
 	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel" 
-									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + 'testUsage*'}"
-									      filter="rlFilter" auto-startup="true">
+									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + '/testUsage*'}"
+									      filter="customFilter" auto-startup="false">
 		<int:poller fixed-rate="500"/>
 	</int:resource-inbound-channel-adapter>
 	
-	<bean id="rlFilter" class="org.springframework.integration.resource.ResourceInboundChannelAdapterParserTests.OneItemAndNeverAgainResourceListFilter"/>
+	<bean id="customFilter" class="org.springframework.integration.resource.ResourceInboundChannelAdapterParserTests.TestCollectionFilter"/>
 	
 	<int:channel id="resultChannel">
 		<int:queue/>

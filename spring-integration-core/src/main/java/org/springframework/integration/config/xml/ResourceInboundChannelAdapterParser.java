@@ -19,7 +19,7 @@ package org.springframework.integration.config.xml;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.resource.ResourceMessageSource;
+import org.springframework.integration.resource.ResourceRetrievingMessageSource;
 import org.w3c.dom.Element;
 
 /**
@@ -33,7 +33,7 @@ public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundC
 	
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceMessageSource.class);
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceRetrievingMessageSource.class);
 		sourceBuilder.addConstructorArgValue(element.getAttribute("pattern"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "filter");

@@ -40,7 +40,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @since 2.1
  */
-public class ResourceMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
+public class ResourceRetrievingMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
 
 	private final String pattern;
 
@@ -51,7 +51,7 @@ public class ResourceMessageSource extends AbstractMessageSource<Resource[]> imp
 	private volatile CollectionFilter<Resource> filter;
 
 
-	public ResourceMessageSource(String pattern) {
+	public ResourceRetrievingMessageSource(String pattern) {
 		Assert.hasText(pattern, "pattern must not be empty");
 		this.pattern = pattern;
 	}
@@ -82,13 +82,16 @@ public class ResourceMessageSource extends AbstractMessageSource<Resource[]> imp
 	protected Resource[] doReceive() {
 		try {
 			Resource[] resources = this.patternResolver.getResources(this.pattern);
-			if (this.filter != null && !ObjectUtils.isEmpty(resources)) {
+			if (ObjectUtils.isEmpty(resources)) {
+				resources = null;
+			}
+			else if (this.filter != null) {
 				Collection<Resource> filteredResources = this.filter.filter(Arrays.asList(resources));
 				if (CollectionUtils.isEmpty(filteredResources)) {
 					resources = null;
 				}
 				else {
-					resources = filteredResources.toArray(new Resource[0]);
+					resources = filteredResources.toArray(new Resource[filteredResources.size()]);
 				}
 			}
 			return resources;
