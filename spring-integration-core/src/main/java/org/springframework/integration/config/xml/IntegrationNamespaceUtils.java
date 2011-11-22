@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
  * @author Alex Peters
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -43,6 +44,7 @@ public abstract class IntegrationNamespaceUtils {
 	static final String REF_ATTRIBUTE = "ref";
 	static final String METHOD_ATTRIBUTE = "method";
 	static final String ORDER = "order";
+	static final String EXPRESSION_ATTRIBUTE = "expression";
 
 	/**
 	 * Configures the provided bean definition builder with a property value corresponding to the attribute whose name
