@@ -27,10 +27,12 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.util.Assert;
 
 /**
  * @author Dave Syer
- * 
+ * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
@@ -43,6 +45,8 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 
 	private volatile boolean keysGenerated;
 
+	private volatile Integer maxRowsPerPoll; 
+	
 	public JdbcOutboundGateway(DataSource dataSource, String updateQuery) {
 		this(new JdbcTemplate(dataSource), updateQuery, null);
 	}
@@ -66,13 +70,34 @@ public class JdbcOutboundGateway extends AbstractReplyProducingMessageHandler im
 		handler = new JdbcMessageHandler(jdbcOperations, updateQuery);
 	}
 
-	public void setMaxRowsPerPoll(int maxRows) {
-		poller.setMaxRowsPerPoll(maxRows);
+	/**
+	 * The maximum number of rows to pull out of the query results per poll (if
+	 * greater than zero, otherwise all rows will be packed into the outgoing
+	 * message). 
+	 * 
+	 * The value is ultimately set on the underlying {@link JdbcPollingChannelAdapter}.
+	 * If not specified this value will default to <code>zero</code>.
+	 * 
+	 * This parameter is only applicable if a selectQuery was provided. Null values
+	 * are not permitted. 
+	 * 
+	 * @param maxRowsPerPoll Must not be null. 
+	 */
+	public void setMaxRowsPerPoll(Integer maxRowsPerPoll) {
+		Assert.notNull(maxRowsPerPoll, "MaxRowsPerPoll must not be null.");
+		this.maxRowsPerPoll = maxRowsPerPoll;
 	}
 
 	@Override
 	protected void onInit() {
+		
+		if (this.maxRowsPerPoll != null) {
+			Assert.notNull(poller, "If you want to set 'maxRowsPerPoll', then you must provide a 'selectQuery'.");
+			poller.setMaxRowsPerPoll(this.maxRowsPerPoll);			
+		}
+
 		handler.afterPropertiesSet();
+		
 	}
 
 	@Override

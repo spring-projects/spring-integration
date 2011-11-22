@@ -171,13 +171,11 @@
 					</xsd:attribute>
 					<xsd:attribute name="max-rows-per-poll" type="xsd:string">
 						<xsd:annotation>
-							<xsd:appinfo>
-								<xsd:documentation>
-									Limits the number of rows extracted per query (otherwise all rows
-									are extracted into the
-									outgoing message).
-								</xsd:documentation>
-							</xsd:appinfo>
+							<xsd:documentation>
+								Limits the number of rows extracted per query (otherwise all rows
+								are extracted into the
+								outgoing message).
+							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string" use="required">
@@ -361,6 +359,18 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+                    <xsd:attribute name="max-rows-per-poll" type="xsd:string">
+                        <xsd:annotation>
+	                        <xsd:documentation>
+	                            When using a select query, you can set a
+	                            custom limit regarding the number of rows
+	                            extracted. Otherwise by default only the first
+	                            row will be extracted into the outgoing message.
+
+	                            If set to '0' all rows are extracted.
+	                        </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
 					<xsd:attribute name="request-sql-parameter-source-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -585,14 +595,20 @@
 				<xsd:element name="sql-parameter-definition" minOccurs="0"
 					maxOccurs="unbounded" type="sqlParameterDefinitionType">
 					<xsd:annotation>
-						<xsd:documentation>
-                                    <![CDATA[
-                                    For fully supported database these parameters
-                                    need not be declared as for those database the
-                                    type information can be retrieved from the
-                                    JDBC Metadata.
+						<xsd:documentation><![CDATA[
+                            If you are using a database that is fully supported, 
+                            you typically don't have to specify the Stored Procedure 
+                            parameter definitions using the 'sql-parameter-definition' 
+                            attribute. 
+                            
+                            Instead, those parameters can be automatically derived 
+                            from the JDBC Meta-data. However, if you are using 
+                            databases that are not fully supported or if you like
+                            to provide customized parameter definitions, you can 
+                            set those parameters explicitly. See also the 
+                            'ignore-column-meta-data' attribute.
 
-                                    Fully Supported Databases (Stored Procedures):
+                            Fully Supported Databases (Stored Procedures):
 
                                     * Apache Derby
                                     * DB2
@@ -602,16 +618,14 @@
                                     * PostgreSQL
                                     * Sybase
 
-                                    Fully Supported Databases (Functions)
+                            Fully Supported Databases (Functions)
 
                                     * MySQL
                                     * Microsoft SQL Server
                                     * Oracle
                                     * PostgreSQL
-
-                                    If you use a database not listed above, you
-                                    MUST provide Sql Parameter Definitions.
-                                    ]]>
+                                    
+                            ]]>
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
@@ -721,35 +735,39 @@
                     <xsd:element name="sql-parameter-definition" minOccurs="0"
                         maxOccurs="unbounded" type="sqlParameterDefinitionType">
                         <xsd:annotation>
-                            <xsd:documentation>
-                                        <![CDATA[
-                                        For fully supported database these parameters
-                                        generally need not be declared as for those
-                                        databases the type information can be
-                                        retrieved from the JDBC Metadata.
-
-                                        Fully Supported Databases (Stored Procedures):
-
-                                        * Apache Derby
-                                        * DB2
-                                        * MySQL
-                                        * Microsoft SQL Server
-                                        * Oracle
-                                        * PostgreSQL
-                                        * Sybase
-
-                                        Fully Supported Databases (Functions)
-
-                                        * MySQL
-                                        * Microsoft SQL Server
-                                        * Oracle
-                                        * PostgreSQL
-
-                                        If you use a database not listed above, you
-                                        MUST provide Sql Parameter Definitions.
-                                        ]]>
+                            <xsd:documentation><![CDATA[
+	                            If you are using a database that is fully supported, 
+	                            you typically don't have to specify the Stored Procedure 
+	                            parameter definitions using the 'sql-parameter-definition' 
+	                            attribute. 
+	                            
+	                            Instead, those parameters can be automatically derived 
+	                            from the JDBC Meta-data. However, if you are using 
+	                            databases that are not fully supported or if you like
+	                            to provide customized parameter definitions, you can 
+	                            set those parameters explicitly. See also the 
+	                            'ignore-column-meta-data' attribute.
+	
+	                            Fully Supported Databases (Stored Procedures):
+	
+	                                    * Apache Derby
+	                                    * DB2
+	                                    * MySQL
+	                                    * Microsoft SQL Server
+	                                    * Oracle
+	                                    * PostgreSQL
+	                                    * Sybase
+	
+	                            Fully Supported Databases (Functions)
+	
+	                                    * MySQL
+	                                    * Microsoft SQL Server
+	                                    * Oracle
+	                                    * PostgreSQL
+	                                    
+	                            ]]>
                             </xsd:documentation>
-                        </xsd:annotation>
+                    </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="parameter" minOccurs="0" maxOccurs="unbounded"
 						type="parameterSubElementType">
