@@ -17,22 +17,15 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
-import java.util.Map;
-
-import javax.xml.transform.TransformerException;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
-import org.springframework.ws.client.core.WebServiceMessageExtractor;
 import org.springframework.ws.client.support.destination.DestinationProvider;
-import org.springframework.ws.soap.SoapHeader;
-import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.support.MarshallingUtils;
 
 /**
@@ -104,49 +97,29 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 	}
 
 	@Override
-	protected Object doHandle(String uri, Object requestPayload, WebServiceMessageCallback requestCallback) {
+	protected Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback) {
 		Object reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-				new RequestMessageCallback(requestCallback, requestPayload), new ResponseMessageExtractor());
+				new MarshallingRequestMessageCallback(requestCallback, requestMessage), new MarshallingResponseMessageExtractor());
 		return reply;
 	}
 	
-	
-	
-	private class RequestMessageCallback implements WebServiceMessageCallback {
+	private class MarshallingRequestMessageCallback extends RequestMessageCallback {
 		
-		private final WebServiceMessageCallback requestCallback;
-		private final Object source;
-		
-		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Object source){
-			this.requestCallback = requestCallback;
-			this.source = source;
+		public MarshallingRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+			super(requestCallback, requestMessage);
 		}
 
-		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
-			MarshallingUtils.marshal(marshaller, source, message);
-            if (requestCallback != null) {
-                requestCallback.doWithMessage(message);
-            }
+		@Override
+		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException{
+			MarshallingUtils.marshal(marshaller, payload, message);
 		}
-		
 	}
 	
-	private class ResponseMessageExtractor implements WebServiceMessageExtractor<Object> {
-		
-		public Object extractData(WebServiceMessage message)
-				throws IOException, TransformerException {
-			
-            Object unmarshalledObject = MarshallingUtils.unmarshal(unmarshaller, message);
-            
-            if (message instanceof SoapMessage){			
-				SoapHeader soapHeader = ((SoapMessage)message).getSoapHeader();
-				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply(soapHeader);
-				Message<?> siMessage = MessageBuilder.withPayload(unmarshalledObject).copyHeaders(mappedMessageHeaders).build();
-				return siMessage;
-			}
-			else {
-				return message.getPayloadSource();
-			}
-		}	
+	private class MarshallingResponseMessageExtractor extends ResponseMessageExtractor {
+
+		@Override
+		public Object doExtractData(WebServiceMessage message) throws IOException{
+			return MarshallingUtils.unmarshal(unmarshaller, message);
+		}
 	}
 }

@@ -17,7 +17,6 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -25,21 +24,18 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3c.dom.Document;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
-import org.springframework.ws.client.core.WebServiceMessageExtractor;
 import org.springframework.ws.client.support.destination.DestinationProvider;
-import org.springframework.ws.soap.SoapHeader;
-import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
-import org.w3c.dom.Document;
 
 /**
  * An outbound Messaging Gateway for invoking a Web Service.
@@ -48,6 +44,8 @@ import org.w3c.dom.Document;
  * @author Oleg Zhurakousky
  */
 public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
+	
+	private final SourceExtractor<?> sourceExtractor;
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
 		this(destinationProvider, null, null);
@@ -59,6 +57,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 	public SimpleWebServiceOutboundGateway(String uri) {
@@ -71,62 +70,71 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 	public SimpleWebServiceOutboundGateway(String uri, SourceExtractor<?> sourceExtractor, WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
+		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 
 	@Override
-	protected Object doHandle(String uri, final Object requestPayload, final WebServiceMessageCallback requestCallback) {
-		Object reply = null;
-		if (requestPayload instanceof Source) {
-			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-					new RequestMessageCallback(requestCallback, (Source) requestPayload), new ResponseMessageExtractor(null));
-		}
-		else if (requestPayload instanceof String) {
-			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-						new RequestMessageCallback(requestCallback, new StringSource((String) requestPayload)), new ResponseMessageExtractor(new StringResult()));
+	protected Object doHandle(String uri, final Message<?> requestMessage, final WebServiceMessageCallback requestCallback) {
+		Object requestPayload = requestMessage.getPayload();
+		Result responseResultInstance = null;
+		if (requestPayload instanceof String) {
+			responseResultInstance = new StringResult();
 		}
 		else if (requestPayload instanceof Document) {
-			reply = this.getWebServiceTemplate().sendAndReceive(uri, 
-					new RequestMessageCallback(requestCallback, new DOMSource((Document) requestPayload)), new ResponseMessageExtractor(new DOMResult()));
+			responseResultInstance = new DOMResult();
 		}
-		else {
-			throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
-					"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" + Source.class.getName() +
-					"', and '" + Document.class.getName() + "'. Consider either using the '"
-					+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
-		}
+		Object reply = this.getWebServiceTemplate().sendAndReceive(uri,
+				new SimpleRequestMessageCallback(requestCallback, requestMessage), new SimpleResponseMessageExtractor(responseResultInstance));
 		return reply;
 	}
 
-	private class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
+	private class SimpleRequestMessageCallback extends RequestMessageCallback {
 		
-		private final WebServiceMessageCallback requestCallback;
-		private final Source source;
-		
-		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Source source){
-			this.requestCallback = requestCallback;
-			this.source = source;
+		public SimpleRequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+			super(requestCallback, requestMessage);
 		}
+		
+		@Override
+		public void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException {
+			Source source = this.extractSource(payload);
+			this.transform(source, message.getPayloadResult());
+		}
+		
+		private Source extractSource(Object requestPayload) throws IOException, TransformerException{
+			Source source = null;
 
-		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
-            this.transform(this.source, message.getPayloadResult());
-            if (requestCallback != null) {
-                requestCallback.doWithMessage(message);
-            }
-		}
-		
+			if (requestPayload instanceof Source) {
+				source = (Source) requestPayload;
+			}
+			else if (requestPayload instanceof String) {
+				source = new StringSource((String) requestPayload);
+			}
+			else if (requestPayload instanceof Document) {
+				source = new DOMSource((Document) requestPayload);
+			}
+			else {
+				throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
+						"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" + Source.class.getName() +
+						"', and '" + Document.class.getName() + "'. Consider either using the '"
+						+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
+			}
+			
+			return (Source) sourceExtractor.extractData(source);
+		}		
 	}
 	
-	private class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
+	private class SimpleResponseMessageExtractor extends ResponseMessageExtractor {
 		
 		private final Result result;
 		
-		public ResponseMessageExtractor(Result result){
+		public SimpleResponseMessageExtractor(Result result){
+			super();
 			this.result = result;
 		}
 
-		public Object extractData(WebServiceMessage message)
-				throws IOException, TransformerException {
+		@Override
+		public Object doExtractData(WebServiceMessage message) throws IOException, TransformerException{
 			Source payloadSource = message.getPayloadSource();
 			Object payload = null;
 			
@@ -145,17 +153,20 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			else {
 				payload = payloadSource;
 			}
-					
-			if (message instanceof SoapMessage){			
-				SoapHeader soapHeader = ((SoapMessage)message).getSoapHeader();
-				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply(soapHeader);
-				Message<?> siMessage = MessageBuilder.withPayload(payload).copyHeaders(mappedMessageHeaders).build();
-				return siMessage;
-			}
-			else {
-				return message.getPayloadSource();
-			}
-		}	
+			return payload;
+		}
 	}
 
+	
+	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor<DOMSource> {
+
+		public DOMSource extractData(Source source) throws IOException, TransformerException {
+			if (source instanceof DOMSource) {
+				return (DOMSource)source;
+			}
+			DOMResult result = new DOMResult();
+			this.transform(source, result);
+			return new DOMSource(result.getNode());
+		}
+	}
 }
