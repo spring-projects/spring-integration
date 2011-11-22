@@ -8,7 +8,7 @@
 
 	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel" 
 									      pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + 'testUsage*'}">
-		<int:poller fixed-rate="2000" max-messages-per-poll="2"/>
+		<int:poller fixed-rate="2000"/>
 	</int:resource-inbound-channel-adapter>
 	
 	<int:channel id="resultChannel">

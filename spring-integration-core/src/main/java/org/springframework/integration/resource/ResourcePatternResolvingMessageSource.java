@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -24,7 +27,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.util.AcceptOnceUntilPurgedElementFilter;
 import org.springframework.integration.util.ElementFilter;
 import org.springframework.util.Assert;
 
@@ -35,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class ResourcePatternResolvingMessageSource extends AbstractMessageSource<Resource> implements ApplicationContextAware, InitializingBean {
+public class ResourcePatternResolvingMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
 
 	private volatile String pattern;
 	
@@ -43,7 +45,7 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 	
 	private volatile ResourcePatternResolver patternResolver;
 	
-	private volatile ElementFilter<Resource> filter = new AcceptOnceUntilPurgedElementFilter<Resource>();
+	private volatile ElementFilter<Resource> filter;
 
 	public void setPatternResolver(ResourcePatternResolver patternResolver) {
 		this.patternResolver = patternResolver;
@@ -58,21 +60,30 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 	}
 	
 	@Override
-	protected Resource doReceive() {
+	protected Resource[] doReceive() {
 		
 		try {
 			Resource[] resources = this.patternResolver.getResources(this.pattern);
-			for (Resource resource : resources) {
-				Resource filteredResource = this.filter.filter(resource);
-				if (filteredResource != null){
-					return filteredResource;
-				}		
+			if (this.filter != null){
+				List<Resource> filteredResources = new ArrayList<Resource>();
+				for (Resource resource : resources) {
+					Resource filteredResource = this.filter.filter(resource);
+					if (filteredResource != null){
+						filteredResources.add(filteredResource);
+					}		
+				}
+				if (filteredResources.size() == 0){
+					resources = null;
+				}
+				else {
+					resources = filteredResources.toArray(new Resource[]{});
+				}
 			}
+			
+			return resources;
 		} catch (Exception e) {
 			throw new MessagingException("Attempt to retrieve Resources failed", e);
 		}
-	
-		return null;
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext)

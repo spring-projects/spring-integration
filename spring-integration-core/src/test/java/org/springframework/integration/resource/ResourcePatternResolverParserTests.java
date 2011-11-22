@@ -81,12 +81,12 @@ public class ResourcePatternResolverParserTests {
 
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usage.xml", this.getClass());
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
-		for (int i = 0; i < 10; i++) {
-			Message<Resource> message = (Message<Resource>) resultChannel.receive();
-			assertNotNull(message);
-			assertTrue(message.getPayload().getURI().toString().contains("testUsage"));
-		}
-
+		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(3000);
+		assertNotNull(message);
+		Resource[] resources = message.getPayload();
+		for (Resource resource : resources) {
+			assertTrue(resource.getURI().toString().contains("testUsage"));
+		}	
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -107,10 +107,10 @@ public class ResourcePatternResolverParserTests {
 		
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
 		
-		Message<Resource> message = (Message<Resource>) resultChannel.receive(1000);
+		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(1000);
 		assertNotNull(message);
 		
-		message = (Message<Resource>) resultChannel.receive(1000);
+		message = (Message<Resource[]>) resultChannel.receive(1000);
 		assertNull(message);
 		
 	}
