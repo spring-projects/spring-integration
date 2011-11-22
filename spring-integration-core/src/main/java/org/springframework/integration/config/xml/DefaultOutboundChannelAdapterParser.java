@@ -17,6 +17,9 @@
 package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
+import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -47,7 +50,7 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 		boolean isExpression = StringUtils.hasText(consumerExpressionString);
 		boolean hasMethod = StringUtils.hasText(methodName);
 
-		if (!(isInnerConsumer ^ (isRef ^ isExpression)) | (isInnerConsumer & (isRef & isExpression))) {
+		if (!(isInnerConsumer ^ (isRef ^ isExpression))) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the 'ref', 'expression' or inner bean is required.", element);
 		}
@@ -62,7 +65,7 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 			BeanDefinitionBuilder consumerBuilder = null;
 
 			if (hasMethod) {
-				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageHandler");
+				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
 				if (isRef) {
 					consumerBuilder.addConstructorArgReference(consumerRef);
 				}
@@ -72,8 +75,8 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 				consumerBuilder.addConstructorArgValue(methodName);
 			}
 			else {
-				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ExpressionEvaluatingMessageHandler");
-				RootBeanDefinition expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageHandler.class);
+				RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(consumerExpressionString);
 				consumerBuilder.addConstructorArgValue(expressionDef);
 			}

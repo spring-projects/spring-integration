@@ -258,7 +258,6 @@ public class ChannelAdapterParserTests {
 		assertEquals(999, sendTimeout);
 	}
 
-	@Ignore
 	@Test(expected = BeanDefinitionParsingException.class)
 	public void innerBeanAndExpressionFail() throws Exception {
 		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml", this.getClass());
@@ -272,3 +271,4 @@ public class ChannelAdapterParserTests {
 		}
 	}
 }
+

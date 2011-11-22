@@ -18,6 +18,10 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -44,33 +48,39 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanMetadataElement result = null;
 		BeanComponentDefinition innnerBeanDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		String sourceRef = element.getAttribute("ref");
-		String methodName = element.getAttribute("method");
-		String expressionString = element.getAttribute("expression");
-//		TODO Add check for mutually exclusive options: inner or ref, or expression and expression without method. @see  DefaultOutboundChannelAdapterParser
-		if (innnerBeanDef != null) {
-			if (StringUtils.hasText(sourceRef)) {
-				parserContext.getReaderContext().error(
-						"inner bean and a 'ref' attribute are mutually exclusive options", element);
-			}
-			if (StringUtils.hasText(methodName)) {
+		String sourceRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
+		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
+		String expressionString = element.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
+
+		boolean isInnerDef = innnerBeanDef != null;
+		boolean isRef = StringUtils.hasText(sourceRef);
+		boolean isExpression = StringUtils.hasText(expressionString);
+		boolean hasMethod = StringUtils.hasText(methodName);
+
+		if (!(isInnerDef ^ (isRef ^ isExpression))) {
+			parserContext.getReaderContext().error(
+					"Exactly one of the 'ref', 'expression' or inner bean is required.", element);
+		}
+
+		if (isInnerDef) {
+			if (hasMethod) {
 				result = this.parseMethodInvokingSource(innnerBeanDef, methodName, element, parserContext);
 			}
 			else {
 				result = innnerBeanDef;
 			}
 		}
-		else if (StringUtils.hasText(expressionString)) {
-			if (StringUtils.hasText(sourceRef)) {
+		else if (isExpression) {
+			if (hasMethod) {
 				parserContext.getReaderContext().error(
-						"the 'expression' and 'ref' attributes are mutually exclusive options", element);
+						"The 'method' attribute can't be used with 'expression' attribute.", element);
 			}
 			String expressionBeanName = this.parseExpression(expressionString, element, parserContext);
 			result = new RuntimeBeanReference(expressionBeanName);
 		}
-		else if (StringUtils.hasText(sourceRef)) {
+		else if (isRef) {
 			BeanMetadataElement sourceValue = new RuntimeBeanReference(sourceRef);
-			if (StringUtils.hasText(methodName)) {
+			if (hasMethod) {
 				result = this.parseMethodInvokingSource(sourceValue, methodName, element, parserContext);
 			}
 			else {
@@ -85,8 +95,7 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 	private BeanMetadataElement parseMethodInvokingSource(BeanMetadataElement targetObject, String methodName, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.MethodInvokingMessageSource");
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class);
 		sourceBuilder.addPropertyValue("object", targetObject);
 		sourceBuilder.addPropertyValue("methodName", methodName);
 		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
@@ -96,12 +105,11 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 	}
 
 	private String parseExpression(String expressionString, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.endpoint.ExpressionEvaluatingMessageSource");
-		RootBeanDefinition expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ExpressionEvaluatingMessageSource.class);
+		RootBeanDefinition expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 		expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expressionString);
 		sourceBuilder.addConstructorArgValue(expressionDef);
-		sourceBuilder.addConstructorArgValue(null); // TODO: add support for expectedType?
+		sourceBuilder.addConstructorArgValue(null);
 		this.parseHeaderExpressions(sourceBuilder, element, parserContext);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(sourceBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
@@ -123,11 +131,11 @@ public class DefaultInboundChannelAdapterParser extends AbstractPollingInboundCh
 				}
 				RootBeanDefinition expressionDef = null;
 				if (hasValue) {
-					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+					expressionDef = new RootBeanDefinition(LiteralExpression.class);
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
 				}
 				else {
-					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+					expressionDef = new RootBeanDefinition(ExpressionFactoryBean.class);
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
 				}
 				headerExpressions.put(headerName, expressionDef);
