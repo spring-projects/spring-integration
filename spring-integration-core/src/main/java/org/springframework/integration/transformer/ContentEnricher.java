@@ -63,6 +63,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private volatile Gateway gateway = null;
 
+	private volatile Long requestTimeout;
+	
+	private volatile Long replyTimeout;
 
 	/**
 	 * Provide the map of expressions to evaluate when enriching the target payload.
@@ -100,6 +103,28 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.replyChannel = replyChannel;
+	}
+
+	/**
+	 * Set the timeout value for sending request messages. If not explicitly 
+	 * configured, the default is one second.
+	 * 
+	 * @param requestTimeout the timeout value in milliseconds. Must not be null.
+	 */
+	public void setRequestTimeout(Long requestTimeout) {
+		Assert.notNull(requestTimeout, "requestTimeout must not be null");
+		this.requestTimeout = requestTimeout;
+	}
+	
+	/**
+	 * Set the timeout value for receiving reply messages. If not explicitly 
+	 * configured, the default is one second.
+	 * 
+	 * @param replyTimeout the timeout value in milliseconds. Must not be null.
+	 */
+	public void setReplyTimeout(Long replyTimeout) {
+		Assert.notNull(replyTimeout, "replyTimeout must not be null");
+		this.replyTimeout = replyTimeout;
 	}
 
 	/**
@@ -152,9 +177,19 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		if (this.requestChannel != null) {
 		    this.gateway = new Gateway();
 		    this.gateway.setRequestChannel(requestChannel);
+		    
+		    if (this.requestTimeout != null) {
+		    	this.gateway.setRequestTimeout(this.requestTimeout);
+		    }
+		    
+		    if (this.replyTimeout != null) {
+		    	this.gateway.setReplyTimeout(this.replyTimeout);
+		    }
+		    
 			if (replyChannel != null) {
 				this.gateway.setReplyChannel(replyChannel);
 			}
+			
 			this.gateway.afterPropertiesSet();
 		}
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());

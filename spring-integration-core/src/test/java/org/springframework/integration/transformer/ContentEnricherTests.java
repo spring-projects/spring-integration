@@ -30,18 +30,50 @@ import org.junit.Test;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
+ * @author Gunnar Hillert
+ * 
  * @since 2.1
  */
 public class ContentEnricherTests {
 
+	@Test
+	public void requestChannelSendTimingOut() {
+		
+		final String requestChannelName = "Request_Channel";
+		final long requestTimeout = 200L;
+		
+		QueueChannel replyChannel   = new QueueChannel();
+		QueueChannel requestChannel = new RendezvousChannel();
+		requestChannel.setBeanName(requestChannelName);
+		
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+		enricher.setRequestTimeout(requestTimeout);
+		enricher.afterPropertiesSet();
+
+		Target target = new Target("replace me");
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+		
+		try {
+		    enricher.handleMessage(requestMessage);
+		} catch (MessageDeliveryException e) {
+			assertEquals("failed to send message to channel '" + requestChannelName 
+					   + "' within timeout: " + requestTimeout, e.getMessage());
+			return;
+		}
+
+	}
+	
 	@Test
 	public void simpleProperty() {
 		QueueChannel replyChannel = new QueueChannel();
@@ -69,6 +101,54 @@ public class ContentEnricherTests {
 		assertEquals("Doe, John", ((Target) reply.getPayload()).getName());
 	}
 
+	@Test
+	public void setReplyChannelWithoutRequestChannel() {
+		
+		QueueChannel replyChannel   = new QueueChannel();
+		
+		ContentEnricher enricher = new ContentEnricher();
+		enricher.setReplyChannel(replyChannel);
+		
+		try { 
+		    enricher.afterPropertiesSet();
+		} catch (IllegalArgumentException e) {
+			assertEquals("If the replyChannel is set, then the requestChannel must not be null", e.getMessage());
+			return;
+		}
+		
+		fail("Expected an exception.");
+	}
+	
+	@Test
+	public void setNullReplyTimeout() {
+		
+		ContentEnricher enricher = new ContentEnricher();
+		
+		try {
+		    enricher.setReplyTimeout(null);
+		} catch (IllegalArgumentException e) {
+			assertEquals("replyTimeout must not be null", e.getMessage());
+			return;
+		}
+		
+		fail("Expected an exception.");
+	}
+	
+	@Test
+	public void setNullRequestTimeout() {
+		
+		ContentEnricher enricher = new ContentEnricher();
+		
+		try {
+		    enricher.setRequestTimeout(null);
+		} catch (IllegalArgumentException e) {
+			assertEquals("requestTimeout must not be null", e.getMessage());
+			return;
+		}
+		
+		fail("Expected an exception.");
+	}
+	
 	@Test
 	public void testSimplePropertyWithoutUsingRequestChannel() {
 		QueueChannel replyChannel = new QueueChannel();

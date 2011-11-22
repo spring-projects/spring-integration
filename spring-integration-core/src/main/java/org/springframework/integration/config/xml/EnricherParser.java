@@ -44,7 +44,10 @@ public class EnricherParser extends AbstractConsumerEndpointParser {
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
-
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
+		
+		
 		List<Element> propertyElements = DomUtils.getChildElementsByTagName(element, "property");
 		if (!CollectionUtils.isEmpty(propertyElements)) {
 			ManagedMap<String, Object> propertyExpressions = new ManagedMap<String, Object>();
