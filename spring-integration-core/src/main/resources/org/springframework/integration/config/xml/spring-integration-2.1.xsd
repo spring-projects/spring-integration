@@ -716,6 +716,78 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="resource-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Channel Adapter that receives Resource(s) and sends them to a
+				MessageChannel identified via 'channel' attribute.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:sequence>
+						<xsd:element name="poller" type="basePollerType" />
+				</xsd:sequence>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Component identifier
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Channel where Message will be sent to
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the implementation of  org.springframework.integration.util.ElementFilter.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.util.ElementFilter" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Lifecycle attribute signaling if this component should be started during Application Context startup.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="pattern" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Location pattern expression (e.g., "/**/*.txt")
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			
+			<xsd:attribute name="pattern-resolver" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a org.springframework.core.io.support.ResourcePatternResolver. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+		Maximum amount of time in milliseconds to wait when sending a message to the channel if such channel may block.
+		For example, a Queue Channel can block until space is available if its maximum capacity has been reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
