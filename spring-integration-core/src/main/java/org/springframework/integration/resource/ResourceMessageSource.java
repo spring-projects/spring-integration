@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class ResourcePatternResolvingMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
+public class ResourceMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
 
 	private volatile String pattern;
 	
@@ -57,6 +57,21 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 	
 	public void setFilter(ElementFilter<Resource> filter) {
 		this.filter = filter;
+	}
+	
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+	
+	public void afterPropertiesSet() throws Exception {
+		if (this.patternResolver == null){
+			if (this.applicationContext instanceof ResourcePatternResolver){
+				this.patternResolver = this.applicationContext;
+			}
+		}
+		Assert.notNull(this.patternResolver, "no 'patternResolver' is specified");
+		Assert.hasText(this.pattern, "'pattern' must be specified");
 	}
 	
 	@Override
@@ -84,21 +99,6 @@ public class ResourcePatternResolvingMessageSource extends AbstractMessageSource
 		} catch (Exception e) {
 			throw new MessagingException("Attempt to retrieve Resources failed", e);
 		}
-	}
-
-	public void setApplicationContext(ApplicationContext applicationContext)
-			throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		if (this.patternResolver == null){
-			if (this.applicationContext instanceof ResourcePatternResolver){
-				this.patternResolver = this.applicationContext;
-			}
-		}
-		Assert.notNull(this.patternResolver, "no 'patternResolver' is specified");
-		Assert.hasText(this.pattern, "'pattern' must be specified");
 	}
 
 }

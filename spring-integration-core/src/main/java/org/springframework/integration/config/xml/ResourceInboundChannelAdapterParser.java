@@ -18,7 +18,7 @@ package org.springframework.integration.config.xml;
 import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.resource.ResourcePatternResolvingMessageSource;
+import org.springframework.integration.resource.ResourceMessageSource;
 import org.w3c.dom.Element;
 
 /**
@@ -27,12 +27,12 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.1
  */
-public class ResourcePatternResolverInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
+public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourcePatternResolvingMessageSource.class);
+		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceMessageSource.class);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(sourceBuilder, element, "pattern");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "filter");

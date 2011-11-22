@@ -45,7 +45,7 @@ public class ResourcePatternResolverParserTests {
 	public void testDefaultConfig(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourcePatternResolvingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourcePatternResolvingMessageSource.class);
+		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
 		assertNotNull(source);
 		boolean autoStartup = TestUtils.getPropertyValue(resourceAdapter, "autoStartup", Boolean.class);
 		assertFalse(autoStartup);
@@ -63,7 +63,7 @@ public class ResourcePatternResolverParserTests {
 	public void testCustomPatternResolver(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourcePatternResolvingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourcePatternResolvingMessageSource.class);
+		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
 		assertNotNull(source);
 		assertEquals(context.getBean("customResolver"), TestUtils.getPropertyValue(source, "patternResolver"));
 	}
@@ -101,7 +101,7 @@ public class ResourcePatternResolverParserTests {
 
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usagerf.xml", this.getClass());
 		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
-		ResourcePatternResolvingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourcePatternResolvingMessageSource.class);
+		ResourceMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceMessageSource.class);
 		assertNotNull(source);
 		assertEquals(context.getBean("rlFilter"), TestUtils.getPropertyValue(source, "filter"));
 		

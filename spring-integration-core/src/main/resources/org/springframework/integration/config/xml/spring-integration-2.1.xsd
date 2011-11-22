@@ -748,7 +748,6 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Reference to the implementation of  org.springframework.integration.util.ElementFilter.
-						The default one is AcceptOnceUntilPurgedElementFilter.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
