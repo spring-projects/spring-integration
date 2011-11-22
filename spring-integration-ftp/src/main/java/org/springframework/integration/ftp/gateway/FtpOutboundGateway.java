@@ -34,7 +34,7 @@ import org.springframework.integration.ftp.session.FtpFileInfo;
  */
 public class FtpOutboundGateway extends AbstractRemoteFileOutboundGateway<FTPFile> {
 
-	public FtpOutboundGateway(SessionFactory sessionFactory, String command,
+	public FtpOutboundGateway(SessionFactory<FTPFile> sessionFactory, String command,
 			String expression) {
 		super(sessionFactory, command, expression);
 	}

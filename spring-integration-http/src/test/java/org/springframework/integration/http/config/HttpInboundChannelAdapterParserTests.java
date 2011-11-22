@@ -113,7 +113,6 @@ public class HttpInboundChannelAdapterParserTests {
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")
 	public void getRequestWithHeaders() throws Exception {
 		DefaultHttpHeaderMapper headerMapper = 
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
@@ -122,7 +121,7 @@ public class HttpInboundChannelAdapterParserTests {
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
-		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		Map<String, Object> map = (Map<String, Object>) headerMapper.toHeaders(headers);
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));

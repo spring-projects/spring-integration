@@ -57,7 +57,6 @@ public class TcpNioClientConnectionFactory extends
 	}
 
 	/**
-	 * @return
 	 * @throws Exception
 	 * @throws IOException
 	 * @throws SocketException
