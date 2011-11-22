@@ -210,9 +210,6 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 		}
 		if (patterns != null && patterns.size() > 0) {
 			for (String pattern : patterns) {
-				if (pattern.startsWith("bar")){
-					System.out.println();
-				}
 				if (PatternMatchUtils.simpleMatch(pattern.toLowerCase(), headerName.toLowerCase())) {
 					if (logger.isDebugEnabled()) {
 						logger.debug(MessageFormat.format("headerName=[{0}] WILL be mapped, matched pattern={1}", headerName, pattern));

@@ -16,17 +16,21 @@
 
 package org.springframework.integration.ws;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.springframework.integration.mapping.AbstractHeaderMapper;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.util.StringUtils;
 import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapHeaderElement;
+import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.namespace.QNameUtils;
 
 /**
@@ -42,29 +46,37 @@ import org.springframework.xml.namespace.QNameUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> implements SoapHeaderMapper {
+public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
+	
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+
+	static {
+		STANDARD_HEADER_NAMES.add(WebServiceHeaders.SOAP_ACTION);
+		
+	}
 	
 	@Override
-	protected Map<String, Object> extractStandardHeaders(SoapHeader source) {
+	protected Map<String, Object> extractStandardHeaders(SoapMessage source) {
 		return Collections.emptyMap();
 	}
 
 	@Override
-	protected Map<String, Object> extractUserDefinedHeaders(SoapHeader source) {
+	protected Map<String, Object> extractUserDefinedHeaders(SoapMessage source) {
+		SoapHeader soapHeader = source.getSoapHeader();
 		Map<String, Object> headers = new HashMap<String, Object>();
 		if (source != null) {
-			Iterator<?> attributeIter = source.getAllAttributes();
+			Iterator<?> attributeIter = soapHeader.getAllAttributes();
 			while (attributeIter.hasNext()) {
 				Object name = attributeIter.next();
 				if (name instanceof QName) {
 					String qnameString = QNameUtils.toQualifiedName((QName) name);
-					String value = source.getAttributeValue((QName) name);
+					String value = soapHeader.getAttributeValue((QName) name);
 					if (value != null) {
 						headers.put(qnameString, value);
 					}
 				}
 			}
-			Iterator<?> elementIter = source.examineAllHeaderElements();
+			Iterator<?> elementIter = soapHeader.examineAllHeaderElements();
 			while (elementIter.hasNext()) {
 				Object element = elementIter.next();
 				if (element instanceof SoapHeaderElement) {
@@ -78,17 +90,25 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapHeader> im
 	}
 
 	@Override
-	protected void populateStandardHeaders(Map<String, Object> headers,
-			SoapHeader target) {
-		// no op
+	protected void populateStandardHeaders(Map<String, Object> headers, SoapMessage target) {
+		String soapAction = getHeaderIfAvailable(headers, WebServiceHeaders.SOAP_ACTION, String.class);
+		if (StringUtils.hasText(soapAction)) {
+			target.setSoapAction(soapAction);
+		}
 	}
 
 	@Override
-	protected void populateUserDefinedHeader(String headerName, Object headerValue, SoapHeader target) {
+	protected void populateUserDefinedHeader(String headerName, Object headerValue, SoapMessage target) {
+		SoapHeader soapHeader = target.getSoapHeader();
 		if (headerValue instanceof String) {
 			QName qname = QNameUtils.parseQNameString(headerName);
-			target.addAttribute(qname, (String) headerValue);
+			soapHeader.addAttribute(qname, (String) headerValue);
 		}
+	}
+	
+	@Override
+	protected List<String> getStandardRequestHeaderNames() {
+		return STANDARD_HEADER_NAMES;
 	}
 
 	@Override

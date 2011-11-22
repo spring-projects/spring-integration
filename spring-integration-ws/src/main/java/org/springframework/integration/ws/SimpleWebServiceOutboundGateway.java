@@ -106,6 +106,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 			if (requestPayload instanceof Source) {
 				source = (Source) requestPayload;
+				source = (Source) sourceExtractor.extractData(source);
 			}
 			else if (requestPayload instanceof String) {
 				source = new StringSource((String) requestPayload);
@@ -120,7 +121,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 						+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
 			}
 			
-			return (Source) sourceExtractor.extractData(source);
+			return source;
 		}		
 	}
 	

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2010 the original author or authors.
+ *  Copyright 2002-2011 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.ws.context.DefaultMessageContext;
 import org.springframework.ws.context.MessageContext;
-import org.springframework.ws.soap.SoapHeader;
+import org.springframework.ws.soap.SoapMessage;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -184,17 +184,17 @@ public class WebServiceInboundGatewayParserTests {
 	private static class TestHeaderMapper implements SoapHeaderMapper {
 		
 		public void fromHeadersToRequest(MessageHeaders headers,
-				SoapHeader target) {
+				SoapMessage target) {
 		}
 
-		public void fromHeadersToReply(MessageHeaders headers, SoapHeader target) {
+		public void fromHeadersToReply(MessageHeaders headers, SoapMessage target) {
 		}
 
-		public Map<String, Object> toHeadersFromRequest(SoapHeader source) {
+		public Map<String, Object> toHeadersFromRequest(SoapMessage source) {
 			return Collections.emptyMap();
 		}
 
-		public Map<String, Object> toHeadersFromReply(SoapHeader source) {
+		public Map<String, Object> toHeadersFromReply(SoapMessage source) {
 			return Collections.emptyMap();
 		}
 	}

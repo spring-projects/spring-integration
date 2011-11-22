@@ -71,7 +71,7 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 		}
 		if (request instanceof SoapMessage) {
 			SoapMessage soapMessage = (SoapMessage) request;
-			Map<String, ?> headers = this.headerMapper.toHeadersFromRequest(soapMessage.getSoapHeader());
+			Map<String, ?> headers = this.headerMapper.toHeadersFromRequest(soapMessage);
 			if (!CollectionUtils.isEmpty(headers)) {
 				builder.copyHeaders(headers);
 			}
@@ -81,7 +81,7 @@ abstract public class AbstractWebServiceInboundGateway extends MessagingGatewayS
 	protected void toSoapHeaders(WebServiceMessage response, Message<?> replyMessage){
 		if (response instanceof SoapMessage) {
 			this.headerMapper.fromHeadersToReply(
-					replyMessage.getHeaders(), ((SoapMessage) response).getSoapHeader());
+					replyMessage.getHeaders(), (SoapMessage) response);
 		}
 	}
 	
