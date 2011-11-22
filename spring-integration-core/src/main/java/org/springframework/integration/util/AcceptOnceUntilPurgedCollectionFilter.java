@@ -30,14 +30,14 @@ import org.springframework.util.Assert;
  * An implementation of {@link CollectionFilter} which will queue all items that have been seen until 
  * the queue reaches its capacity after which one item from the queue will be purged to make room for a 
  * new item to be added. Note that however unlikely the removed item will now appear as unprocessed 
- * so it is highly recommended to move/delete resources which corresponds to the underlying items once processing 
+ * so it is highly recommended to move/delete resources which correspond to the underlying items once processing 
  * is done to eliminate duplicate processing.
  * 
  * @author Oleg Zhurakousky
  * @author Mark Fisher
  * @since 2.1
  */
-public class AcceptOnceUntilPurgedElementFilter<T> implements CollectionFilter<T> {
+public class AcceptOnceUntilPurgedCollectionFilter<T> implements CollectionFilter<T> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 	
@@ -46,11 +46,11 @@ public class AcceptOnceUntilPurgedElementFilter<T> implements CollectionFilter<T
 	private final Object seenQueueMonitor = new Object();
 
 
-	public AcceptOnceUntilPurgedElementFilter() {
+	public AcceptOnceUntilPurgedCollectionFilter() {
 		this(Integer.MAX_VALUE);
 	}
 
-	public AcceptOnceUntilPurgedElementFilter(int maxCapacity) {
+	public AcceptOnceUntilPurgedCollectionFilter(int maxCapacity) {
 		this.seenItems = new LinkedBlockingQueue<T>(maxCapacity);
 	}
 
