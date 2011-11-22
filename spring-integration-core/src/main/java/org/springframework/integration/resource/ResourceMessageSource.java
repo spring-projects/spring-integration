@@ -16,8 +16,8 @@
 
 package org.springframework.integration.resource;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -27,8 +27,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.endpoint.AbstractMessageSource;
-import org.springframework.integration.util.ElementFilter;
+import org.springframework.integration.util.CollectionFilter;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -36,28 +37,31 @@ import org.springframework.util.ObjectUtils;
  * attempt to resolve {@link Resource}s based on the pattern specified.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.1
  */
 public class ResourceMessageSource extends AbstractMessageSource<Resource[]> implements ApplicationContextAware, InitializingBean {
 
-	private volatile String pattern;
+	private final String pattern;
 
 	private volatile ApplicationContext applicationContext;
 
 	private volatile ResourcePatternResolver patternResolver;
 
-	private volatile ElementFilter<Resource> filter;
+	private volatile CollectionFilter<Resource> filter;
+
+
+	public ResourceMessageSource(String pattern) {
+		Assert.hasText(pattern, "pattern must not be empty");
+		this.pattern = pattern;
+	}
 
 
 	public void setPatternResolver(ResourcePatternResolver patternResolver) {
 		this.patternResolver = patternResolver;
 	}
 
-	public void setPattern(String pattern) {
-		this.pattern = pattern;
-	}
-
-	public void setFilter(ElementFilter<Resource> filter) {
+	public void setFilter(CollectionFilter<Resource> filter) {
 		this.filter = filter;
 	}
 
@@ -71,8 +75,7 @@ public class ResourceMessageSource extends AbstractMessageSource<Resource[]> imp
 				this.patternResolver = this.applicationContext;
 			}
 		}
-		Assert.notNull(this.patternResolver, "no 'patternResolver' is specified");
-		Assert.hasText(this.pattern, "'pattern' must be specified");
+		Assert.notNull(this.patternResolver, "no 'patternResolver' available");
 	}
 
 	@Override
@@ -80,14 +83,8 @@ public class ResourceMessageSource extends AbstractMessageSource<Resource[]> imp
 		try {
 			Resource[] resources = this.patternResolver.getResources(this.pattern);
 			if (this.filter != null && !ObjectUtils.isEmpty(resources)) {
-				List<Resource> filteredResources = new ArrayList<Resource>();
-				for (Resource resource : resources) {
-					Resource filteredResource = this.filter.filter(resource);
-					if (filteredResource != null) {
-						filteredResources.add(filteredResource);
-					}
-				}
-				if (filteredResources.size() == 0) {
+				Collection<Resource> filteredResources = this.filter.filter(Arrays.asList(resources));
+				if (CollectionUtils.isEmpty(filteredResources)) {
 					resources = null;
 				}
 				else {

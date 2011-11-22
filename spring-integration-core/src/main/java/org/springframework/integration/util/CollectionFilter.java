@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.util;
 
+import java.util.Collection;
 
 /**
- * Base strategy for filtering out an element
+ * Base strategy for filtering out a subset of a Collection of elements.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.1
  */
-public interface ElementFilter<T> {
+public interface CollectionFilter<T> {
 
-	T filter(T unfilteredElement);
+	Collection<T> filter(Collection<T> unfilteredElements);
+
 }

@@ -13,40 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link ElementFilter} which will queue all items that's been seen until 
+ * An implementation of {@link CollectionFilter} which will queue all items that have been seen until 
  * the queue reaches its capacity after which one item from the queue will be purged to make room for a 
  * new item to be added. Note that however unlikely the removed item will now appear as unprocessed 
  * so it is highly recommended to move/delete resources which corresponds to the underlying items once processing 
  * is done to eliminate duplicate processing.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.1
  */
-public class AcceptOnceUntilPurgedElementFilter<T> implements ElementFilter<T> {
-	
+public class AcceptOnceUntilPurgedElementFilter<T> implements CollectionFilter<T> {
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 	
 	private final Queue<T> seenItems;
 	
 	private final Object seenQueueMonitor = new Object();
-	
-	public AcceptOnceUntilPurgedElementFilter(){
+
+
+	public AcceptOnceUntilPurgedElementFilter() {
 		this(Integer.MAX_VALUE);
 	}
-	
-	public AcceptOnceUntilPurgedElementFilter(int maxCapacity){
-		seenItems = new LinkedBlockingQueue<T>(maxCapacity);
+
+	public AcceptOnceUntilPurgedElementFilter(int maxCapacity) {
+		this.seenItems = new LinkedBlockingQueue<T>(maxCapacity);
+	}
+
+
+	public Collection<T> filter(Collection<T> unfilteredElements) {
+		Assert.notNull(unfilteredElements, "'unfilteredElements' must not be null");
+		List<T> filteredElements = new ArrayList<T>();
+		if (unfilteredElements.size() > 0) {
+			for (T element : unfilteredElements) {
+				if (this.accept(element)) {
+					filteredElements.add(element);
+				}
+			}
+		}
+		return filteredElements;
 	}
 
 	private boolean accept(T item) {
@@ -64,17 +83,6 @@ public class AcceptOnceUntilPurgedElementFilter<T> implements ElementFilter<T> {
 			}
 			
 			return accepted;
-		}
-	}
-
-	public T filter(T unfilteredElement) {
-		Assert.notNull(unfilteredElement, "'unfilteredElement' must not be null");
-		
-		if (this.accept(unfilteredElement)){
-			return unfilteredElement;
-		}
-		else {
-			return null;
 		}
 	}
 

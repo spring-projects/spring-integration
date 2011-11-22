@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
 import org.springframework.beans.BeanMetadataElement;
@@ -33,7 +34,7 @@ public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundC
 	@Override
 	protected BeanMetadataElement parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceMessageSource.class);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(sourceBuilder, element, "pattern");
+		sourceBuilder.addConstructorArgValue(element.getAttribute("pattern"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "filter");
 		return sourceBuilder.getBeanDefinition();

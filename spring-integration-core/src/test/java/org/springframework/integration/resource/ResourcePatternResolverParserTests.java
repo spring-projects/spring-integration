@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.Test;
 
@@ -27,13 +36,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.ElementFilter;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.springframework.integration.util.CollectionFilter;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -114,19 +118,19 @@ public class ResourcePatternResolverParserTests {
 		assertNull(message);
 		
 	}
-	
-	public static class OneItemAndNeverAgainResourceListFilter implements ElementFilter<Resource> {
+
+
+	public static class OneItemAndNeverAgainResourceListFilter implements CollectionFilter<Resource> {
 
 		private volatile boolean once = false;
 		
-		public Resource filter(Resource unfilteredElement) {
-			
-			if (!once){
+		public Collection<Resource> filter(Collection<Resource> unfilteredResources) {
+			if (!once && !CollectionUtils.isEmpty(unfilteredResources)) {
 				once = true;
-				return unfilteredElement;
+				return Collections.singletonList(unfilteredResources.iterator().next());
 			}
 			return null;
 		}
-		
 	}
+
 }
