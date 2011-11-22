@@ -226,6 +226,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		}
 		else {
 			replyMessage = this.gateway.sendAndReceiveMessage(actualRequestMessage);
+			
+			if (replyMessage == null) {				
+				return replyMessage;
+			}
+			
 		}
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();

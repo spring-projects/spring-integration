@@ -17,26 +17,37 @@
 package org.springframework.integration.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.config.TestErrorHandler;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -46,6 +57,95 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public class ContentEnricherTests {
 
+	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+	
+	@Before
+	public void init() throws Exception {
+		taskScheduler.setPoolSize(2);
+		taskScheduler.afterPropertiesSet();
+	}
+	
+	/**
+	 * In this test a {@link Target} message is passed into an {@link ContentEnricher}. 
+	 * The Enricher passes the message to a "request-channel" that is backed by a 
+	 * {@link QueueChannel}. The consumer of the "request-channel" takes a long 
+	 * time to execute, longer actually than the specified "replyTimeout" set on 
+	 * the {@link ContentEnricher}.
+	 * 
+	 * Due to the occurring replyTimeout, a Null replyMessage is returned and because
+	 * "requiresReply" is set to "true" on the {@link ContentEnricher}, a 
+	 * {@link ReplyRequiredException} is raised.
+	 */
+	@Test
+	public void replyChannelReplyTimingOut() throws Exception {
+
+		final long requestTimeout = 500L;
+		final long replyTimeout   = 700L;
+		
+		final DirectChannel replyChannel   = new DirectChannel();
+		final QueueChannel requestChannel = new QueueChannel(1);
+		
+		final ContentEnricher enricher = new ContentEnricher();
+		enricher.setRequestChannel(requestChannel);
+		enricher.setReplyChannel(replyChannel);
+		
+		enricher.setOutputChannel(new NullChannel());	
+		enricher.setRequestTimeout(requestTimeout);
+		enricher.setReplyTimeout(replyTimeout);
+		
+		final ExpressionFactoryBean expressionFactoryBean = new ExpressionFactoryBean("payload");
+		expressionFactoryBean.setSingleton(false);
+		expressionFactoryBean.afterPropertiesSet();
+		
+		final Map<String, Expression> expressions = new HashMap<String, Expression>();
+		expressions.put("name", new LiteralExpression("cartman"));
+		expressions.put("child.name", expressionFactoryBean.getObject());
+		
+		enricher.setPropertyExpressions(expressions);
+		enricher.setRequiresReply(true);
+		enricher.setBeanName("Enricher");
+		enricher.afterPropertiesSet();
+
+		final AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+
+			@Override
+			protected Object handleRequestMessage(Message<?> requestMessage) {
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					fail(e.getMessage());
+				}
+				return new Target("child");
+			}
+			
+		};
+		
+		handler.afterPropertiesSet();
+		
+		final PollingConsumer consumer = new PollingConsumer(requestChannel, handler);
+		final TestErrorHandler errorHandler = new TestErrorHandler();
+		
+		consumer.setTrigger(new PeriodicTrigger(0));
+		consumer.setErrorHandler(errorHandler);
+		consumer.setTaskScheduler(taskScheduler);
+		consumer.setBeanFactory(mock(BeanFactory.class));
+		consumer.afterPropertiesSet();
+		consumer.start();
+		
+		final Target target = new Target("replace me");
+		Message<?> requestMessage = MessageBuilder.withPayload(target).setReplyChannel(replyChannel).build();
+		
+		try {
+		    enricher.handleMessage(requestMessage);
+		} catch (ReplyRequiredException e) {
+			assertEquals("No reply produced by handler 'Enricher', and its 'requiresReply' property is set to true.", e.getMessage());
+			return;
+		}
+		
+		fail("ReplyRequiredException expected.");
+
+	}
+	
 	@Test
 	public void requestChannelSendTimingOut() {
 		
