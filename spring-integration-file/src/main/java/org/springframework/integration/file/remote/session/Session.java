@@ -29,11 +29,11 @@ import java.io.OutputStream;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public interface Session {
+public interface Session<T> {
 
 	boolean remove(String path) throws IOException;
 
-	<F> F[] list(String path) throws IOException;
+	T[] list(String path) throws IOException;
 	
 	void read(String source, OutputStream outputStream) throws IOException;
 

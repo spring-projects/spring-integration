@@ -73,7 +73,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	/**
 	 * the {@link SessionFactory} for acquiring remote file Sessions.
 	 */
-	private final SessionFactory sessionFactory;
+	private final SessionFactory<F> sessionFactory;
 
 	/**
 	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
@@ -90,7 +90,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	/**
 	 * Create a synchronizer with the {@link SessionFactory} used to acquire {@link Session} instances.
 	 */
-	public AbstractInboundFileSynchronizer(SessionFactory sessionFactory) {
+	public AbstractInboundFileSynchronizer(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
@@ -138,11 +138,11 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 	}
 
 	public void synchronizeToLocalDirectory(File localDirectory) {
-		Session session = null;
+		Session<F> session = null;
 		try {
 			session = this.sessionFactory.getSession();
 			Assert.state(session != null, "failed to acquire a Session");
-			F[] files = session.<F>list(this.remoteDirectory);
+			F[] files = session.list(this.remoteDirectory);
 			if (!ObjectUtils.isEmpty(files)) {
 				Collection<F> filteredFiles = this.filterFiles(files);
 				for (F file : filteredFiles) {
@@ -169,7 +169,7 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 		}
 	}
 
-	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session session) throws IOException {
+	private void copyFileToLocalDirectory(String remoteDirectoryPath, F remoteFile, File localDirectory, Session<F> session) throws IOException {
 		String remoteFileName = this.getFilename(remoteFile);
 		String localFileName = this.generateLocalFileName(remoteFileName);
 		String remoteFilePath = remoteDirectoryPath + remoteFileSeparator + remoteFileName;

@@ -113,7 +113,6 @@ public class HttpInboundGatewayParserTests {
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")
 	public void requestWithHeaders() throws Exception {
 		DefaultHttpHeaderMapper headerMapper = 
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeaders, "headerMapper");
@@ -122,7 +121,7 @@ public class HttpInboundGatewayParserTests {
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
-		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		Map<String, Object> map = (Map<String, Object>) headerMapper.toHeaders(headers);
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));
@@ -138,7 +137,6 @@ public class HttpInboundGatewayParserTests {
 	}
 	
 	@Test
-	@SuppressWarnings("unchecked")
 	public void requestWithHeadersWithConversionService() throws Exception {
 		DefaultHttpHeaderMapper headerMapper = 
 			(DefaultHttpHeaderMapper) TestUtils.getPropertyValue(withMappedHeadersAndConverter, "headerMapper");
@@ -147,7 +145,7 @@ public class HttpInboundGatewayParserTests {
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
-		Map<String, String> map = (Map<String, String>) headerMapper.toHeaders(headers);
+		Map<String, Object> map = (Map<String, Object>) headerMapper.toHeaders(headers);
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));

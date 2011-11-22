@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class FtpSession implements Session {
+class FtpSession implements Session<FTPFile> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -56,8 +56,7 @@ class FtpSession implements Session {
 		}
 		return completed;
 	}
-
-	@SuppressWarnings({"unchecked"})
+	
 	public FTPFile[] list(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		return this.client.listFiles(path);

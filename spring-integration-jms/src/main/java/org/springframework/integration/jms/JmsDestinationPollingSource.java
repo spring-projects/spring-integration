@@ -96,7 +96,7 @@ public class JmsDestinationPollingSource extends IntegrationObjectSupport implem
 		}
 		try {
 			// Map headers
-			Map<String, Object> mappedHeaders = (Map<String, Object>) this.headerMapper.toHeaders(jmsMessage);
+			Map<String, Object> mappedHeaders = this.headerMapper.toHeaders(jmsMessage);
 			MessageConverter converter = this.jmsTemplate.getMessageConverter();
 			Object convertedObject = converter.fromMessage(jmsMessage);
 			MessageBuilder<Object> builder = (convertedObject instanceof Message)

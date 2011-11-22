@@ -310,7 +310,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 * Depending on which type of adapter is using this mapper, the HttpHeaders might be
 	 * from an HTTP request (inbound adapter) or from an HTTP response (outbound adapter). 
 	 */
-	public Map<String, ?> toHeaders(HttpHeaders source) {
+	public Map<String, Object> toHeaders(HttpHeaders source) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(MessageFormat.format("inboundHeaderNames={0}", CollectionUtils.arrayToList(inboundHeaderNames)));
 		}

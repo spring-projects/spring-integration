@@ -31,7 +31,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
  */
 public class SftpInboundFileSynchronizer extends AbstractInboundFileSynchronizer<LsEntry> {
 
-	public SftpInboundFileSynchronizer(SessionFactory sessionFactory) {
+	public SftpInboundFileSynchronizer(SessionFactory<LsEntry> sessionFactory) {
 		super(sessionFactory);
 	}
 

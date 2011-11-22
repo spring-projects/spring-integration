@@ -22,7 +22,7 @@ import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.Twitter;
 
 /**
- * Handles forwarding all new {@link twitter4j.Status} that are 'replies' or 'mentions' to some other tweet.
+ * Receives Message Tweets
  *
  * @author Josh Long
  * @author Oleg Zhurakousky

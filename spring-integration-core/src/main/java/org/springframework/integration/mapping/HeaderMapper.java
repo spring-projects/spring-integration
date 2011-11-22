@@ -33,6 +33,6 @@ public interface HeaderMapper<T> {
 
 	void fromHeaders(MessageHeaders headers, T target);
 
-	<V> Map<String, V> toHeaders(T source);
+	Map<String, Object> toHeaders(T source);
 
 }

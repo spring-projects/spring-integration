@@ -398,7 +398,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 					logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
 				}
 			}
-			Map<String, Object> jmsReplyHeaders = (Map<String, Object>) this.headerMapper.toHeaders(jmsReply);
+			Map<String, Object> jmsReplyHeaders = this.headerMapper.toHeaders(jmsReply);
 			Message<?> replyMessage = null;
 			if (result instanceof Message){
 				replyMessage = MessageBuilder.fromMessage((Message<?>) result).copyHeaders(jmsReplyHeaders).build();

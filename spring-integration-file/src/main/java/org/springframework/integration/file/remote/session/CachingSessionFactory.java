@@ -36,25 +36,25 @@ import org.springframework.integration.util.UpperBound;
  * @author Mark Fisher
  * @since 2.0
  */
-public class CachingSessionFactory implements SessionFactory, DisposableBean {
+public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
 
 	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
 
-	private final LinkedBlockingQueue<Session> queue = new LinkedBlockingQueue<Session>();
+	private final LinkedBlockingQueue<Session<F>> queue = new LinkedBlockingQueue<Session<F>>();
 
-	private final SessionFactory sessionFactory;
+	private final SessionFactory<F> sessionFactory;
 
 	private final UpperBound sessionPermits;
 
 
-	public CachingSessionFactory(SessionFactory sessionFactory) {
+	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
 		this(sessionFactory, 0);
 	}
 	
-	public CachingSessionFactory(SessionFactory sessionFactory, int sessionCacheSize) {
+	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
 		this.sessionPermits = new UpperBound(sessionCacheSize);
 	}
@@ -69,25 +69,25 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		this.sessionWaitTimeout = sessionWaitTimeout;
 	}
 
-	public Session getSession() {	
+	public Session<F> getSession() {	
 		boolean permitted = this.sessionPermits.tryAcquire(this.sessionWaitTimeout);
 		if (!permitted) {
 			throw new IllegalStateException("Timed out while waiting to aquire a Session.");
 		}
-		Session session = this.doGetSession();
+		Session<F> session = this.doGetSession();
 		return new CachedSession(session);
 	}
 
 	public void destroy() {
 		if (this.queue != null) {
-			for (Session session : this.queue) {
+			for (Session<F> session : this.queue) {
 				this.closeSession(session);
 			}
 		}
 	}
 
-	private Session doGetSession() {
-		Session session = this.queue.poll();
+	private Session<F> doGetSession() {
+		Session<F> session = this.queue.poll();
 		if (session != null && !session.isOpen()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Received a stale Session, will attempt to get a new one.");
@@ -100,7 +100,7 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 		return session;
 	}
 
-	private void closeSession(Session session) {
+	private void closeSession(Session<F> session) {
 		try {
 			if (session != null) {
 				session.close();
@@ -115,11 +115,11 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 	}
 
 
-	private class CachedSession implements Session {
+	private class CachedSession implements Session<F> {
 
-		private final Session targetSession;
+		private final Session<F> targetSession;
 
-		private CachedSession(Session targetSession) {
+		private CachedSession(Session<F> targetSession) {
 			this.targetSession = targetSession;
 		}
 
@@ -135,8 +135,8 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 			return this.targetSession.remove(path);
 		}
 
-		public <F> F[] list(String path) throws IOException{
-			return this.targetSession.<F>list(path);
+		public F[] list(String path) throws IOException{
+			return this.targetSession.list(path);
 		}
 
 		public void read(String source, OutputStream os) throws IOException{

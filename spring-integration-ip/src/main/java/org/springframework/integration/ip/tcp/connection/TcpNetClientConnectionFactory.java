@@ -41,7 +41,6 @@ public class TcpNetClientConnectionFactory extends
 	}
 
 	/**
-	 * @return
 	 * @throws IOException
 	 * @throws SocketException
 	 * @throws Exception

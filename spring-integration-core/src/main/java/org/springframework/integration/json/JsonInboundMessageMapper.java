@@ -69,12 +69,12 @@ public class JsonInboundMessageMapper implements InboundMessageMapper<String> {
 
 	public JsonInboundMessageMapper(Class<?> payloadType) {
 		Assert.notNull(payloadType, "payloadType must not be null");
-		this.payloadType = TypeFactory.type(payloadType);
+		this.payloadType = TypeFactory.defaultInstance().constructType(payloadType);
 	}
 
 	public JsonInboundMessageMapper(TypeReference<?> typeReference) {
 		Assert.notNull(typeReference, "typeReference must not be null");
-		this.payloadType = TypeFactory.type(typeReference);
+		this.payloadType = TypeFactory.defaultInstance().constructType(typeReference);
 	}
 
 
