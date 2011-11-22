@@ -69,7 +69,7 @@ public class AmqpInboundChannelAdapter extends MessageProducerSupport {
 		this.messageListenerContainer.setMessageListener(new MessageListener() {
 			public void onMessage(Message message) {
 				Object payload = messageConverter.fromMessage(message);
-				Map<String, ?> headers = headerMapper.toHeaders(message.getMessageProperties());
+				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
 				sendMessage(MessageBuilder.withPayload(payload).copyHeaders(headers).build());
 			}
 		});

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 
 package org.springframework.integration.xmpp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import java.util.List;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -37,8 +36,15 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.XmppHeaders;
+import org.springframework.integration.xmpp.support.DefaultXmppHeaderMapper;
+import org.springframework.integration.xmpp.support.XmppHeaderMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -50,10 +56,13 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
+	
+	@Autowired
+	private XmppHeaderMapper headerMapper;
 
 	@Test
 	public void testPollingConsumer() {
-		Object pollingConsumer = context.getBean("outboundPollingAdapter");
+		Object pollingConsumer = context.getBean("withHeaderMapper");
 		QueueChannel channel = (QueueChannel) TestUtils.getPropertyValue(pollingConsumer, "inputChannel");
 		assertEquals("outboundPollingChannel", channel.getComponentName());
 		assertTrue(pollingConsumer instanceof PollingConsumer);
@@ -65,20 +74,43 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		assertTrue(eventConsumer instanceof SubscribableChannel);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testEventConsumer() {
 		Object eventConsumer = context.getBean("outboundEventAdapter");
+		DefaultXmppHeaderMapper headerMapper = 
+				TestUtils.getPropertyValue(eventConsumer, "handler.headerMapper", DefaultXmppHeaderMapper.class);
+		List<String> requestHeaderNames = TestUtils.getPropertyValue(headerMapper, "requestHeaderNames", List.class);
+		assertEquals(2, requestHeaderNames.size());
+		assertEquals("foo*", requestHeaderNames.get(0));
+		assertEquals("bar*", requestHeaderNames.get(1));
 		assertTrue(eventConsumer instanceof EventDrivenConsumer);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Test
-	public void testPollingConsumerUsage() throws Exception{
-		Object pollingConsumer = context.getBean("outboundPollingAdapter");
+	public void withHeaderMapper() throws Exception{
+		Object pollingConsumer = context.getBean("withHeaderMapper");
 		assertTrue(pollingConsumer instanceof PollingConsumer);
+		assertEquals(headerMapper, TestUtils.getPropertyValue(pollingConsumer, "handler.headerMapper"));
 		MessageChannel channel = context.getBean("outboundEventChannel", MessageChannel.class);
-		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.CHAT_TO, "oleg").build();
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "oleg").
+				setHeader("foobar", "foobar").build();
 		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
+		
+		Mockito.doAnswer(new Answer() {
+		      public Object answer(InvocationOnMock invocation) {
+		          Object[] args = invocation.getArguments();
+		          org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
+		          assertEquals("oleg", xmppMessage.getTo());
+		          assertEquals("foobar", xmppMessage.getProperty("foobar"));
+		          assertEquals("oleg", xmppMessage.getTo());
+		          return null;
+		      }})
+		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+		
 		channel.send(message);
+		
 		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
 	}
 

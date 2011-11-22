@@ -20,6 +20,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.amqp.outbound.AmqpOutboundEndpoint;
+import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
@@ -29,6 +30,7 @@ import org.w3c.dom.Element;
  * Parser for the AMQP 'outbound-channel-adapter' element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.1
  */
 public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -45,6 +47,9 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
+	
+		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);
+		
 		return builder.getBeanDefinition();
 	}
 

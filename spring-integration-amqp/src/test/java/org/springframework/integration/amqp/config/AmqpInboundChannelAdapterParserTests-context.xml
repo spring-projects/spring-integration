@@ -13,6 +13,25 @@
 
 	<amqp:inbound-channel-adapter id="autoStartFalse" queue-names="inboundchanneladapter.test.2"
 		auto-startup="false" phase="123"/>
+		
+	<amqp:inbound-channel-adapter id="withHeaderMapperStandardAndCustomHeaders" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"
+		mapped-request-headers="foo*, STANDARD_REQUEST_HEADERS"/>
+		
+	<amqp:inbound-channel-adapter id="withHeaderMapperOnlyCustomHeaders" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"
+		mapped-request-headers="foo*"/>
+		
+	<amqp:inbound-channel-adapter id="withHeaderMapperNothingToMap" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"
+		mapped-request-headers=""/>
+		
+	<amqp:inbound-channel-adapter id="withHeaderMapperDefaultMapping" channel="requestChannel" queue-names="inboundchanneladapter.test.2"
+		auto-startup="false" phase="123"/>
+		
+	<int:channel id="requestChannel">
+		<int:queue/>
+	</int:channel>
 
 	<bean id="rabbitConnectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>

@@ -81,7 +81,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 		this.messageListenerContainer.setMessageListener(new MessageListener() {
 			public void onMessage(Message message) {
 				Object payload = amqpMessageConverter.fromMessage(message);
-				Map<String, ?> headers = headerMapper.toHeaders(message.getMessageProperties());
+				Map<String, ?> headers = headerMapper.toHeadersFromRequest(message.getMessageProperties());
 				org.springframework.integration.Message<?> request =
 						MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 				final org.springframework.integration.Message<?> reply = sendAndReceiveMessage(request);
@@ -97,7 +97,7 @@ public class AmqpInboundGateway extends MessagingGatewaySupport {
 									String contentEncoding = messageProperties.getContentEncoding();
 									long contentLength = messageProperties.getContentLength();
 									String contentType = messageProperties.getContentType();
-									headerMapper.fromHeaders(reply.getHeaders(), messageProperties);
+									headerMapper.fromHeadersToReply(reply.getHeaders(), messageProperties);
 									// clear the replyTo from the original message since we are using it now
 									messageProperties.setReplyTo(null);
 									// reset the content-* properties as determined by the MessageConverter

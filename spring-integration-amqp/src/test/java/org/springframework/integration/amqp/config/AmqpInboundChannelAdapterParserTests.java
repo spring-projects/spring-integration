@@ -16,18 +16,25 @@
 
 package org.springframework.integration.amqp.config;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageListener;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.inbound.AmqpInboundChannelAdapter;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Mark Fisher
@@ -55,5 +62,114 @@ public class AmqpInboundChannelAdapterParserTests {
 		Object adapter = context.getBean("autoStartFalse.adapter");
 		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		assertEquals(123, TestUtils.getPropertyValue(adapter, "phase"));
+	}
+	
+	@Test
+	public void withHeaderMapperStandardAndCustomHeaders() {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperStandardAndCustomHeaders", AmqpInboundChannelAdapter.class);
+		
+		AbstractMessageListenerContainer mlc = 
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
+		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentEncoding("test.contentEncoding");
+		amqpProperties.setContentLength(99L);
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("foo", "foo");
+		amqpProperties.setHeader("bar", "bar");
+		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
+		listener.onMessage(amqpMessage);
+		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
+		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		assertEquals("foo", siMessage.getHeaders().get("foo"));
+		assertNull(siMessage.getHeaders().get("bar"));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+	}
+	
+	@Test
+	public void withHeaderMapperOnlyCustomHeaders() {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperOnlyCustomHeaders", AmqpInboundChannelAdapter.class);
+		
+		AbstractMessageListenerContainer mlc = 
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
+		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentEncoding("test.contentEncoding");
+		amqpProperties.setContentLength(99L);
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("foo", "foo");
+		amqpProperties.setHeader("bar", "bar");
+		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
+		listener.onMessage(amqpMessage);
+		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
+		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		assertEquals("foo", siMessage.getHeaders().get("foo"));
+		assertNull(siMessage.getHeaders().get("bar"));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+	}
+	
+	@Test
+	public void withHeaderMapperNothingToMap() {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperNothingToMap", AmqpInboundChannelAdapter.class);
+		
+		AbstractMessageListenerContainer mlc = 
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
+		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentEncoding("test.contentEncoding");
+		amqpProperties.setContentLength(99L);
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("foo", "foo");
+		amqpProperties.setHeader("bar", "bar");
+		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
+		listener.onMessage(amqpMessage);
+		
+		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
+		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		assertNull(siMessage.getHeaders().get("foo"));
+		assertNull(siMessage.getHeaders().get("bar"));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
+	}
+	
+	@Test
+	public void withHeaderMapperDefaultMapping() {
+		AmqpInboundChannelAdapter adapter = context.getBean("withHeaderMapperDefaultMapping", AmqpInboundChannelAdapter.class);
+		
+		AbstractMessageListenerContainer mlc = 
+				TestUtils.getPropertyValue(adapter, "messageListenerContainer", AbstractMessageListenerContainer.class);
+		MessageListener listener = TestUtils.getPropertyValue(mlc, "messageListener", MessageListener.class);
+		MessageProperties amqpProperties = new MessageProperties();
+		amqpProperties.setAppId("test.appId");
+		amqpProperties.setClusterId("test.clusterId");
+		amqpProperties.setContentEncoding("test.contentEncoding");
+		amqpProperties.setContentLength(99L);
+		amqpProperties.setContentType("test.contentType");
+		amqpProperties.setHeader("foo", "foo");
+		amqpProperties.setHeader("bar", "bar");
+		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
+		listener.onMessage(amqpMessage);
+		QueueChannel requestChannel = context.getBean("requestChannel", QueueChannel.class);
+		org.springframework.integration.Message<?> siMessage = requestChannel.receive(0);
+		assertNull(siMessage.getHeaders().get("bar"));
+		assertNull(siMessage.getHeaders().get("foo"));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_ENCODING));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CLUSTER_ID));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.APP_ID));
+		assertNotNull(siMessage.getHeaders().get(AmqpHeaders.CONTENT_TYPE));
 	}
 }

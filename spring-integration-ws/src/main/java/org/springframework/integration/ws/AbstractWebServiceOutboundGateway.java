@@ -23,6 +23,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.transform.TransformerException;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
@@ -33,8 +35,8 @@ import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriTemplate;
@@ -43,12 +45,13 @@ import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.core.WebServiceMessageExtractor;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.soap.SoapMessage;
-import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.transport.WebServiceMessageSender;
+import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
  * Base class for outbound Web Service-invoking Messaging Gateways.
@@ -71,7 +74,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	private volatile WebServiceMessageCallback requestCallback;
 
 	private volatile boolean ignoreEmptyResponses = true;
-
+	
+	protected volatile SoapHeaderMapper headerMapper = new DefaultSoapHeaderMapper();
 
 	public AbstractWebServiceOutboundGateway(String uri, WebServiceMessageFactory messageFactory) {
 		Assert.hasText(uri, "URI must not be empty");
@@ -92,6 +96,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		this.uriTemplate = null;
 	}
 
+	public void setHeaderMapper(SoapHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
+	}
 
 	/**
 	 * Set the Map of URI variable expressions to evaluate against the outbound message
@@ -160,13 +167,13 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	@Override
-	public final Object handleRequestMessage(Message<?> message) {
-		URI uri = prepareUri(message);
+	public final Object handleRequestMessage(Message<?> requestMessage) {
+		URI uri = prepareUri(requestMessage);
 		if (uri == null) {
-			throw new MessageDeliveryException(message, "Failed to determine URI for " +
+			throw new MessageDeliveryException(requestMessage, "Failed to determine URI for " +
 					"Web Service request in outbound gateway: " + this.getComponentName());
 		}
-		Object responsePayload = this.doHandle(uri.toString(), message.getPayload(), this.getRequestCallback(message));
+		Object responsePayload = this.doHandle(uri.toString(), requestMessage, this.requestCallback);
 		if (responsePayload != null) {
 			boolean shouldIgnore = (this.ignoreEmptyResponses
 					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
@@ -177,7 +184,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		return null;
 	}
 
-	protected abstract Object doHandle(String uri, Object requestPayload, WebServiceMessageCallback requestCallback);
+	protected abstract Object doHandle(String uri, Message<?> requestMessage, WebServiceMessageCallback requestCallback);
 
 
 	private URI prepareUri(Message<?> requestMessage) {
@@ -191,39 +198,51 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 		return this.uriTemplate.expand(uriVariables);
 	}
-
-	private WebServiceMessageCallback getRequestCallback(Message<?> requestMessage) {
-		String soapAction = requestMessage.getHeaders().get(WebServiceHeaders.SOAP_ACTION, String.class);
-		return (soapAction != null) ?
-				new TypeCheckingSoapActionCallback(soapAction, this.requestCallback) : this.requestCallback;
-	}
-
-
-	private static class TypeCheckingSoapActionCallback extends SoapActionCallback {
-
-		private final WebServiceMessageCallback callbackDelegate;
-
-		TypeCheckingSoapActionCallback(String soapAction, WebServiceMessageCallback callbackDelegate) {
-			super(soapAction);
-			this.callbackDelegate = callbackDelegate;
+	
+	protected abstract class RequestMessageCallback extends TransformerObjectSupport implements WebServiceMessageCallback {
+		
+		private final WebServiceMessageCallback requestCallback;
+		private final Message<?> requestMessage;
+		
+		public RequestMessageCallback(WebServiceMessageCallback requestCallback, Message<?> requestMessage){
+			this.requestCallback = requestCallback;
+			this.requestMessage = requestMessage;
 		}
 
-		@Override
-		public void doWithMessage(WebServiceMessage message) throws IOException {
-			if (message instanceof SoapMessage) {
-				super.doWithMessage(message);
+		public void doWithMessage(WebServiceMessage message) throws IOException, TransformerException {
+			Object payload = this.requestMessage.getPayload();
+			if (message instanceof SoapMessage){
+				this.doWithMessageInternal(message, payload);
+				headerMapper.fromHeadersToRequest(this.requestMessage.getHeaders(), (SoapMessage)message);
+	            if (requestCallback != null) {
+	                requestCallback.doWithMessage(message);
+	            }
 			}
-			if (this.callbackDelegate != null) {
-				try {
-					this.callbackDelegate.doWithMessage(message);
-				}
-				catch (Exception e) {
-					throw new MessagingException("error occurred in WebServiceMessageCallback", e);
-				}
-			}
-		}
+			
+		}	
+		
+		public abstract void doWithMessageInternal(WebServiceMessage message, Object payload) throws IOException, TransformerException;
 	}
-
+	
+	protected abstract class ResponseMessageExtractor extends TransformerObjectSupport implements WebServiceMessageExtractor<Object> {
+		
+		public Object extractData(WebServiceMessage message)
+				throws IOException, TransformerException {
+		
+			Object resultObject = this.doExtractData(message);
+            
+            if (message instanceof SoapMessage){			
+				Map<String, Object> mappedMessageHeaders = headerMapper.toHeadersFromReply((SoapMessage) message);
+				Message<?> siMessage = MessageBuilder.withPayload(resultObject).copyHeaders(mappedMessageHeaders).build();
+				return siMessage;
+			}
+			else {
+				return message.getPayloadSource();
+			}
+		}	
+		
+		public abstract Object doExtractData(WebServiceMessage message) throws IOException, TransformerException;
+	}
 
 	/**
 	 * HTTP-specific subclass of UriTemplate, overriding the encode method.

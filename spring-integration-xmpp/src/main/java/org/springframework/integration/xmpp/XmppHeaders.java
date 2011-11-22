@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,29 @@ package org.springframework.integration.xmpp;
  */
 public class XmppHeaders {
 
-	private static final String PREFIX = "xmpp_";
+	public static final String PREFIX = "xmpp_";
 
-	public static final String CHAT = PREFIX + "chatKey";
+	public static final String CHAT = PREFIX + "chat";
 
-	public static final String CHAT_TO = PREFIX + "chatTo";
+	public static final String TO = PREFIX + "to";
 
-	public static final String CHAT_THREAD_ID = PREFIX + "chatThreadId";
+	/**
+	 * {@link Deprecated} use {@link #TO} instead
+	 */
+	@Deprecated
+	public static final String CHAT_TO = TO;
+
+	public static final String FROM = PREFIX + "from";
+
+	public static final String THREAD = PREFIX + "thread";
+
+	/**
+	 * {@link Deprecated} use {@link #THREAD} instead
+	 */
+	@Deprecated
+	public static final String CHAT_THREAD_ID = THREAD;
+
+	public static final String SUBJECT = PREFIX + "subject";
 
 	public static final String TYPE = PREFIX + "type";
 
