@@ -28,6 +28,7 @@ import org.w3c.dom.Document;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -106,7 +107,9 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 
 			if (requestPayload instanceof Source) {
 				source = (Source) requestPayload;
-				source = (Source) sourceExtractor.extractData(source);
+				Object o = sourceExtractor.extractData(source);
+				Assert.isInstanceOf(Source.class, o);
+				source = (Source) o;
 			}
 			else if (requestPayload instanceof String) {
 				source = new StringSource((String) requestPayload);

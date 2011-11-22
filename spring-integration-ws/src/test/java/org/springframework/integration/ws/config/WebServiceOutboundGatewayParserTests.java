@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
@@ -32,6 +33,7 @@ import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
+import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
@@ -81,30 +83,30 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreEmptyResponses"));
 	}
 
-//	@Test SourceExtractor was removed
-//	public void simpleGatewayWithDefaultSourceExtractor() {
-//		ApplicationContext context = new ClassPathXmlApplicationContext(
-//				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-//		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithDefaultSourceExtractor");
-//		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-//		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-//		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-//		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-//		assertEquals("DefaultSourceExtractor", accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName());
-//	}
-//
-//	@Test
-//	public void simpleGatewayWithCustomSourceExtractor() {
-//		ApplicationContext context = new ClassPathXmlApplicationContext(
-//				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-//		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractor");
-//		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-//		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-//		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-//		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-//		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
-//		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
-//	}
+	@Test
+	public void simpleGatewayWithDefaultSourceExtractor() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithDefaultSourceExtractor");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals("DefaultSourceExtractor", accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName());
+	}
+
+	@Test
+	public void simpleGatewayWithCustomSourceExtractor() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractor");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
+		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
+	}
 
 	@Test
 	public void simpleGatewayWithCustomRequestCallback() {
@@ -133,21 +135,21 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
 	}
 
-//	@Test
-//	public void simpleGatewayWithCustomSourceExtractorAndMessageFactory() {
-//		ApplicationContext context = new ClassPathXmlApplicationContext(
-//				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-//		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
-//		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
-//		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-//		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-//		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-//		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-//		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
-//		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
-//		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
-//		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
-//	}
+	@Test
+	public void simpleGatewayWithCustomSourceExtractorAndMessageFactory() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
+		SourceExtractor<?> sourceExtractor = (SourceExtractor<?>) context.getBean("sourceExtractor");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
+		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
+	}
 
 	@Test
 	public void simpleGatewayWithCustomFaultMessageResolver() {
