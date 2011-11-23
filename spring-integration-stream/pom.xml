@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-stream</artifactId>
-  <version>2.1.0.RC1</version>
+  <version>2.1.0.BUILD-SNAPSHOT</version>
   <name>Spring Integration Stream Support</name>
   <licenses>
     <license>
@@ -113,6 +113,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>3.0.6.RELEASE</version>
@@ -123,12 +129,6 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.RC1</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>

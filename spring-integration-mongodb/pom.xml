@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-mongodb</artifactId>
-  <version>2.1.0.RC1</version>
+  <version>2.1.0.BUILD-SNAPSHOT</version>
   <name>Spring Integration MongoDB Support</name>
   <licenses>
     <license>
@@ -101,6 +101,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-mongodb</artifactId>
       <version>1.0.0.M4</version>
@@ -113,16 +119,16 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.1.0.RC1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-all</artifactId>
       <version>1.1</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -135,12 +141,6 @@
       <artifactId>mockito-all</artifactId>
       <version>1.8.4</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.RC1</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
