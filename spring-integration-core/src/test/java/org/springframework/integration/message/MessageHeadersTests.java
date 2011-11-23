@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,17 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.Test;
 
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class MessageHeadersTests {
 
@@ -141,6 +145,18 @@ public class MessageHeadersTests {
 		assertNull(output.get("address"));
 	}
 
+	@Test //INT-2236
+	public void serializeWithNonSerializableCommonHeader() throws Exception {
+		AbstractMessageChannel testReplyChannel = new DirectChannel();
+		testReplyChannel.setBeanName("testReplyChannel");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put(MessageHeaders.REPLY_CHANNEL, testReplyChannel);
+		MessageHeaders input = new MessageHeaders(headers);
+		UUID messageId = input.getId();
+		MessageHeaders output = (MessageHeaders) serializeAndDeserialize(input);
+		assertEquals(messageId, output.getId());
+		assertEquals(testReplyChannel.getComponentName(), output.getReplyChannel());
+	}
 
 	private static Object serializeAndDeserialize(Object object) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

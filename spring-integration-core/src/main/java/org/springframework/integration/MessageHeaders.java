@@ -31,10 +31,11 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.channel.AbstractMessageChannel;
 
 /**
  * The headers for a {@link Message}.<br>
- * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.) 
+ * IMPORTANT: MessageHeaders are immutable. Any mutating operation (e.g., put(..), putAll(..) etc.)
  * will result in {@link UnsupportedOperationException}
  * To create MessageHeaders instance use fluent MessageBuilder API
  * <pre>
@@ -47,17 +48,18 @@ import org.apache.commons.logging.LogFactory;
  * headers.put("key2", "value2");
  * new GenericMessage("foo", headers);
  * </pre>
- * 
+ *
  * @author Arjen Poutsma
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final long serialVersionUID = 6901029029524535147L;
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
-	
+
 	private static volatile IdGenerator idGenerator = null;
 
 	/**
@@ -98,7 +100,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		else {
 			this.headers.put(ID, MessageHeaders.idGenerator.generateId());
 		}
-		
+
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
@@ -241,6 +243,13 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	 */
 
 	private void writeObject(ObjectOutputStream out) throws IOException {
+		String[] channelHeaderNames = {REPLY_CHANNEL, ERROR_CHANNEL};
+		for (String channelHeaderName : channelHeaderNames) {
+			Object channel = this.headers.get(channelHeaderName);
+			if (channel != null && channel instanceof AbstractMessageChannel) {
+				this.headers.put(channelHeaderName, ((AbstractMessageChannel) channel).getComponentName());
+			}
+		}
 		List<String> keysToRemove = new ArrayList<String>();
 		for (Map.Entry<String, Object> entry : this.headers.entrySet()) {
 			if (!(entry.getValue() instanceof Serializable)) {
