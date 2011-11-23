@@ -16,6 +16,7 @@ package org.springframework.integration.groovy.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.Lifecycle;
@@ -86,11 +87,17 @@ public class GroovyControlBusFactoryBean extends AbstractSimpleMessageHandlerFac
 			if (this.beanFactory != null) {
 				for (String name : this.beanFactory.getBeanDefinitionNames()) {
 					if (!this.beanFactory.getBeanDefinition(name).isAbstract()) {
-						Object bean = this.beanFactory.getBean(name);
-						if (bean instanceof Lifecycle ||
-								bean instanceof CustomizableThreadCreator || 
-								(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
-							variables.put(name, bean);
+						try {
+							Object bean = this.beanFactory.getBean(name);
+							if (bean instanceof Lifecycle ||
+									bean instanceof CustomizableThreadCreator || 
+									(AnnotationUtils.findAnnotation(bean.getClass(), ManagedResource.class) != null)) {
+								variables.put(name, bean);
+							}
+						}
+						catch (BeanCreationException e) {
+							// might be a custom scope bean lacking required context
+							// ignore, and continue the loop iteration
 						}
 					}
 				}
