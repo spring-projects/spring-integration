@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.integration.config.ExpressionFactoryBean;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
-import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ExpressionFactoryBean;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageHandler;
+import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -41,6 +41,7 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		BeanComponentDefinition innerConsumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+
 		String consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
 		String methodName = element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE);
 		String consumerExpressionString = element.getAttribute(IntegrationNamespaceUtils.EXPRESSION_ATTRIBUTE);
@@ -57,13 +58,11 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 
 		if (hasMethod & isExpression) {
 			parserContext.getReaderContext().error(
-					"The 'method' attribute can't be used with 'expression' attribute.", element);
+					"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 		}
-
 
 		if (hasMethod | isExpression) {
 			BeanDefinitionBuilder consumerBuilder = null;
-
 			if (hasMethod) {
 				consumerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
 				if (isRef) {
@@ -82,19 +81,16 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 			}
 
 			consumerBuilder.addPropertyValue("componentType", "outbound-channel-adapter");
-
 			String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
 			if (StringUtils.hasText(order)) {
 				consumerBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, order);
 			}
-
 			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(consumerBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
 		else if (isInnerConsumer) {
 			consumerRef = innerConsumerDefinition.getBeanName();
 		}
-
-		Assert.hasText(consumerRef, "Can not determine consumer for 'outbound-channel-adapter'");
+		Assert.hasText(consumerRef, "cannot determine consumer for 'outbound-channel-adapter'");
 		return consumerRef;
 	}
 
@@ -102,4 +98,5 @@ public class DefaultOutboundChannelAdapterParser extends AbstractOutboundChannel
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		throw new UnsupportedOperationException();
 	}
+
 }

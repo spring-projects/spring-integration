@@ -94,20 +94,19 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 	}
 
 	public Object convertValue(Object value, TypeDescriptor sourceType, TypeDescriptor targetType) {
-		// TODO maybe tentative decision... Echoes with org.springframework.expression.common.ExpressionUtils.convertTypedValue()
+		// Echoes org.springframework.expression.common.ExpressionUtils.convertTypedValue()
 		if ((targetType.getType() == Void.class || targetType.getType() == Void.TYPE) && value == null) {
 			return null;
 		}
 		if (conversionService.canConvert(sourceType, targetType)) {
 			return conversionService.convert(value, sourceType, targetType);
 		}
-		
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
 			if (editor==null) {
 				editor = delegate.getDefaultEditor(sourceType.getType());
 			}
-			if (editor != null){ // INT-1441
+			if (editor != null) { // INT-1441
 				editor.setValue(value);
 				String text = editor.getAsText();
 				if (String.class.isAssignableFrom(targetType.getClass())) {					
