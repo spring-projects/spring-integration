@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -41,6 +42,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class ChannelAdapterParserTests {
 
@@ -135,6 +137,27 @@ public class ChannelAdapterParserTests {
 	}
 
 	@Test
+	/**
+	 * @since 2.1
+	 */
+	public void expressionConsumer() {
+		String beanName = "expressionConsumer";
+		Object channel = this.applicationContext.getBean(beanName);
+		assertTrue(channel instanceof DirectChannel);
+		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveChannelName(beanName));
+		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof EventDrivenConsumer);
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		assertNull(testBean.getMessage());
+		Message<?> message = new GenericMessage<String>("consumer test expression");
+		assertTrue(((MessageChannel) channel).send(message));
+		assertNotNull(testBean.getMessage());
+		assertEquals("consumer test expression", testBean.getMessage());
+	}
+
+	@Test
 	public void methodInvokingSource() {
 		String beanName = "methodInvokingSource";
 		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
@@ -221,19 +244,24 @@ public class ChannelAdapterParserTests {
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		channelResolver.resolveChannelName("methodInvokingSource");
 	}
-	
+
 	@Test
-	public void methodInvokingSourceWithSendTimeout() throws Exception{
+	public void methodInvokingSourceWithSendTimeout() throws Exception {
 		String beanName = "methodInvokingSourceWithTimeout";
-		
-		SourcePollingChannelAdapter adapter = 
-			this.applicationContext.getBean(beanName, SourcePollingChannelAdapter.class);
+
+		SourcePollingChannelAdapter adapter =
+				this.applicationContext.getBean(beanName, SourcePollingChannelAdapter.class);
 		assertNotNull(adapter);
 		long sendTimeout = TestUtils.getPropertyValue(adapter, "messagingTemplate.sendTimeout", Long.class);
 		assertEquals(999, sendTimeout);
 	}
 
-	public static class SampleBean{
+	@Test(expected = BeanDefinitionParsingException.class)
+	public void innerBeanAndExpressionFail() throws Exception {
+		new ClassPathXmlApplicationContext("InboundChannelAdapterInnerBeanWithExpression-fail-context.xml", this.getClass());
+	}
+
+	public static class SampleBean {
 		private String message = "hello";
 
 		String getMessage() {
@@ -241,3 +269,4 @@ public class ChannelAdapterParserTests {
 		}
 	}
 }
+

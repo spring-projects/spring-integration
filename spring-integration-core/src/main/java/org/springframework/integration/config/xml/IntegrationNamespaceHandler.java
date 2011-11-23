@@ -52,9 +52,9 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("payload-deserializing-transformer", new PayloadDeserializingTransformerParser());
 		registerBeanDefinitionParser("claim-check-in", new ClaimCheckInParser());
 		registerBeanDefinitionParser("claim-check-out", new ClaimCheckOutParser());
-		registerBeanDefinitionParser("inbound-channel-adapter", new MethodInvokingInboundChannelAdapterParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new DefaultInboundChannelAdapterParser());
 		registerBeanDefinitionParser("resource-inbound-channel-adapter", new ResourceInboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new DefaultOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("logging-channel-adapter", new LoggingChannelAdapterParser());
 		registerBeanDefinitionParser("gateway", new GatewayParser());
 		registerBeanDefinitionParser("delayer", new DelayerParser());
