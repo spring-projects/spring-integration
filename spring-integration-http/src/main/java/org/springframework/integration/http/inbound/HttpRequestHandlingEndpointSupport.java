@@ -260,12 +260,22 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 				payload = this.convertParameterMap(servletRequest.getParameterMap());
 			}
 			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
-					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
-							request.getMethod().toString()).setHeader(
-							org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
-							servletRequest.getUserPrincipal()).build();
+			
+			MessageBuilder<?> messageBuilder = null;
+
+			if (payload instanceof Message<?>){
+				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
+			}
+			else {
+				messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
+			}
+			
+			Message<?> message = messageBuilder
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+					.build();
+		
 			Object reply = null;
 			if (this.expectReply) {
 				reply = this.sendAndReceiveMessage(message);

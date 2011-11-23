@@ -183,7 +183,7 @@ public final class MessageBuilder<T> {
 	/**
 	 * Copy the name-value pairs from the provided Map. This operation will <em>not</em> overwrite any existing values.
 	 */
-	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
+	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, ?> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
 			if (!this.isReadOnly(key)) {
