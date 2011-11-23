@@ -1,4 +1,4 @@
-SPRING INTEGRATION 2.1.0 Milestone 3
+SPRING INTEGRATION 2.1.0 Release Candidate 1
 -----------------------------------------------------------
 
 To find out what has changed since any earlier releases, see 'changelog.txt'.
