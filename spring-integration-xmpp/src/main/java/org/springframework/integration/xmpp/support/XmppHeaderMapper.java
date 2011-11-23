@@ -23,7 +23,7 @@ import org.springframework.integration.mapping.RequestReplyHeaderMapper;
 
 /**
  * A convenience interface that extends {@link HeaderMapper}
- * but parameterized with {@link MessageProperties}.
+ * but parameterized with the Smack API {@link Message}.
  *
  * @author Mark Fisher
  * @since 2.1

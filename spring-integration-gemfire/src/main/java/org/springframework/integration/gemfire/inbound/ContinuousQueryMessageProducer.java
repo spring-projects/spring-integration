@@ -58,8 +58,7 @@ public class ContinuousQueryMessageProducer extends SpelMessageProducerSupport i
 
 	/**
 	 * 
-	 * @param queryListenerContainer a
-	 * {@link org.springframework.data.gemfire.listener.QueryListenerContainer}
+	 * @param queryListenerContainer a {@link org.springframework.data.gemfire.listener.ContinuousQueryListenerContainer}
 	 * @param query the query string
 	 */
 	public ContinuousQueryMessageProducer(ContinuousQueryListenerContainer queryListenerContainer, String query) {

@@ -99,7 +99,7 @@ public class RequestResponseScenario {
      * Set the response validator 
      * @see AbstractResponseValidator
      * @param responseValidator
-     * @return
+     * @return this
      */
     public RequestResponseScenario setResponseValidator(AbstractResponseValidator<?> responseValidator) {
         this.responseValidator = responseValidator;
@@ -110,15 +110,15 @@ public class RequestResponseScenario {
     /**
      * Set the request message (as an alternative to setPayload())
      * @param message
-     * @return
+     * @return this
      */
     public RequestResponseScenario setMessage(Message<?> message) {
         this.message = message;
         return this;
     }
 
- 
-    protected void init(){
+    protected void init() {
         Assert.state(message == null || payload == null,"cannot set both message and payload");
     }
+
 }

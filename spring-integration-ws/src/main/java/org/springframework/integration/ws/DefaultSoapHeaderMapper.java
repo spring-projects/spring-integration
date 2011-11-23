@@ -35,8 +35,8 @@ import org.springframework.xml.namespace.QNameUtils;
 
 /**
  * A {@link HeaderMapper} implementation for mapping to and from a SoapHeader.
- * The {@link #inboundHeaderNames} and {@link #outboundHeaderNames} may be configured.
- * They accept exact name Strings or simple patterns (e.g. "start*", "*end", or "*").  
+ * The {@link #setRequestHeaderNames(String[])} and {@link #setReplyHeaderNames(String[])}
+ * accept exact name Strings or simple patterns (e.g. "start*", "*end", or "*").  
  * By default all inbound headers will be accepted, but any outbound header that should
  * be mapped must be configured explicitly. Note that the outbound mapping only writes
  * String header values into attributes on the SoapHeader. For anything more advanced,

@@ -88,7 +88,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	/**
 	 * Sets the content enricher's request channel. If specified, then an internal
-	 * {@link Gateway} will be initialized. Setting a request channel is optional.
+	 * Gateway will be initialized. Setting a request channel is optional.
 	 * Not setting a request channel is useful in situations where
 	 * message payloads shall be enriched with static values only.
 	 */

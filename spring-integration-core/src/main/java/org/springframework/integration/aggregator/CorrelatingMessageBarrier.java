@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -32,7 +34,7 @@ import org.springframework.integration.store.SimpleMessageStore;
  * {@link org.springframework.integration.aggregator.ReleaseStrategy#canRelease(org.springframework.integration.store.MessageGroup) canRelease(..)}
  * method).
  * <p/>
- * This class differs from CorrelatingMessageHandler in that it completely decouples the receiver and the sender. It can
+ * This class differs from AbstractCorrelatingMessageHandler in that it completely decouples the receiver and the sender. It can
  * be applied in scenarios where completion of a message group is not well defined but only a certain amount of messages
  * for any given correlation key may be processed at a time.
  * <p/>
@@ -42,16 +44,20 @@ import org.springframework.integration.store.SimpleMessageStore;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  *
- * @see CorrelatingMessageHandler
+ * @see AbstractCorrelatingMessageHandler
  */
 public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource<Object> {
+
 	private static final Log log = LogFactory.getLog(CorrelatingMessageBarrier.class);
 
-	private CorrelationStrategy correlationStrategy;
-	private ReleaseStrategy releaseStrategy;
+	private volatile CorrelationStrategy correlationStrategy;
+
+	private volatile ReleaseStrategy releaseStrategy;
 
 	private final ConcurrentMap<Object, Object> correlationLocks = new ConcurrentHashMap<Object, Object>();
+
 	private final MessageGroupStore store;
+
 
 	public CorrelatingMessageBarrier(MessageGroupStore store) {
 		this.store = store;
@@ -60,6 +66,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	public CorrelatingMessageBarrier() {
 		this(new SimpleMessageStore(0));
 	}
+
 
 	/**
 	 * Set the CorrelationStrategy to be used to determine the correlation key for incoming messages
@@ -127,4 +134,5 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 		correlationLocks.remove(key);
 		store.removeMessageGroup(key);
 	}
+
 }

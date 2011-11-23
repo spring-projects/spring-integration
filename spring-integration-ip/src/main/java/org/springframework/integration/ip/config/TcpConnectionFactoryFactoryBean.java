@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.config;
 
 import java.util.concurrent.Executor;
@@ -38,10 +39,8 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
  * 
  * @author Gary Russell
  * @since 2.0.5
- *
  */
-public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> 
-		implements SmartLifecycle, BeanNameAware {
+public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<AbstractConnectionFactory> implements SmartLifecycle, BeanNameAware {
 
 	private volatile AbstractConnectionFactory connectionFactory;
 
@@ -168,7 +167,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @param server the server to set
+	 * @param type the type to set
 	 */
 	public void setType(String type) {
 		this.type = type;
@@ -335,7 +334,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @return
+	 * @return phase
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#getPhase()
 	 */
 	public int getPhase() {
@@ -343,7 +342,7 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	}
 
 	/**
-	 * @return
+	 * @return isAutoStartup
 	 * @see org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory#isAutoStartup()
 	 */
 	public boolean isAutoStartup() {

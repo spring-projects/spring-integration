@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jdbc.config;
 
 import java.sql.Types;
@@ -35,16 +36,12 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 /**
- * 
- * 
  * @author Gunnar Hillert
  * @since 2.1
- * 
  */
 public final class StoredProcParserUtils {
 
-	private static final Log LOGGER = LogFactory
-			.getLog(StoredProcParserUtils.class);
+	private static final Log LOGGER = LogFactory.getLog(StoredProcParserUtils.class);
 
 	/** Prevent instantiation. */
 	private StoredProcParserUtils() {
@@ -52,10 +49,8 @@ public final class StoredProcParserUtils {
 	}
 	
 	/**
-	 * 
-	 * @param gatewayElement
+	 * @param storedProcComponent
 	 * @param parserContext
-	 * @return
 	 */
 	public static ManagedList<BeanDefinition> getSqlParameterDefinitionBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {
@@ -110,10 +105,8 @@ public final class StoredProcParserUtils {
 	}
 	
 	/**
-	 * 
-	 * @param gatewayElement
+	 * @param storedProcComponent
 	 * @param parserContext
-	 * @return
 	 */
 	public static ManagedList<BeanDefinition> getProcedureParameterBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {
@@ -169,10 +162,8 @@ public final class StoredProcParserUtils {
 	}
 
 	/**
-	 * 
-	 * @param gatewayElement
+	 * @param storedProcComponent
 	 * @param parserContext
-	 * @return
 	 */
 	public static ManagedMap<String, BeanDefinition> getReturningResultsetBeanDefinitions(
 			Element storedProcComponent, ParserContext parserContext) {

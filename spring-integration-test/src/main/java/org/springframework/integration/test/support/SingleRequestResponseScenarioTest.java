@@ -10,22 +10,23 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.test.support;
+
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Convenience class for a single {@link RequestResponsScenario} test
+ * Convenience class for a single {@link RequestResponseScenario} test
  * @author David Turanski
- *
  */
-
 public abstract class SingleRequestResponseScenarioTest extends AbstractRequestResponseScenarioTest {
 
 	@Override
-	protected List<RequestResponseScenario> defineRequestResponseScenarios() {		 
+	protected List<RequestResponseScenario> defineRequestResponseScenarios() {
 		return Collections.singletonList(defineRequestResponseScenario());
 	}
 
-	protected abstract RequestResponseScenario defineRequestResponseScenario();      
+	protected abstract RequestResponseScenario defineRequestResponseScenario();
+
 }

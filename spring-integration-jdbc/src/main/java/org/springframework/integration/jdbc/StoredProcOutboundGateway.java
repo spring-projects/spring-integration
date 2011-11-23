@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jdbc;
 
 import java.sql.CallableStatement;
@@ -129,7 +130,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
      *  <li>PostgreSQL</li>
      * </ul>
      *
-     * See also: {@link http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html}
+     * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
      */
     public void setSqlParameters(List<SqlParameter> sqlParameters) {
     	this.executor.setSqlParameters(sqlParameters);
@@ -137,7 +138,7 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 
     /**
      *  Does your stored procedure return one or more result sets? If so, you
-     *  can use the provided method for setting the respective Rowmappers.
+     *  can use the provided method for setting the respective RowMappers.
      */
     public void setReturningResultSetRowMappers(
             Map<String, RowMapper<?>> returningResultSetRowMappers) {
@@ -256,7 +257,6 @@ public class StoredProcOutboundGateway extends AbstractReplyProducingMessageHand
 	 *
 	 * Only few developers will probably ever like to process update counts, thus
 	 * the value defaults to <code>true</code>.
-	 *
 	 */
     public void setSkipUndeclaredResults(boolean skipUndeclaredResults) {
     	this.executor.setSkipUndeclaredResults(skipUndeclaredResults);

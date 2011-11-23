@@ -76,7 +76,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
 	 * This will match the header name directly or, for non-standard headers, it will match
-	 * the header name prefixed with the value specified by {@link #setInboundPrefix(String)}.
+	 * the header name prefixed with the value, if specified, by {@link #setUserDefinedHeaderPrefix(String)}.
 	 */
 	public void setRequestHeaderNames(String[] requestHeaderNames) {
 		Assert.notNull(requestHeaderNames, "'requestHeaderNames' must not be null");
@@ -88,7 +88,7 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 	 * FROM a Spring Integration Message's headers.
 	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
 	 * <p>
-	 * Any non-standard headers will be prefixed with the value specified by {@link #setOutboundPrefix(String)}.
+	 * Any non-standard headers will be prefixed with the value specified by {@link #setUserDefinedHeaderPrefix(String)}.
 	 */
 	public void setReplyHeaderNames(String[] replyHeaderNames) {
 		Assert.notNull(replyHeaderNames, "'replyHeaderNames' must not be null");

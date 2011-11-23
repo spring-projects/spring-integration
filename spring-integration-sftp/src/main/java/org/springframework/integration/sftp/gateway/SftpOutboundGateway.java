@@ -38,7 +38,6 @@ public class SftpOutboundGateway extends AbstractRemoteFileOutboundGateway<LsEnt
 	/**
 	 * @param sessionFactory
 	 * @param command
-	 * @param options
 	 * @param expression
 	 */
 	public SftpOutboundGateway(SessionFactory<LsEntry> sessionFactory, String command, String expression) {

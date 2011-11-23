@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,7 +19,7 @@ import org.springframework.integration.store.MessageGroup;
  * A processor for <i>correlated</i> groups of messages.
  *
  * @author Iwein Fuld
- * @see org.springframework.integration.aggregator.CorrelatingMessageHandler
+ * @see org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler
  */
 public interface MessageGroupProcessor {
 

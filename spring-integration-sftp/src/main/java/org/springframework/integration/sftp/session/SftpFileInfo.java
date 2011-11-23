@@ -43,7 +43,6 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @return
 	 * @see com.jcraft.jsch.SftpATTRS#isDir()
 	 */
 	public boolean isDirectory() {
@@ -51,7 +50,6 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @return
 	 * @see com.jcraft.jsch.SftpATTRS#isLink()
 	 */
 	public boolean isLink() {
@@ -59,7 +57,6 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @return
 	 * @see com.jcraft.jsch.SftpATTRS#getSize()
 	 */
 	public long getSize() {
@@ -67,7 +64,6 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @return
 	 * @see com.jcraft.jsch.SftpATTRS#getMTime()
 	 */
 	public long getModified() {
@@ -75,7 +71,6 @@ public class SftpFileInfo extends AbstractFileInfo<LsEntry> {
 	}
 
 	/**
-	 * @return
 	 * @see com.jcraft.jsch.ChannelSftp.LsEntry#getFilename()
 	 */
 	public String getFilename() {

@@ -167,7 +167,7 @@ public class StoredProcPollingChannelAdapter extends IntegrationObjectSupport im
      *  <li>PostgreSQL</li>
      * </ul>
      *
-     * See also: {@link http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html}
+     * See also: http://static.springsource.org/spring/docs/3.1.0.M2/spring-framework-reference/html/jdbc.html
      */
     public void setSqlParameters(List<SqlParameter> sqlParameters) {
     	this.executor.setSqlParameters(sqlParameters);
