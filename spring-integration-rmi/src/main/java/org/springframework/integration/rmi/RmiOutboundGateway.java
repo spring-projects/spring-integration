@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,15 @@
 
 package org.springframework.integration.rmi;
 
-import org.springframework.integration.gateway.AbstractRemotingOutboundGateway;
+import java.io.Serializable;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.remoting.RemoteAccessException;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
@@ -25,16 +32,42 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  * 
  * @author Mark Fisher
  */
-@SuppressWarnings("deprecation")
-public class RmiOutboundGateway extends AbstractRemotingOutboundGateway {
+public class RmiOutboundGateway extends AbstractReplyProducingMessageHandler {
+
+	private final RequestReplyExchanger proxy;
+
 
 	public RmiOutboundGateway(String url) {
-		super(url);
+		this.proxy = this.createProxy(url);
 	}
 
 
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+
 	@Override
-	public RequestReplyExchanger createProxy(String url) {
+	public final Object handleRequestMessage(Message<?> message) {
+		if (!(message.getPayload() instanceof Serializable)) {
+			throw new MessageHandlingException(message,
+					this.getClass().getName() + " expects a Serializable payload type " +
+					"but encountered [" + message.getPayload().getClass().getName() + "]");
+		}
+		Message<?> requestMessage = MessageBuilder.withPayload(message.getPayload())
+				.copyHeaders(message.getHeaders()).build();
+		try {
+			Message<?> reply = this.proxy.exchange(requestMessage);
+			if (reply != null) {
+				reply = MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
+			}
+			return reply;
+		}
+		catch (RemoteAccessException e) {
+			throw new MessageHandlingException(message, "remote failure in RmiOutboundGateway", e);
+		}
+	}
+
+	private RequestReplyExchanger createProxy(String url) {
 		RmiProxyFactoryBean proxyFactory = new RmiProxyFactoryBean();
 		proxyFactory.setServiceInterface(RequestReplyExchanger.class);
 		proxyFactory.setServiceUrl(url);
