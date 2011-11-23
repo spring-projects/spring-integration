@@ -45,7 +45,7 @@ import com.jcraft.jsch.SftpException;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class SftpSession implements Session {
+class SftpSession implements Session<LsEntry> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -71,7 +71,6 @@ class SftpSession implements Session {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	public LsEntry[] list(String path) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {

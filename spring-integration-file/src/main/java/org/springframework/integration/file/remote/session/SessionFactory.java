@@ -22,8 +22,8 @@ package org.springframework.integration.file.remote.session;
  * @author Mark Fisher
  * @since 2.0
  */
-public interface SessionFactory {
+public interface SessionFactory<F> {
 
-	Session getSession();
+	Session<F> getSession();
 
 }

@@ -51,7 +51,7 @@ import org.springframework.util.ObjectUtils;
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
 
-	protected final SessionFactory sessionFactory;
+	protected final SessionFactory<F> sessionFactory;
 
 	protected final String command;
 
@@ -91,7 +91,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private volatile FileListFilter<F> filter;
 
 
-	public AbstractRemoteFileOutboundGateway(SessionFactory sessionFactory, String command,
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
 			String expression) {
 		this.sessionFactory = sessionFactory;
 		this.command = command;
@@ -183,7 +183,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Session session = this.sessionFactory.getSession();
+		Session<F> session = this.sessionFactory.getSession(); 
 		try {
 			if (COMMAND_LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
@@ -225,9 +225,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		}
 	}
 
-	protected List<?> ls(Session session, String dir) throws IOException {
+	protected List<?> ls(Session<F> session, String dir) throws IOException {
 		List<F> lsFiles = new ArrayList<F>();
-		F[] files = session.<F>list(dir);
+		F[] files = session.list(dir);
 		if (!ObjectUtils.isEmpty(files)) {
 			Collection<F> filteredFiles = this.filterFiles(files);
 			for (F file : filteredFiles) {
@@ -295,12 +295,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * Copy a remote file to the configured local directory.
 	 * @param session
 	 * @param remoteFilePath
-	 * @return
 	 * @throws IOException
 	 */
-	protected File get(Session session, String remoteFilePath, String remoteFilename)
+	protected File get(Session<F> session, String remoteFilePath, String remoteFilename)
 			throws IOException {
-		F[] files = session.<F>list(remoteFilePath);
+		F[] files = session.list(remoteFilePath);
 		if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
 			throw new MessagingException(remoteFilePath + " is not a file");
 		}
@@ -342,7 +341,6 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	/**
 	 * @param remoteFilePath
-	 * @return
 	 */
 	protected String getRemoteFilename(String remoteFilePath) {
 		String remoteFileName;
@@ -356,7 +354,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		return remoteFileName;
 	}
 
-	protected boolean rm(Session session, String remoteFilePath)
+	protected boolean rm(Session<?> session, String remoteFilePath)
 			throws IOException {
 		return session.remove(remoteFilePath);
 	}

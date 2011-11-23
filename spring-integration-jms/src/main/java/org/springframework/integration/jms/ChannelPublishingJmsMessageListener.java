@@ -260,7 +260,6 @@ public class ChannelPublishingJmsMessageListener
 		this.extractReplyPayload = extractReplyPayload;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object result = jmsMessage;
 		if (this.extractRequestPayload) {
@@ -270,7 +269,7 @@ public class ChannelPublishingJmsMessageListener
 			}
 		}
 	
-		Map<String, Object> headers = (Map<String, Object>) headerMapper.toHeaders(jmsMessage);
+		Map<String, Object> headers = headerMapper.toHeaders(jmsMessage);
 		Message<?> requestMessage = (result instanceof Message<?>) ?
 				MessageBuilder.fromMessage((Message<?>) result).copyHeaders(headers).build() : 
 				MessageBuilder.withPayload(result).copyHeaders(headers).build();
