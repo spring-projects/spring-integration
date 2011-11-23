@@ -20,6 +20,9 @@ import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.resource.ResourceRetrievingMessageSource;
+import org.springframework.integration.util.AcceptOnceCollectionFilter;
+import org.springframework.util.StringUtils;
+
 import org.w3c.dom.Element;
 
 /**
@@ -36,7 +39,17 @@ public class ResourceInboundChannelAdapterParser extends AbstractPollingInboundC
 		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(ResourceRetrievingMessageSource.class);
 		sourceBuilder.addConstructorArgValue(element.getAttribute("pattern"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "pattern-resolver");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(sourceBuilder, element, "filter");
+		boolean hasFilter = element.hasAttribute("filter");
+		if (hasFilter){
+			String filterValue = element.getAttribute("filter");
+			if (StringUtils.hasText(filterValue)){
+				sourceBuilder.addPropertyReference("filter", filterValue);
+			}
+		}
+		else {
+			BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(AcceptOnceCollectionFilter.class);
+			sourceBuilder.addPropertyValue("filter", filterBuilder.getBeanDefinition());
+		}
 		return sourceBuilder.getBeanDefinition();
 	}
 
