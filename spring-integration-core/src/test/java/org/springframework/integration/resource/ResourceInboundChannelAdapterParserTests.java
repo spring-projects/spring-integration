@@ -16,11 +16,6 @@
 
 package org.springframework.integration.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.util.Collection;
 
@@ -35,6 +30,12 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.CollectionFilter;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
@@ -113,6 +114,22 @@ public class ResourceInboundChannelAdapterParserTests {
 		Message<Resource[]> message = (Message<Resource[]>) resultChannel.receive(1000);
 		assertNotNull(message);
 		assertTrue(customFilter.invoked);
+	}
+	
+	@Test
+	public void testUsageWithEmptyFilter() throws Exception{
+		
+		File baseDir = new File(System.getProperty("java.io.tmpdir"));
+		for (int i = 0; i < 10; i++) {
+			File f = new File(baseDir, "testUsageWithRf"+i);
+			f.createNewFile();
+		}
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-usage-emptyref.xml", this.getClass());
+		SourcePollingChannelAdapter resourceAdapter = context.getBean("resourceAdapterDefault", SourcePollingChannelAdapter.class);
+		ResourceRetrievingMessageSource source = TestUtils.getPropertyValue(resourceAdapter, "source", ResourceRetrievingMessageSource.class);
+		assertNotNull(source);
+		assertNull(TestUtils.getPropertyValue(source, "filter"));
 	}
 
 
