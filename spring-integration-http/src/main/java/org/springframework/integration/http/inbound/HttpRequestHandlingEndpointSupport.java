@@ -360,7 +360,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			MessageBuilder<?> messageBuilder = null;
 
 			if (payload instanceof Message<?>){
-				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload);
+				messageBuilder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 			}
 			else {
 				messageBuilder = MessageBuilder.withPayload(payload).copyHeaders(headers);
