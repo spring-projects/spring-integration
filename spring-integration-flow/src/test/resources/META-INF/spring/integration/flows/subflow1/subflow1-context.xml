@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<int-flow:flow-configuration> 
+		<int-flow:port-mapping>
+			<int-flow:input-port name="gateway-input" channel="subflow-input"/>
+			<int-flow:output-port name="gateway-output" channel="hello-output"/>
+			<int-flow:output-port name="gateway-discard" channel="world-output"/>
+		</int-flow:port-mapping>
+	</int-flow:flow-configuration>
+
+	<int:channel id="subflow-input" /> 
+
+	<int:header-enricher input-channel="subflow-input"
+		output-channel="subflow-router">
+		<int:header name="gateway" value="yeah!" />
+	</int:header-enricher>
+
+	<int:router input-channel="subflow-router" expression="payload+'-output'"/>
+
+	<int:channel id="hello-output" />
+	<int:channel id="world-output" />
+
+</beans>

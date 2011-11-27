@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	<int-flow:flow id="subflow4"/>
+	<int-flow:flow id="subflow5"/>
+	
+	<int-flow:outbound-gateway 
+		flow="subflow4" 
+		input-port="input"
+		input-channel="inputC"
+		output-channel="outputC"
+		error-channel="errorChannel"/>	
+	
+	
+	<int-flow:outbound-gateway 
+		flow="subflow5" 
+		input-port="input"
+		input-channel="inputC1"
+		output-channel="outputC1"/>	
+	
+	<int:channel id="outputC">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="outputC1">
+		<int:queue/>
+	</int:channel>
+	
+	
+
+</beans>

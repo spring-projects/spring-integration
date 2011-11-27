@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/flow=org.springframework.integration.flow.config.xml.FlowNamespaceHandler

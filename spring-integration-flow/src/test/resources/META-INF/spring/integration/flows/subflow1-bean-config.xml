@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+      
+     
+
+	<bean id="portConfig1" class="org.springframework.integration.flow.ChannelNamePortConfiguration">
+	  <constructor-arg name="inputPortMetadata">
+	  <bean class="org.springframework.integration.flow.PortMetadata">
+        <constructor-arg name="portName" value="input"/>
+        <constructor-arg name="channelName" value="subflow-input"/>
+     </bean>
+     </constructor-arg>
+      <constructor-arg name="outputPortMetadataList">
+       <util:list>
+       <bean class="org.springframework.integration.flow.PortMetadata">
+         <constructor-arg name="portName" value="output"/>
+         <constructor-arg name="description" value="Default output port"/>
+         <constructor-arg name="channelName" value="subflow-output"/>
+       </bean>
+     </util:list>
+     </constructor-arg>
+	</bean>
+	
+	<bean id="portConfig2" class="org.springframework.integration.flow.ChannelNamePortConfiguration">
+	  <constructor-arg name="inputPortMetadata">
+	  <bean class="org.springframework.integration.flow.PortMetadata">
+        <constructor-arg name="portName" value="gateway-input"/>
+        <constructor-arg name="channelName" value="subflow-input2"/>
+     </bean>
+     </constructor-arg>
+      <constructor-arg name="outputPortMetadataList">
+       <util:list>
+       <bean class="org.springframework.integration.flow.PortMetadata">
+         <constructor-arg name="portName" value="gateway-output"/>
+         <constructor-arg name="description" value="Gateway output port"/>
+         <constructor-arg name="channelName" value="subflow-output2"/>
+       </bean>
+     </util:list>
+     </constructor-arg>
+	</bean>
+	
+	<bean class="org.springframework.integration.flow.FlowConfiguration">
+	  <constructor-arg>
+	     <list>
+	       <ref bean="portConfig1"/>
+	       <ref bean="portConfig2"/>
+	     </list>
+	  </constructor-arg>
+	</bean>
+	
+ 
+    <int:channel id="subflow-input"/>
+    <int:channel id="subflow-input2"/>
+ 
+	<int:header-enricher input-channel="subflow-input"
+		output-channel="subflow-output">
+		<int:header name="foo" value="foo" />
+	</int:header-enricher>
+	
+	<int:header-enricher input-channel="subflow-input2"
+		output-channel="subflow-output2">
+		<int:header name="gateway" value="yeah!" />
+	</int:header-enricher>
+
+	<int:channel id="subflow-output" />
+	<int:channel id="subflow-output2" />
+
+</beans>

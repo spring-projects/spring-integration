@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+    xmlns:int-script="http://www.springframework.org/schema/integration/scripting"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/integration/script http://www.springframework.org/schema/integration/script-2.1.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/scripting http://www.springframework.org/schema/integration/scripting/spring-integration-scripting.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+	
+	<int-flow:flow-configuration>
+		<int-flow:port-mapping input-channel="inputChannel" output-channel="outputChannel"/>
+	</int-flow:flow-configuration>
+
+	<tx:annotation-driven/>
+	<!-- Invoke the gateway via a transactional method -->
+	<int:service-activator id="serviceActivator" 
+	    input-channel="inputChannel"
+		output-channel="outputChannel">
+		<bean class="org.springframework.integration.flow.Transaction.TransactionalServiceActivator">
+			<constructor-arg ref="gateway"/>
+		</bean>
+	</int:service-activator>
+	
+	 <int:gateway id="gateway"  
+	 	default-request-channel="requestChannel" 
+	 	default-reply-channel="replyChannel"/>
+	 	 
+	 <int:service-activator input-channel="requestChannel" output-channel="replyChannel">
+	 	<int-script:script lang="groovy"><![CDATA[
+	 		if (payload.equals("rollback")) {
+	 			throw new RuntimeException("received rollback command")
+	 		}
+	 		return payload
+	 	]]>
+	 	</int-script:script>
+	 </int:service-activator>	 
+	 
+	 <int:channel id="replyChannel"/>
+	 
+	 <int:channel id="outputChannel"/>
+	 
+</beans>

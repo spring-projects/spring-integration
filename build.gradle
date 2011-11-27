@@ -232,6 +232,18 @@ project('spring-integration-file') {
     }
 }
 
+project('spring-integration-flow') {
+    description = 'Spring Integration Flow Support'
+    dependencies {
+        compile project(":spring-integration-core")
+        compile "org.springframework:spring-context:$springVersion"
+        compile "commons-lang:commons-lang:2.6"
+        testCompile project(":spring-integration-test")
+        testCompile project(":spring-integration-jmx")
+        testCompile project(":spring-integration-groovy")
+    }
+}
+
 project('spring-integration-ftp') {
     description = 'Spring Integration FTP Support'
     dependencies {
