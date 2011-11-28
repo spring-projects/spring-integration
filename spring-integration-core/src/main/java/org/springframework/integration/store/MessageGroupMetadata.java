@@ -18,8 +18,8 @@ package org.springframework.integration.store;
 
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.integration.Message;
@@ -35,11 +35,9 @@ public class MessageGroupMetadata implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	private final static String CREATED_DATE = "CREATED_DATE";
-
 	private final Object groupId;
-
-	private final TreeMap<Long, UUID> messageCreationDateToIdMappings;
+	
+	private final List<UUID> messageIds = new LinkedList<UUID>();
 
 	private final boolean complete;
 
@@ -53,15 +51,8 @@ public class MessageGroupMetadata implements Serializable{
 		
 		Assert.notNull(messageGroup, "'messageGroup' must not be null");
 		this.groupId = messageGroup.getGroupId();
-		this.messageCreationDateToIdMappings = new TreeMap<Long, UUID>();
-
 		for (Message<?> message : messageGroup.getMessages()) {
-			Long createdDate = (Long) message.getHeaders().get(CREATED_DATE);
-			Assert.notNull(createdDate > 0,  CREATED_DATE  + " must not be null");
-			if (this.messageCreationDateToIdMappings.containsKey(createdDate)){
-				createdDate += 1;
-			}
-			this.messageCreationDateToIdMappings.put(createdDate, message.getHeaders().getId());
+			this.messageIds.add(message.getHeaders().getId());
 		}
 		this.complete = messageGroup.isComplete();
 		this.timestamp = messageGroup.getTimestamp();
@@ -70,14 +61,7 @@ public class MessageGroupMetadata implements Serializable{
 	}
 
 	public void remove(UUID messageId){
-		long currentTimestamp = 0;
-		for (Entry<Long, UUID> entry : messageCreationDateToIdMappings.entrySet()) {
-			if (entry.getValue().equals(messageId)){
-				currentTimestamp = entry.getKey();
-				break;
-			}
-		}
-		this.messageCreationDateToIdMappings.remove(currentTimestamp);
+		this.messageIds.remove(messageId);
 	}
 	
 	public void setLastModified(long lastModified) {
@@ -89,14 +73,14 @@ public class MessageGroupMetadata implements Serializable{
 	}
 	
 	public Iterator<UUID> messageIdIterator(){
-		return this.messageCreationDateToIdMappings.values().iterator();
+		return this.messageIds.iterator();
 	}
 	
 	public UUID firstId(){
-		Entry<Long, UUID> firstEntry = messageCreationDateToIdMappings.firstEntry();
-		if (firstEntry != null){
-			return firstEntry.getValue();
+		if (this.messageIds.size() > 0){
+			return this.messageIds.iterator().next();
 		}
+		
 		return null;
 	}
 
@@ -115,5 +99,4 @@ public class MessageGroupMetadata implements Serializable{
 	public int getLastReleasedMessageSequenceNumber() {
 		return this.lastReleasedMessageSequenceNumber;
 	}
-
 }
