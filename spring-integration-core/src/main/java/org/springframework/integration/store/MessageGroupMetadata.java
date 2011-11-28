@@ -58,6 +58,9 @@ public class MessageGroupMetadata implements Serializable{
 		for (Message<?> message : messageGroup.getMessages()) {
 			Long createdDate = (Long) message.getHeaders().get(CREATED_DATE);
 			Assert.notNull(createdDate > 0,  CREATED_DATE  + " must not be null");
+			if (this.messageCreationDateToIdMappings.containsKey(createdDate)){
+				createdDate += 1;
+			}
 			this.messageCreationDateToIdMappings.put(createdDate, message.getHeaders().getId());
 		}
 		this.complete = messageGroup.isComplete();
