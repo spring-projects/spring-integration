@@ -194,6 +194,7 @@ public class GemfireGroupStoreTests {
 		
 		Message<?> message = new GenericMessage<String>("1");
 		store1.addMessageToGroup(1, message);
+		
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 		
 		assertEquals(2, messageGroup.getMessages().size());
