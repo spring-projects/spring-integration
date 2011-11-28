@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
@@ -193,6 +194,7 @@ public class GemfireGroupStoreTests {
 		
 		Message<?> message = new GenericMessage<String>("1");
 		store1.addMessageToGroup(1, message);
+		Thread.sleep(100);
 		MessageGroup messageGroup = store2.addMessageToGroup(1, new GenericMessage<String>("2"));
 		
 		assertEquals(2, messageGroup.getMessages().size());
