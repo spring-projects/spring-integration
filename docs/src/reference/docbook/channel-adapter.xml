@@ -118,8 +118,14 @@
     <para>
       Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
       instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
-      of the &lt;inbound-channel-adapter/&gt; or &lt;outbound-channel-adapter&gt; element. Therefore, if the "channel"
+      of the <code>&lt;inbound-channel-adapter&gt;</code> or <code>&lt;outbound-channel-adapter&gt;</code> element. Therefore, if the "channel"
       is not provided, the "id" is required.
+    </para>
+    <para>
+      As many other Spring Integration components <code>&lt;inbound-channel-adapter&gt;</code> and <code>&lt;outbound-channel-adapter&gt;</code>
+      also support SpEL evaluation as contrast to method-invocation on POJO, with the same limitations:
+      <emphasis>expression</emphasis> for <code>&lt;inbound-channel-adapter&gt;</code> must always return <emphasis>non-null</emphasis> value,
+      and the one for <code>&lt;outbound-channel-adapter&gt;</code> must be <emphasis>void</emphasis>.
     </para>
   </section>
 
