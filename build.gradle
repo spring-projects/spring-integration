@@ -128,7 +128,7 @@ configure(javaprojects) {
     springDataRedisVersion = '1.0.0.RC1'
     springGemfireVersion = '1.1.0.M3'
     springSecurityVersion = '3.0.6.RELEASE'
-    springWsVersion = '2.0.2.RELEASE'
+    springWsVersion = '2.0.3.RELEASE'
 
     sourceSets {
         test {
