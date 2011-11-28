@@ -243,7 +243,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			else {
 				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + 
-						"' since '" + resultFile.getName() + "' is not writable or source file '" + tempFile + "' can not be deleted");
+						"' since '" + resultFile.getName() + "' is not writable or can not be deleted");
 			}
 		}
 		else { 
