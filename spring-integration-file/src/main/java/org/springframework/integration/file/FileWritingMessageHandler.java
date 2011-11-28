@@ -205,7 +205,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 		}
 		FileCopyUtils.copy(sourceFile, tempFile);
-		tempFile.renameTo(resultFile);
+		this.renameTo(tempFile, resultFile);
 		if (this.deleteSourceFiles) {
 			sourceFile.delete();
 		}
@@ -214,7 +214,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private File handleByteArrayMessage(byte[] bytes, File originalFile, File tempFile, File resultFile) throws IOException {
 		FileCopyUtils.copy(bytes, tempFile);
-		tempFile.renameTo(resultFile);
+		this.renameTo(tempFile, resultFile);
 		if (this.deleteSourceFiles && originalFile != null) {
 			originalFile.delete();
 		}
@@ -224,11 +224,33 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private File handleStringMessage(String content, File originalFile, File tempFile, File resultFile) throws IOException {
 		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), this.charset);
 		FileCopyUtils.copy(content, writer);
-		tempFile.renameTo(resultFile);
+		this.renameTo(tempFile, resultFile);
 		if (this.deleteSourceFiles && originalFile != null) {
 			originalFile.delete();
 		}
 		return resultFile;
+	}
+	
+	private void renameTo(File tempFile, File resultFile) throws IOException{
+		Assert.notNull(resultFile, "'resultFile' must not be null");
+		Assert.notNull(tempFile, "'tempFile' must not be null");
+		
+		if (resultFile.exists()) {
+			if (resultFile.setWritable(true, false) && resultFile.delete()){			
+				if (!tempFile.renameTo(resultFile)) {
+					throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
+				}
+			}
+			else {
+				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + 
+						"' since '" + resultFile.getName() + "' is not writable or can not be deleted");
+			}
+		}
+		else { 
+			if (!tempFile.renameTo(resultFile)) {
+				throw new IOException("Failed to rename file '" + tempFile.getAbsolutePath() + "' to '" + resultFile.getAbsolutePath() + "'");
+			}
+		}
 	}
 
 }
