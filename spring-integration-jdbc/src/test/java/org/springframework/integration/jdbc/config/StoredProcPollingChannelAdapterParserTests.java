@@ -13,11 +13,6 @@
 
 package org.springframework.integration.jdbc.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +20,7 @@ import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -35,6 +31,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Gunnar Hillert
@@ -73,7 +74,8 @@ public class StoredProcPollingChannelAdapterParserTests {
         assertTrue("skipUndeclaredResults was not set and should default to 'true'", skipUndeclaredResults);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testProcedurepParametersAreSet() throws Exception {
         setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
@@ -112,7 +114,8 @@ public class StoredProcPollingChannelAdapterParserTests {
 
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testReturningResultSetRowMappersAreSet() throws Exception {
         setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 
@@ -137,7 +140,8 @@ public class StoredProcPollingChannelAdapterParserTests {
     }
 
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testSqlParametersAreSet() throws Exception {
         setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
 

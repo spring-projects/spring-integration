@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,17 +24,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.sql.DataSource;
-
-import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Gunnar Hillert
@@ -46,30 +44,25 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
 
-    private static Logger logger = Logger.getLogger(StoredProcPollingChannelAdapterWithSpringContextIntegrationTests.class);
-
-    @Autowired
-    private DataSource datasource;
-
     @Autowired
     private AbstractApplicationContext context;
 
     @Autowired
     private Consumer consumer;
 
-    @Test
+	@Test
     public void test() throws Exception {
-        List<Message<?>> received = new ArrayList<Message<?>>();
+        List<Message<Collection<Integer>>> received = new ArrayList<Message<Collection<Integer>>>();
 
         received.add(consumer.poll(2000));
 
-        Message<?> message = received.get(0);
+        Message<Collection<Integer>> message = received.get(0);
         context.stop();
         assertNotNull(message);
         assertNotNull(message.getPayload());
         assertNotNull(message.getPayload() instanceof Collection<?>);
 
-        Collection<Integer> primeNumbers = (Collection<Integer>) message.getPayload();
+        Collection<Integer> primeNumbers = message.getPayload();
 
         assertTrue(primeNumbers.size() == 4);
 
@@ -91,14 +84,14 @@ public class StoredProcPollingChannelAdapterWithSpringContextIntegrationTests {
 
     static class Consumer {
 
-        private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
+        private final BlockingQueue<Message<Collection<Integer>>> messages = new LinkedBlockingQueue<Message<Collection<Integer>>>();
 
         @ServiceActivator
-        public void receive(Message<?>message) {
+        public void receive(Message<Collection<Integer>>message) {
             messages.add(message);
         }
 
-        Message<?> poll(long timeoutInMillis) throws InterruptedException {
+        Message<Collection<Integer>> poll(long timeoutInMillis) throws InterruptedException {
             return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
         }
     }

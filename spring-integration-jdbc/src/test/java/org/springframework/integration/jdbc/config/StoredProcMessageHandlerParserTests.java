@@ -58,7 +58,8 @@ public class StoredProcMessageHandlerParserTests {
         assertEquals("Resolution Required should be 'testProcedure1' but was " + testProcedure1, "testProcedure1",  testProcedure1);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testProcedurepParametersAreSet() throws Exception {
         setUp("basicStoredProcOutboundChannelAdapterTest.xml", getClass());
 
@@ -99,7 +100,8 @@ public class StoredProcMessageHandlerParserTests {
 
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testSqlParametersAreSet() throws Exception {
         setUp("basicStoredProcOutboundChannelAdapterTest.xml", getClass());
 

@@ -108,6 +108,7 @@ public class FtpInboundChannelAdapterParserTests {
 
 	public static class TestSessionFactoryBean implements FactoryBean<DefaultFtpSessionFactory> {
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public DefaultFtpSessionFactory getObject() throws Exception {
 			DefaultFtpSessionFactory factory = mock(DefaultFtpSessionFactory.class);
 			Session session = mock(Session.class);

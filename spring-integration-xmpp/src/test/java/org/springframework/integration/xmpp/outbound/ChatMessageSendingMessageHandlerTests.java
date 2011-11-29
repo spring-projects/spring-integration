@@ -49,7 +49,7 @@ public class ChatMessageSendingMessageHandlerTests {
 		ChatMessageSendingMessageHandler handler = new ChatMessageSendingMessageHandler(connection);
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("Test Message").
-					setHeader(XmppHeaders.CHAT_TO, "kermit@frog.com").
+					setHeader(XmppHeaders.TO, "kermit@frog.com").
 					build();
 		// first Message new 
 		handler.handleMessage(message);
@@ -67,8 +67,8 @@ public class ChatMessageSendingMessageHandlerTests {
 		
 		// assuming we know thread ID although currently we do not provide this capability
 		message = MessageBuilder.withPayload("Hello Kitty").
-			setHeader(XmppHeaders.CHAT_TO, "kermit@frog.com").
-			setHeader(XmppHeaders.CHAT_THREAD_ID, "123").
+			setHeader(XmppHeaders.TO, "kermit@frog.com").
+			setHeader(XmppHeaders.THREAD, "123").
 			build();
 		
 		class EqualSmackMessageWithThreadId extends ArgumentMatcher<org.jivesoftware.smack.packet.Message> {
