@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,11 +24,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.sql.DataSource;
-
-import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
@@ -41,17 +36,15 @@ import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Gunnar Hillert
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
-
-    private static Logger logger = Logger.getLogger(StoredProcOutboundGatewayWithSpringContextIntegrationTests.class);
-
-    @Autowired
-    private DataSource datasource;
 
     @Autowired
     private AbstractApplicationContext context;
@@ -62,22 +55,22 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
     @Autowired
     CreateUser createUser;
     
-    @Test
+	@Test
     public void test() throws Exception {
     	
     	createUser.createUser(new User("myUsername", "myPassword", "myEmail"));
     	
-        List<Message<?>> received = new ArrayList<Message<?>>();
+        List<Message<Collection<User>>> received = new ArrayList<Message<Collection<User>>>();
 
         received.add(consumer.poll(2000));
 
-        Message<?> message = received.get(0);
+        Message<Collection<User>> message = received.get(0);
         context.stop();
         assertNotNull(message);
         assertNotNull(message.getPayload());
         assertNotNull(message.getPayload() instanceof Collection<?>);
 
-        Collection<User> allUsers = (Collection<User>) message.getPayload();
+        Collection<User> allUsers = message.getPayload();
 
         assertTrue(allUsers.size() == 1);
 
@@ -99,14 +92,14 @@ public class StoredProcOutboundGatewayWithSpringContextIntegrationTests {
 
     static class Consumer {
 
-        private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
+        private final BlockingQueue<Message<Collection<User>>> messages = new LinkedBlockingQueue<Message<Collection<User>>>();
 
         @ServiceActivator
-        public void receive(Message<?>message) {
+        public void receive(Message<Collection<User>> message) {
             messages.add(message);
         }
 
-        Message<?> poll(long timeoutInMillis) throws InterruptedException {
+        Message<Collection<User>> poll(long timeoutInMillis) throws InterruptedException {
             return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
         }
     }

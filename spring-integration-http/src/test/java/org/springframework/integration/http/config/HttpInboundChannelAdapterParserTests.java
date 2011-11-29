@@ -121,7 +121,7 @@ public class HttpInboundChannelAdapterParserTests {
 		headers.set("foo", "foo");
 		headers.set("bar", "bar");
 		headers.set("baz", "baz");
-		Map<String, Object> map = (Map<String, Object>) headerMapper.toHeaders(headers);
+		Map<String, Object> map = headerMapper.toHeaders(headers);
 		assertTrue(map.size() == 2);
 		assertEquals("foo", map.get("foo"));
 		assertEquals("bar", map.get("bar"));

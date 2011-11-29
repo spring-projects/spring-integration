@@ -26,6 +26,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -74,7 +75,6 @@ public class FtpInboundRemoteFileSystemSynchronizerTest {
 		ftpSessionFactory.setUsername("kermit");
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
-		
 		FtpInboundFileSynchronizer synchronizer = spy(new FtpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");

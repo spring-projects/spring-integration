@@ -39,6 +39,7 @@ import static org.junit.Assert.assertEquals;
  * @author Oleg Zhurakousky
  *
  */
+@SuppressWarnings({"rawtypes","unchecked"})
 public class SessionFactoryTests {
 
 	@Test
@@ -62,6 +63,7 @@ public class SessionFactoryTests {
 			}
 		}	
 	}
+	
 	
 	@Test
 	public void testStaleConnection() throws Exception{

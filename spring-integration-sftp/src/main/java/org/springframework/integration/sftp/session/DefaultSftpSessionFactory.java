@@ -25,6 +25,7 @@ import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Proxy;
 import com.jcraft.jsch.SocketFactory;
@@ -38,7 +39,7 @@ import com.jcraft.jsch.UserInfo;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class DefaultSftpSessionFactory implements SessionFactory {
+public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 	
 	private volatile String host;
 
@@ -141,7 +142,7 @@ public class DefaultSftpSessionFactory implements SessionFactory {
     }
     
     
-	public Session getSession() {
+	public Session<LsEntry> getSession() {
 		Assert.hasText(this.host, "host must not be empty");
 		Assert.hasText(this.user, "user must not be empty");
 		Assert.isTrue(this.port >= 0, "port must be a positive number");

@@ -16,17 +16,6 @@
 
 package org.springframework.integration.sftp.inbound;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Vector;
@@ -43,6 +32,17 @@ import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpATTRS;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Oleg Zhurakousky
@@ -75,6 +75,7 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 		ftpSessionFactory.setPassword("frog");
 		ftpSessionFactory.setHost("foo.com");
 
+		
 		SftpInboundFileSynchronizer synchronizer = spy(new SftpInboundFileSynchronizer(ftpSessionFactory));
 		synchronizer.setDeleteRemoteFiles(true);
 		synchronizer.setRemoteDirectory("remote-test-dir");
@@ -103,7 +104,9 @@ public class SftpInboundRemoteFileSystemSynchronizerTests {
 	
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 		
-		public Session getSession() {
+
+		@Override
+		public Session<LsEntry> getSession() {
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
 		

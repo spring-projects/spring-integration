@@ -38,6 +38,7 @@ import com.gemstone.gemfire.distributed.DistributedSystem;
  */
 public class CacheServerProcess {
 
+	@SuppressWarnings({ "deprecation", "rawtypes", "unchecked" })
 	public static void main(String[] args) throws Exception {
 
 		Properties props = new Properties();
@@ -45,6 +46,7 @@ public class CacheServerProcess {
 		props.setProperty("log-level", "info");
 
 		System.out.println("\nConnecting to the distributed system and creating the cache.");
+		
 		DistributedSystem ds = DistributedSystem.connect(props);
 		Cache cache = CacheFactory.create(ds);
 

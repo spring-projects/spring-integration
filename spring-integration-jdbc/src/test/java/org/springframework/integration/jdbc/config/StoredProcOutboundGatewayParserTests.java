@@ -94,7 +94,8 @@ public class StoredProcOutboundGatewayParserTests {
         assertFalse(skipUndeclaredResults);
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testProcedurepParametersAreSet() throws Exception {
         setUp("storedProcOutboundGatewayParserTest.xml", getClass());
 
@@ -133,7 +134,8 @@ public class StoredProcOutboundGatewayParserTests {
 
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testReturningResultSetRowMappersAreSet() throws Exception {
         setUp("storedProcOutboundGatewayParserTest.xml", getClass());
 
@@ -158,7 +160,8 @@ public class StoredProcOutboundGatewayParserTests {
     }
 
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testSqlParametersAreSet() throws Exception {
         setUp("storedProcOutboundGatewayParserTest.xml", getClass());
 

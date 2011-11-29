@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 
 import org.springframework.integration.MessagingException;
@@ -38,7 +39,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory {
+public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements SessionFactory<FTPFile> {
 
 	public static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 
@@ -123,7 +124,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.clientMode = clientMode;
 	}
 
-	public Session getSession() {
+	public Session<FTPFile> getSession() {
 		try {
 			T client = this.createClient();
 			if (client == null) {
