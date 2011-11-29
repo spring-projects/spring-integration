@@ -32,18 +32,20 @@ import org.springframework.integration.support.MessageBuilder;
 public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 
 	Log logger = LogFactory.getLog(this.getClass());
-	
-	private boolean negotiated;
-	
-	private Semaphore negotiationSemaphore = new Semaphore(0);
-	
-	private long timeout = 10000;
-	
-	private String hello = "Hello";
 
-	private String world = "world!";
-	
-	private boolean closeReceived;
+	private volatile boolean negotiated;
+
+	private final Semaphore negotiationSemaphore = new Semaphore(0);
+
+	private volatile long timeout = 10000;
+
+	private volatile String hello = "Hello";
+
+	private volatile String world = "world!";
+
+	private volatile boolean closeReceived;
+
+	private volatile boolean pendingSend;
 
 	public HelloWorldInterceptor() { 
 	}
@@ -65,7 +67,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 			if (this.isServer()) {
 				if (payload.equals(hello)) {
 					try {
-						logger.debug("sending " + this.world);
+						logger.debug(this.toString() + " sending " + this.world);
 						super.send(MessageBuilder.withPayload(world).build());
 						this.negotiated = true;
 						return true;
@@ -77,7 +79,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 							     "' received '" + payload + "'");
 				}
 			} else {
-				logger.debug("received " + payload);
+				logger.debug(this.toString() + " received " + payload);
 				if (payload.equals(world)) {
 					this.negotiated = true;
 					this.negotiationSemaphore.release();
@@ -92,7 +94,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 			return super.onMessage(message);
 		} finally {
 			// on the server side, we don't want to close if we are expecting a response 
-			if (!(this.isServer() && this.hasRealSender())) {
+			if (!(this.isServer() && this.hasRealSender()) && !this.pendingSend) {
 				this.checkDeferredClose();
 			}
 		}
@@ -100,10 +102,11 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 
 	@Override
 	public void send(Message<?> message) throws Exception {
+		this.pendingSend = true;
 		try {
 			if (!this.negotiated) {
 				if (!this.isServer()) {
-					logger.debug("Sending " + hello);
+					logger.debug(this.toString() + " Sending " + hello);
 					super.send(MessageBuilder.withPayload(hello).build());
 					this.negotiationSemaphore.tryAcquire(this.timeout, TimeUnit.MILLISECONDS);
 					if (!this.negotiated) {
@@ -113,6 +116,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 			}
 			super.send(message);
 		} finally {
+			this.pendingSend = false;
 			this.checkDeferredClose();
 		}
 	}
@@ -122,7 +126,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 	 */
 	@Override
 	public void close() {
-		if (this.negotiated) {
+		if (this.negotiated && !this.pendingSend) {
 			super.close();
 			return;
 		}
