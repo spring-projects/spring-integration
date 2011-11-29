@@ -125,4 +125,44 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire
 	This adapter also supports the <code>order</code> attribute which may be useful if it is bound to a PublishSubscribeChannel.  
 	</para>
   </section>
+  
+  <section id="gemfire-message-store">
+    <title>Gemfire Message Store</title>
+	
+	<para>
+    As described in EIP, a <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> allows you to persist Messages.
+    This can be very useful when dealing with components that have a capability to buffer messages
+    (<emphasis>QueueChannel, Aggregator, Resequencer</emphasis>, etc.) if reliability is a concern.
+    In Spring Integration, the MessageStore strategy also provides the foundation for the 
+	<ulink url="http://www.eaipatterns.com/StoreInLibrary.html">ClaimCheck</ulink> pattern, which is described in EIP as well.
+	</para>
+
+	<para>
+    Spring Integration's Gemfire module provides the <classname>GemfireMessageStore</classname> which is an implementation of both the
+    the <classname>MessageStore</classname> strategy (mainly used by the <emphasis>QueueChannel</emphasis> and <emphasis>ClaimCheck</emphasis>
+    patterns) and the <classname>MessageGroupStore</classname> strategy (mainly used by the <emphasis>Aggregator</emphasis> and
+    <emphasis>Resequencer</emphasis> patterns).
+    </para>
+
+	<para>
+	<programlisting lang="xml"><![CDATA[<bean id="gemfireMessageStore" class="org.springframework.integration.gemfire.store.GemfireMessageStore">
+		<constructor-arg ref="myCache"/>
+	</bean>
+	
+	<bean id="myCache" class="org.springframework.data.gemfire.CacheFactoryBean"/>
+
+<int:channel id="somePersistentQueueChannel">
+    <int:queue message-store="gemfireMessageStore"/>
+<int:channel>
+
+<int:aggregator input-channel="inputChannel" output-channel="outputChannel"
+         message-store="gemfireMessageStore"/>]]></programlisting>
+    </para>
+
+    <para>
+    Above is a sample <classname>GemfireMessageStore</classname> configuration that shows its usage by a <emphasis>QueueChannel</emphasis>
+    and an <emphasis>Aggregator</emphasis>. As you can see it is a simple bean configuration, and it expects a
+    <classname>GemFireCache</classname> (created by <classname>CacheFactoryBean</classname>) as a constructor argument.
+    </para>
+  </section>
 </chapter>
