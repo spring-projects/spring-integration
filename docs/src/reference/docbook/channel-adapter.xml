@@ -123,9 +123,9 @@
     </para>
     <para>
       As many other Spring Integration components <code>&lt;inbound-channel-adapter&gt;</code> and <code>&lt;outbound-channel-adapter&gt;</code>
-      also support SpEL evaluation as contrast to method-invocation on POJO, with the same limitations:
+      also provide support for SpEL expression via 'expression' attribute in contrast to method-invocation via 'bean reference/method', while following the same contract where:
       <emphasis>expression</emphasis> for <code>&lt;inbound-channel-adapter&gt;</code> must always return <emphasis>non-null</emphasis> value,
-      and the one for <code>&lt;outbound-channel-adapter&gt;</code> must be <emphasis>void</emphasis>.
+      while the one for <code>&lt;outbound-channel-adapter&gt;</code> must be equivalent of <emphasis>void</emphasis> return type.
     </para>
   </section>
 
