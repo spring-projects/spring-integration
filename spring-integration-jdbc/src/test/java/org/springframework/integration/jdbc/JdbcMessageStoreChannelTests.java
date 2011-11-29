@@ -58,7 +58,7 @@ public class JdbcMessageStoreChannelTests {
 		input.send(new GenericMessage<String>("foo"));
 		Service.await(10000);
 		assertEquals(1, Service.messages.size());
-		assertEquals(0, messageStore.getMessageGroup("input-queue").size());
+		assertEquals(0, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
 	
 	@Test
@@ -69,7 +69,7 @@ public class JdbcMessageStoreChannelTests {
 		Service.await(10000);
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
-		assertEquals(1, messageStore.getMessageGroup("input-queue").size());
+		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
 	
 	@Test
@@ -87,7 +87,7 @@ public class JdbcMessageStoreChannelTests {
 		// So no activation
 		assertEquals(0, Service.messages.size());
 		// But inside the transaction the message is still there
-		assertEquals(1, messageStore.getMessageGroup("input-queue").size());
+		assertEquals(1, messageStore.getMessageGroup("JdbcMessageStoreChannelTests").size());
 	}
 	
 	public static class Service {
