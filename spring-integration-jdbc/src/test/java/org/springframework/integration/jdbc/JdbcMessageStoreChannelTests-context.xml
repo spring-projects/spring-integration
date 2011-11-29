@@ -27,7 +27,7 @@
 
 	<bean id="queue" class="org.springframework.integration.store.MessageGroupQueue">
 		<constructor-arg ref="messageStore" />
-		<constructor-arg value="input-queue" />
+		<constructor-arg value="JdbcMessageStoreChannelTests" />
 	</bean>
 
 	<service-activator id="service-activator" input-channel="input" output-channel="output" xmlns="http://www.springframework.org/schema/integration">
