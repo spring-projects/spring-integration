@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -26,15 +23,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Gunnar Hillert
@@ -43,27 +43,26 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
-    private static Logger logger = Logger.getLogger(StoredProcPollingChannelAdapterWithNamespace2IntegrationTests.class);
-
     @Autowired
     private AbstractApplicationContext context;
 
     @Autowired
     private Consumer consumer;
 
-    @Test
+   
+	@Test
     public void pollH2DatabaseUsingStoredProcedureCall() throws Exception {
-        List<Message<?>> received = new ArrayList<Message<?>>();
+        List<Message<List<Integer>>> received = new ArrayList<Message<List<Integer>>>();
 
         received.add(consumer.poll(60000));
 
-        Message<?> message = received.get(0);
+        Message<List<Integer>> message = received.get(0);
         context.stop();
         assertNotNull(message);
         assertNotNull(message.getPayload());
         assertTrue(message.getPayload() instanceof List<?>);
         
-        List<Integer> resultList = (List<Integer>) message.getPayload();
+        List<Integer> resultList = message.getPayload();
         
         assertTrue(resultList.size() == 1);
 
@@ -85,14 +84,14 @@ public class StoredProcPollingChannelAdapterWithNamespace2IntegrationTests {
 
     static class Consumer {
 
-        private final BlockingQueue<Message<?>> messages = new LinkedBlockingQueue<Message<?>>();
+        private final BlockingQueue<Message<List<Integer>>> messages = new LinkedBlockingQueue<Message<List<Integer>>>();
 
         @ServiceActivator
-        public void receive(Message<?>message) {
+        public void receive(Message<List<Integer>>message) {
             messages.add(message);
         }
 
-        Message<?> poll(long timeoutInMillis) throws InterruptedException {
+        Message<List<Integer>> poll(long timeoutInMillis) throws InterruptedException {
             return messages.poll(timeoutInMillis, TimeUnit.MILLISECONDS);
         }
     }

@@ -17,13 +17,15 @@ package org.springframework.integration.sftp.session;
 
 import org.springframework.integration.file.remote.session.Session;
 
+import com.jcraft.jsch.ChannelSftp.LsEntry;
+
 /**
  * @author Oleg Zhurakousky
  * 
  */
 public class SftpTestSessionFactory {
 
-	public static Session createSftpSession(com.jcraft.jsch.Session jschSession) {
+	public static Session<LsEntry> createSftpSession(com.jcraft.jsch.Session jschSession) {
 		SftpSession sftpSession = new SftpSession(jschSession);
 		sftpSession.connect();
 		return sftpSession;

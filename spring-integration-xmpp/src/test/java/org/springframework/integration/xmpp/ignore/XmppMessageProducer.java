@@ -55,7 +55,7 @@ public class XmppMessageProducer implements MessageSource<String> {
 
 			logger.info("sending message to recipient " + recipient);
 
-			return MessageBuilder.withPayload(msg).setHeader(XmppHeaders.CHAT_TO, recipient).build();
+			return MessageBuilder.withPayload(msg).setHeader(XmppHeaders.TO, recipient).build();
 		}
 		catch (InterruptedException e) {
 			logger.debug("exception thrown when trying to receive a message", e);

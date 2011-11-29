@@ -47,10 +47,12 @@ import org.springframework.integration.message.GenericMessage;
  * @since 2.1
  *
  */
+@SuppressWarnings("rawtypes")
 public class RemoteFileOutboundGatewayTests {
 
 	private String tmpDir = System.getProperty("java.io.tmpdir");
 
+	
 	@Test
 	public void testLs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
@@ -247,7 +249,7 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-			@SuppressWarnings("unchecked")
+	
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
@@ -301,7 +303,7 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-			@SuppressWarnings("unchecked")
+			
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
@@ -353,7 +355,7 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-			@SuppressWarnings("unchecked")
+			
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
@@ -407,6 +409,7 @@ public class RemoteFileOutboundGatewayTests {
 
 class TestRemoteFileOutboundGateway extends AbstractRemoteFileOutboundGateway<TestLsEntry> {
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public TestRemoteFileOutboundGateway(SessionFactory sessionFactory,
 			String command, String expression) {
 		super(sessionFactory, command, expression);

@@ -41,6 +41,7 @@ import org.springframework.integration.sftp.session.SftpTestSessionFactory;
 import org.springframework.util.FileCopyUtils;
 
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 /**
  * @author Oleg Zhurakousky
@@ -55,7 +56,7 @@ public class SftpSendingMessageHandlerTests {
 		if (file.exists()){
 			file.delete();
 		}
-		SessionFactory sessionFactory = new TestSftpSessionFactory();
+		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("payload + '.test'");
@@ -66,21 +67,20 @@ public class SftpSendingMessageHandlerTests {
 		assertTrue(new File("remote-target-dir", "template.mf.test").exists());
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleStringMessage() throws Exception {
 		File file = new File("remote-target-dir", "foo.txt");
 		if (file.exists()){
 			file.delete();
 		}
-		SessionFactory sessionFactory = new TestSftpSessionFactory();
+		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
 		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage("hello"));
+		handler.handleMessage(new GenericMessage<String>("hello"));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
 	
@@ -104,12 +104,12 @@ public class SftpSendingMessageHandlerTests {
 	
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 		
-		@SuppressWarnings("rawtypes")
-		public Session getSession() {
+		@Override
+		public Session<LsEntry> getSession() {
 			try {
 				ChannelSftp channel = mock(ChannelSftp.class);
 
-				doAnswer(new Answer() {
+				doAnswer(new Answer<Object>() {
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {	
 						File file = new File((String)invocation.getArguments()[1]);
@@ -120,7 +120,7 @@ public class SftpSendingMessageHandlerTests {
 					
 				}).when(channel).put(Mockito.any(InputStream.class), Mockito.anyString());
 				
-				doAnswer(new Answer() {
+				doAnswer(new Answer<Object>() {
 					public Object answer(InvocationOnMock invocation)
 							throws Throwable {
 						File file = new File((String) invocation.getArguments()[0]);

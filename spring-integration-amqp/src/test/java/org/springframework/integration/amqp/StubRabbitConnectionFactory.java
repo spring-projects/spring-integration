@@ -84,8 +84,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 			return false;
 		}
 	}
-
-
+	
 	private static class StubChannel implements Channel {
 
 		public void addShutdownListener(ShutdownListener listener) {
@@ -327,7 +326,8 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public RecoverOk basicRecover(boolean requeue) throws IOException {
 			return null;
 		}
-
+		
+		@Deprecated
 		public void basicRecoverAsync(boolean requeue) throws IOException {
 		}
 
