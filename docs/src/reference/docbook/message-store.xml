@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="message-store"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>Message Store</title>
+  <para>
+   Enterprise Integration Patterns (EIP) identifies several patterns that have the capability to buffer messages. For example,
+   an <emphasis>Aggregator</emphasis> buffers messages until they can be released and a <emphasis>QueueChannel</emphasis> buffers 
+   messages until consumers explicitly receive those messages from that channel. 
+   Because of the failures that can occur at any point within your message flow, EIP components that buffer 
+   messages also introduce a point where messages could be lost.
+  </para>
+
+  <para>
+  To mitigate the risk of losing Messages, EIP defines the <ulink url="http://eaipatterns.com/MessageStore.html">Message Store</ulink> pattern which allows 
+  EIP components to store <emphasis>Messages</emphasis> typically in some type of persistent store (e.g. RDBMS).
+  </para>
+  
+  <para>
+  Spring Integration provides support for the <emphasis>Message Store</emphasis> pattern by 
+  a) defining a <classname>org.springframework.integration.store.MessageStore</classname> strategy interface,
+  b) providing several implementations of this interface, and
+  c) exposing a <code>message-store</code> attribute on all components that have the capability to buffer messages
+  so that you can inject any instance that implements the <classname>MessageStore</classname> interface.
+  </para>
+  
+  <para>Details on how to configure a specific <emphasis>Message Store</emphasis> implementation and/or how to inject 
+  a <classname>MessageStore</classname> implementation into a specific buffering component are described 
+  throughout the manual (see the specific component, such as <emphasis>QueueChannel</emphasis>, <emphasis>Aggregator</emphasis>, 
+  <emphasis>Resequencer</emphasis> etc.), but here are a couple of samples to give you an idea:
+  </para>
+  
+  <para>
+  QueueChannel
+  <programlisting language="xml"><![CDATA[<int:channel id="myQueueChannel">
+    <int:queue message-store="refToMessageStore"/> 
+<int:channel>]]></programlisting> 
+  </para>
+
+  <para>
+  Aggregator
+  <programlisting language="xml"><![CDATA[<int:aggregator . . . message-store="refToMessageStore"/>]]></programlisting>
+  </para>
+  
+  <para>
+  By default <emphasis>Messages</emphasis> are stored in-memory using <classname>org.springframework.integration.store.SimpleMessageStore</classname>,
+  an implementation of <classname>MessageStore</classname>. That might be fine for development or simple low-volume environments where the potential loss
+  of non-persistent messages is not a concern. However, the typical production application will need a more robust option, not only to mitigate the risk of
+  message loss but also to avoid potential out-of-memory errors. Therefore, we also provide MessageStore implementations for a variety of data-stores.
+  Below is a complete list of supported implementations:
+ 
+      <itemizedlist>
+          <listitem><xref linkend="jdbc-message-store"/> - uses RDBMS to store Messages</listitem>
+          <listitem><xref linkend="redis-message-store"/> - uses Redis key/value datastore to store Messages</listitem>
+          <listitem><xref linkend="mongodb-message-store"/> - uses MongoDB document store to store Messages</listitem>
+          <listitem><xref linkend="gemfire-message-store"/> - uses Gemfire distributed cache to store Messages</listitem>
+      </itemizedlist>
+  </para>
+
+</section>

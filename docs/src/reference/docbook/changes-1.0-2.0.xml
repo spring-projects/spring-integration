@@ -82,7 +82,7 @@
             We now provide support for the <ulink url="http://www.eaipatterns.com/MessageStore.html">Message Store</ulink> pattern.
             The Message Store provides a strategy for persisting messages on behalf of any process whose scope extends beyond a single
             transaction, such as the Aggregator and Resequencer. Many sections of this document provide samples on how to use a Message Store as it
-            affects several areas of Spring Integration. See <xref linkend="claim-check"/>,
+            affects several areas of Spring Integration. See <xref linkend="message-store"/>, <xref linkend="claim-check"/>,
             <xref linkend="channel"/>, <xref linkend="aggregator"/>, <xref linkend="jdbc"/>, and <xref linkend="resequencer"/> for more details
             </para>
         </section>
