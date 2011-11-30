@@ -43,7 +43,6 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
-
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
@@ -495,13 +494,15 @@ public class TcpSendingMessageHandlerTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
-					while (true) {
+					for (int i = 0; i < 2; i++) {
 						Socket socket = server.accept();
 						semaphore.release();
 						byte[] b = new byte[6];
 						readFully(socket.getInputStream(), b);
 						semaphore.release();
+						socket.close();
 					}
+					server.close();
 				} catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
@@ -523,6 +524,7 @@ public class TcpSendingMessageHandlerTests {
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		assertTrue(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -536,13 +538,15 @@ public class TcpSendingMessageHandlerTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
-					while (true) {
+					for (int i = 0; i < 2; i++) {
 						Socket socket = server.accept();
 						semaphore.release();
-						byte[] b = new byte[6];
+						byte[] b = new byte[8];
 						readFully(socket.getInputStream(), b);
 						semaphore.release();
+						socket.close();
 					}
+					server.close();
 				} catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
@@ -554,16 +558,17 @@ public class TcpSendingMessageHandlerTests {
 		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		ccf.setSerializer(serializer);
 		ccf.setDeserializer(serializer);
-		ccf.setSoTimeout(10000);
+		ccf.setSoTimeout(5000);
 		ccf.start();
 		ccf.setSingleUse(true);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		handler.handleMessage(MessageBuilder.withPayload("Test.1").build());
+		handler.handleMessage(MessageBuilder.withPayload("Test.2").build());
 		assertTrue(semaphore.tryAcquire(4, 10000, TimeUnit.MILLISECONDS));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -577,15 +582,16 @@ public class TcpSendingMessageHandlerTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
-					int i = 0;
-					while (true) {
+					for (int i = 1; i < 3; i++) {
 						Socket socket = server.accept();
 						semaphore.release();
 						byte[] b = new byte[6];
 						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (++i) + "\r\n").getBytes();
+						b = ("Reply" + i + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
+						socket.close();
 					}
+					server.close();
 				} catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
@@ -619,6 +625,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(replies.remove("Reply1"));
 		assertTrue(replies.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -632,15 +639,16 @@ public class TcpSendingMessageHandlerTests {
 				try {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
-					int i = 0;
-					while (true) {
+					for (int i = 1; i < 3; i++) {
 						Socket socket = server.accept();
 						semaphore.release();
 						byte[] b = new byte[6];
 						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (++i) + "\r\n").getBytes();
+						b = ("Reply" + i + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
+						socket.close();
 					}
+					server.close();
 				} catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
@@ -674,6 +682,7 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(replies.remove("Reply1"));
 		assertTrue(replies.remove("Reply2"));
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
@@ -686,18 +695,19 @@ public class TcpSendingMessageHandlerTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
 					latch.countDown();
-					int i = 0;
-					while (true) {
+					for (int i = 0; i < 100; i++) {
 						Socket socket = server.accept();
 						serverSockets.add(socket);
 						semaphore.release();
 						byte[] b = new byte[9];
 						readFully(socket.getInputStream(), b);
-						b = ("Reply" + (i++) + "\r\n").getBytes();
+						b = ("Reply" + i + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
+						socket.close();
 					}
+					server.close();
 				} catch (Exception e) {
 					if (!done.get()) {
 						e.printStackTrace();
@@ -740,6 +750,7 @@ public class TcpSendingMessageHandlerTests {
 			assertTrue("Reply" + i + " missing", replies.remove("Reply" + i));
 		}
 		done.set(true);
+		ccf.stop();
 	}
 
 	@Test
