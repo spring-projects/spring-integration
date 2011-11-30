@@ -100,10 +100,9 @@
                 Spring's Resource abstraction to support greater flexibility across a variety of actual types of 
                 underlying resources, such as a file, a URL, or a class path resource. Therefore, it's similar to but 
                 more generic than the <emphasis>File Inbound Channel Adapter</emphasis>.
-                See: <xref linkend="resource-inbound-channel-adapter"/>
             </para>
-            <para>
-                For further details please see <xref linkend="redis"/>.
+             <para>
+                For further details please see <xref linkend="resource-inbound-channel-adapter"/>.
             </para>
         </section>
 		<section id="2.1-new-stored-proc-support">
