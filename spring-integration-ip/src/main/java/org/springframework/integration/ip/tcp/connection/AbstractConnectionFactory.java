@@ -532,11 +532,11 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 			while (iterator.hasNext()) {
 				final SelectionKey key = iterator.next();
 				iterator.remove();
-				if (!key.isValid()) {
-					logger.debug("Selection key no longer valid");
-				}
-				else if (key.isReadable()) {
-					try {
+				try {
+					if (!key.isValid()) {
+						logger.debug("Selection key no longer valid");
+					}
+					else if (key.isReadable()) {
 						key.interestOps(key.interestOps() - key.readyOps());
 						final TcpNioConnection connection;
 						connection = (TcpNioConnection) key.attachment();
@@ -560,23 +560,23 @@ public abstract class AbstractConnectionFactory extends IntegrationObjectSupport
 									selector.wakeup();
 								}
 							}});
-					} catch (Exception e) {
-						if (e instanceof CancelledKeyException) {
-							logger.debug("Exception on readable key", e);
-							continue;
+					}
+					else if (key.isAcceptable()) {
+						try {
+							doAccept(selector, server, now);
+						} catch (Exception e) {
+							logger.error("Exception accepting new connection", e);
 						}
-						logger.error("Exception on readable key", e);
 					}
-				}
-				else if (key.isAcceptable()) {
-					try {
-						doAccept(selector, server, now);
-					} catch (Exception e) {
-						logger.error("Exception accepting new connection", e);
+					else {
+						logger.error("Unexpected key: " + key);
 					}
-				}
-				else {
-					logger.error("Unexpected key: " + key);
+				} catch (CancelledKeyException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Selection key " + key + " cancelled");
+					}
+				} catch (Exception e) {
+					logger.error("Exception on selection key " + key, e);
 				}
 			}
 		}
