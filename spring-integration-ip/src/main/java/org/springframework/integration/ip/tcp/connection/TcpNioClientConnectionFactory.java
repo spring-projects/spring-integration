@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -124,7 +125,13 @@ public class TcpNioClientConnectionFactory extends
 				int soTimeout = this.getSoTimeout();
 				int selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
 				while ((newChannel = newChannels.poll()) != null) {
-					newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
+					try {
+						newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
+					} catch (ClosedChannelException cce) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("Channel closed before registering with selector for reading");
+						}
+					}
 				}
 				this.processNioSelections(selectionCount, selector, null, this.connections);
 			}
