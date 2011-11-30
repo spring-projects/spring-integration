@@ -306,6 +306,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		try {
 			doRead();
 		} catch (ClosedChannelException cce) {
+			if (logger.isDebugEnabled()) {
+				logger.debug(this.getConnectionId() + " Channel is closed");
+			}
 			this.closeConnection();
 		} catch (Exception e) {
 			logger.error("Exception on Read " + 
