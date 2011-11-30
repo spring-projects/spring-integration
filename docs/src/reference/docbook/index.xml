@@ -131,6 +131,7 @@
       <xi:include href="./event.xml"/>
       <xi:include href="./feed.xml"/>
       <xi:include href="./file.xml"/>
+      <xi:include href="./resource.xml"/>
       <xi:include href="./ftp.xml"/>
       <xi:include href="./gemfire.xml"/>
       <xi:include href="./http.xml"/>
