@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -35,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -81,8 +83,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private Message<?> message = new GenericMessage<String>("test");
 
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void initialize() throws Exception {
+		Mockito.reset(exceptionRegistry);
+		Mockito.reset(handlerA);
+		Mockito.reset(handlerB);
+		Mockito.reset(handlerC);
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
@@ -407,7 +414,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerC, never()).handleMessage(message);
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
-
+	
 	@Test(timeout = 5000)
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerFailoverExecutor");
