@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -35,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -61,7 +63,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
     private CountDownLatch allDone;
-    private CountDownLatch start;
+
     private AtomicBoolean failed;
 
 	@Mock
@@ -81,12 +83,16 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private Message<?> message = new GenericMessage<String>("test");
 
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void initialize() throws Exception {
+		Mockito.reset(exceptionRegistry);
+		Mockito.reset(handlerA);
+		Mockito.reset(handlerB);
+		Mockito.reset(handlerC);
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
-		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);
 		scheduler.setCorePoolSize(10);
 		scheduler.setMaxPoolSize(10);
@@ -122,11 +128,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
-				try {
-					start.await();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
 				boolean sent = false;
 				try {
 					sent = channel.send(message);
@@ -142,7 +143,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-		start.countDown();
+
 		allDone.await();
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -177,18 +178,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 		
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
-				try {
-					start.await();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
 				channel.send(message);
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-		start.countDown();
+
 		allDone.await();
 		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
 		// Mockito concurrency issues
@@ -439,18 +435,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 		
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
-				try {
-					start.await();
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-				}
 				channel.send(message);
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-		start.countDown();	
+
 		allDone.await();
 		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
 		// Mockito concurrency
