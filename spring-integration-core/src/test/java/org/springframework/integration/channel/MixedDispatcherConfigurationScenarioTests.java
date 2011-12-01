@@ -16,16 +16,6 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -49,6 +40,17 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -81,8 +83,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private Message<?> message = new GenericMessage<String>("test");
 
 
+	@SuppressWarnings("unchecked")
 	@Before
 	public void initialize() throws Exception {
+		Mockito.reset(exceptionRegistry);
+		Mockito.reset(handlerA);
+		Mockito.reset(handlerB);
+		Mockito.reset(handlerC);
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
@@ -407,7 +414,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerC, never()).handleMessage(message);
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
-
+	
 	@Test(timeout = 5000)
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerFailoverExecutor");
