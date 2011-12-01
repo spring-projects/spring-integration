@@ -16,6 +16,17 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,17 +52,6 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 /**
  * @author Oleg Zhurakousky
  */
@@ -63,7 +63,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
     private CountDownLatch allDone;
-
+    private CountDownLatch start;
     private AtomicBoolean failed;
 
 	@Mock
@@ -93,6 +93,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
+		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);
 		scheduler.setCorePoolSize(10);
 		scheduler.setMaxPoolSize(10);
@@ -128,6 +129,11 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
+				try {
+					start.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 				boolean sent = false;
 				try {
 					sent = channel.send(message);
@@ -143,7 +149,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-
+		start.countDown();
 		allDone.await();
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -178,13 +184,18 @@ public class MixedDispatcherConfigurationScenarioTests {
 		
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
+				try {
+					start.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 				channel.send(message);
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-
+		start.countDown();
 		allDone.await();
 		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
 		// Mockito concurrency issues
@@ -403,7 +414,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerC, never()).handleMessage(message);
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
-
+	
 	@Test(timeout = 5000)
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerFailoverExecutor");
@@ -435,13 +446,18 @@ public class MixedDispatcherConfigurationScenarioTests {
 		
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
+				try {
+					start.await();
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
 				channel.send(message);
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
 			scheduler.execute(messageSenderTask);
 		}
-
+		start.countDown();	
 		allDone.await();
 		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
 		// Mockito concurrency
