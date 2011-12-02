@@ -122,10 +122,13 @@
       is not provided, the "id" is required.
     </para>
     <para>
-      As many other Spring Integration components <code>&lt;inbound-channel-adapter&gt;</code> and <code>&lt;outbound-channel-adapter&gt;</code>
-      also provide support for SpEL expression via 'expression' attribute in contrast to method-invocation via 'bean reference/method', while following the same contract where:
-      <emphasis>expression</emphasis> for <code>&lt;inbound-channel-adapter&gt;</code> must always return <emphasis>non-null</emphasis> value,
-      while the one for <code>&lt;outbound-channel-adapter&gt;</code> must be equivalent of <emphasis>void</emphasis> return type.
+      Like many other Spring Integration components, the <code>&lt;inbound-channel-adapter&gt;</code> and
+      <code>&lt;outbound-channel-adapter&gt;</code> also provide support for SpEL expression evaluation. To use SpEL, provide the
+      expression string via the 'expression' attribute instead of providing the 'ref' and 'method' attributes that are used for
+      method-invocation on a bean. When an Expression is evaluated, it follows the same contract as method-invocation where:
+      the <emphasis>expression</emphasis> for an <code>&lt;inbound-channel-adapter&gt;</code> will generate a message anytime the
+      evaluation result is a <emphasis>non-null</emphasis> value, while the <emphasis>expression</emphasis> for an
+      <code>&lt;outbound-channel-adapter&gt;</code> must be the equivalent of a <emphasis>void</emphasis> returning method invocation.
     </para>
   </section>
 
