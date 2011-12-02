@@ -3,8 +3,39 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
   <title>JDBC Support</title>
 
-  <para>Spring Integration provides Channel Adapters for receiving and sending
-  messages via database queries.</para>
+  <para>
+      Spring Integration provides Channel Adapters for receiving and sending
+      messages via database queries. Through those adapters Spring Integration 
+      supports not only plain JDBC SQL Queries, but also Stored Procedure and 
+      Stored Function calls.
+  </para>
+  <para>
+      The following JDBC components are available by default:
+  </para>
+      <itemizedlist>
+          <listitem>
+              <para><emphasis><link linkend='jdbc-inbound-channel-adapter'>Inbound Channel Adapter</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='jdbc-outbound-channel-adapter'>Outbound Channel Adapter</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='jdbc-outbound-gateway'>Outbound Gateway</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='stored-procedure-inbound-channel-adapter'>Stored Procedure Inbound Channel Adapter</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='stored-procedure-outbound-channel-adapter'>Stored Procedure Outbound Channel Adapter</link></emphasis></para>
+          </listitem>
+          <listitem>
+              <para><emphasis><link linkend='stored-procedure-outbound-gateway'>Stored Procedure Outbound Gateway</link></emphasis></para>
+          </listitem>
+      </itemizedlist>
+  <para>
+      Furthermore, the Spring Integration JDBC Module also provides a 
+      <emphasis><link linkend='jdbc-message-store'>JDBC Message Store</link></emphasis>
+  </para>
 
   <section id="jdbc-inbound-channel-adapter">
     <title>Inbound Channel Adapter</title>
@@ -83,29 +114,77 @@
     is to handle a message and use it to execute a SQL query. The message
     payload and headers are available by default as input parameters to the
     query, for instance:
-
+    </para>
+    
     <programlisting language="xml"><![CDATA[<int-jdbc:outbound-channel-adapter
     query="insert into foos (id, status, name) values (:headers[id], 0, :payload[foo])"
     data-source="dataSource"
     channel="input"/>]]></programlisting>
 
-    In the example above, messages arriving on the channel "input" have a payload of
-    a map with key "foo", so the <code>[]</code> operator dereferences that
-    value from the map. The headers are also accessed as a map. <note>
-         The parameters in the query above are bean property expressions on the incoming message (not Spring EL expressions). This behavior is part of the
+    <para>
+        In the example above, messages arriving on the channel labelled 
+        <emphasis>input</emphasis> have a payload of a map with key 
+        <emphasis>foo</emphasis>, so the <code>[]</code> operator dereferences 
+        that value from the map. The headers are also accessed as a map.
+    </para>
+    
+    <note>
+         The parameters in the query above are bean property expressions on the 
+         incoming message (not Spring EL expressions). This behavior is part of the
         <classname>SqlParameterSource</classname>
-         which is the default source created by the outbound adapter. Other behavior is possible in the adapter, and requires the user to inject a different
-        <classname>SqlParameterSourceFactory</classname>.
-      </note></para>
+         which is the default source created by the outbound adapter. Other 
+         behavior is possible in the adapter, and requires the user to inject a 
+         different <classname>SqlParameterSourceFactory</classname>.
+    </note>
 
-    <para>The outbound adapter requires a reference to either a DataSource or
-    a JdbcTemplate. It can also have a
-    <classname>SqlParameterSourceFactory</classname> injected to control the
-    binding of incoming message to the query.</para>
+    <para>
+        The outbound adapter requires a reference to either a 
+        <interfacename>DataSource</interfacename> or a 
+        <classname>JdbcTemplate</classname>. It can also have a 
+        <classname>SqlParameterSourceFactory</classname> injected to control 
+        the binding of incoming message to the query.
+    </para>
 
-    <para>If the input channel is a direct channel then the outbound adapter
-    runs its query in the same thread, and therefore the same transaction (if
-    there is one) as the sender of the message.</para>
+    <para>
+        If the input channel is a direct channel, then the outbound adapter runs 
+        its query in the same thread, and therefore the same transaction (if
+        there is one) as the sender of the message.
+    </para>
+    
+    <para><emphasis>Passing Parameters using SpEL Expressions</emphasis></para>
+
+    <para>
+        A common requirement for most JDBC Channel Adapters is to pass parameters
+        as part of Sql queries or Stored Procedures/Functions. As mentioned above,
+        these parameters are by default bean property expressions, not SpEL expressions. 
+        
+        However, if you need to pass SpEL expression as parameters, you must inject 
+        a <interfacename>SqlParameterSourceFactory</interfacename> explicitly.
+    </para>
+    <para>
+        The following example uses a <classname>ExpressionEvaluatingSqlParameterSourceFactory</classname> 
+        to achieve that requirement. 
+    </para>
+    
+    <programlisting language="xml"><![CDATA[<jdbc:outbound-channel-adapter data-source="dataSource" channel="input"
+    query="insert into MESSAGES (MESSAGE_ID,PAYLOAD,CREATED_DATE)     \
+    values (:id, :payload, :createdDate)"
+    sql-parameter-source-factory="spelSource"/>
+        
+<bean id="spelSource" 
+      class="o.s.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
+    <property name="parameterExpressions">
+        <map>
+            <entry key="id"          value="headers['id'].toString()"/>
+            <entry key="createdDate" value="new java.util.Date()"/>
+            <entry key="payload"     value="payload"/>
+        </map>
+    </property>
+</bean>]]></programlisting>
+      <para>
+          For further information, please also see 
+          <xref linkend="sp-defining-parameter-sources"/>
+      </para>
   </section>
 
   <section id="jdbc-outbound-gateway">
@@ -510,7 +589,7 @@
             <para><emphasis role="bold">poller</emphasis></para>
             <para>
                 Allows you to configure a Message Poller if this endpoint is a
-                <classname>PollingConsumer</classname>
+                <classname>PollingConsumer</classname>.
                 <emphasis>Optional</emphasis>.
             </para>
 
