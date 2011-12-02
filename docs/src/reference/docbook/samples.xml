@@ -49,33 +49,83 @@
        repository using the Git command line tool, issue the following commands:
     </para>
     
-    <programlisting language="xml"><![CDATA[$ mkdir spring-integration-samples
-$ cd spring-integration-samples
-$ git clone https://github.com/SpringSource/spring-integration-samples.git]]></programlisting>
+    <programlisting language="xml"><![CDATA[$ git clone https://github.com/SpringSource/spring-integration-samples.git]]></programlisting>
 
    <para>
-       That is all you need to do. Now you have cloned the entire samples repository. 
+       That is all you need to do in order to clone the entire samples repository 
+       into a directory named <emphasis>spring-integration-samples</emphasis> within 
+       the working directory where you issued that <emphasis>git</emphasis> command.
        Since the samples repository is a live repository, you might want to perform 
-       periodic "pulls" (updates) to get new samples, as well as updates to 
+       periodic <emphasis>pulls</emphasis> (updates) to get new samples, as well as updates to 
        the existing samples. In order to do so issue the following git 
        <emphasis>PULL</emphasis> command:
    </para>
    
    <programlisting language="xml"><![CDATA[$ git pull]]></programlisting>
 
-
-   <para>
-       <emphasis>Submit samples or sample requests</emphasis>
-   </para>
-   <para>
-       As mentioned earlier, the <emphasis>Spring Integration Samples</emphasis> 
-       project has a dedicated JIRA Issue tracking system. To submit new sample 
-       requests or to submit an actual sample (as an attachment), please visit 
-       our JIRA Issue Tracking system:
-   </para>
-   <para>
-       <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
-   </para>
+   </section>
+   <section>
+       <title>Submitting Samples or Sample Requests</title>   
+       <para>
+           <emphasis>How can I contribute my own Samples?</emphasis>
+       </para>
+	   <para>
+	       Github is for social coding: if you want to submit your own code examples 
+	       to the Spring Integration Samples project, we encourage contributions 
+	       through <ulink url="http://help.github.com/send-pull-requests/"><emphasis>pull 
+	       requests</emphasis></ulink> from 
+	       <ulink url="http://help.github.com/fork-a-repo/"><emphasis>forks</emphasis></ulink> 
+	       of this repository. If you want to contribute code this way, please 
+	       reference, if possible, a 
+	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES"><emphasis>JIRA Ticket</emphasis></ulink> 
+	       that provides some details regarding the provided sample.
+	   </para>
+	   <important>
+	       <title>Sign the contributor license agreement</title>
+	       <para>
+	           Very important, before we can accept your Spring Integration sample, 
+	           we will need you to sign the S2 contributor license agreement (CLA). 
+	           Signing the contributor's agreement does not grant anyone commit rights 
+	           to the main repository, but it does mean that we can accept your 
+	           contributions, and you will get an author credit if we do. Active 
+	           contributors might be asked to join the core team, and given the 
+	           ability to merge pull requests. In order to read and sign the CLA, 
+	           please go to:
+	       </para>
+	       <para>
+	           <ulink url="https://support.springsource.com/spring_committer_signup"/>
+	       </para>
+	       <para>
+	           As Project, please select <emphasis>Spring Integration</emphasis>. 
+	           The Project Lead is <emphasis>Mark Fisher</emphasis>.
+	       </para>
+	   </important>
+	   <para><emphasis>Code Contribution Process</emphasis></para>
+	   <para>
+	       For the actual code contribution process, please read the the 
+	       <emphasis>Contributor Guidelines</emphasis> for Spring Integration, 
+	       they apply for this project as well:
+	   </para>
+	   <para>
+	       <ulink url="https://github.com/SpringSource/spring-integration/wiki/Contributor-Guidelines"/>
+	   </para>
+	   <para>
+	       This process ensures that every commit gets peer-reviewed. As a matter of 
+	       fact, the core committers follow the exact same rules.
+	       We are gratefully looking forward to your Spring Integration Samples!
+	   </para>
+   
+	   <para><emphasis>Sample Requests</emphasis></para>
+	   
+	   <para>
+	       As mentioned earlier, the <emphasis>Spring Integration Samples</emphasis> 
+	       project has a dedicated JIRA Issue tracking system. To submit new sample 
+	       requests, please visit our JIRA Issue Tracking system:
+	   </para>
+	   
+	   <para>
+	       <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
+	   </para>
  </section>
  <section id="samples-structure">
    <title>Samples Structure</title>
