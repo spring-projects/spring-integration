@@ -85,8 +85,10 @@
     <para>
        <important>
         Be careful about using managed beans with custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
-        inside <emphasis>async</emphasis> message flow. If <emphasis>The Control Bus' customizer</emphasis> can't expose a bean
-        from the application context, it skips <classname>BeanCreationException</classname> and goes on to other beans.
+        inside an <emphasis>async</emphasis> message flow. If <emphasis>The Control Bus' customizer</emphasis> can't expose a bean
+        from the application context, it skips that bean. For example, if a custom scope's context is not established, the attempt
+        to get a bean within that scope will trigger a <classname>BeanCreationException</classname>. In that case, such a bean
+        will be ignored, and the customizer will continue with other beans.
        </important>
     </para>
     <para>
