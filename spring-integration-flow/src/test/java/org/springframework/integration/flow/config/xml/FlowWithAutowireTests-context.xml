@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <int-flow:flow id="autowired" 
+    	referenced-bean-locations="/org/springframework/integration/flow/config/xml/autowired-referenced-beans.xml"/>
+</beans>

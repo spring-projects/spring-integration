@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/flow"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:bean="http://www.springframework.org/schema/beans"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration/flow"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/beans"
+		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" />
+
+	<xsd:element name="flow">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Defines an integration flow
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="bean:props" minOccurs="0" maxOccurs="unbounded" />
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+				The name of the referenced flow
+			]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="properties" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+				An optional reference to a properties object containing optional or required properties provided to configure the flow 
+			]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="referenced-bean-locations" type="xsd:string"
+				use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+				An optional list of config locations containing optional or required bean definitions referenced by the flow
+			]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="help" type="xsd:boolean" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+				Display port configuration discription
+			]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="flow-id" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+                Flow id
+            ]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:attribute name="input-channel" type="xsd:string"
+				use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="output-channel" type="xsd:string"
+				use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="error-channel" type="xsd:string"
+				use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="order">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the order for invocation when this endpoint is connected as a
+						subscriber to a channel. This is particularly relevant when that
+						channel
+						is using a "failover" dispatching strategy. It has no effect when
+						this
+						endpoint itself is a Polling Consumer for a channel with a queue.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="flow" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+                                <![CDATA[
+				The name of the referenced flow]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="input-port" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+                                <![CDATA[
+				The name of the input port]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="flow-configuration">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+				Defines a flow configuration (metadata exposed by the flow provider)
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="port-mapping" type="PortMappingType"
+					minOccurs="1" maxOccurs="unbounded" />
+			</xsd:sequence>
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="PortMappingType">
+		<xsd:sequence>
+			<xsd:element name="input-port" minOccurs="0" maxOccurs="1"
+				type="BasePortType" />
+			<xsd:element name="output-port" minOccurs="0" maxOccurs="unbounded"
+				type="BasePortType" />
+		</xsd:sequence>
+
+		<xsd:attribute name="input-channel" type="xsd:string"
+			use="optional">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+							type="org.springframework.integration.core.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The receiving Message channel of this endpoint
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+
+		<xsd:attribute name="output-channel" type="xsd:string"
+			use="optional">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+							type="org.springframework.integration.core.SubscribableChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+				<xsd:documentation>
+					The receiving Message channel of this endpoint
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="BasePortType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+                Defines an integration flow port binding
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="channel" type="xsd:string" use="required" />
+	</xsd:complexType>
+
+</xsd:schema>

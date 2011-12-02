@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+ 
+	<!-- Instantiate the flow -->
+	<int-flow:flow id="subflow" flow-id="flow-with-channel-conflict"/>
+       
+    <!-- input port not required if only one -->
+	<int-flow:outbound-gateway flow="subflow" 
+		input-channel="inputC"
+		output-channel="outputC"
+		/>
+	
+	<int:channel id="outputC"/>
+	 
+
+</beans>

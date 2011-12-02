@@ -1,0 +1,4 @@
+# Tooling related information for the integration flow namespace
+http\://www.springframework.org/schema/integration/flow@name=integration flow Namespace
+http\://www.springframework.org/schema/integration/flow@prefix=int-flow
+http\://www.springframework.org/schema/integration/flow@icon=org/springframework/integration/flow/config/spring-integration-flow.gif

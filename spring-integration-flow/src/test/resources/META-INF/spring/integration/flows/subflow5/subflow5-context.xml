@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+	
+	<int-flow:flow-configuration>
+		<int-flow:port-mapping>
+			<int-flow:input-port name="input" channel="subflow-input"/>
+			<int-flow:output-port name="output" channel="subflow-output"/>
+		    <int-flow:output-port name="error" channel="errorChannel"/>	 
+		</int-flow:port-mapping>		 
+	</int-flow:flow-configuration>
+
+	<int:service-activator 
+	    input-channel="subflow-input"
+		output-channel="subflow-output" ref="gateway"
+	/>
+
+	<int:gateway id="gateway"
+		default-request-channel="requestChannel"
+	 
+		error-channel="errorChannel"
+		default-reply-timeout="100"/>
+		
+	<int:service-activator input-channel="requestChannel"   method="exception">
+		<bean class="org.springframework.integration.flow.config.xml.ExceptionBean"/>
+	</int:service-activator>	
+   
+   <int:channel id="subflow-output"/>
+   
+  	<int:publish-subscribe-channel id="errorChannel"/>	
+	 
+</beans>

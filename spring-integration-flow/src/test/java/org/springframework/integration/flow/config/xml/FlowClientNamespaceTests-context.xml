@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-flow="http://www.springframework.org/schema/integration/flow"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/flow http://www.springframework.org/schema/integration/flow/spring-integration-flow.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <!-- Instantiate the flow (folded into its own application context) -->
+    <int-flow:flow id="subflow1" />
+
+
+    <int-flow:outbound-gateway flow="subflow1"
+        input-channel="inputC1" output-channel="outputC1" input-port="gateway-input" />
+
+
+    <int:chain input-channel="inputC2" output-channel="outputC2">
+        <int-flow:outbound-gateway flow="subflow1"
+            input-port="gateway-input" />
+    </int:chain>
+
+
+    <int:channel id="outputC1">
+        <int:queue />
+    </int:channel>
+
+
+    <int:channel id="outputC2">
+        <int:queue />
+    </int:channel>
+ 
+    
+
+    <int-flow:flow id="flowWithProps" flow-id="subflow1">
+        <props>
+            <prop key="key1">val1</prop>
+        </props>
+    </int-flow:flow>
+
+
+</beans>
