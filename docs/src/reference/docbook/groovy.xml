@@ -84,7 +84,7 @@
     (e.g. several of the <classname>TaskExecutor</classname> and <classname>TaskScheduler</classname> implementations).</para>
     <para>
        <important>
-        Be careful about using managed beans from custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
+        Be careful about using managed beans with custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
         inside <emphasis>async</emphasis> message flow. If <emphasis>The Control Bus' customizer</emphasis> can't expose a bean
         from the application context, it skips <classname>BeanCreationException</classname> and goes on to other beans.
        </important>
