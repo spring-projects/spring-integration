@@ -118,8 +118,17 @@
     <para>
       Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
       instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
-      of the &lt;inbound-channel-adapter/&gt; or &lt;outbound-channel-adapter&gt; element. Therefore, if the "channel"
+      of the <code>&lt;inbound-channel-adapter&gt;</code> or <code>&lt;outbound-channel-adapter&gt;</code> element. Therefore, if the "channel"
       is not provided, the "id" is required.
+    </para>
+    <para>
+      Like many other Spring Integration components, the <code>&lt;inbound-channel-adapter&gt;</code> and
+      <code>&lt;outbound-channel-adapter&gt;</code> also provide support for SpEL expression evaluation. To use SpEL, provide the
+      expression string via the 'expression' attribute instead of providing the 'ref' and 'method' attributes that are used for
+      method-invocation on a bean. When an Expression is evaluated, it follows the same contract as method-invocation where:
+      the <emphasis>expression</emphasis> for an <code>&lt;inbound-channel-adapter&gt;</code> will generate a message anytime the
+      evaluation result is a <emphasis>non-null</emphasis> value, while the <emphasis>expression</emphasis> for an
+      <code>&lt;outbound-channel-adapter&gt;</code> must be the equivalent of a <emphasis>void</emphasis> returning method invocation.
     </para>
   </section>
 
