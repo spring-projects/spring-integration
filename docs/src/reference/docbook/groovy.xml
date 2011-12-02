@@ -80,9 +80,17 @@
     customizes it with a <classname>GroovyObjectCustomizer</classname>, and then executes it. The
     Control Bus' customizer exposes all the beans in the application context
     that are annotated with <code>@ManagedResource</code>, implement Spring's
-    <classname>Lifecycle</classname>interface or extend Spring's <classname>CustomizableThreadCreator</classname> base class
+    <classname>Lifecycle</classname> interface or extend Spring's <classname>CustomizableThreadCreator</classname> base class
     (e.g. several of the <classname>TaskExecutor</classname> and <classname>TaskScheduler</classname> implementations).</para>
-    
+    <para>
+       <important>
+        Be careful about using managed beans with custom scopes (e.g. 'request') in the Control Bus' command scripts, especially
+        inside an <emphasis>async</emphasis> message flow. If <emphasis>The Control Bus' customizer</emphasis> can't expose a bean
+        from the application context, it skips that bean. For example, if a custom scope's context is not established, the attempt
+        to get a bean within that scope will trigger a <classname>BeanCreationException</classname>. In that case, such a bean
+        will be ignored, and the customizer will continue with other beans.
+       </important>
+    </para>
     <para>
      If you need to further customize the Groovy objects, you can also provide a reference to a bean
      that implements <classname>org.springframework.scripting.groovy.GroovyObjectCustomizer</classname> via
