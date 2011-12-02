@@ -10,7 +10,7 @@
    Spring Integration distribution. Instead we have switched to a much simpler collaborative model that should promote
    better community participation and, ideally, more contributions. Samples now have a dedicated Git repository and a
    dedicated JIRA Issue Tracking system. Sample development will also have its own lifecycle which is not dependent on the
-   lifecycle of the framework releases although the repository will still be tagged with each major release for compatibility
+   lifecycle of the framework releases, although the repository will still be tagged with each major release for compatibility
    reasons.
    </para>
    <para>
@@ -26,42 +26,62 @@
  <section id="samples-get">
    <title>Where to get Samples</title>
    <para>
-   To monitor samples development and to get more information on the repository you can visit the following
-   URL: <link linkend="http://git.springsource.org/spring-integration/samples">http://git.springsource.org/spring-integration/samples</link>
-    Since we are using Git as the SCM, we should use the proper terminology as well when it comes to the tasks you need to perform to make
-    <emphasis>samples</emphasis> available locally on your machine. For more information on Git SCM please visit their
-    website: <link linkend="http://git-scm.com/">http://git-scm.com/</link>
+       The Spring Integration Samples project is hosted on <ulink url="https://github.com/SpringSource/spring-integration-samples/">GitHub</ulink>. 
+       You can find the repository at:
    </para>
    <para>
-   CLONE <emphasis>samples</emphasis> repository. (For those unfamiliar with Git, this is somewhat the equivalent of a checkout.)
+       <ulink url="https://github.com/SpringSource/spring-integration-samples">https://github.com/SpringSource/spring-integration-samples</ulink>
    </para>
    <para>
-   This is the first step you should go through. You must have Git installed on your machine. There are many GUI-based products
-   available for many platforms. A simple Google search will help you find them.
-    To clone the Spring Integration samples repository, issue the following at the command line:
-    <programlisting language="xml"><![CDATA[> mkdir spring-integration-samples
-> cd spring-integration-samples
-> git clone git://git.springsource.org/spring-integration/samples.git]]></programlisting>
+       In order to check out or <emphasis>clone</emphasis> (Git parlance) the samples, 
+       please make sure you have a Git client installed on your system. 
+       There are several GUI-based products available for many platforms, e.g. 
+       <ulink url="http://eclipse.org/egit/">EGit</ulink> for the Eclipse IDE. 
+       A simple Google search will help you find them. Of course you can also just 
+       use the command line interface for <link linkend="http://git-scm.com/">Git</link>.
+    </para>
+    <note>
+        If you need more information on how to install and/or use Git, please visit:
+        <ulink url="http://git-scm.com/">http://git-scm.com/</ulink>.
+    </note>
+    <para>
+       In order to checkout (clone in Git terms) the Spring Integration samples 
+       repository using the Git command line tool, issue the following commands:
+    </para>
+    
+    <programlisting language="xml"><![CDATA[$ mkdir spring-integration-samples
+$ cd spring-integration-samples
+$ git clone https://github.com/SpringSource/spring-integration-samples.git]]></programlisting>
+
+   <para>
+       That is all you need to do. Now you have cloned the entire samples repository. 
+       Since the samples repository is a live repository, you might want to perform 
+       periodic "pulls" (updates) to get new samples, as well as updates to 
+       the existing samples. In order to do so issue the following git 
+       <emphasis>PULL</emphasis> command:
+   </para>
+   
+   <programlisting language="xml"><![CDATA[$ git pull]]></programlisting>
+
+
+   <para>
+       <emphasis>Submit samples or sample requests</emphasis>
    </para>
    <para>
-   That is all you need to do. Now you have cloned the entire samples repository. Since the samples repository is a live
-   repository, you might want to perform periodic "pulls" to get new samples as well as updates to the existing samples.
-   To get the updates use the git PULL command:
-   <programlisting language="xml"><![CDATA[> git pull]]></programlisting>
+       As mentioned earlier, the <emphasis>Spring Integration Samples</emphasis> 
+       project has a dedicated JIRA Issue tracking system. To submit new sample 
+       requests or to submit an actual sample (as an attachment), please visit 
+       our JIRA Issue Tracking system:
    </para>
    <para>
-   Submit samples or sample requests
-   </para>
-   <para>
-   As mentioned earlier, Spring Integration <emphasis>samples</emphasis> have a dedicated JIRA Issue tracking system.
-   To submit new sample requests or to submit an actual sample (as an attachment), please visit our JIRA Issue Tracking system:
-   <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
+       <ulink url="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</ulink>.
    </para>
  </section>
  <section id="samples-structure">
    <title>Samples Structure</title>
    <para>
-   The structure of the <emphasis>samples</emphasis> changed as well. With plans for more samples we realized that some
+   Starting with Spring Integration 2.0, the structure of the <emphasis>samples</emphasis> 
+   changed as well. With plans for more samples we realized that some
    samples have different goals than others. While they all share the common goal of showing you how to apply and work with
    the Spring Integration framework, they also differ in areas where some samples are meant to concentrate on a technical
    use case while others focus on a business use case, and some samples are all about showcasing various techniques that
