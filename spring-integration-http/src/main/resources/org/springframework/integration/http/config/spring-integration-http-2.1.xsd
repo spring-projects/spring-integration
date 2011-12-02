@@ -274,7 +274,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="http-method">
+			<xsd:attribute name="http-method" default="POST">
 				<xsd:annotation>
 					<xsd:documentation>
 						The HTTP method to use when executing requests with this adapter. 
@@ -403,7 +403,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="http-method">
+					<xsd:attribute name="http-method" default="POST">
 						<xsd:annotation>
 							<xsd:documentation>
 								The HTTP method to use when executing requests with this adapter. 
