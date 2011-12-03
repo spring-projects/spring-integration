@@ -19,6 +19,9 @@ package org.springframework.integration.resource;
 import java.io.File;
 import java.util.Collection;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -39,9 +42,33 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.1
  */
 public class ResourceInboundChannelAdapterParserTests {
+
+	private static File workDir;
+
+	@BeforeClass
+	public static void setupClass() {
+		workDir = new File(System.getProperty("java.io.tmpdir"), "ResourceInboundChannelAdapterParserTests");
+		workDir.mkdir();
+		workDir.deleteOnExit();
+	}
+
+	@After
+	public void cleanUpWorkDir() throws Exception {
+		File[] listFiles = workDir.listFiles();
+		for (File file : listFiles) {
+			file.delete();
+		}
+	}
+
+	@AfterClass
+	public static void cleanUp() {
+		workDir.delete();
+	}
+
 
 	@Test
 	public void testDefaultConfig(){
@@ -51,16 +78,16 @@ public class ResourceInboundChannelAdapterParserTests {
 		assertNotNull(source);
 		boolean autoStartup = TestUtils.getPropertyValue(resourceAdapter, "autoStartup", Boolean.class);
 		assertFalse(autoStartup);
-		
+
 		assertEquals("/**/*", TestUtils.getPropertyValue(source, "pattern"));
 		assertEquals(context, TestUtils.getPropertyValue(source, "patternResolver"));
 	}
-	
+
 	@Test(expected=BeanCreationException.class)
 	public void testDefaultConfigNoLocationPattern(){
 		new ClassPathXmlApplicationContext("ResourcePatternResolver-config-fail.xml", this.getClass());
 	}
-	
+
 	@Test
 	public void testCustomPatternResolver(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("ResourcePatternResolver-config-custom.xml", this.getClass());
@@ -69,15 +96,13 @@ public class ResourceInboundChannelAdapterParserTests {
 		assertNotNull(source);
 		assertEquals(context.getBean("customResolver"), TestUtils.getPropertyValue(source, "patternResolver"));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUsage() throws Exception{
-		
-		File baseDir = new File(System.getProperty("java.io.tmpdir"));
-		
+
 		for (int i = 0; i < 10; i++) {
-			File f = new File(baseDir, "testUsage"+i);
+			File f = new File(workDir, "testUsage"+i);
 			f.createNewFile();
 		}
 
@@ -88,16 +113,15 @@ public class ResourceInboundChannelAdapterParserTests {
 		Resource[] resources = message.getPayload();
 		for (Resource resource : resources) {
 			assertTrue(resource.getURI().toString().contains("testUsage"));
-		}	
+		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testUsageWithCustomResourceFilter() throws Exception{
-		
-		File baseDir = new File(System.getProperty("java.io.tmpdir"));
+
 		for (int i = 0; i < 10; i++) {
-			File f = new File(baseDir, "testUsageWithRf"+i);
+			File f = new File(workDir, "testUsageWithRf"+i);
 			f.createNewFile();
 		}
 
@@ -115,13 +139,12 @@ public class ResourceInboundChannelAdapterParserTests {
 		assertNotNull(message);
 		assertTrue(customFilter.invoked);
 	}
-	
+
 	@Test
 	public void testUsageWithEmptyFilter() throws Exception{
-		
-		File baseDir = new File(System.getProperty("java.io.tmpdir"));
+
 		for (int i = 0; i < 10; i++) {
-			File f = new File(baseDir, "testUsageWithRf"+i);
+			File f = new File(workDir, "testUsageWithRf"+i);
 			f.createNewFile();
 		}
 

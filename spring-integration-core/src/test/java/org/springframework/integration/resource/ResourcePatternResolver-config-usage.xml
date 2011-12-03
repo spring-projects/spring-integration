@@ -7,7 +7,7 @@
 
 
 	<int:resource-inbound-channel-adapter id="resourceAdapterDefault" channel="resultChannel"
-										  pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + T(java.lang.System).getProperty('file.separator') + 'testUsage*'}">
+										  pattern="file:#{T(java.lang.System).getProperty('java.io.tmpdir') + '/ResourceInboundChannelAdapterParserTests/' + 'testUsage*'}">
 		<int:poller fixed-rate="1000"/>
 	</int:resource-inbound-channel-adapter>
 	
