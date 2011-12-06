@@ -27,7 +27,7 @@
     	To use the <emphasis>FTP</emphasis> namespace, add the following to the header of your XML file:
     	<programlisting language="xml"><![CDATA[xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp 
-	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-2.0.xsd" 
+	http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd"
 ]]></programlisting>
     </para>
   </section>

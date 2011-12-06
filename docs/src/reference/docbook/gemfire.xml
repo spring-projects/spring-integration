@@ -25,7 +25,7 @@
 	
 	<programlisting language="xml"><![CDATA[xmlns:int-gfe="http://www.springframework.org/schema/integration/gemfire"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/gemfire 
-	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire-2.1.xsd"]]></programlisting>
+	http://www.springframework.org/schema/integration/gemfire/spring-integration-gemfire.xsd"]]></programlisting>
     </para>
   </section>
   <section>
