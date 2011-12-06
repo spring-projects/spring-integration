@@ -79,7 +79,7 @@
         an instance of DefaultMessageListenerContainer will be created and configured based on these properties.
         For example, you can specify the "transaction-manager" reference, the "concurrent-consumers" value, and
         several other property references and values. Refer to the JavaDoc and Spring Integration's JMS Schema
-        (spring-integration-jms-2.0.xsd) for more detail.
+        (spring-integration-jms.xsd) for more detail.
       </note>
     </para>
     <para>

@@ -486,11 +486,11 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       xmlns:beans="http://www.springframework.org/schema/beans"
       xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
       xsi:schemaLocation="http://www.springframework.org/schema/beans
-              http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+              http://www.springframework.org/schema/beans/spring-beans.xsd
               http://www.springframework.org/schema/integration
-              http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+              http://www.springframework.org/schema/integration/spring-integration.xsd
               http://www.springframework.org/schema/integration/stream
-              http://www.springframework.org/schema/integration/stream/spring-integration-stream-2.0.xsd">
+              http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
       <int:gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 

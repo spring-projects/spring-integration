@@ -18,7 +18,7 @@
 	
 	<programlisting language="xml"><![CDATA[xmlns:int-feed="http://www.springframework.org/schema/integration/feed"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/feed 
-	http://www.springframework.org/schema/integration/feed/spring-integration-feed-2.0.xsd"]]></programlisting>
+	http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd"]]></programlisting>
 
     </para>
   </section>

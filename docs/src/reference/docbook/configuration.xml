@@ -30,9 +30,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        ]]><emphasis>xmlns:int="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/beans/spring-beans.xsd
            ]]><emphasis>http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"</emphasis>&gt;</programlisting>
+           http://www.springframework.org/schema/integration/spring-integration.xsd"</emphasis>&gt;</programlisting>
     </para>
     <para>
       You can choose any name after "xmlns:"; <emphasis>int</emphasis> is used here for clarity, but you might
@@ -43,9 +43,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        ]]><emphasis>xmlns:beans="http://www.springframework.org/schema/beans"</emphasis><![CDATA[
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/beans/spring-beans.xsd
            http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">]]></programlisting>
+           http://www.springframework.org/schema/integration/spring-integration.xsd">]]></programlisting>
     </para>
     <para>
       When using this alternative, no prefix is necessary for the Spring Integration elements. On the other hand, if
@@ -71,19 +71,19 @@
     xmlns:int-rmi="http://www.springframework.org/schema/integration/rmi"
     xmlns:int-ws="http://www.springframework.org/schema/integration/ws"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/integration
-            http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+            http://www.springframework.org/schema/integration/spring-integration.xsd
             http://www.springframework.org/schema/integration/file
-            http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd
+            http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
             http://www.springframework.org/schema/integration/jms
-            http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd
+            http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd
             http://www.springframework.org/schema/integration/mail
-            http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
             http://www.springframework.org/schema/integration/rmi
-            http://www.springframework.org/schema/integration/rmi/spring-integration-rmi-2.0.xsd
+            http://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd
             http://www.springframework.org/schema/integration/ws
-            http://www.springframework.org/schema/integration/ws/spring-integration-ws-2.0.xsd">
+            http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd">
  ...
 </beans>]]></programlisting>
       The reference manual provides specific examples of the various elements in their corresponding chapters. Here, the

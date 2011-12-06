@@ -25,7 +25,7 @@
     
     <programlisting language="xml"><![CDATA[xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp 
-	http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd" 
+	http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd"
 ]]></programlisting>
     </para>
   </section>

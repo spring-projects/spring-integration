@@ -29,7 +29,7 @@
 the following within your XML header.
     <programlisting language="xml"><![CDATA[xmlns:int-twitter="http://www.springframework.org/schema/integration/twitter"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/twitter 
-	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter-2.1.xsd"]]></programlisting>
+	http://www.springframework.org/schema/integration/twitter/spring-integration-twitter.xsd"]]></programlisting>
     </para>
   </section>
   
