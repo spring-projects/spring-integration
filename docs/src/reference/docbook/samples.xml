@@ -692,14 +692,12 @@ That includes Samples; so, if you can't find what you are looking for, let us kn
       <para>
         A service activator is then used to pass the message into a stock checker POJO.  The order item document is enriched with information
         from the stock checker about order item stock level.  This enriched order item message is then used to route the message.  In the
-        case where the order item is in stock the message is routed to the warehouse.  The XPath router makes use of the default
-        <classname>ChannelResolver</classname> strategy which maps the XPath evaluation result to a channel reference in the <classname>ApplicationContext</classname>.
-        <programlisting language="xml"><![CDATA[<int-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver"
-          input-channel="orderRoutingChannel" resolution-required="true">
-      <int-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" 
-                                namespace-map="orderNamespaceMap"  />
-  </si-xml:xpath-router>
-
+        case where the order item is in stock the message is routed to the warehouse.
+        <programlisting language="xml"><![CDATA[<si-xml:xpath-router id="instockRouter" input-channel="orderRoutingChannel" resolution-required="true">
+    <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap" />
+    <si-xml:mapping value="true" channel="warehouseDispatchChannel"/>
+    <si-xml:mapping value="false" channel="outOfStockChannel"/>
+</si-xml:xpath-router>
   ]]></programlisting>
       </para>
       <para>
