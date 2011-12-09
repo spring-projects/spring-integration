@@ -44,7 +44,7 @@ import org.springframework.xml.namespace.QNameUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * @since 2.0
+ * @since 2.1
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
 	
@@ -62,9 +62,9 @@ public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> i
 
 	@Override
 	protected Map<String, Object> extractUserDefinedHeaders(SoapMessage source) {
-		SoapHeader soapHeader = source.getSoapHeader();
 		Map<String, Object> headers = new HashMap<String, Object>();
-		if (source != null) {
+		SoapHeader soapHeader = source.getSoapHeader();
+		if (soapHeader != null) {
 			Iterator<?> attributeIter = soapHeader.getAllAttributes();
 			while (attributeIter.hasNext()) {
 				Object name = attributeIter.next();
