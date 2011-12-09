@@ -126,7 +126,7 @@ configure(javaprojects) {
     springAmqpVersion = '1.0.0.RELEASE'
     springDataMongoVersion = '1.0.0.RC1'
     springDataRedisVersion = '1.0.0.RC1'
-    springGemfireVersion = '1.1.0.M3'
+    springGemfireVersion = '1.1.0.RC1'
     springSecurityVersion = '3.0.6.RELEASE'
     springWsVersion = '2.0.3.RELEASE'
 
@@ -252,7 +252,7 @@ project('spring-integration-gemfire') {
 	}
     dependencies {
         compile project(":spring-integration-core")
-        compile ("org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion") {
+        compile ("org.springframework.data:spring-data-gemfire:$springGemfireVersion") {
             exclude group: 'org.springframework', module: 'spring-context-support'
             exclude group: 'org.springframework', module: 'spring-core'
             exclude group: 'org.springframework', module: 'spring-tx'
