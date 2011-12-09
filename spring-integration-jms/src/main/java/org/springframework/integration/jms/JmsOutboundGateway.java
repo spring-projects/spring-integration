@@ -26,8 +26,6 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import javax.jms.QueueConnection;
-import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
@@ -414,11 +412,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
-		Connection connection = createConnection();
+		Connection connection = this.createConnection();
 		Session session = null;
 		Destination replyTo = null;
 		try {
-			session = createSession(connection);
+			session = this.createSession(connection);
 
 			// convert to JMS Message
 			Object objectToSend = requestMessage;
@@ -569,51 +567,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	}
 
 	/**
-	 * Create a new JMS Connection for this JMS gateway, ideally a
-	 * <code>javax.jms.QueueConnection</code>.
-	 * <p>The default implementation uses the
-	 * <code>javax.jms.QueueConnectionFactory</code> API if available,
-	 * falling back to a standard JMS 1.1 ConnectionFactory otherwise.
-	 * This is necessary for working with generic JMS 1.1 connection pools
-	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
+	 * Create a new JMS Connection for this JMS gateway.
 	 */
 	protected Connection createConnection() throws JMSException {
-		ConnectionFactory cf = this.connectionFactory;
-		if (!this.requestPubSubDomain && !this.replyPubSubDomain && cf instanceof QueueConnectionFactory) {
-			try {
-				return ((QueueConnectionFactory) cf).createQueueConnection();
-			}
-			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("An error occurred while trying to use ConnectionFactory as a QueueConnectionFactory " +
-							" even though the instanceof check passed. Falling back to use it only as a ConnectionFactory."); 
-				}
-			}
-		}
-		return cf.createConnection();
+		return this.connectionFactory.createConnection();
 	}
 
 	/**
-	 * Create a new JMS Session for this JMS gateway, ideally a
-	 * <code>javax.jms.QueueSession</code>.
-	 * <p>The default implementation uses the
-	 * <code>javax.jms.QueueConnection</code> API if available,
-	 * falling back to a standard JMS 1.1 Connection otherwise.
-	 * This is necessary for working with generic JMS 1.1 connection pools
-	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
+	 * Create a new JMS Session using the provided Connection.
 	 */
 	protected Session createSession(Connection connection) throws JMSException {
-		if (!this.requestPubSubDomain && !this.replyPubSubDomain && connection instanceof QueueConnection) {
-			try {
-				return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-			}
-			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("An error occurred while trying to use Connection as a QueueConnection " +
-							" even though the instanceof check passed. Falling back to use it only as a Connection."); 
-				}
-			}
-		}
 		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
