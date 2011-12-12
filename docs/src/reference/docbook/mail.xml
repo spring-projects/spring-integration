@@ -72,9 +72,9 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/beans/spring-beans.xsd
             http://www.springframework.org/schema/integration/mail
-            http://www.springframework.org/schema/integration/mail/spring-integration-mail-2.0.xsd">]]></programlisting>
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">]]></programlisting>
     </para>
     <para>
       To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:

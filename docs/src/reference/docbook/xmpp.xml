@@ -34,7 +34,7 @@
     
     <programlisting language="xml"><![CDATA[xmlns:int-xmpp="http://www.springframework.org/schema/integration/xmpp"
 xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp 
-	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp-2.0.xsd"]]></programlisting>
+	http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd"]]></programlisting>
 	
     </para>
   </section>
