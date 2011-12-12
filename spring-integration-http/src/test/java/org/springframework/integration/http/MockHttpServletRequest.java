@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.http;
+
+import org.springframework.core.SpringVersion;
 
 /**
  * Modified version of the MockHttpServletRequest that sets the "Content-Type"
@@ -36,7 +38,13 @@ public class MockHttpServletRequest extends org.springframework.mock.web.MockHtt
 
 	@Override
 	public void setContentType(String contentType) {
-		this.addHeader("Content-Type", contentType);
+		String springVersion = SpringVersion.getVersion();
+		if (springVersion != null && springVersion.startsWith("3.0")) {
+			this.addHeader("Content-Type", contentType);
+		}
+		else {
+			super.setContentType(contentType);
+		}
 	}
 
 	@Override

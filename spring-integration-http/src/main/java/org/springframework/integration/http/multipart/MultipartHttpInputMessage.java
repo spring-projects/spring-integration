@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,20 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 	@SuppressWarnings("rawtypes")
 	public Map getParameterMap() {
 		return this.multipartServletRequest.getParameterMap();
+	}
+
+	/**
+	 * Once we depend upon Spring 3.1 as a minimum, this code can be changed to:
+	 *     this.multipartServletRequest.getMultipartContentType(String paramOrFileName)
+	 */
+	public String getMultipartContentType(String paramOrFileName) {
+		MultipartFile file = getFile(paramOrFileName);
+		if (file != null) {
+			return file.getContentType();
+		}
+		else {
+			throw new UnsupportedOperationException("unable to retrieve multipart content-type for parameter");
+		}
 	}
 
 }
