@@ -44,7 +44,7 @@ import org.springframework.xml.namespace.QNameUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * @since 2.1
+ * @since 2.0
  */
 public class DefaultSoapHeaderMapper extends AbstractHeaderMapper<SoapMessage> implements SoapHeaderMapper {
 	
