@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.security;
 
-import org.springframework.security.authentication.AbstractAuthenticationManager;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class MockAuthenticationManager extends AbstractAuthenticationManager {
-	private boolean grantAccess;
-	
+public class MockAuthenticationManager implements AuthenticationManager {
+
+	private final boolean grantAccess;
+
 	public MockAuthenticationManager(boolean grantAccess){
 		this.grantAccess = grantAccess;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.authentication.AbstractAuthenticationManager#doAuthentication(org.springframework.security.core.Authentication)
-	 */
-	@Override
-	protected Authentication doAuthentication(Authentication authentication)
-			throws AuthenticationException {
-		if (grantAccess){
+	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+		if (this.grantAccess) {
 			authentication.setAuthenticated(true);
 		}
 		return authentication;
 	}
+
 }
