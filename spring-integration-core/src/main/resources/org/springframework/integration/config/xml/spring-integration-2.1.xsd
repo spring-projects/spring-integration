@@ -2869,6 +2869,20 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="channel-resolver" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+[DEPRECATED]Provides a reference to a ChannelResolver that resolves the return value
+to the name of a MessageChannel within the application context. If none
+is provided, the return value is expected to match a channel name exactly.
+						]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.ChannelResolver" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="ignore-send-failures" default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
