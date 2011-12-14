@@ -23,7 +23,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.parsing.CompositeComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -83,13 +82,13 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			return handlerBeanDefinition;
 		}
-		Object source = parserContext.extractSource(element);
-		CompositeComponentDefinition compositeDef = new CompositeComponentDefinition(element.getTagName(), source);
-		parserContext.pushContainingComponent(compositeDef);
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
-		builder.getRawBeanDefinition().setSource(source);
-		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
+
+		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName));
+		
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		boolean channelExists = false;
@@ -119,7 +118,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = this.resolveId(element, beanDefinition, parserContext);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinition, beanName));
-		parserContext.popAndRegisterContainingComponent();
 		return null;
 	}
 
