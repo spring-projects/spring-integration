@@ -39,6 +39,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.util.XmlTestUtil;
@@ -265,5 +266,7 @@ public class XPathRouterParserTests {
 			return super.convertToDocument(object);
 		}
 	}
+	
+	public static class MyChannelResolver extends BeanFactoryChannelResolver{}
 
 }
