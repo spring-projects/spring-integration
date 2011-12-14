@@ -44,11 +44,11 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class FileTransferringMessageHandler extends AbstractMessageHandler {
+public class FileTransferringMessageHandler<T> extends AbstractMessageHandler {
 	
 	private volatile String temporaryFileSuffix =".writing";
 
-	private final SessionFactory sessionFactory;
+	private final SessionFactory<T> sessionFactory;
 	
 	private volatile boolean autoCreateDirectory = false;
 
@@ -65,7 +65,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile String remoteFileSeparator = "/";
 
 
-	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
+	public FileTransferringMessageHandler(SessionFactory<T> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
@@ -81,12 +81,12 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	}
 
 	public void setRemoteDirectoryExpression(Expression remoteDirectoryExpression) {
-		Assert.notNull(remoteDirectoryExpression, "remoteDirectoryExpression must not be null");
+		Assert.notNull(remoteDirectoryExpression, "'remoteDirectoryExpression' must not be null");
 		this.directoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(remoteDirectoryExpression, String.class);
 	}
 	
 	public void setTemporaryRemoteDirectoryExpression(Expression temporaryRemoteDirectoryExpression) {
-		Assert.notNull(temporaryRemoteDirectoryExpression, "temporaryRemoteDirectoryExpression must not be null");
+		Assert.notNull(temporaryRemoteDirectoryExpression, "'temporaryRemoteDirectoryExpression' must not be null");
 		this.temporaryDirectoryExpressionProcessor = new ExpressionEvaluatingMessageProcessor<String>(temporaryRemoteDirectoryExpression, String.class);
 	}
 	
@@ -120,7 +120,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
 		if (file != null && file.exists()) {
-			Session session = this.sessionFactory.getSession();
+			Session<?> session = this.sessionFactory.getSession();
 			try {
 				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 				String temporaryRemoteDirectory = remoteDirectory;
@@ -191,7 +191,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session session) 
+	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<?> session) 
 			throws FileNotFoundException, IOException {
 		
 		

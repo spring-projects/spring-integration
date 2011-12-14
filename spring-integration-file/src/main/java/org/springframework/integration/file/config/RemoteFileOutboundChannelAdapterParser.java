@@ -16,8 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -29,10 +29,8 @@ import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
-import org.springframework.integration.file.remote.session.CachingSessionFactory;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandlerFactoryBean;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -40,35 +38,16 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
-	private final Log logger = LogFactory.getLog(this.getClass());
+
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandler.class);
+		BeanDefinitionBuilder handlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(FileTransferringMessageHandlerFactoryBean.class);
 
-		// This whole block must be refactored once cache-session attribute is removed
-		String sessionFactoryName = element.getAttribute("session-factory");
-		BeanDefinition sessionFactoryDefinition = parserContext.getReaderContext().getRegistry().getBeanDefinition(sessionFactoryName);
-		String sessionFactoryClassName = sessionFactoryDefinition.getBeanClassName();
-		if (StringUtils.hasText(sessionFactoryClassName) && sessionFactoryClassName.endsWith(CachingSessionFactory.class.getName())){
-			handlerBuilder.addConstructorArgValue(sessionFactoryDefinition);
-		}
-		else {
-			String cacheSessions = element.getAttribute("cache-sessions");
-			if (StringUtils.hasText(cacheSessions)){
-				logger.warn("The 'cache-sessions' attribute is deprecated since v2.1. Consider configuring CachingSessionFactory explicitly");	
-			}
-			if ("false".equalsIgnoreCase(cacheSessions)) {
-				handlerBuilder.addConstructorArgReference(element.getAttribute("session-factory"));
-			}
-			else {		
-				BeanDefinitionBuilder sessionFactoryBuilder = BeanDefinitionBuilder.genericBeanDefinition(CachingSessionFactory.class);		
-				sessionFactoryBuilder.addConstructorArgReference(sessionFactoryName);
-				handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
-			}
-		}
-				// end of what needs to be refactored once cache-session is removed
 
 		// configure MessageHandler properties
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "cache-sessions");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "session-factory");
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 
