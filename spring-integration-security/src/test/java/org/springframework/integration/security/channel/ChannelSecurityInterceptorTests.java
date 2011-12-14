@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,9 +82,8 @@ public class ChannelSecurityInterceptorTests {
 		ChannelSecurityMetadataSource securityMetadataSource = new ChannelSecurityMetadataSource();
 		securityMetadataSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy(role, null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(securityMetadataSource);
-		AffirmativeBased accessDecisionManager = new AffirmativeBased();
-		
-		accessDecisionManager.setDecisionVoters(Collections.singletonList((AccessDecisionVoter)new RoleVoter()));
+		@SuppressWarnings("rawtypes")
+		AffirmativeBased accessDecisionManager = new AffirmativeBased(Collections.<AccessDecisionVoter>singletonList(new RoleVoter()));
 		accessDecisionManager.afterPropertiesSet();
 		interceptor.setAccessDecisionManager(accessDecisionManager);
 		interceptor.setAuthenticationManager(new MockAuthenticationManager(true));

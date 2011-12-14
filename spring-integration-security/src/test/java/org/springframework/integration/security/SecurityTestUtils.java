@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.security;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.util.CollectionUtils;
@@ -36,7 +36,7 @@ public class SecurityTestUtils {
 		if (roles != null && roles.length > 0) {
 			GrantedAuthority[] authorities = new GrantedAuthority[roles.length];
 			for (int i = 0; i < roles.length; i++) {
-				authorities[i] = new GrantedAuthorityImpl(roles[i]);
+				authorities[i] = new SimpleGrantedAuthority(roles[i]);
 			}
 			authToken = new UsernamePasswordAuthenticationToken(username, password, CollectionUtils.arrayToList(authorities));
 		}
