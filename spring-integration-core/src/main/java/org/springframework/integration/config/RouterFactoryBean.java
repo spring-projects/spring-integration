@@ -99,6 +99,10 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 				return (MessageHandler) targetObject;
 			}
 		}
+		if (this.channelResolver != null){
+			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
+			router.setChannelResolver(this.channelResolver);
+		}
 		return router;
 	}
 
