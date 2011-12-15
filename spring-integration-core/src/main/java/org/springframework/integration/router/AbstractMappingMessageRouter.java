@@ -68,9 +68,12 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
+	 * @deprecated - since 2.1 in favor of using SpEL via 'expression' attribute
+	 * 
 	 * Specify the {@link ChannelResolver} strategy to use.
 	 * The default is a BeanFactoryChannelResolver.
 	 */
+	@Deprecated
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
