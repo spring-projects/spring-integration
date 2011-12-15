@@ -128,6 +128,7 @@ configure(javaprojects) {
     springDataRedisVersion = '1.0.0.RELEASE'
     springGemfireVersion = '1.1.0.RELEASE'
     springSecurityVersion = '3.1.0.RELEASE'
+    springSocialTwitterVersion = '1.0.1.RELEASE'
     springWsVersion = '2.0.3.RELEASE'
 
     sourceSets {
@@ -463,9 +464,16 @@ project('spring-integration-twitter') {
     description = 'Spring Integration Twitter Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "org.springframework:spring-context-support:$springVersion"
-        compile "org.springframework.social:spring-social-twitter:1.0.0.RELEASE"
-        compile "org.springframework.security:spring-security-crypto:3.1.0.RELEASE"
+        compile "org.springframework:spring-web:$springVersion"
+        compile("org.springframework.social:spring-social-twitter:$springSocialTwitterVersion") {
+            exclude group: 'org.springframework', module: 'spring-aop'
+            exclude group: 'org.springframework', module: 'spring-asm'
+            exclude group: 'org.springframework', module: 'spring-beans'
+            exclude group: 'org.springframework', module: 'spring-context'
+            exclude group: 'org.springframework', module: 'spring-core'
+            exclude group: 'org.springframework', module: 'spring-expression'
+            exclude group: 'org.springframework', module: 'spring-web'
+        }
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
     }
