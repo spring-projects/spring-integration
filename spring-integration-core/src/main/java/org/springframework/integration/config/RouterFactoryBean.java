@@ -99,10 +99,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 				return (MessageHandler) targetObject;
 			}
 		}
-		if (this.channelResolver != null){
-			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
-			router.setChannelResolver(this.channelResolver);
-		}
 		return router;
 	}
 
@@ -118,6 +114,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return router;
 	}
 
+	@SuppressWarnings("deprecation")
 	private AbstractMappingMessageRouter configureRouter(AbstractMappingMessageRouter router) {
 		if (this.channelMappings != null) {
 			router.setChannelMappings(this.channelMappings);
@@ -136,6 +133,10 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		}
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
+		}
+		if (this.channelResolver != null) {
+			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
+			router.setChannelResolver(this.channelResolver);
 		}
 		return router;
 	}
