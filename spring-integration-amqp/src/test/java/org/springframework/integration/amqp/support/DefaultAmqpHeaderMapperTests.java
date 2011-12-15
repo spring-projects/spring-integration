@@ -16,19 +16,22 @@
 
 package org.springframework.integration.amqp.support;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
+
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Mark Fisher
@@ -62,6 +65,12 @@ public class DefaultAmqpHeaderMapperTests {
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
+		Set<String> headerKeys = amqpProperties.getHeaders().keySet();
+		for (String headerKey : headerKeys) {
+			if (headerKey.startsWith(AmqpHeaders.PREFIX)){
+				fail();
+			}
+		}
 		assertEquals("test.appId", amqpProperties.getAppId());
 		assertEquals("test.clusterId", amqpProperties.getClusterId());
 		assertEquals("test.contentEncoding", amqpProperties.getContentEncoding());

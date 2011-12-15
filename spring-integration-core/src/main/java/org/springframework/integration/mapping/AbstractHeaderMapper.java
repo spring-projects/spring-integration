@@ -159,8 +159,10 @@ public abstract class AbstractHeaderMapper<T> implements RequestReplyHeaderMappe
 			Object value = headers.get(headerName);
 			if (value != null) {
 				try {
-					String key = this.addPrefixIfNecessary(this.userDefinedHeaderPrefix, headerName);
-					this.populateUserDefinedHeader(key, value, target);
+					if (!headerName.startsWith(this.standardHeaderPrefix)){
+						String key = this.addPrefixIfNecessary(this.userDefinedHeaderPrefix, headerName);
+						this.populateUserDefinedHeader(key, value, target);
+					}
 				}
 				catch (Exception e) {
 					if (logger.isWarnEnabled()) {
