@@ -16,19 +16,11 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
@@ -43,14 +35,23 @@ import org.mockito.stubbing.Answer;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -60,7 +61,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
+	private ExecutorService scheduler;
 
     private CountDownLatch allDone;
     private CountDownLatch start;
@@ -90,14 +91,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Mockito.reset(handlerA);
 		Mockito.reset(handlerB);
 		Mockito.reset(handlerC);
+		scheduler = Executors.newCachedThreadPool();
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);
-		scheduler.setCorePoolSize(10);
-		scheduler.setMaxPoolSize(10);
-		scheduler.initialize();
 	}
 
 	@Test
@@ -151,6 +150,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		allDone.await();
+		
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
@@ -197,9 +200,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		allDone.await();
-		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
-		// Mockito concurrency issues
-		this.waitTillAllFinished((SimpleAsyncTaskExecutor) ac.getBean("taskExecutor"));
+
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(0)).handleMessage(message);
@@ -274,6 +278,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		allDone.await();
+		
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
@@ -330,9 +338,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		allDone.await();
-		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
-		// Mockito concurrency
-		this.waitTillAllFinished((SimpleAsyncTaskExecutor) ac.getBean("taskExecutor"));
+
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(14)).handleMessage(message);
 		verify(handlerB, times(13)).handleMessage(message);
@@ -408,12 +417,17 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();
 		allDone.await();
+		
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		assertFalse("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerC, never()).handleMessage(message);
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
+	
 	
 	@Test(timeout = 5000)
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
@@ -459,28 +473,12 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();	
 		allDone.await();
-		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
-		// Mockito concurrency
-		this.waitTillAllFinished((SimpleAsyncTaskExecutor) ac.getBean("taskExecutor"));
-	
+		
+		scheduler.shutdown();
+		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerC, never()).handleMessage(message);
 	}
-
-	/**
-	 * 
-	 * @param taskExecutor
-	 */
-	private void waitTillAllFinished(SimpleAsyncTaskExecutor taskExecutor){
-		for (int i = 0; i < 1000; i++) {
-			if (taskExecutor.getThreadGroup().activeCount() == 0){
-				break;
-			}
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e) {/*ignore*/}
-		}
-	}
-
 }
