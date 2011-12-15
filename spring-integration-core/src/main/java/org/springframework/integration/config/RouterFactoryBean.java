@@ -87,10 +87,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMappingMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMappingMessageRouter.class);
-		if (this.channelResolver != null){
-			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
-			router.setChannelResolver(this.channelResolver);
-		}
 		if (router == null) {
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
@@ -102,6 +98,10 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			if (targetObject instanceof MessageHandler) {
 				return (MessageHandler) targetObject;
 			}
+		}
+		if (this.channelResolver != null){
+			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
+			router.setChannelResolver(this.channelResolver);
 		}
 		return router;
 	}
