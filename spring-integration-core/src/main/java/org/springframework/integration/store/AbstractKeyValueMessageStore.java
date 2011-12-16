@@ -203,6 +203,16 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return new MessageGroupIterator(idIterator);
 	}
 	
+	public int messageGroupSize(Object groupId) {
+		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
+		if (mgm != null) {
+			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
+			MessageGroupMetadata messageGroupMetadata = (MessageGroupMetadata) mgm;
+			return messageGroupMetadata.size();
+		}
+		return 0;
+	}
+	
 	protected abstract Object doRetrieve(Object id);
 	
 	protected abstract void doStore(Object id, Object objectToStore);
@@ -308,5 +318,4 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 			throw new UnsupportedOperationException();
 		}
 	}
-
 }

@@ -76,6 +76,10 @@ public class MessageGroupMetadata implements Serializable{
 		return this.messageIds.iterator();
 	}
 	
+	public int size(){
+		return this.messageIds.size();
+	}
+	
 	public UUID firstId(){
 		if (this.messageIds.size() > 0){
 			return this.messageIds.iterator().next();

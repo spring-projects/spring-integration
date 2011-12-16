@@ -95,7 +95,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String COUNT_ALL_GROUPS = "SELECT COUNT(GROUP_KEY) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
-	private static final String COUNT_ALL_MARKED_MESSAGES_IN_GROUPS = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where MARKED=1 AND REGION=?";
+	private static final String COUNT_ALL_MESSAGES_IN_GROUP = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? AND REGION=?";
 
 	private static final String COUNT_ALL_MESSAGES_IN_GROUPS = "SELECT COUNT(MESSAGE_ID) from %PREFIX%MESSAGE_GROUP where REGION=?";
 
@@ -348,8 +348,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	@ManagedAttribute
-	public int getMarkedMessageCountForAllMessageGroups() {
-		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MARKED_MESSAGES_IN_GROUPS), region);
+	public int messageGroupSize(Object groupId) {
+		String key = getKey(groupId);
+		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MESSAGES_IN_GROUP), key, region);  
 	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
@@ -466,7 +467,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	
 	public Message<?> pollMessageFromGroup(final Object groupId) {
 		String key = getKey(groupId);
-		
 		
 		Message<?> message = jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
 				new ResultSetExtractor<Message<?>>() {
