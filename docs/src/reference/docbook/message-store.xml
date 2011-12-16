@@ -56,4 +56,36 @@
       </itemizedlist>
   </para>
 
+  <para>
+    <important>
+      <para>However be aware of some limitations while using persistent implementations of the <classname>MessageStore</classname>.</para>
+      <para>The Message data (payload and headers) is <emphasis>serialized</emphasis> and <emphasis>deserialized</emphasis>
+         using different serialization strategies depending on the implementation of the <classname>MessageStore</classname>.
+         For example: when using <classname>JdbcMessageStore</classname> by default only <classname>Serializable</classname> data is persisted.
+         In this case non-Serializable headers are removed before serialization occurs.
+         Also be aware of the protocol specific headers that are injected by transport adapters after (e.g., FTP, HTTP, JMS etc.).
+         For example: <literal>&lt;http:inboubd-channel-adapter/&gt;</literal> applies all HTTP-headers into Message Headers and one of them is
+         <classname>ArrayList</classname> of non-Serializable <classname>org.springframework.http.MediaType</classname>.
+         However you are able to inject your own serialization strategy as implementation of special interfaces into <classname>MessageStore</classname> to
+         change behaviour of serialization and deserialization.
+      </para>
+      <para>
+         Special attention must be payed to the headers that represent certain types of data.
+         For example: if one of the headers contains an instance of some <emphasis>Spring Bean</emphasis>, upon deserialization you'll end up with the different instance of the last one,
+         which directly affects some of the implicit headers created by the framework (e.g., REPLY_CHANNEL or ERROR_CHANNEL).
+         Currently they are not serializable, but even if they were the deserilized channel would not represent the expected instance.
+         As a workaround we suggest to remove bean-refs headers via <literal>&lt;header-filer/&gt;</literal>
+         before sending message to some endpoint backed by persistence <classname>MessageStore</classname>
+         and use channel names instead of channel instances when setting those types of headers, thus allowing it to be resolved in real time by the <classname>ChannelResolver</classname>.
+      </para>
+      <para>
+        Also avoid configuration of message-flow like this: <emphasis>gateway -&gt; queue-channel (backed by persistence Message Store) -&gt; service-activator</emphasis>.
+        Created on the background <emphasis>Temporary Reply Channel</emphasis> will be lost after reading from queue by service-activator poller, because it will deserialized in another thread.
+      </para>
+      <para>
+         Nevertheless we constantly thinking about potential improvements to the framework to provide some robust default serialization strategy for messages.
+      </para>
+    </important>
+  </para>
+
 </section>
