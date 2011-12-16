@@ -16,8 +16,6 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,9 +23,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
@@ -94,15 +95,7 @@ public class MessageStoreTests {
 			return removed ? new SimpleMessageGroup(correlationKey) : testMessages;
 		}
 
-		public MessageGroup markMessageGroup(MessageGroup group) {
-			throw new UnsupportedOperationException();
-		}
-
 		public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
-			throw new UnsupportedOperationException();
-		}
-
-		public MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -122,8 +115,11 @@ public class MessageStoreTests {
 		}
 
 		public Message<?> pollMessageFromGroup(Object groupId) {
-			// TODO Auto-generated method stub
 			return null;
+		}
+
+		public int messageGroupSize(Object groupId) {
+			return 0;
 		}
 
 	}

@@ -245,6 +245,12 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		this.updateGroup(groupId);
 		return message;
 	}
+	
+	public int messageGroupSize(Object groupId) {
+		long lCount = this.template.count(new Query(where(GROUP_ID_KEY).is(groupId)), this.collectionName);
+		Assert.isTrue(lCount <= Integer.MAX_VALUE, "Message count is out of Integer's range");
+		return (int) lCount;
+	}
 
 	/*
 	 * Common Queries

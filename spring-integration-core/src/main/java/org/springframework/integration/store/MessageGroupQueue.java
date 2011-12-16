@@ -21,8 +21,12 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.Message;
+import org.springframework.util.Assert;
 
 /**
  * A {@link BlockingQueue} that is backed by a {@link MessageGroupStore}. Can be used to ensure guaranteed delivery in
@@ -31,43 +35,50 @@ import org.springframework.integration.Message;
  * must be provided, so it needs to be unique but identifiable with a single logical instance of the queue.
  * 
  * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  * 
  */
 public class MessageGroupQueue extends AbstractQueue<Message<?>> implements BlockingQueue<Message<?>> {
 
-	private static final int DEFAULT_CAPACITY = -1;
+	private static final int DEFAULT_CAPACITY = Integer.MAX_VALUE;
 
 	private final MessageGroupStore messageGroupStore;
 
 	private final Object groupId;
 
 	private final int capacity;
-
-	// This one could be a global semaphore
-	private volatile Object storeLock = new Object();
-
-	// This one only needs to be local
-	private final Object writeLock = new Object();
-
-	// This one only needs to be local
-	private final Object readLock = new Object();
-
+	
+	//This one could be a global semaphore
+	private final Lock storeLock;
+	
+	private final Condition messageStoreNotFull; 
+	
+	private final Condition messageStoreNotEmpty;  
+	
 	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId) {
-		this(messageGroupStore, groupId, DEFAULT_CAPACITY);
+		this(messageGroupStore, groupId, DEFAULT_CAPACITY, new ReentrantLock(true));
 	}
 
 	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId, int capacity) {
+		this(messageGroupStore, groupId, capacity, new ReentrantLock(true));
+	}
+	
+	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId, Lock storeLock) {
+		this(messageGroupStore, groupId, DEFAULT_CAPACITY, storeLock);
+	}
+	
+	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId, int capacity, Lock storeLock) {
+		Assert.isTrue(capacity > 0, "'capacity' must be greater than 0");
+		Assert.notNull(storeLock, "'storeLock' must not be null");
+		Assert.notNull(messageGroupStore, "'messageGroupStore' must not be null");
+		Assert.notNull(groupId, "'groupId' must not be null");
+		this.storeLock = storeLock;
+		this.messageStoreNotFull = this.storeLock.newCondition();
+		this.messageStoreNotEmpty = this.storeLock.newCondition();
 		this.messageGroupStore = messageGroupStore;
 		this.groupId = groupId;
 		this.capacity = capacity;
-	}
-	
-	/**
-	 * @param storeLock the storeLock to set
-	 */
-	public void setStoreLock(Object storeLock) {
-		this.storeLock = storeLock;
 	}
 
 	public Iterator<Message<?>> iterator() {
@@ -75,115 +86,159 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public int size() {
-		return this.messageGroupStore.getMessageGroup(groupId).size();
-	}
-
-	public boolean offer(Message<?> e) {
-		synchronized (storeLock) {
-			if (capacity>0 && messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
-				return false;
-			}
-			messageGroupStore.addMessageToGroup(groupId, e);
-		}
-		synchronized (readLock) {
-			readLock.notifyAll();
-		}
-		return true;
+		return messageGroupStore.messageGroupSize(groupId);
 	}
 
 	public Message<?> peek() {
-		Collection<Message<?>> messages = getMessages();
-		if (messages.isEmpty()) {
-			return null;
-		}
-		return messages.iterator().next();
-	}
-
-	public Message<?> poll() {
-		Message<?> result = null;
-		synchronized (storeLock) {
-			result = this.messageGroupStore.pollMessageFromGroup(groupId);
-		}
-		synchronized (writeLock) {
-			writeLock.notifyAll();
-		}
-		return result;
-	}
-
-	public int drainTo(Collection<? super Message<?>> c) {
-		synchronized (storeLock) {
-			for (Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId); message != null;) {
-				c.add(message);	
+		Message<?> message = null;
+		final Lock storeLock = this.storeLock;
+		try {
+			storeLock.lockInterruptibly();
+			try {
+				Collection<Message<?>> messages = getMessages();
+				if (!messages.isEmpty()) {
+					message = messages.iterator().next();
+				}
+			} finally {
+				storeLock.unlock();
 			}
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
 		}
-		synchronized (writeLock) {
-			writeLock.notifyAll();
-		}
-		return this.messageGroupStore.getMessageGroup(groupId).size();
+		return message;
 	}
-
-	public int drainTo(Collection<? super Message<?>> c, int maxElements) {
-		ArrayList<Message<?>> list = new ArrayList<Message<?>>();
-		synchronized (storeLock) {
-			Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
-			for (int i = 0; i < maxElements && message != null; i++) {
-				list.add(message);	
-				message = this.messageGroupStore.pollMessageFromGroup(groupId);
-			}
-		}
-		synchronized (writeLock) {
-			writeLock.notifyAll();
-		}
-		c.addAll(list);
-		return list.size();
-	}
-
-	public boolean offer(Message<?> e, long timeout, TimeUnit unit) throws InterruptedException {
-		long threshold = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, unit);
-		boolean result = offer(e);
-		while (!result && System.currentTimeMillis() < threshold) {
-			synchronized (writeLock) {
-				writeLock.wait(threshold - System.currentTimeMillis());
-			}
-			result = offer(e);
-		}
-		return result;
-	}
-
+	
 	public Message<?> poll(long timeout, TimeUnit unit) throws InterruptedException {
-		Message<?> message = poll();
-		if (message != null) {
-			return message;
-		}
-		long threshold = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, unit);
-		while (message == null && System.currentTimeMillis() < threshold) {
-			synchronized (readLock) {
-				readLock.wait(threshold - System.currentTimeMillis());
+		Message<?> message = null;
+		long timeoutInNanos = unit.toNanos(timeout);
+		final Lock storeLock = this.storeLock;
+		storeLock.lockInterruptibly();
+		
+		try {		
+			while (this.size() == 0 && timeoutInNanos > 0){
+				timeoutInNanos = this.messageStoreNotEmpty.awaitNanos(timeoutInNanos);	
 			}
-			message = poll();
+			message = this.doPoll();
+			
+		} finally {
+			storeLock.unlock();
 		}
 		return message;
 	}
 
-	public void put(Message<?> e) throws InterruptedException {
-		while (!offer(e)) {
-			synchronized (writeLock) {
-				writeLock.wait();
+	public Message<?> poll() {
+		Message<?> message = null;
+		final Lock storeLock = this.storeLock;
+		try {
+			storeLock.lockInterruptibly();
+			try {
+				message = this.doPoll();
+			} 
+			finally {
+				storeLock.unlock();
 			}
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+		return message;
+	}
+	
+	public int drainTo(Collection<? super Message<?>> c) {
+		return this.drainTo(c, this.size());
+	}
+
+	public int drainTo(Collection<? super Message<?>> c, int maxElements) {
+		ArrayList<Message<?>> list = new ArrayList<Message<?>>();
+		final Lock storeLock = this.storeLock;
+		try {
+			storeLock.lockInterruptibly();
+			try {		
+				Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
+				for (int i = 0; i < maxElements && message != null; i++) {
+					list.add(message);	
+					message = this.messageGroupStore.pollMessageFromGroup(groupId);
+				}
+				this.messageStoreNotFull.signal();
+			} 
+			finally {
+				storeLock.unlock();
+			}
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+		
+		c.addAll(list);
+		return list.size();
+	}
+	
+	public boolean offer(Message<?> message) {
+		boolean offered = true;
+		final Lock storeLock = this.storeLock;	
+		try {
+			storeLock.lockInterruptibly();
+			try {		
+				offered = this.doOffer(message);
+			} 
+			finally {
+				storeLock.unlock();
+			}	
+		} catch (Exception e) {
+			Thread.currentThread().interrupt();
+		}
+		return offered;
+	}
+
+	public boolean offer(Message<?> message, long timeout, TimeUnit unit) throws InterruptedException {
+		long timeoutInNanos = unit.toNanos(timeout);
+		boolean offered = false;
+		
+		final Lock storeLock = this.storeLock;
+		storeLock.lockInterruptibly();
+		try {
+			while (this.size() == capacity && timeoutInNanos > 0){
+				timeoutInNanos = this.messageStoreNotFull.awaitNanos(timeoutInNanos);	
+			}
+			
+			if (timeoutInNanos > 0){
+				offered = this.doOffer(message);
+			}
+		} finally {
+			storeLock.unlock();
+		}
+		return offered;	
+	}
+
+	public void put(Message<?> message) throws InterruptedException {
+		final Lock storeLock = this.storeLock;
+		storeLock.lockInterruptibly();
+		try {
+			while (this.size() == capacity){
+				this.messageStoreNotFull.await();			
+			}
+			
+			this.doOffer(message);
+		} finally {
+			storeLock.unlock();
 		}
 	}
 
 	public int remainingCapacity() {
-		return (capacity>0 ? capacity : Integer.MAX_VALUE) - messageGroupStore.getMessageGroup(groupId).size();
+		return capacity - this.size();
 	}
 
 	public Message<?> take() throws InterruptedException {
-		Message<?> message = poll();
-		while (message == null) {
-			synchronized (readLock) {
-				readLock.wait();
+		Message<?> message = null;
+		final Lock storeLock = this.storeLock;
+		storeLock.lockInterruptibly();
+		
+		try {		
+			while (this.size() == 0){
+				this.messageStoreNotEmpty.await();	
 			}
-			message = poll();
+			message = this.doPoll();
+			
+		} finally {
+			storeLock.unlock();
 		}
 		return message;
 	}
@@ -192,4 +247,27 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return messageGroupStore.getMessageGroup(groupId).getMessages();
 	}
 
+	/**
+	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
+	 * IllegalMonitorStateException may be thrown
+	 */
+	private Message<?> doPoll() {
+		Message<?> message = this.messageGroupStore.pollMessageFromGroup(groupId);
+		this.messageStoreNotFull.signal();
+		return message;
+	}
+	
+	/**
+	 * It is assumed that the 'storeLock' is being held by the caller, otherwise
+	 * IllegalMonitorStateException may be thrown
+	 */
+	private boolean doOffer(Message<?> message){
+		boolean offered = false;
+		if (this.size() < capacity){
+			messageGroupStore.addMessageToGroup(groupId, message);
+			offered = true;
+			this.messageStoreNotEmpty.signal();
+		}
+		return offered;
+	}
 }
