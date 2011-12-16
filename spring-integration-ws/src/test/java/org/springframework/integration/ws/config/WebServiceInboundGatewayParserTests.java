@@ -179,6 +179,16 @@ public class WebServiceInboundGatewayParserTests {
 		assertEquals(testHeaderMapper, headerMapper);
 	}
 
+	@Autowired @Qualifier("replyTimeoutGateway")
+	private SimpleWebServiceInboundGateway replyTimeoutGateway;
+
+	@Test
+	public void testReplyTimeout() throws Exception {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(replyTimeoutGateway);
+		Object replyTimeout = accessor.getPropertyValue("replyTimeout");
+		assertEquals(1234L, replyTimeout);
+	}
+
 
 	@SuppressWarnings("unused")
 	private static class TestHeaderMapper implements SoapHeaderMapper {

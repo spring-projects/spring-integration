@@ -290,6 +290,14 @@ this list can also be simple patterns to be matched against the header names (e.
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Maximum time in milliseconds to wait for a reply from the downstream message flow initiated by this gateway.
+	This attribute is only relevant if at least some part of the downstream flow is asynchronous.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
