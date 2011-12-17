@@ -13,6 +13,8 @@
 
 package org.springframework.integration.jmx.config;
 
+import java.util.UUID;
+
 import javax.management.MBeanServerFactory;
 
 import org.w3c.dom.Element;
@@ -26,12 +28,14 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'mbean-export' element of the integration JMX namespace.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
@@ -46,7 +50,7 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.monitor.IntegrationMBeanExporter";
+		return IntegrationMBeanExporter.class.getName();
 	}
 
 	@Override
@@ -84,6 +88,10 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 					"Illegal bean id for <jmx:mbean-export/>: " + MBEAN_EXPORTER_NAME +
 					" (clashes with <context:mbean-export/> default).  Please choose another bean id.",
 					definition);
+		}
+		if (id.matches(IntegrationMBeanExporter.class.getName() + "#[0-9]+")) {
+			//	Randomize the name in case there are multiple contexts in the same JVM
+			id += "#" + UUID.randomUUID();
 		}
 		return id;
 	}

@@ -90,6 +90,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Dave Syer
  * @author Helena Edelson
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
@@ -516,7 +517,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				// Expose the raw bean if it is managed
 				MessageChannel bean = monitor.getMessageChannel();
 				if (assembler.includeBean(bean.getClass(), monitor.getName())) {
-					registerBeanInstance(bean, monitor.getName());
+					registerBeanInstance(bean,
+							this.getMonitoredIntegrationObjectBeanKey(bean, name));
 				}
 			}
 		}
@@ -539,7 +541,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				// Expose the raw bean if it is managed
 				MessageHandler bean = source.getMessageHandler();
 				if (assembler.includeBean(bean.getClass(), source.getName())) {
-					registerBeanInstance(bean, monitor.getName());
+					registerBeanInstance(bean,
+							this.getMonitoredIntegrationObjectBeanKey(bean, name));
 				}
 			}
 		}
@@ -562,7 +565,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				// Expose the raw bean if it is managed
 				MessageSource<?> bean = source.getMessageSource();
 				if (assembler.includeBean(bean.getClass(), source.getName())) {
-					registerBeanInstance(bean, monitor.getName());
+					registerBeanInstance(bean,
+							this.getMonitoredIntegrationObjectBeanKey(bean, name));
 				}
 			}
 		}
@@ -686,6 +690,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	private String getEndpointBeanKey(AbstractEndpoint endpoint, String name, String source) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=ManagedEndpoint,name=%s,bean=%s" + getStaticNames(), name, source);
+	}
+
+	private String getMonitoredIntegrationObjectBeanKey(Object object, String name) {
+		// This ordering of keys seems to work with default settings of JConsole
+		return String.format(domain + ":type=" + object.getClass().getSimpleName() + ",name=%s" + getStaticNames(), name);
 	}
 
 	private String getStaticNames() {
