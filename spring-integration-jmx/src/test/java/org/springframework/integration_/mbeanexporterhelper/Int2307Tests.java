@@ -12,27 +12,57 @@
  */
 package org.springframework.integration_.mbeanexporterhelper;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 import java.util.Set;
 
-import org.junit.Test;
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectInstance;
 
-import org.springframework.context.ApplicationContext;
+import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jmx.export.MBeanExporter;
 
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  *
  */
 public class Int2307Tests {
 
 	@Test
 	public void testInt2307_DefaultMBeanExporter() throws Exception{
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
-		context.destroy();
+		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
+		List<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
+		assertEquals(1, servers.size());
+		MBeanServer server = servers.get(0);
+		Set<ObjectInstance> mbeans = server.queryMBeans(null, null);
+		int bits = 0;
+		int count = 0;
+		for (ObjectInstance mbean : mbeans) {
+			if (mbean.toString().startsWith("org.springframework.integration.router.RecipientListRouter[test.domain:type=RecipientListRouter,name=rlr,random=")) {
+				bits |= 1;
+				count++;
+			} else if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleMessageHandlerMetrics[test.domain:type=MessageHandler,name=rlr,bean=endpoint,random=")) {
+				bits |= 2;
+				count++;
+			} else if (mbean.toString().startsWith("org.springframework.integration.router.HeaderValueRouter[test.domain:type=HeaderValueRouter,name=hvr,random=")) {
+				bits |= 4;
+				count++;
+			} else if (mbean.toString().startsWith("org.springframework.integration.monitor.LifecycleMessageHandlerMetrics[test.domain:type=MessageHandler,name=hvr,bean=endpoint,random=")) {
+				bits |= 8;
+				count++;
+			}
+		}
+		assertEquals(0xf, bits);
+		assertEquals(4, count);
+
+		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
+		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -46,7 +76,6 @@ public class Int2307Tests {
 		assertTrue(excludedBeanNames.contains("x"));
 		assertTrue(excludedBeanNames.contains("y"));
 		assertTrue(excludedBeanNames.contains("foo")); // non SI bean
-		context.destroy();
 	}
 	
 	public static class Foo{}
