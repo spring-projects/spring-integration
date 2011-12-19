@@ -16,6 +16,16 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +41,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
@@ -40,17 +49,6 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Oleg Zhurakousky
@@ -436,13 +434,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);	
 		dispatcher.addHandler(handlerC);
 		
-		final CountDownLatch taskSubmissionMonitor = new CountDownLatch(TOTAL_EXECUTIONS);
-		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
 				RuntimeException e = new RuntimeException();		
 				failed.set(true);
-				allDone.countDown();
 				throw e;
 			}
 		}).when(handlerA).handleMessage(message);
@@ -454,7 +449,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerB).handleMessage(message);
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {		
-				allDone.countDown();
 				return null;
 			}
 		}).when(handlerC).handleMessage(message);
@@ -462,12 +456,11 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
 				try {
-					start.await();		
+					start.await();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);
-				taskSubmissionMonitor.countDown();
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
@@ -476,8 +469,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();	
 		allDone.await();
-		
-		taskSubmissionMonitor.await();
 		
 		executor.shutdown();
 		executor.awaitTermination(5, TimeUnit.SECONDS);
