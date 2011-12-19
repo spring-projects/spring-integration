@@ -102,7 +102,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			} finally {
 				storeLock.unlock();
 			}
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 		return message;
@@ -137,7 +137,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			finally {
 				storeLock.unlock();
 			}
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 		return message;
@@ -163,7 +163,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			finally {
 				storeLock.unlock();
 			}
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 		
@@ -182,7 +182,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			finally {
 				storeLock.unlock();
 			}	
-		} catch (Exception e) {
+		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
 		return offered;
