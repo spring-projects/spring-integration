@@ -117,6 +117,7 @@ configure(javaprojects) {
     cglibVersion = '2.2'
     commonsNetVersion = '2.0'
     easymockVersion = '2.3'
+    groovyVersion = '1.8.4'
     jacksonVersion = '1.8.3'
     javaxActivationVersion = '1.1.1'
     junitVersion = '4.8.2'
@@ -273,7 +274,7 @@ project('spring-integration-groovy') {
     dependencies {
         compile project(":spring-integration-core")
         compile project(":spring-integration-scripting")
-        compile "org.codehaus.groovy:groovy-all:1.8.4"
+        compile "org.codehaus.groovy:groovy-all:$groovyVersion"
         compile "org.springframework:spring-context-support:$springVersion"
     }
 }
@@ -408,7 +409,7 @@ project('spring-integration-scripting') {
         compile project(":spring-integration-core")
         testCompile project(":spring-integration-test")
         testCompile("org.jruby:jruby:1.6.3")
-        testCompile("org.codehaus.groovy:groovy-all:1.7.5")
+        testCompile("org.codehaus.groovy:groovy-all:$groovyVersion")
         testCompile("org.python:jython-standalone:2.5.2")
     }
 }
