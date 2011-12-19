@@ -152,6 +152,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public int drainTo(Collection<? super Message<?>> c, int maxElements) {
+		int originalSize = c.size();
 		ArrayList<Message<?>> list = new ArrayList<Message<?>>();
 		final Lock storeLock = this.storeLock;
 		try {
@@ -172,7 +173,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		return list.size();
+		return c.size() - originalSize;
 	}
 	
 	public boolean offer(Message<?> message) {
