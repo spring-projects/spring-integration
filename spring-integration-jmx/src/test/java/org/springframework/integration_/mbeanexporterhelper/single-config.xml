@@ -1,0 +1,37 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<context:mbean-server />
+
+	<int-jmx:mbean-export
+		default-domain="test.domain"
+		object-name-static-properties="intJmxProps"/>
+
+	<util:properties id="intJmxProps">
+		<prop key="random">#{new java.util.Random().nextInt()}</prop>
+		<prop key="test">test</prop>
+	</util:properties>
+
+	<context:mbean-export/>
+	
+	<int:recipient-list-router id="rlr" input-channel="x">
+		<int:recipient channel="y"/>
+	</int:recipient-list-router>
+	
+	<int:header-value-router id="hvr" input-channel="x" header-name="ghgf">
+		<int:mapping value="foo" channel="y"/>
+	</int:header-value-router>
+
+	<int:channel id="x" />
+	<int:channel id="y" />
+	
+</beans>
