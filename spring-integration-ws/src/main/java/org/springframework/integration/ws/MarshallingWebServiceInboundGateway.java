@@ -60,7 +60,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractWebServiceInbou
 		Assert.isInstanceOf(Unmarshaller.class, marshaller, "When using this constructor the provided " +
 				"Marshaller must also implement Unmarshaller");
 		this.marshaller = marshaller;
-		this.unmarshaller = unmarshaller;
+		this.unmarshaller = (Unmarshaller) marshaller;
 	}
 
 	/**

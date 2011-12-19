@@ -280,7 +280,7 @@ public class AmqpChannelFactoryBean extends AbstractFactoryBean<AbstractAmqpChan
 	}
 
 	public void setTxSize(int txSize) {
-		this.txSize = this.txSize;
+		this.txSize = txSize;
 	}
 
 	@Override
