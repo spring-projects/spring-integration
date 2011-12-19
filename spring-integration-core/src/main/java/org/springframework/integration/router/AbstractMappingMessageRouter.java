@@ -37,7 +37,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for all Message Routers.
+ * Base class for all Message Routers that support mapping from arbitrary String values
+ * to Message Channel names.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -68,12 +69,11 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
-	 * @deprecated - since 2.1 in favor of using SpEL via 'expression' attribute
-	 * 
 	 * Specify the {@link ChannelResolver} strategy to use.
 	 * The default is a BeanFactoryChannelResolver.
+	 * This is considered an infrastructural configuration option and
+	 * as of 2.1 has been deprecated as a configuration-driven attribute.
 	 */
-	@Deprecated
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
