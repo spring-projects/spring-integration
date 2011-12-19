@@ -151,8 +151,9 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		return this.drainTo(c, Integer.MAX_VALUE);
 	}
 
-	public int drainTo(Collection<? super Message<?>> c, int maxElements) {
-		int originalSize = c.size();
+	public int drainTo(Collection<? super Message<?>> collection, int maxElements) {
+		Assert.notNull(collection, "'collection' must not be null");
+		int originalSize = collection.size();
 		ArrayList<Message<?>> list = new ArrayList<Message<?>>();
 		final Lock storeLock = this.storeLock;
 		try {
@@ -168,12 +169,12 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			finally {
 				storeLock.unlock();
 			}
-			c.addAll(list);
+			collection.addAll(list);
 		} 
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		return c.size() - originalSize;
+		return collection.size() - originalSize;
 	}
 	
 	public boolean offer(Message<?> message) {
