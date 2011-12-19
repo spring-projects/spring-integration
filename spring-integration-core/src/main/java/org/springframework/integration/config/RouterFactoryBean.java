@@ -114,7 +114,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return router;
 	}
 
-	@SuppressWarnings("deprecation")
 	private AbstractMappingMessageRouter configureRouter(AbstractMappingMessageRouter router) {
 		if (this.channelMappings != null) {
 			router.setChannelMappings(this.channelMappings);
