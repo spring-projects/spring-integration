@@ -194,9 +194,6 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session session) 
 			throws FileNotFoundException, IOException {
 		
-		
-		FileInputStream fileInputStream = new FileInputStream(file);
-
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
 		
@@ -207,6 +204,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		if (this.autoCreateDirectory) {
 			session.mkdir(remoteDirectory);
 		}
+		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
 			// then rename it to its final name
