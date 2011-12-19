@@ -28,9 +28,7 @@
 		<dispatcher load-balancer="none" failover="true" task-executor="taskExecutor"/>
 	</channel>
 	
-	<beans:bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor">
-		<beans:property name="threadGroupName" value="dispatchers"/>
-	</beans:bean>
+	<beans:bean id="taskExecutor" class="java.util.concurrent.Executors" factory-method="newCachedThreadPool"/>
 
 	<!-- send async errors to null channel to avoid chatter -->
 	<bridge input-channel="errorChannel" output-channel="nullChannel"/>
