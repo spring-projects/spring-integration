@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -429,8 +428,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
 	
-	
-	@Test(timeout = 5000) @Ignore
+	@Test(timeout = 5000) 
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerFailoverExecutor");
 		final UnicastingDispatcher dispatcher = channel.getDispatcher();	
@@ -474,6 +472,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();	
 		allDone.await();
+		
+		Thread.sleep(500);
 		
 		scheduler.shutdown();
 		scheduler.awaitTermination(5, TimeUnit.SECONDS);
