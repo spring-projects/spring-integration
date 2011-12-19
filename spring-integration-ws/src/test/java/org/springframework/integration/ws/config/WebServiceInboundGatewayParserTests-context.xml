@@ -46,4 +46,11 @@
 
 	<bean id="testHeaderMapper" class="org.springframework.integration.ws.config.WebServiceInboundGatewayParserTests$TestHeaderMapper"/>
 
+	<si:channel id="replyTimeoutRequests">
+		<si:queue/>
+	</si:channel>
+
+	<ws:inbound-gateway id="replyTimeoutGateway" request-channel="replyTimeoutRequests"
+			reply-timeout="1234"/>
+
 </beans>
