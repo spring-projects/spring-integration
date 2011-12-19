@@ -644,26 +644,24 @@
 			<xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
             <xsd:attribute name="use-payload-as-parameter-source">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <xsd:documentation>
-                        <![CDATA[
-                        If set to 'true', the payload of the Message will be used
-                        as a source for providing parameters. If false the entire
-                        Message will be available as a source for parameters.
-
-                        If no Procedure Parameters are passed in, this property
-                        will default to 'true'. This means that using a default
-                        BeanPropertySqlParameterSourceFactory the bean properties
-                        of the payload will be used as a source for parameter
-                        values for the to-be-executed Stored Procedure or Function.
-
-                        However, if Procedure Parameters are passed in, then this
-                        property will by default evaluate to 'false'. ProcedureParameter
-                        allow for SpEl Expressions to be provided and therefore
-                        it is highly beneficial to have access to the entire Message.
-                        ]]>
-                        </xsd:documentation>
-                    </xsd:appinfo>
+	                <xsd:documentation>
+	                <![CDATA[
+	                If set to 'true', the payload of the Message will be used
+	                as a source for providing parameters. If false the entire
+	                Message will be available as a source for parameters.
+	
+	                If no Procedure Parameters are passed in, this property
+	                will default to 'true'. This means that using a default
+	                BeanPropertySqlParameterSourceFactory the bean properties
+	                of the payload will be used as a source for parameter
+	                values for the to-be-executed Stored Procedure or Function.
+	
+	                However, if Procedure Parameters are passed in, then this
+	                property will by default evaluate to 'false'. ProcedureParameter
+	                allow for SpEl Expressions to be provided and therefore
+	                it is highly beneficial to have access to the entire Message.
+	                ]]>
+	                </xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
                     <xsd:union memberTypes="xsd:boolean xsd:string" />
@@ -796,26 +794,24 @@
             <xsd:attributeGroup ref="coreStoredProcComponentAttributes"/>
             <xsd:attribute name="use-payload-as-parameter-source">
                 <xsd:annotation>
-                    <xsd:appinfo>
-                        <xsd:documentation>
-                        <![CDATA[
-                        If set to 'true', the payload of the Message will be used
-                        as a source for providing parameters. If false the entire
-                        Message will be available as a source for parameters.
-
-                        If no Procedure Parameters are passed in, this property
-                        will default to 'true'. This means that using a default
-                        BeanPropertySqlParameterSourceFactory the bean properties
-                        of the payload will be used as a source for parameter
-                        values for the to-be-executed Stored Procedure or Function.
-
-                        However, if Procedure Parameters are passed in, then this
-                        property will by default evaluate to 'false'. ProcedureParameter
-                        allow for SpEl Expressions to be provided and therefore
-                        it is highly beneficial to have access to the entire Message.
-                        ]]>
-                        </xsd:documentation>
-                    </xsd:appinfo>
+	                <xsd:documentation>
+	                <![CDATA[
+	                If set to 'true', the payload of the Message will be used
+	                as a source for providing parameters. If false the entire
+	                Message will be available as a source for parameters.
+	
+	                If no Procedure Parameters are passed in, this property
+	                will default to 'true'. This means that using a default
+	                BeanPropertySqlParameterSourceFactory the bean properties
+	                of the payload will be used as a source for parameter
+	                values for the to-be-executed Stored Procedure or Function.
+	
+	                However, if Procedure Parameters are passed in, then this
+	                property will by default evaluate to 'false'. ProcedureParameter
+	                allow for SpEl Expressions to be provided and therefore
+	                it is highly beneficial to have access to the entire Message.
+	                ]]>
+	                </xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
                     <xsd:union memberTypes="xsd:boolean xsd:string" />
