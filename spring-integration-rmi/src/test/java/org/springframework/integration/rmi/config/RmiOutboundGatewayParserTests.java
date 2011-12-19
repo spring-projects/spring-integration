@@ -40,7 +40,6 @@ public class RmiOutboundGatewayParserTests {
 	private final QueueChannel testChannel = new QueueChannel();
 
 	@Before
-	@SuppressWarnings("deprecation")
 	public void setupTestInboundGateway() throws Exception {
 		testChannel.setBeanName("testChannel");
 		RmiInboundGateway gateway = new RmiInboundGateway();

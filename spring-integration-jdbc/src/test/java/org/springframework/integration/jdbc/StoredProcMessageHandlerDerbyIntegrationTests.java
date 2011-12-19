@@ -23,11 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
 import org.springframework.integration.jdbc.storedproc.User;
 import org.springframework.integration.support.MessageBuilder;
@@ -41,9 +40,8 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  */
 public class StoredProcMessageHandlerDerbyIntegrationTests {
 
-    private static Log LOGGER = LogFactory.getLog(StoredProcMessageHandlerDerbyIntegrationTests.class);
-
     private EmbeddedDatabase embeddedDatabase;
+
     private JdbcTemplate jdbcTemplate;
 
     @Before
