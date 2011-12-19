@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Dave Turanski
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -86,7 +87,13 @@ public class ChainParserTests {
 
 	@Autowired
 	private MessageChannel payloadTypeRouterInput;
-	
+
+	@Autowired
+	private MessageChannel headerValueRouterInput;
+
+	@Autowired
+	private MessageChannel headerValueRouterWithMappingInput;
+
 	@Autowired
 	@Qualifier("claimCheckInput")
 	private MessageChannel claimCheckInput;
@@ -182,6 +189,34 @@ public class ChainParserTests {
 		Message<?> message2 = MessageBuilder.withPayload(123).build();
 		this.payloadTypeRouterInput.send(message1);
 		this.payloadTypeRouterInput.send(message2);
+		Message<?> reply1 = this.strings.receive(0);
+		Message<?> reply2 = this.numbers.receive(0);
+		assertNotNull(reply1);
+		assertNotNull(reply2);
+		assertEquals("test", reply1.getPayload());
+		assertEquals(123, reply2.getPayload());
+	}
+
+	@Test // INT-2315
+	public void chainWithHeaderValueRouter() throws Exception {
+		Message<?> message1 = MessageBuilder.withPayload("test").setHeader("routingHeader", "strings").build();
+		Message<?> message2 = MessageBuilder.withPayload(123).setHeader("routingHeader", "numbers").build();
+		this.headerValueRouterInput.send(message1);
+		this.headerValueRouterInput.send(message2);
+		Message<?> reply1 = this.strings.receive(0);
+		Message<?> reply2 = this.numbers.receive(0);
+		assertNotNull(reply1);
+		assertNotNull(reply2);
+		assertEquals("test", reply1.getPayload());
+		assertEquals(123, reply2.getPayload());
+	}
+
+	@Test // INT-2315
+	public void chainWithHeaderValueRouterWithMapping() throws Exception {
+		Message<?> message1 = MessageBuilder.withPayload("test").setHeader("routingHeader", "isString").build();
+		Message<?> message2 = MessageBuilder.withPayload(123).setHeader("routingHeader", "isNumber").build();
+		this.headerValueRouterWithMappingInput.send(message1);
+		this.headerValueRouterWithMappingInput.send(message2);
 		Message<?> reply1 = this.strings.receive(0);
 		Message<?> reply2 = this.numbers.receive(0);
 		assertNotNull(reply1);

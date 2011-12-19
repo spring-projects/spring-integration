@@ -2514,7 +2514,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:complexContent>
             <xsd:extension base="commonHeaderValueRouterType">
                 <xsd:sequence>
-                    <xsd:element name="mapping" type="mappingValueChannelType" minOccurs="1" maxOccurs="unbounded">
+                    <xsd:element name="mapping" type="mappingValueChannelType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                             <![CDATA[

@@ -71,6 +71,17 @@
 		</payload-type-router>
 	</chain>
 
+	<chain input-channel="headerValueRouterInput">
+		<header-value-router header-name="routingHeader"/>
+	</chain>
+
+	<chain input-channel="headerValueRouterWithMappingInput">
+		<header-value-router header-name="routingHeader">
+			<mapping value="isString" channel="strings"/>
+			<mapping value="isNumber" channel="numbers"/>
+		</header-value-router>
+	</chain>
+
   <chain id="chainWithClaimChecks" input-channel="claimCheckInput" output-channel="claimCheckOutput">
      <claim-check-in/>
      <claim-check-out/>
