@@ -32,7 +32,6 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +44,6 @@ import org.springframework.util.StringUtils;
  * @author Gunnar Hillert
  * @since 2.1
  */
-@ManagedResource
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter {
 
 	private final Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
