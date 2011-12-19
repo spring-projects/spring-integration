@@ -19,12 +19,10 @@ package org.springframework.integration.channel;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -62,7 +60,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private ExecutorService scheduler;
+	private ExecutorService executor;
 
     private CountDownLatch allDone;
     private CountDownLatch start;
@@ -92,9 +90,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Mockito.reset(handlerA);
 		Mockito.reset(handlerB);
 		Mockito.reset(handlerC);
-		scheduler = Executors.newCachedThreadPool();
+		
 		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
                 MixedDispatcherConfigurationScenarioTests.class);
+		executor = ac.getBean("taskExecutor", ExecutorService.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);
@@ -147,13 +146,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
 		
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -197,13 +196,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
 
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -275,13 +274,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
 		
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(14)).handleMessage(message);
@@ -335,13 +334,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
 
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		assertTrue("not all messages were accepted", failed.get());
 		verify(handlerA, times(14)).handleMessage(message);
@@ -414,13 +413,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
 		}
 		start.countDown();
 		allDone.await();
 		
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		assertFalse("not all messages were accepted", failed.get());
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
@@ -429,14 +428,15 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(exceptionRegistry, never()).add((Exception) anyObject());
 	}
 	
-	
-	@Test(timeout = 5000) @Ignore
+	@Test(timeout = 5000) 
 	public void failoverNoLoadBalancingWithExecutorConcurrent() throws Exception {
 		final ExecutorChannel channel = (ExecutorChannel) ac.getBean("noLoadBalancerFailoverExecutor");
 		final UnicastingDispatcher dispatcher = channel.getDispatcher();	
 		dispatcher.addHandler(handlerA);
 		dispatcher.addHandler(handlerB);	
-		dispatcher.addHandler(handlerC);	
+		dispatcher.addHandler(handlerC);
+		
+		final CountDownLatch taskSubmissionMonitor = new CountDownLatch(TOTAL_EXECUTIONS);
 		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
@@ -462,21 +462,25 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
 				try {
-					start.await();
+					start.await();		
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);
+				taskSubmissionMonitor.countDown();
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
-			scheduler.execute(messageSenderTask);
+			executor.execute(messageSenderTask);
+			
 		}
 		start.countDown();	
 		allDone.await();
 		
-		scheduler.shutdown();
-		scheduler.awaitTermination(5, TimeUnit.SECONDS);
+		taskSubmissionMonitor.await();
+		
+		executor.shutdown();
+		executor.awaitTermination(5, TimeUnit.SECONDS);
 		
 		verify(handlerA, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
