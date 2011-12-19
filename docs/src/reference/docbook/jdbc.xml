@@ -471,7 +471,7 @@
                 However, if Procedure Parameters are passed in, then 
                 this property will by default evaluate to <code>false</code>. 
                 <classname>ProcedureParameter</classname> allow for 
-                SpEl Expressions to be provided and therefore it is 
+                SpEL Expressions to be provided and therefore it is 
                 highly beneficial to have access to the entire Message. The property
                 is set on the underlying <classname>StoredProcExecutor</classname>.
                 <emphasis>Optional</emphasis>.
@@ -756,7 +756,7 @@
                                                order=""                         ]]><co id="sp-outbound-xml02-co" linkends="sp-outbound-xml02" /><![CDATA[
                                                return-value-required="false"    ]]><co id="sp-outbound-xml03-co" linkends="sp-outbound-xml03" /><![CDATA[
                                                sql-parameter-source-factory=""
-                                               use-payload-as-parameter-source> 
+                                               use-payload-as-parameter-source=""> 
     <int:poller fixed-rate=""/>
     <int-jdbc:sql-parameter-definition name=""/>
     <int-jdbc:parameter name=""/>
@@ -806,7 +806,7 @@
                                    return-value-required="false"                ]]><co id="sp-gateway-xml04-co" linkends="sp-gateway-xml04" /><![CDATA[
                                    skip-undeclared-results=""                   ]]><co id="sp-gateway-xml05-co" linkends="sp-gateway-xml05" /><![CDATA[
                                    sql-parameter-source-factory=""
-                                   use-payload-as-parameter-source>             
+                                   use-payload-as-parameter-source="">             
 <int-jdbc:sql-parameter-definition name="" direction="IN"
                                    type=""
                                    scale="10"/>

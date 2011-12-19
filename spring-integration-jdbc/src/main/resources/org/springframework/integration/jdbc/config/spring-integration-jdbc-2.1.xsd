@@ -658,7 +658,7 @@
 	
 	                However, if Procedure Parameters are passed in, then this
 	                property will by default evaluate to 'false'. ProcedureParameter
-	                allow for SpEl Expressions to be provided and therefore
+	                allow for SpEL Expressions to be provided and therefore
 	                it is highly beneficial to have access to the entire Message.
 	                ]]>
 	                </xsd:documentation>
@@ -808,7 +808,7 @@
 	
 	                However, if Procedure Parameters are passed in, then this
 	                property will by default evaluate to 'false'. ProcedureParameter
-	                allow for SpEl Expressions to be provided and therefore
+	                allow for SpEL Expressions to be provided and therefore
 	                it is highly beneficial to have access to the entire Message.
 	                ]]>
 	                </xsd:documentation>
