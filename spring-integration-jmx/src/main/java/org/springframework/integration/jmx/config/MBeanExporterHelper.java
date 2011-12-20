@@ -24,6 +24,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.PriorityOrdered;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
+import org.springframework.util.StringUtils;
 
 /**
  * Most likely a temporary class mainly needed to address issue described in INT-2307.
@@ -66,10 +67,13 @@ class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
 		for (String beanName : beanDefinitionNames) {
-			BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
+			BeanDefinition bd = beanFactory.getMergedBeanDefinition(beanName);
+			
 			String className = bd.getBeanClassName();
-			if (className.startsWith(SI_ROOT_PACKAGE) && !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
-				siBeanNames.add(beanName);
+			if (StringUtils.hasText(className)){
+				if (className.startsWith(SI_ROOT_PACKAGE) && !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
+					siBeanNames.add(beanName);
+				}
 			}
 		}
 	}
