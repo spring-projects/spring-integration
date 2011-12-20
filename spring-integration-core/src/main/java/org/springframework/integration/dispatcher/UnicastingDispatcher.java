@@ -81,8 +81,12 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
 		Lock lock = rwLock.writeLock();
 		lock.lock();
-		this.loadBalancingStrategy = loadBalancingStrategy;
-		lock.unlock();
+		try {
+			this.loadBalancingStrategy = loadBalancingStrategy;
+		} 
+		finally {
+			lock.unlock();
+		}
 	}
 
 	public final boolean dispatch(final Message<?> message) {

@@ -126,11 +126,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	public Session<FTPFile> getSession() {
 		try {
-			T client = this.createClient();
-			if (client == null) {
-				return null;
-			}
-			return new FtpSession(client);
+			return new FtpSession(this.createClient());
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("failed to create FTPClient", e);

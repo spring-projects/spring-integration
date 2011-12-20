@@ -42,6 +42,8 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
+import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
@@ -103,7 +105,7 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			HttpRequestHandlingEndpointSupport.class.getClassLoader())
 			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
 					.getClassLoader());
-
+	
 	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
@@ -151,9 +153,8 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
 		}
 		if (romePresent) {
-			// TODO add deps for:
-			// this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			// this.messageConverters.add(new RssChannelHttpMessageConverter());
+			this.messageConverters.add(new AtomFeedHttpMessageConverter());
+			this.messageConverters.add(new RssChannelHttpMessageConverter()); 	
 		}
 	}
 	
