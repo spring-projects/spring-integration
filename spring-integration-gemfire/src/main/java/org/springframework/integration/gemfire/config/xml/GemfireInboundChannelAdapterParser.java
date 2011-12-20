@@ -10,23 +10,22 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.gemfire.config.xml;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author David Turanski
  * @since 2.1
- *
  */
 public class GemfireInboundChannelAdapterParser extends AbstractChannelAdapterParser {
-
 	 
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 	 
