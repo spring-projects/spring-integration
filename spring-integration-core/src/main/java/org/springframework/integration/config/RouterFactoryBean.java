@@ -22,6 +22,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.AbstractMappingMessageRouter;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.support.channel.ChannelResolver;
@@ -86,7 +87,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMappingMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMappingMessageRouter.class);
+		AbstractMessageRouter router = this.extractTypeIfPossible(targetObject, AbstractMessageRouter.class);
 		if (router == null) {
 			router = this.createMethodInvokingRouter(targetObject, targetMethodName);
 			this.configureRouter(router);
@@ -114,10 +115,7 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		return router;
 	}
 
-	private AbstractMappingMessageRouter configureRouter(AbstractMappingMessageRouter router) {
-		if (this.channelMappings != null) {
-			router.setChannelMappings(this.channelMappings);
-		}
+	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
@@ -130,6 +128,16 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 		if (this.ignoreSendFailures != null) {
 			router.setIgnoreSendFailures(this.ignoreSendFailures);
 		}
+		if (router instanceof AbstractMappingMessageRouter) {
+			this.configureMappingRouter((AbstractMappingMessageRouter) router);
+		}
+		return router;
+	}
+
+	private void configureMappingRouter(AbstractMappingMessageRouter router) {
+		if (this.channelMappings != null) {
+			router.setChannelMappings(this.channelMappings);
+		}
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
 		}
@@ -137,7 +145,6 @@ public class RouterFactoryBean extends AbstractStandardMessageHandlerFactoryBean
 			logger.warn("'channel-resolver' attribute has been deprecated in favor of using SpEL via 'expression' attribute");
 			router.setChannelResolver(this.channelResolver);
 		}
-		return router;
 	}
 
 }

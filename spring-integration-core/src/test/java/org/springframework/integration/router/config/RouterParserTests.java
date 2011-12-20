@@ -178,6 +178,11 @@ public class RouterParserTests {
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 	
+	@Test // should not fail
+	public void routerFactoryBeanTest(){
+		new ClassPathXmlApplicationContext("rfb-fix-config.xml", this.getClass());
+	}
+	
 	public static class NonExistingChannelRouter{
 		public String route(String payload){
 			return "foo";
