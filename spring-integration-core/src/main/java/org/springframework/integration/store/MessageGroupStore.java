@@ -129,4 +129,12 @@ public interface MessageGroupStore {
 	 * For example any attempt to add/remove new Message form the group should not be allowed.
 	 */
 	void completeGroup(Object groupId);
+	
+	/**
+	 * Allows you to specify prefix that will be prepended to the 'groupId'.
+     *
+	 * It could be useful when trying to uniquely identify a message store across multiple 
+     * Application Contexts when message stores with the same IDs are connected to the shared persistent store.
+	 */
+	void setGroupPrefix(String prefix);
 }

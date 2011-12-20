@@ -86,6 +86,7 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 * Will create a new instance of SimpleMessageGroup if necessary.
 	 */
 	public MessageGroup getMessageGroup(Object groupId) {
+		groupId = this.normalizeGroupId(groupId);
 		return this.buildMessageGroup(groupId, false);
 	}
 	
@@ -96,6 +97,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
+		
+		groupId = this.normalizeGroupId(groupId);
 		
 		// add message as is to the MG accessible by the caller
 		SimpleMessageGroup messageGroup = this.getSimpleMessageGroup(this.getMessageGroup(groupId));	
@@ -125,6 +128,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
+		
+		groupId = this.normalizeGroupId(groupId);
 			
 		// build raw MG
 		SimpleMessageGroup rawGroup = this.buildMessageGroup(groupId, true);
@@ -149,6 +154,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	public void completeGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
 		messageGroup.complete();
 		messageGroup.setLastModified(System.currentTimeMillis());
@@ -160,6 +167,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	 */
 	public void removeMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object mgm = this.doRemove(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
@@ -174,6 +183,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		SimpleMessageGroup messageGroup = this.buildMessageGroup(groupId, true);
 		messageGroup.setLastReleasedMessageSequenceNumber(sequenceNumber);
 		messageGroup.setLastModified(System.currentTimeMillis());
@@ -182,6 +193,8 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);
@@ -204,6 +217,9 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	}
 	
 	public int messageGroupSize(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object mgm = this.doRetrieve(MESSAGE_GROUP_KEY_PREFIX + groupId);
 		if (mgm != null) {
 			Assert.isInstanceOf(MessageGroupMetadata.class, mgm);

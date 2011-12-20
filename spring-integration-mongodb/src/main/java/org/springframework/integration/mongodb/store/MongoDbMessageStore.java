@@ -81,7 +81,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	
 	private final static String CREATED_DATE = "_createdDate";
 
-
 	private final MongoTemplate template;
 
 	private final String collectionName;
@@ -138,6 +137,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		long timestamp = 0;
@@ -168,6 +169,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(message, "'message' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		MessageGroup messageGroup = this.getMessageGroup(groupId);
 
 		long messageGroupTimestamp = messageGroup.getTimestamp();
@@ -195,12 +198,17 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
 		Assert.notNull(groupId, "'groupId' must not be null");
 		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		this.removeMessage(messageToRemove.getHeaders().getId());
 		this.updateGroup(groupId);
 		return this.getMessageGroup(groupId);
 	}
 
 	public void removeMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIs(groupId), MessageWrapper.class, this.collectionName);
 		for (MessageWrapper messageWrapper : messageWrappers) {
 			this.removeMessageFromGroup(groupId, messageWrapper.getMessage());
@@ -220,6 +228,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 	
 	public void completeGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Update update = Update.update(GROUP_COMPLETE_KEY, true);
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
@@ -227,6 +238,9 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Update update = Update.update(LAST_RELEASED_SEQUENCE_NUMBER, sequenceNumber);
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
@@ -235,6 +249,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	
 	public Message<?> pollMessageFromGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		List<MessageWrapper> messageWrappers = this.template.find(whereGroupIdIsOrdered(groupId), MessageWrapper.class, this.collectionName);
 		Message<?> message = null;
 		
@@ -247,11 +263,14 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	}
 	
 	public int messageGroupSize(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		long lCount = this.template.count(new Query(where(GROUP_ID_KEY).is(groupId)), this.collectionName);
 		Assert.isTrue(lCount <= Integer.MAX_VALUE, "Message count is out of Integer's range");
 		return (int) lCount;
 	}
-
+	
 	/*
 	 * Common Queries
 	 */
@@ -281,8 +300,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		Query q = whereGroupIdIs(groupId);
 		this.template.updateFirst(q, update, this.collectionName);
 	}
-
-
+	
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */

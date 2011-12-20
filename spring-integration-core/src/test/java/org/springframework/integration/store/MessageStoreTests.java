@@ -122,6 +122,10 @@ public class MessageStoreTests {
 			return 0;
 		}
 
+		public void setGroupPrefix(String prefix) {
+			
+		}
+
 	}
 
 }
