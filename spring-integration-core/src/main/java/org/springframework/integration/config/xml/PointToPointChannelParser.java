@@ -165,7 +165,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(STORE_PACKAGE + ".MessageGroupQueue");
 			queueBuilder.addConstructorArgReference(storeRef);
-			queueBuilder.addConstructorArgValue(STORE_PACKAGE + ":" + channel);
+			queueBuilder.addConstructorArgValue(storeRef + ":" + channel);
 			parseQueueCapacity(queueBuilder, queueElement);
 			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;
