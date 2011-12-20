@@ -243,10 +243,9 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 
 		if (error != null) {
 			if (this.errorChannel != null) {
-				Message<?> errorMessage = null;
+				Message<?> errorMessage = new ErrorMessage(error);
 				Message<?> errorFlowReply = null;
 				try {
-					errorMessage = new ErrorMessage(error);
 					errorFlowReply = this.messagingTemplate.sendAndReceive(this.errorChannel, errorMessage);
 				}
 				catch (Exception errorFlowFailure) {
