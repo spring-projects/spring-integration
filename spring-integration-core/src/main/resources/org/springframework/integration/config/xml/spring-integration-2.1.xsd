@@ -1603,17 +1603,21 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:complexType name="header-enricher-type">
 		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:element name="reply-channel" type="referenceHeaderType">
+			<xsd:element name="reply-channel" type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-					Shortcut to specify value for 'replyChannel' header
+					Shortcut to specify value for 'replyChannel' header.
+					Can be a 'ref' to the MessageChannel, a 'value' as name of the MessageChannel,
+				    or some valid SpEL 'expression' which returns the MessageChannel reference or name of the MessageChannel.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="error-channel" type="referenceHeaderType">
+			<xsd:element name="error-channel" type="referenceOrValueHeaderType">
 				<xsd:annotation>
 					<xsd:documentation>
-					Shortcut to specify value for 'errorChannel' header
+					Shortcut to specify value for 'errorChannel' header.
+					Can be a 'ref' to the MessageChannel, a 'value' as name of the MessageChannel,
+				    or some valid SpEL 'expression' which returns the MessageChannel reference or name of the MessageChannel.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -1795,7 +1799,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				<xsd:attribute name="expression" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-							Expression to be evaulated at runtime to determine the header value.
+							Expression to be evaluated at runtime to determine the header value.
 							The EvaluationContext will
 							include variables for 'payload' and
 							'headers'.
