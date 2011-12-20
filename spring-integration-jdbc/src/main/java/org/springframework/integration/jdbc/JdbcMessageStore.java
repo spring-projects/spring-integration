@@ -116,8 +116,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 	
-	private volatile String prefix;
-
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
 	 * optimization for the put method.
@@ -361,10 +359,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		String key = getKey(groupId);
 		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MESSAGES_IN_GROUP), key, region);  
 	}
-	
-	public void setGroupPrefix(String prefix) {
-		this.prefix = prefix;
-	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
@@ -605,15 +599,6 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 			return message;
-		}
-	}
-
-	private Object normalizeGroupId(Object groupId){
-		if (StringUtils.hasText(prefix)){
-			return prefix + groupId;
-		}
-		else {
-			return groupId;
 		}
 	}
 }

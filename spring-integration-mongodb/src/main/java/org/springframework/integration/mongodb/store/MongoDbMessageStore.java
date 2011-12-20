@@ -81,8 +81,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	
 	private final static String CREATED_DATE = "_createdDate";
 
-	private volatile String prefix;
-	
 	private final MongoTemplate template;
 
 	private final String collectionName;
@@ -273,10 +271,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		return (int) lCount;
 	}
 	
-	public void setGroupPrefix(String prefix){
-		this.prefix = prefix;
-	}
-
 	/*
 	 * Common Queries
 	 */
@@ -307,16 +301,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		this.template.updateFirst(q, update, this.collectionName);
 	}
 	
-	private Object normalizeGroupId(Object groupId){
-		if (StringUtils.hasText(prefix)){
-			return prefix + groupId;
-		}
-		else {
-			return groupId;
-		}
-	}
-
-
 	/**
 	 * Custom implementation of the {@link MappingMongoConverter} strategy.
 	 */

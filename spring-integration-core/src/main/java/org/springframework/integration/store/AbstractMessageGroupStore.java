@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Dave Syer
@@ -34,6 +35,8 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	private Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 	
 	private volatile boolean timeoutOnIdle;
+	
+	private volatile String prefix;
 
 	/**
 	 * 
@@ -106,6 +109,19 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			count ++;
 		}
 		return count;
+	}
+	
+	public void setGroupPrefix(String prefix){
+		this.prefix = prefix;
+	}
+	
+	protected Object normalizeGroupId(Object groupId){
+		if (StringUtils.hasText(prefix)){
+			return prefix + groupId;
+		}
+		else {
+			return groupId;
+		}
 	}
 
 	private void expire(MessageGroup group) {

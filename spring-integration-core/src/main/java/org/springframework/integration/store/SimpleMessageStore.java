@@ -27,7 +27,6 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Map-based in-memory implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -52,8 +51,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	private final UpperBound individualUpperBound;
 
 	private final UpperBound groupUpperBound;
-	
-	private volatile String prefix;
 	
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -224,10 +221,6 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		
 		return this.getMessageGroup(groupId).size();
 	}
-
-	public void setGroupPrefix(String prefix) {
-		this.prefix = prefix;
-	}
 	
 	private Object obtainLock(Object groupId){
 		Object lock = this.locks.get(groupId);
@@ -237,14 +230,5 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 			lock = (previousLock == null) ? newLock : previousLock;
 		}
 		return lock;
-	}
-	
-	private Object normalizeGroupId(Object groupId){
-		if (StringUtils.hasText(prefix)){
-			return prefix + groupId;
-		}
-		else {
-			return groupId;
-		}
 	}
 }

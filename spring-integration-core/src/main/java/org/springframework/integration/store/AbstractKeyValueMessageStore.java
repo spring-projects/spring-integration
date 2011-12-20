@@ -28,7 +28,6 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for implementations of Key/Value style {@link MessageGroupStore} and {@link MessageStore}
@@ -43,8 +42,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 	protected static final String MESSAGE_GROUP_KEY_PREFIX = "MESSAGE_GROUP_";
 	
 	protected static final String CREATED_DATE = "CREATED_DATE";
-	
-	private volatile String prefix;
 	
 	// MessageStore methods
 	
@@ -232,10 +229,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		return 0;
 	}
 	
-	public void setGroupPrefix(String prefix){
-		this.prefix = prefix;
-	}
-	
 	protected abstract Object doRetrieve(Object id);
 	
 	protected abstract void doStore(Object id, Object objectToStore);
@@ -318,15 +311,6 @@ public abstract class AbstractKeyValueMessageStore extends AbstractMessageGroupS
 		Assert.notNull(id, "'id' must not be null");
 		Object message = this.doRetrieve(MESSAGE_KEY_PREFIX + id);	
 		return (Message<?>) message;
-	}
-	
-	private Object normalizeGroupId(Object groupId){
-		if (StringUtils.hasText(prefix)){
-			return prefix + groupId;
-		}
-		else {
-			return groupId;
-		}
 	}
 
 	private class MessageGroupIterator implements Iterator<MessageGroup> {

@@ -131,10 +131,10 @@ public interface MessageGroupStore {
 	void completeGroup(Object groupId);
 	
 	/**
-	 * Allows you to specify prefix that will be appended to the 'groupId'.
+	 * Allows you to specify prefix that will be prepended to the 'groupId'.
      *
-	 * Useful when trying to isolate multiple application contexts that happened to 
-	 * have QueueChannel and MessageStore with the same IDs connected to a shared store.
+	 * It could be useful when trying to uniquely identify a message store across multiple 
+     * Application Contexts when message stores with the same IDs are connected to the shared persistent store.
 	 */
 	void setGroupPrefix(String prefix);
 }
