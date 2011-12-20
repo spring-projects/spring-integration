@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.gemfire.config.xml;
 
 import org.junit.Test;
@@ -22,7 +23,8 @@ import static org.springframework.integration.gemfire.config.xml.ParserTestUtil.
 /**
  * @author Dan Oxlade
  */
-public class GemfireOutboundChannelAdapterParserTest {
+public class GemfireOutboundChannelAdapterParserTests {
+
     private GemfireOutboundChannelAdapterParser underTest = new GemfireOutboundChannelAdapterParser();
 
     @Test(expected = BeanDefinitionParsingException.class)

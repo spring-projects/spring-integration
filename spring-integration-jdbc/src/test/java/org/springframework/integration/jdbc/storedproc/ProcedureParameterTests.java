@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jdbc.storedproc;
 
 import static org.junit.Assert.assertEquals;
@@ -25,7 +26,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-public class ProcedureParameterTest {
+public class ProcedureParameterTests {
 
 	@Test
 	public void testProcedureParameterStringObjectString() {

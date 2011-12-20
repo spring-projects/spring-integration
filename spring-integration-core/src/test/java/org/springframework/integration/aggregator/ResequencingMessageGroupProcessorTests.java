@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import org.junit.Test;
@@ -29,7 +30,7 @@ import static org.junit.Assert.assertThat;
 /**
  * @author Iwein Fuld
  */
-public class ResequencingMessageGroupProcessorTest {
+public class ResequencingMessageGroupProcessorTests {
 
 	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 

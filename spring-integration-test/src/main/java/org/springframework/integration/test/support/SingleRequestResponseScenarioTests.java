@@ -18,9 +18,10 @@ import java.util.List;
 
 /**
  * Convenience class for a single {@link RequestResponseScenario} test
+ * 
  * @author David Turanski
  */
-public abstract class SingleRequestResponseScenarioTest extends AbstractRequestResponseScenarioTest {
+public abstract class SingleRequestResponseScenarioTests extends AbstractRequestResponseScenarioTests {
 
 	@Override
 	protected List<RequestResponseScenario> defineRequestResponseScenarios() {
