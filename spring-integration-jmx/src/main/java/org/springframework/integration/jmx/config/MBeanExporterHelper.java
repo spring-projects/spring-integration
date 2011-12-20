@@ -67,7 +67,8 @@ class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		String[] beanDefinitionNames = beanFactory.getBeanDefinitionNames();
 		for (String beanName : beanDefinitionNames) {
-			BeanDefinition bd = beanFactory.getBeanDefinition(beanName);
+			BeanDefinition bd = beanFactory.getMergedBeanDefinition(beanName);
+			
 			String className = bd.getBeanClassName();
 			if (StringUtils.hasText(className)){
 				if (className.startsWith(SI_ROOT_PACKAGE) && !(className.endsWith(IntegrationMBeanExporter.class.getName()))){
