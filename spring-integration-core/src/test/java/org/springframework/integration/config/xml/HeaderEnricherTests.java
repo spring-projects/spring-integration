@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,28 @@ public class HeaderEnricherTests {
 	public void replyChannel() {
 		PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
 		MessageChannel inputChannel = context.getBean("replyChannelInput", MessageChannel.class);
+		inputChannel.send(new GenericMessage<String>("test"));
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("TEST", result.getPayload());
+		assertEquals(replyChannel, result.getHeaders().getReplyChannel());
+	}
+
+	@Test //INT-2316
+	public void replyChannelName() {
+		PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
+		MessageChannel inputChannel = context.getBean("replyChannelNameInput", MessageChannel.class);
+		inputChannel.send(new GenericMessage<String>("test"));
+		Message<?> result = replyChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("TEST", result.getPayload());
+		assertEquals("testReplyChannel", result.getHeaders().getReplyChannel());
+	}
+
+	@Test //INT-2316
+	public void replyChannelExpression() {
+		PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
+		MessageChannel inputChannel = context.getBean("replyChannelExpressionInput", MessageChannel.class);
 		inputChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
