@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.gateway;
 
 import static junit.framework.Assert.assertEquals;
@@ -35,13 +36,12 @@ import org.springframework.integration.core.MessageHandler;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
-public class GatewayInterfaceTest {
+public class GatewayInterfaceTests {
 
 	@Test
 	public void testWithServiceSuperclassAnnotatedMethod(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -52,7 +52,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceAnnotatedMethod(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBar", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -63,7 +63,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceSuperclassUnAnnotatedMethod(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -74,7 +74,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceCastAsSuperclassAnnotatedMethod(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelFoo", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -85,7 +85,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceCastAsSuperclassUnAnnotatedMethod(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -96,7 +96,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceHashcode() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -107,7 +107,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceToString(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -118,7 +118,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceEquals() throws Exception{
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);
@@ -137,7 +137,7 @@ public class GatewayInterfaceTest {
 	
 	@Test
 	public void testWithServiceGetClass(){
-		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTest-context.xml", this.getClass());
+		ApplicationContext ac = new ClassPathXmlApplicationContext("GatewayInterfaceTests-context.xml", this.getClass());
 		DirectChannel channel = ac.getBean("requestChannelBaz", DirectChannel.class);
 		MessageHandler handler = mock(MessageHandler.class);
 		channel.subscribe(handler);

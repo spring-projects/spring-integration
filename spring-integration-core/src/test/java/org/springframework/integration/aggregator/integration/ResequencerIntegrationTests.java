@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator.integration;
 
 import org.junit.Test;
@@ -30,14 +31,15 @@ import org.springframework.integration.test.util.TestUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
 /**
  * @author Oleg Zhurakousky
  */
-public class ResequencerIntegrationTest {
+public class ResequencerIntegrationTests {
 
 	@Test 
 	public void validateUnboundedResequencerLight(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTest.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerLightInput", MessageChannel.class);
 		QueueChannel outputChannel = context .getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerLight", EventDrivenConsumer.class);
@@ -90,7 +92,7 @@ public class ResequencerIntegrationTest {
 	
 	@Test 
 	public void validateUnboundedResequencerDeep(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTest.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("ResequencerIntegrationTest-context.xml",  ResequencerIntegrationTests.class);
 		MessageChannel inputChannel = context .getBean("resequencerDeepInput", MessageChannel.class);
 		QueueChannel outputChannel = context .getBean("outputChannel", QueueChannel.class);
 		EventDrivenConsumer edc = context.getBean("resequencerDeep", EventDrivenConsumer.class);

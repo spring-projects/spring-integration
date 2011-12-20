@@ -6,9 +6,8 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<int:gateway id="sampleGateway" 
-		service-interface="org.springframework.integration.gateway.GatewayInterfaceTest.Bar"
+		service-interface="org.springframework.integration.gateway.GatewayInterfaceTests.Bar"
 		default-request-channel="requestChannelBaz"/>
-		
 		
 	<int:channel id="requestChannelFoo"/>
 	<int:channel id="requestChannelBar"/>

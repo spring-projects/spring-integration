@@ -90,9 +90,9 @@
   <dependencies>
     <dependency>
       <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
+      <artifactId>spring-integration-core</artifactId>
       <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -119,6 +119,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <version>2.3</version>
@@ -136,12 +142,6 @@
       <version>1.1.1</version>
       <scope>compile</scope>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
