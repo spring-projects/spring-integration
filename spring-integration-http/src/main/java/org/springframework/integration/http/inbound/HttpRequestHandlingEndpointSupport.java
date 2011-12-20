@@ -104,9 +104,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
 					.getClassLoader());
 
-	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
-			HttpRequestHandlingEndpointSupport.class.getClassLoader());
-
 	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
 
 	private volatile Class<?> requestPayloadType = null;
@@ -149,11 +146,6 @@ abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySuppor
 		}
 		if (jacksonPresent) {
 			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
-		}
-		if (romePresent) {
-			// TODO add deps for:
-			// this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			// this.messageConverters.add(new RssChannelHttpMessageConverter());
 		}
 	}
 	

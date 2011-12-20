@@ -132,11 +132,13 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 			destroy();
 			if (logger.isInfoEnabled()){
 				  logger.info("stopped " + this);
-			};
-		} catch (Exception e) {
-			logger.error("failed to stop bean",e);
-		} finally {
+			}
 			running = false;
+		} 
+		catch (Exception e) {
+			logger.error("failed to stop bean",e);
+		} 
+		finally {
 			this.lifecycleLock.unlock();
 		}
 	}
