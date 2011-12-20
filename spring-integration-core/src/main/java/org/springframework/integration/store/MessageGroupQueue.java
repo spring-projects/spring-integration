@@ -25,6 +25,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 
@@ -40,6 +43,8 @@ import org.springframework.util.Assert;
  * 
  */
 public class MessageGroupQueue extends AbstractQueue<Message<?>> implements BlockingQueue<Message<?>> {
+	
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private static final int DEFAULT_CAPACITY = Integer.MAX_VALUE;
 
@@ -168,12 +173,13 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			} 
 			finally {
 				storeLock.unlock();
-			}
-			collection.addAll(list);
+			}		
 		} 
 		catch (InterruptedException e) {
+			logger.warn("Queue may not have drained completely since this operation was interrupted", e);
 			Thread.currentThread().interrupt();
 		}
+		collection.addAll(list);
 		return collection.size() - originalSize;
 	}
 	
