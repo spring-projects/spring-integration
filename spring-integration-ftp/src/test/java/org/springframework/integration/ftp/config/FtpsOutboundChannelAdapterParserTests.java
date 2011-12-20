@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,9 +47,10 @@ public class FtpsOutboundChannelAdapterParserTests {
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
-		CachingSessionFactory cacheSf = (CachingSessionFactory) TestUtils.getPropertyValue(handler, "sessionFactory");
-		DefaultFtpsSessionFactory sf = (DefaultFtpsSessionFactory) TestUtils.getPropertyValue(cacheSf, "sessionFactory");
+		CachingSessionFactory<?> cacheSf = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
+		DefaultFtpsSessionFactory sf = TestUtils.getPropertyValue(cacheSf, "sessionFactory", DefaultFtpsSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(sf, "host"));
 		assertEquals(22, TestUtils.getPropertyValue(sf, "port"));
 	}
+
 }

@@ -46,14 +46,13 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
- *
  */
 public class OutboundChannelAdapterParserTests {
 
 	@Test
 	public void testOutboundChannelAdapterWithId(){
 		ApplicationContext context = 
-			new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
+				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
 		Object consumer = context.getBean("sftpOutboundAdapter");
 		assertTrue(consumer instanceof EventDrivenConsumer);
 		PublishSubscribeChannel channel = context.getBean("inputChannel", PublishSubscribeChannel.class);
@@ -71,8 +70,8 @@ public class OutboundChannelAdapterParserTests {
 		assertEquals(context.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
-		CachingSessionFactory sessionFactory = (CachingSessionFactory) TestUtils.getPropertyValue(handler, "sessionFactory");
-		DefaultSftpSessionFactory clientFactory = (DefaultSftpSessionFactory) TestUtils.getPropertyValue(sessionFactory, "sessionFactory");
+		CachingSessionFactory<?> sessionFactory = TestUtils.getPropertyValue(handler, "sessionFactory", CachingSessionFactory.class);
+		DefaultSftpSessionFactory clientFactory = TestUtils.getPropertyValue(sessionFactory, "sessionFactory", DefaultSftpSessionFactory.class);
 		assertEquals("localhost", TestUtils.getPropertyValue(clientFactory, "host"));
 		assertEquals(2222, TestUtils.getPropertyValue(clientFactory, "port"));
 		assertEquals(23, TestUtils.getPropertyValue(handler, "order"));
