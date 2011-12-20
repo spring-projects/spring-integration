@@ -421,7 +421,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	@ManagedAttribute
 	public String[] getHandlerNames() {
-		return handlersByName.keySet().toArray(new String[0]);
+		return handlersByName.keySet().toArray(new String[handlersByName.size()]);
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
@@ -446,7 +446,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	@ManagedAttribute
 	public String[] getChannelNames() {
-		return channelsByName.keySet().toArray(new String[0]);
+		return channelsByName.keySet().toArray(new String[channelsByName.size()]);
 	}
 
 	public Statistics getHandlerDuration(String name) {

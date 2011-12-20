@@ -289,7 +289,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				if (this.shouldDeleteMessages()) {
 					this.deleteMessages(messages);
 				}
-				return copiedMessages.toArray(new Message[]{});
+				return copiedMessages.toArray(new Message[copiedMessages.size()]);
 			}
 			finally {
 				MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);

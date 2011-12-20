@@ -497,13 +497,11 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 						sb.append(this.determineHeaderExpression(headerAnnotation, new MethodParameter(method, i)));
 					}
 				}
-				else if (parameterTypeDescriptor != null
-						&& parameterTypeDescriptor.isAssignableTo(messageTypeDescriptor)) {
+				else if (parameterTypeDescriptor.isAssignableTo(messageTypeDescriptor)) {
 					sb.append("message");
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor);
 				}
-				else if (parameterTypeDescriptor != null
-						&& (parameterTypeDescriptor.isAssignableTo(messageListTypeDescriptor) || parameterTypeDescriptor
+				else if ((parameterTypeDescriptor.isAssignableTo(messageListTypeDescriptor) || parameterTypeDescriptor
 								.isAssignableTo(messageArrayTypeDescriptor))) {
 					sb.append("messages");
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor);

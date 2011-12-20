@@ -289,6 +289,11 @@ project('spring-integration-http') {
             optional = true
             exclude group: 'junit', module: 'junit'
         }
+        compile("net.java.dev.rome:rome-fetcher:1.0.0") {
+            optional = true
+            exclude group: 'junit', module: 'junit'
+        }
+        compile ("net.java.dev.rome:rome:1.0.0") { optional = true }
         testCompile project(":spring-integration-test")
     }
 }
