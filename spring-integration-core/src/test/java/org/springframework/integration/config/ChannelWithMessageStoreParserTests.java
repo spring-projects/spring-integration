@@ -64,7 +64,7 @@ public class ChannelWithMessageStoreParserTests {
 		handler.getLatch().await(100, TimeUnit.MILLISECONDS);
 		assertEquals("The message payload is not correct", "123", handler.getMessageString());
 		// The group id for buffered messages is the channel name
-		assertEquals(1, messageGroupStore.getMessageGroup(BASE_PACKAGE+".store:output").size());
+		assertEquals(1, messageGroupStore.getMessageGroup("messageStore:output").size());
 		
 		Message<?> result = output.receive(100);
 		assertEquals("hello", result.getPayload());
