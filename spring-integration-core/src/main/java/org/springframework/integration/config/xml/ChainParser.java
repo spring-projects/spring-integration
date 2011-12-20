@@ -22,7 +22,6 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
@@ -47,15 +46,15 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
-				String childBeanName = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
+				BeanDefinitionHolder holder = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
 				if ("gateway".equals(child.getLocalName())){
 					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 							IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
-					gwBuilder.addConstructorArgValue(new RuntimeBeanReference(childBeanName));
+					gwBuilder.addConstructorArgValue(holder);
 					handlerList.add(gwBuilder.getBeanDefinition());
 				}
 				else {
-					handlerList.add(new RuntimeBeanReference(childBeanName));
+					handlerList.add(holder);
 				}		
 			}
 		}
@@ -64,7 +63,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
-	private String parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
+	private BeanDefinitionHolder parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
 		BeanDefinitionHolder holder = null;
 		if (element.getLocalName().equals("bean")) {
 			holder = parserContext.getDelegate().parseBeanDefinitionElement(element, parentDefinition);
@@ -79,12 +78,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				holder = new BeanDefinitionHolder(beanDefinition, beanName);
 			}
 		}
-		if (holder == null) {
-			return null;
-		}
-		holder.getBeanDefinition().setScope(BeanDefinition.SCOPE_PROTOTYPE);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		return holder.getBeanName();
+		return holder;
 	}
 
 }
