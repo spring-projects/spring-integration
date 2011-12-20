@@ -77,6 +77,19 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
+	public void testCountMessagesInGroup() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		Message<?> messageA = new GenericMessage<String>("A");
+		Message<?> messageB = new GenericMessage<String>("B");
+		store.addMessageToGroup(1, messageA);
+		store.addMessageToGroup(1, messageB);
+		assertEquals(2, store.messageGroupSize(1));
+	}
+	
+	@Test
+	@MongoDbAvailable
 	public void testMessageGroupUpdatedDateChangesWithEachAddedMessage() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);

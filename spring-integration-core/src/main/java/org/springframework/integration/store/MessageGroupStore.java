@@ -46,6 +46,13 @@ public interface MessageGroupStore {
 	 */
 	@ManagedAttribute
 	int getMessageGroupCount();
+	
+	/**
+	 * Returns the size of this MessageGroup
+	 * @param groupId
+	 */
+	@ManagedAttribute
+	int messageGroupSize(Object groupId);
 
 	/**
 	 * Return all Messages currently in the MessageStore that were stored using

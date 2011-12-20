@@ -28,7 +28,7 @@
 	<bean id="storeQueue" class="org.springframework.integration.store.MessageGroupQueue">
 		<constructor-arg ref="messageStore" />
 		<constructor-arg value="JdbcMessageStoreChannelIntegrationTests" />
-		<property name="storeLock" ref="lock" />
+		<constructor-arg ref="lock" />
 	</bean>
 
 	<int:channel id="output" />

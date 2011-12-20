@@ -202,4 +202,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		}
 		return lock;
 	}
+
+	public int messageGroupSize(Object groupId) {
+		return this.getMessageGroup(groupId).size();
+	}
 }
