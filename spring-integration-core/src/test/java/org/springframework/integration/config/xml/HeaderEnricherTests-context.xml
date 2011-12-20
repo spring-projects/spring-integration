@@ -11,6 +11,14 @@
 		<reply-channel ref="testReplyChannel"/>
 	</header-enricher>
 
+	<header-enricher input-channel="replyChannelNameInput" output-channel="echoInput">
+		<reply-channel value="testReplyChannel"/>
+	</header-enricher>
+
+	<header-enricher input-channel="replyChannelExpressionInput" output-channel="echoInput">
+		<reply-channel expression="@testReplyChannel" type="org.springframework.integration.MessageChannel"/>
+	</header-enricher>
+
 	<transformer input-channel="echoInput" expression="payload.toUpperCase()"/>
 
 	<channel id="testReplyChannel">
