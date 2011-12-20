@@ -115,6 +115,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
+	
+	private volatile String prefix;
 
 	/**
 	 * The name of the message header that stores a flag to indicate that the message has been saved. This is an
@@ -309,6 +311,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(message, "'message' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		final String groupKey = getKey(groupId);
 		final long updatedDate = System.currentTimeMillis();
 		final long createdDate = this.getGroupCreatedDate(groupKey);
@@ -349,11 +355,21 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	@ManagedAttribute
 	public int messageGroupSize(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		String key = getKey(groupId);
 		return jdbcTemplate.queryForInt(getQuery(COUNT_ALL_MESSAGES_IN_GROUP), key, region);  
 	}
+	
+	public void setGroupPrefix(String prefix) {
+		this.prefix = prefix;
+	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		String key = getKey(groupId);
 		final List<Message<?>> messages = new ArrayList<Message<?>>();
 		final AtomicReference<Date> date = new AtomicReference<Date>();
@@ -400,6 +416,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToRemove.getHeaders().getId());
 
@@ -417,7 +437,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	public void removeMessageGroup(Object groupId) {
-
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		final String groupKey = getKey(groupId);
 		
 		for (UUID messageIds : this.getMessageIdsForGroup(groupId)) {
@@ -435,6 +457,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 	
 	public void completeGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		final long updatedDate = System.currentTimeMillis();
 		final String groupKey = getKey(groupId);
 		
@@ -450,6 +475,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, final int sequenceNumber) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		final long updatedDate = System.currentTimeMillis();
 		final String groupKey = getKey(groupId);
 		
@@ -465,7 +492,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		this.updateMessageGroup(groupKey);
 	}
 	
-	public Message<?> pollMessageFromGroup(final Object groupId) {
+	public Message<?> pollMessageFromGroup(final Object grpId) {
+		Assert.notNull(grpId, "'grpId' must not be null");
+		final Object groupId = this.normalizeGroupId(grpId);
+		
 		String key = getKey(groupId);
 		
 		Message<?> message = jdbcTemplate.query(getQuery(LIST_MESSAGEIDS_BY_GROUP_KEY), new Object[] { key, region },
@@ -575,6 +605,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
 			return message;
+		}
+	}
+
+	private Object normalizeGroupId(Object groupId){
+		if (StringUtils.hasText(prefix)){
+			return prefix + groupId;
+		}
+		else {
+			return groupId;
 		}
 	}
 }

@@ -27,6 +27,7 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Map-based in-memory implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -51,6 +52,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	private final UpperBound individualUpperBound;
 
 	private final UpperBound groupUpperBound;
+	
+	private volatile String prefix;
 	
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -109,6 +112,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	public MessageGroup getMessageGroup(Object groupId) {
 		Assert.notNull(groupId, "'groupId' must not be null");
+		
+		groupId = this.normalizeGroupId(groupId);
 
 		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
@@ -118,6 +123,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(message, "'message' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		if (!groupUpperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
@@ -135,6 +144,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public void removeMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object lock = this.obtainLock(groupId);
 		synchronized (lock) {
 			if (!groupIdToMessageGroup.containsKey(groupId)) {
@@ -147,6 +159,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		Assert.notNull(messageToRemove, "'messageToRemove' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object lock = this.obtainLock(groupId);
 		synchronized (lock) {
 			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
@@ -162,6 +178,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 	
 	public void setLastReleasedSequenceNumberForGroup(Object groupId, int sequenceNumber) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object lock = this.obtainLock(groupId);
 		synchronized (lock) {
 			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
@@ -172,6 +191,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public void completeGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Object lock = this.obtainLock(groupId);
 		synchronized (lock) {
 			SimpleMessageGroup group = this.groupIdToMessageGroup.get(groupId);
@@ -182,6 +204,9 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	}
 
 	public Message<?> pollMessageFromGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
 		Collection<Message<?>> messageList = this.getMessageGroup(groupId).getMessages();
 		Message<?> message = null;
 		if (!CollectionUtils.isEmpty(messageList)){
@@ -193,6 +218,17 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return message;
 	}
 	
+	public int messageGroupSize(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		groupId = this.normalizeGroupId(groupId);
+		
+		return this.getMessageGroup(groupId).size();
+	}
+
+	public void setGroupPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+	
 	private Object obtainLock(Object groupId){
 		Object lock = this.locks.get(groupId);
 		if (lock == null){
@@ -202,8 +238,13 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		}
 		return lock;
 	}
-
-	public int messageGroupSize(Object groupId) {
-		return this.getMessageGroup(groupId).size();
+	
+	private Object normalizeGroupId(Object groupId){
+		if (StringUtils.hasText(prefix)){
+			return prefix + groupId;
+		}
+		else {
+			return groupId;
+		}
 	}
 }

@@ -129,4 +129,12 @@ public interface MessageGroupStore {
 	 * For example any attempt to add/remove new Message form the group should not be allowed.
 	 */
 	void completeGroup(Object groupId);
+	
+	/**
+	 * Allows you to specify prefix that will be appended to the 'groupId'.
+     *
+	 * Useful when trying to isolate multiple application contexts that happened to 
+	 * have QueueChannel and MessageStore with the same IDs connected to a shared store.
+	 */
+	void setGroupPrefix(String prefix);
 }
