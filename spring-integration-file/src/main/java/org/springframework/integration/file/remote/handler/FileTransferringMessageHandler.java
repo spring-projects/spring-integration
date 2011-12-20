@@ -44,11 +44,11 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class FileTransferringMessageHandler extends AbstractMessageHandler {
+public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	
 	private volatile String temporaryFileSuffix =".writing";
 
-	private final SessionFactory sessionFactory;
+	private final SessionFactory<F> sessionFactory;
 	
 	private volatile boolean autoCreateDirectory = false;
 
@@ -65,7 +65,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	private volatile String remoteFileSeparator = "/";
 
 
-	public FileTransferringMessageHandler(SessionFactory sessionFactory) {
+	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
 		Assert.notNull(sessionFactory, "sessionFactory must not be null");
 		this.sessionFactory = sessionFactory;
 	}
@@ -120,7 +120,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
 		if (file != null && file.exists()) {
-			Session session = this.sessionFactory.getSession();
+			Session<F> session = this.sessionFactory.getSession();
 			try {
 				String remoteDirectory = this.directoryExpressionProcessor.processMessage(message);
 				String temporaryRemoteDirectory = remoteDirectory;
@@ -191,7 +191,7 @@ public class FileTransferringMessageHandler extends AbstractMessageHandler {
 		}
 	}
 
-	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session session) 
+	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session) 
 			throws FileNotFoundException, IOException {
 		
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);

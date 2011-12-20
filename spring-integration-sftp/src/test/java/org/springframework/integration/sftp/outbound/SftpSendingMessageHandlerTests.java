@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class SftpSendingMessageHandlerTests {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("payload + '.test'");
 		handler.setFileNameGenerator(fGenerator);
@@ -74,7 +74,7 @@ public class SftpSendingMessageHandlerTests {
 			file.delete();
 		}
 		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
@@ -84,24 +84,24 @@ public class SftpSendingMessageHandlerTests {
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleBytesMessage() throws Exception {
 		File file = new File("remote-target-dir", "foo.txt");
 		if (file.exists()){
 			file.delete();
 		}
-		SessionFactory sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("'foo.txt'");
 		handler.setFileNameGenerator(fGenerator);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 
-		handler.handleMessage(new GenericMessage("hello".getBytes()));
+		handler.handleMessage(new GenericMessage<byte[]>("hello".getBytes()));
 		assertTrue(new File("remote-target-dir", "foo.txt").exists());
 	}
-	
+
+
 	public static class TestSftpSessionFactory extends DefaultSftpSessionFactory {
 		
 		@Override

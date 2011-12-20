@@ -51,7 +51,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		PublishSubscribeChannel channel = ac.getBean("ftpChannel", PublishSubscribeChannel.class);
 		assertEquals(channel, TestUtils.getPropertyValue(consumer, "inputChannel"));
 		assertEquals("ftpOutbound", ((EventDrivenConsumer)consumer).getComponentName());
-		FileTransferringMessageHandler handler = (FileTransferringMessageHandler) TestUtils.getPropertyValue(consumer, "handler");
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));

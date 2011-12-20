@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
 import org.springframework.integration.file.FileNameGenerator;
@@ -43,7 +43,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * @author Oleg Zhurakousky
  */
-public class FtpSendingMessageHandlerTest {
+public class FtpSendingMessageHandlerTests {
 	
 	private static FTPClient ftpClient;
 	private TestFtpSessionFactory sessionFactory;
@@ -58,7 +58,6 @@ public class FtpSendingMessageHandlerTest {
 		//sessionFactory.setRemoteWorkingDirectory("remote-test-dir");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testHandleFileContentMessage() throws Exception {
 		File file = new File("remote-target-dir/handlerContent.test");
@@ -66,7 +65,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -74,9 +73,10 @@ public class FtpSendingMessageHandlerTest {
 			}
 		});
 		handler.afterPropertiesSet();
-		handler.handleMessage(new GenericMessage("hello"));
+		handler.handleMessage(new GenericMessage<String>("hello"));
 		assertTrue(file.exists());
 	}
+
 	@Test
 	public void testHandleFileAsByte() throws Exception {
 		File file = new File("remote-target-dir/handlerContent.test");
@@ -84,7 +84,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
@@ -103,7 +103,7 @@ public class FtpSendingMessageHandlerTest {
 			file.delete();
 		}
 		assertFalse(file.exists());
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression("remote-target-dir"));
 		handler.setFileNameGenerator(new FileNameGenerator() {	
 			public String generateFileName(Message<?> message) {
