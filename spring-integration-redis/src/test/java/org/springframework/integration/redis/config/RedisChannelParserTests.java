@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.redis.config;
 
 import org.junit.Test;
@@ -20,6 +21,7 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
@@ -33,7 +35,6 @@ import static junit.framework.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class RedisChannelParserTests extends RedisAvailableTests{
 	
@@ -44,7 +45,9 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		JedisConnectionFactory connectionFactory = 
 			TestUtils.getPropertyValue(redisChannel, "connectionFactory", JedisConnectionFactory.class);
+		RedisSerializer<?> redisSerializer = TestUtils.getPropertyValue(redisChannel, "serializer", RedisSerializer.class);
 		assertEquals(connectionFactory, context.getBean("redisConnectionFactory"));
+		assertEquals(redisSerializer, context.getBean("redisSerializer"));
 		assertEquals("si.test.topic", TestUtils.getPropertyValue(redisChannel, "topicName"));
 	}
 
