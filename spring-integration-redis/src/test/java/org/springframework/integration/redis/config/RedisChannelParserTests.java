@@ -18,7 +18,7 @@ package org.springframework.integration.redis.config;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -41,7 +41,7 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 	@Test 
 	@RedisAvailable
 	public void testPubSubChannelConfig(){
-		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		JedisConnectionFactory connectionFactory = 
 			TestUtils.getPropertyValue(redisChannel, "connectionFactory", JedisConnectionFactory.class);
@@ -49,12 +49,13 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		assertEquals(connectionFactory, context.getBean("redisConnectionFactory"));
 		assertEquals(redisSerializer, context.getBean("redisSerializer"));
 		assertEquals("si.test.topic", TestUtils.getPropertyValue(redisChannel, "topicName"));
+		context.stop();
 	}
 
 	@Test
 	@RedisAvailable
 	public void testPubSubChannelUsage() throws Exception {
-		ApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("RedisChannelParserTests-context.xml", this.getClass());
 		SubscribableChannel redisChannel = context.getBean("redisChannel", SubscribableChannel.class);
 		final Message<?> m = new GenericMessage<String>("Hello Redis");
 		
@@ -68,6 +69,7 @@ public class RedisChannelParserTests extends RedisAvailableTests{
 		redisChannel.send(m);
 		Thread.sleep(1000);
 		Mockito.verify(marker, Mockito.times(1)).mark();
+		context.stop();
 	}
 	
 	interface Marker {

@@ -54,5 +54,6 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 		channel.send(new GenericMessage<String>("3"));
 		Thread.sleep(1000);
 		verify(handler, times(3)).handleMessage(Mockito.any(Message.class));
+		channel.stop();
 	}
 }
