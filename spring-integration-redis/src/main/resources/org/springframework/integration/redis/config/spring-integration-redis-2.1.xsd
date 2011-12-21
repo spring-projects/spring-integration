@@ -119,6 +119,7 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+<!-- The following two attributes should be added once configurable on the RedisMessageListenerContainer -->
 <!-- 		<xsd:attribute name="auto-startup" type="xsd:string"> -->
 <!-- 			<xsd:annotation> -->
 <!-- 				<xsd:documentation><![CDATA[ -->
