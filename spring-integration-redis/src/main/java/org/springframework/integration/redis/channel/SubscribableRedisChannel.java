@@ -40,6 +40,7 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -62,28 +63,35 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 	
 	public SubscribableRedisChannel(JedisConnectionFactory connectionFactory, String topicName) {
+		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
+		Assert.hasText(topicName, "'topicName' must not be empty");
 		this.connectionFactory = connectionFactory;
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 		this.topicName = topicName;
 	}
 
 	public void setTaskExecutor(Executor taskExecutor) {
+		Assert.notNull(taskExecutor, "'taskExecutor' must not be null");
 		this.taskExecutor = taskExecutor;
 	}
 	
 	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
 	
 	public void setSerializer(RedisSerializer<?> serializer) {
+		Assert.notNull(serializer, "'serializer' must not be null");
 		this.serializer = serializer;
 	}
 
 	public boolean subscribe(MessageHandler handler) {
+		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.addHandler(handler);
 	}
 
 	public boolean unsubscribe(MessageHandler handler) {
+		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.removeHandler(handler);
 	}
 	
@@ -95,22 +103,26 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	@Override
 	public void onInit() throws Exception {
-		super.onInit();
-		this.configureDispatcher();
-		if (this.messageConverter == null){
-			this.messageConverter = new SimpleMessageConverter();
+		synchronized (this.dispatcher) {
+			if (this.dispatcher == null){
+				super.onInit();
+				this.configureDispatcher();
+				if (this.messageConverter == null){
+					this.messageConverter = new SimpleMessageConverter();
+				}
+				this.container.setConnectionFactory(connectionFactory);
+				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+					ErrorHandler errorHandler = new MessagePublishingErrorHandler(
+							new BeanFactoryChannelResolver(this.getBeanFactory()));
+					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+				}
+				this.container.setTaskExecutor(this.taskExecutor);
+				MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
+				adapter.setSerializer(serializer);
+				this.container.addMessageListener(adapter, new ChannelTopic(topicName));
+				this.container.afterPropertiesSet();
+			}
 		}
-		this.container.setConnectionFactory(connectionFactory);
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-					new BeanFactoryChannelResolver(this.getBeanFactory()));
-			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
-		}
-		this.container.setTaskExecutor(this.taskExecutor);
-		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
-		adapter.setSerializer(serializer);
-		this.container.addMessageListener(adapter, new ChannelTopic(topicName));
-		this.container.afterPropertiesSet();
 	}
 
 	private void configureDispatcher() {
