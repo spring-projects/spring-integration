@@ -69,6 +69,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 		}
 		latch.await(3, TimeUnit.SECONDS);
 		assertEquals(0, latch.getCount());
+		container.stop();
 	}
 
 

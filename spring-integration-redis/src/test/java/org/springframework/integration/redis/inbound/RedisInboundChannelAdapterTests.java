@@ -50,7 +50,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.setOutputChannel(channel);
 		adapter.afterPropertiesSet();
 		adapter.start();
-
+	
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
 		for (int i = 0; i < numToTest; i++) {
@@ -68,6 +68,7 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 			counter++;
 		}
 		assertEquals(numToTest, counter);
+		adapter.stop();
 	}
 
 }

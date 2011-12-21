@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -51,7 +51,7 @@ import org.springframework.util.ErrorHandler;
 public class SubscribableRedisChannel extends AbstractMessageChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
 
 	private final RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-	private final JedisConnectionFactory connectionFactory;
+	private final RedisConnectionFactory connectionFactory;
 	private final RedisTemplate redisTemplate;
 	private final String topicName;
 	
@@ -64,7 +64,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private volatile RedisSerializer<?> serializer = new StringRedisSerializer();
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 	
-	public SubscribableRedisChannel(JedisConnectionFactory connectionFactory, String topicName) {
+	public SubscribableRedisChannel(RedisConnectionFactory connectionFactory, String topicName) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 		Assert.hasText(topicName, "'topicName' must not be empty");
 		this.connectionFactory = connectionFactory;

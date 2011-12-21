@@ -18,6 +18,7 @@ package org.springframework.integration.redis.config;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -42,6 +43,7 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Autowired
 	private ApplicationContext context;
+	
 
 	@Test 
 	@RedisAvailable
