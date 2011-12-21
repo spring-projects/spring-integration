@@ -16,6 +16,7 @@
 
 package org.springframework.integration.redis.config;
 
+import org.springframework.integration.redis.channel.SubscribableRedisChannel;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -29,14 +30,14 @@ import org.springframework.util.StringUtils;
  * Spring Integration Redis namespace.
  * 
  * @author Oleg Zhurakusky
+ * @author Artem Bilan
  * @since 2.1
  */
 public class RedisChannelParser extends AbstractChannelParser {
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.redis.channel.SubscribableRedisChannel");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SubscribableRedisChannel.class);
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "redisConnectionFactory";
@@ -47,9 +48,9 @@ public class RedisChannelParser extends AbstractChannelParser {
 		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+//		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
 //		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "serializer");
 		return builder;
 	}
 }
