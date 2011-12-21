@@ -55,7 +55,9 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private final RedisTemplate redisTemplate;
 	private final String topicName;
 	
-	private volatile MessageDispatcher dispatcher;
+	private final MessageDispatcher dispatcher = new BroadcastingDispatcher();
+	
+	private volatile boolean initialized;
 	
 	// defaults
 	private volatile Executor taskExecutor = new SimpleAsyncTaskExecutor();
@@ -86,12 +88,10 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	}
 
 	public boolean subscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.addHandler(handler);
 	}
 
 	public boolean unsubscribe(MessageHandler handler) {
-		Assert.state(this.dispatcher != null, "'MessageDispatcher' must not be null. This channel might not have been initialized");
 		return this.dispatcher.removeHandler(handler);
 	}
 	
@@ -103,30 +103,26 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 
 	@Override
 	public void onInit() throws Exception {
-		synchronized (this.dispatcher) {
-			if (this.dispatcher == null){
-				super.onInit();
-				this.configureDispatcher();
-				if (this.messageConverter == null){
-					this.messageConverter = new SimpleMessageConverter();
-				}
-				this.container.setConnectionFactory(connectionFactory);
-				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-					ErrorHandler errorHandler = new MessagePublishingErrorHandler(
-							new BeanFactoryChannelResolver(this.getBeanFactory()));
-					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
-				}
-				this.container.setTaskExecutor(this.taskExecutor);
-				MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
-				adapter.setSerializer(serializer);
-				this.container.addMessageListener(adapter, new ChannelTopic(topicName));
-				this.container.afterPropertiesSet();
-			}
+		if (this.initialized){
+			return;
 		}
-	}
-
-	private void configureDispatcher() {
-		this.dispatcher = new BroadcastingDispatcher();
+		super.onInit();
+		if (this.messageConverter == null){
+			this.messageConverter = new SimpleMessageConverter();
+		}
+		this.container.setConnectionFactory(connectionFactory);
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
+					new BeanFactoryChannelResolver(this.getBeanFactory()));
+			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+		}
+		this.container.setTaskExecutor(this.taskExecutor);
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageListenerDelegate());
+		adapter.setSerializer(serializer);
+		adapter.afterPropertiesSet();
+		this.container.addMessageListener(adapter, new ChannelTopic(topicName));
+		this.container.afterPropertiesSet();
+		this.initialized = true;
 	}
 
 	/*

@@ -53,6 +53,7 @@ public class RedisPublishingMessageHandlerTests extends RedisAvailableTests{
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(new Listener(latch));
 		listener.setSerializer(new StringRedisSerializer());
+		listener.afterPropertiesSet();
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
