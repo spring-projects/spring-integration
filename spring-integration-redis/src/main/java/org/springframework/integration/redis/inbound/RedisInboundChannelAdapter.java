@@ -73,7 +73,8 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 		List<ChannelTopic> topicList = new ArrayList<ChannelTopic>();
 		for (String topic : this.topics) {
 			topicList.add(new ChannelTopic(topic));
-		}		
+		}	
+		adapter.afterPropertiesSet();
 		this.container.addMessageListener(adapter, topicList);
 		this.container.afterPropertiesSet();
 	}
