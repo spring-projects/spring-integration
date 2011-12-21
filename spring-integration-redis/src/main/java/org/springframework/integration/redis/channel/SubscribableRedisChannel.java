@@ -126,7 +126,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	}
 
 	public int getPhase() {
-		return 0;
+		return (this.container != null) ? this.container.getPhase() : 0;
 	}
 
 	public boolean isRunning() {
