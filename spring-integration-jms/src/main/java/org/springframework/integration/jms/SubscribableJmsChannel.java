@@ -46,6 +46,8 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	private volatile MessageDispatcher dispatcher;
 	
+	private volatile boolean initialized;;
+	
 	public SubscribableJmsChannel(AbstractMessageListenerContainer container, JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 		Assert.notNull(container, "container must not be null");
@@ -65,15 +67,16 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	@Override
 	public void onInit() throws Exception {
-		synchronized (this.dispatcher) {
-			if (this.dispatcher == null){
-				super.onInit();
-				this.configureDispatcher(this.container.isPubSubDomain());
-				MessageListener listener = new DispatchingMessageListener(this.getJmsTemplate(), this.dispatcher);
-				this.container.setMessageListener(listener);
-				if (!this.container.isActive()) {
-					this.container.afterPropertiesSet();
-				}
+		if (this.initialized){
+			return;
+		}
+		if (this.dispatcher == null){
+			super.onInit();
+			this.configureDispatcher(this.container.isPubSubDomain());
+			MessageListener listener = new DispatchingMessageListener(this.getJmsTemplate(), this.dispatcher);
+			this.container.setMessageListener(listener);
+			if (!this.container.isActive()) {
+				this.container.afterPropertiesSet();
 			}
 		}
 	}
