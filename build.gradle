@@ -115,7 +115,7 @@ configure(javaprojects) {
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
-    commonsNetVersion = '2.0'
+    commonsNetVersion = '3.0.1'
     easymockVersion = '2.3'
     groovyVersion = '1.8.4'
     jacksonVersion = '1.8.3'
