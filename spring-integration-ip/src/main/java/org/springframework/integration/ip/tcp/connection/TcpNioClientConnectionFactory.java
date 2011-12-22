@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp.connection;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -118,7 +119,15 @@ public class TcpNioClientConnectionFactory extends
 			this.selector = Selector.open();
 			while (this.active) {
 				SocketChannel newChannel;
-				int selectionCount = selector.select(this.soTimeout);
+				int soTimeout = this.getSoTimeout();
+				int selectionCount = 0;
+				try {
+					selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
+				} catch (CancelledKeyException cke) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("CancelledKeyException during Selector.select()");
+					}
+				}
 				while ((newChannel = newChannels.poll()) != null) {
 					try {
 						newChannel.register(this.selector, SelectionKey.OP_READ, connections.get(newChannel));
