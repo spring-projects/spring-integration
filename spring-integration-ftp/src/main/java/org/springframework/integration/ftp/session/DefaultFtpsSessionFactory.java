@@ -17,13 +17,11 @@
 package org.springframework.integration.ftp.session;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 import org.apache.commons.net.ftp.FTPSClient;
-
 import org.springframework.util.StringUtils;
 
 /**
@@ -117,8 +115,19 @@ public class DefaultFtpsSessionFactory extends AbstractFtpSessionFactory<FTPSCli
 			}
 			return new FTPSClient(this.implicit);
 		}
-		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
+		catch (Exception e) {
+		    
+			/* 
+			 This catch block is technically not necessary but it allows users 
+			 to use the older Commons Net 2.0 if necessary, which requires you 
+			 to catch a NoSuchAlgorithmException. 
+			 */
+			
+			if (e instanceof RuntimeException) {
+		        throw (RuntimeException) e;
+		    }
+		    
+			throw new RuntimeException("Failed to create FTPS client.", e);
 		}
 	}
 
