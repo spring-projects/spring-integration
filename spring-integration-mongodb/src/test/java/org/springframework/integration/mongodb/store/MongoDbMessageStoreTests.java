@@ -16,20 +16,25 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.util.Properties;
 
 import org.junit.Test;
 
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Mark Fisher
@@ -79,6 +84,30 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testWithMessageHistory() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessage(message);
+		message = store.getMessage(message.getHeaders().getId());
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 
 
