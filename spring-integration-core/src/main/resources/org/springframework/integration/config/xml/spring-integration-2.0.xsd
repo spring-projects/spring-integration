@@ -2442,7 +2442,7 @@ Name of the header whose value will be used to route messages
 				</xsd:attribute>
 				<xsd:attribute name="release-strategy-expression" type="xsd:string">
 					<xsd:annotation>
-						<xsd:documentation>A SpEL expression to apply to the message group (e.g, payload.size() > 6)</xsd:documentation>
+						<xsd:documentation>A SpEL expression to evaluate against a root object that is the Collection of messages within the message group (e.g, size() > 6)</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">
