@@ -125,7 +125,7 @@ configure(javaprojects) {
     mockitoVersion = '1.8.4'
     springVersion = '3.0.7.RELEASE'
     springAmqpVersion = '1.0.0.RELEASE'
-    springDataMongoVersion = '1.0.0.RC1'
+    springDataMongoVersion = '1.0.0.RELEASE'
     springDataRedisVersion = '1.0.0.RELEASE'
     springGemfireVersion = '1.1.0.RELEASE'
     springSecurityVersion = '3.1.0.RELEASE'
