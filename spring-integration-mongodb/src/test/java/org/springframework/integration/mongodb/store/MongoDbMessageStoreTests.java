@@ -16,20 +16,25 @@
 
 package org.springframework.integration.mongodb.store;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import java.util.Properties;
 
 import org.junit.Test;
 
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
 import org.springframework.integration.support.MessageBuilder;
 
 import com.mongodb.Mongo;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -79,6 +84,92 @@ public class MongoDbMessageStoreTests extends MongoDbAvailableTests{
 		assertEquals(messageToStore.getPayload(), retrievedMessage.getPayload());
 		assertEquals(messageToStore.getHeaders(), retrievedMessage.getHeaders());
 		assertEquals(messageToStore, retrievedMessage);
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testWithMessageHistory() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		Foo foo = new Foo();
+		foo.setName("foo");
+		Message<?> message = MessageBuilder.withPayload(foo).
+				setHeader("foo", foo).
+				setHeader("bar", new Bar("bar")).
+				setHeader("baz", new Baz()).
+				setHeader("abc", new Abc()).
+				setHeader("xyz", new Xyz()).
+				build();
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessage(message);
+		message = store.getMessage(message.getHeaders().getId());
+		assertTrue(message.getHeaders().get("foo") instanceof Foo);
+		assertTrue(message.getHeaders().get("bar") instanceof Bar);
+		assertTrue(message.getHeaders().get("baz") instanceof Baz);
+		assertTrue(message.getHeaders().get("abc") instanceof Abc);
+		assertTrue(message.getHeaders().get("xyz") instanceof Xyz);
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
+	}
+	
+	public static class Foo{
+		private String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+	}
+	
+	public static class Bar{
+		private String name;
+		
+		public Bar(String name){
+			this.name = name;
+		}
+
+		public String getName() {
+			return name;
+		}
+	}
+	
+	public static class Baz{
+		private String name = "baz";
+		
+		public String getName() {
+			return name;
+		}
+	}
+	
+	public static class Abc{
+		private String name = "abx";
+		
+		private Abc(){}
+		
+		public String getName() {
+			return name;
+		}
+	}
+	
+	public static class Xyz{
+		@SuppressWarnings("unused")
+		private String name = "xyz";
+		
+		private Xyz(){}
 	}
 
 
