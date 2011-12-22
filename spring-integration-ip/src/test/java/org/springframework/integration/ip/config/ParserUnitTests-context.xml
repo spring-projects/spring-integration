@@ -290,7 +290,8 @@
 		channel="tcpChannel"
 		connection-factory="cfC3"
 		client-mode="true"
-		retry-interval="123"
+		retry-interval="123000"
+		auto-startup="false"
 		scheduler="sched" />
 
 	<ip:tcp-connection-factory id="cfC4"
@@ -305,8 +306,9 @@
 		channel="tcpChannel"
 		connection-factory="cfC4"
 		client-mode="true"
-		retry-interval="124"
-		scheduler="sched" />
+		retry-interval="124000"
+		scheduler="sched"
+		auto-startup="false" />
 
 	<ip:tcp-connection-factory id="cfC5"
 		type="client"
@@ -322,8 +324,9 @@
 		connection-factory="cfC5"
 		reply-timeout="456"
 		client-mode="true"
-		retry-interval="125"
+		retry-interval="125000"
 		scheduler="sched"
+		auto-startup="false"
 		/>
 
 	<task:scheduler id="sched"/>
