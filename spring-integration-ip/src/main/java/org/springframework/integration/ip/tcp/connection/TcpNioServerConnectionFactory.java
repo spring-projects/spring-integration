@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -112,7 +113,15 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	private void doSelect(ServerSocketChannel server, final Selector selector)
 			throws IOException, ClosedChannelException, SocketException {
 		while (this.active) {
-			int selectionCount = selector.select(this.soTimeout);
+			int soTimeout = this.getSoTimeout();
+			int selectionCount = 0;
+			try {
+				selectionCount = selector.select(soTimeout < 0 ? 0 : soTimeout);
+			} catch (CancelledKeyException cke) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("CancelledKeyException during Selector.select()");
+				}
+			}
 			this.processNioSelections(selectionCount, selector, server, this.connections);			
 		}
 	}
