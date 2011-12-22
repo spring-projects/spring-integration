@@ -495,7 +495,7 @@ public class ParserUnitTests {
 		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
 		assertSame(sched, dfa.getPropertyValue("scheduler"));
-		assertEquals(123L, dfa.getPropertyValue("retryInterval"));
+		assertEquals(123000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 	@Test
@@ -505,7 +505,7 @@ public class ParserUnitTests {
 		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
 		assertSame(sched, dfa.getPropertyValue("scheduler"));
-		assertEquals(124L, dfa.getPropertyValue("retryInterval"));
+		assertEquals(124000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 	@Test
@@ -515,7 +515,7 @@ public class ParserUnitTests {
 		assertNull(dfa.getPropertyValue("serverConnectionFactory"));
 		assertEquals(Boolean.TRUE, dfa.getPropertyValue("isClientMode"));
 		assertSame(sched, dfa.getPropertyValue("scheduler"));
-		assertEquals(125L, dfa.getPropertyValue("retryInterval"));
+		assertEquals(125000L, dfa.getPropertyValue("retryInterval"));
 	}
 
 }
