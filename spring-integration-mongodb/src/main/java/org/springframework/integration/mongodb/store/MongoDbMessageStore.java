@@ -16,11 +16,14 @@
 
 package org.springframework.integration.mongodb.store;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -39,6 +42,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -49,11 +53,17 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.DBObject;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TIMESTAMP_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TYPE_PROPERTY;
 
 /**
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
@@ -61,6 +71,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Sean Brandt
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
@@ -298,6 +309,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
 			customConverters.add(new UuidToStringConverter());
 			customConverters.add(new StringToUuidConverter());
+            customConverters.add(new MessageHistoryToDBObjectConverter());
+            customConverters.add(new DBObjectToMessageHistoryConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
@@ -356,7 +369,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 						throw new IllegalStateException("failed to load class: " + payloadType, e);
 					}
 				}
-				GenericMessage message = new GenericMessage(payload, headers);
+                readMessageHistoryHeader(headers);
+                GenericMessage message = new GenericMessage(payload, headers);
 				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
 				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
@@ -389,7 +403,15 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			}
 			return null;
 		}
-	}
+
+        private void readMessageHistoryHeader(Map<String, Object> headers) {
+            if ( headers.containsKey(MessageHistory.HEADER_NAME) ) {
+                final Object o = headers.get(MessageHistory.HEADER_NAME);
+                final MessageHistory messageHistory = conversionService.convert(o, MessageHistory.class);
+                headers.put(MessageHistory.HEADER_NAME,messageHistory);
+            }
+        }
+    }
 
 
 	private static class UuidToStringConverter implements Converter<UUID, String> {
@@ -405,6 +427,50 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
+    private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory,DBObject> {
+
+        @Override
+        public DBObject convert(MessageHistory source) {
+            BasicDBObject obj = new BasicDBObject();
+            obj.put("_class",MessageHistory.class.getName());
+            BasicDBList dbList = new BasicDBList();
+            obj.put("components",dbList);
+            for (Properties properties : source) {
+                BasicDBObject dbo = new BasicDBObject();
+                dbo.put(NAME_PROPERTY,properties.getProperty(NAME_PROPERTY));
+                dbo.put(TYPE_PROPERTY,properties.getProperty(TYPE_PROPERTY));
+                dbo.put(TIMESTAMP_PROPERTY,properties.getProperty(TIMESTAMP_PROPERTY));
+                dbList.add(dbo);
+            }
+            return obj;
+        }
+    }
+
+    private static class DBObjectToMessageHistoryConverter implements Converter<DBObject,MessageHistory> {
+
+        @Override
+        public MessageHistory convert(DBObject source) {
+            final BasicDBList components = (BasicDBList) source.get("components");
+            List<Properties> history = new ArrayList<Properties>();
+                for (Object o : components) {
+                    DBObject dbo = (DBObject) o;
+                    Properties p = new Properties();
+                    final Set<String> keys = dbo.keySet();
+                    for (String key : keys) {
+                        p.setProperty(key, (String) dbo.get(key));
+                    }
+                    history.add(p);
+                }
+            try {
+                final Constructor<MessageHistory> messageHistoryConstructor = MessageHistory.class.getDeclaredConstructor(List.class);
+                ReflectionUtils.makeAccessible(messageHistoryConstructor);
+                return messageHistoryConstructor.newInstance(history);
+            } catch (Exception e) {
+                ReflectionUtils.handleReflectionException(e);
+                return null;
+            }
+        }
+    }
 
 	/**
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.
