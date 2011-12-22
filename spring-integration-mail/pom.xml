@@ -72,34 +72,42 @@
   <repositories>
     <repository>
       <id>http://download.java.net/maven/2</id>
-      <url>http://download.java.net/maven/2</url>
+      <url>http://download.java.net/maven/2/</url>
     </repository>
     <repository>
       <id>http://maven.springframework.org/milestone</id>
-      <url>http://maven.springframework.org/milestone</url>
+      <url>http://maven.springframework.org/milestone/</url>
     </repository>
     <repository>
       <id>http://maven.springframework.org/release</id>
-      <url>http://maven.springframework.org/release</url>
-    </repository>
-    <repository>
-      <id>http://maven.springframework.org/snapshot</id>
-      <url>http://maven.springframework.org/snapshot</url>
+      <url>http://maven.springframework.org/release/</url>
     </repository>
     <repository>
       <id>http://repository.springsource.com/maven/bundles/external</id>
-      <url>http://repository.springsource.com/maven/bundles/external</url>
+      <url>http://repository.springsource.com/maven/bundles/external/</url>
     </repository>
     <repository>
       <id>http://repository.springsource.com/maven/bundles/milestone</id>
-      <url>http://repository.springsource.com/maven/bundles/milestone</url>
+      <url>http://repository.springsource.com/maven/bundles/milestone/</url>
     </repository>
     <repository>
       <id>http://repository.springsource.com/maven/bundles/release</id>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
+      <url>http://repository.springsource.com/maven/bundles/release/</url>
     </repository>
   </repositories>
   <dependencies>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+      <version>3.0.7.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.0.7.RELEASE</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib-nodep</artifactId>
@@ -125,23 +133,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-test</artifactId>
-      <version>2.0.6.BUILD-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
       <version>1.1.1</version>
       <scope>compile</scope>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -156,16 +152,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context-support</artifactId>
-      <version>3.0.5.RELEASE</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-core</artifactId>
       <version>2.0.6.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-test</artifactId>
+      <version>2.0.6.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>

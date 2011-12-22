@@ -62,7 +62,7 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        mavenRepo urls: 'http://maven.springframework.org/snapshot'
+        //mavenRepo urls: 'http://maven.springframework.org/snapshot'
         mavenCentral()
         mavenRepo urls: 'http://maven.springframework.org/release'
         mavenRepo urls: 'http://maven.springframework.org/milestone'
@@ -121,9 +121,9 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    springVersion = '3.0.5.RELEASE'
-    springSecurityVersion = '3.0.5.RELEASE'
-    springWsVersion = '2.0.2.RELEASE'
+    springVersion = '3.0.7.RELEASE'
+    springSecurityVersion = '3.0.7.RELEASE'
+    springWsVersion = '2.0.3.RELEASE'
 
     sourceSets {
         test {
@@ -333,19 +333,13 @@ project('spring-integration-rmi') {
     compileJava.options.compilerArgs = ["${xLintArg},-deprecation"]
 }
 
-
 project('spring-integration-security') {
     description = 'Spring Integration Security Support'
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
-        compile("org.springframework.security:spring-security-core:$springSecurityVersion") {
-            exclude group: 'org.springframework', module: 'spring-support'
-        }
-        compile("org.springframework.security:spring-security-config:$springSecurityVersion") {
-            exclude group: 'org.springframework', module: 'spring-support'
-        }
+        compile "org.springframework.security:spring-security-config:$springSecurityVersion"
     }
 }
 
@@ -397,7 +391,11 @@ project('spring-integration-ws') {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-expression:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
-        compile "org.springframework.ws:spring-ws-core:$springWsVersion"
+        compile("org.springframework.ws:spring-ws-core:$springWsVersion") {
+            exclude group: 'org.springframework', module: 'spring-context-support'
+            exclude group: 'org.springframework', module: 'spring-web'
+            exclude group: 'org.springframework', module: 'spring-webmvc'
+        }
         compile("javax.xml.soap:saaj-api:1.3") {
             optional = true
             exclude group: 'javax.activation', module: 'activation'
