@@ -16,14 +16,12 @@
 
 package org.springframework.integration.mongodb.store;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -53,7 +51,6 @@ import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.mongodb.BasicDBList;
@@ -310,7 +307,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			customConverters.add(new UuidToStringConverter());
 			customConverters.add(new StringToUuidConverter());
             customConverters.add(new MessageHistoryToDBObjectConverter());
-            customConverters.add(new DBObjectToMessageHistoryConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
@@ -458,32 +454,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
                 dbList.add(dbo);
             }
             return obj;
-        }
-    }
-
-    private static class DBObjectToMessageHistoryConverter implements Converter<DBObject,MessageHistory> {
-
-        public MessageHistory convert(DBObject source) {
-            final BasicDBList components = (BasicDBList) source.get("components");
-            List<Properties> history = new ArrayList<Properties>();
-            for (Object o : components) {
-                DBObject dbo = (DBObject) o;
-                Properties p = new Properties();
-                final Set<String> keys = dbo.keySet();
-                for (String key : keys) {
-                    p.setProperty(key, (String) dbo.get(key));
-                }
-                history.add(p);
-            }
-            try {
-                final Constructor<MessageHistory> messageHistoryConstructor = MessageHistory.class.getDeclaredConstructor(List.class);
-                ReflectionUtils.makeAccessible(messageHistoryConstructor);
-                return messageHistoryConstructor.newInstance(history);
-            } 
-            catch (Exception e) {
-                ReflectionUtils.handleReflectionException(e);
-            }
-            return null;
         }
     }
 
