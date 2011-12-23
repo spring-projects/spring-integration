@@ -16,11 +16,15 @@
 package org.springframework.integration.redis.store;
 
 import java.io.Serializable;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.Test;
+
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -113,6 +117,30 @@ public class RedisMessageStoreTests extends RedisAvailableTests {
 		assertNotNull(retrievedMessage);
 		assertEquals("Hello Redis", retrievedMessage.getPayload());
 		assertNull(store.getMessage(stringMessage.getHeaders().getId()));
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testWithMessageHistory() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessage(message);
+		message = store.getMessage(message.getHeaders().getId());
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 	
 	@SuppressWarnings("serial")

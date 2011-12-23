@@ -18,6 +18,7 @@ package org.springframework.integration.gemfire.store;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -204,6 +207,33 @@ public class GemfireGroupStoreTests {
 		messageGroup = store3.removeMessageFromGroup(1, message);
 		
 		assertEquals(1, messageGroup.getMessages().size());
+	}
+	
+	@Test
+	public void testWithMessageHistory() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		store.afterPropertiesSet();
+		
+		store.getMessageGroup(1);
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessageToGroup(1, message);
+		
+		message = store.getMessageGroup(1).getMessages().iterator().next();
+		
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 	
 	@Test
