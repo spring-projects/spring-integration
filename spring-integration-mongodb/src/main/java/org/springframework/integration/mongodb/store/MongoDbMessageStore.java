@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -39,6 +40,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -51,9 +53,14 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TIMESTAMP_PROPERTY;
+import static org.springframework.integration.history.MessageHistory.TYPE_PROPERTY;
 
 /**
  * An implementation of both the {@link MessageStore} and {@link MessageGroupStore}
@@ -61,6 +68,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Sean Brandt
  * @since 2.1
  */
 public class MongoDbMessageStore extends AbstractMessageGroupStore implements MessageStore, BeanClassLoaderAware {
@@ -298,6 +306,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
 			customConverters.add(new UuidToStringConverter());
 			customConverters.add(new StringToUuidConverter());
+			customConverters.add(new MessageHistoryToDBObjectConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
@@ -333,7 +342,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
 				target.put(GROUP_UPDATE_TIMESTAMP_KEY, lastModified);
 			}
-			
 			super.write(message, target);
 		}
 
@@ -344,7 +352,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				return super.read(clazz, source);
 			}
 			if (source != null) {
-				Map<String, Object> headers = (Map<String, Object>) source.get("headers");
+				Map<String, Object> headers = this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+	
 				Object payload = source.get("payload");
 				Object payloadType = source.get(PAYLOAD_TYPE_KEY);
 				if (payloadType != null && payload instanceof DBObject) {
@@ -389,6 +398,28 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			}
 			return null;
 		}
+
+		private Map<String, Object> normalizeHeaders(Map<String, Object> headers) {
+			Map<String, Object> normalizedHeaders = new HashMap<String, Object>();
+			for (String headerName : headers.keySet()) {
+				Object headerValue = headers.get(headerName);
+				if (headerValue instanceof DBObject) {
+					DBObject source = (DBObject) headerValue;
+					Object type = source.get("_class");
+					try {
+						Class<?> typeClass = ClassUtils.forName(type.toString(), classLoader);
+						normalizedHeaders.put(headerName, super.read(typeClass, source));
+					}
+					catch (Exception e) {
+						logger.warn("Header '" + headerName + "' could not be deserialized.", e);
+					}
+				}
+				else {
+					normalizedHeaders.put(headerName, headerValue);
+				}
+			}
+			return normalizedHeaders;
+		}
 	}
 
 
@@ -405,6 +436,24 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
+
+	private static class MessageHistoryToDBObjectConverter implements Converter<MessageHistory,DBObject> {
+
+		public DBObject convert(MessageHistory source) {
+			BasicDBObject obj = new BasicDBObject();
+			obj.put("_class", MessageHistory.class.getName());
+			BasicDBList dbList = new BasicDBList();
+			for (Properties properties : source) {
+				BasicDBObject dbo = new BasicDBObject();
+				dbo.put(NAME_PROPERTY, properties.getProperty(NAME_PROPERTY));
+				dbo.put(TYPE_PROPERTY, properties.getProperty(TYPE_PROPERTY));
+				dbo.put(TIMESTAMP_PROPERTY, properties.getProperty(TIMESTAMP_PROPERTY));
+				dbList.add(dbo);
+			}
+			obj.put("components", dbList);
+			return obj;
+		}
+	}
 
 	/**
 	 * Wrapper class used for storing Messages in MongoDB along with their "group" metadata.

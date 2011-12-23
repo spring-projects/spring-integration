@@ -16,6 +16,7 @@
 package org.springframework.integration.mongodb.store;
 
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -24,7 +25,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.mongodb.rules.MongoDbAvailable;
 import org.springframework.integration.mongodb.rules.MongoDbAvailableTests;
@@ -330,6 +333,34 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		Message<?> m3 = MessageBuilder.withPayload("3").setSequenceNumber(3).setSequenceSize(3).setCorrelationId(1).build();
 		input.send(m3);
 		assertNotNull(output.receive(2000));
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testWithMessageHistory() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+		
+		store.getMessageGroup(1);
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessageToGroup(1, message);
+		
+		message = store.getMessageGroup(1).getMessages().iterator().next();
+		
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 	
 }
