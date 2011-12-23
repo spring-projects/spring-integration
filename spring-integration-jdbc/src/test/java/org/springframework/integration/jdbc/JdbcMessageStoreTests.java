@@ -16,20 +16,12 @@
 
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -37,10 +29,13 @@ import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.serializer.Deserializer;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
@@ -49,6 +44,16 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -82,6 +87,28 @@ public class JdbcMessageStoreTests {
 		assertThat(saved, sameExceptIgnorableHeaders(result));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
+	}
+	
+	@Test
+	@Transactional
+	public void testWithMessageHistory() throws Exception{	
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		messageStore.addMessage(message);
+		message = messageStore.getMessage(message.getHeaders().getId());
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 
 	@Test

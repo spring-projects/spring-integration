@@ -18,6 +18,7 @@ package org.springframework.integration.redis.store;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,11 +27,14 @@ import junit.framework.AssertionFailedError;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
@@ -183,6 +187,34 @@ public class RedisMessageGroupStoreTests extends RedisAvailableTests {
 
 		messageGroup = store.getMessageGroup(1);
 		assertEquals(2, messageGroup.size());
+	}
+	
+	@Test
+	@RedisAvailable
+	public void testWithMessageHistory() throws Exception{	
+		JedisConnectionFactory jcf = this.getConnectionFactoryForTest();
+		RedisMessageStore store = new RedisMessageStore(jcf);
+		
+		store.getMessageGroup(1);
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessageToGroup(1, message);
+		
+		message = store.getMessageGroup(1).getMessages().iterator().next();
+		
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 	@Test
 	@RedisAvailable
