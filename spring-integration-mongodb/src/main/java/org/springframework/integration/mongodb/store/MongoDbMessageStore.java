@@ -56,9 +56,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.mongodb.DBObject;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.integration.history.MessageHistory.NAME_PROPERTY;
@@ -357,7 +357,8 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				return super.read(clazz, source);
 			}
 			if (source != null) {
-				Map<String, Object> headers = (Map<String, Object>) source.get("headers");
+				Map<String, Object> headers = this.normalizeHeaders((Map<String, Object>) source.get("headers"));
+	
 				Object payload = source.get("payload");
 				Object payloadType = source.get(PAYLOAD_TYPE_KEY);
 				if (payloadType != null && payload instanceof DBObject) {
@@ -369,7 +370,6 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 						throw new IllegalStateException("failed to load class: " + payloadType, e);
 					}
 				}
-                this.readMessageHistoryHeader(headers);
                 GenericMessage message = new GenericMessage(payload, headers);
 				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
@@ -403,16 +403,30 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 			}
 			return null;
 		}
-
-        private void readMessageHistoryHeader(Map<String, Object> headers) {
-            if ( headers.containsKey(MessageHistory.HEADER_NAME) ) {
-                final Object messageHistoryObject = headers.get(MessageHistory.HEADER_NAME);
-                if (messageHistoryObject != null){
-                	final MessageHistory messageHistory = conversionService.convert(messageHistoryObject, MessageHistory.class);
-                    headers.put(MessageHistory.HEADER_NAME, messageHistory);
-                }  
-            }
-        }
+		
+		private Map<String, Object> normalizeHeaders(Map<String, Object> headers){
+			Map<String, Object> newHeaders= new HashMap<String, Object>();
+			for (String headerName : headers.keySet()) {
+				Object headerValue = headers.get(headerName);
+				if (headerValue instanceof DBObject){
+					DBObject source = (DBObject) headerValue;
+					Object type = source.get("_class");
+					if (type != null){
+						try {
+							Class<?> typeClass = ClassUtils.forName(type.toString(), classLoader);
+							Object obj = super.read(typeClass, source);
+							newHeaders.put(headerName, obj);
+						} catch (Exception e) {
+							logger.warn("Header '" + headerName + "' could not be deserialized due to exception: ", e);
+						}
+					}
+				}
+				else {
+					newHeaders.put(headerName, headerValue);
+				}
+			}
+			return newHeaders;
+		}
     }
 
 
