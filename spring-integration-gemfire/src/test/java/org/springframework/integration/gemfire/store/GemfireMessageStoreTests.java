@@ -16,17 +16,24 @@
 
 package org.springframework.integration.gemfire.store;
 
+import java.util.Properties;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.data.gemfire.CacheFactoryBean;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 import com.gemstone.gemfire.cache.Cache;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Fisher
@@ -45,6 +52,29 @@ public class GemfireMessageStoreTests {
 		store.addMessage(message);
 		Message<?> retrieved = store.getMessage(message.getHeaders().getId());
 		assertEquals(message, retrieved);
+	}
+	
+	@Test
+	public void testWithMessageHistory() throws Exception{	
+		GemfireMessageStore store = new GemfireMessageStore(this.cache);
+		store.afterPropertiesSet();
+		
+		Message<?> message = new GenericMessage<String>("Hello");
+		DirectChannel fooChannel = new DirectChannel();
+		fooChannel.setBeanName("fooChannel");
+		DirectChannel barChannel = new DirectChannel();
+		barChannel.setBeanName("barChannel");
+		
+		message = MessageHistory.write(message, fooChannel);
+		message = MessageHistory.write(message, barChannel);
+		store.addMessage(message);
+		message = store.getMessage(message.getHeaders().getId());
+		MessageHistory messageHistory = MessageHistory.read(message);
+		assertNotNull(messageHistory);
+		assertEquals(2, messageHistory.size());
+		Properties fooChannelHistory = messageHistory.get(0);
+		assertEquals("fooChannel", fooChannelHistory.get("name"));
+		assertEquals("channel", fooChannelHistory.get("type"));
 	}
 
 	@Before
