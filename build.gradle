@@ -175,7 +175,6 @@ project('spring-integration-amqp') {
     description = 'Spring Integration AMQP Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") { optional = true }
         compile("org.springframework.amqp:spring-rabbit:$springAmqpVersion") {
@@ -259,7 +258,6 @@ project('spring-integration-gemfire') {
             exclude group: 'org.springframework', module: 'spring-core'
             exclude group: 'org.springframework', module: 'spring-tx'
         }
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         testCompile project(":spring-integration-stream")
         testCompile project(":spring-integration-test")
@@ -313,7 +311,6 @@ project('spring-integration-jdbc') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-aop:$springVersion"
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-jdbc:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         testCompile project(":spring-integration-test")
@@ -332,12 +329,14 @@ project('spring-integration-jms') {
     description = 'Spring Integration JMS Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-jms:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile ("org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1") { provided = true }
         testCompile project(":spring-integration-test")
-        testCompile "org.apache.activemq:activemq-core:5.3.0"
+        testCompile ("org.apache.activemq:activemq-core:5.3.0") {
+            exclude group: 'org.springframework', module: 'spring-context'
+        }        
+        
         testCompile "org.springframework:spring-oxm:$springVersion"
     }
 }
@@ -371,7 +370,7 @@ project('spring-integration-mongodb') {
     description = 'Spring Integration MongoDB Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "org.springframework:spring-context:$springVersion"
+        compile "org.springframework:spring-tx:$springVersion"
         compile("org.springframework.data:spring-data-mongodb:$springDataMongoVersion") {
             exclude group: 'org.springframework', module: 'spring-aop'
             exclude group: 'org.springframework', module: 'spring-asm'
@@ -389,7 +388,6 @@ project('spring-integration-redis') {
     description = 'Spring Integration Redis Support'
     dependencies {
         compile project(":spring-integration-core")
-        compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-tx:$springVersion"
         compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") 
         compile("org.codehaus.jackson:jackson-core-asl:$jacksonVersion") 
