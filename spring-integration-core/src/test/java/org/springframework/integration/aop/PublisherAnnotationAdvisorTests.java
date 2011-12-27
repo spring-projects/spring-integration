@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.QueueChannel;
 
@@ -51,6 +52,20 @@ public class PublisherAnnotationAdvisorTests {
 
 	@Test
 	public void annotationAtMethodLevel() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new AnnotationAtMethodLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
+		TestVoidBean proxy = (TestVoidBean) pf.getProxy();
+		proxy.testVoidMethod("foo");
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void annotationAtMethodLevelOnVoidReturnWithParamAnnotation() {
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
 		advisor.setBeanFactory(context);
 		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
@@ -113,13 +128,22 @@ public class PublisherAnnotationAdvisorTests {
 	}
 
 
-	static class AnnotationAtMethodLevelTestBeanImpl implements TestBean {
+	static interface TestVoidBean {
+
+		void testVoidMethod(String s);
+
+	}
+
+
+	static class AnnotationAtMethodLevelTestBeanImpl implements TestBean, TestVoidBean {
 
 		@Publisher(channel="testChannel")
 		public String test() {
 			return "foo";
 		}
 
+		@Publisher(channel="testChannel")
+		public void testVoidMethod(@Payload String s) {}
 	}
 
 
