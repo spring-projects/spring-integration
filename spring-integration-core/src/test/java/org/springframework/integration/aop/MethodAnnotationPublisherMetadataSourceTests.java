@@ -92,6 +92,18 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 		source.getPayloadExpression(method);
 	}
 
+	@Test
+	public void voidReturnAndParameterPayloadAnnotation() {
+		Method method = getMethod("methodWithVoidReturnAndParameterPayloadAnnotation", String.class);
+		String payloadExpression = source.getPayloadExpression(method);
+		assertEquals("#args[0]", payloadExpression);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void voidReturnAndNoPayloadAnnotation() {
+		Method method = getMethod("methodWithVoidReturnAndNoPayloadAnnotation", String.class);
+		source.getPayloadExpression(method);
+	}
 
 	private static Method getMethod(String name, Class<?> ... params) {
 		try {
@@ -134,6 +146,14 @@ public class MethodAnnotationPublisherMetadataSourceTests {
 	@Publisher
 	@Payload("testExpression2")
 	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header("bar") String h2) {
+	}
+
+	@Publisher
+	public void methodWithVoidReturnAndParameterPayloadAnnotation(@Payload String payload) {
+	}
+
+	@Publisher
+	public void methodWithVoidReturnAndNoPayloadAnnotation(String payload) {
 	}
 
 }
