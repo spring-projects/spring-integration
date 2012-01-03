@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,9 +201,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
-		if (this.autoCreateDirectory) {
-			session.mkdir(remoteDirectory);
+		
+		if (this.autoCreateDirectory && StringUtils.hasText(remoteFileSeparator)) {
+			this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
 		}
+		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
@@ -226,6 +228,38 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			directoryPath += this.remoteFileSeparator; 
 		}
 		return directoryPath;
+	}
+	
+	
+	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session) throws IOException{
+		if (session.exists(currentPath)) {
+			if (currentPath.equals(fullPath)){
+				return;
+			}
+			String missingDirectoryPath = fullPath.substring(currentPath.length());
+			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
+			String directory = currentPath + remoteFileSeparator;
+			for (String directorySegment : directories) {
+				directory += directorySegment + remoteFileSeparator;
+				if (logger.isDebugEnabled()){
+					logger.debug("Creating '" + directory + "'");
+				}	
+				session.mkdir(directory);
+			}
+		}
+		else {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Directory '" + currentPath + "' does not exist. Will attempt to auto-create it");
+			}		
+			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
+			if (nextSeparatorIndex <= 0) {
+				throw new MessagingException("Failed to auto-create directory '" + fullPath + "'");
+			}
+			else {
+				currentPath = currentPath.substring(0, nextSeparatorIndex);
+				this.mkdirRecursively(currentPath, fullPath, session);
+			}
+		}
 	}
 
 }
