@@ -42,11 +42,12 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  */
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter {
 
-	private final Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
+	private volatile Map<String, String> channelMappings = new ConcurrentHashMap<String, String>();
 
 	private volatile ChannelResolver channelResolver;
 
@@ -62,8 +63,14 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 * Channel names will be resolved by the {@link ChannelResolver}.
 	 */
 	public void setChannelMappings(Map<String, String> channelMappings) {
-		this.channelMappings.clear();
-		this.channelMappings.putAll(channelMappings);
+		Map<String, String> oldChannelMappings = this.channelMappings;
+		Map<String, String> newChannelMappings = new ConcurrentHashMap<String, String>();
+		newChannelMappings.putAll(channelMappings);
+		this.channelMappings = newChannelMappings;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel mappings:" + oldChannelMappings
+					+ " replaced with:" + newChannelMappings);
+		}
 	}
 
 	/**
