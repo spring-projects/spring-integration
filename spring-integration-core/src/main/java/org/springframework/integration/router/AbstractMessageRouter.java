@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 @ManagedResource
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
@@ -101,8 +102,14 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * @param channelIdentifierMap
 	 */
 	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
-		this.channelIdentifierMap.clear();
-		this.channelIdentifierMap.putAll(channelIdentifierMap);
+		Map<String, String> oldChannelIdentifierMap = this.channelIdentifierMap;
+		Map<String, String> newChannelIdentifierMap = new ConcurrentHashMap<String, String>();
+		newChannelIdentifierMap.putAll(channelIdentifierMap);
+		this.channelIdentifierMap = newChannelIdentifierMap;
+		if (logger.isDebugEnabled()) {
+			logger.debug("Channel mappings:" + oldChannelIdentifierMap
+					+ " replaced with:" + newChannelIdentifierMap);
+		}
 	}
 
 	@ManagedOperation
