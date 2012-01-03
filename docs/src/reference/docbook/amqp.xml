@@ -63,18 +63,20 @@
                                   error-channel=""]]><co                id="amqp-inbound-channel-adapter-xml-09-co" linkends="amqp-inbound-channel-adapter-xml-09" /><![CDATA[
                                   expose-listener-channel=""]]><co      id="amqp-inbound-channel-adapter-xml-10-co" linkends="amqp-inbound-channel-adapter-xml-10" /><![CDATA[
                                   header-mapper=""]]><co                id="amqp-inbound-channel-adapter-xml-11-co" linkends="amqp-inbound-channel-adapter-xml-11" /><![CDATA[
-                                  listener-container=""]]><co           id="amqp-inbound-channel-adapter-xml-12-co" linkends="amqp-inbound-channel-adapter-xml-12" /><![CDATA[
-                                  message-converter=""]]><co            id="amqp-inbound-channel-adapter-xml-13-co" linkends="amqp-inbound-channel-adapter-xml-13" /><![CDATA[
-                                  message-properties-converter=""]]><co id="amqp-inbound-channel-adapter-xml-14-co" linkends="amqp-inbound-channel-adapter-xml-14" /><![CDATA[
-                                  phase=""]]><co                        id="amqp-inbound-channel-adapter-xml-15-co" linkends="amqp-inbound-channel-adapter-xml-15" /><![CDATA[
-                                  prefetch-count=""]]><co               id="amqp-inbound-channel-adapter-xml-16-co" linkends="amqp-inbound-channel-adapter-xml-16" /><![CDATA[
-                                  receive-timeout=""]]><co              id="amqp-inbound-channel-adapter-xml-17-co" linkends="amqp-inbound-channel-adapter-xml-17" /><![CDATA[
-                                  recovery-interval=""]]><co            id="amqp-inbound-channel-adapter-xml-18-co" linkends="amqp-inbound-channel-adapter-xml-18" /><![CDATA[
-                                  shutdown-timeout=""]]><co             id="amqp-inbound-channel-adapter-xml-19-co" linkends="amqp-inbound-channel-adapter-xml-19" /><![CDATA[
-                                  task-executor=""]]><co                id="amqp-inbound-channel-adapter-xml-20-co" linkends="amqp-inbound-channel-adapter-xml-20" /><![CDATA[
-                                  transaction-attribute=""]]><co        id="amqp-inbound-channel-adapter-xml-21-co" linkends="amqp-inbound-channel-adapter-xml-21" /><![CDATA[
-                                  transaction-manager=""]]><co          id="amqp-inbound-channel-adapter-xml-22-co" linkends="amqp-inbound-channel-adapter-xml-22" /><![CDATA[
-                                  tx-size=""]]><co                      id="amqp-inbound-channel-adapter-xml-23-co" linkends="amqp-inbound-channel-adapter-xml-23" /><![CDATA[/>]]>
+                                  mapped-request-headers=""]]><co       id="amqp-inbound-channel-adapter-xml-12-co" linkends="amqp-inbound-channel-adapter-xml-12" /><![CDATA[
+                                  mapped-reply-headers=""]]><co         id="amqp-inbound-channel-adapter-xml-13-co" linkends="amqp-inbound-channel-adapter-xml-13" /><![CDATA[
+                                  listener-container=""]]><co           id="amqp-inbound-channel-adapter-xml-14-co" linkends="amqp-inbound-channel-adapter-xml-14" /><![CDATA[
+                                  message-converter=""]]><co            id="amqp-inbound-channel-adapter-xml-15-co" linkends="amqp-inbound-channel-adapter-xml-15" /><![CDATA[
+                                  message-properties-converter=""]]><co id="amqp-inbound-channel-adapter-xml-16-co" linkends="amqp-inbound-channel-adapter-xml-16" /><![CDATA[
+                                  phase=""]]><co                        id="amqp-inbound-channel-adapter-xml-17-co" linkends="amqp-inbound-channel-adapter-xml-17" /><![CDATA[
+                                  prefetch-count=""]]><co               id="amqp-inbound-channel-adapter-xml-18-co" linkends="amqp-inbound-channel-adapter-xml-18" /><![CDATA[
+                                  receive-timeout=""]]><co              id="amqp-inbound-channel-adapter-xml-19-co" linkends="amqp-inbound-channel-adapter-xml-19" /><![CDATA[
+                                  recovery-interval=""]]><co            id="amqp-inbound-channel-adapter-xml-20-co" linkends="amqp-inbound-channel-adapter-xml-20" /><![CDATA[
+                                  shutdown-timeout=""]]><co             id="amqp-inbound-channel-adapter-xml-21-co" linkends="amqp-inbound-channel-adapter-xml-21" /><![CDATA[
+                                  task-executor=""]]><co                id="amqp-inbound-channel-adapter-xml-22-co" linkends="amqp-inbound-channel-adapter-xml-22" /><![CDATA[
+                                  transaction-attribute=""]]><co        id="amqp-inbound-channel-adapter-xml-23-co" linkends="amqp-inbound-channel-adapter-xml-23" /><![CDATA[
+                                  transaction-manager=""]]><co          id="amqp-inbound-channel-adapter-xml-24-co" linkends="amqp-inbound-channel-adapter-xml-24" /><![CDATA[
+                                  tx-size=""]]><co                      id="amqp-inbound-channel-adapter-xml-25-co" linkends="amqp-inbound-channel-adapter-xml-25" /><![CDATA[/>]]>
     </programlisting>
     <para>
         <calloutlist>
@@ -131,10 +133,28 @@
                 <emphasis>Optional (Defaults to true)</emphasis>.</para>
             </callout>            
             <callout arearefs="amqp-inbound-channel-adapter-xml-11-co" id="amqp-inbound-channel-adapter-xml-11">
-                <para>HeaderMapper to use when receiving AMQP Messages.
-                <emphasis>Optional</emphasis>.</para>
-            </callout>            
+                <para><classname>HeaderMapper</classname> to use when receiving AMQP Messages.
+                <emphasis>Optional</emphasis>.
+                By default only standard AMQP properties (e.g. contentType) will be copied to and from
+ 			    Spring Integration MessageHeaders. Any user-defined headers within the AMQP
+                MessageProperties will NOT be copied to or from an AMQP Message unless 
+                explicitly identified via 'requestHeaderNames' and/or 'replyHeaderNames' properties of this <classname>HeaderMapper</classname>.
+				If you need to copy all user-defined headers simply use wild-card character '*'.
+                </para>
+            </callout>    
             <callout arearefs="amqp-inbound-channel-adapter-xml-12-co" id="amqp-inbound-channel-adapter-xml-12">
+                <para>Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+            </callout>  
+            <callout arearefs="amqp-inbound-channel-adapter-xml-13-co" id="amqp-inbound-channel-adapter-xml-13">
+                <para>Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
+	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property 
+	which itself is a Map.
+	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+	this list can also be simple patterns to be matched against the header names (e.g. "*" or "foo*, bar" or "*foo").</para>
+            </callout>           
+            <callout arearefs="amqp-inbound-channel-adapter-xml-14-co" id="amqp-inbound-channel-adapter-xml-14">
                 <para>Reference to the <interface>SimpleMessageListenerContainer</interface> 
                       to use for receiving AMQP Messages. If this attribute is provided, 
                       then no other attribute related to the listener container 
@@ -147,15 +167,15 @@
                       own MessageListener configured.
                 <emphasis>Optional</emphasis>.</para>
             </callout>            
-            <callout arearefs="amqp-inbound-channel-adapter-xml-13-co" id="amqp-inbound-channel-adapter-xml-13">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-15-co" id="amqp-inbound-channel-adapter-xml-15">
                 <para>The MessageConverter to use when receiving AMQP Messages.
                 <emphasis>Optional</emphasis>.</para>
             </callout>                        
-            <callout arearefs="amqp-inbound-channel-adapter-xml-14-co" id="amqp-inbound-channel-adapter-xml-14">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-16-co" id="amqp-inbound-channel-adapter-xml-16">
                 <para>The MessagePropertiesConverter to use when receiving AMQP Messages.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-15-co" id="amqp-inbound-channel-adapter-xml-15">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-17-co" id="amqp-inbound-channel-adapter-xml-17">
                 <para>Specify the phase in which the underlying <interface>SimpleMessageListenerContainer</interface> 
                       should be started and stopped. The startup order proceeds 
                       from lowest to highest, and the shutdown order is the 
@@ -164,24 +184,24 @@
                       stops as soon as possible.
                 <emphasis>Optional</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-16-co" id="amqp-inbound-channel-adapter-xml-16">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-18-co" id="amqp-inbound-channel-adapter-xml-18">
                 <para>Tells the AMQP broker how many messages to send to each 
                       consumer in a single request. Often this can be set quite 
                       high to improve throughput. It should be greater than or 
                       equal to the transaction size (see attribute "tx-size").
                 <emphasis>Optional (Defaults to 1)</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-17-co" id="amqp-inbound-channel-adapter-xml-17">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-19-co" id="amqp-inbound-channel-adapter-xml-19">
                 <para>Receive timeout in milliseconds.
                 <emphasis>Optional (Defaults to 1000)</emphasis>.</para>
             </callout>            
-            <callout arearefs="amqp-inbound-channel-adapter-xml-18-co" id="amqp-inbound-channel-adapter-xml-18">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-20-co" id="amqp-inbound-channel-adapter-xml-20">
                 <para>Specifies the interval between recovery attempts of the underlying 
                       <interface>SimpleMessageListenerContainer</interface> (in 
                       milliseconds).
                 <emphasis>Optional (Defaults to 5000)</emphasis>.</para>
             </callout>            
-            <callout arearefs="amqp-inbound-channel-adapter-xml-19-co" id="amqp-inbound-channel-adapter-xml-19">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-21-co" id="amqp-inbound-channel-adapter-xml-21">
                 <para>The time to wait for workers in milliseconds after the 
                       underlying <interface>SimpleMessageListenerContainer</interface> 
                       is stopped, and before the AMQP connection is forced closed. 
@@ -192,7 +212,7 @@
                       transactional). Defaults to 5000 milliseconds.
                 <emphasis>Optional (Defaults to 5000)</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-20-co" id="amqp-inbound-channel-adapter-xml-20">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-22-co" id="amqp-inbound-channel-adapter-xml-22">
                 <para>By default, the underlying <interface>SimpleMessageListenerContainer</interface> 
                       uses a SimpleAsyncTaskExecutor implementation, that fires 
                       up a new Thread for each task, executing it asynchronously. 
@@ -202,14 +222,14 @@
                       a thread-pooling TaskExecutor implementation as an alternative.
                 <emphasis>Optional (Defaults to SimpleAsyncTaskExecutor)</emphasis>.</para>
             </callout>            
-            <callout arearefs="amqp-inbound-channel-adapter-xml-21-co" id="amqp-inbound-channel-adapter-xml-21">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-23-co" id="amqp-inbound-channel-adapter-xml-23">
                 <para>By default the underlying <interface>SimpleMessageListenerContainer</interface> 
                       creates a new instance of the DefaultTransactionAttribute (takes 
                       the EJB approach to rolling back on runtime, but not checked 
                       exceptions.
                 <emphasis>Optional (Defaults to DefaultTransactionAttribute)</emphasis>.</para>
             </callout>            
-            <callout arearefs="amqp-inbound-channel-adapter-xml-22-co" id="amqp-inbound-channel-adapter-xml-22">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-24-co" id="amqp-inbound-channel-adapter-xml-24">
                 <para>Sets a Bean reference to an external 
                       <interface>PlatformTransactionManager</interface> on the 
                       underlying SimpleMessageListenerContainer. The transaction 
@@ -228,7 +248,7 @@
                       http://static.springsource.org/spring-amqp/docs/1.0.x/reference/html/#d0e525
                 <emphasis>Optional</emphasis>.</para>
             </callout>
-            <callout arearefs="amqp-inbound-channel-adapter-xml-23-co" id="amqp-inbound-channel-adapter-xml-23">
+            <callout arearefs="amqp-inbound-channel-adapter-xml-25-co" id="amqp-inbound-channel-adapter-xml-25">
                 <para>Tells the <interface>SimpleMessageListenerContainer</interface> 
                       how many messages to process in a single transaction (if 
                       the channel is transactional). For best results it should 
