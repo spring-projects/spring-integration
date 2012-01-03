@@ -51,7 +51,7 @@ public class PublisherAnnotationAdvisorTests {
 
 
 	@Test
-	public void annotationAtMethodLevel() {
+	public void annotationAtMethodLevelOnVoidReturnWithParamAnnotation() {
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
 		advisor.setBeanFactory(context);
 		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
@@ -65,7 +65,7 @@ public class PublisherAnnotationAdvisorTests {
 	}
 
 	@Test
-	public void annotationAtMethodLevelOnVoidReturnWithParamAnnotation() {
+	public void annotationAtMethodLevel() {
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
 		advisor.setBeanFactory(context);
 		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
