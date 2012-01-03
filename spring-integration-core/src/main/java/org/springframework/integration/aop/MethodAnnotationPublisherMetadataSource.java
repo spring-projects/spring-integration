@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,17 +73,11 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 
 	public String getPayloadExpression(Method method) {
 		String payloadExpression = null;
-		method.getAnnotation(Payload.class);
 		Payload methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
 		if (methodPayloadAnnotation != null) {
 			payloadExpression = StringUtils.hasText(methodPayloadAnnotation.value())
 					? methodPayloadAnnotation.value()
 					: "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
-		}
-		if (payloadExpression == null || payloadExpression.contains("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME)) {
-			Assert.isTrue(!void.class.equals(method.getReturnType()),
-					"When defining @Publisher on a void-returning method, an explicit payload " +
-					"expression that does not rely upon a #return value is required.");
 		}
 		Annotation[][] annotationArray = method.getParameterAnnotations();
 		for (int i = 0; i < annotationArray.length; i++) {
@@ -97,6 +91,11 @@ public class MethodAnnotationPublisherMetadataSource implements PublisherMetadat
 					payloadExpression = "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]";
 				}
 			}
+		}
+		if (payloadExpression == null || payloadExpression.contains("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME)) {
+			Assert.isTrue(!void.class.equals(method.getReturnType()),
+					"When defining @Publisher on a void-returning method, an explicit payload " +
+					"expression that does not rely upon a #return value is required.");
 		}
 		return payloadExpression;
 	}
