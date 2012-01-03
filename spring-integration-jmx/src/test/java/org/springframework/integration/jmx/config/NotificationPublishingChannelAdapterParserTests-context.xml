@@ -24,6 +24,13 @@
 			object-name="test.publisher:name=publisher"
 			default-notification-type="default.type"/>
 
+
+	<si:chain input-channel="publishingWithinChainChannel">
+		<jmx:notification-publishing-channel-adapter
+		object-name="test.publisher:name=publisher-chain"
+		default-notification-type="default.type"/>
+	</si:chain>
+
 	<bean id="testListener" class="org.springframework.integration.jmx.config.TestListener"/>
 
 </beans>

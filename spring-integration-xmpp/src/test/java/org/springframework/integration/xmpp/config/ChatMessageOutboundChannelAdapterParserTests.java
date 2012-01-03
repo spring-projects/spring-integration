@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import static org.mockito.Mockito.verify;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -104,7 +105,6 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		          org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
 		          assertEquals("oleg", xmppMessage.getTo());
 		          assertEquals("foobar", xmppMessage.getProperty("foobar"));
-		          assertEquals("oleg", xmppMessage.getTo());
 		          return null;
 		      }})
 		  .when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
@@ -112,6 +112,29 @@ public class ChatMessageOutboundChannelAdapterParserTests {
 		channel.send(message);
 		
 		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+		Mockito.reset(connection);
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Test //INT-2275
+	public void testOutboundChannelAdapterInsideChain() throws Exception{
+		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader(XmppHeaders.TO, "artem").build();
+		XMPPConnection connection = context.getBean("testConnection", XMPPConnection.class);
+		Mockito.doAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) {
+				Object[] args = invocation.getArguments();
+				org.jivesoftware.smack.packet.Message xmppMessage = (org.jivesoftware.smack.packet.Message) args[0];
+				assertEquals("artem", xmppMessage.getTo());
+				assertEquals("hello", xmppMessage.getBody());
+				return null;
+			}})
+				.when(connection).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+
+		channel.send(message);
+
+		verify(connection, times(1)).sendPacket(Mockito.any(org.jivesoftware.smack.packet.Message.class));
+		Mockito.reset(connection);
 	}
 
 }

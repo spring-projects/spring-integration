@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,15 @@ import javax.net.ServerSocketFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.serializer.DefaultDeserializer;
 import org.springframework.core.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
@@ -57,10 +62,12 @@ import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer
 import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketTestUtils;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  */
 public class TcpSendingMessageHandlerTests {
@@ -1053,6 +1060,22 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));		
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		done.set(true);
+	}
+
+	@Test
+	public void testOutboundChannelAdapterWithinChain() throws Exception {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"TcpOutboundChannelAdapterWithinTests-context.xml", this.getClass());
+		AbstractConnectionFactory ccf = ctx.getBean("ccf", AbstractConnectionFactory.class);
+//		TODO Lifecycle#start() isn't invoked within chain...
+		ccf.start();
+		MessageChannel channelAdapterWithinChain = ctx.getBean("tcpOutboundChannelAdapterWithinChain", MessageChannel.class);
+		PollableChannel inbound = ctx.getBean("inbound", PollableChannel.class);
+		String testPayload = "Hello, world!";
+		channelAdapterWithinChain.send(new GenericMessage<String>(testPayload));
+		Message<?> m = inbound.receive(1000);
+		assertNotNull(m);
+		assertEquals(testPayload, new String((byte[]) m.getPayload()));
 	}
 
 }

@@ -32,7 +32,11 @@
 	<channel id="out"/>
 
 	<twitter:outbound-channel-adapter twitter-template="twitterTemplate" channel="out"/>
-	
+
+	<chain input-channel="outFromChain">
+		<twitter:outbound-channel-adapter twitter-template="twitterTemplate"/>
+	</chain>
+
 </beans:beans>
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,28 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.util.StringUtils;
 
 /**
  * Base parser for Channel Adapters.
- * 
+ *
+ * Includes logic to determine {@link org.springframework.integration.MessageChannel}:
+ * if 'channel' attribute is defined - uses its value as 'channelName';
+ * if 'id' attribute is defined - creates {@link DirectChannel} at runtime and uses id's value as 'channelName';
+ * if current component is defined as nested element inside any other components e.g. &lt;chain&gt;
+ * 'id' and 'channel' attributes will be ignored and this component will not be parsed as
+ * {@link org.springframework.integration.endpoint.AbstractEndpoint}.
+ *
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitionParser {
 
 	@Override
-	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		String id = element.getAttribute("id");
+	protected final String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		String id = element.getAttribute(ID_ATTRIBUTE);
 		if (!element.hasAttribute("channel")) {
 			// the created channel will get the 'id', so the adapter's bean name includes a suffix
 			id = id + ".adapter";
@@ -57,13 +67,15 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 	}
 
 	private String createDirectChannel(Element element, ParserContext parserContext) {
-		String channelId = element.getAttribute("id");
+		if (parserContext.isNested()) {
+			return null;
+		}
+		String channelId = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(channelId)) {
 			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
 		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		return channelId;
@@ -72,7 +84,7 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 	/**
 	 * Subclasses must implement this method to parse the adapter element.
 	 * The name of the MessageChannel bean is provided.
-	 */ 
+	 */
 	protected abstract AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.file.config;
 
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,13 +32,13 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(
-				element, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME, parserContext);
+		BeanDefinitionBuilder handlerBuilder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, "", parserContext);
 		if (handlerBuilder != null){
 			String remoteFileNameGenerator = element.getAttribute("filename-generator");
 			String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
@@ -53,8 +53,8 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 					handlerBuilder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
 				}
 				else {
-					BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-							"org.springframework.integration.file.DefaultFileNameGenerator");
+					BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder
+							                                     .genericBeanDefinition(DefaultFileNameGenerator.class);
 					fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
 					handlerBuilder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
 				}

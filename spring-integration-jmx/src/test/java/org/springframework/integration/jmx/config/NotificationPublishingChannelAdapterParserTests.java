@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -47,6 +48,9 @@ public class NotificationPublishingChannelAdapterParserTests {
 	@Autowired
 	private TestListener listener;
 
+	@Autowired
+	private MessageChannel publishingWithinChainChannel;
+
 	@After
 	public void clearListener() {
 		listener.lastNotification = null;
@@ -54,7 +58,7 @@ public class NotificationPublishingChannelAdapterParserTests {
 
 
 	@Test
-	public void publishStringMessag() throws Exception {
+	public void publishStringMessage() throws Exception {
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
 				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
@@ -90,7 +94,18 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("default.type", notification.getType());
 	}
 
-
+	@Test //INT-2275
+	public void publishStringMessageWithinChain() throws Exception {
+		assertNull(listener.lastNotification);
+		Message<?> message = MessageBuilder.withPayload("XYZ")
+				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
+		publishingWithinChainChannel.send(message);
+		assertNotNull(listener.lastNotification);
+		Notification notification = listener.lastNotification;
+		assertEquals("XYZ", notification.getMessage());
+		assertEquals("test.type", notification.getType());
+		assertNull(notification.getUserData());
+	}
 
 	private static class TestData {
 	}

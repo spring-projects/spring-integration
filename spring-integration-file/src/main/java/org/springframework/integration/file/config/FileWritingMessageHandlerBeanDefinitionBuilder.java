@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.springframework.util.StringUtils;
  * {@link org.springframework.integration.file.FileWritingMessageHandler}.
  * 
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
 abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
@@ -42,11 +43,12 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		if (!StringUtils.hasText(directory)) {
 			parserContext.getReaderContext().error("directory is required", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.file.config.FileWritingMessageHandlerFactoryBean");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
 		builder.addPropertyValue("directory", directory);
 		if (StringUtils.hasText(outputChannelBeanName)) {
 			builder.addPropertyReference("outputChannel", outputChannelBeanName);
+		} else {
+			builder.addPropertyValue("expectReply", false);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");

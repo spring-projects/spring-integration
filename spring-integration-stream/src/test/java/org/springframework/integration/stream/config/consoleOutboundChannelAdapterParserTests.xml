@@ -20,4 +20,11 @@
 
 	<stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
 
+	<integration:chain input-channel="stdoutInsideNestedChain">
+		<integration:transformer expression="payload + 'bar'"/>
+		<integration:chain>
+			<stdout-channel-adapter/>
+		</integration:chain>
+	</integration:chain>
+
 </beans:beans>

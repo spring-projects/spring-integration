@@ -22,5 +22,9 @@
 			<entry key="'foo'" value="'bar'"/> 
 		</int-gfe:cache-entries>		 
 	</int-gfe:outbound-channel-adapter>
-	
+
+	<int:chain input-channel="cacheChainChannel">
+		<int-gfe:outbound-channel-adapter region="region1"/>
+	</int:chain>
+
 </beans>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/jdbc"
+			 xmlns:si="http://www.springframework.org/schema/integration"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/jdbc
+			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+
+	<si:chain input-channel="target">
+		<outbound-channel-adapter
+				query="insert into foos (id, status, name) values (:headers[business.key], 0, :payload)"
+				jdbc-operations="jdbcTemplate"/>
+	</si:chain>
+
+	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
+
+</beans:beans>

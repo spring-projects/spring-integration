@@ -8,7 +8,12 @@
 		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event.xsd">
 	
 	<int:channel id="input"/>
-	
+
 	<int-event:outbound-channel-adapter id="eventAdapter" channel="input"/>
+
+	<int:chain input-channel="inputChain">
+		<int:transformer expression="payload + 'bar'"/>
+		<int-event:outbound-channel-adapter/>
+	</int:chain>
 
 </beans>

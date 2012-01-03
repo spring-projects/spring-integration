@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:si="http://www.springframework.org/schema/integration"
+	   xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/sftp
+			http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd">
+
+
+	<si:chain input-channel="outboundChainChannel">
+		<sftp:outbound-channel-adapter
+				auto-create-directory="true"
+				session-factory="sftpSessionFactory"
+				remote-directory="remote-target-dir"/>
+	</si:chain>
+
+	<bean id="sftpSessionFactory"
+		  class="org.springframework.integration.sftp.outbound.SftpSendingMessageHandlerTests$TestSftpSessionFactory"/>
+
+</beans>

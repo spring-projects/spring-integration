@@ -43,4 +43,8 @@
 						xmpp-connection="testConnection">
 	</int-xmpp:outbound-channel-adapter>
 
+	<int:chain input-channel="outboundChainChannel">
+		<int-xmpp:outbound-channel-adapter xmpp-connection="testConnection"/>
+	</int:chain>
+
 </beans>
