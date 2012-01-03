@@ -201,6 +201,7 @@
     ################################################### -->
 
     <!-- These extensions are required for table printing and other stuff -->
+    <xsl:param name="fop1.extensions" select="1"></xsl:param>    <!-- INT-2346 Acrobat ToC Pane -->
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="tablecolumns.extension">0</xsl:param>
     <xsl:param name="callout.extensions">1</xsl:param>
