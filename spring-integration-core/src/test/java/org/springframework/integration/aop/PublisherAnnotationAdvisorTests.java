@@ -71,6 +71,20 @@ public class PublisherAnnotationAdvisorTests {
 		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
 		ProxyFactory pf = new ProxyFactory(new AnnotationAtMethodLevelTestBeanImpl());
 		pf.addAdvisor(advisor);
+		TestVoidBean proxy = (TestVoidBean) pf.getProxy();
+		proxy.testVoidMethod("foo");
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+	}
+
+	@Test
+	public void annotationAtMethodLevelOnVoidReturnWithParamAnnotation() {
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor();
+		advisor.setBeanFactory(context);
+		QueueChannel testChannel = context.getBean("testChannel", QueueChannel.class);
+		ProxyFactory pf = new ProxyFactory(new AnnotationAtMethodLevelTestBeanImpl());
+		pf.addAdvisor(advisor);
 		TestBean proxy = (TestBean) pf.getProxy();
 		proxy.test();
 		Message<?> message = testChannel.receive(0);
