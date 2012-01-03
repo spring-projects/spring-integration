@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -119,16 +120,20 @@ class FtpSession implements Session {
 			logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
 		}
 	}
-
-	public void mkdir(String directory) throws IOException {
-		try {
+	/**
+	 * Since the underlying FTP API does not give us a clean method to create multiple directories 
+	 * we need to create them manually one at the time starting from the first segment of the path 
+	 * regardless if it exists or not since makeDirectory(path) will return 
+	 * false in the case when directory exists. 
+	 */
+	public void mkdir(String remoteDirectory) throws IOException {
+		String remoteFileSeparator = "/";
+		String[] directories = StringUtils.tokenizeToStringArray(remoteDirectory, remoteFileSeparator);
+	
+		String directory = "";
+		for (String directorySegment : directories) {
+			directory += directorySegment + remoteFileSeparator;
 			this.client.makeDirectory(directory);
 		}
-		catch (Exception e) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("failed to create directory '" + directory + "'", e);
-			}
-		}
 	}
-
 }
