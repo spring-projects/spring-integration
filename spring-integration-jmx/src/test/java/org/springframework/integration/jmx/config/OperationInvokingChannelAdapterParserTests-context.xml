@@ -20,6 +20,22 @@
 			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
 			operation-name="test"/>
 
+	<jmx:operation-invoking-channel-adapter id="operationWithNonNullReturn"
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
+			operation-name="testWithReturn"/>
+
 	<bean id="testBeanAdapter" class="org.springframework.integration.jmx.config.TestBean"/>
+
+	<si:chain input-channel="operationInvokingWithinChain">
+		<jmx:operation-invoking-channel-adapter
+				object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
+				operation-name="test"/>
+	</si:chain>
+
+	<si:chain input-channel="operationWithinChainWithNonNullReturn">
+		<jmx:operation-invoking-channel-adapter
+				object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
+				operation-name="testWithReturn"/>
+	</si:chain>
 
 </beans>

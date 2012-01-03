@@ -789,7 +789,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter">
+	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Channel Adapter that receives from a MessageChannel and passes to
@@ -797,89 +797,75 @@
 				MessageHandler.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="methodInvokingChannelAdapterType">
-					<xsd:attribute name="order">
-						<xsd:annotation>
-							<xsd:documentation>
-								Specifies the order for invocation when this endpoint is connected as a
-subscriber to a channel. This is particularly relevant when that channel
-is using a "failover" dispatching strategy. It has no effect when this
-endpoint itself is a Polling Consumer for a channel with a queue.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="logging-channel-adapter">
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="channelAdapterType">
-					<xsd:attribute name="level" default="INFO">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+				<xsd:extension base="outboundChannelAdapterType">
+					<xsd:attributeGroup ref="loggingChannelAdapterAttributes"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="loggingChannelAdapterTypeChain">
+		<xsd:complexContent>
+			<xsd:extension base="outboundChannelAdapterTypeChain">
+				<xsd:attributeGroup ref="loggingChannelAdapterAttributes"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:attributeGroup name="loggingChannelAdapterAttributes">
+		<xsd:attribute name="level" default="INFO">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
 	Specify the log level.
 							]]></xsd:documentation>
-						</xsd:annotation>
-						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="FATAL" />
-								<xsd:enumeration value="ERROR" />
-								<xsd:enumeration value="WARN" />
-								<xsd:enumeration value="INFO" />
-								<xsd:enumeration value="DEBUG" />
-								<xsd:enumeration value="TRACE" />
-							</xsd:restriction>
-						</xsd:simpleType>
-					</xsd:attribute>
-					<xsd:attribute name="logger-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-	Provide a name for the logger. This is useful when there are multiple logging Channel Adapters configured,
-	and you would like to differentiate them within the actual log. By default the logger name will be the
-	fully qualified class name of the LoggingHandler implementation.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="expression">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="FATAL" />
+					<xsd:enumeration value="ERROR" />
+					<xsd:enumeration value="WARN" />
+					<xsd:enumeration value="INFO" />
+					<xsd:enumeration value="DEBUG" />
+					<xsd:enumeration value="TRACE" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="logger-name" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Provide a name for the logger. This is useful when there are multiple logging Channel Adapters configured,
+					and you would like to differentiate them within the actual log. By default the logger name will be the
+					fully qualified class name of the LoggingHandler implementation.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
 	Provide a SpEL expression to be evaluated against the Message as the root object. For example,
 	the default behavior is equivalent to an expression of "payload", or an expression may evaluate
 	against the payload itself ("payload.address.city") or headers ("headers.foo"). This attribute and
 	the 'log-full-message' attribute are mutually exclusive. See the documentation on the
 	'log-full-message' attribute for more information.
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="log-full-message">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="log-full-message">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
 	Specify whether to log the full message. This attribute and the 'expression' attribute are
 	mutually exclusive. Setting this to true is equivalent to setting an expression value of "#root"
 	since the Message is the root object against which the expression will be evaluated. If no
 	'expression' is provided, and this value is false (the default), only the payload will be logged.
 							]]></xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="order">
-						<xsd:annotation>
-							<xsd:documentation>
-	Specifies the order for invocation when this endpoint is connected as a
-	subscriber to a channel. This is particularly relevant when that channel
-	is using a "failover" dispatching strategy. It has no effect when this
-	endpoint itself is a Polling Consumer for a channel with a queue.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:attributeGroup>
 
 	<xsd:attributeGroup name="methodInvokingOrExpressionEvaluatingAttributes">
 		<xsd:attribute name="ref" type="xsd:string">
@@ -945,18 +931,42 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 
 	<xsd:complexType name="methodInvokingChannelAdapterType">
 		<xsd:complexContent>
-			<xsd:extension base="channelAdapterType">
+			<xsd:extension base="outboundChannelAdapterType">
 				<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="channelAdapterType">
+	<xsd:complexType name="methodInvokingChannelAdapterTypeChain">
+		<xsd:complexContent>
+			<xsd:extension base="outboundChannelAdapterTypeChain">
+				<xsd:attributeGroup ref="methodInvokingOrExpressionEvaluatingAttributes" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="outboundChannelAdapterType">
 		<xsd:all>
 			<xsd:element name="poller" type="basePollerType" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
 		<xsd:attributeGroup ref="channelAdapterAttributes" />
+		<xsd:attribute name="order">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specifies the order for invocation when this endpoint is connected as a
+					subscriber to a channel. This is particularly relevant when that channel
+					is using a "failover" dispatching strategy. It has no effect when this
+					endpoint itself is a Polling Consumer for a channel with a queue.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="outboundChannelAdapterTypeChain">
+		<xsd:all>
+			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+		</xsd:all>
 	</xsd:complexType>
 
 	<xsd:element name="service-activator">
@@ -1369,38 +1379,44 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	</xsd:element>
 
 	<xsd:complexType name="chain-type">
-		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded"/>
 
-			<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware" />
-			<xsd:element name="splitter"          type="splitter-type" />
-			<xsd:element name="transformer"       type="expressionOrInnerEndpointDefinitionAware" />
-			<xsd:element name="header-enricher"   type="header-enricher-type" />
-			<xsd:element name="header-filter"     type="header-filter-type" />
-			<xsd:element name="enricher"         type="enricher-type" />
-			<xsd:element name="filter"         type="filter-type" />
-			<xsd:element name="aggregator"     type="aggregator-type" />
-			<xsd:element name="resequencer"    type="resequencer-type" />
-			<xsd:element name="router"         type="routerTypeChain" />
-			<xsd:element name="payload-type-router"   type="payloadTypeRouterTypeChain" />
-			<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain" />
-			<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain" />
-			<xsd:element name="header-value-router"   type="headerValueRouterTypeChain" />
-			<xsd:element name="delayer"        type="delayer-type" />
-			<xsd:element name="gateway"        type="innerGatewayType" />
-			<xsd:element name="poller"         type="basePollerType" />
-			<xsd:element name="payload-serializing-transformer"   type="payload-serializing-transformer-type" />
-			<xsd:element name="payload-deserializing-transformer" type="payload-deserializing-transformer-type" />
-			<xsd:element name="object-to-string-transformer"      type="specialized-transformer-type" />
-			<xsd:element name="object-to-map-transformer"         type="specialized-transformer-type" />
-			<xsd:element name="map-to-object-transformer"  type="map-to-object-transformer-type" />
-			<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type" />
-			<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type" />
-			<xsd:element name="claim-check-in"  type="claimCheckInTypeChain" />
-			<xsd:element name="claim-check-out" type="claimCheckOutTypeChain" />
-			<xsd:element name="control-bus"     type="control-bus-type" />
-			<xsd:element name="chain"           type="chain-type" />
-		</xsd:choice>
+				<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware"/>
+				<xsd:element name="splitter" type="splitter-type"/>
+				<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware"/>
+				<xsd:element name="header-enricher" type="header-enricher-type"/>
+				<xsd:element name="header-filter" type="header-filter-type"/>
+				<xsd:element name="enricher" type="enricher-type"/>
+				<xsd:element name="filter" type="filter-type"/>
+				<xsd:element name="aggregator" type="aggregator-type"/>
+				<xsd:element name="resequencer" type="resequencer-type"/>
+				<xsd:element name="router" type="routerTypeChain"/>
+				<xsd:element name="payload-type-router" type="payloadTypeRouterTypeChain"/>
+				<xsd:element name="recipient-list-router" type="recipientListRouterTypeChain"/>
+				<xsd:element name="exception-type-router" type="exceptionTypeRouterTypeChain"/>
+				<xsd:element name="header-value-router" type="headerValueRouterTypeChain"/>
+				<xsd:element name="delayer" type="delayer-type"/>
+				<xsd:element name="gateway" type="innerGatewayType"/>
+				<xsd:element name="poller" type="basePollerType"/>
+				<xsd:element name="payload-serializing-transformer" type="payload-serializing-transformer-type"/>
+				<xsd:element name="payload-deserializing-transformer" type="payload-deserializing-transformer-type"/>
+				<xsd:element name="object-to-string-transformer" type="specialized-transformer-type"/>
+				<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
+				<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
+				<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type"/>
+				<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type"/>
+				<xsd:element name="claim-check-in" type="claimCheckInTypeChain"/>
+				<xsd:element name="claim-check-out" type="claimCheckOutTypeChain"/>
+				<xsd:element name="control-bus" type="control-bus-type"/>
+				<xsd:element name="chain" type="chain-type"/>
+			</xsd:choice>
+			<xsd:choice minOccurs="0">
+				<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterTypeChain"/>
+				<xsd:element name="logging-channel-adapter" type="loggingChannelAdapterTypeChain"/>
+			</xsd:choice>
+		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:element name="poller">

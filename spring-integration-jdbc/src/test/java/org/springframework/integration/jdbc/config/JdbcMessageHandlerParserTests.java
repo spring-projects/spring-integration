@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -38,6 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 2.0
  *
  */
@@ -111,6 +112,16 @@ public class JdbcMessageHandlerParserTests {
 		target.send(message);
 		Thread.sleep(2000);
 		Map<String, Object> map = (ac.getBean("jdbcTemplate", JdbcTemplate.class)).queryForMap("SELECT * from FOOW");
+		assertEquals("Wrong id", "FOO", map.get("ID"));
+		assertEquals("Wrong id", "foo", map.get("name"));
+	}
+
+	@Test
+	public void testOutboundChannelAdapterWithinChain(){
+		setUp("handlingJdbcOutboundChannelAdapterWithinChainTest.xml", getClass());
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
+		channel.send(message);
+		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
 		assertEquals("Wrong id", "FOO", map.get("ID"));
 		assertEquals("Wrong id", "foo", map.get("name"));
 	}

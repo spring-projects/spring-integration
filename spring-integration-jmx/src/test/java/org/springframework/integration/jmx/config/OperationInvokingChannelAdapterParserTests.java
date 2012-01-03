@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.After;
 import org.junit.Test;
@@ -24,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -33,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -41,6 +45,15 @@ public class OperationInvokingChannelAdapterParserTests {
 
 	@Autowired
 	private MessageChannel input;
+
+	@Autowired
+	private MessageChannel operationWithNonNullReturn;
+
+	@Autowired
+	private MessageChannel 	operationInvokingWithinChain;
+
+	@Autowired
+	private MessageChannel 	operationWithinChainWithNonNullReturn;
 
 	@Autowired
 	private TestBean testBean;
@@ -59,7 +72,19 @@ public class OperationInvokingChannelAdapterParserTests {
 		input.send(new GenericMessage<String>("test3"));
 		assertEquals(3, testBean.messages.size());
 	}
-	
+
+	@Test
+	public void testOutboundAdapterWithNonNullReturn() throws Exception {
+		try {
+			operationWithNonNullReturn.send(new GenericMessage<String>("test1"));
+			fail("Expect MessagingException about non-null return");
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof MessagingException);
+//			TODO Add check exception's message about 'must have a void return' after <jmx:operation-invoking-channel-adapter/> refactoring
+		}
+	}
+
 	@Test
 	// Headers should be ignored
 	public void adapterWitJmxHeaders() throws Exception {
@@ -69,7 +94,25 @@ public class OperationInvokingChannelAdapterParserTests {
 		input.send(this.createMessage("3"));
 		assertEquals(3, testBean.messages.size());
 	}
-	
+
+	@Test //INT-2275
+	public void testInvokeOperationWithinChain() throws Exception {
+		operationInvokingWithinChain.send(new GenericMessage<String>("test1"));
+		assertEquals(1, testBean.messages.size());
+	}
+
+	@Test //INT-2275
+	public void testOperationWithinChainWithNonNullReturn() throws Exception {
+		try {
+			operationWithinChainWithNonNullReturn.send(new GenericMessage<String>("test1"));
+			fail("Expect MessagingException about non-null return");
+		}
+		catch (Exception e) {
+			assertTrue(e instanceof MessagingException);
+//			TODO Add check exception's message about 'must have a void return' after <jmx:operation-invoking-channel-adapter/> refactoring
+		}
+	}
+
 	private Message<?> createMessage(String payload){
 		return MessageBuilder.withPayload(payload)
 			.setHeader(JmxHeaders.OBJECT_NAME, "org.springframework.integration.jmx.config:type=TestBean,name=foo")

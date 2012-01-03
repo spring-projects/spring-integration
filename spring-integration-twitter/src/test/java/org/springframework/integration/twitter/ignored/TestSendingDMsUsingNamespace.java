@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,14 +31,19 @@ import org.springframework.util.StringUtils;
 /**
  * @author Josh Long
  * @author Oleg Zhurakouksy
+ * @author Artem Bilan
  */
 @ContextConfiguration
 public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
 	@Qualifier("inputChannel")
+
 	private MessageChannel inputChannel;
-	
+	@Autowired
+	@Qualifier("dmOutboundWithinChain")
+	private MessageChannel dmOutboundWithinChain;
+
 	@Test
  	@Ignore
 	public void testSendigRealDirectMessage() throws Throwable {
@@ -50,6 +55,18 @@ public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTes
 			mb.setHeader(TwitterHeaders.DM_TARGET_USER_ID, dmUsr);
 		}
 		inputChannel.send(mb.build());
+	}
+
+	@Test
+	@Ignore
+	public void testSendigDirectMessageFromChain() throws Throwable {
+		String dmUsr = "z_oleg";
+		MessageBuilder<String> mb = MessageBuilder.withPayload("Hello world!");
+
+		if (StringUtils.hasText(dmUsr)) {
+			mb.setHeader(TwitterHeaders.DM_TARGET_USER_ID, dmUsr);
+		}
+		dmOutboundWithinChain.send(mb.build());
 	}
 
 }

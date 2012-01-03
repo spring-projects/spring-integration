@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.config.TestConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -32,10 +33,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class MethodInvokingOutboundChannelAdapterParserTests {
+public class DefaultOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -44,21 +46,29 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 	@Test
 	public void checkConfig() {
 		Object adapter = context.getBean("adapter");
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
 	}
 	
 	@Test
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
+		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
+	}
+
+	@Test
+	public void checkConfigWithInnerMessageHandler() {
+		Object adapter = context.getBean("adapterC");
+		Object handler = TestUtils.getPropertyValue(adapter, "handler");
+		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
+		assertEquals(99, TestUtils.getPropertyValue(handler, "order"));
+		Object targetObject = TestUtils.getPropertyValue(handler, "processor.delegate.targetObject");
+		assertEquals(TestConsumer.class, targetObject.getClass());
 	}
 
 
@@ -68,4 +78,5 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 		}
 
 	}
+
 }

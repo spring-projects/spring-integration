@@ -22,5 +22,10 @@
 								   mapped-request-headers="foo*"/>
 								   
     <int:channel id="requestChannel"/>
-		
+
+	<int:chain id="chainWithRabbitOutbound" input-channel="amqpOutboundChannelAdapterWithinChain">
+		<amqp:outbound-channel-adapter exchange-name="outboundchanneladapter.test.1"/>
+	</int:chain>
+
+
 </beans>

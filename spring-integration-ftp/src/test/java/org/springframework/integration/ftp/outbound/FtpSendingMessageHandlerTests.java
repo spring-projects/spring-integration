@@ -32,8 +32,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
 import org.springframework.integration.ftp.session.AbstractFtpSessionFactory;
@@ -42,6 +45,7 @@ import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class FtpSendingMessageHandlerTests {
 	
@@ -117,6 +121,25 @@ public class FtpSendingMessageHandlerTests {
 		destFile.deleteOnExit();
 
 		handler.handleMessage(new GenericMessage<File>(srcFile));
+		assertTrue("destination file was not created", destFile.exists());
+	}
+
+	@Test //INT-2275
+	public void testFtpOutboundChannelAdapterInsideChain() throws Exception {
+		File targetDir = new File("remote-target-dir");
+		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
+
+		File srcFile = File.createTempFile("testHandleFileMessage", ".tmp");
+		srcFile.deleteOnExit();
+
+		File destFile = new File(targetDir, srcFile.getName());
+		destFile.deleteOnExit();
+
+		ApplicationContext context = new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterInsideChainTests-context.xml", getClass());
+
+		MessageChannel channel = context.getBean("outboundChainChannel", MessageChannel.class);
+
+		channel.send(new GenericMessage<File>(srcFile));
 		assertTrue("destination file was not created", destFile.exists());
 	}
 

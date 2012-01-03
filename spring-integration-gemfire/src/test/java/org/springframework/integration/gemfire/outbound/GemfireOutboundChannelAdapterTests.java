@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -31,6 +31,7 @@ import com.gemstone.gemfire.internal.cache.DistributedRegion;
 
 /**
  * @author David Turanski
+ * @author Artem Bilan
  * @since 2.1
  */
 
@@ -40,7 +41,7 @@ public class GemfireOutboundChannelAdapterTests {
 	
 	@Autowired
 	MessageChannel cacheChannel1;
-	
+
 	@Autowired
 	DistributedRegion region1;
 	
@@ -49,7 +50,11 @@ public class GemfireOutboundChannelAdapterTests {
 	
 	@Autowired
 	DistributedRegion region2;
-	
+
+	@Autowired
+	MessageChannel cacheChainChannel;
+
+
 	@Before
 	public void setUp() {
 		region1.clear();
@@ -75,4 +80,16 @@ public class GemfireOutboundChannelAdapterTests {
 		assertEquals("hello",region2.get("HELLO"));	
 		assertEquals("bar",region2.get("foo"));	
 	}
+
+	@Test //INT-2275
+	public void testWriteWithinChain() {
+		Map<String,String> map = new HashMap<String,String>();
+		map.put("foo","bar");
+
+		Message<?> message = MessageBuilder.withPayload(map).build();
+		cacheChainChannel.send(message);
+		assertEquals(1,region1.size());
+		assertEquals("bar",region1.get("foo"));
+	}
+
 }

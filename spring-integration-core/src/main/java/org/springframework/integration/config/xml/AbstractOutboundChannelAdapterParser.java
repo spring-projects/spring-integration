@@ -23,22 +23,31 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class for outbound Channel Adapter parsers.
+ *
+ * If this component is defined as the top-level element in the Spring application context it will produce
+ * an {@link org.springframework.integration.endpoint.AbstractEndpoint} depending on the channel type.
+ * If this component is defined as nested element (e.g., inside of the chain) it will produce
+ * a {@link org.springframework.integration.core.MessageHandler}.
  * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public abstract class AbstractOutboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+		if (parserContext.isNested()) {
+			return this.parseConsumer(element, parserContext);
+		}
+		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
 		builder.addPropertyReference("handler", this.parseAndRegisterConsumer(element, parserContext));
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
@@ -60,15 +69,13 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);
 		if (definition == null) {
-			parserContext.getReaderContext().error(
-					"Consumer parsing must return a BeanComponentDefinition.", element);
+			parserContext.getReaderContext().error("Consumer parsing must return an AbstractBeanDefinition.", element);
 		}
-		String order = element.getAttribute("order");
+		String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
 		if (StringUtils.hasText(order)) {
-			definition.getPropertyValues().addPropertyValue("order", order);
+			definition.getPropertyValues().addPropertyValue(IntegrationNamespaceUtils.ORDER, order);
 		}
-		String beanName = BeanDefinitionReaderUtils.generateBeanName(
-				definition, parserContext.getRegistry());
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(definition, beanName));
 		return beanName;
 	}

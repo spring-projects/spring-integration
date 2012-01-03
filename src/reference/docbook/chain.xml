@@ -57,7 +57,7 @@
     <para>
       The &lt;chain&gt; element provides an <code>input-channel</code> attribute, and if the last element in the chain is capable
       of producing reply messages (optional), it also supports an <code>output-channel</code> attribute. The sub-elements are then
-      filters, transformers, splitters, and service-activators. The last element may also be a router.
+      filters, transformers, splitters, and service-activators. The last element may also be a router or an outbound-channel-adapter.
       <programlisting language="xml"><![CDATA[ <int:chain input-channel="input" output-channel="output">
      <int:filter ref="someSelector" throw-exception-on-rejection="true"/>
      <int:header-enricher>
@@ -72,7 +72,18 @@
     that touches only header values. You could obtain the same result by implementing a MessageHandler that did the
     header modifications and wiring that as a bean, but the header-enricher is obviously a simpler option.
   </para>
-
+  <para>
+    The &lt;chain&gt; can be configured as the last 'black-box' consumer of the message flow. For this solution it is
+    enough to put at the end of the &lt;chain&gt; some &lt;outbound-channel-adapter&gt;:
+    <programlisting language="xml"><![CDATA[ <int:chain input-channel="input">
+     <si-xml:marshalling-transformer marshaller="marshaller" result-type="StringResult" />
+     <int:service-activator ref="someService" method="someMethod"/>
+     <int:header-enricher>
+         <int:header name="foo" value="bar"/>
+     </int:header-enricher>
+     <int:logging-channel-adapter level="INFO" log-full-message="true"/>
+ </int:chain>]]></programlisting>
+  </para>
   <para>
   Sometimes you need to make a nested call to another chain from within a chain and then come
   back and continue execution within the original chain.

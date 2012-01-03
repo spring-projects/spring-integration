@@ -13,16 +13,22 @@
 		<queue capacity="2"/>
 	</channel>
 
+	<channel id="channelC"/>
+
 	<outbound-channel-adapter id="adapter" channel="channel" ref="bean" method="out" order="99" auto-startup="false"/>
 
 	<beans:bean id="bean"
-		class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
+		class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
 
 	<outbound-channel-adapter id="adapterB" channel="channelB" method="out" order="99" auto-startup="false">
-		<beans:bean class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
+		<beans:bean class="org.springframework.integration.config.xml.DefaultOutboundChannelAdapterParserTests$TestBean"/>
 		<poller task-executor="executor" max-messages-per-poll="5" fixed-delay="20" /> 
 	</outbound-channel-adapter>
 
 	<task:executor id="executor" pool-size="5" /> 
+
+	<outbound-channel-adapter id="adapterC" channel="channelC" order="99">
+		<beans:bean class="org.springframework.integration.config.TestConsumer"/>
+	</outbound-channel-adapter>
 
 </beans:beans>

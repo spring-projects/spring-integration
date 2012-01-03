@@ -96,6 +96,17 @@
 		<service-activator ref="testHandler" />
 	</chain>
 
+	<chain input-channel="outboundChannelAdapterChannel">
+		<outbound-channel-adapter ref="testConsumer"/>
+	</chain>
+
+	<chain input-channel="loggingChannelAdapterChannel">
+		<transformer expression="payload.toUpperCase()"/>
+		<logging-channel-adapter level="WARN"/>
+	</chain>
+
+	<beans:bean id="testConsumer" class="org.springframework.integration.config.TestConsumer" />
+
 	<channel id="strings">
 		<queue/>
 	</channel>

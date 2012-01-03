@@ -24,20 +24,22 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+
 import java.nio.charset.Charset;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 
 /**
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Artem Bilan
  */
 public class ConsoleOutboundChannelAdapterParserTests {
 
@@ -156,4 +158,13 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		assertEquals("foo" + System.getProperty("line.separator"), out.toString());
 	}
 
+	@Test //INT-2275
+	public void stdoutInsideNestedChain() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
+		DirectChannel channel = context.getBean("stdoutInsideNestedChain", DirectChannel.class);
+		this.resetStreams();
+		channel.send(new GenericMessage<String>("foo"));
+		assertEquals("foobar", out.toString());
+	}
 }

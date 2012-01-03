@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,9 @@
 
 package org.springframework.integration.event.config;
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -40,8 +35,12 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -80,6 +79,25 @@ public class EventOutboundChannelAdapterParserTests {
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
 		channel.send(new GenericMessage<String>("hello"));
+		Assert.assertTrue(receivedEvent);
+	}
+
+	@Test //INT-2275
+	public void testInsideChain() {
+		ApplicationListener<?> listener = new ApplicationListener<ApplicationEvent>() {
+			public void onApplicationEvent(ApplicationEvent event) {
+				Object source = event.getSource();
+				if (source instanceof Message){
+					String payload = (String) ((Message<?>) source).getPayload();
+					if (payload.equals("foobar")) {
+						receivedEvent = true;
+					}
+				}
+			}
+		};
+		context.addApplicationListener(listener);
+		DirectChannel channel = context.getBean("inputChain", DirectChannel.class);
+		channel.send(new GenericMessage<String>("foo"));
 		Assert.assertTrue(receivedEvent);
 	}
 

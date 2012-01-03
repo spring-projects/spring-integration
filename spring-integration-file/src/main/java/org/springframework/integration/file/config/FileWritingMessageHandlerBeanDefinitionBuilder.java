@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.file.config;
 
+import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -29,32 +30,42 @@ import org.springframework.util.StringUtils;
  * {@link org.springframework.integration.file.FileWritingMessageHandler}.
  * 
  * @author Mark Fisher
+ * @author Artem Bilan
  * @since 1.0.3
  */
 abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 
-	static BeanDefinitionBuilder configure(Element element, String outputChannelBeanName, ParserContext parserContext) {
-		if (outputChannelBeanName == null) {
-			parserContext.getReaderContext().error("outputChannelBeanName must not be null", element);
-			return null;
-		}
+	static BeanDefinitionBuilder configure(Element element, boolean expectReply, ParserContext parserContext) {
+
 		String directory = element.getAttribute("directory");
 		if (!StringUtils.hasText(directory)) {
 			parserContext.getReaderContext().error("directory is required", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.file.config.FileWritingMessageHandlerFactoryBean");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandlerFactoryBean.class);
 		builder.addPropertyValue("directory", directory);
-		if (StringUtils.hasText(outputChannelBeanName)) {
-			builder.addPropertyReference("outputChannel", outputChannelBeanName);
-		}
+		builder.addPropertyValue("expectReply", expectReply);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
-		String fileNameGenerator = element.getAttribute("filename-generator");
-		if (StringUtils.hasText(fileNameGenerator)) {
-			builder.addPropertyReference("fileNameGenerator", fileNameGenerator);
+		String remoteFileNameGenerator = element.getAttribute("filename-generator");
+		String remoteFileNameGeneratorExpression = element.getAttribute("filename-generator-expression");
+		boolean hasRemoteFileNameGenerator = StringUtils.hasText(remoteFileNameGenerator);
+		boolean hasRemoteFileNameGeneratorExpression = StringUtils.hasText(remoteFileNameGeneratorExpression);
+		if (hasRemoteFileNameGenerator || hasRemoteFileNameGeneratorExpression) {
+			if (hasRemoteFileNameGenerator && hasRemoteFileNameGeneratorExpression) {
+				parserContext.getReaderContext().error("at most one of 'filename-generator-expression' or 'filename-generator' " +
+						"is allowed on file outbound adapter/gateway", element);
+			}
+			if (hasRemoteFileNameGenerator) {
+				builder.addPropertyReference("fileNameGenerator", remoteFileNameGenerator);
+			}
+			else {
+				BeanDefinitionBuilder fileNameGeneratorBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(DefaultFileNameGenerator.class);
+				fileNameGeneratorBuilder.addPropertyValue("expression", remoteFileNameGeneratorExpression);
+				builder.addPropertyValue("fileNameGenerator", fileNameGeneratorBuilder.getBeanDefinition());
+			}
 		}
 		return builder;
 	}
