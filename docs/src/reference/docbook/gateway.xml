@@ -298,6 +298,14 @@ int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
 For a more detailed example, please refer to the <emphasis>async-gateway</emphasis> sample distributed within the Spring Integration samples.
     </para>
 
+    <para><emphasis>Asynchronous Gateway and AsyncTaskExecutor</emphasis></para>
+    <para>
+     By default <classname>GatewayProxyFactoryBean</classname> uses <classname>org.springframework.core.task.SimpleAsyncTaskExecutor</classname>
+     for submitting an internal <classname>AsyncInvocationTask</classname> instance for gateway's method when its
+     return type is <classname>Future.class</classname>. However there is <literal>async-executor</literal> attribute in the
+     <literal>&lt;gateway/&gt;</literal> element configuration which allows to provide a reference to any implementation of
+     <classname>java.util.concurrent.Executor</classname> in the Spring context.
+    </para>
   </section>
   <section>
     <title>Gateway behavior when no response arrives</title>
