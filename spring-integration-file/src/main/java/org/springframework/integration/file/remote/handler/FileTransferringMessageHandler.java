@@ -205,7 +205,13 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
 		
 		if (this.autoCreateDirectory) {
-			this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
+			try {
+				this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
+			} 
+			catch (IllegalStateException e) {
+				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibilty
+				session.mkdir(remoteDirectory);
+			}
 		}
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
@@ -255,13 +261,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			}		
 			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
 			if (nextSeparatorIndex <= 0) {
-				throw new MessagingException("Failed to auto-create directory '" + fullPath + "'");
+				session.mkdir(currentPath);
 			}
 			else {
 				currentPath = currentPath.substring(0, nextSeparatorIndex);
-				this.mkdirRecursively(currentPath, fullPath, session);
 			}
+			this.mkdirRecursively(currentPath, fullPath, session);
 		}
 	}
-
 }
