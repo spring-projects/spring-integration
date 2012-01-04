@@ -153,9 +153,7 @@ class SftpSession implements Session<LsEntry> {
 
 	public void mkdir(String remoteDirectory) throws IOException {
 		try {	
-			if (!this.exists(remoteDirectory)){
-				this.channel.mkdir(remoteDirectory);
-			}
+			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException e) {
 			throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", e);

@@ -124,12 +124,17 @@ class FtpSession implements Session<FTPFile> {
 	}
 	
 	public boolean exists(String path) throws IOException{
-		String curretWorkingPath = this.client.printWorkingDirectory();
+		String currentWorkingPath = this.client.printWorkingDirectory();
 		boolean exists = false;
-		if (this.client.changeWorkingDirectory(path)){
-			this.client.changeWorkingDirectory(curretWorkingPath);
-			exists = true;
+		try {
+			if (this.client.changeWorkingDirectory(path)){	
+				exists = true;
+			}
+		} 
+		finally {
+			this.client.changeWorkingDirectory(currentWorkingPath);
 		}
+		
 		return exists;
 	}
 }

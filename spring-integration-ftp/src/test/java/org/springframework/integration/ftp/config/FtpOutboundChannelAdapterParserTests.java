@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -55,7 +57,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
-		assertEquals(".", remoteFileSeparator);
+		assertEquals("", remoteFileSeparator);
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "directoryExpressionProcessor"));
@@ -76,6 +78,11 @@ public class FtpOutboundChannelAdapterParserTests {
 		Iterator<MessageHandler> iterator = handlers.iterator();
 		assertSame(TestUtils.getPropertyValue(ac.getBean("ftpOutbound2"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
+	}
+	
+	@Test(expected=BeanCreationException.class)
+	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
+		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());
 	}
 
 	@Test

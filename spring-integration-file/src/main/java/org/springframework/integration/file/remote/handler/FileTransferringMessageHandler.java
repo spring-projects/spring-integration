@@ -76,7 +76,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
+		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
@@ -113,9 +113,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
+		if (this.autoCreateDirectory){
+			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
+		}
 	}
 	
-
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
@@ -202,7 +204,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		// write remote file first with .writing extension
 		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
 		
-		if (this.autoCreateDirectory && StringUtils.hasText(remoteFileSeparator)) {
+		if (this.autoCreateDirectory) {
 			this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
 		}
 		
