@@ -118,7 +118,7 @@ configure(javaprojects) {
     commonsNetVersion = '3.0.1'
     easymockVersion = '2.3'
     groovyVersion = '1.8.5'
-    jacksonVersion = '1.8.3'
+    jacksonVersion = '1.9.2'
     javaxActivationVersion = '1.1.1'
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
