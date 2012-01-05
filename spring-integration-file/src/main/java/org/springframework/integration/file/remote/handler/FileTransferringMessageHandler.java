@@ -209,7 +209,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 				this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
 			} 
 			catch (IllegalStateException e) {
-				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibilty
+				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
 				session.mkdir(remoteDirectory);
 			}
 		}
