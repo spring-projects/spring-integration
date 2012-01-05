@@ -119,8 +119,8 @@ class FtpSession implements Session<FTPFile> {
 		}
 	}
 	
-	public void mkdir(String remoteDirectory) throws IOException {
-		this.client.makeDirectory(remoteDirectory);
+	public boolean mkdir(String remoteDirectory) throws IOException {
+		return this.client.makeDirectory(remoteDirectory);
 	}
 	
 	public boolean exists(String path) throws IOException{

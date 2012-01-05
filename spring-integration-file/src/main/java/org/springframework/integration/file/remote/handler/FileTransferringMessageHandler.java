@@ -255,11 +255,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 						break;
 					}
 					else {				
-						pathsToCreate.add(pathSegment);
+						pathsToCreate.add(0, pathSegment);
 						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
 					}
 				}
-				Collections.reverse(pathsToCreate);
+				
 				for (String pathToCreate : pathsToCreate) {
 					if (logger.isDebugEnabled()){
 						logger.debug("Creating '" + pathToCreate + "'");

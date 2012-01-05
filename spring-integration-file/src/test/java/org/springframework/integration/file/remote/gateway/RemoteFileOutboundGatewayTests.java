@@ -262,7 +262,8 @@ public class RemoteFileOutboundGatewayTests {
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
@@ -320,7 +321,8 @@ public class RemoteFileOutboundGatewayTests {
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
@@ -375,7 +377,8 @@ public class RemoteFileOutboundGatewayTests {
 			public void write(InputStream inputStream, String destination)
 					throws IOException {
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
 			public void rename(String pathFrom, String pathTo)
 					throws IOException {
