@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class FtpSendingMessageHandlerTests {
 		File targetDir = new File("remote-target-dir");
 		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
 
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		FileTransferringMessageHandler<FTPFile> handler = new FileTransferringMessageHandler<FTPFile>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		handler.setFileNameGenerator(new FileNameGenerator() {
 			public String generateFileName(Message<?> message) {

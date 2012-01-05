@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ public class SftpSendingMessageHandlerTests {
 		File targetDir = new File("remote-target-dir");
 		assertTrue("target directory does not exist: " + targetDir.getName(), targetDir.exists());
 
-		SessionFactory sessionFactory = new TestSftpSessionFactory();
-		FileTransferringMessageHandler handler = new FileTransferringMessageHandler(sessionFactory);
+		SessionFactory<LsEntry> sessionFactory = new TestSftpSessionFactory();
+		FileTransferringMessageHandler<LsEntry> handler = new FileTransferringMessageHandler<LsEntry>(sessionFactory);
 		handler.setRemoteDirectoryExpression(new LiteralExpression(targetDir.getName()));
 		DefaultFileNameGenerator fGenerator = new DefaultFileNameGenerator();
 		fGenerator.setExpression("payload + '.test'");
