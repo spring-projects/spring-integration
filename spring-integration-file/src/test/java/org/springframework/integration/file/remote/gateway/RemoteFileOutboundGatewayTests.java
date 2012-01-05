@@ -255,23 +255,31 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;
 			}
 			public boolean isOpen() {
 				return open;
+			}
+
+			public boolean exists(String path) throws IOException {
+				return true;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -309,17 +317,21 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;
@@ -327,6 +339,9 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean isOpen() {
 				return open;
 			} 
+			public boolean exists(String path) throws IOException {
+				return true;
+			}
 		});
 		@SuppressWarnings("unchecked")
 		Message<File> out = (Message<File>) gw.handleRequestMessage(new GenericMessage<String>("x/f1"));
@@ -361,17 +376,21 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;
@@ -379,6 +398,9 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean isOpen() {
 				return open;
 			} 
+			public boolean exists(String path) throws IOException {
+				return true;
+			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
 		File out = new File(this.tmpDir + "/x/f1");

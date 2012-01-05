@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
+		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
@@ -113,9 +113,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
+		if (this.autoCreateDirectory){
+			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
+		}
 	}
 	
-
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
@@ -201,14 +203,25 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
+		
 		if (this.autoCreateDirectory) {
-			session.mkdir(remoteDirectory);
+			try {
+				this.mkdirRecursively(remoteDirectory, remoteDirectory, session, true);
+			} 
+			catch (IllegalStateException e) {
+				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
+				session.mkdir(remoteDirectory);
+			}
 		}
+		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
-			session.write(fileInputStream, tempFilePath);
+			// write file
+			Assert.state(session.write(fileInputStream, tempFilePath), "Failed to write to '" + tempFilePath);
+			
 			// then rename it to its final name
-			session.rename(tempFilePath, remoteFilePath);
+			Assert.state(session.rename(tempFilePath, remoteFilePath), "Failed to rename '" + tempFilePath + 
+					"' to " + remoteFilePath);
 		} 
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
@@ -227,5 +240,37 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		}
 		return directoryPath;
 	}
-
+	
+	
+	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session, boolean continueOnNonExist) throws IOException{
+		if (session.exists(currentPath)) {
+			if (currentPath.equals(fullPath)){
+				return;
+			}
+			String missingDirectoryPath = fullPath.substring(currentPath.length());
+			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
+			String directory = currentPath + remoteFileSeparator;
+			for (String directorySegment : directories) {
+				directory += directorySegment + remoteFileSeparator;
+				if (logger.isDebugEnabled()){
+					logger.debug("Creating '" + directory + "'");
+				}	
+				session.mkdir(directory);
+			}
+		}
+		else if (continueOnNonExist) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Directory '" + currentPath + "' does not exist. Will attempt to auto-create it");
+			}		
+			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
+			if (nextSeparatorIndex <= 0) {
+				session.mkdir(currentPath);
+				continueOnNonExist = false;
+			}
+			else {
+				currentPath = currentPath.substring(0, nextSeparatorIndex);
+			}
+			this.mkdirRecursively(currentPath, fullPath, session, continueOnNonExist);
+		}
+	}
 }

@@ -53,9 +53,16 @@ public class FileTransferringMessageHandlerTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				String path =  (String) invocation.getArguments()[1];
 				assertFalse(path.startsWith("/"));
-				return null;
+				return true;
 			}
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return true;
+			}
+		}).when(session).write(Mockito.any(InputStream.class), Mockito.anyString());
+		
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("''"));
@@ -75,9 +82,16 @@ public class FileTransferringMessageHandlerTests {
 			public Object answer(InvocationOnMock invocation) throws Throwable {
 				String path =  (String) invocation.getArguments()[1];
 				assertFalse(path.startsWith("/"));
-				return null;
+				return true;
 			}
 		}).when(session).rename(Mockito.anyString(), Mockito.anyString());
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return true;
+			}
+		}).when(session).write(Mockito.any(InputStream.class), Mockito.anyString());
+		
 		ExpressionParser parser = new SpelExpressionParser();
 		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));

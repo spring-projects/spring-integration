@@ -15,12 +15,6 @@
 		<property name="clientMode" value="0"/>
 		<property name="fileType" value="2"/>
 	</bean>
-	
-	<bean id="cachingSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">
-		<constructor-arg ref="ftpSessionFactory"/>
-		<constructor-arg value="10"/>
-		<property name="sessionWaitTimeout" value="1000"/>
-	</bean>
 
 	<int-ftp:outbound-channel-adapter id="ftpOutbound"
 				channel="ftpChannel" 
@@ -29,27 +23,12 @@
 				remote-directory="foo/bar"
 				temporary-remote-directory="baz/abc"
 				charset="UTF-8"
-				auto-create-directory="false"
+				auto-create-directory="true"
 				remote-file-separator=""
 				temporary-file-suffix=".foo"
 				remote-filename-generator="fileNameGenerator"
 				order="23"/>
 				
-	<int-ftp:outbound-channel-adapter id="ftpOutbound2"
-				channel="ftpChannel" 
-				session-factory="cachingSessionFactory"
-				remote-directory="foo/bar"
-				charset="UTF-8"
-				remote-file-separator="."
-				temporary-file-suffix=".foo"
-				remote-filename-generator="fileNameGenerator"
-				order="12"/>
-				
-
-	<int-ftp:outbound-channel-adapter id="simpleAdapter"
-				channel="ftpChannel" 
-				session-factory="cachingSessionFactory"
-				remote-directory="foo/bar"/>
 				
 	<int:publish-subscribe-channel id="ftpChannel"/>
 	

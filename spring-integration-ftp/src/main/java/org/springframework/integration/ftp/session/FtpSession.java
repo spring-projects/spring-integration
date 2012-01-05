@@ -27,7 +27,6 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -52,9 +51,6 @@ class FtpSession implements Session<FTPFile> {
 	public boolean remove(String path) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		boolean completed = this.client.deleteFile(path);
-	 	if (!completed) {
-			throw new IOException("Failed to delete '" + path + "'. Server replied with: " + client.getReplyString());
-		}
 		return completed;
 	}
 	
@@ -63,28 +59,41 @@ class FtpSession implements Session<FTPFile> {
 		return this.client.listFiles(path);
 	}
 
-	public void read(String path, OutputStream fos) throws IOException {
+	public boolean read(String path, OutputStream fos) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		Assert.notNull(fos, "outputStream must not be null");
 		boolean completed = this.client.retrieveFile(path, fos);
 		if (!completed) {
-			throw new IOException("Failed to copy '" + path +
-					"'. Server replied with: " + this.client.getReplyString());
+			if (logger.isInfoEnabled()) {
+				logger.info("Failed to copy '" + path +
+						"'. Server replied with: " + this.client.getReplyString());
+			}
 		}
-		logger.info("File have been successfully transfered to: " + path);
+		else {
+			if (logger.isInfoEnabled()) {
+				logger.info("File have been successfully transfered to: " + path);
+			}
+		}
+		
+		return completed;
 	}
 
-	public void write(InputStream inputStream, String path) throws IOException {
+	public boolean write(InputStream inputStream, String path) throws IOException {
 		Assert.notNull(inputStream, "inputStream must not be null");
 		Assert.hasText(path, "path must not be null");
 		boolean completed = this.client.storeFile(path, inputStream);
 		if (!completed) {
-			throw new IOException("Failed to write to '" + path 
-					+ "'. Server replied with: " + this.client.getReplyString());
+			if (logger.isInfoEnabled()) {
+				logger.info("Failed to write to '" + path 
+						+ "'. Server replied with: " + this.client.getReplyString());
+			}
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("File has been successfully transfered to: " + path);
+		else {
+			if (logger.isInfoEnabled()) {
+				logger.info("File has been successfully transfered to: " + path);
+			}
 		}
+		return completed;
 	}
 
 	public void close() {
@@ -108,31 +117,43 @@ class FtpSession implements Session<FTPFile> {
 		return true;
 	}
 
-	public void rename(String pathFrom, String pathTo) throws IOException{
+	public boolean rename(String pathFrom, String pathTo) throws IOException{
 		this.client.deleteFile(pathTo);
 		boolean completed = this.client.rename(pathFrom, pathTo);
 		if (!completed) {
-			throw new IOException("Failed to rename '" + pathFrom + 
-					"' to " + pathTo + "'. Server replied with: " + this.client.getReplyString());
+			if (logger.isInfoEnabled()) {
+				logger.info("Failed to rename '" + pathFrom + 
+						"' to " + pathTo + "'. Server replied with: " + this.client.getReplyString());
+			}
 		}
-		if (logger.isInfoEnabled()) {
-			logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
+		else {
+			if (logger.isInfoEnabled()) {
+				logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
+			}
 		}
+		return completed;
 	}
-	/**
-	 * Since the underlying FTP API does not give us a clean method to create multiple directories 
-	 * we need to create them manually one at the time starting from the first segment of the path 
-	 * regardless if it exists or not since makeDirectory(path) will return 
-	 * false in the case when directory exists. 
-	 */
-	public void mkdir(String remoteDirectory) throws IOException {
-		String remoteFileSeparator = "/";
-		String[] directories = StringUtils.tokenizeToStringArray(remoteDirectory, remoteFileSeparator);
 	
-		String directory = "";
-		for (String directorySegment : directories) {
-			directory += directorySegment + remoteFileSeparator;
-			this.client.makeDirectory(directory);
+	public boolean mkdir(String remoteDirectory) throws IOException {
+		return this.client.makeDirectory(remoteDirectory);
+	}
+	
+	public boolean exists(String path) throws IOException{
+		Assert.hasText(path, "'path' must not be empty");
+	
+		String currentWorkingPath = this.client.printWorkingDirectory();
+		Assert.state(currentWorkingPath != null, "working directory cannot be determined, therefore exists check can not be completed");
+		boolean exists = false;
+
+		try {
+			if (this.client.changeWorkingDirectory(path)){	
+				exists = true;
+			}
+		} 
+		finally {
+			this.client.changeWorkingDirectory(currentWorkingPath);
 		}
+			
+		return exists;
 	}
 }

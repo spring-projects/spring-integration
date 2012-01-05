@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.NestedIOException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -91,7 +89,7 @@ class SftpSession implements Session<LsEntry> {
 		return new LsEntry[0];
 	}
 
-	public void read(String source, OutputStream os) throws IOException {
+	public boolean read(String source, OutputStream os) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			InputStream is = this.channel.get(source);
@@ -100,9 +98,10 @@ class SftpSession implements Session<LsEntry> {
 		catch (SftpException e) {
 			throw new NestedIOException("failed to read file", e);
 		}
+		return true;
 	}
 
-	public void write(InputStream inputStream, String destination) throws IOException {
+	public boolean write(InputStream inputStream, String destination) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.put(inputStream, destination);
@@ -110,6 +109,7 @@ class SftpSession implements Session<LsEntry> {
 		catch (SftpException e) {
 			throw new NestedIOException("failed to write file", e);
 		}
+		return true;
 	}
 
 	public void close() {
@@ -122,7 +122,7 @@ class SftpSession implements Session<LsEntry> {
 		return this.jschSession.isConnected();
 	}
 
-	public void rename(String pathFrom, String pathTo) throws IOException {
+	public boolean rename(String pathFrom, String pathTo) throws IOException {
 		try {	
 			this.channel.rename(pathFrom, pathTo);
 		} 
@@ -151,17 +151,30 @@ class SftpSession implements Session<LsEntry> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
 		}
+		return true;
 	}
 
-	public void mkdir(String remoteDirectory) throws IOException {
+	public boolean mkdir(String remoteDirectory) throws IOException {
 		try {	
-			this.mkdirRecursively(remoteDirectory, remoteDirectory);
+			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException e) {
 			throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", e);
 		}
+		return true;
 	}
 
+	public boolean exists(String path) {
+		try {
+			this.channel.lstat(path);
+			return true;
+		}
+		catch (SftpException e) {
+			// ignore
+		}
+		return false;
+	}
+	
 	void connect() {
 		try {
 			if (!this.jschSession.isConnected()) {
@@ -176,55 +189,4 @@ class SftpSession implements Session<LsEntry> {
 			throw new IllegalStateException("failed to connect", e);
 		}
 	}
-
-	/**
-	 * Since the underlying SFTP API does not give us a clean method to create directories recursively,
-	 * we need to create them one at the time starting from the path that we know actually exists.
-	 * To determine the existing path we need to iterate through each delimited segment starting from
-	 * the full directory path moving backward until we find it. Once found we need to start creating
-	 * individual directories for each segment; so in this method on the initial call the two parameters
-	 * will be the same, but for each recursive call the 'currentPath' is the directory with one less
-	 * segment from the previous 'currentPath'. For example, if you had '/foo/bar/baz', in the next
-	 * iteration it would be '/foo/bar/', and then just '/foo' and so on.
-	 */
-	private void mkdirRecursively(String currentPath, String fullPath) throws SftpException {
-		String remoteFileSeparator = "/";
-		if (this.exists(currentPath)) {
-			String missingDirectoryPath = fullPath.substring(currentPath.length());
-			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
-			String directory = currentPath + remoteFileSeparator;
-			for (String directorySegment : directories) {
-				directory += directorySegment + remoteFileSeparator;
-				if (logger.isDebugEnabled()){
-					logger.debug("Creating '" + directory + "'");
-				}	
-				this.channel.mkdir(directory);
-			}
-		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Directory '" + currentPath + "' does not exist. Will attempt to auto-create it");
-			}		
-			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
-			if (nextSeparatorIndex <= 0) {
-				throw new MessagingException("Failed to auto-create directory '" + fullPath + "'");
-			}
-			else {
-				currentPath = currentPath.substring(0, nextSeparatorIndex);
-				this.mkdirRecursively(currentPath, fullPath);
-			}
-		}
-	}
-
-	private boolean exists(String path) {
-		try {
-			this.channel.lstat(path);
-			return true;
-		}
-		catch (SftpException e) {
-			// ignore
-		}
-		return false;
-	}
-
 }
