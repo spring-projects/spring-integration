@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
@@ -76,7 +79,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setRemoteFileSeparator(String remoteFileSeparator) {
-		Assert.hasText(remoteFileSeparator, "'remoteFileSeparator' must not be empty");
+		Assert.notNull(remoteFileSeparator, "'remoteFileSeparator' must not be null");
 		this.remoteFileSeparator = remoteFileSeparator;
 	}
 
@@ -113,9 +116,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	protected void onInit() throws Exception {
 		Assert.notNull(this.directoryExpressionProcessor, "remoteDirectoryExpression is required");
+		if (this.autoCreateDirectory){
+			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
+		}
 	}
 	
-
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
@@ -201,9 +206,17 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with .writing extension
 		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
+		
 		if (this.autoCreateDirectory) {
-			session.mkdir(remoteDirectory);
+			try {
+				this.makeDirectories(remoteDirectory, session);
+			} 
+			catch (IllegalStateException e) {
+				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
+				session.mkdir(remoteDirectory);
+			}
 		}
+		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
@@ -227,5 +240,36 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		}
 		return directoryPath;
 	}
+	
+	private void makeDirectories(String path, Session<F> session) throws IOException {
+		if (!session.exists(path)){		
 
+			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
+			
+			if (nextSeparatorIndex > -1){
+				List<String> pathsToCreate = new LinkedList<String>();
+				while (nextSeparatorIndex > -1){
+					String pathSegment = path.substring(0, nextSeparatorIndex);
+					if (session.exists(pathSegment)){
+						// no more paths to create
+						break;
+					}
+					else {				
+						pathsToCreate.add(pathSegment);
+						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
+					}
+				}
+				Collections.reverse(pathsToCreate);
+				for (String pathToCreate : pathsToCreate) {
+					if (logger.isDebugEnabled()){
+						logger.debug("Creating '" + pathToCreate + "'");
+					}
+					session.mkdir(pathToCreate);
+				}
+			}
+			else {
+				session.mkdir(path);
+			}
+		}
+	}
 }

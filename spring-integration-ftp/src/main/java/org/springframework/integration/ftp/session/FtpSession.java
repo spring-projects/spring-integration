@@ -27,7 +27,6 @@ import org.apache.commons.net.ftp.FTPFile;
 
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link Session} for FTP.
@@ -119,20 +118,27 @@ class FtpSession implements Session<FTPFile> {
 			logger.info("File has been successfully renamed from: " + pathFrom + " to " + pathTo);
 		}
 	}
-	/**
-	 * Since the underlying FTP API does not give us a clean method to create multiple directories 
-	 * we need to create them manually one at the time starting from the first segment of the path 
-	 * regardless if it exists or not since makeDirectory(path) will return 
-	 * false in the case when directory exists. 
-	 */
-	public void mkdir(String remoteDirectory) throws IOException {
-		String remoteFileSeparator = "/";
-		String[] directories = StringUtils.tokenizeToStringArray(remoteDirectory, remoteFileSeparator);
 	
-		String directory = "";
-		for (String directorySegment : directories) {
-			directory += directorySegment + remoteFileSeparator;
-			this.client.makeDirectory(directory);
+	public void mkdir(String remoteDirectory) throws IOException {
+		this.client.makeDirectory(remoteDirectory);
+	}
+	
+	public boolean exists(String path) throws IOException{
+		Assert.hasText(path, "'path' must not be empty");
+	
+		String currentWorkingPath = this.client.printWorkingDirectory();
+		Assert.state(currentWorkingPath != null, "working directory cannot be determined, therefore exists check can not be completed");
+		boolean exists = false;
+
+		try {
+			if (this.client.changeWorkingDirectory(path)){	
+				exists = true;
+			}
+		} 
+		finally {
+			this.client.changeWorkingDirectory(currentWorkingPath);
 		}
+			
+		return exists;
 	}
 }

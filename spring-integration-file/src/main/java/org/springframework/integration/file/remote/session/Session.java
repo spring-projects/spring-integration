@@ -46,4 +46,6 @@ public interface Session<T> {
 	void close();
 	
 	boolean isOpen();
+	
+	boolean exists(String path) throws IOException;
 }
