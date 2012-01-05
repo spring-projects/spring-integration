@@ -206,7 +206,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		
 		if (this.autoCreateDirectory) {
 			try {
-				this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
+				this.mkdirRecursively(remoteDirectory, remoteDirectory, session, true);
 			} 
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
@@ -239,7 +239,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	
-	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session) throws IOException{
+	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session, boolean continueOnNonExist) throws IOException{
 		if (session.exists(currentPath)) {
 			if (currentPath.equals(fullPath)){
 				return;
@@ -262,11 +262,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
 			if (nextSeparatorIndex <= 0) {
 				session.mkdir(currentPath);
+				continueOnNonExist = false;
 			}
 			else {
 				currentPath = currentPath.substring(0, nextSeparatorIndex);
 			}
-			this.mkdirRecursively(currentPath, fullPath, session);
+			this.mkdirRecursively(currentPath, fullPath, session, continueOnNonExist);
 		}
 	}
 }
