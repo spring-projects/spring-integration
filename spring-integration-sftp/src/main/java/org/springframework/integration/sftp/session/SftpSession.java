@@ -151,13 +151,14 @@ class SftpSession implements Session<LsEntry> {
 		}
 	}
 
-	public void mkdir(String remoteDirectory) throws IOException {
+	public boolean mkdir(String remoteDirectory) throws IOException {
 		try {	
 			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException e) {
 			throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", e);
 		}
+		return true;
 	}
 
 	public boolean exists(String path) {

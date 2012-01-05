@@ -155,8 +155,8 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 			this.targetSession.rename(pathFrom, pathTo);
 		}
 
-		public void mkdir(String directory) throws IOException {
-			this.targetSession.mkdir(directory);
+		public boolean mkdir(String directory) throws IOException {
+			return this.targetSession.mkdir(directory);
 		}
 		
 		public boolean exists(String path) throws IOException{
