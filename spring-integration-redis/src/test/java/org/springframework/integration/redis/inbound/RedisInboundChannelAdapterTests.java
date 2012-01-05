@@ -64,24 +64,8 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.setOutputChannel(channel);
 		adapter.afterPropertiesSet();
 		adapter.start();
-		RedisMessageListenerContainer container = (RedisMessageListenerContainer) TestUtils
-				.getPropertyValue(adapter, "container");
-		Object subscriptionTask = TestUtils.getPropertyValue(container, "subscriptionTask");
-		RedisConnection connection = (RedisConnection) TestUtils
-				.getPropertyValue(subscriptionTask, "connection");
-		int n = 0;
-		while (true) {
-			if (n++ > 50) {
-				fail("RMLC Failed to Subscribe");
-			}
-			if (connection.isSubscribed()) {
-				logger.debug("Subscribed OK");
-				break;
-			}
-			logger.debug("Waiting...");
-			Thread.sleep(100);
-		}
-		Thread.sleep(100); // Wait a little longer due to race condition in connection.isSubscribed()
+
+		RedisMessageListenerContainer container = waitUntilSubscribed(adapter);
 
 		StringRedisTemplate redisTemplate = new StringRedisTemplate(connectionFactory);
 		redisTemplate.afterPropertiesSet();
@@ -104,6 +88,33 @@ public class RedisInboundChannelAdapterTests extends RedisAvailableTests{
 		adapter.stop();
 		container.stop();
 		connectionFactory.destroy();
+	}
+
+	/**
+	 * Wait until the container has subscribed to the queue and return a
+	 * reference to it, so we can stop it at the end of the test.
+	 */
+	protected RedisMessageListenerContainer waitUntilSubscribed(
+			RedisInboundChannelAdapter adapter) throws Exception {
+		RedisMessageListenerContainer container = (RedisMessageListenerContainer) TestUtils
+				.getPropertyValue(adapter, "container");
+		Object subscriptionTask = TestUtils.getPropertyValue(container, "subscriptionTask");
+		RedisConnection connection = (RedisConnection) TestUtils
+				.getPropertyValue(subscriptionTask, "connection");
+		int n = 0;
+		while (true) {
+			if (n++ > 50) {
+				fail("RMLC Failed to Subscribe");
+			}
+			if (connection.isSubscribed()) {
+				logger.debug("Subscribed OK");
+				break;
+			}
+			logger.debug("Waiting...");
+			Thread.sleep(100);
+		}
+		Thread.sleep(100); // Wait a little longer due to race condition in connection.isSubscribed()
+		return container;
 	}
 
 }
