@@ -206,7 +206,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		
 		if (this.autoCreateDirectory) {
 			try {
-				this.mkdirRecursively(remoteDirectory, remoteDirectory, session);
+				this.mkdirRecursively(remoteDirectory, remoteDirectory, session, true);
 			} 
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
@@ -216,9 +216,12 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
-			session.write(fileInputStream, tempFilePath);
+			// write file
+			Assert.state(session.write(fileInputStream, tempFilePath), "Failed to write to '" + tempFilePath);
+			
 			// then rename it to its final name
-			session.rename(tempFilePath, remoteFilePath);
+			Assert.state(session.rename(tempFilePath, remoteFilePath), "Failed to rename '" + tempFilePath + 
+					"' to " + remoteFilePath);
 		} 
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
@@ -239,7 +242,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	
-	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session) throws IOException{
+	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session, boolean continueOnNonExist) throws IOException{
 		if (session.exists(currentPath)) {
 			if (currentPath.equals(fullPath)){
 				return;
@@ -255,18 +258,19 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 				session.mkdir(directory);
 			}
 		}
-		else {
+		else if (continueOnNonExist) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Directory '" + currentPath + "' does not exist. Will attempt to auto-create it");
 			}		
 			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
 			if (nextSeparatorIndex <= 0) {
 				session.mkdir(currentPath);
+				continueOnNonExist = false;
 			}
 			else {
 				currentPath = currentPath.substring(0, nextSeparatorIndex);
 			}
-			this.mkdirRecursively(currentPath, fullPath, session);
+			this.mkdirRecursively(currentPath, fullPath, session, continueOnNonExist);
 		}
 	}
 }

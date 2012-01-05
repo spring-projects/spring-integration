@@ -89,7 +89,7 @@ class SftpSession implements Session<LsEntry> {
 		return new LsEntry[0];
 	}
 
-	public void read(String source, OutputStream os) throws IOException {
+	public boolean read(String source, OutputStream os) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			InputStream is = this.channel.get(source);
@@ -98,9 +98,10 @@ class SftpSession implements Session<LsEntry> {
 		catch (SftpException e) {
 			throw new NestedIOException("failed to read file", e);
 		}
+		return true;
 	}
 
-	public void write(InputStream inputStream, String destination) throws IOException {
+	public boolean write(InputStream inputStream, String destination) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
 		try {
 			this.channel.put(inputStream, destination);
@@ -108,6 +109,7 @@ class SftpSession implements Session<LsEntry> {
 		catch (SftpException e) {
 			throw new NestedIOException("failed to write file", e);
 		}
+		return true;
 	}
 
 	public void close() {
@@ -120,7 +122,7 @@ class SftpSession implements Session<LsEntry> {
 		return this.jschSession.isConnected();
 	}
 
-	public void rename(String pathFrom, String pathTo) throws IOException {
+	public boolean rename(String pathFrom, String pathTo) throws IOException {
 		try {	
 			this.channel.rename(pathFrom, pathTo);
 		} 
@@ -149,15 +151,17 @@ class SftpSession implements Session<LsEntry> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("File: " + pathFrom + " was successfully renamed to " + pathTo);
 		}
+		return true;
 	}
 
-	public void mkdir(String remoteDirectory) throws IOException {
+	public boolean mkdir(String remoteDirectory) throws IOException {
 		try {	
 			this.channel.mkdir(remoteDirectory);
 		}
 		catch (SftpException e) {
 			throw new NestedIOException("failed to create remote directory '" + remoteDirectory + "'.", e);
 		}
+		return true;
 	}
 
 	public boolean exists(String path) {

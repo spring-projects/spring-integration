@@ -139,24 +139,24 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 			return this.targetSession.list(path);
 		}
 
-		public void read(String source, OutputStream os) throws IOException{
-			this.targetSession.read(source, os);
+		public boolean read(String source, OutputStream os) throws IOException{
+			return this.targetSession.read(source, os);
 		}
 
-		public void write(InputStream inputStream, String destination) throws IOException{
-			this.targetSession.write(inputStream, destination);
+		public boolean write(InputStream inputStream, String destination) throws IOException{
+			return this.targetSession.write(inputStream, destination);
 		}
 
 		public boolean isOpen() {
 			return this.targetSession.isOpen();
 		}
 
-		public void rename(String pathFrom, String pathTo) throws IOException {
-			this.targetSession.rename(pathFrom, pathTo);
+		public boolean rename(String pathFrom, String pathTo) throws IOException {
+			return this.targetSession.rename(pathFrom, pathTo);
 		}
 
-		public void mkdir(String directory) throws IOException {
-			this.targetSession.mkdir(directory);
+		public boolean mkdir(String directory) throws IOException {
+			return this.targetSession.mkdir(directory);
 		}
 		
 		public boolean exists(String path) throws IOException{

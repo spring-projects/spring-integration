@@ -35,13 +35,13 @@ public interface Session<T> {
 
 	T[] list(String path) throws IOException;
 	
-	void read(String source, OutputStream outputStream) throws IOException;
+	boolean read(String source, OutputStream outputStream) throws IOException;
 
-	void write(InputStream inputStream, String destination) throws IOException;
+	boolean write(InputStream inputStream, String destination) throws IOException;
 	
-	void mkdir(String directory) throws IOException;
+	boolean mkdir(String directory) throws IOException;
 	
-	void rename(String pathFrom, String pathTo) throws IOException;
+	boolean rename(String pathFrom, String pathTo) throws IOException;
 
 	void close();
 	

@@ -255,17 +255,21 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;
@@ -313,17 +317,21 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;
@@ -368,17 +376,21 @@ public class RemoteFileOutboundGatewayTests {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
 				};
 			}
-			public void read(String source, OutputStream outputStream)
+			public boolean read(String source, OutputStream outputStream)
 					throws IOException {
 				outputStream.write("testfile".getBytes());
+				return true;
 			}
-			public void write(InputStream inputStream, String destination)
+			public boolean write(InputStream inputStream, String destination)
 					throws IOException {
+				return true;
 			}
-			public void mkdir(String directory) throws IOException {
+			public boolean mkdir(String directory) throws IOException {
+				return true;
 			}
-			public void rename(String pathFrom, String pathTo)
+			public boolean rename(String pathFrom, String pathTo)
 					throws IOException {
+				return true;
 			}
 			public void close() {
 				open = false;

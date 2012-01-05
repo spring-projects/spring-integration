@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -187,7 +187,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			InputStream inputStream = null;
 			FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
 			try {
-				session.read(remoteFilePath, fileOutputStream);
+				//session.read(remoteFilePath, fileOutputStream);
+				Assert.state(session.read(remoteFilePath, fileOutputStream), "Failed to copy '" + remoteFilePath);
 			}
 			catch (Exception e) {
 				if (e instanceof RuntimeException){
@@ -214,7 +215,8 @@ public abstract class AbstractInboundFileSynchronizer<F> implements InboundFileS
 			
 			if (tempFile.renameTo(localFile)) {
 				if (this.deleteRemoteFiles) {
-					session.remove(remoteFilePath);
+					//session.remove(remoteFilePath);
+					Assert.state(session.remove(remoteFilePath), "Failed to delete '" + remoteFilePath);
 					if (logger.isDebugEnabled()) {
 						logger.debug("deleted " + remoteFilePath);
 					}
