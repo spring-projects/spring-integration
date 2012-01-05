@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
@@ -206,7 +209,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		
 		if (this.autoCreateDirectory) {
 			try {
-				this.mkdirRecursively(remoteDirectory, remoteDirectory, session, true);
+				this.makeDirectories(remoteDirectory, session);
 			} 
 			catch (IllegalStateException e) {
 				// Revert to old FTP behavior if recursive mkdir fails, for backwards compatibility
@@ -238,36 +241,35 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		return directoryPath;
 	}
 	
-	
-	private void mkdirRecursively(String currentPath, String fullPath, Session<F> session, boolean continueOnNonExist) throws IOException{
-		if (session.exists(currentPath)) {
-			if (currentPath.equals(fullPath)){
-				return;
-			}
-			String missingDirectoryPath = fullPath.substring(currentPath.length());
-			String[] directories = StringUtils.tokenizeToStringArray(missingDirectoryPath, remoteFileSeparator);
-			String directory = currentPath + remoteFileSeparator;
-			for (String directorySegment : directories) {
-				directory += directorySegment + remoteFileSeparator;
-				if (logger.isDebugEnabled()){
-					logger.debug("Creating '" + directory + "'");
-				}	
-				session.mkdir(directory);
-			}
-		}
-		else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Directory '" + currentPath + "' does not exist. Will attempt to auto-create it");
-			}		
-			int nextSeparatorIndex = currentPath.lastIndexOf(remoteFileSeparator);
-			if (nextSeparatorIndex <= 0) {
-				session.mkdir(currentPath);
-				continueOnNonExist = false;
+	private void makeDirectories(String path, Session<F> session) throws IOException {
+		if (!session.exists(path)){		
+
+			int nextSeparatorIndex = path.lastIndexOf(remoteFileSeparator);
+			
+			if (nextSeparatorIndex > -1){
+				List<String> pathsToCreate = new LinkedList<String>();
+				while (nextSeparatorIndex > -1){
+					String pathSegment = path.substring(0, nextSeparatorIndex);
+					if (session.exists(pathSegment)){
+						// no more paths to create
+						break;
+					}
+					else {				
+						pathsToCreate.add(pathSegment);
+						nextSeparatorIndex = pathSegment.lastIndexOf(remoteFileSeparator);
+					}
+				}
+				Collections.reverse(pathsToCreate);
+				for (String pathToCreate : pathsToCreate) {
+					if (logger.isDebugEnabled()){
+						logger.debug("Creating '" + pathToCreate + "'");
+					}
+					session.mkdir(pathToCreate);
+				}
 			}
 			else {
-				currentPath = currentPath.substring(0, nextSeparatorIndex);
+				session.mkdir(path);
 			}
-			this.mkdirRecursively(currentPath, fullPath, session, continueOnNonExist);
 		}
 	}
 }
