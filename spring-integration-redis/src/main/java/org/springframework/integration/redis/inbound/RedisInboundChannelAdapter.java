@@ -82,18 +82,14 @@ public class RedisInboundChannelAdapter extends MessageProducerSupport {
 	@Override
 	protected void doStart() {
 		super.doStart();
-		if (!this.container.isRunning()){
-			this.container.start();
-		}
+		this.container.start();
 	}
 
 	
 	@Override
 	protected void doStop() {
 		super.doStop();
-		if (this.container.isRunning()){
-			this.container.stop();
-		}
+		this.container.stop();
 	}
 
 	private Message<?> convertMessage(String s) {
