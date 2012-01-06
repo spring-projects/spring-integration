@@ -1,5 +1,5 @@
-SPRING INTEGRATION 2.1.0 Release Candidate 2
------------------------------------------------------------
+SPRING INTEGRATION 2.1.0
+------------------------
 
 To find out what has changed since any earlier releases, see 'changelog.txt'.
 
