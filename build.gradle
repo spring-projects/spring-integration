@@ -875,6 +875,8 @@ apply plugin: 'docbook-reference'
 
 reference {
     sourceDir = file('src/reference/docbook')
+    group = 'Documentation'
+    description = 'Generate HTML and PDF reference documentation'
 }
 
 task api(type: Javadoc) {
