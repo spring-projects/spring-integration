@@ -8,8 +8,8 @@ buildscript {
         maven { url 'https://repo.springsource.org/plugins-release' }
     }
     dependencies {
-        classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.0'
-        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.0'
+        classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.1'
+        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.1'
     }
 }
 
@@ -875,8 +875,6 @@ apply plugin: 'docbook-reference'
 
 reference {
     sourceDir = file('src/reference/docbook')
-    group = 'Documentation'
-    description = 'Generates HTML and PDF reference documentation.'
 }
 
 task api(type: Javadoc) {
