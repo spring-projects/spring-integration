@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,6 +151,10 @@ public class CachingSessionFactory implements SessionFactory, DisposableBean {
 
 		public void mkdir(String directory) throws IOException {
 			this.targetSession.mkdir(directory);
+		}
+
+		public boolean exists(String path) throws IOException {
+			return this.targetSession.exists(path);
 		}
 	}
 

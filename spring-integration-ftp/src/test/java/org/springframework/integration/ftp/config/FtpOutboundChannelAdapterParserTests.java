@@ -16,15 +16,12 @@
 
 package org.springframework.integration.ftp.config;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertSame;
-
 import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.Test;
+
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -34,6 +31,12 @@ import org.springframework.integration.file.remote.handler.FileTransferringMessa
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.ftp.session.DefaultFtpSessionFactory;
 import org.springframework.integration.test.util.TestUtils;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Oleg Zhurakousky
@@ -55,7 +58,7 @@ public class FtpOutboundChannelAdapterParserTests {
 		String remoteFileSeparator = (String) TestUtils.getPropertyValue(handler, "remoteFileSeparator");
 		assertNotNull(remoteFileSeparator);
 		assertEquals(".foo", TestUtils.getPropertyValue(handler, "temporaryFileSuffix", String.class));
-		assertEquals(".", remoteFileSeparator);
+		assertEquals("", remoteFileSeparator);
 		assertEquals(ac.getBean("fileNameGenerator"), TestUtils.getPropertyValue(handler, "fileNameGenerator"));
 		assertEquals("UTF-8", TestUtils.getPropertyValue(handler, "charset"));
 		assertNotNull(TestUtils.getPropertyValue(handler, "temporaryDirectory"));
@@ -85,6 +88,11 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
 		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
+	}
+	
+	@Test(expected=BeanCreationException.class)
+	public void testFailWithEmptyRfsAndAcdTrue() throws Exception{
+		new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-fail.xml", this.getClass());
 	}
 
 }

@@ -136,4 +136,24 @@ class FtpSession implements Session {
 			this.client.makeDirectory(directory);
 		}
 	}
+
+
+	public boolean exists(String path) throws IOException {
+		Assert.hasText(path, "'path' must not be empty");
+
+		String currentWorkingPath = this.client.printWorkingDirectory();
+		Assert.state(currentWorkingPath != null, "working directory cannot be determined, therefore exists check can not be completed");
+		boolean exists = false;
+
+		try {
+			if (this.client.changeWorkingDirectory(path)){	
+				exists = true;
+			}
+		} 
+		finally {
+			this.client.changeWorkingDirectory(currentWorkingPath);
+		}
+
+		return exists;
+	}
 }

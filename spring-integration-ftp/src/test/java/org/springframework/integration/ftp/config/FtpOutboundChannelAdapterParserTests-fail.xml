@@ -22,29 +22,15 @@
 				cache-sessions="false"
 				remote-directory="foo/bar"
 				charset="UTF-8"
-				auto-create-directory="false"
+				auto-create-directory="true"
 				remote-file-separator=""
 				temporary-file-suffix=".foo"
 				remote-filename-generator="fileNameGenerator"
 				order="23"/>
-				
-	<int-ftp:outbound-channel-adapter id="ftpOutbound2"
-				channel="ftpChannel" 
-				session-factory="ftpSessionFactory"
-				remote-directory="foo/bar"
-				charset="UTF-8"
-				remote-file-separator="."
-				temporary-file-suffix=".foo"
-				remote-filename-generator="fileNameGenerator"
-				order="12"/>
 
-	<int-ftp:outbound-channel-adapter id="simpleAdapter"
-				channel="ftpChannel" 
-				session-factory="ftpSessionFactory"
-				remote-directory="foo/bar"/>
-				
+
 	<int:publish-subscribe-channel id="ftpChannel"/>
-	
+
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>
