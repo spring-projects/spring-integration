@@ -1013,7 +1013,7 @@ task dist(dependsOn: assemble) {
 
 task wrapper(type: Wrapper) {
     description = 'Generates gradlew[.bat] scripts'
-    gradleVersion = '1.0-milestone-6'
+    gradleVersion = '1.0-milestone-7'
     jarFile = '.wrapper/gradle-wrapper.jar'
 }
 
