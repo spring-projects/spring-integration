@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -47,9 +48,14 @@ public class AmqpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "exchange-name-expression");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "routing-key-expression");
-	
+
 		IntegrationNamespaceUtils.configureHeaderMapper(element, builder, parserContext, DefaultAmqpHeaderMapper.class, null);
-		
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "confirm-correlation-expression");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-ack-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "confirm-nack-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "return-channel");
+
 		return builder.getBeanDefinition();
 	}
 

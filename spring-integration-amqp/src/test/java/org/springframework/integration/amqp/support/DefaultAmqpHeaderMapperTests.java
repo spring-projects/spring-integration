@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.amqp.AmqpHeaders;
@@ -35,6 +36,7 @@ import static org.junit.Assert.fail;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class DefaultAmqpHeaderMapperTests {
@@ -62,6 +64,8 @@ public class DefaultAmqpHeaderMapperTests {
 		headerMap.put(AmqpHeaders.TIMESTAMP, testTimestamp);
 		headerMap.put(AmqpHeaders.TYPE, "test.type");
 		headerMap.put(AmqpHeaders.USER_ID, "test.userId");
+		headerMap.put(AmqpHeaders.SPRING_REPLY_CORRELATION, "test.correlation");
+		headerMap.put(AmqpHeaders.SPRING_REPLY_TO_STACK, "test.replyTo2");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
 		MessageProperties amqpProperties = new MessageProperties();
 		headerMapper.fromHeadersToRequest(integrationHeaders, amqpProperties);
@@ -88,6 +92,8 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(testTimestamp, amqpProperties.getTimestamp());
 		assertEquals("test.type", amqpProperties.getType());
 		assertEquals("test.userId", amqpProperties.getUserId());
+		assertEquals("test.correlation", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_CORRELATION_HEADER));
+		assertEquals("test.replyTo2", amqpProperties.getHeaders().get(RabbitTemplate.STACKED_REPLY_TO_HEADER));
 	}
 
 	@Test
@@ -115,6 +121,8 @@ public class DefaultAmqpHeaderMapperTests {
 		amqpProperties.setTimestamp(testTimestamp);
 		amqpProperties.setType("test.type");
 		amqpProperties.setUserId("test.userId");
+		amqpProperties.setHeader(RabbitTemplate.STACKED_CORRELATION_HEADER, "test.correlation");
+		amqpProperties.setHeader(RabbitTemplate.STACKED_REPLY_TO_HEADER, "test.replyTo2");
 		Map<String, Object> headerMap = headerMapper.toHeadersFromReply(amqpProperties);
 		assertEquals("test.appId", headerMap.get(AmqpHeaders.APP_ID));
 		assertEquals("test.clusterId", headerMap.get(AmqpHeaders.CLUSTER_ID));
@@ -133,6 +141,8 @@ public class DefaultAmqpHeaderMapperTests {
 		assertEquals(testTimestamp, headerMap.get(AmqpHeaders.TIMESTAMP));
 		assertEquals("test.type", headerMap.get(AmqpHeaders.TYPE));
 		assertEquals("test.userId", headerMap.get(AmqpHeaders.USER_ID));
+		assertEquals("test.correlation", headerMap.get(AmqpHeaders.SPRING_REPLY_CORRELATION));
+		assertEquals("test.replyTo2", headerMap.get(AmqpHeaders.SPRING_REPLY_TO_STACK));
 	}
 
 	@Test
@@ -171,4 +181,5 @@ public class DefaultAmqpHeaderMapperTests {
 		Object result = converter.fromMessage(new Message("123".getBytes(), amqpProperties));
 		assertEquals(String.class, result.getClass());
 	}
+
 }

@@ -14,7 +14,8 @@
 		exchange-name="si.test.exchange"
 		routing-key="si.test.binding"
 		amqp-template="amqpTemplate" 
-		order="5"/>
+		order="5"
+		return-channel="returnChannel"/>
 		
 	<rabbit:template id="amqpTemplate" connection-factory="connectionFactory"/>
 	
@@ -53,5 +54,9 @@
 		order="5"
 		mapped-request-headers=""
 		mapped-reply-headers=""/>
+
+	<int:channel id="returnChannel">
+		<int:queue/>
+	</int:channel>
 
 </beans>

@@ -28,6 +28,7 @@ import org.springframework.amqp.core.MessageListener;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +106,8 @@ public class AmqpInboundGatewayParserTests {
 		          assertEquals("bar", properties.getHeaders().get("bar"));
 		          return null;
 		      }})
-		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(Message.class));
+		 .when(amqpTemplate).send(Mockito.any(String.class), Mockito.any(String.class),
+				 Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 		ReflectionUtils.setField(amqpTemplateField, gateway, amqpTemplate);
 		
 		AbstractMessageListenerContainer mlc = 
@@ -123,7 +125,8 @@ public class AmqpInboundGatewayParserTests {
 		Message amqpMessage = new Message("hello".getBytes(), amqpProperties);
 		listener.onMessage(amqpMessage);
 		
-		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class), Mockito.any(Message.class));
+		Mockito.verify(amqpTemplate, Mockito.times(1)).send(Mockito.any(String.class), Mockito.any(String.class),
+				Mockito.any(Message.class), Mockito.any(CorrelationData.class));
 	}
 
 	private static class TestConverter extends SimpleMessageConverter {}

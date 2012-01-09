@@ -38,6 +38,7 @@ import static junit.framework.Assert.assertEquals;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -57,6 +58,8 @@ public class AmqpOutboundGatewayParserTests {
 		assertTrue(context.containsBean("rabbitGateway"));
 		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
+		MessageChannel returnChannel = context.getBean("returnChannel", MessageChannel.class);
+		assertSame(returnChannel, TestUtils.getPropertyValue(gateway, "returnChannel"));
 	}
 	
 	@SuppressWarnings("rawtypes")
