@@ -2,6 +2,7 @@ description = 'Spring Integration'
 
 apply plugin: 'base'
 apply plugin: 'idea'
+apply plugin: 'sonar'
 
 buildscript {
     repositories {
@@ -22,7 +23,30 @@ allprojects {
     }
 }
 
+sonar {
+    server {
+        url = System.getProperty("sonar.host.url") ?: "http://localhost:9000/"
+    }
+
+    database {
+        url = System.getProperty("sonar.jdbc.url") ?: "jdbc:derby://localhost:1527/sonar"
+        driverClassName = System.getProperty("sonar.jdbc.driver") ?: "org.apache.derby.jdbc.ClientDriver"
+        username = System.getProperty("sonar.jdbc.username") ?: "sonar"
+        password = System.getProperty("sonar.jdbc.password") ?: "sonar"
+    }
+
+    project {
+        dynamicAnalysis  = "reuseReports"
+        withProjectProperties { props ->
+            props["sonar.core.codeCoveragePlugin"] = "jacoco"
+        }
+    }
+}
+
 subprojects { subproject ->
+
+    buildDir = "target"
+
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'eclipse'
@@ -60,6 +84,10 @@ subprojects { subproject ->
         }
     }
 
+    configurations {
+        jacoco
+    }
+
     // dependencies that are common across all java projects
     dependencies {
         testCompile "cglib:cglib-nodep:$cglibVersion"
@@ -70,6 +98,7 @@ subprojects { subproject ->
         testCompile "org.hamcrest:hamcrest-all:1.1"
         testCompile "org.mockito:mockito-all:$mockitoVersion"
         testCompile "org.springframework:spring-test:$springVersion"
+        jacoco group: "org.jacoco", name: "org.jacoco.agent", version: "0.5.3.201107060350", classifier: "runtime"
     }
 
     // enable all compiler warnings; individual projects may customize further
@@ -79,6 +108,7 @@ subprojects { subproject ->
     test {
         // suppress all console output during testing unless running `gradle -i`
         logging.captureStandardOutput(LogLevel.INFO)
+        jvmArgs "-javaagent:" + configurations.jacoco.asPath + "=destfile=" + buildDir + "/jacoco.exec,includes=org.springframework.integration.*"
     }
 
     bundlor {
