@@ -887,34 +887,24 @@ reference {
 
 apply plugin: 'sonar'
 
-//See http://issues.gradle.org/browse/GRADLE-1826
-sonarHostUrl      = hasProperty('sonarHostUrl')      ? sonarHostUrl      : null
-sonarJdbcUrl      = hasProperty('sonarJdbcUrl')      ? sonarJdbcUrl      : null
-sonarJdbcDriver   = hasProperty('sonarJdbcDriver')   ? sonarJdbcDriver   : null
-sonarJdbcUsername = hasProperty('sonarJdbcUsername') ? sonarJdbcUsername : null
-sonarJdbcPassword = hasProperty('sonarJdbcPassword') ? sonarJdbcPassword : null
-
 sonar {
 
-    if (sonarHostUrl?.trim()) {
-        server.url = sonarHostUrl
+    if (rootProject.hasProperty('sonarHostUrl')) {
+        server.url = rootProject.sonarHostUrl
     }
 
     database {
-        if (sonarHostUrl?.trim()) {
-            url = sonarHostUrl
+        if (rootProject.hasProperty('sonarJdbcUrl')) {
+            url = rootProject.sonarJdbcUrl
         }
-        if (sonarJdbcUrl?.trim()) {
-            url = sonarJdbcUrl
+        if (rootProject.hasProperty('sonarJdbcDriver')) {
+            driverClassName = rootProject.sonarJdbcDriver
         }
-        if (sonarJdbcDriver?.trim()) {
-            driverClassName = sonarJdbcDriver
+        if (rootProject.hasProperty('sonarJdbcUsername')) {
+            username = rootProject.sonarJdbcUsername
         }
-        if (sonarJdbcUsername?.trim()) {
-            username = sonarJdbcUsername
-        }
-        if (sonarJdbcPassword?.trim()) {
-            password = sonarJdbcPassword
+        if (rootProject.hasProperty('sonarJdbcPassword')) {
+            password = rootProject.sonarJdbcPassword
         }
     }
 
