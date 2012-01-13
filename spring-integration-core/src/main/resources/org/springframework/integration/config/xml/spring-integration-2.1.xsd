@@ -747,11 +747,11 @@
 			<xsd:attribute name="filter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to the implementation of  org.springframework.integration.util.ElementFilter.
+						Reference to the implementation of org.springframework.integration.util.CollectionFilter.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.util.ElementFilter" />
+							<tool:expected-type type="org.springframework.integration.util.CollectionFilter" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
