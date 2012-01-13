@@ -43,7 +43,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -57,7 +57,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -215,7 +215,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -224,7 +224,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -233,7 +233,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -330,7 +330,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -339,7 +339,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

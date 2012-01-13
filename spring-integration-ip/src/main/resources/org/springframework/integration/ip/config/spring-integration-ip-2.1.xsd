@@ -52,7 +52,7 @@ its configuration specifies the number of threads.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -137,7 +137,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -146,7 +146,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -196,7 +196,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -246,7 +246,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -255,7 +255,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -265,7 +265,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -315,7 +315,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -324,7 +324,7 @@ task executors such as a WorkManagerTaskExecutor.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -478,7 +478,7 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.InterceptorFactoryChain"/>
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -506,7 +506,7 @@ connections created by this factory. Facilitates resequencing if necessary. Defa
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>

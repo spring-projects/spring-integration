@@ -36,7 +36,7 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="org.springframework.integration.core.MessageChannel" />
+								type="org.springframework.integration.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -124,7 +124,7 @@ this list can also be simple patterns to be matched against the header names (e.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -157,7 +157,7 @@ this list can also be simple patterns to be matched against the header names (e.
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="org.springframework.integration.core.MessageChannel"/>
+								type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -170,7 +170,7 @@ this list can also be simple patterns to be matched against the header names (e.
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="org.springframework.integration.core.MessageChannel"/>
+								type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -268,7 +268,7 @@ this list can also be simple patterns to be matched against the header names (e.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -280,7 +280,7 @@ this list can also be simple patterns to be matched against the header names (e.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -433,7 +433,7 @@ this list can also be simple patterns to be matched against the header names (e.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
