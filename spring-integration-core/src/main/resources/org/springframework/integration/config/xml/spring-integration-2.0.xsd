@@ -27,7 +27,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -73,7 +73,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.core.MessageChannel" />
+					<tool:exports type="org.springframework.integration.MessageChannel" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -304,7 +304,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.core.MessageChannel" />
+					<tool:exports type="org.springframework.integration.MessageChannel" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -541,7 +541,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -556,7 +556,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -643,7 +643,7 @@
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -830,7 +830,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
@@ -1994,7 +1994,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								<tool:expected-type type="org.springframework.integration.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
@@ -2075,7 +2075,7 @@ Name of the header whose value will be used to route messages
 								<xsd:annotation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
-											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+											<tool:expected-type type="org.springframework.integration.MessageChannel" />
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -2114,7 +2114,7 @@ Name of the header whose value will be used to route messages
 								<xsd:annotation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
-											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+											<tool:expected-type type="org.springframework.integration.MessageChannel" />
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -2154,7 +2154,7 @@ Name of the header whose value will be used to route messages
 								<xsd:annotation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
-											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+											<tool:expected-type type="org.springframework.integration.MessageChannel" />
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -2218,7 +2218,7 @@ Name of the header whose value will be used to route messages
 							]]></xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.ChannelResolver" />
+								<tool:expected-type type="org.springframework.integration.support.channel.ChannelResolver" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -2256,7 +2256,7 @@ Name of the header whose value will be used to route messages
 									</xsd:documentation>
 									<xsd:appinfo>
 										<tool:annotation kind="ref">
-											<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+											<tool:expected-type type="org.springframework.integration.MessageChannel" />
 										</tool:annotation>
 									</xsd:appinfo>
 								</xsd:annotation>
@@ -2283,7 +2283,7 @@ Name of the header whose value will be used to route messages
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								<tool:expected-type type="org.springframework.integration.MessageChannel" />
 							</tool:annotation>
 							<xsd:documentation>
 								Reference to the default channel where Messages should be sent if channel
@@ -2492,7 +2492,7 @@ Name of the header whose value will be used to route messages
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+								<tool:expected-type type="org.springframework.integration.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
 						<xsd:documentation>
@@ -2631,7 +2631,7 @@ Name of the header whose value will be used to route messages
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -2796,7 +2796,7 @@ Name of the header whose value will be used to route messages
 							<xsd:annotation>
 								<xsd:appinfo>
 									<tool:annotation kind="ref">
-										<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+										<tool:expected-type type="org.springframework.integration.MessageChannel" />
 									</tool:annotation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -2812,7 +2812,7 @@ Name of the header whose value will be used to route messages
 					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+							<tool:expected-type type="org.springframework.integration.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -2980,7 +2980,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
@@ -3001,7 +3001,7 @@ The list of component name patterns you want to track (e.g.,  tracked-components
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+						<tool:expected-type type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation>
