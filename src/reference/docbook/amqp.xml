@@ -474,8 +474,8 @@ this list can also be simple patterns to be matched against the header names (e.
         the Spring Integration Samples Git repository at: 
     </para>
     <itemizedlist>
-        <listitem><ulink url="https://github.com/spring-integration-samples/basic/amqp">
-           https://github.com/spring-integration-samples/basic/amqp</ulink>
+        <listitem><ulink url="https://github.com/SpringSource/spring-integration-samples">
+           https://github.com/SpringSource/spring-integration-samples</ulink>
         </listitem>
     </itemizedlist>    
     <para>
