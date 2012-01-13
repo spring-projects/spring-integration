@@ -52,7 +52,7 @@ its configuration specifies the number of threads.
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 							<xsd:documentation>
@@ -135,7 +135,7 @@ adapter.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -144,7 +144,7 @@ adapter.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -179,7 +179,7 @@ inbound message was received.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -214,7 +214,7 @@ A connection factory is needed by an inbound adapter. The connection factory mus
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -223,7 +223,7 @@ A connection factory is needed by an inbound adapter. The connection factory mus
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -233,7 +233,7 @@ A connection factory is needed by an inbound adapter. The connection factory mus
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -268,7 +268,7 @@ A connection factory is needed by an outbound adapter. The connection factory mu
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -277,7 +277,7 @@ A connection factory is needed by an outbound adapter. The connection factory mu
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -429,7 +429,7 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.InterceptorFactoryChain"/>
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -449,7 +449,7 @@ message headers (ip_connectionId, ip_hostName). Default "true".
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								<tool:expected-type type="org.springframework.integration.MessageChannel"/>
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
