@@ -53,7 +53,7 @@
                 	</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="com.sun.syndication.FeedFetcher" />
+							<tool:expected-type type="com.sun.syndication.fetcher.FeedFetcher" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -68,7 +68,7 @@
                 	</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.context.metadata.MetadataStore" />
+							<tool:expected-type type="org.springframework.integration.store.MetadataStore" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
