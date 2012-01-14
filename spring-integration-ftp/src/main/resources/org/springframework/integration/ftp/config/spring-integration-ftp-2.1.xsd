@@ -421,11 +421,11 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-							type="org.springframework.integration.sftp.session.DefaultSftpSessionFactory" />
+							type="org.springframework.integration.ftp.session.DefaultFtpSessionFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 				<xsd:documentation><![CDATA[
-                Reference to a [org.springframework.integration.sftp.session.DefaultSftpSessionFactory] bean.
+                Reference to a [org.springframework.integration.ftp.session.DefaultFtpSessionFactory] bean.
             ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

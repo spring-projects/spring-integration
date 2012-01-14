@@ -102,7 +102,7 @@
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
+						<tool:expected-type type="org.springframework.integration.support.converter.MessageConverter"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

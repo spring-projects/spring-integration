@@ -94,7 +94,7 @@
 					]]></xsd:documentation>                
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.file.entries.EntryListFilter"/>
+                            <tool:expected-type type="org.springframework.integration.file.filters.FileListFilter"/>
                         </tool:annotation>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -414,7 +414,7 @@ Only files matching this regular expression will be picked up by this adapter.
 	                </xsd:documentation>                     
                     <xsd:appinfo>
                         <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.file.locking.FileLocker"/>
+                            <tool:expected-type type="org.springframework.integration.file.FileLocker"/>
                         </tool:annotation>
                     </xsd:appinfo>
                 </xsd:annotation>
