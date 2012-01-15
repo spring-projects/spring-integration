@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,16 @@ package org.springframework.integration.groovy.config;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
+
 import groovy.lang.GroovyObject;
+import groovy.lang.MissingPropertyException;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -34,7 +36,11 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.ReplyRequiredException;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;
@@ -44,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -58,6 +65,9 @@ public class GroovyServiceActivatorTests {
 	
 	@Autowired
 	private MessageChannel withScriptVariableGenerator;
+
+	@Autowired
+	private MessageChannel invalidInlineScript;
 
 	@Autowired
 	private MyGroovyCustomizer groovyCustomizer;
@@ -127,7 +137,24 @@ public class GroovyServiceActivatorTests {
 		assertNull(replyChannel.receive(0));
 		assertTrue(groovyCustomizer.executed);
 	}
-	
+
+	//INT-2399
+	@Test(expected = MessageHandlingException.class)
+	public void invalidInlineScript() throws Exception {
+		Message message = new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
+		try {
+			this.invalidInlineScript.send(message);
+			fail("MessageHandlingException expected!");
+		}
+		catch (Exception e) {
+			Throwable cause = e.getCause();
+			assertEquals(MissingPropertyException.class, cause.getClass());
+			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
+		    throw e;
+		}
+
+	}
+
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void inlineScriptAndVariables() throws Exception{
 		new ClassPathXmlApplicationContext("GroovyServiceActivatorTests-fail-context.xml", this.getClass());

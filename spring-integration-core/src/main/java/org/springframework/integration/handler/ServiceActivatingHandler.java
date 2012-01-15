@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,11 @@ import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
+ * @author Artem Bilan
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private final AbstractMessageProcessor<Object> processor;
+	private final MessageProcessor<?> processor;
 
 
 	public ServiceActivatingHandler(final Object object) {
@@ -42,7 +43,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		this(new MethodInvokingMessageProcessor<Object>(object, methodName));
 	}
 
-	public ServiceActivatingHandler(AbstractMessageProcessor<Object> processor) {
+	public <T> ServiceActivatingHandler(MessageProcessor<T> processor) {
 		this.processor = processor;
 	}
 
@@ -55,7 +56,9 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	public final void onInit() {
 		super.onInit();
-		this.processor.setConversionService(this.getConversionService());
+		if (processor instanceof AbstractMessageProcessor) {
+			((AbstractMessageProcessor<?>) this.processor).setConversionService(this.getConversionService());
+		}
 	}
 
 	@Override
