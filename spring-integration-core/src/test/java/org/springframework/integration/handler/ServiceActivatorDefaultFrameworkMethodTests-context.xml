@@ -13,6 +13,8 @@
 
 	<service-activator id="handlerTestService" input-channel="handlerTestInputChannel" ref="testMessageHandler"/>
 
+	<service-activator id="processorTestService" input-channel="processorTestInputChannel" ref="testMessageProcessor"/>
+
 	<gateway id="gateway" default-request-channel="requestChannel" default-reply-channel="replyChannel"/>
 
 	<channel id="requestChannel"/>
@@ -24,5 +26,9 @@
 	</channel>
 
 	<beans:bean id="testMessageHandler" class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageHandler"/>
+
+	<beans:bean id="testMessageProcessor" class="org.springframework.integration.handler.ServiceActivatorDefaultFrameworkMethodTests$TestMessageProcessor">
+		<beans:property name="prefix" value="foo"/>
+	</beans:bean>
 
 </beans:beans>
