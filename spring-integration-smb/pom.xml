@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-smb</artifactId>
+    <version>2.1.1.BUILD-SNAPSHOT</version>
+    <name>Spring Integration SMB Support</name>
+
+    <parent>
+        <!-- 
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration</artifactId>
+        <version>2.1.1.BUILD-SNAPSHOT</version>
+         -->
+
+        <groupId>baag</groupId>
+        <artifactId>baag-maven-root</artifactId>
+        <version>1.4-SNAPSHOT</version>
+        <!-- The relative path of the parent pom.xml file within the check out. 
+            The default value is ../pom.xml which points to spring-integration 
+            parent POM. While we maintain the module locally at Baader, 
+            we must point it to parent baag-maven-root (for Nexus, Jenkins etc.) -->
+        <relativePath>../../Skripte/Maven/Wurzel/</relativePath>
+    </parent>
+
+    <properties>
+        <spring.core.version>3.0.5.RELEASE</spring.core.version>
+        <spring.integration.version>2.1.1.BUILD-SNAPSHOT</spring.integration.version>
+    </properties>
+
+    <issueManagement/>
+
+    <scm>
+        <connection>scm:svn:https://eiche.baag/svn/3rdparty/spring-integration-smb/trunk/</connection>
+        <developerConnection>scm:svn:https://eiche.baag/svn/3rdparty/spring-integration-smb/trunk/</developerConnection>
+        <url>https://eiche.baag/svn/3rdparty/spring-integration-smb/trunk/</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>msp</id>
+            <name>Markus Spann</name>
+            <email>markus.spann@baaderbank.de</email>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </testResource>
+
+            <testResource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </testResource>
+        </testResources>
+
+        <plugins>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                    <forkMode>never</forkMode>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*Abstract*.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- http://maven.apache.org/plugins/maven-eclipse-plugin/ -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+
+                    <additionalBuildcommands combine.children="append">
+                        <buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+                    </additionalBuildcommands>
+                    <additionalProjectnatures combine.children="append">
+                        <projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+                    </additionalProjectnatures>
+
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- http://code.google.com/p/maven-license-plugin/ -->
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
+                <configuration>
+                    <basedir>${basedir}</basedir> <!-- base directory for the search -->
+                    <header>${basedir}/src/main/resources/license_header.txt</header>
+                    <aggregate>true</aggregate> <!-- check headers for all modules of multi-modules projects. -->
+        
+                    <includes>
+                        <include>src/**/*.java</include>
+                    </includes>
+                    <useDefaultExcludes>true</useDefaultExcludes>
+                    <properties>
+                        <year>${project.inceptionYear}</year>
+                    </properties>
+                    <encoding>UTF-8</encoding>
+                    <strictCheck>true</strictCheck>
+        
+                </configuration>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.samba.jcifs</groupId>
+            <artifactId>jcifs</artifactId>
+            <version>1.3.17</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-expression</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-core</artifactId>
+            <version>${spring.integration.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-file</artifactId>
+            <version>${spring.integration.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-test</artifactId>
+            <version>${spring.integration.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Hamcrest - library of matchers for building test expressions -->
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit-dep</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+</project>

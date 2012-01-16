@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-smb="http://www.springframework.org/schema/integration/smb"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/smb http://www.springframework.org/schema/integration/smb/spring-integration-smb.xsd">
+
+	<bean id="smbSessionFactory" class="org.springframework.integration.smb.session.SmbSessionFactory">
+        <property name="host"        value="localhost"/>
+        <property name="port"        value="0"/>
+        <property name="domain"      value=""/>
+        <property name="username"    value="sambaguest"/>
+        <property name="password"    value="sambaguest"/>
+        <property name="shareAndDir" value="smb-share/"/>
+        <property name="replaceFile" value="false"/>
+	</bean>
+
+	<int-smb:outbound-channel-adapter id="smbOutboundChannelAdapter"
+				channel="smbPubSubChannel" 
+				session-factory="smbSessionFactory"
+				cache-sessions="false"
+				remote-directory="test-temp/remote-5"
+				charset="UTF-8"
+				remote-file-separator="."
+				temporary-file-suffix=".working.tmp"
+				remote-filename-generator="fileNameGenerator"
+				order="23"/>
+				
+	<int-smb:outbound-channel-adapter id="smbOutboundChannelAdapter2"
+				channel="smbPubSubChannel" 
+				session-factory="smbSessionFactory"
+				remote-directory="test-temp/remote-6"
+				charset="UTF-8"
+				remote-file-separator="."
+				temporary-file-suffix=".working.tmp"
+				remote-filename-generator="fileNameGenerator"
+				order="12"/>
+
+	<int-smb:outbound-channel-adapter id="simpleAdapter"
+				channel="smbPubSubChannel" 
+				session-factory="smbSessionFactory"
+				remote-directory="test-temp/remote-7"/>
+
+	<int:publish-subscribe-channel id="smbPubSubChannel"/>
+
+	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
+	</bean>
+
+</beans>

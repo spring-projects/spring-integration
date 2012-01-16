@@ -1,0 +1,10 @@
+# directory managed by JUnit tests
+test-temp/
+# Maven build directory
+target/
+# Eclipse project files
+.classpath
+.settings
+# SVN annotations
+.svn*
+**/.svn
