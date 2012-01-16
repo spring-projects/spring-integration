@@ -8,7 +8,7 @@
     <para>
       A Delayer is a simple endpoint that allows a Message flow to be delayed by a certain interval. When
       a Message is delayed, the original sender will not block. Instead, the delayed Messages will be
-      scheduled with an instance of <interfacename>java.util.concurrent.ScheduledExecutorService</interfacename>
+      scheduled with an instance of <interfacename>org.springframework.scheduling.TaskScheduler</interfacename>
       to be sent to the output channel after the delay has passed. This approach is scalable even for
       rather long delays, since it does not result in a large number of blocked sender Threads. On the
       contrary, in the typical case a thread pool will be used for the actual execution of releasing the

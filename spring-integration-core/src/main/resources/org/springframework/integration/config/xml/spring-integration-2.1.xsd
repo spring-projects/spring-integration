@@ -1286,7 +1286,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 		<xsd:attribute name="scheduler" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-					Provide a reference to the ScheduledExecutorService instance to which
+					Provide a reference to the TaskScheduler instance to which
 					this endpoint should
 					delegate when scheduling the sending of delayed Messages. If not
 					provided, the default
@@ -1296,7 +1296,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 					</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="java.util.concurrent.ScheduledExecutorService" />
+						<tool:expected-type type="org.springframework.scheduling.TaskScheduler" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
