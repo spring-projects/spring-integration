@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jpa="http://www.springframework.org/schema/integration/jpa"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:util="http://www.springframework.org/schema/util"	
+	xmlns:int="http://www.springframework.org/schema/integration"	
+	xsi:schemaLocation=
+   "http://www.springframework.org/schema/beans           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd	
+	http://www.springframework.org/schema/integration     http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+	http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa-2.1.xsd
+	http://www.springframework.org/schema/jdbc            http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/data/jpa        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+	http://www.springframework.org/schema/task            http://www.springframework.org/schema/task/spring-task.xsd">
+
+    <import resource="BaseJpaPollingChannelAdapterTests-context.xml"/>
+	
+	<int:poller default="true" fixed-rate="2000"/>
+	
+	<int:gateway default-reply-channel="studentReplyChannel"
+	    service-interface="org.springframework.integration.jpa.outbound.StudentService">
+	    <int:method name="deleteStudent"            request-channel="deleteStudentChannel"/>
+ 	    <int:method name="getStudent"               request-channel="getStudentChannel"/>
+	    <int:method name="getStudentWithException"  request-channel="getStudentEndpointWithExceptionChannel"/>
+	    <int:method name="getStudentWithParameters" request-channel="getStudentWithParametersChannel"/>
+	    <int:method name="getAllStudents"           request-channel="getAllStudentsChannel" />
+	    <int:method name="persistStudent"           request-channel="persistStudentChannel" />
+	    <int:method name="persistStudentUsingMerge" request-channel="persistStudentUsingMergeChannel" /> 
+	</int:gateway>
+	
+	<int:channel id="deleteStudentChannel"/>
+	<int:channel id="getStudentChannel"/>
+	<int:channel id="getStudentWithParametersChannel"/>
+	<int:channel id="getAllStudentsChannel"/>
+	<int:channel id="persistStudentChannel"/>
+	<int:channel id="persistStudentUsingMergeChannel"/>
+	<int:channel id="studentReplyChannel"/>
+	<int:channel id="getStudentEndpointWithExceptionChannel"/>
+
+    <bean id="deleteStudentEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="deleteStudentChannel"/>
+        <constructor-arg name="handler">
+            <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass"        value="org.springframework.integration.jpa.test.entity.Student"/>
+                        <property name="persistMode" value="DELETE"/>
+                    </bean>
+                </constructor-arg>          
+                <property        name="gatewayType"   value="UPDATING"/>
+                <property        name="outputChannel" ref="studentReplyChannel"/>
+            </bean>        
+        </constructor-arg>
+    </bean>
+    
+    <bean id="getStudentEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="getStudentChannel"/>
+        <constructor-arg name="handler">
+		    <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass"        value="org.springframework.integration.jpa.test.entity.Student"/>
+                        <property name="query"              value="from Student s where s.id = :id"/>
+                        <property name="expectSingleResult" value="true"/>
+                        
+                        <property name="jpaParameters" >
+				            <util:list>
+				                <bean class="org.springframework.integration.jpa.support.JpaParameter">
+				                    <property name="name"       value="id"/>
+				                    <property name="expression" value="payload"/>
+				                </bean>              
+				            </util:list>
+                        </property>
+                    </bean>
+                </constructor-arg>		    
+		        <property        name="gatewayType"   value="RETRIEVING"/>
+		        <property        name="outputChannel" ref="studentReplyChannel"/>
+		    </bean>        
+        </constructor-arg>
+    </bean>
+
+    <bean id="getStudentEndpointWithException"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="getStudentEndpointWithExceptionChannel"/>
+        <constructor-arg name="handler">
+            <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass"        value="org.springframework.integration.jpa.test.entity.Student"/>
+                        <property name="query"              value="from Student s"/>
+                        <property name="expectSingleResult" value="true"/>
+                        
+                        <property name="jpaParameters" >
+                            <util:list>
+                                <bean class="org.springframework.integration.jpa.support.JpaParameter">
+                                    <property name="name"       value="id"/>
+                                    <property name="expression" value="payload"/>
+                                </bean>              
+                            </util:list>
+                        </property>
+                    </bean>
+                </constructor-arg>          
+                <property        name="gatewayType"   value="RETRIEVING"/>
+                <property        name="outputChannel" ref="studentReplyChannel"/>
+            </bean>        
+        </constructor-arg>
+    </bean>
+
+    <bean id="getAllStudentsEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="getAllStudentsChannel"/>
+        <constructor-arg name="handler">
+            <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass" value="org.springframework.integration.jpa.test.entity.Student"/>
+                    </bean>
+                </constructor-arg>
+                <property        name="gatewayType"   value="RETRIEVING"/>
+                <property        name="outputChannel" ref="studentReplyChannel"/>
+            </bean>        
+        </constructor-arg>
+    </bean>
+    		
+    <bean id="persitStudentEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="persistStudentChannel"/>
+        <constructor-arg name="handler">
+		    <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass" value="org.springframework.integration.jpa.test.entity.Student"/>
+                    </bean>
+                </constructor-arg>		    
+		        <property        name="gatewayType"   value="UPDATING"/>
+		        <property        name="outputChannel" ref="studentReplyChannel"/>
+		    </bean>        
+        </constructor-arg>
+    </bean>    		
+
+    <bean id="persitStudentUsingMergeEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="persistStudentUsingMergeChannel"/>
+        <constructor-arg name="handler">
+		    <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass" value="org.springframework.integration.jpa.test.entity.Student"/>
+                        <property name="persistMode" value="MERGE"/>
+                    </bean>
+                </constructor-arg>		    
+		        <property name="gatewayType"   value="UPDATING"/>
+		        <property name="outputChannel" ref="studentReplyChannel"/>
+		    </bean>        
+        </constructor-arg>
+    </bean>
+    
+    <bean id="getStudentWithParametersEndpoint"
+          class="org.springframework.integration.endpoint.EventDrivenConsumer">
+        <constructor-arg name="inputChannel" ref="getStudentWithParametersChannel"/>
+        <constructor-arg name="handler">
+            <bean class="org.springframework.integration.jpa.outbound.JpaOutboundGateway">
+                <constructor-arg name="jpaExecutor">
+                    <bean class="org.springframework.integration.jpa.core.JpaExecutor">
+                        <constructor-arg name="entityManager" ref="em"/>
+                        <property name="entityClass"        value="org.springframework.integration.jpa.test.entity.Student"/>
+                        <property name="query"              value="from Student s where s.firstName = ? and s.lastName=?"/>
+                        <property name="expectSingleResult" value="true"/>
+                        <property name="jpaParameters" >
+                            <util:list>
+                                <bean class="org.springframework.integration.jpa.support.JpaParameter">
+                                    <property name="expression" value="payload"/>
+                                </bean>
+                                <bean class="org.springframework.integration.jpa.support.JpaParameter">
+                                    <property name="value" value="Last Two"/>
+                                </bean>                                                  
+                            </util:list>
+                        </property>
+                    </bean>
+                </constructor-arg>          
+                <property        name="gatewayType"   value="RETRIEVING"/>
+                <property        name="outputChannel" ref="studentReplyChannel"/>
+            </bean>        
+        </constructor-arg>
+    </bean>        				
+</beans>
