@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,23 @@
 
 package org.springframework.integration.xmpp.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base class for XMPP inbound parsers
  * 
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0.1
  */
-public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -43,10 +44,13 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 		return true;
 	}
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected abstract String getBeanClassName(Element element);
+
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(getBeanClassName(element));
+
 		String connectionName = element.getAttribute("xmpp-connection");
-		
+
 		if (StringUtils.hasText(connectionName)){
 			builder.addConstructorArgReference(connectionName);
 		}
@@ -58,10 +62,11 @@ public abstract class AbstractXmppInboundChannelAdapterParser extends AbstractSi
 					"'xmpp-connection' attribute or have default XMPP connection bean registered under the name 'xmppConnection'" +
 					"(e.g., <int-xmpp:xmpp-connection .../>). If 'id' is not provided the default will be 'xmppConnection'.");
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "outputChannel");
+		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		this.postProcess(element, parserContext, builder);
+		return builder.getBeanDefinition();
 	}
 	
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder){

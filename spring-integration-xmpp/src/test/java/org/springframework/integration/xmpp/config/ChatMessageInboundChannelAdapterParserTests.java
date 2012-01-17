@@ -18,15 +18,17 @@ package org.springframework.integration.xmpp.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +45,12 @@ public class ChatMessageInboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private ChatMessageListeningEndpoint autoChannelAdapter;
+
 	@Test
 	public void testInboundAdapter(){
 		ChatMessageListeningEndpoint adapter = context.getBean("xmppInboundAdapter", ChatMessageListeningEndpoint.class);
@@ -55,4 +63,8 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		assertEquals(connection, context.getBean("testConnection"));
 	}
 
+	@Test
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+	}
 }

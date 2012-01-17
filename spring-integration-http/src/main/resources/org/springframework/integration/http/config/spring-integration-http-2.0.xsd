@@ -22,7 +22,7 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" />
 			<xsd:attribute name="name" type="xsd:string" />
-			<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -243,7 +243,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 				</xsd:simpleType>
 			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

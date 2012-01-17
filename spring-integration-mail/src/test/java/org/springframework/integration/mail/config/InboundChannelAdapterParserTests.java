@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,19 +28,22 @@ import javax.mail.Authenticator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.xml.sax.SAXParseException;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.mail.AbstractMailReceiver;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.Pop3MailReceiver;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.xml.sax.SAXParseException;
 
 /**
  * @author Mark Fisher
@@ -53,6 +57,11 @@ public class InboundChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private SourcePollingChannelAdapter autoChannelAdapter;
 
 	//==================== INT-982 =====================
 
@@ -281,6 +290,11 @@ public class InboundChannelAdapterParserTests {
 		Object target = (adapter instanceof ImapIdleChannelAdapter) ? adapter
 				: new DirectFieldAccessor(adapter).getPropertyValue("source");
 		return (AbstractMailReceiver) new DirectFieldAccessor(target).getPropertyValue("mailReceiver");
+	}
+
+	@Test
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
 }
