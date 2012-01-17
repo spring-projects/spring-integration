@@ -38,6 +38,10 @@
 		<int:queue/>
 	</int:channel>
 
+	<int-event:inbound-channel-adapter id="autoChannel" payload-expression="source + '-test'"/>
+
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
+
 	<context:property-placeholder location="classpath:org/springframework/integration/event/config/inbound-adapter.properties"/>
 
 </beans>
