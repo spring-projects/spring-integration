@@ -333,6 +333,7 @@ project('spring-integration-groovy') {
         compile project(":spring-integration-scripting")
         compile "org.codehaus.groovy:groovy-all:$groovyVersion"
         compile "org.springframework:spring-context-support:$springVersion"
+        testCompile project(":spring-integration-test")
     }
     bundlor {
         bundleSymbolicName = 'org.springframework.integration.groovy'

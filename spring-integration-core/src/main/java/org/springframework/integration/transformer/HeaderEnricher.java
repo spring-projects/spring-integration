@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.integration.support.MessageBuilder;
  * 
  * @author Mark Fisher
  * @author David Turanski
+ * @author Artem Bilan
  */
 public class HeaderEnricher implements Transformer, BeanNameAware, InitializingBean {
 
@@ -249,11 +250,19 @@ public class HeaderEnricher implements Transformer, BeanNameAware, InitializingB
 		}
 	}
 
-	static class MethodInvokingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
+	static class MessageProcessingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
 
-		private final MethodInvokingMessageProcessor<Object> targetProcessor;
+		private final MessageProcessor<?> targetProcessor;
 
-		public MethodInvokingHeaderValueMessageProcessor(Object targetObject, String method) {
+		public <T> MessageProcessingHeaderValueMessageProcessor(MessageProcessor<T> targetProcessor) {
+			this.targetProcessor = targetProcessor;
+		}
+
+		public MessageProcessingHeaderValueMessageProcessor(Object targetObject) {
+			this(targetObject, null);
+		}
+
+		public MessageProcessingHeaderValueMessageProcessor(Object targetObject, String method) {
 			this.targetProcessor = new MethodInvokingMessageProcessor<Object>(targetObject, method);
 		}
 

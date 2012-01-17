@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.springframework.integration.expression.DynamicExpression;
+import org.springframework.integration.transformer.HeaderEnricher;
 
 /**
  * Base support class for 'header-enricher' parsers.
@@ -50,7 +52,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 
 	@Override
 	protected final String getTransformerClassName() {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher";
+		return HeaderEnricher.class.getName();
 	}
 
 	protected final void addElementToHeaderMapping(String elementName, String headerName) {
@@ -85,7 +87,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				String elementName = node.getLocalName();
 				Class<?> headerType = null;
 				if ("header".equals(elementName)) {
-					headerName = headerElement.getAttribute("name");
+					headerName = headerElement.getAttribute(NAME_ATTRIBUTE);
 				}
 				else {
 					headerName = elementToNameMap.get(elementName);
@@ -114,9 +116,9 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				}
 				if (headerName != null) {
 					String value = headerElement.getAttribute("value");
-					String ref = headerElement.getAttribute("ref");
-					String method = headerElement.getAttribute("method");
-					String expression = headerElement.getAttribute("expression");
+					String ref = headerElement.getAttribute(REF_ATTRIBUTE);
+					String method = headerElement.getAttribute(METHOD_ATTRIBUTE);
+					String expression = headerElement.getAttribute(EXPRESSION_ATTRIBUTE);
 
 					Element beanElement = null;
 					Element scriptElement = null;
@@ -188,8 +190,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionEvaluatingHeaderValueMessageProcessor");
 						if (expressionElement != null) {
-							BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									"org.springframework.integration.expression.DynamicExpression");
+							BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DynamicExpression.class);
 							dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
 							dynamicExpressionBuilder.addConstructorArgReference(expressionElement.getAttribute("source"));
 							valueProcessorBuilder.addConstructorArgValue(dynamicExpressionBuilder.getBeanDefinition());
@@ -206,9 +207,11 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						if (hasMethod || isScript) {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MessageProcessingHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgValue(innerComponentDefinition);
-							valueProcessorBuilder.addConstructorArgValue(hasMethod ? method : null);
+							if (hasMethod) {
+								valueProcessorBuilder.addConstructorArgValue(method);
+							}
 						}
 						else {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
@@ -223,7 +226,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						if (hasMethod) {
 							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MessageProcessingHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgReference(ref);
 							valueProcessorBuilder.addConstructorArgValue(method);
 						}
