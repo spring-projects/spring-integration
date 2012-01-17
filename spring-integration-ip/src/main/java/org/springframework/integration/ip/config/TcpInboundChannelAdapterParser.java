@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.w3c.dom.Element;
 
 /**
@@ -31,15 +32,11 @@ import org.w3c.dom.Element;
  */
 public class TcpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 	
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
-
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
-				".TcpReceivingChannelAdapter");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TcpReceivingChannelAdapter.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
-				element, "channel", "outputChannel");
+		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,

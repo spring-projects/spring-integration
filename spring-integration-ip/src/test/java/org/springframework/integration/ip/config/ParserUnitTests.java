@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,6 +194,18 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#3")
 	TcpSendingMessageHandler tcpOutClientMode;
+
+	@Autowired
+	MessageChannel tcpAutoChannel;
+
+	@Autowired
+	MessageChannel udpAutoChannel;
+
+	@Autowired @Qualifier("tcpAutoChannel.adapter")
+	TcpReceivingChannelAdapter tcpAutoAdapter;
+
+	@Autowired @Qualifier("udpAutoChannel.adapter")
+	UnicastReceivingChannelAdapter udpAutoAdapter;
 
 	@Test
 	public void testInUdp() {
@@ -518,4 +530,13 @@ public class ParserUnitTests {
 		assertEquals(125000L, dfa.getPropertyValue("retryInterval"));
 	}
 
+	@Test
+	public void testAutoTcp() {
+		assertSame(tcpAutoChannel, TestUtils.getPropertyValue(tcpAutoAdapter, "outputChannel"));
+	}
+
+	@Test
+	public void testAutoUdp() {
+		assertSame(udpAutoChannel, TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel"));
+	}
 }

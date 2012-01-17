@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 
 /**
  * @author Oleg Zhurakousky
@@ -34,9 +35,9 @@ public class EventInboundChannelAdapterParser extends AbstractChannelAdapterPars
 
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.rootBeanDefinition(
-				"org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "channel", "outputChannel");
+		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+				.rootBeanDefinition(ApplicationEventListeningMessageProducer.class);
+		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression");
