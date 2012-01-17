@@ -50,4 +50,13 @@
 		<header name="lname" expression="#pathVariables.l"/>
 	</inbound-channel-adapter>
 
+	<inbound-channel-adapter id="autoChannel"
+	                         path="/fname/{f}/lname/{l}"
+							 mapped-request-headers="foo,bar"
+							 payload-expression="#pathVariables.f">
+		<header name="lname" expression="#pathVariables.l"/>
+	</inbound-channel-adapter>
+
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans:beans>

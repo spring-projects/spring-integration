@@ -16,6 +16,10 @@
 
 package org.springframework.integration.xmpp.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+
 import java.lang.reflect.Field;
 
 import org.jivesoftware.smack.Chat;
@@ -23,12 +27,11 @@ import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -37,9 +40,6 @@ import org.springframework.integration.xmpp.inbound.ChatMessageListeningEndpoint
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ReflectionUtils;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 
 /**
  * @author Oleg Zhurakousky
@@ -51,9 +51,15 @@ public class ChatMessageInboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
-	
+
 	@Autowired
 	private QueueChannel xmppInbound;
+
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private ChatMessageListeningEndpoint autoChannelAdapter;
 
 	@Test
 	public void testInboundAdapter(){
@@ -94,4 +100,8 @@ public class ChatMessageInboundChannelAdapterParserTests {
 		assertEquals("oleg", siMessage.getHeaders().get("xmpp_to"));
 	}
 
+	@Test
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.jdbc.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -32,8 +33,10 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,6 +46,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * @author David Syer
+ * @author Gary Russell
+ * @since 2.0
+ *
+ */
 // Not transactional because the poller threads need access to the data
 // @Transactional
 public class JdbcPollingChannelAdapterParserTests {
@@ -147,6 +156,14 @@ public class JdbcPollingChannelAdapterParserTests {
 			assertTrue(payloadSize <= 2);
 			count += payloadSize;
 		}
+	}
+
+	@Test
+	public void testAutoChannel() {
+		setUp("autoChannelJdbcPollingChannelAdapterParserTests-context.xml", getClass());
+		MessageChannel autoChannel = appCtx.getBean("autoChannel", MessageChannel.class);
+		SourcePollingChannelAdapter autoChannelAdapter = appCtx.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
 	@After

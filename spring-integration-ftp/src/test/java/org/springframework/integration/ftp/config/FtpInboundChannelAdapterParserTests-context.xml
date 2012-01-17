@@ -60,4 +60,13 @@
 		<constructor-arg value="org.springframework.integration.file.filters.FileListFilter"/>
 	</bean>
 
+	<int-ftp:inbound-channel-adapter id="autoChannel"
+				session-factory="ftpSessionFactory"
+				local-directory="."
+				remote-directory="foo/bar">
+			<int:poller fixed-rate="1000"/>
+	</int-ftp:inbound-channel-adapter>
+
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans>

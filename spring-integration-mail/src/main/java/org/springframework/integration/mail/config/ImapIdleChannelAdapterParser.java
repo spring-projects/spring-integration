@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.springframework.integration.mail.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.Assert;
+import org.springframework.integration.mail.ImapIdleChannelAdapter;
+import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
@@ -35,34 +36,19 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @author Gary Russell
  */
-public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
+public class ImapIdleChannelAdapterParser extends AbstractChannelAdapterParser {
 
-	private static final String BASE_PACKAGE = "org.springframework.integration.mail";
-
-
-	protected String getBeanClassName(Element element) {
-		return BASE_PACKAGE + ".ImapIdleChannelAdapter";
-	}
-
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String channel = element.getAttribute("channel");
-		Assert.hasText(channel, "the 'channel' attribute is required");
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ImapIdleChannelAdapter.class);
 		builder.addConstructorArgValue(this.parseImapMailReceiver(element, parserContext));
-		builder.addPropertyReference("outputChannel", channel);
+		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel", "errorChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		return builder.getBeanDefinition();
 	}
 
 	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".ImapMailReceiver");
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
 		Object source = parserContext.extractSource(element);
 		String uri = element.getAttribute("store-uri");
 		if (StringUtils.hasText(uri)) {

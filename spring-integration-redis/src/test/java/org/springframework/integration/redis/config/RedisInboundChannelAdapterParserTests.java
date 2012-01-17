@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,30 @@
 
 package org.springframework.integration.redis.config;
 
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.redis.inbound.RedisInboundChannelAdapter;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,7 +47,12 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 
 	@Autowired
 	private ApplicationContext context;
-	
+
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private RedisInboundChannelAdapter autoChannelAdapter;
 
 	@Test 
 	@RedisAvailable
@@ -72,6 +81,11 @@ public class RedisInboundChannelAdapterParserTests extends RedisAvailableTests{
 		assertEquals("Hello Redis from bar", receiveChannel.receive(1000).getPayload());
 	}
 
+	@Test
+	@RedisAvailable
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
+	}
 
 	@SuppressWarnings("unused")
 	private static class TestMessageConverter extends SimpleMessageConverter {

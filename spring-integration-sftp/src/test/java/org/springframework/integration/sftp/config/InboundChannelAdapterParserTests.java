@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 
 import java.io.File;
 import java.util.Comparator;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.sftp.inbound.SftpInboundFileSynchronizer;
@@ -41,6 +43,7 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class InboundChannelAdapterParserTests {
 	
@@ -80,6 +83,16 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(".", remoteFileSeparator);
 		PollableChannel requestChannel = context.getBean("requestChannel", PollableChannel.class);
 		assertNotNull(requestChannel.receive(2000));
+	}
+
+	@Test
+	public void testAutoChannel() {
+		ApplicationContext context =
+			new ClassPathXmlApplicationContext("InboundChannelAdapterParserTests-context.xml", this.getClass());
+		// Auto-created channel
+		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
+		SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
