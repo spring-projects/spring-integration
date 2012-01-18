@@ -916,7 +916,7 @@ sonar {
         }
     }
 
-    println("Sonar parameters used: server.url='${server.url}'; database.url='${database.url}'; database.driverClassName='${database.driverClassName}'; database.username='${database.username}'")
+    logger.info("Sonar parameters used: server.url='${server.url}'; database.url='${database.url}'; database.driverClassName='${database.driverClassName}'; database.username='${database.username}'")
 
 }
 
