@@ -18,6 +18,7 @@ package org.springframework.integration.feed.config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -36,6 +37,7 @@ import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -52,6 +54,7 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class FeedInboundChannelAdapterParserTests {
@@ -154,6 +157,15 @@ public class FeedInboundChannelAdapterParserTests {
 		verify(handler, atLeast(3)).handleMessage(Mockito.any(Message.class));
 	}
 
+	@Test
+	public void testAutoChannel() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"FeedInboundChannelAdapterParserTests-autoChannel-context.xml", this.getClass());
+		MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
+		SourcePollingChannelAdapter adapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+		assertSame(autoChannel, TestUtils.getPropertyValue(adapter, "outputChannel"));
+		context.destroy();
+	}
 
 	public static class SampleService {
 

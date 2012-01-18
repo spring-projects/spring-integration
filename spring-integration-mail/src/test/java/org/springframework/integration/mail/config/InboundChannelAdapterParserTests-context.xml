@@ -98,6 +98,11 @@
 
     <mail:inbound-channel-adapter id="imapShouldMarkAsReadTrue" channel="testChannel" protocol="imap" should-delete-messages="false" auto-startup="false" should-mark-messages-as-read="true"/>
 
+	<!-- INT-2407 -->
+
+	<mail:inbound-channel-adapter id="autoChannel" protocol="pop3" should-delete-messages="false" auto-startup="false"/>
+
+	<si:bridge input-channel="autoChannel" output-channel="nullChannel"/>
 
 	<!-- COMMON CONFIGURATION -->
 

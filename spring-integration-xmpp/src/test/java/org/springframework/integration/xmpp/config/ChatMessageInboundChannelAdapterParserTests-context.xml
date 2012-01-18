@@ -21,14 +21,21 @@
 	<beans:bean id="testConnection" class="org.mockito.Mockito" factory-method="mock">
 		<beans:constructor-arg value="org.jivesoftware.smack.XMPPConnection"/>
 	</beans:bean>
-	
+
 	<channel id="xmppInbound">
 		<queue/>
 	</channel>
 
-	<xmpp:inbound-channel-adapter id="xmppInboundAdapter" channel="xmppInbound" 
-			xmpp-connection="testConnection" extract-payload="false" 
+	<xmpp:inbound-channel-adapter id="xmppInboundAdapter" channel="xmppInbound"
+			xmpp-connection="testConnection" extract-payload="false"
 			auto-startup="false" error-channel="errorChannel"
 			mapped-request-headers="foo*, xmpp*"/>
+
+	<xmpp:inbound-channel-adapter id="autoChannel"
+			xmpp-connection="testConnection" extract-payload="false"
+			auto-startup="false" error-channel="errorChannel"
+			mapped-request-headers="foo*, xmpp*"/>
+
+	<bridge input-channel="autoChannel" output-channel="nullChannel" />
 
 </beans:beans>

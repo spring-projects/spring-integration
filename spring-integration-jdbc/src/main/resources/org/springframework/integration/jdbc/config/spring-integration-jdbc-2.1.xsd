@@ -178,7 +178,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="channel" type="xsd:string" use="required">
+					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
@@ -267,7 +267,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="id" type="xsd:string" use="optional"/>
-					<xsd:attribute name="channel" type="xsd:string" use="required">
+					<xsd:attribute name="channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
@@ -681,7 +681,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<xsd:documentation>
@@ -1096,7 +1096,7 @@
                     <xsd:union memberTypes="xsd:boolean xsd:string" />
                 </xsd:simpleType>
             </xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:attribute name="channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Channel to which polled messages will be send. If the stored

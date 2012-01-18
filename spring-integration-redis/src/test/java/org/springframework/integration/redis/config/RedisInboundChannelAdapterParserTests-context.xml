@@ -23,4 +23,10 @@
 	<bean id="testConverter"
 		class="org.springframework.integration.redis.config.RedisInboundChannelAdapterParserTests$TestMessageConverter" />
 
+	<int-redis:inbound-channel-adapter
+		id="autoChannel" topics="foo, bar" error-channel="testErrorChannel"
+		message-converter="testConverter" />
+
+	<int:bridge input-channel="autoChannel" output-channel="nullChannel"/>
+
 </beans>

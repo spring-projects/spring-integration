@@ -19,7 +19,7 @@
         <int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
         <int-jdbc:sql-parameter-definition name="password" direction="OUT"                            />
         <int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>
-        <int-jdbc:sql-parameter-definition name="description" />                                                  
+        <int-jdbc:sql-parameter-definition name="description" />
         <int-jdbc:parameter name="username"    value="kenny"   type="java.lang.String"/>
         <int-jdbc:parameter name="description" value="Who killed Kenny?"/>
         <int-jdbc:parameter name="password"    expression="payload.username"/>
@@ -29,4 +29,23 @@
   </int-jdbc:stored-proc-inbound-channel-adapter>
 
   <int:poller default="true" fixed-rate="10000"/>
+
+  <int-jdbc:stored-proc-inbound-channel-adapter id="autoChannel"
+                                                  data-source="dataSource"
+                                                  stored-procedure-name="GET_PRIME_NUMBERS"
+                                                  is-function="false">
+        <int-jdbc:sql-parameter-definition name="username" direction="IN"    type="VARCHAR"/>
+        <int-jdbc:sql-parameter-definition name="password" direction="OUT"                            />
+        <int-jdbc:sql-parameter-definition name="age"      direction="INOUT" type="INTEGER"  scale="5"/>
+        <int-jdbc:sql-parameter-definition name="description" />
+        <int-jdbc:parameter name="username"    value="kenny"   type="java.lang.String"/>
+        <int-jdbc:parameter name="description" value="Who killed Kenny?"/>
+        <int-jdbc:parameter name="password"    expression="payload.username"/>
+        <int-jdbc:parameter name="age"         value="30"      type="java.lang.Integer"/>
+        <int-jdbc:returning-resultset name="out" row-mapper="org.springframework.integration.jdbc.storedproc.PrimeMapper"/>
+
+  </int-jdbc:stored-proc-inbound-channel-adapter>
+
+  <int:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans>

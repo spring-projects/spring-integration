@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.http.config;
 import java.util.List;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ExpressionFactoryBean;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.CollectionUtils;
@@ -41,6 +43,7 @@ import org.w3c.dom.Element;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 
@@ -65,11 +68,16 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		String id = super.resolveId(element, definition, parserContext);
 		if (!StringUtils.hasText(id)) {
 			id = element.getAttribute("name");
+		} else {
+			if (!element.hasAttribute(getInputChannelAttributeName())) {
+				// the created channel will get the 'id', so the adapter's bean name includes a suffix
+				id = id + ".adapter";
+			}
 		}
 		if (!StringUtils.hasText(id)) {
 			id = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
 		}
-		
+
 		return id;
 	}
 
@@ -79,8 +87,12 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelRef = element.getAttribute(inputChannelAttributeName);
 		if (!StringUtils.hasText(inputChannelRef)) {
-			parserContext.getReaderContext().error(
-					"a '" + inputChannelAttributeName + "' reference is required", element);
+			if (this.expectReply) {
+				parserContext.getReaderContext().error(
+						"a '" + inputChannelAttributeName + "' reference is required", element);
+			} else {
+				inputChannelRef = createDirectChannel(element, parserContext);
+			}
 		}
 		builder.addPropertyReference("requestChannel", inputChannelRef);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
@@ -158,4 +170,15 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		return this.expectReply ? "request-channel" : "channel";
 	}
 
+	private String createDirectChannel(Element element, ParserContext parserContext) {
+		String channelId = element.getAttribute("id");
+		if (!StringUtils.hasText(channelId)) {
+			parserContext.getReaderContext().error("The channel-adapter's 'id' attribute is required when no 'channel' "
+					+ "reference has been provided, because that 'id' would be used for the created channel.", element);
+		}
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		return channelId;
+	}
 }
