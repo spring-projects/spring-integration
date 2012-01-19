@@ -41,4 +41,6 @@ public abstract class JmsHeaders {
 
 	public static final String TYPE = PREFIX + "type";
 
+	public static final String TIMESTAMP = PREFIX + "timestamp";
+
 }
