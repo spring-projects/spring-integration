@@ -44,6 +44,10 @@
 		<recipient selector-expression="@testBean.accept(payload)" channel="channel3"/>
 	</recipient-list-router>
 
+	<recipient-list-router id="noSelectorMatchRouter" input-channel="noSelectorMatchInput" default-output-channel="channel1">
+		<recipient selector-expression="false" channel="channel2"/>
+	</recipient-list-router>
+
 	<beans:bean id="testBean" class="org.springframework.integration.router.config.RecipientListRouterParserTests.TestBean"/>
 
 </beans:beans>
