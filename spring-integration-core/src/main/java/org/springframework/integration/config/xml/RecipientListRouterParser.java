@@ -65,6 +65,7 @@ public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "ignore-send-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(recipientListRouterBuilder, element, "apply-sequence");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(recipientListRouterBuilder, element, "default-output-channel");
 		return recipientListRouterBuilder;
 	}
 
