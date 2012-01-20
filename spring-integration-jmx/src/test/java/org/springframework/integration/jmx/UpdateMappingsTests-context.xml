@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<context:mbean-server />
+
+	<int-jmx:mbean-export/>
+
+	<int:channel id="in" />
+
+	<int:router id="router" input-channel="in" ref="myRouter" resolution-required="false"/>
+
+	<bean id="myRouter" class="org.springframework.integration.router.HeaderValueRouter">
+		<constructor-arg value="routing.header" />
+	</bean>
+
+	<int:channel id="control" />
+
+	<int:control-bus input-channel="control" />
+
+	<int:channel id="qux">
+		<int:queue />
+	</int:channel>
+
+</beans>
