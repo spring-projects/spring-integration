@@ -218,7 +218,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="channel" use="required" type="xsd:string">
+		<xsd:attribute name="channel" use="optional" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
