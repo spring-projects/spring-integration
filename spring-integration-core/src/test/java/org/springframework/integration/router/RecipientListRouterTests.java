@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -382,6 +381,25 @@ public class RecipientListRouterTests {
 		assertNull(reply5);
 	}
 
+	@Test
+	public void routeToDefaultChannelNoSelectorHits() {
+		QueueChannel channel = new QueueChannel();
+		channel.setBeanName("channel");
+		QueueChannel defaultChannel = new QueueChannel();
+		channel.setBeanName("default");
+		List<Recipient> recipients = new ArrayList<Recipient>();
+		recipients.add(new Recipient(channel, new AlwaysFalseSelector()));
+		RecipientListRouter router = new RecipientListRouter();
+		router.setRecipients(recipients);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<String> message = new GenericMessage<String>("test");
+		router.handleMessage(message);
+		Message<?> result1 = defaultChannel.receive(25);
+		assertNotNull(result1);
+		assertEquals("test", result1.getPayload());
+		Message<?> result2 = channel.receive(5);
+		assertNull(result2);
+	}
 
 	private static class AlwaysTrueSelector implements MessageSelector {
 

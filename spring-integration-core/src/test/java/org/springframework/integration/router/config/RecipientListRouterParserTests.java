@@ -17,6 +17,7 @@
 package org.springframework.integration.router.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -54,6 +55,9 @@ public class RecipientListRouterParserTests {
 
 	@Autowired
 	private MessageChannel simpleDynamicInput;
+
+	@Autowired
+	private MessageChannel noSelectorMatchInput;
 
 	@Test
 	public void checkMessageRouting() {
@@ -103,6 +107,18 @@ public class RecipientListRouterParserTests {
 		assertNull(chanel2.receive(0));
 	}
 
+	@Test
+	public void noSelectorMatchRouter() {
+		context.start();
+		Message<?> message = new GenericMessage<Integer>(1);
+		noSelectorMatchInput.send(message);
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		Message<?> output = chanel1.receive(0);
+		assertNotNull(output);
+		assertTrue(output.getPayload().equals(1));
+		assertNull(chanel2.receive(0));
+	}
 
 	public static class TestBean {
 
