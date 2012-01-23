@@ -11,7 +11,7 @@
 
 	<context:mbean-server />
 
-	<int-jmx:mbean-export/>
+	<int-jmx:mbean-export default-domain="update.mapping.domain"/>
 
 	<int:channel id="in" />
 
