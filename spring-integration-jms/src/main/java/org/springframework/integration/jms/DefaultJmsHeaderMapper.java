@@ -196,6 +196,11 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			catch (Exception e) {
 				logger.info("failed to read JMSType property, skipping", e);
 			}
+			try {
+				headers.put(JmsHeaders.TIMESTAMP, jmsMessage.getJMSTimestamp());
+			} catch (Exception e) {
+				logger.info("failed to read JMSTimestamp property, skipping", e);
+			}
 			Enumeration<?> jmsPropertyNames = jmsMessage.getPropertyNames();
 			if (jmsPropertyNames != null) {
 				while (jmsPropertyNames.hasMoreElements()) {

@@ -206,6 +206,18 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 	@Test
+	public void testJmsTimestampMappedToHeader() throws JMSException {
+		long timestamp = 123L;
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setJMSTimestamp(timestamp);
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object attrib = headers.get(JmsHeaders.TIMESTAMP);
+		assertNotNull(attrib);
+		assertEquals(timestamp, attrib);
+	}
+
+	@Test
 	public void testUserDefinedPropertyMappedToHeader() throws JMSException {
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		jmsMessage.setIntProperty("foo", 123);
