@@ -93,5 +93,16 @@
 		<beans:constructor-arg value="."/>
 	</beans:bean>
 
-	
+	<sftp:inbound-channel-adapter id="autoChannel"
+			session-factory="sftpSessionFactory"
+			filter="filter"
+			remote-directory="/foo"
+			local-directory="file:foo"
+			auto-create-local-directory="false"
+			delete-remote-files="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+
+	<bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans:beans>

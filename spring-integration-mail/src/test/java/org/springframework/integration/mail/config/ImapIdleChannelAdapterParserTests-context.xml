@@ -71,4 +71,12 @@
 
 	<task:executor id="executor" pool-size="5"/>
 
+	<mail:imap-idle-channel-adapter
+			id="autoChannel"
+			store-uri="imap:foo"
+			auto-startup="false"
+			should-delete-messages="true"/>
+
+	<integration:bridge input-channel="autoChannel" output-channel="nullChannel" />
+
 </beans>

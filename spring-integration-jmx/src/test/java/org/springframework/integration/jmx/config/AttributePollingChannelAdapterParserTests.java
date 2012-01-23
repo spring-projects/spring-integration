@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,23 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 @ContextConfiguration
@@ -46,6 +50,11 @@ public class AttributePollingChannelAdapterParserTests {
 	@Autowired
 	private TestBean testBean;
 
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private SourcePollingChannelAdapter autoChannelAdapter;
 
 	@Test
 	public void pollForAttribute() throws Exception {
@@ -54,6 +63,11 @@ public class AttributePollingChannelAdapterParserTests {
 		Message<?> result = channel.receive(1000);
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());
+	}
+
+	@Test
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 
 }

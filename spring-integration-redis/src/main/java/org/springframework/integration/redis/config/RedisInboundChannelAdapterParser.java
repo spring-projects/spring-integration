@@ -16,7 +16,6 @@
 
 package org.springframework.integration.redis.config;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -28,6 +27,7 @@ import org.w3c.dom.Element;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterParser {
@@ -41,7 +41,7 @@ public class RedisInboundChannelAdapterParser extends AbstractChannelAdapterPars
 			connectionFactory = "redisConnectionFactory";
 		}
 		builder.addConstructorArgReference(connectionFactory);
-		builder.addPropertyValue("outputChannel", new RuntimeBeanReference(channelName));
+		builder.addPropertyReference("outputChannel", channelName);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "topics");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");

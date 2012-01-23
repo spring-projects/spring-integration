@@ -331,4 +331,12 @@
 
 	<task:scheduler id="sched"/>
 
+	<ip:tcp-inbound-channel-adapter id="tcpAutoChannel" />
+
+	<int:bridge input-channel="tcpAutoChannel" output-channel="nullChannel" />
+
+	<ip:udp-inbound-channel-adapter id="udpAutoChannel" port="#{tcpIpUtils.findAvailableUdpSocket(5050)}" />
+
+	<int:bridge input-channel="udpAutoChannel" output-channel="nullChannel" />
+
 </beans>

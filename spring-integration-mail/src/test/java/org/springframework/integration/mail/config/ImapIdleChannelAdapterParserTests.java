@@ -28,9 +28,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -46,6 +49,11 @@ public class ImapIdleChannelAdapterParserTests {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private MessageChannel autoChannel;
+
+	@Autowired @Qualifier("autoChannel.adapter")
+	private ImapIdleChannelAdapter autoChannelAdapter;
 
 	@Test
 	public void simpleAdapter() {
@@ -139,5 +147,10 @@ public class ImapIdleChannelAdapterParserTests {
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
 		assertEquals("bar", properties.getProperty("foo"));
 		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+	}
+
+	@Test
+	public void testAutoChannel() {
+		assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
 	}
 }

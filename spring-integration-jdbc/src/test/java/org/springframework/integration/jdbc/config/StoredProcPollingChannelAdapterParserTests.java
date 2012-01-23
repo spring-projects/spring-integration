@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,12 @@
 
 package org.springframework.integration.jdbc.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
@@ -20,25 +26,22 @@ import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.jdbc.storedproc.PrimeMapper;
 import org.springframework.integration.jdbc.storedproc.ProcedureParameter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
 import org.springframework.jdbc.core.SqlParameter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  *
  */
@@ -183,6 +186,14 @@ public class StoredProcPollingChannelAdapterParserTests {
         assertTrue(parameter3 instanceof SqlInOutParameter);
         assertTrue(parameter4 instanceof SqlParameter);
 
+    }
+
+    @Test
+    public void testAutoChannel() throws Exception {
+        setUp("storedProcPollingChannelAdapterParserTest.xml", getClass());
+        MessageChannel autoChannel = context.getBean("autoChannel", MessageChannel.class);
+        SourcePollingChannelAdapter autoChannelAdapter = context.getBean("autoChannel.adapter", SourcePollingChannelAdapter.class);
+        assertSame(autoChannel, TestUtils.getPropertyValue(autoChannelAdapter, "outputChannel"));
     }
 
     @After
