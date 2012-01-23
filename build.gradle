@@ -53,6 +53,12 @@ subprojects { subproject ->
     springSocialTwitterVersion = '1.0.1.RELEASE'
     springWsVersion = '2.0.3.RELEASE'
 
+    eclipse {
+        project {
+            natures += 'org.springframework.ide.eclipse.core.springnature'
+        }
+    }
+
     sourceSets {
         test {
             resources {
