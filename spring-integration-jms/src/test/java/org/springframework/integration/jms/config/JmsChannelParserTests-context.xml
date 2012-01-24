@@ -59,9 +59,19 @@
 	</bean>
 
 	<alias name="connectionFactory" alias="connFact"/>
-	
-	
+
 	<jms:channel id="withPlaceholders" queue="${queue}" 
 									   concurrency="${concurrency}"/>
+
+	<jms:channel id="withDefaultContainer" queue-name="default.container.queue" />
+
+	<jms:channel id="withExplicitDefaultContainer" queue-name="explicit.default.container.queue"
+		container-type="default" />
+
+	<jms:channel id="withSimpleContainer" queue-name="simple.container.queue"
+		container-type="simple"/>
+
+	<jms:channel id="withContainerClass" queue-name="custom.container.queue"
+		container-class="org.springframework.integration.jms.config.JmsChannelParserTests$CustomTestMessageListenerContainer" />
 
 </beans>
