@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import javax.jms.Topic;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -42,12 +41,14 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.listener.SimpleMessageListenerContainer;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -94,6 +95,18 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private Topic topic;
+
+	@Autowired
+	private MessageChannel withDefaultContainer;
+
+	@Autowired
+	private MessageChannel withExplicitDefaultContainer;
+
+	@Autowired
+	private MessageChannel withSimpleContainer;
+
+	@Autowired
+	private MessageChannel withContainerClass;
 
 	@Autowired
 	private AbstractApplicationContext context;
@@ -231,6 +244,38 @@ public class JmsChannelParserTests {
 		System.out.println(container.getMaxConcurrentConsumers());
 	}
 
+	@Test
+	public void withDefaultContainer() {
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(
+				withDefaultContainer, "container",
+				DefaultMessageListenerContainer.class);
+		assertEquals("default.container.queue", container.getDestinationName());
+	}
+
+	@Test
+	public void withExplicitDefaultContainer() {
+		DefaultMessageListenerContainer container = TestUtils.getPropertyValue(
+				withExplicitDefaultContainer, "container",
+				DefaultMessageListenerContainer.class);
+		assertEquals("explicit.default.container.queue", container.getDestinationName());
+	}
+
+	@Test
+	public void withSimpleContainer() {
+		SimpleMessageListenerContainer container = TestUtils.getPropertyValue(
+				withSimpleContainer, "container",
+				SimpleMessageListenerContainer.class);
+		assertEquals("simple.container.queue", container.getDestinationName());
+	}
+
+	@Test
+	public void withContainerClass() {
+		CustomTestMessageListenerContainer container = TestUtils.getPropertyValue(
+				withContainerClass, "container",
+				CustomTestMessageListenerContainer.class);
+		assertEquals("custom.container.queue", container.getDestinationName());
+	}
+
 
 	static class TestDestinationResolver implements DestinationResolver {
 
@@ -251,6 +296,10 @@ public class JmsChannelParserTests {
 
 
 	static class TestInterceptor extends ChannelInterceptorAdapter {
+	}
+
+	static class CustomTestMessageListenerContainer extends DefaultMessageListenerContainer {
+
 	}
 
 }
