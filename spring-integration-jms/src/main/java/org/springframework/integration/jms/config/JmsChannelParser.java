@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,6 +32,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakusky
+ * @author Gary Russell
  * @since 2.0
  */
 public class JmsChannelParser extends AbstractChannelParser {
@@ -65,20 +65,23 @@ public class JmsChannelParser extends AbstractChannelParser {
 		}
 		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
 		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
-		Assert.isTrue(!(StringUtils.hasText(containerType) && StringUtils.hasText(containerClass)),
-				"At most one of '" + CONTAINER_TYPE_ATTRIBUTE + "' or '" + CONTAINER_CLASS_ATTRIBUTE + "' may be configured.");
-		if ("default".equals(containerType)) {
-			containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
-		}
-		else if ("simple".equals(containerType)) {
-			containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
-		}
-		if (StringUtils.hasText(containerClass)) {
-			builder.addPropertyValue("containerType", containerClass);
-			if (containerClass.contains("DefaultMessageListenerContainer")) {
-				containerType = "default"; 
+		if (!StringUtils.hasText(containerClass)) {
+			if ("default".equals(containerType)) {
+				containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
+			}
+			else if ("simple".equals(containerType)) {
+				containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
 			}
 		}
+		/*
+		 * Schema docs tell the user to ensure that, if they supply a container-class, it
+		 * is their responsibility to set the container-type appropriately, based on the superclass
+		 * of their implementation (default="default"). If it is set incorrectly, some attributes
+		 * may not be applied.
+		 *
+		 * We cannot reliably infer it here.
+		 */
+		builder.addPropertyValue("containerType", containerClass);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
