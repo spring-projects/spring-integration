@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -29,6 +30,7 @@ import org.springframework.util.xml.DomUtils;
  * Base class for outbound Channel Adapter parsers.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  */
 public abstract class AbstractOutboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
@@ -65,8 +67,10 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		if (StringUtils.hasText(order)) {
 			definition.getPropertyValues().addPropertyValue("order", order);
 		}
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(
 				definition, parserContext.getRegistry());
+		parserContext.registerBeanComponent(new BeanComponentDefinition(definition, beanName));
+		return beanName;
 	}
 
 	/**
