@@ -765,6 +765,32 @@
     set. The resequencer uses these headers to return the messages to their proper
     sequence.
    </para>
+   <para><emphasis>Pool Size</emphasis></para>
+   <para>
+    When using NIO, it is important to understand how threads are used, in order set the pool-size
+    appropriately. One thread from the pool is used to handle all socket events (e.g. data is
+    ready to be read). This thread is not available for other tasks. When data are ready to be
+    read, this thread dispatches the actual I/O to another thread from the pool, which reads
+    from the channel and writes the data to a temporary buffer; if this read is the start of
+    a new message, a third thread is used to read from that buffer to assemble the data into
+    a message.
+   </para>
+   <para>
+    If there is not enough room in the temporary buffer to receive the newly read data, the
+    reader thread will block until the assembler thread consumes some data. If the pool is
+    exhausted, this will cause a deadlock, until another thread becomes available. The temporary
+    buffer is currently 1024 bytes. In the simplest case, with one connection, and data greater
+    than 1024 bytes, a pool-size of 2 will cause this deadlock to occur because a thread will
+    never be made available.
+   </para>
+   <para>
+    For this reason, when using NIO, the pool-size should be set to a minimum of 3. This does not
+    mean you have to reserve 2 threads for each socket because, aside from the selector thread,
+    the threads in the pool are shared across all the connections. The actual pool-size needed
+    will depend on a number of factors including the number of active connections, how
+    much utilization there is on those connections, and how long message processing takes when
+    a new message is received.
+   </para>
   </section>
   <section id="ip-endpoint-reference">
     <title>IP Configuration Attributes</title>
@@ -950,8 +976,8 @@
               <entry></entry>
               <entry>Specifies the concurrency.  For tcp, not using nio, specifies the
                      number of concurrent connections supported by the adapter. For tcp,
-                     using nio, specifies the number of tcp fragments that are concurrently
-                     reassembled into complete messages.
+                     using nio, it should be set to a minimum of 3; see 'Pool Size' in
+                     <xref linkend="note_nio" />.
                      It only applies in this sense if task-executor is not configured.
                      However, pool-size is also used for the server socket backlog,
                      regardless of whether an external task executor is used. Defaults to 5.</entry>
