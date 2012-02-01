@@ -106,7 +106,7 @@
             </row>
             <row>
               <entry>PRIORITY</entry>
-              <entry>MessagePriority (an <emphasis>enum</emphasis>)</entry>
+              <entry>java.lang.Integer</entry>
             </row>
           </tbody>
        </tgroup>
@@ -190,28 +190,21 @@ assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
       Finally, there are set methods available for the predefined headers as well as a non-destructive method for
       setting any header (MessageHeaders also defines constants for the pre-defined header names).
       <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.withPayload(99)
-        .setPriority(MessagePriority.HIGHEST)
+        .setPriority(1)
         .build();
 
-assertEquals(MessagePriority.HIGHEST, importantMessage.getHeaders().getPriority());
+assertEquals(1, importantMessage.getHeaders().getPriority());
 
 Message&lt;Integer&gt; anotherMessage = MessageBuilder.fromMessage(importantMessage)
-        .setHeaderIfAbsent(MessageHeaders.PRIORITY, MessagePriority.LOW)
+        .setHeaderIfAbsent(MessageHeaders.PRIORITY, 2)
         .build();
 
-assertEquals(MessagePriority.LOW, anotherMessage.getHeaders().getPriority());
+assertEquals(2, anotherMessage.getHeaders().getPriority());
 </programlisting>
     </para>
     <para>
-      The <classname>MessagePriority</classname> is only considered when using a <classname>PriorityChannel</classname>
-      (as described in the next chapter). It is defined as an <emphasis>enum</emphasis> with five possible values:
-      <programlisting language="java">public enum MessagePriority {
-    HIGHEST,
-    HIGH,
-    NORMAL,
-    LOW,
-    LOWEST
-}</programlisting>
+      The <code>priority</code> header is only considered when using a <classname>PriorityChannel</classname>
+      (as described in the next chapter). It is defined as  <emphasis>java.lang.Integer</emphasis>.
     </para>
   </section>
 
