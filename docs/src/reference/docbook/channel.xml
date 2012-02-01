@@ -582,7 +582,7 @@ payload to an Integer.
         <programlisting language="xml"><![CDATA[<channel id="priorityChannel">
     <priority-queue capacity="20"/>
 </channel>]]></programlisting>
-        By default, the channel will consult the <classname>MessagePriority</classname> header of the
+        By default, the channel will consult the <code>priority</code> header of the
         message. However, a custom <interfacename>Comparator</interfacename> reference may be
         provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
         does support the <code>datatype</code> attribute. As with the QueueChannel, it also supports a <code>capacity</code> attribute.
