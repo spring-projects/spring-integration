@@ -41,6 +41,11 @@ public class MessageBuilderTests {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		assertEquals("foo", message.getPayload());
 	}
+	
+	@Test(expected= IllegalArgumentException.class) // priority must be an Integer
+	public void testPriorityHeader(){
+		MessageBuilder.withPayload("ha").setHeader("priority", "10").build();
+	}
 
 	@Test
 	public void testHeaderValues() {

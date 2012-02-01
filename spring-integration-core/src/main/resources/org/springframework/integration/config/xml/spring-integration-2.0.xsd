@@ -1422,14 +1422,16 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			<xsd:element name="priority">
 				<xsd:annotation>
 					<xsd:documentation>
-						Shortcut to specify value for 'priority' header when using PriotityChannel
+						Shortcut to specify value for 'priority' header when using PriorityChannel
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:complexType>
 					<xsd:attribute name="value">
-						<xsd:simpleType>
-							<xsd:union memberTypes="priorityEnumeration xsd:string" />
-						</xsd:simpleType>
+						<xsd:annotation>
+							<xsd:documentation>
+								Integer value identifying the value of the 'priority' header.
+							</xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="overwrite">
 						<xsd:annotation>
@@ -1523,16 +1525,6 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:simpleType name="priorityEnumeration">
-		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="HIGHEST" />
-			<xsd:enumeration value="HIGH" />
-			<xsd:enumeration value="NORMAL" />
-			<xsd:enumeration value="LOW" />
-			<xsd:enumeration value="LOWEST" />
-		</xsd:restriction>
-	</xsd:simpleType>
 
 	<xsd:complexType name="userDefinedHeaderType">
 		<xsd:annotation>

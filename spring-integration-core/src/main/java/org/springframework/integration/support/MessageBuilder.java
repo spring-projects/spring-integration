@@ -324,6 +324,10 @@ public final class MessageBuilder<T> {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
 						+ "' header value must be an Integer.");
 			}
+			else if (MessageHeaders.PRIORITY.equals(headerName)) {
+				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
+                        + "' header value must be an Integer.)");
+			}
 		}
 	}
 
