@@ -22,5 +22,13 @@
 	<header-enricher id="headerEnricherWithShouldSkipNullsFalse" input-channel="input" should-skip-nulls="false">
 		<header name="foo" value="bar"/>
 	</header-enricher>
+	
+	<header-enricher id="headerEnricherWithPriorityAsString" input-channel="input" >
+		<header name="priority" value="1"/>
+	</header-enricher>
+	 
+	<header-enricher id="headerEnricherWithPriorityAsStringAndType" input-channel="input" >
+		<header name="priority" value="1" type="java.lang.Integer"/>
+	</header-enricher>
 
 </beans:beans>
