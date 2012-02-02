@@ -23,7 +23,7 @@
 		input-channel="completelyDefinedAggregatorInput"
 		output-channel="outputChannel"
 		discard-channel="discardChannel"
-		ref="aggregatorBean" 
+		ref="aggregatorBean"
 		release-strategy="releaseStrategy"
         correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
@@ -53,7 +53,7 @@
 		method="add"
 		release-strategy="pojoReleaseStrategy"
 		release-strategy-method="checkCompletenessAsList"/>
-		
+
 	<channel id="aggregatorWithPojoReleaseStrategyInputAsCollection"/>
 	<aggregator id="aggregatorWithPojoReleaseStrategyAsCollection"
 		input-channel="aggregatorWithPojoReleaseStrategyInputAsCollection"
@@ -63,10 +63,17 @@
 		release-strategy="pojoReleaseStrategy"
 		release-strategy-method="checkCompletenessAsCollection"/>
 
+	<channel id="aggregatorWithExpressionsAndPojoAggregatorInput"/>
+	<aggregator id="aggregatorWithExpressionsAndPojoAggregator"
+		input-channel="aggregatorWithExpressionsAndPojoAggregatorInput"
+		ref="aggregatorBean"
+		release-strategy-expression="size() == 2"
+        correlation-strategy-expression="headers['foo']"/>
+
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
 
-	<beans:bean id="adderBean"
+	 <beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />
 
 	<beans:bean id="releaseStrategy"
@@ -78,5 +85,4 @@
 		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
 	</beans:bean>
-
 </beans:beans>
