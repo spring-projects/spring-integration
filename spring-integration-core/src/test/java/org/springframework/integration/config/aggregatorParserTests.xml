@@ -62,11 +62,20 @@
 		method="add"
 		release-strategy="pojoReleaseStrategy"
 		release-strategy-method="checkCompletenessAsCollection"/>
+		
+	<channel id="aggregatorWithExpressionsAndPojoAggregatorInput"/>
+	<channel id="aggregatorWithExpressionsAndPojoAggregatorOutput"/>
+	<aggregator id="aggregatorWithExpressionsAndPojoAggregator"
+		input-channel="aggregatorWithExpressionsAndPojoAggregatorInput"
+		output-channel="aggregatorWithExpressionsAndPojoAggregatorOutput"
+		ref="aggregatorBean"
+		release-strategy-expression="size() == 2"
+        correlation-strategy-expression="headers['foo']"/>
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
 
-	<beans:bean id="adderBean"
+	 <beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />
 
 	<beans:bean id="releaseStrategy"
@@ -77,6 +86,6 @@
 	<beans:bean id="pojoReleaseStrategy"
 		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
-	</beans:bean>
+	</beans:bean> 
 
 </beans:beans>

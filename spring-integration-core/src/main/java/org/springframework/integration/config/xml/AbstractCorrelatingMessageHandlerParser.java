@@ -65,15 +65,15 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		if (StringUtils.hasText(beanRef)) {
 			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
 		}
-		else if (processor != null) {
-			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
-		}
 		else if (StringUtils.hasText(expression)) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
 							+ adapterClass);
 			adapterBuilder.addConstructorArgValue(expression);
 			adapter = adapterBuilder.getBeanDefinition();
+		}
+		else if (processor != null) {
+			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
 		}
 		else {
 			adapter = this.createAdapter(null, beanMethod, adapterClass, parserContext);
