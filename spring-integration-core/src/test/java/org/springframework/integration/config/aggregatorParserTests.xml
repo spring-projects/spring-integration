@@ -64,10 +64,8 @@
 		release-strategy-method="checkCompletenessAsCollection"/>
 		
 	<channel id="aggregatorWithExpressionsAndPojoAggregatorInput"/>
-	<channel id="aggregatorWithExpressionsAndPojoAggregatorOutput"/>
 	<aggregator id="aggregatorWithExpressionsAndPojoAggregator"
 		input-channel="aggregatorWithExpressionsAndPojoAggregatorInput"
-		output-channel="aggregatorWithExpressionsAndPojoAggregatorOutput"
 		ref="aggregatorBean"
 		release-strategy-expression="size() == 2"
         correlation-strategy-expression="headers['foo']"/>
@@ -87,5 +85,4 @@
 		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
 	</beans:bean> 
-
 </beans:beans>

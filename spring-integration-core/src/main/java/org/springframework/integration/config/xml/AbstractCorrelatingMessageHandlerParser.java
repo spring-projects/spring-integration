@@ -58,14 +58,25 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
 			String expressionAttribute, String beanProperty, String adapterClass, Element element,
 			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+		
 		final String beanRef = element.getAttribute(beanRefAttribute);
 		final String beanMethod = element.getAttribute(methodRefAttribute);
 		final String expression = element.getAttribute(expressionAttribute);
+		
+		final boolean hasBeanRef = StringUtils.hasText(beanRef);
+		final boolean hasExpression = StringUtils.hasText(expression);
+		
+		if (hasBeanRef && hasExpression) {
+			parserContext.getReaderContext().error(
+					"Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
+					"' attribute is allowed.", element);
+		}
+		
 		BeanMetadataElement adapter = null;
-		if (StringUtils.hasText(beanRef)) {
+		if (hasBeanRef) {
 			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
 		}
-		else if (StringUtils.hasText(expression)) {
+		else if (hasExpression) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
 							+ adapterClass);
