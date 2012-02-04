@@ -38,6 +38,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
@@ -111,7 +112,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	public String getComponentType() {
-		return expectReply ? "amqp:outbound-channel-adapter" : "amqp:outbound-gateway";
+		return expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
 	}
 
 	@Override
