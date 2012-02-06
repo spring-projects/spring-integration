@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.springframework.integration.groovy.config;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import org.hamcrest.Matchers;
+
+import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,12 +28,18 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.groovy.GroovyScriptExecutingMessageProcessor;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+
 /**
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  * @since 2.0
  */
 @ContextConfiguration
@@ -48,14 +58,26 @@ public class GroovyHeaderEnricherTests {
 	@Autowired
 	private QueueChannel outputB;
 
+	@Autowired
+	private EventDrivenConsumer headerEnricherWithInlineGroovyScript;
+
 	@Test
 	public void referencedScript() throws Exception{
 		inputA.send(new GenericMessage<String>("Hello"));
 		assertEquals("groovy", outputA.receive(1000).getHeaders().get("TEST_HEADER"));
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	@Test
 	public void inlineScript() throws Exception{
+		Map<String, HeaderEnricher.HeaderValueMessageProcessor> headers =
+				TestUtils.getPropertyValue(headerEnricherWithInlineGroovyScript, "handler.transformer.headersToAdd", Map.class);
+		assertEquals(1, headers.size());
+		HeaderEnricher.HeaderValueMessageProcessor headerValueMessageProcessor = headers.get("TEST_HEADER");
+		assertThat(headerValueMessageProcessor.getClass().getName(), Matchers.containsString("HeaderEnricher$MessageProcessingHeaderValueMessageProcessor"));
+		Object targetProcessor = TestUtils.getPropertyValue(headerValueMessageProcessor, "targetProcessor");
+		assertEquals(GroovyScriptExecutingMessageProcessor.class, targetProcessor.getClass());
+
 		inputB.send(new GenericMessage<String>("Hello"));
 		assertEquals("groovy", outputB.receive(1000).getHeaders().get("TEST_HEADER"));
 	}
