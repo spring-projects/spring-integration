@@ -190,16 +190,16 @@ assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
       Finally, there are set methods available for the predefined headers as well as a non-destructive method for
       setting any header (MessageHeaders also defines constants for the pre-defined header names).
       <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.withPayload(99)
-        .setPriority(1)
+        .setPriority(5)
         .build();
 
-assertEquals(1, importantMessage.getHeaders().getPriority());
+assertEquals(5, importantMessage.getHeaders().getPriority());
 
-Message&lt;Integer&gt; anotherMessage = MessageBuilder.fromMessage(importantMessage)
+Message&lt;Integer&gt; lessImportantMessage = MessageBuilder.fromMessage(importantMessage)
         .setHeaderIfAbsent(MessageHeaders.PRIORITY, 2)
         .build();
 
-assertEquals(2, anotherMessage.getHeaders().getPriority());
+assertEquals(2, lessImportantMessage.getHeaders().getPriority());
 </programlisting>
     </para>
     <para>

@@ -326,9 +326,7 @@ public final class MessageBuilder<T> {
 			}
 			else if (MessageHeaders.PRIORITY.equals(headerName)) {
 				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()), "The '" + headerName
-						+ "' header value must be an Integer. If this value is set via a <header> element within a " +
-						"header-enricher element consider using the 'priority' element (e.g., <priority value=\"2\"/>)  or " +
-						"add the additional 'type' attribute (e.g., type=\"java.lang.Integer\")");
+						+ "' header value must be an Integer.");
 			}
 		}
 	}
