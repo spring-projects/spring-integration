@@ -241,8 +241,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 
 	private volatile String userDefinedHeaderPrefix = "X-";
 	
-	private volatile String userDefinedHeaderPrefixToCompare = userDefinedHeaderPrefix.toLowerCase();
-
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -277,7 +275,6 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 	 */
 	public void setUserDefinedHeaderPrefix(String userDefinedHeaderPrefix) {
 		this.userDefinedHeaderPrefix = (userDefinedHeaderPrefix != null) ? userDefinedHeaderPrefix : "";
-		this.userDefinedHeaderPrefixToCompare = this.userDefinedHeaderPrefix.toLowerCase();
 	}
 
 	/**
@@ -297,7 +294,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 					if (!this.containsElementIgnoreCase(HTTP_REQUEST_HEADER_NAMES, name) && 
 						!this.containsElementIgnoreCase(HTTP_RESPONSE_HEADER_NAMES, name)) {
 						// prefix the user-defined header names if not already prefixed
-						name = name.toLowerCase().startsWith(this.userDefinedHeaderPrefixToCompare) ? name : 
+						name = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name : 
 							this.userDefinedHeaderPrefix + name;
 					}
 					if (logger.isDebugEnabled()) {
@@ -323,7 +320,7 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders>, BeanF
 		for (String name : headerNames) {
 			if (this.shouldMapInboundHeader(name)) {
 				if (!ObjectUtils.containsElement(HTTP_REQUEST_HEADER_NAMES, name) && !ObjectUtils.containsElement(HTTP_RESPONSE_HEADER_NAMES, name)) {
-					String prefixedName = name.toLowerCase().startsWith(this.userDefinedHeaderPrefixToCompare) ? name : 
+					String prefixedName = StringUtils.startsWithIgnoreCase(name, this.userDefinedHeaderPrefix) ? name : 
 						this.userDefinedHeaderPrefix + name;
 					Object value = source.containsKey(prefixedName) ? this.getHttpHeader(source, prefixedName) : this.getHttpHeader(source, name);
 					if (value != null) {
