@@ -3060,11 +3060,6 @@ is provided, the return value is expected to match a channel name exactly.
 	<xsd:complexType name="correlating-message-handler-type">
 		<xsd:complexContent>
 			<xsd:extension base="innerEndpointDefinitionAware">
-				<xsd:attribute name="keep-released-messages" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>Will store messages after their release. Mainly used for monitoring purposes. Default is 'true'</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
 				<xsd:attribute name="correlation-strategy" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
