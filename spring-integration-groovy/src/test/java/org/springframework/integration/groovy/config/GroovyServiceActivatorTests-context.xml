@@ -45,9 +45,9 @@
 	<service-activator input-channel="invalidInlineScript">
         <groovy:script>
             <![CDATA[
-                  //import org.springframework.integration.handler.ReplyRequiredException
+                  //import org.springframework.integration.MessageHandlingException
 
-                  if (payload in ReplyRequiredException) return 'OK'
+                  if (payload in MessageHandlingException) return 'OK'
                   throw payload
                 ]]>
         </groovy:script>
