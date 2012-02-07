@@ -38,7 +38,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.ReplyRequiredException;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scripting.ScriptVariableGenerator;
@@ -141,7 +140,7 @@ public class GroovyServiceActivatorTests {
 	//INT-2399
 	@Test(expected = MessageHandlingException.class)
 	public void invalidInlineScript() throws Exception {
-		Message message = new ErrorMessage(new ReplyRequiredException(new GenericMessage<String>("test"), "reply required!"));
+		Message message = new ErrorMessage(new MessageHandlingException(new GenericMessage<String>("test"), "reply required!"));
 		try {
 			this.invalidInlineScript.send(message);
 			fail("MessageHandlingException expected!");
@@ -149,7 +148,7 @@ public class GroovyServiceActivatorTests {
 		catch (Exception e) {
 			Throwable cause = e.getCause();
 			assertEquals(MissingPropertyException.class, cause.getClass());
-			assertThat(cause.getMessage(), Matchers.containsString("No such property: ReplyRequiredException for class: groovy.lang"));
+			assertThat(cause.getMessage(), Matchers.containsString("No such property: MessageHandlingException for class: groovy.lang"));
 		    throw e;
 		}
 
