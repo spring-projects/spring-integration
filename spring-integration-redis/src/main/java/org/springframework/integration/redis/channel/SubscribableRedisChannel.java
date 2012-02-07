@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.core.MessageHandler;
@@ -45,6 +47,7 @@ import org.springframework.util.ErrorHandler;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
@@ -55,7 +58,7 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 	private final RedisTemplate redisTemplate;
 	private final String topicName;
 	
-	private final MessageDispatcher dispatcher = new BroadcastingDispatcher();
+	private final MessageDispatcher dispatcher = new BroadcastingDispatcher(true);
 	
 	private volatile boolean initialized;
 	
@@ -171,7 +174,14 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 		@SuppressWarnings("unused")
 		public void handleMessage(String s) {
 			Message<?> siMessage = messageConverter.toMessage(s);
-			dispatcher.dispatch(siMessage);
+			try {
+				dispatcher.dispatch(siMessage);
+			}
+			catch (MessageDispatchingException e) {
+				throw new MessageDeliveryException(siMessage, e.getMessage()
+						+ " for redis-channel "
+						+ SubscribableRedisChannel.this.topicName + ".", e);
+			}
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,25 +34,32 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.jms.Destination;
+import javax.jms.MessageListener;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
+import org.apache.commons.logging.Log;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
+ * @since 2.0
  */
 public class SubscribableJmsChannelTests {
 
@@ -247,6 +259,85 @@ public class SubscribableJmsChannelTests {
 		assertFalse(channel.isRunning());
 	}
 
+	@Test
+	public void dispatcherHasNoSubscribersQueue() throws Exception {
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestinationName("noSubscribersQueue");
+		factoryBean.setBeanName("noSubscribersChannel");
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
+		channel.afterPropertiesSet();
+
+		AbstractMessageListenerContainer container = TestUtils
+				.getPropertyValue(channel, "container",
+						AbstractMessageListenerContainer.class);
+		MessageListener listener = (MessageListener) container.getMessageListener();
+		try {
+			listener.onMessage(new StubTextMessage("Hello, world!"));
+			fail("Exception expected");
+		}
+		catch (MessageDeliveryException e) {
+			assertEquals("Dispatcher has no subscribers for jms-channel noSubscribersChannel.", e.getMessage());
+		}
+	}
+
+	@Test
+	public void dispatcherHasNoSubscribersTopic() throws Exception {
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestinationName("noSubscribersTopic");
+		factoryBean.setBeanName("noSubscribersChannel");
+		factoryBean.setPubSubDomain(true);
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
+		channel.afterPropertiesSet();
+
+		AbstractMessageListenerContainer container = TestUtils
+				.getPropertyValue(channel, "container",
+						AbstractMessageListenerContainer.class);
+		MessageListener listener = (MessageListener) container.getMessageListener();
+		List<String> logList  = insertMockLoggerInListener(channel);
+		listener.onMessage(new StubTextMessage("Hello, world!"));
+		verifyLogReceived(logList);
+	}
+
+	private List<String> insertMockLoggerInListener(
+			SubscribableJmsChannel channel) {
+		AbstractMessageListenerContainer container = TestUtils.getPropertyValue(
+				channel, "container", AbstractMessageListenerContainer.class);
+		Log logger = mock(Log.class);
+		final ArrayList<String> logList = new ArrayList<String>();
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation)
+					throws Throwable {
+				String message = (String) invocation.getArguments()[0];
+				if (message.startsWith("Dispatcher has no subscribers")) {
+					logList.add(message);
+				}
+				return null;
+			}}).when(logger).warn(anyString(), any(Exception.class));
+		when(logger.isWarnEnabled()).thenReturn(true);
+		Object listener = container.getMessageListener();
+		DirectFieldAccessor dfa = new DirectFieldAccessor(listener);
+		dfa.setPropertyValue("logger", logger);
+		return logList;
+	}
+
+	private void verifyLogReceived(final List<String> logList) {
+		assertTrue("Failed to get expected exception", logList.size() > 0);
+		boolean expectedExceptionFound = false;
+		while (logList.size() > 0) {
+			String message = logList.remove(0);
+			assertNotNull("Failed to get expected exception", message);
+			if (message.startsWith("Dispatcher has no subscribers")) {
+				expectedExceptionFound = true;
+				assertEquals("Dispatcher has no subscribers for jms-channel noSubscribersChannel.", message);
+				break;
+			}
+		}
+		assertTrue("Failed to get expected exception", expectedExceptionFound);
+	}
 
 	/**
 	 * Blocks until the listener container has subscribed; if the container does not support
