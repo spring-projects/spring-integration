@@ -98,6 +98,40 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	placeholder support (See: http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html#beans-factory-placeholderconfigurer).
   	</note>
   </para>
+  
+   <para>
+  	<emphasis>Advanced Configuration</emphasis>
+  </para>
+  
+  <para>
+  <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which in the current release of  
+  Spring Integration is <ulink url="http://commons.apache.org/net/">Apache Commons Net</ulink> thus sparing you from the low level configuration details 
+  of <classname>org.apache.commons.net.ftp.FTPClient</classname>. However there are times when access to such low level <classname>FTPClient</classname> details is 
+  necessary to achieve more advanced configuration (e.g., setting data and default timeouts etc.). For that purpose <classname>AbstractFtpSessionFactory</classname> 
+  (the base class for all FTP Session Factories) exposes several hooks in the form of the two post-processing methods.
+  <programlisting language="java"><![CDATA[/**
+	 * Will handle additional initialization after client.connect() method was invoked, 
+	 * but before any action on the client has been taken 
+	 */
+	protected void postProcessClientAfterConnect(T t) throws IOException {
+		// NOOP
+	}
+	/**
+	 * Will handle additional initialization before client.connect() method was invoked. 
+	 */
+	protected void postProcessClientBeforeConnect(T client) throws IOException {
+		// NOOP
+	}]]></programlisting>
+	As you can see, there is no default implementation for these two methods. However, by extending <classname>DefaultFtpSessionFactory</classname> you can override these methods 
+	to provide more advanced configuration of the <classname>FTPClient</classname>. For example:
+	<programlisting language="java"><![CDATA[public class AdvancedFtpSessionFactory extends DefaultFtpSessionFactory {
+
+  protected void postProcessClientBeforeConnect(FTPClient ftpClient) throws IOException {
+     ftpClient.setDataTimeout(5000);
+     ftpClient.setDefaultTimeout(5000);
+  }
+}]]></programlisting>
+  </para>
   </section>
   
   <section id="ftp-inbound">
@@ -218,12 +252,19 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 				session-factory="ftpSessionFactory"
 				charset="UTF-8"
 				remote-file-separator="/"
+				auto-create-directory="true"
+				remote-directory-expression="headers.['remote_dir']"
+				temporary-remote-directory-expression="headers.['temp_remote_dir']"
 				filename-generator="fileNameGenerator"/>]]></programlisting>	
 
 	As you can see from the configuration above you can configure an <emphasis>FTP Outbound Channel Adapter</emphasis> via the
 	<code>outbound-channel-adapter</code> element while also providing values for various attributes such as <code>filename-generator</code> 
 	(an implementation of the <classname>org.springframework.integration.file.FileNameGenerator</classname> strategy interface),
-	a reference to a <code>client-factory</code>, as well as other attributes. Please refer to the schema for more details on
+	a reference to a <code>session-factory</code>, as well as other attributes. You can also see the <code>*expression</code> attributes which allow you to use SpEL 
+	to configure things like <code>remote-directory-expression</code>, <code>temporary-remote-directory-expression</code> and <code>remote-filename-generator-expression</code> 
+	(a SpEL alternative to <code>filename-generator</code> shown above). As with any component that allows the usage of SpEL, access to Payload and Message Headers is available via 
+	'payload' and 'headers' variables.
+	Please refer to the schema for more details on
     the available attributes.
 	 <note>
 	 By default Spring Integration will use <classname>org.springframework.integration.file.DefaultFileNameGenerator</classname> if none is specified.
