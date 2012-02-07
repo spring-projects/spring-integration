@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,15 +31,19 @@ import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.1
  */
 abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
@@ -50,15 +54,22 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private volatile MessageDispatcher dispatcher;
 
+	private final boolean isPubSub;
 
 	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
+		this(channelName, container, amqpTemplate, false);
+	}
+
+	public AbstractSubscribableAmqpChannel(String channelName,
+			SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate, boolean isPubSub) {
 		super(amqpTemplate);
 		Assert.notNull(container, "container must not be null");
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 		this.container = container;
+		this.isPubSub = isPubSub;
 	}
-
 
 	public boolean subscribe(MessageHandler handler) {
 		return this.dispatcher.addHandler(handler);
@@ -78,7 +89,8 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 		MessageConverter converter = (this.getAmqpTemplate() instanceof RabbitTemplate)
 				? ((RabbitTemplate) this.getAmqpTemplate()).getMessageConverter()
 				: new SimpleMessageConverter();
-		MessageListener listener = new DispatchingMessageListener(converter, this.dispatcher);
+		MessageListener listener = new DispatchingMessageListener(converter,
+				this.dispatcher, this.channelName, this.isPubSub);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -98,25 +110,47 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 		private final MessageConverter converter;
 
+		private final String channelName;
 
-		private DispatchingMessageListener(MessageConverter converter, MessageDispatcher dispatcher) {
+		private final boolean isPubSub;
+
+		private DispatchingMessageListener(MessageConverter converter,
+				MessageDispatcher dispatcher, String channelName, boolean isPubSub) {
 			Assert.notNull(converter, "MessageConverter must not be null");
 			Assert.notNull(dispatcher, "MessageDispatcher must not be null");
 			this.converter = converter;
 			this.dispatcher = dispatcher;
+			this.channelName = channelName;
+			this.isPubSub = isPubSub;
 		}
 
 
 		public void onMessage(org.springframework.amqp.core.Message message) {
+			Message<?> messageToSend = null;
 			try {
 				Object converted = this.converter.fromMessage(message);
 				if (converted != null) {
-					Message<?> messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
+					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
 							: MessageBuilder.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {
 					logger.warn("MessageConverter returned null, no Message to dispatch");
+				}
+			}
+			catch (MessageDispatchingException e) {
+				String channelName = StringUtils.hasText(this.channelName) ? this.channelName : "unknown";
+				String exceptionMessage = e.getMessage() + " for amqp-channel "
+						+ channelName + ".";
+				if (this.isPubSub) {
+					// log only for backwards compatibility with pub/sub
+					if (logger.isWarnEnabled()) {
+						logger.warn(exceptionMessage, e);
+					}
+				}
+				else {
+					throw new MessageDeliveryException(
+							messageToSend, exceptionMessage, e);
 				}
 			}
 			catch (Exception e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,33 @@
  */
 package org.springframework.integration.redis.channel;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Set;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.redis.rules.RedisAvailable;
 import org.springframework.integration.redis.rules.RedisAvailableTests;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.util.ReflectionUtils;
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class SubscribableRedisChannelTests extends RedisAvailableTests{
@@ -55,5 +67,35 @@ public class SubscribableRedisChannelTests extends RedisAvailableTests{
 		Thread.sleep(1000);
 		verify(handler, times(3)).handleMessage(Mockito.any(Message.class));
 		channel.stop();
+	}
+
+	@Test
+	@RedisAvailable
+	public void dispatcherHasNoSubscribersTest() throws Exception{
+		JedisConnectionFactory connectionFactory = new JedisConnectionFactory();
+		connectionFactory.setPort(7379);
+		connectionFactory.afterPropertiesSet();
+
+		SubscribableRedisChannel channel = new SubscribableRedisChannel(connectionFactory, "si.test.channel.no.subs");
+		channel.setBeanFactory(mock(BeanFactory.class));
+		channel.afterPropertiesSet();
+
+		RedisMessageListenerContainer container = TestUtils.getPropertyValue(
+				channel, "container", RedisMessageListenerContainer.class);
+		@SuppressWarnings("unchecked")
+		Map<?, Set<MessageListenerAdapter>> channelMapping = (Map<?, Set<MessageListenerAdapter>>) TestUtils
+				.getPropertyValue(container, "channelMapping");
+		MessageListenerAdapter listener = channelMapping.entrySet().iterator().next().getValue().iterator().next();
+		Object delegate = TestUtils.getPropertyValue(listener, "delegate");
+		try {
+			ReflectionUtils.findMethod(delegate.getClass(), "handleMessage", String.class).invoke(delegate, "Hello, world!");
+			fail("Exception expected");
+		}
+		catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			assertNotNull(cause);
+			assertEquals("Dispatcher has no subscribers for redis-channel si.test.channel.no.subs.", cause.getMessage());
+		}
+
 	}
 }

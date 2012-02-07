@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base implementation of {@link MessageChannel} that invokes the subscribed
@@ -32,6 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
 	
@@ -58,7 +62,15 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		return this.getRequiredDispatcher().dispatch(message);
+		try {
+			return this.getRequiredDispatcher().dispatch(message);
+		}
+		catch (MessageDispatchingException e) {
+			String componentName = this.getComponentName();
+			componentName = StringUtils.hasText(componentName) ? componentName : "unknown";
+			throw new MessageDeliveryException(message, e.getMessage()
+					+ " for channel " + componentName + ".", e);
+		}
 	}
 
 	private MessageDispatcher getRequiredDispatcher() {

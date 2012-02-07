@@ -1,4 +1,4 @@
-/* Copyright 2002-2010 the original author or authors.
+/* Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 
@@ -105,7 +106,7 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 		boolean success = false;
 		Iterator<MessageHandler> handlerIterator = this.getHandlerIterator(message);
 		if (!handlerIterator.hasNext()) {
-			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
+			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
 		}
 		List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
 		while (success == false && handlerIterator.hasNext()) {

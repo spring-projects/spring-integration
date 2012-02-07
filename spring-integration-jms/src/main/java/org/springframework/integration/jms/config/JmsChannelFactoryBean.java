@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
 public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel> implements SmartLifecycle, DisposableBean, BeanNameAware {
@@ -337,8 +338,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		if (!CollectionUtils.isEmpty(this.interceptors)) {
 			this.channel.setInterceptors(this.interceptors);
 		}
-		this.channel.afterPropertiesSet();
 		this.channel.setBeanName(this.beanName);
+		this.channel.afterPropertiesSet();
 		return this.channel;
 	}
 

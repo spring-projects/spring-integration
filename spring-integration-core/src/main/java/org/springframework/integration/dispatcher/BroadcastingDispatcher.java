@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
@@ -40,6 +41,8 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
 
+	private final boolean requireSubscribers;
+
 	private volatile boolean ignoreFailures;
 
 	private volatile boolean applySequence;
@@ -47,10 +50,19 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	private final Executor executor;
 
 	public BroadcastingDispatcher() {
-		this.executor = null;
+		this(null, false);
 	}
 
 	public BroadcastingDispatcher(Executor executor) {
+		this(executor, false);
+	}
+
+	public BroadcastingDispatcher(boolean requireSubscribers) {
+		this(null, requireSubscribers);
+	}
+
+	public BroadcastingDispatcher(Executor executor, boolean requireSubscribers) {
+		this.requireSubscribers = requireSubscribers;
 		this.executor = executor;
 	}
 
@@ -80,6 +92,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		boolean dispatched = false;
 		int sequenceNumber = 1;
 		List<MessageHandler> handlers = this.getHandlers();
+		if (this.requireSubscribers && handlers.size() == 0) {
+			throw new MessageDispatchingException(message, "Dispatcher has no subscribers");
+		}
 		int sequenceSize = handlers.size();
 		for (final MessageHandler handler : handlers) {
 			final Message<?> messageToSend = (!this.applySequence) ? message : MessageBuilder.fromMessage(message)

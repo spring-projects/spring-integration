@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
@@ -35,9 +37,11 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class SubscribableJmsChannel extends AbstractJmsChannel implements SubscribableChannel, SmartLifecycle, DisposableBean {
@@ -71,8 +75,11 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 			return;
 		}
 		super.onInit();
-		this.configureDispatcher(this.container.isPubSubDomain());
-		MessageListener listener = new DispatchingMessageListener(this.getJmsTemplate(), this.dispatcher);
+		boolean isPubSub = this.container.isPubSubDomain();
+		this.configureDispatcher(isPubSub);
+		MessageListener listener = new DispatchingMessageListener(
+				this.getJmsTemplate(), this.dispatcher,
+				this.getComponentName(), isPubSub);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -82,7 +89,7 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 	private void configureDispatcher(boolean isPubSub) {
 		if (isPubSub) {
-			this.dispatcher = new BroadcastingDispatcher();
+			this.dispatcher = new BroadcastingDispatcher(true);
 		}
 		else {
 			UnicastingDispatcher unicastingDispatcher = new UnicastingDispatcher();
@@ -100,23 +107,46 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 
 		private final MessageDispatcher dispatcher;
 
+		private final String channelName;
 
-		private DispatchingMessageListener(JmsTemplate jmsTemplate, MessageDispatcher dispatcher) {
+		private final boolean isPubSub;
+
+
+		private DispatchingMessageListener(JmsTemplate jmsTemplate,
+				MessageDispatcher dispatcher, String channelName, boolean isPubSub) {
 			this.jmsTemplate = jmsTemplate;
 			this.dispatcher = dispatcher;
+			this.channelName = channelName;
+			this.isPubSub = isPubSub;
 		}
 
 
 		public void onMessage(javax.jms.Message message) {
+			Message<?> messageToSend = null;
 			try {
 				Object converted = this.jmsTemplate.getMessageConverter().fromMessage(message);
 				if (converted != null) {
-					Message<?> messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
+					messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
 							: MessageBuilder.withPayload(converted).build();
 					this.dispatcher.dispatch(messageToSend);
 				}
 				else if (this.logger.isWarnEnabled()) {
 					logger.warn("MessageConverter returned null, no Message to dispatch");
+				}
+			}
+			catch (MessageDispatchingException e) {
+				String channelName = StringUtils.hasText(this.channelName) ? this.channelName : "unknown";
+				String exceptionMessage = e.getMessage() + " for jms-channel "
+						+ channelName + ".";
+				if (this.isPubSub) {
+					// log only for backwards compatibility with pub/sub
+					if (logger.isWarnEnabled()) {
+						logger.warn(exceptionMessage, e);
+					}
+				}
+				else {
+					throw new MessageDeliveryException(
+							messageToSend, exceptionMessage, e);
 				}
 			}
 			catch (Exception e) {
