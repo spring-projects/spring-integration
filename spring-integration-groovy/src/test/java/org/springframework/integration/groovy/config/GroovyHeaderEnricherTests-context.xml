@@ -22,7 +22,7 @@
 	
 	<int:channel id="inputB"/>
 	
-	<int:header-enricher  input-channel="inputB" output-channel="outputB">
+	<int:header-enricher id="headerEnricherWithInlineGroovyScript" input-channel="inputB" output-channel="outputB">
 		<int:header name="TEST_HEADER">
             <int-groovy:script>
             	<![CDATA[
