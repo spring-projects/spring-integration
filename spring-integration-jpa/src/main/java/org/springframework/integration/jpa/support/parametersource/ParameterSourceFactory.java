@@ -27,6 +27,6 @@ public interface ParameterSourceFactory {
 	 * Return a new {@link ParameterSource}.
 	 * @param input the raw message or query result to be transformed into a {@link ParameterSource}
 	 */
-	public ParameterSource createParameterSource(Object input);
+	ParameterSource createParameterSource(Object input);
 	
 }

@@ -14,7 +14,7 @@ import org.springframework.util.Assert;
 
 class ExpressionEvaluatingParameterSource implements PositionSupportingParameterSource {
 
-	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingParameterSource.class);
+	private static final Log LOG = LogFactory.getLog(ExpressionEvaluatingParameterSource.class);
 	
 	private static final Object ERROR = new Object();
 	
@@ -38,13 +38,13 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 
 	}
 
-	public Object getValueByPosition(int position) throws IllegalArgumentException {
+	public Object getValueByPosition(int position) {
 		
 		Assert.isTrue(position >= 0, "The position must be be non-negative.");
 		
 		if (position <= parameters.size()) {
 			
-			JpaParameter parameter = parameters.get(position);
+			final JpaParameter parameter = parameters.get(position);
 			
 			if (parameter.getValue() != null) {
 				return parameter.getValue();
@@ -57,10 +57,10 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 					expression = "#root.![" + expression + "]";
 				}
 				
-				Object value = this.expressionEvaluator.evaluateExpression(expression, input);
+				final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
 				//FIXME values.put(paramName, value);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Resolved expression " + expression + " to " + value);
+				if (LOG.isDebugEnabled()) {
+					LOG.debug("Resolved expression " + expression + " to " + value);
 				}
 				return value;
 				
@@ -72,7 +72,7 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 		
 	}
 	
-	public Object getValue(String paramName) throws IllegalArgumentException {
+	public Object getValue(String paramName) {
 		if (values.containsKey(paramName)) {
 			return values.get(paramName);
 		}
@@ -83,24 +83,24 @@ class ExpressionEvaluatingParameterSource implements PositionSupportingParameter
 		if (input instanceof Collection<?>) {
 			expression = "#root.![" + expression + "]";
 		}
-		Object value = this.expressionEvaluator.evaluateExpression(expression, input);
+		final Object value = this.expressionEvaluator.evaluateExpression(expression, input);
 		values.put(paramName, value);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Resolved expression " + expression + " to " + value);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug("Resolved expression " + expression + " to " + value);
 		}
 		return value;
 	}
 
 	public boolean hasValue(String paramName) {
 		try {
-			Object value = getValue(paramName);
+			final Object value = getValue(paramName);
 			if (value == ERROR) {
 				return false;
 			}
 		}
 		catch (ExpressionException e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not evaluate expression", e);
+			if (LOG.isDebugEnabled()) {
+				LOG.debug("Could not evaluate expression", e);
 			}
 			values.put(paramName, ERROR);
 			return false;

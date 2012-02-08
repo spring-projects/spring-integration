@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.jpa.support.JpaParameter;
 import org.springframework.integration.util.AbstractExpressionEvaluator;
@@ -44,22 +43,25 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
 	}
 
 	/**
-	 * FIXME
+	 * Define the (optional) parameter values.
 	 * 
-	 * Define some static parameter values. These take precedence over those defined as expressions in the
-	 * {@link #setParameterExpressions(Map) parameterExpressions}, so a parameter in the query will be filled from here
-	 * first, and then from the expressions.
-	 * 
-	 * @param staticParameters the static parameters to set
+	 * @param parameters the parameters to be set
 	 */
 	public void setParameters(List<JpaParameter> parameters) {
+
+        Assert.notEmpty(parameters, "parameters must not be null or empty.");
+
+        for (JpaParameter parameter : parameters) {
+            Assert.notNull(parameter, "The provided list (parameters) cannot contain null values.");
+        }
+        
 		this.parameters = parameters;
 		expressionEvaluator.getEvaluationContext().setVariable("staticParameters", convertStaticParameters(parameters));
+	
 	}
 
 	public PositionSupportingParameterSource createParameterSource(final Object input) {
-		PositionSupportingParameterSource toReturn = new ExpressionEvaluatingParameterSource(input, this.parameters, expressionEvaluator);
-		return toReturn;
+		return new ExpressionEvaluatingParameterSource(input, this.parameters, expressionEvaluator);
 	}
 
 	/**
@@ -77,7 +79,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
     		Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
     	}
     	
-    	Map<String, String> staticParameters = new HashMap<String, String>();
+    	final Map<String, String> staticParameters = new HashMap<String, String>();
     	
     	for (JpaParameter parameter : jpaParameters) {
     		if (parameter.getExpression() != null) {
@@ -103,7 +105,7 @@ public class ExpressionEvaluatingParameterSourceFactory implements ParameterSour
     		Assert.notNull(parameter, "'jpaParameters' must not contain null values.");
     	}
     	
-    	Map<String, Object> staticParameters = new HashMap<String, Object>();
+    	final Map<String, Object> staticParameters = new HashMap<String, Object>();
     	
     	for (JpaParameter parameter : jpaParameters) {
     		if (parameter.getValue() != null) {

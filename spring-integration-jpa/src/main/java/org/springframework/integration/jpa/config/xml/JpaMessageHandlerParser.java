@@ -23,7 +23,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.outbound.JpaMessageHandler;
 import org.w3c.dom.Element;
 
@@ -50,14 +49,8 @@ public class JpaMessageHandlerParser extends AbstractOutboundChannelAdapterParse
 		
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-
-		final BeanDefinitionBuilder jpaExecutorBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaExecutor.class);
 		
-		final String entityManagerRef        = element.getAttribute("entity-manager");
-		final String entityManagerFactoryRed = element.getAttribute("entity-manager-factory");
-
-		jpaExecutorBuilder.addConstructorArgReference(entityManagerRef);
-		//jpaExecutorBuilder.addConstructorArgReference(entityManagerRef);
+		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
 		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "entity-class");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "query");
@@ -68,12 +61,7 @@ public class JpaMessageHandlerParser extends AbstractOutboundChannelAdapterParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "use-payload-as-parameter-source");
 
-		//final ManagedList<BeanDefinition> procedureParameterList       = StoredProcParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
 
-//		if (!procedureParameterList.isEmpty()) {
-//			builder.addPropertyValue("procedureParameters", procedureParameterList);
-//		}
-//		
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
 		

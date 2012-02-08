@@ -9,7 +9,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa-2.2.xsd">
 
-    <int:channel id="target"/>
+<int:channel id="target"/>
 
     <jdbc:embedded-database id="dataSource" type="H2"/>
     
@@ -17,14 +17,9 @@
         class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource" />
     </bean>
-    
-    <bean id="entity-manager"
-        class="org.springframework.orm.jpa.support.SharedEntityManagerBean">
-        <property name="entityManagerFactory" ref="lc" />
-    </bean>
 
     <int-jpa:outbound-channel-adapter id="jpaOutboundChannelAdapter" 
-                                      entity-manager="entity-manager"
+                                      entity-manager-factory="lc"
                                       auto-startup="true"
                                       entity-class="org.springframework.integration.jpa.test.entity.Student"
                                       query="from Student"

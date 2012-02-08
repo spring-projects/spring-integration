@@ -9,32 +9,73 @@ The Spring Integration JPA Adapter contains the following components:
 * The Outbound Channel Adapter
 * The Outbound Gateway for JPA in the project
 
-entityClass
-persistenceUnit
-deleteOnConsumption
-flushOnSave
+The provided JPA components are using the Java Persistence API (JPA). They allow you to execute not only queries using the Java Persistence Query Language (JPQL) but also native SQL queries or named JPQL/SQL queries. Furthermore, entities can be retrieved/persisted by solely specifying the targeted entity class.
 
-poller:
-transaction
-maxPoll
+# Configuration
 
-Mandatory Parameters:
-
-entityClass
-or
-jpQuery (Java Persistence Query Language)
-or
-nativeQuery
-or
-namedQuery
-
-
-#### JpaOperations
+## JpaOperations
 
 The actual execution of Jpa queries is done through the *JpaOperations* interface. The user has the following 2 choices:
 
 * Use the *DefaultJpaOperations* implementation, which is instantiated by default (recommended)
 * Provide their own implementation of the *JpaOperations* interface.
+
+## JpaExecutor
+
+All adapters will delegate to the JpaExecutor. The JpaExecutor will then execute the JpaOperations. This strategy enables maximum reuse of of code through the various JPA components. 
+
+## Passing Parameters
+
+### ParameterSourceFactory
+
+	<jpa:outbound-channel-adapter entity-manager="dataSource" channel="input"
+	    query="update Customer set name = :newName where name = :oldName"
+	    jpa-parameter-source-factory="spelSource"/>
+        
+	<bean id="spelSource" 
+	      class="o.s.integration.jpa.ExpressionEvaluatingJpaParameterSourceFactory">
+	    <property name="parameterExpressions">
+	        <map>
+	            <entry key="id"          value="headers['id'].toString()"/>
+	            <entry key="createdDate" value="new java.util.Date()"/>
+	            <entry key="payload"     value="payload"/>
+	        </map>
+	    </property>
+	</bean>
+
+### Parameter Sub Elements
+
+	<jpa:outbound-channel-adapter entity-manager="dataSource" channel="input"
+		                          query="update Customer set name = :newName  where name = :oldName">
+		   <int-jpa:parameter name="oldName" type="java.lang.String" value="some Old Name"/>
+		   <int-jpa:parameter name="newName" expression="payload.newName"/>		
+	</jpa:outbound-channel-adapter>
+
+	<jpa:outbound-gateway entity-manager="dataSource" channel="input"
+		                  query="update Customer set name = :newName  where name = :oldName">
+		   <int-jpa:parameter name="oldName" type="java.lang.String" value="some Old Name"/>
+		   <int-jpa:parameter name="newName" expression="payload.newName"/>		
+	</jpa:outbound-channel-adapter>
+
+#### Names Parameters
+
+	<jpa:polling-channel-adapter entity-manager="dataSource"
+		                         query="from Customer s where s.name = :name and s.industry = :industry">
+		   <int-jpa:parameter name="industry" type="java.lang.String" value="Manufacturing"/>
+		   <int-jpa:parameter name="name"                             expression="payload.name"/>		
+	</jpa:outbound-channel-adapter>
+
+#### Positional Parameters
+
+	<jpa:polling-channel-adapter entity-manager="dataSource"
+		                         query="from Customer s where s.name = ? and s.industry = ?">
+		   <int-jpa:parameter type="java.lang.String" value="Manufacturing"/>
+		   <int-jpa:parameter                         expression="payload.name"/>		
+	</jpa:outbound-channel-adapter>
+
+## Common Configuration Attributes
+
+## Common Configuration Sub-Elements
 
 #### Passing in the EntityManager
 
@@ -67,11 +108,6 @@ When using Hibernate as your JPA provider and you want to execute named native q
 
 JPA has not direct support for batch inserts. However, a user can pass in a payload that contains a collection of entity. 
 
-
-
-#### Thoughts
-
-Would it be advisable to be able to pass in existing instances of PollingChannelAdapters? For example pollingChannelAdapter is setup to poll a database every 10min. However, a user may want to trigger polling manually and process the response aka using an Outbound Gateway.
 
 ### Inbound Channel Adapter
 
@@ -216,53 +252,3 @@ The persisted entity will be send to the reply-channel with the ID property bein
 	    </int-jpa:outbound-gateway>                                
                                    
 	</beans>
-
-
-## Passing Parameters
-
-### ParameterSourceFactory
-
-	<jpa:outbound-channel-adapter entity-manager="dataSource" channel="input"
-	    query="update Customer set name = :newName where name = :oldName"
-	    jpa-parameter-source-factory="spelSource"/>
-        
-	<bean id="spelSource" 
-	      class="o.s.integration.jpa.ExpressionEvaluatingJpaParameterSourceFactory">
-	    <property name="parameterExpressions">
-	        <map>
-	            <entry key="id"          value="headers['id'].toString()"/>
-	            <entry key="createdDate" value="new java.util.Date()"/>
-	            <entry key="payload"     value="payload"/>
-	        </map>
-	    </property>
-	</bean>
-
-### Parameter Sub Elements
-
-	<jpa:outbound-channel-adapter entity-manager="dataSource" channel="input"
-		                          query="update Customer set name = :newName  where name = :oldName">
-		   <int-jpa:parameter name="oldName" type="java.lang.String" value="some Old Name"/>
-		   <int-jpa:parameter name="newName" expression="payload.newName"/>		
-	</jpa:outbound-channel-adapter>
-
-	<jpa:outbound-gateway entity-manager="dataSource" channel="input"
-		                  query="update Customer set name = :newName  where name = :oldName">
-		   <int-jpa:parameter name="oldName" type="java.lang.String" value="some Old Name"/>
-		   <int-jpa:parameter name="newName" expression="payload.newName"/>		
-	</jpa:outbound-channel-adapter>
-
-#### Names Parameters
-
-	<jpa:polling-channel-adapter entity-manager="dataSource"
-		                         query="from Customer s where s.name = :name and s.industry = :industry">
-		   <int-jpa:parameter name="industry" type="java.lang.String" value="Manufacturing"/>
-		   <int-jpa:parameter name="name"                             expression="payload.name"/>		
-	</jpa:outbound-channel-adapter>
-
-#### Positional Parameters
-
-	<jpa:polling-channel-adapter entity-manager="dataSource"
-		                         query="from Customer s where s.name = ? and s.industry = ?">
-		   <int-jpa:parameter type="java.lang.String" value="Manufacturing"/>
-		   <int-jpa:parameter                         expression="payload.name"/>		
-	</jpa:outbound-channel-adapter>

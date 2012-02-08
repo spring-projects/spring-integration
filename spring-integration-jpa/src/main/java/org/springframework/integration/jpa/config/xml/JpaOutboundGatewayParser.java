@@ -15,10 +15,14 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -33,20 +37,45 @@ import org.w3c.dom.Element;
  */
 public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 	
+	protected boolean shouldGenerateId() {
+		return false;
+	}
+
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
 	
-	protected BeanDefinitionBuilder parseHandler(Element element,
-			ParserContext parserContext) {
-		BeanDefinitionBuilder builder = JpaParserUtils.getMessageHandlerBuilder(element, parserContext);
-		//Now lets add the gateway specific atributes
-		builder.addPropertyValue("produceReply", "true");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "select");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
+	protected BeanDefinitionBuilder parseHandler(Element gatewayElement, ParserContext parserContext) {
 		
-		String replyChannel = element.getAttribute("reply-channel");
+		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(gatewayElement, parserContext);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "entity-class");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "native-query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "named-query");
+		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "persist-mode");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "parameter-source-factory");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "use-payload-as-parameter-source");
+		
+		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
+		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
+		
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+		
+		final BeanDefinitionBuilder jpaOutboundGatewayBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(JpaOutboundGateway.class);
+		
+		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
+
+		final String replyChannel = gatewayElement.getAttribute("reply-channel");
+		
 		if (StringUtils.hasText(replyChannel)) {
-			builder.addPropertyReference("outputChannel", replyChannel);
+			jpaOutboundGatewayBuilder.addPropertyReference("outputChannel", replyChannel);
 		}
-		return builder;		
+		
+		return jpaOutboundGatewayBuilder;
+
 	}
 	
 	protected String getInputChannelAttributeName() {

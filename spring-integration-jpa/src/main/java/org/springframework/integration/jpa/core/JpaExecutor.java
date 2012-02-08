@@ -29,7 +29,6 @@ import org.springframework.integration.jpa.support.parametersource.BeanPropertyP
 import org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory;
 import org.springframework.integration.jpa.support.parametersource.ParameterSource;
 import org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory;
-import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.util.Assert;
 
 /**
@@ -133,9 +132,10 @@ public class JpaExecutor implements InitializingBean {
     
     
     /**
-     * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
-     * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
-     * when {@link ProcedureParameter} are passed in.
+     * 
+     * Verifies and sets the parameters. E.g. initializes the to be used 
+     * {@link ParameterSourceFactory}.
+     * 
      */
     public void afterPropertiesSet() {
 
@@ -198,46 +198,47 @@ public class JpaExecutor implements InitializingBean {
      * not necessarily correlate with the number of rows effected in the database.
      *  
      * @param message
-     * @return
+     * @return Either the number of affected entities when using a JPAQL query. When using a merge/persist the updated/inserted itself is returned. 
      */
-    public Object executeOutboundJpaOperation(Message<?> message) {
+    public Object executeOutboundJpaOperation(final Message<?> message) {
         
+    	final Object result;
+    	
         if (this.query != null && !this.nativeQuery) {
         	
-        	int updated = this.jpaOperations.executeUpdate(this.query, parameterSourceFactory.createParameterSource(message));
-        	return updated;
+        	result = this.jpaOperations.executeUpdate(this.query, parameterSourceFactory.createParameterSource(message));
         	
         } else if (this.query != null && this.nativeQuery) {
         	
-        	int updated = this.jpaOperations.executeUpdateWithNativeQuery(this.query, parameterSourceFactory.createParameterSource(message));
-        	return updated;
+        	result = this.jpaOperations.executeUpdateWithNativeQuery(this.query, parameterSourceFactory.createParameterSource(message));
         	
         } else if (this.namedQuery != null) {
         	
-        	int updated = this.jpaOperations.executeUpdateWithNamedQuery(this.query, parameterSourceFactory.createParameterSource(message));
-        	return updated;
-        	
+        	result = this.jpaOperations.executeUpdateWithNamedQuery(this.query, parameterSourceFactory.createParameterSource(message));
+
         } else if (entityClass != null) {
         	if (PersistMode.MERGE.equals(this.persistMode)) {
         		this.jpaOperations.persist(message.getPayload());
-        		return message.getPayload();
+        		result = message.getPayload();
         	} else if (PersistMode.PERSIST.equals(this.persistMode)) {
-        		Object mergedEntity = this.jpaOperations.merge(message.getPayload());
-        		return mergedEntity;
+        		final Object mergedEntity = this.jpaOperations.merge(message.getPayload());
+        		result = mergedEntity;
         	} else if (PersistMode.DELETE.equals(this.persistMode)) {
         		this.jpaOperations.delete(message.getPayload());
-        		return message.getPayload();
+        		result = message.getPayload();
         	} else {
         		throw new IllegalStateException(String.format("Unsupported PersistMode: '%s'", this.persistMode.name()));
         	}
+        } else {
+        	result = null;
         }
 
-        return null;
+        return result;
         
     }
 
     	
-    public Object poll(Message<?> requestMessage) {
+    public Object poll(final Message<?> requestMessage) {
     	
     	final Object payload;
     	
@@ -320,7 +321,7 @@ public class JpaExecutor implements InitializingBean {
 
 	/**
 	 * 
-	 * @param selectQuery
+	 * @param query The provided query must not be null or empty.
 	 */
 	public void setQuery(String query) {
 		Assert.hasText(query, "query must not be null or empty.");
@@ -331,10 +332,10 @@ public class JpaExecutor implements InitializingBean {
 	 * You can also use native Sql queries to poll data from the database. If set
 	 * to 'true', the 'query' property will be interpreted as native SQL. 
 	 * 
-	 * By default the nativeSelectQuery is 'false', meaning that a provided query 
+	 * By default the nativeQuery property is 'false', meaning that a provided query 
 	 * is based on the Java Persistence Query Language (JPQL).
 	 * 
-	 * @param nativeSelectQuery Defaults to false,
+	 * @param nativeQuery Defaults to false,
 	 */
 	public void setNativeQuery(boolean nativeQuery) {
 		this.nativeQuery = nativeQuery;
@@ -344,10 +345,10 @@ public class JpaExecutor implements InitializingBean {
 	 * A named query can either refer to a named JPQL based query or a native SQL 
 	 * query. 
 	 * 
-	 * @param selectNamedQuery
+	 * @param namedQuery Must not be null or empty
 	 */
 	public void setNamedQuery(String namedQuery) {
-		Assert.notNull(namedQuery, "namedQuery must not be null.");
+		Assert.hasText(namedQuery, "namedQuery must not be null or empty.");
 		this.namedQuery = namedQuery;
 	}
 
@@ -388,7 +389,7 @@ public class JpaExecutor implements InitializingBean {
 
 	/**
 	 * 
-	 * @param maxRowsPerPoll
+	 * @param maxRows Must not be negative.
 	 */
 	public void setMaxRows(int maxRows) {
 		Assert.isTrue(maxRows >= 0, "maxRows must not be negative.");

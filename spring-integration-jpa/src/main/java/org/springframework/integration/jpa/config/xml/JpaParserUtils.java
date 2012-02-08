@@ -15,13 +15,19 @@
  */
 package org.springframework.integration.jpa.config.xml;
 
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
-import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.integration.jpa.core.JpaExecutor;
+import org.springframework.integration.jpa.support.JpaParameter;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
@@ -30,68 +36,116 @@ import org.w3c.dom.Element;
  * is implemented in this class
  * 
  * @author Amol Nayak
+ * @author Gunnar Hillert
+ * 
  * @since 2.2
  * 
  */
-public class JpaParserUtils {
+public final class JpaParserUtils {
 
+	private static final Log LOGGER = LogFactory.getLog(JpaParserUtils.class);
+	
+	/** Prevent instantiation. */
+	private JpaParserUtils() {
+		throw new AssertionError();
+	}
+	
 	/**
-	 * @param element
-	 * @param parserContext
-	 * @return
+	 * Create a new {@link BeanDefinitionBuilder} for the class {@link JpaExecutor}.
+	 * Initialize the wrapped {@link JpaExecutor} with common properties.
+	 * 
+	 * @param element Must not be Null
+	 * @param parserContext Must not be Null
+	 * @return The BeanDefinitionBuilder for the JpaExecutor 
 	 */
-	public static BeanDefinitionBuilder getMessageHandlerBuilder(Element element,
-			ParserContext parserContext) {
-		String jpaOperations = getJpaOperationsRefName(element,parserContext);
-		BeanDefinitionBuilder  messageHandlerFactoryBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition("JpaMessageHandlerFactory.class"); //FIXME
-		messageHandlerFactoryBuilder.addPropertyReference("jpaOperations", jpaOperations);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(messageHandlerFactoryBuilder, element, "jpa-ql");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageHandlerFactoryBuilder, element, "parameter-source-factory","requestParameterSourceFactory");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageHandlerFactoryBuilder, element, "parameter-source-factory","requestParameterSourceFactory");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(messageHandlerFactoryBuilder, element, "reply-parameter-source-factory");
-		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		if(txElement != null) {
-			BeanDefinition txAdviceDefinition = getTransactionInterceptor(txElement);
-			messageHandlerFactoryBuilder.addPropertyValue("transactionAdvice", txAdviceDefinition);
+	public static BeanDefinitionBuilder getJpaExecutorBuilder(final Element element, 
+			                                                  final ParserContext parserContext) {
+        
+		Assert.notNull(element,       "The provided element must not be Null.");
+		Assert.notNull(parserContext, "The provided parserContext must not be Null.");
+		
+		final Object source = parserContext.extractSource(element);
+		
+		final BeanDefinitionBuilder jpaExecutorBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaExecutor.class);
+		
+		final String entityManagerRef        = element.getAttribute("entity-manager");
+		final String entityManagerFactoryRef = element.getAttribute("entity-manager-factory");
+		final String jpaOperationsRef        = element.getAttribute("jpa-operations");
+
+		if (StringUtils.hasText(jpaOperationsRef)) {
+			jpaExecutorBuilder.addConstructorArgReference(jpaOperationsRef);
+		} else if (StringUtils.hasText(entityManagerRef)) {
+			jpaExecutorBuilder.addConstructorArgReference(entityManagerRef);
+		} else if (StringUtils.hasText(entityManagerFactoryRef)) {
+			jpaExecutorBuilder.addConstructorArgReference(entityManagerFactoryRef);
+		} else {
+			parserContext.getReaderContext().error("Exactly one of the attributes 'entity-manager' or " +
+					"'entity-manager-factory' or 'jpa-operations' must be be set.", source);
 		}
-		return messageHandlerFactoryBuilder;
+		
+		final ManagedList<BeanDefinition> jpaParameterList = JpaParserUtils.getProcedureParameterBeanDefinitions(element, parserContext);
+
+		if (!jpaParameterList.isEmpty()) {
+			jpaExecutorBuilder.addPropertyValue("jpaParameters", jpaParameterList);
+		}
+		
+		return jpaExecutorBuilder;
 	}
 	
 	/**
-	 * Create a new BeanDefinition for the transaction intercepter based on the transactional sub element
-	 * @param txElement
-	 * @return
+	 * @param storedProcComponent
+	 * @param parserContext
 	 */
-	private static BeanDefinition getTransactionInterceptor(Element txElement) {
-		BeanDefinitionBuilder interceptorBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
-		interceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-		BeanDefinitionBuilder txAttribute = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
-		txAttribute.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
-		txAttribute.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
-		txAttribute.addPropertyValue("timeout", txElement.getAttribute("timeout"));
-		txAttribute.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
-		
-		BeanDefinitionBuilder txnAttributeSource = 
-			BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
-		txnAttributeSource.addPropertyValue("transactionAttribute", txAttribute.getBeanDefinition());
-		interceptorBuilder.addPropertyValue("transactionAttributeSource", txnAttributeSource.getBeanDefinition());
-		
-		return interceptorBuilder.getBeanDefinition();
-	}
-	
-	
-	private static String getJpaOperationsRefName(Element element,ParserContext parserContext) {
-//		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JpaOperationsImpl.class);
-//		
-//		BeanDefinitionBuilder emBuilder = JpaParserUtils.entityManagerBuilder(element.getAttribute("entity-manager-factory"));
-//		
-//		builder.addConstructorArgValue(emBuilder.getBeanDefinition());
-//		
-//		return BeanDefinitionReaderUtils
-//					.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-		return null;
+	public static ManagedList<BeanDefinition> getProcedureParameterBeanDefinitions(
+			Element jpaComponent, ParserContext parserContext) {
+
+		final ManagedList<BeanDefinition> parameterList = new ManagedList<BeanDefinition>();
+
+		final List<Element> parameterChildElements = DomUtils
+				.getChildElementsByTagName(jpaComponent, "parameter");
+
+		for (Element childElement : parameterChildElements) {
+
+			final BeanDefinitionBuilder parameterBuilder = BeanDefinitionBuilder.genericBeanDefinition(JpaParameter.class);
+
+			String name       = childElement.getAttribute("name");
+			String expression = childElement.getAttribute("expression");
+			String value      = childElement.getAttribute("value");
+			String type       = childElement.getAttribute("type");
+
+			if (StringUtils.hasText(name)) {
+				parameterBuilder.addPropertyValue("name", name);
+			} 
+
+			if (StringUtils.hasText(expression)) {
+				parameterBuilder.addPropertyValue("expression", expression);
+			}
+
+			if (StringUtils.hasText(value)) {
+
+				if (!StringUtils.hasText(type)) {
+					
+					if (LOGGER.isInfoEnabled()) {
+						LOGGER.info(String
+								.format("Type attribute not set for parameter '%s'. Defaulting to " 
+									  + "'java.lang.String'.", value));
+					}
+					
+					parameterBuilder.addPropertyValue("value",
+							new TypedStringValue(value, String.class));
+
+				} else {
+					parameterBuilder.addPropertyValue("value",
+							new TypedStringValue(value, type));
+				}
+
+			}
+
+			parameterList.add(parameterBuilder.getBeanDefinition());
+		}
+
+		return parameterList;
+
 	}
 
 }

@@ -50,7 +50,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 		return this.beanWrapper.isReadableProperty(paramName);
 	}
 
-	public Object getValue(String paramName) throws IllegalArgumentException {
+	public Object getValue(String paramName) {
 		try {
 			return this.beanWrapper.getPropertyValue(paramName);
 		}
@@ -66,7 +66,7 @@ public class BeanPropertyParameterSource implements ParameterSource {
 	 */
 	public String[] getReadablePropertyNames() {
 		if (this.propertyNames == null) {
-			List<String> names = new ArrayList<String>();
+			final List<String> names = new ArrayList<String>();
 			PropertyDescriptor[] props = this.beanWrapper.getPropertyDescriptors();
 			for (PropertyDescriptor pd : props) {
 				if (this.beanWrapper.isReadableProperty(pd.getName())) {

@@ -18,13 +18,10 @@ package org.springframework.integration.jpa.outbound;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
-import org.springframework.integration.jpa.support.JpaParameter;
-import org.springframework.jdbc.core.simple.SimpleJdbcCallOperations;
 import org.springframework.util.Assert;
 
 /**
@@ -44,7 +41,7 @@ import org.springframework.util.Assert;
  * @since 2.2
  * 
  */
-public class JpaMessageHandler extends AbstractMessageHandler implements InitializingBean {
+public class JpaMessageHandler extends AbstractMessageHandler {
 
     private final JpaExecutor jpaExecutor;
     
@@ -55,9 +52,7 @@ public class JpaMessageHandler extends AbstractMessageHandler implements Initial
 	}
 
 	/**
-     * Verifies parameters, sets the parameters on {@link SimpleJdbcCallOperations}
-     * and ensures the appropriate {@link SqlParameterSourceFactory} is defined
-     * when {@link JpaParameter} are passed in.
+     * Used to verify and initialize parameters.
      */
     @Override
     protected void onInit() throws Exception {
@@ -71,7 +66,7 @@ public class JpaMessageHandler extends AbstractMessageHandler implements Initial
      * Return values are logged at debug level, though.
      */
     @Override
-    protected void handleMessageInternal(Message<?> message) {
+    protected void handleMessageInternal(final Message<?> message) {
 
 		final Object result = executeJpaOperation(message);
 		
@@ -90,9 +85,10 @@ public class JpaMessageHandler extends AbstractMessageHandler implements Initial
      * not necessarily correlate with the number of rows effected in the database.
      *  
      * @param message
-     * @return
+     * @return Either the number of affected entities when using a JPAQL query. When using a merge/persist the updated/inserted itself is returned.
      */
-    protected Object executeJpaOperation(Message<?> message) {
+    protected Object executeJpaOperation(final Message<?> message) {
+    	Assert.notNull(message, "The provided message must not be Null.");
         return this.jpaExecutor.executeOutboundJpaOperation(message);     
     }
 

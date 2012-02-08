@@ -15,9 +15,6 @@
  */
 package org.springframework.integration.jpa.inbound;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
@@ -53,15 +50,16 @@ import org.springframework.util.Assert;
  */
 public class JpaPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object>{
 
-	private final JpaExecutor  jpaExecutor;
+	private final JpaExecutor jpaExecutor;
 
     /**
-     * Constructor taking an {@link EntityManagerFactory} from which the 
-     * {@link EntityManager} can be obtained.
+     * Constructor taking a {@link JpaExecutor} that provide all required JPA 
+     * functionality.
      *
-     * @param entityManagerFactory Must not be null.
+     * @param jpaExecutor Must not be null.
      */
     public JpaPollingChannelAdapter(JpaExecutor jpaExecutor) {
+    	super();
     	Assert.notNull(jpaExecutor, "jpaExecutor must not be null.");
     	this.jpaExecutor = jpaExecutor;
     }
@@ -84,10 +82,12 @@ public class JpaPollingChannelAdapter extends IntegrationObjectSupport implement
 	 */
 	public Message<Object> receive() {
 
-		Object payload = jpaExecutor.poll();
+		final Object payload = jpaExecutor.poll();
+		
 		if (payload == null) {
 			return null;
 		}
+		
 		return MessageBuilder.withPayload(payload).build();
 	}
 	

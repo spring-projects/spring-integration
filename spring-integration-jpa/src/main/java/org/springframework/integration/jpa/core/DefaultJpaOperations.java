@@ -166,11 +166,16 @@ public class DefaultJpaOperations extends AbstractJpaOperations {
 	@Transactional(readOnly=true)
 	public List<?> getResultListForQuery(String queryString, ParameterSource source,
 			int fromRecord, int maxNumberOfRecord) {
+		
 		Query query = getQuery(queryString,source);
-		if(fromRecord >= 0)
+		
+		if(fromRecord >= 0) {
 			query.setFirstResult(fromRecord);
-		if(maxNumberOfRecord > 0)
-			query.setMaxResults(maxNumberOfRecord);			
+		}
+		
+		if(maxNumberOfRecord > 0) {
+			query.setMaxResults(maxNumberOfRecord);	
+		}
 			
 		return query.getResultList();
 	}

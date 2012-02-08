@@ -50,7 +50,7 @@ public class JpaOperationFailedException extends RuntimeException {
 	/**
 	 * If execution of a JPA QL fails, we can set that query using this convenience method.
 	 * @param offendingJPAQl
-	 * @return
+	 * @return JpaOperationFailedException
 	 */
 	public JpaOperationFailedException withOffendingJPAQl(String offendingJPAQl) {
 		setOffendingJPAQl(offendingJPAQl);

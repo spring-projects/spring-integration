@@ -57,7 +57,7 @@ public interface JpaOperations {
 	 * 
 	 * @param updateQuery
 	 * @param source
-	 * @return
+	 * @return The number of entities updated
 	 */
 	int executeUpdateWithNamedQuery(String updateQuery,  ParameterSource source);
 	
@@ -65,24 +65,25 @@ public interface JpaOperations {
 	 * 
 	 * @param updateQuery
 	 * @param source
-	 * @return
+	 * @return The number of entities updated
 	 */
 	int executeUpdateWithNativeQuery(String updateQuery,  ParameterSource source); 
 	
 	
 	/**
-	 * Find an Entity of given type with the given primary key type
+	 * Find an Entity of given type with the given primary key type.
+	 * 
 	 * @param <T>
 	 * @param entityType
 	 * @param id
-	 * @return
+	 * @return The entity if it exist, null is returned otherwise
 	 */
-	<T> T find(Class<T> entityType,Object id);
+	<T> T find(Class<T> entityType, Object id);
 	
 	/**
 	 * 
 	 * @param entityClass
-	 * @return
+	 * @return List of found entities
 	 */
 	List<Object> findAll(Class<?> entityClass);
 
@@ -91,7 +92,7 @@ public interface JpaOperations {
 	 * @param entityClass
 	 * @param i
 	 * @param maxRowsPerPoll
-	 * @return
+	 * @return List of found entities
 	 */
 	List<?> getResultListForClass(Class<?> entityClass, int i,
 			int maxRowsPerPoll);
@@ -102,7 +103,7 @@ public interface JpaOperations {
 	 * @param jpaQLParameterSource
 	 * @param i
 	 * @param maxRowsPerPoll
-	 * @return
+	 * @return List of found entities
 	 */
 	List<?> getResultListForNamedQuery(String selectNamedQuery, ParameterSource jpaQLParameterSource, int i,
 			int maxRowsPerPoll);
@@ -114,7 +115,7 @@ public interface JpaOperations {
 	 * @param jpaQLParameterSource
 	 * @param i
 	 * @param maxRowsPerPoll
-	 * @return
+	 * @return List of found entities
 	 */
 	List<?> getResultListForNativeQuery(String selectQuery,
 			Class<?> entityClass,  ParameterSource jpaQLParameterSource, int i, int maxRowsPerPoll);
@@ -123,16 +124,18 @@ public interface JpaOperations {
 	 * Executes the provided query to return a list of results
 	 * @param query
 	 * @param source the Parameter source for this query to be executed, if none then set as null
-	 * @return
+	 * @return List of found entities
 	 */
 	List<?> getResultListForQuery(String query, ParameterSource source);
 	
 	/**
-	 * Executes the provided query to return a list of results 
-	 * @param query
-	 * @param expectedElementType
-	 * @param source the Parameter source for this query to be executed, if none then set as null
-	 * @return
+	 * Executes the provided query to return a list of results. 
+	 * 
+	 * @param query Must not be null or empty
+	 * @param fromRecord Must be a non-negative value
+	 * @param maxNumberOfRecord Must be a non-negative value
+	 * @param source the Parameter source for this query to be executed, if none then set null
+	 * @return List of found entities
 	 */
 	List<?> getResultListForQuery(String query, ParameterSource source,int fromRecord,int maxNumberOfRecord);
 	

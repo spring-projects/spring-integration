@@ -16,12 +16,13 @@
 package org.springframework.integration.jpa.config.xml;
 
 import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jpa.core.DefaultJpaOperations;
 import org.springframework.integration.jpa.inbound.JpaPollingChannelAdapter;
 import org.w3c.dom.Element;
 
@@ -33,34 +34,29 @@ import org.w3c.dom.Element;
  * 
  *
  */
-public class JpaInboundChannelAdapterParser 
-				extends AbstractPollingInboundChannelAdapterParser{
+public class JpaInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser{
 
 	
 	protected BeanMetadataElement parseSource(Element element,
 			ParserContext parserContext) {
-		BeanDefinitionBuilder builder = 
-				BeanDefinitionBuilder.genericBeanDefinition(JpaPollingChannelAdapter.class);
-		//FIXME
-		//BeanDefinitionBuilder emBuilder = JpaParserUtils.entityManagerBuilder(element.getAttribute("entity-manager-factory"));
 		
-		BeanDefinitionBuilder jpaOperations = BeanDefinitionBuilder.genericBeanDefinition(DefaultJpaOperations.class);
-		//jpaOperations.addConstructorArgValue(emBuilder.getBeanDefinition());
+		final BeanDefinitionBuilder jpaExecutorBuilder = JpaParserUtils.getJpaExecutorBuilder(element, parserContext);
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "entity-class");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "native-query");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, element, "named-query");
 		
-		//This will register a new instance if one is already in place, need some means of
-		//reusing the same instance with same emf
-		String refName = BeanDefinitionReaderUtils.registerWithGeneratedName(jpaOperations.getBeanDefinition(),
-				parserContext.getRegistry());
-		builder.addPropertyReference("jpaOperations", refName);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "select");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
-									"update-sql-parameter-source-factory","parameterSourceFactory");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
-									"select-sql-parameter-source","parameterSource");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-									"update", "updateJpaql");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");		
-		return builder.getBeanDefinition();
+		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
+		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
+		
+		parserContext.registerBeanComponent(new BeanComponentDefinition(jpaExecutorBuilderBeanDefinition, jpaExecutorBeanName));
+
+		final BeanDefinitionBuilder jpaPollingChannelAdapterBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(JpaPollingChannelAdapter.class);
+		
+		jpaPollingChannelAdapterBuilder.addConstructorArgReference(jpaExecutorBeanName);
+
+		return jpaPollingChannelAdapterBuilder.getBeanDefinition();
 	}
 }

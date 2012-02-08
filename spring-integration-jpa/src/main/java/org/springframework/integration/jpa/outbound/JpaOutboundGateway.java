@@ -16,9 +16,6 @@
 
 package org.springframework.integration.jpa.outbound;
 
-import javax.persistence.EntityManager;
-
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.jpa.core.JpaExecutor;
@@ -44,16 +41,15 @@ import org.springframework.util.Assert;
  * @since 2.2
  * 
  */
-public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class JpaOutboundGateway extends AbstractReplyProducingMessageHandler {
 	
 	private final JpaExecutor   jpaExecutor;	
 	private OutboundGatewayType gatewayType = OutboundGatewayType.UPDATING;
 	
     /**
-     * Constructor taking an {@link EntityManager} from which the DB Connection can be
-     * obtained.
+     * Constructor taking an {@link JpaExecutor} that wraps all JPA Operations.
      *
-     * @param entityManager Must not be null
+     * @param jpaExecutor Must not be null
      * 
      */
     public JpaOutboundGateway(JpaExecutor jpaExecutor) {
