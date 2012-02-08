@@ -37,6 +37,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -134,8 +135,9 @@ public class SubscribableJmsChannel extends AbstractJmsChannel implements Subscr
 				}
 			}
 			catch (MessageDispatchingException e) {
+				String channelName = StringUtils.hasText(this.channelName) ? this.channelName : "unknown";
 				String exceptionMessage = e.getMessage() + " for jms-channel "
-						+ this.channelName + ".";
+						+ channelName + ".";
 				if (this.isPubSub) {
 					// log only for backwards compatibility with pub/sub
 					if (logger.isWarnEnabled()) {

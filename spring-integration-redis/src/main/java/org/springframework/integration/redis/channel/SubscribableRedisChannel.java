@@ -44,6 +44,7 @@ import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Oleg Zhurakousky
@@ -178,9 +179,11 @@ public class SubscribableRedisChannel extends AbstractMessageChannel implements 
 				dispatcher.dispatch(siMessage);
 			}
 			catch (MessageDispatchingException e) {
+				String topicName = SubscribableRedisChannel.this.topicName;
+				topicName = StringUtils.hasText(topicName) ? topicName : "unknown";
 				throw new MessageDeliveryException(siMessage, e.getMessage()
 						+ " for redis-channel "
-						+ SubscribableRedisChannel.this.topicName + ".", e);
+						+ topicName + ".", e);
 			}
 		}
 	}

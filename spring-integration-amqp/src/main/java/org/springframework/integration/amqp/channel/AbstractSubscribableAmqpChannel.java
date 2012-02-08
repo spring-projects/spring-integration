@@ -39,6 +39,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -138,8 +139,9 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 				}
 			}
 			catch (MessageDispatchingException e) {
+				String channelName = StringUtils.hasText(this.channelName) ? this.channelName : "unknown";
 				String exceptionMessage = e.getMessage() + " for amqp-channel "
-						+ this.channelName + ".";
+						+ channelName + ".";
 				if (this.isPubSub) {
 					// log only for backwards compatibility with pub/sub
 					if (logger.isWarnEnabled()) {

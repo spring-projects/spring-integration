@@ -27,6 +27,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base implementation of {@link MessageChannel} that invokes the subscribed
@@ -65,8 +66,10 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 			return this.getRequiredDispatcher().dispatch(message);
 		}
 		catch (MessageDispatchingException e) {
+			String componentName = this.getComponentName();
+			componentName = StringUtils.hasText(componentName) ? componentName : "unknown";
 			throw new MessageDeliveryException(message, e.getMessage()
-					+ " for channel " + this.getComponentName() + ".", e);
+					+ " for channel " + componentName + ".", e);
 		}
 	}
 
