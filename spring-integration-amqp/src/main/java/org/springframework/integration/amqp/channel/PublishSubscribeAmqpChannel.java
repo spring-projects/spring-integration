@@ -37,7 +37,7 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 
 
 	public PublishSubscribeAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
-		super(channelName, container, amqpTemplate);
+		super(channelName, container, amqpTemplate, true);
 	}
 
 
@@ -49,7 +49,6 @@ public class PublishSubscribeAmqpChannel extends AbstractSubscribableAmqpChannel
 	 */
 	public void setExchange(FanoutExchange exchange) {
 		this.exchange = exchange;
-		this.setPubSub(true);
 	}
 
 	@Override

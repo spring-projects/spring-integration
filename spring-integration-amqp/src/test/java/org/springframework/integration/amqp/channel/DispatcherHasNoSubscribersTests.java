@@ -104,7 +104,6 @@ public class DispatcherHasNoSubscribersTests {
 							String channelName) {
 						return queue;
 					}};
-		amqpChannel.setPubSub(true);
 		amqpChannel.afterPropertiesSet();
 
 		List<String> logList = insertMockLoggerInListener(amqpChannel);

@@ -53,21 +53,20 @@ abstract class AbstractSubscribableAmqpChannel extends AbstractAmqpChannel imple
 
 	private volatile MessageDispatcher dispatcher;
 
-	private volatile boolean isPubSub;
+	private final boolean isPubSub;
 
 	public AbstractSubscribableAmqpChannel(String channelName, SimpleMessageListenerContainer container, AmqpTemplate amqpTemplate) {
+		this(channelName, container, amqpTemplate, false);
+	}
+
+	public AbstractSubscribableAmqpChannel(String channelName,
+			SimpleMessageListenerContainer container,
+			AmqpTemplate amqpTemplate, boolean isPubSub) {
 		super(amqpTemplate);
 		Assert.notNull(container, "container must not be null");
 		Assert.hasText(channelName, "channel name must not be empty");
 		this.channelName = channelName;
 		this.container = container;
-	}
-
-	public boolean isPubSub() {
-		return isPubSub;
-	}
-
-	public void setPubSub(boolean isPubSub) {
 		this.isPubSub = isPubSub;
 	}
 
