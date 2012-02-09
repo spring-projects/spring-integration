@@ -38,4 +38,6 @@
 	<int:channel id="x" />
 	<int:channel id="y" />
 	
+	<int:service-activator input-channel="z" expression="''"/>
+	
 </beans>

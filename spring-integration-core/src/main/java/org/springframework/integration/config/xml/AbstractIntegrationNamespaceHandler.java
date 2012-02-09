@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.Set;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
@@ -36,10 +39,13 @@ import org.springframework.util.StringUtils;
  * for configuring default bean definitions.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHandler {
 
 	private static final String VERSION = "2.1";
+
+	public static final String CHANNEL_INITIALIZER_BEAN_NAME = ChannelInitializer.class.getSimpleName();
 
 	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME =
 			"DefaultConfiguringBeanFactoryPostProcessor";
@@ -53,12 +59,32 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	public final BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.verifySchemaVersion(element, parserContext);
+		this.registerImplicitChannelCreator(parserContext);
 		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
 
 	public final BeanDefinitionHolder decorate(Node source, BeanDefinitionHolder definition, ParserContext parserContext) {
 		return this.delegate.decorate(source, definition, parserContext);
+	}
+
+	private void registerImplicitChannelCreator(ParserContext parserContext) {
+		boolean alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			// unlike DefaultConfiguringBeanFactoryPostProcessor we need one of these per registry
+			// therefore we need to call containsBeanDefinition(..) which does not consider parent registry
+			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(CHANNEL_INITIALIZER_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(CHANNEL_INITIALIZER_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class);
+			Set<String> channelNames = new ManagedSet<String>();
+			channelDef.addConstructorArgValue(channelNames);
+			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), CHANNEL_INITIALIZER_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(channelCreatorHolder, parserContext.getRegistry());
+		}
 	}
 
 	private void registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(ParserContext parserContext) {
