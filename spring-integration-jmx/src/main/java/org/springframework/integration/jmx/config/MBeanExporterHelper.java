@@ -12,16 +12,19 @@
  */
 package org.springframework.integration.jmx.config;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.PriorityOrdered;
+import org.springframework.core.Ordered;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.util.StringUtils;
@@ -31,24 +34,43 @@ import org.springframework.util.StringUtils;
  * It helps in eliminating conflicts when more than one MBeanExporter is present. It creates a list 
  * of bean names that will be exported by the IntegrationMBeanExporter and merges it with the list 
  * of 'excludedBeans' of MBeanExporter so it will not attempt to export them again.
- * 
+ *
  * @author Oleg Zhurakousky
  * @since 2.1
  *
  */
-class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor, PriorityOrdered {
+class MBeanExporterHelper implements BeanFactoryPostProcessor,
+		BeanPostProcessor, Ordered, BeanFactoryAware {
 
 	private final static String EXCLUDED_BEANS_PROPERTY_NAME = "excludedBeans";
 	
 	private final static String SI_ROOT_PACKAGE = "org.springframework.integration.";
 
 	private final Set<String> siBeanNames = new HashSet<String>();
+
+	private volatile BeanFactory beanFactory;
+
+	private volatile boolean capturedAutoChannelCandidates;
 	
-	@SuppressWarnings("unchecked")
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)){
+		if (!this.capturedAutoChannelCandidates && this.beanFactory != null) {
+			Object autoCreateChannelCandidates = beanFactory.getBean("$autoCreateChannelCandidates");
+			if (autoCreateChannelCandidates != null){
+					@SuppressWarnings("unchecked")
+					Collection<String> autoCreateChannelCandidatesNames =
+									(Collection<String>) new DirectFieldAccessor(autoCreateChannelCandidates).getPropertyValue("channelNames");
+					this.siBeanNames.addAll(autoCreateChannelCandidatesNames);
+			}
+			this.capturedAutoChannelCandidates = true;
+		}
+		if (bean instanceof MBeanExporter && !(bean instanceof IntegrationMBeanExporter)) {
 			MBeanExporter mbeanExporter = (MBeanExporter) bean;
 			DirectFieldAccessor mbeDfa = new DirectFieldAccessor(mbeanExporter);
+			@SuppressWarnings("unchecked")
 			Set<String> excludedNames = (Set<String>) mbeDfa.getPropertyValue(EXCLUDED_BEANS_PROPERTY_NAME);
 			if (excludedNames != null) {
 				siBeanNames.addAll(excludedNames);
@@ -79,6 +101,6 @@ class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor
 	}
 
 	public int getOrder() {
-		return Integer.MIN_VALUE;
+		return Ordered.HIGHEST_PRECEDENCE;
 	}
 }

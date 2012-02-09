@@ -34,9 +34,10 @@ import org.springframework.jmx.export.MBeanExporter;
  */
 public class Int2307Tests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testInt2307_DefaultMBeanExporter() throws Exception{
-		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
 		List<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
 		assertEquals(1, servers.size());
 		MBeanServer server = servers.get(0);
@@ -61,6 +62,11 @@ public class Int2307Tests {
 		assertEquals(0xf, bits);
 		assertEquals(4, count);
 
+		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
+		Object mBeanExporterHelper = context.getBean(clazz);
+		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z"));
+		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("zz"));
+
 		// make sure there are no duplicate MBean ObjectNames if 2 contexts loaded from same config
 		new ClassPathXmlApplicationContext("single-config.xml", this.getClass());
 	}
@@ -76,7 +82,10 @@ public class Int2307Tests {
 		assertTrue(excludedBeanNames.contains("x"));
 		assertTrue(excludedBeanNames.contains("y"));
 		assertTrue(excludedBeanNames.contains("foo")); // non SI bean
+		Class<?> clazz = Class.forName("org.springframework.integration.jmx.config.MBeanExporterHelper");
+		Object mBeanExporterHelper = context.getBean(clazz);
+		assertTrue(((Set<String>)TestUtils.getPropertyValue(mBeanExporterHelper, "siBeanNames")).contains("z"));
 	}
-	
+
 	public static class Foo{}
 }
