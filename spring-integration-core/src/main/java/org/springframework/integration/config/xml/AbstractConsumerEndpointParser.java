@@ -16,18 +16,30 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Ordered;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
@@ -45,8 +57,9 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	protected static final String METHOD_ATTRIBUTE = "method";
 
 	protected static final String EXPRESSION_ATTRIBUTE = "expression";
-
-
+	
+	protected static final String CHANNEL_CREATOR_BEAN_NAME = "$_inputChannelCreator";
+	
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -66,6 +79,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		return "input-channel";
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
@@ -83,28 +97,28 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			return handlerBeanDefinition;
 		}
 
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 
 		String handlerBeanName = BeanDefinitionReaderUtils.generateBeanName(handlerBeanDefinition, parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerBeanDefinition, handlerBeanName));
 		
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
-		boolean channelExists = false;
-		if (parserContext.getRegistry() instanceof BeanFactory) {
-			// BeanFactory also checks ancestor contexts in a hierarchy
-			channelExists = ((BeanFactory) parserContext.getRegistry()).containsBean(inputChannelName);
+		
+		if (parserContext.getRegistry().containsBeanDefinition(CHANNEL_CREATOR_BEAN_NAME)){
+			BeanDefinition definition = parserContext.getRegistry().getBeanDefinition(CHANNEL_CREATOR_BEAN_NAME);
+			Set<String> channelNames = (Set<String>) definition.getConstructorArgumentValues().getArgumentValue(0, Set.class).getValue();
+			channelNames.add(inputChannelName);
 		}
 		else {
-			channelExists = parserContext.getRegistry().containsBeanDefinition(inputChannelName);
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelCreatingPostProcessor.class);
+			Set<String> channelNames = new HashSet<String>();
+			channelNames.add(inputChannelName);
+			channelDef.addConstructorArgValue(channelNames);
+			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), CHANNEL_CREATOR_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(channelCreatorHolder, parserContext.getRegistry());
 		}
-		if (!channelExists && this.shouldAutoCreateChannel(inputChannelName)) {
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
-			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
-			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		}
+			
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
 		if (!CollectionUtils.isEmpty(pollerElementList)) {
@@ -121,9 +135,46 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		return null;
 	}
 
-	private boolean shouldAutoCreateChannel(String channelName) {
-		return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
-				&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
-	}
+	private static class ChannelCreatingPostProcessor implements BeanFactoryPostProcessor, Ordered {
+		
+		private final Set<String> channels;
+		
+		@SuppressWarnings("unused")
+		public ChannelCreatingPostProcessor(Set<String> channels){
+			this.channels = channels;
+		}
+	
+		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
+			BeanExpressionResolver beanExpressionResolver = beanFactory.getBeanExpressionResolver();
+
+			for (String channelName : this.channels) {
+				if (beanExpressionResolver != null) {
+					channelName = (String) beanExpressionResolver.evaluate(channelName, new BeanExpressionContext(beanFactory, null));
+				}
+				if (!beanFactory.containsBean(channelName) && this.shouldAutoCreateChannel(channelName)){		
+					BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+					RootBeanDefinition messageChannel = new RootBeanDefinition();
+					messageChannel.setBeanClass(DirectChannel.class);
+					BeanDefinitionHolder messageChannelHolder = new BeanDefinitionHolder(messageChannel, channelName);
+					BeanDefinitionReaderUtils.registerBeanDefinition(messageChannelHolder, registry);
+				}
+			}		
+		}
+		
+		private boolean shouldAutoCreateChannel(String channelName) {
+			return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
+					&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
+		}
+		/**
+		 * Within the context of Spring Integration this Factory Post Processor must be invoked *first*. 
+		 * It must also be invoked *after* PropertyPlaceholderConfigurer etc., so 'channels' Set which 
+		 * might contain property placeholders is resolved. Giving the fact that the order of BeanFactoryPostProcessor 
+		 * invocation in AbstractApplicationContext.invokeBeanFactoryPostProcessors(..) is PriorityOrdered -> Ordered -> Regular FPP and 
+		 * PropertyPlaceholderConfigurer implementing PriorityOrdered this post processor implements Ordered with HIGHEST_PRECEDENCE.
+		 */
+		public int getOrder() {
+			return Ordered.HIGHEST_PRECEDENCE;
+		}
+	}
 }
