@@ -57,7 +57,7 @@ public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "persist-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "parameter-source-factory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaExecutorBuilder, gatewayElement, "use-payload-as-parameter-source");
-		
+				
 		final BeanDefinition jpaExecutorBuilderBeanDefinition = jpaExecutorBuilder.getBeanDefinition();
 		final String jpaExecutorBeanName = BeanDefinitionReaderUtils.generateBeanName(jpaExecutorBuilderBeanDefinition, parserContext.getRegistry());
 		
@@ -67,7 +67,9 @@ public class JpaOutboundGatewayParser extends AbstractConsumerEndpointParser  {
 				.genericBeanDefinition(JpaOutboundGateway.class);
 		
 		jpaOutboundGatewayBuilder.addConstructorArgReference(jpaExecutorBeanName);
-
+		
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(jpaOutboundGatewayBuilder, gatewayElement, "gateway-type");
+		
 		final String replyChannel = gatewayElement.getAttribute("reply-channel");
 		
 		if (StringUtils.hasText(replyChannel)) {

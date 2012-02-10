@@ -272,7 +272,7 @@
                     ]]></xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
-                    <xsd:union memberTypes="persistMode xsd:string"/>
+                    <xsd:union memberTypes="gatewayType xsd:string"/>
                 </xsd:simpleType>
             </xsd:attribute>            
             <xsd:attribute name="persist-mode" use="optional" default="MERGE">

@@ -24,6 +24,7 @@
                               auto-startup="true"
                               entity-class="org.springframework.integration.jpa.test.entity.Student"
                               persist-mode="PERSIST"
+                              gateway-type="RETRIEVING"
                               order="1"     
                               request-channel="in"                       
                               reply-channel="out"/>                 

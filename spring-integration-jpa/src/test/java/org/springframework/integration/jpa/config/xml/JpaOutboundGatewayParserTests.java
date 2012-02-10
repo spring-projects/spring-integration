@@ -23,6 +23,8 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jpa.core.JpaExecutor;
 import org.springframework.integration.jpa.core.JpaOperations;
+import org.springframework.integration.jpa.outbound.JpaOutboundGateway;
+import org.springframework.integration.jpa.support.OutboundGatewayType;
 import org.springframework.integration.jpa.support.PersistMode;
 import org.springframework.integration.test.util.TestUtils;
 
@@ -46,6 +48,12 @@ public class JpaOutboundGatewayParserTests {
         
         assertEquals("in", inputChannel.getComponentName());
         
+        final JpaOutboundGateway jpaOutboundGateway = TestUtils.getPropertyValue(this.consumer, "handler", JpaOutboundGateway.class);
+        
+        final OutboundGatewayType gatewayType = TestUtils.getPropertyValue(jpaOutboundGateway, "gatewayType", OutboundGatewayType.class);
+        
+        assertEquals(OutboundGatewayType.RETRIEVING, gatewayType);
+
         final JpaExecutor jpaExecutor = TestUtils.getPropertyValue(this.consumer, "handler.jpaExecutor", JpaExecutor.class);
         
         assertNotNull(jpaExecutor);
@@ -59,6 +67,8 @@ public class JpaOutboundGatewayParserTests {
         assertNotNull(jpaOperations);
         
         final PersistMode persistMode = TestUtils.getPropertyValue(jpaExecutor, "persistMode", PersistMode.class);
+        
+        
         
         assertEquals(PersistMode.PERSIST, persistMode);
 
