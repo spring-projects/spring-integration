@@ -104,11 +104,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   </para>
   
   <para>
-  <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which in the current release of  
+  <classname>DefaultFtpSessionFactory</classname> provides an abstraction over the underlying client API which, in the current release of  
   Spring Integration is <ulink url="http://commons.apache.org/net/">Apache Commons Net</ulink> thus sparing you from the low level configuration details 
   of <classname>org.apache.commons.net.ftp.FTPClient</classname>. However there are times when access to such low level <classname>FTPClient</classname> details is 
   necessary to achieve more advanced configuration (e.g., setting data and default timeouts etc.). For that purpose <classname>AbstractFtpSessionFactory</classname> 
-  (the base class for all FTP Session Factories) exposes several hooks in the form of the two post-processing methods.
+  (the base class for all FTP Session Factories) exposes several hooks in the form of the two post-processing methods below.
   <programlisting language="java"><![CDATA[/**
 	 * Will handle additional initialization after client.connect() method was invoked, 
 	 * but before any action on the client has been taken 
