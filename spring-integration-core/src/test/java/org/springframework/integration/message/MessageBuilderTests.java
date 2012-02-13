@@ -35,6 +35,11 @@ import org.springframework.integration.support.MessageBuilder;
  * @author Mark Fisher
  */
 public class MessageBuilderTests {
+	
+	@Test(expected= IllegalArgumentException.class) // priority must be an Integer
+	public void testPriorityHeader(){
+		MessageBuilder.withPayload("ha").setHeader("priority", "10").build();
+	}
 
 	@Test
 	public void testSimpleMessageCreation() {

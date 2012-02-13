@@ -16,16 +16,24 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -72,6 +80,27 @@ public class HeaderEnricherParserTests {
 		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
 		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
 		assertEquals(Boolean.TRUE, shouldSkipNulls);
+	}
+	
+	@Test(expected=MessageTransformationException.class) 
+	public void testStringPriorityHeader() {
+		MessageHandler messageHandler = 
+				TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsString"), "handler", MessageHandler.class);
+		Message<?> message = new GenericMessage<String>("hello");
+		messageHandler.handleMessage(message);
+	}
+	@Test
+	public void testStringPriorityHeaderWithType() {
+        MessageHandler messageHandler =
+                        TestUtils.getPropertyValue(context.getBean("headerEnricherWithPriorityAsStringAndType"), "handler", MessageHandler.class);
+        QueueChannel replyChannel = new QueueChannel();
+        Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(replyChannel).build();
+        messageHandler.handleMessage(message);
+        Message<?> transformed = replyChannel.receive(1000);
+        assertNotNull(transformed);
+        Object priority = transformed.getHeaders().get("priority");
+        assertNotNull(priority);
+        assertTrue(priority instanceof Integer);
 	}
 
 }
