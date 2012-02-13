@@ -46,6 +46,7 @@ import static junit.framework.Assert.assertEquals;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.1
  */
 @ContextConfiguration
@@ -63,6 +64,7 @@ public class AmqpOutboundChannelAdapterParserTests {
 		assertEquals(EventDrivenConsumer.class, adapter.getClass());
 		MessageHandler handler = TestUtils.getPropertyValue(adapter, "handler", MessageHandler.class);
 		assertEquals(AmqpOutboundEndpoint.class, handler.getClass());
+		assertEquals("amqp:outbound-channel-adapter", ((AmqpOutboundEndpoint) handler).getComponentType());
 	}
 	
 	@SuppressWarnings("rawtypes")

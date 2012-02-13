@@ -42,6 +42,8 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gary Russell
+ * @since 2.1
  *
  */
 public class AmqpOutboundGatewayParserTests {
@@ -54,6 +56,7 @@ public class AmqpOutboundGatewayParserTests {
 		assertEquals(5, gateway.getOrder());
 		assertTrue(context.containsBean("rabbitGateway"));
 		assertEquals(context.getBean("fromRabbit"), TestUtils.getPropertyValue(gateway, "outputChannel"));
+		assertEquals("amqp:outbound-gateway", gateway.getComponentType());
 	}
 	
 	@SuppressWarnings("rawtypes")
