@@ -603,4 +603,24 @@ public class DefaultHttpHeaderMapperFromMessageOutboundTests {
 		assertEquals(1, result.size());
 		assertEquals("x-foo-value", result.get("X-Foo"));
 	}
+	@Test
+    public void validateCustomHeaderCaseInsensitivity() throws ParseException{
+            DefaultHttpHeaderMapper mapper  = new DefaultHttpHeaderMapper();
+            mapper.setOutboundHeaderNames(new String[]{"*", "HTTP_REQUEST_HEADERS"});
+            Map<String, Object> messageHeaders = new HashMap<String, Object>();
+            messageHeaders.put("foobar", "abc");
+            messageHeaders.put("X-bar", "xbar");
+            messageHeaders.put("x-baz", "xbaz");
+            messageHeaders.put("Content-Type", "text/html");
+            messageHeaders.put("Accept", "text/xml");
+            HttpHeaders headers = new HttpHeaders();
+            mapper.fromHeaders(new MessageHeaders(messageHeaders), headers);
+            assertEquals(5, headers.size());
+            assertEquals(1, headers.get("X-foobar").size());
+            assertEquals(1, headers.get("x-foobar").size());
+            assertEquals(1, headers.get("X-bar").size());
+            assertEquals(1, headers.get("x-bar").size());
+            assertEquals(1, headers.get("X-baz").size());
+            assertEquals(1, headers.get("x-baz").size());
+    }
 }
