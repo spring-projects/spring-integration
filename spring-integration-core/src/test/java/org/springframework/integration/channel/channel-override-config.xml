@@ -20,7 +20,7 @@
 	
 	<int:service-activator id="serviceB" input-channel="#{'channelB'}" output-channel="${channelC}" expression="''"/>
 	
-	<int:service-activator id="serviceC" input-channel="${channelC}" output-channel="#{@channelD.getComponentName()}" expression="''"/>
+	<int:service-activator id="serviceC" input-channel="#{@channelC.getComponentName()}" output-channel="#{@channelD.getComponentName()}" expression="''"/>
 	
 	<int:channel id="channelC"/>
 	
