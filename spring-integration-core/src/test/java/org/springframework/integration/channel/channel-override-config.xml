@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+		
+	<context:property-placeholder properties-ref="props"/>
+	
+	<util:properties id="props">
+			<prop key="channelC" >channelC</prop>
+			<prop key="channelB" >channelB</prop>
+	</util:properties>
+
+	<int:service-activator id="serviceA" input-channel="channelA" output-channel="#{'channelB'}" expression="''"/>
+	
+	<int:service-activator id="serviceB" input-channel="#{'channelB'}" output-channel="${channelC}" expression="''"/>
+	
+	<int:service-activator id="serviceC" input-channel="#{@channelC.getComponentName()}" output-channel="#{@channelD.getComponentName()}" expression="''"/>
+	
+	<int:channel id="channelC"/>
+	
+	<int:channel id="channelD"/>
+
+</beans>
