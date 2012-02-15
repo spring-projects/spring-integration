@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ package org.springframework.integration.config.xml;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
+import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
@@ -32,10 +36,14 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class PollerParserTests {
 
@@ -78,11 +86,19 @@ public class PollerParserTests {
 		assertNotNull(poller);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertNotNull(metadata.getAdviceChain());
-		assertEquals(3, metadata.getAdviceChain().size());
-		assertEquals(context.getBean("adviceBean1"), metadata.getAdviceChain().get(0));
+		assertEquals(4, metadata.getAdviceChain().size());
+		assertSame(context.getBean("adviceBean1"), metadata.getAdviceChain().get(0));
 		assertEquals(TestAdviceBean.class, metadata.getAdviceChain().get(1).getClass());
 		assertEquals(2, ((TestAdviceBean) metadata.getAdviceChain().get(1)).getId());
-		assertEquals(context.getBean("adviceBean3"), metadata.getAdviceChain().get(2));
+		assertSame(context.getBean("adviceBean3"), metadata.getAdviceChain().get(2));
+		Advice txAdvice = metadata.getAdviceChain().get(3);
+		assertEquals(TransactionInterceptor.class, txAdvice.getClass());
+		TransactionAttributeSource transactionAttributeSource = ((TransactionInterceptor) txAdvice).getTransactionAttributeSource();
+		assertEquals(NameMatchTransactionAttributeSource.class, transactionAttributeSource.getClass());
+		HashMap nameMap = TestUtils.getPropertyValue(transactionAttributeSource, "nameMap", HashMap.class);
+		assertEquals(1, nameMap.size());
+		assertEquals("{*=PROPAGATION_REQUIRES_NEW,ISOLATION_DEFAULT,readOnly}", nameMap.toString());
+
 	}
 
 	@Test

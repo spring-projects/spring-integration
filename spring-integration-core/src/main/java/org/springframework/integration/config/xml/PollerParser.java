@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,13 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
+import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -44,17 +51,13 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
+ * @author Artem Bilan
  */
 public class PollerParser extends AbstractBeanDefinitionParser {
 
 	private static final String MULTIPLE_TRIGGER_DEFINITIONS = "A <poller> cannot specify more than one trigger configuration.";
 
 	private static final String NO_TRIGGER_DEFINITIONS = "A <poller> must have one and only one trigger configuration.";
-
-	private static final String PERIODIC_TRIGGER_CLASSNAME = "org.springframework.scheduling.support.PeriodicTrigger";
-
-	private static final String CRON_TRIGGER_CLASSNAME = "org.springframework.scheduling.support.CronTrigger";
-
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
@@ -81,8 +84,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder metadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.PollerMetadata");
+		BeanDefinitionBuilder metadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(PollerMetadata.class);
 		if (element.hasAttribute("ref")) {
 			parserContext.getReaderContext().error(
 					"the 'ref' attribute must not be present on the top-level 'poller' element", element);
@@ -98,8 +100,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 		String errorChannel = element.getAttribute("error-channel");
 		if (StringUtils.hasText(errorChannel)) {
-			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(
-					"org.springframework.integration.channel.MessagePublishingErrorHandler");
+			BeanDefinitionBuilder errorHandler = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
 			errorHandler.addPropertyReference("defaultErrorChannel", errorChannel);
 			metadataBuilder.addPropertyValue("errorHandler", errorHandler.getBeanDefinition());
 		}
@@ -121,7 +122,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			triggerBeanNames.add(triggerAttribute);
 		}
 		if (StringUtils.hasText(fixedRateAttribute)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
 			builder.addConstructorArgValue(fixedRateAttribute);
 			if (StringUtils.hasText(timeUnit)) {
 				builder.addConstructorArgValue(timeUnit);
@@ -132,7 +133,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			triggerBeanNames.add(triggerBeanName);
 		}
 		if (StringUtils.hasText(fixedDelayAttribute)) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PeriodicTrigger.class);
 			builder.addConstructorArgValue(fixedDelayAttribute);
 			if (StringUtils.hasText(timeUnit)) {
 				builder.addConstructorArgValue(timeUnit);
@@ -146,7 +147,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			if (StringUtils.hasText(timeUnit)) {
 				parserContext.getReaderContext().error("The 'time-unit' attribute cannot be used with a 'cron' trigger.", pollerElement);
 			}
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CRON_TRIGGER_CLASSNAME);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
 			builder.addConstructorArgValue(cronAttribute);
 			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					builder.getBeanDefinition(), parserContext.getRegistry());
@@ -166,19 +167,15 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	 * and other "transactionDefinition" properties. This advisor will be applied on the Polling Task proxy
 	 * (see {@link org.springframework.integration.endpoint.AbstractPollingEndpoint}).
 	 */
-	private BeanDefinition configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
-		String TX_PKG_PREFIX = "org.springframework.transaction.interceptor";
-		BeanDefinitionBuilder txDefinitionBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".DefaultTransactionAttribute");
+	private BeanDefinition configureTransactionAttributes(Element txElement) {
+		BeanDefinitionBuilder txDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(DefaultTransactionAttribute.class);
 		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
 		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
 		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
 		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
-		BeanDefinitionBuilder attributeSourceBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".MatchAlwaysTransactionAttributeSource");
+		BeanDefinitionBuilder attributeSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
 		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
-		BeanDefinitionBuilder txInterceptorBuilder = 
-				BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionInterceptor");
+		BeanDefinitionBuilder txInterceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
 		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
 		return txInterceptorBuilder.getBeanDefinition();
@@ -191,7 +188,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	private void configureAdviceChain(Element adviceChainElement, Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		ManagedList adviceChain = new ManagedList();
 		if (txElement != null) {
-			adviceChain.add(this.configureTransactionAttributes(txElement, targetBuilder, parserContext));
+			adviceChain.add(this.configureTransactionAttributes(txElement));
 		}
 		if (adviceChainElement != null) {
 			NodeList childNodes = adviceChainElement.getChildNodes();
@@ -217,6 +214,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 							parserContext.getReaderContext().error(
 									"failed to parse custom element '" + localName + "'", childElement);
 						}
+						adviceChain.add(customBeanDefinition);
 					}
 				}
 			}
