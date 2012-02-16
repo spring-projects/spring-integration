@@ -26,7 +26,7 @@
     two different endpoint implementations to accommodate these two types of consumers. Therefore, the consumers
     themselves can simply implement the callback interface. When polling is required, the endpoint acts as a
     "container" for the consumer instance. The benefit is similar to that of using a container for hosting
-    Message Driven Beans, but since these consumers are simply Spring-managed Objects running within an 
+    Message Driven Beans, but since these consumers are simply Spring-managed Objects running within an
     ApplicationContext, it more closely resembles Spring's own MessageListener containers.
   </para>
 
@@ -80,6 +80,12 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
 
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
     </para>
+
+    <note>
+        For for more information regarding Polling Consumers, please also read
+        <xref linkend="polling-consumer"/> as well as <xref linkend="channel-adapter"/>.
+    </note>
+
     <para>
       There are many other configuration options for the Polling Consumer. For example, the trigger is a required property:
       <programlisting language="java">
@@ -165,7 +171,192 @@ consumer.setTransactionManager(txManager);</programlisting>
       <classname>EventDrivenConsumer</classname> depending on the type of the "input-channel" that is
       referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
       respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
-      element's "poller" sub-element and its attributes. For example, a simple interval-based poller with a 1-second interval would be
+      element's "poller" sub-element and its attributes.
+    </para>
+
+    <emphasis>Configuration</emphasis>
+
+    <para>Below you find a <emphasis>poller</emphasis> with all available configuration options:</para>
+
+        <programlisting language="xml"><![CDATA[<int:poller cron=""                                 ]]><co id="poller-xml01-co" linkends="sp-gateway-xml01" /><![CDATA[
+            default="false"                         ]]><co id="poller-xml02-co" linkends="poller-xml02" /><![CDATA[
+            error-channel=""                        ]]><co id="poller-xml03-co" linkends="poller-xml03" /><![CDATA[
+            fixed-delay=""                          ]]><co id="poller-xml04-co" linkends="poller-xml04" /><![CDATA[
+            fixed-rate=""                           ]]><co id="poller-xml05-co" linkends="poller-xml05" /><![CDATA[
+            id=""                                   ]]><co id="poller-xml06-co" linkends="poller-xml06" /><![CDATA[
+            max-messages-per-poll=""                ]]><co id="poller-xml07-co" linkends="poller-xml07" /><![CDATA[
+            receive-timeout=""                      ]]><co id="poller-xml08-co" linkends="poller-xml08" /><![CDATA[
+            ref=""                                  ]]><co id="poller-xml09-co" linkends="poller-xml09" /><![CDATA[
+            task-executor=""                        ]]><co id="poller-xml10-co" linkends="poller-xml10" /><![CDATA[
+            time-unit="MILLISECONDS"                ]]><co id="poller-xml11-co" linkends="poller-xml11" /><![CDATA[
+            trigger="">                             ]]><co id="poller-xml12-co" linkends="poller-xml12" /><![CDATA[
+            <int:advice-chain />                    ]]><co id="poller-xml13-co" linkends="poller-xml13" /><![CDATA[
+            <int:transactional />                   ]]><co id="poller-xml14-co" linkends="poller-xml14" /><![CDATA[
+</int:poller>]]></programlisting>
+
+        <para>
+            <calloutlist>
+                <callout arearefs="poller-xml01-co" id="poller-xml01">
+                    <para>
+                        Provides the ability to configure Pollers using Cron expressions.
+                        The underlying implementation uses a
+                        <classname>org.springframework.scheduling.support.CronTrigger</classname>.
+
+                        If this attribute is set, none of the following attributes
+                        must be specified: <code>fixed-delay</code>, <code>trigger</code>,
+                        <code>fixed-rate</code>, <code>ref</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml02-co" id="poller-xml02">
+                    <para>
+                        By setting this attribute to <emphasis>true</emphasis>,
+                        it is possible to define exactly one (1) global default
+                        poller. An exception is raised if more than one default
+                        poller is defined in the application context.
+
+                        Any endpoints connected to a PollableChannel (PollingConsumer)
+                        or any SourcePollingChannelAdapter that does not have any
+                        explicitly configured poller will then use the global default
+                        Poller.
+                        <emphasis>Optional</emphasis>. Defaults to <code>false</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml03-co" id="poller-xml03">
+                    <para>
+                        Identifies the channel which error messages will be sent to if
+                        a failure occurs in this poller's invocation. To completely
+                        suppress Exceptions, provide a reference to the
+                        <code>nullChannel</code>. <emphasis>Optional</emphasis>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml04-co" id="poller-xml04">
+                    <para>
+                        The fixed delay trigger uses a <classname>PeriodicTrigger</classname>
+                        under the covers. If the <code>time-unit</code> attribute is
+                        not used, the specified value is represented in milliseconds.
+
+                        If this attribute is set, none of the following attributes
+                        must be specified: <code>fixed-rate</code>, <code>trigger</code>,
+                        <code>cron</code>, <code>ref</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml05-co" id="poller-xml05">
+                    <para>
+                        The fixed rate trigger uses a <classname>PeriodicTrigger</classname>
+                        under the covers. If the <code>time-unit</code> attribute is
+                        not used the specified value is represented in milliseconds.
+
+                        If this attribute is set, none of the following attributes
+                        must be specified: <code>fixed-delay</code>, <code>trigger</code>,
+                        <code>cron</code>, <code>ref</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml06-co" id="poller-xml06">
+                    <para>
+                        The Id referring to the Poller's underlying bean-definition,
+                        which is of type
+                        <classname>org.springframework.integration.scheduling.PollerMetadata</classname>.
+                            The <emphasis>id</emphasis> attribute is required for
+                            a top-level poller element unless it is the default
+                            poller (<code>default="true"</code>).
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml07-co" id="poller-xml07">
+                    <para>
+                        Please see <xref linkend="channel-adapter-namespace-inbound"/>
+                        for more information. <emphasis>Optional</emphasis>. If
+                        not specified the default values used depends on the context.
+
+                        If a <classname>PollingConsumer</classname> is used, this atribute
+                        will default to <emphasis>-1</emphasis>. However, if a
+                        <classname>SourcePollingChannelAdapter</classname> is used,
+                        then the <code>max-messages-per-poll</code> attribute defaults to
+                        <emphasis>1</emphasis>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml08-co" id="poller-xml08">
+                    <para>
+                        Value is set on the underlying class <classname>PollerMetadata</classname>
+                        <emphasis>Optional</emphasis>. If not specified it defaults
+                        to 1000 (milliseconds).
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml09-co" id="poller-xml09">
+                    <para>
+                        Bean reference to another top-level poller. The <code>ref</code>
+                        attribute must not be present on the top-level <code>poller</code>
+                        element.
+
+                        However, if this attribute is set, none of the following attributes
+                        must be specified: <code>fixed-rate</code>, <code>trigger</code>,
+                        <code>cron</code>, <code>fixed-deleay</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml10-co" id="poller-xml10">
+                    <para>
+                        Provides the ability to reference a custom <emphasis>task executor</emphasis>.
+                        Please see the section below titled <emphasis>TaskExecutor Support</emphasis>
+                        for further information. <emphasis>Optional</emphasis>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml11-co" id="poller-xml11">
+                    <para>
+						This attribute specifies the <classname>java.util.concurrent.TimeUnit</classname>
+						enum value on the underlying
+						<classname>org.springframework.scheduling.support.PeriodicTrigger</classname>.
+						Therefore, this attribute can <emphasis>ONLY</emphasis>
+						be used in combination with the <code>fixed-delay</code>
+						or <code>fixed-rate</code> attributes. If combined with
+						either <code>cron</code> or a <code>trigger</code> reference
+						attribute, it will cause a failure.
+				    </para>
+				    <para>
+						The minimal supported granularity for a
+						<classname>PeriodicTrigger</classname> is MILLISECONDS.
+						Therefore, the only available options are MILLISECONDS and
+						SECONDS. If this value is not provided, then any
+						<code>fixed-delay</code> or <code>fixed-rate</code> value
+						will be interpreted as MILLISECONDS by default.
+				    </para>
+				    <para>
+				        Basically this enum provides a convenience for SECONDS-based
+				        interval trigger values. For hourly, daily, and monthly
+				        settings, consider using a <code>cron</code> trigger instead.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml12-co" id="poller-xml12">
+                    <para>
+                        Reference to any spring configured bean which implements
+                        the <interfacename>org.springframework.scheduling.Trigger</interfacename>
+                        interface.
+                        <emphasis>Optional</emphasis>. However, if this attribute
+                        is set, none of the following attributes must be specified:
+                        <code>fixed-delay</code>, <code>fixed-rate</code>,
+                        <code>cron</code>, <code>ref</code>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml13-co" id="poller-xml13">
+                    <para>
+                        Allows to specify extra AOP Advices to handle additional
+                        cross cutting concerns. Please see the section
+                        below titled <emphasis>Transaction Support</emphasis>
+                        for further information. <emphasis>Optional</emphasis>.
+                    </para>
+                </callout>
+                <callout arearefs="poller-xml14-co" id="poller-xml14">
+                    <para>
+                        Pollers can be made transactional. Please see the section
+                        below titled <emphasis>AOP Advice chains</emphasis>
+                        for further information. <emphasis>Optional</emphasis>.
+                    </para>
+                </callout>
+          </calloutlist>
+      </para>
+
+    <emphasis>Examples</emphasis>
+
+    <para>
+      For example, a simple interval-based poller with a 1-second interval would be
       configured like this: <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
@@ -185,54 +376,70 @@ consumer.setTransactionManager(txManager);</programlisting>
       If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
       required. Specifically, as mentioned above, the 'trigger' is a required property of the PollingConsumer class.
       Therefore, if you omit the "poller" sub-element for a Polling Consumer endpoint's configuration, an Exception
-      may be thrown. The exception will also be thrown if you attempt to configure a poller on the element that is 
+      may be thrown. The exception will also be thrown if you attempt to configure a poller on the element that is
       connected to a non-pollable channel.
      </para>
-     <para> 
+     <para>
       It is also possible to create top-level pollers in which case only a "ref" is required:
-      <programlisting language="xml"><![CDATA[ <int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
-   
+     </para>
+
+     <programlisting language="xml"><![CDATA[ <int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
+
  <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
     <int:poller ref="weekdayPoller"/>
  </int:transformer>]]></programlisting>
+
  	<note>
- 	The "ref" attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level 
- 	poller will result in a configuration exception thrown during initialization of the Application Context.
+	 	<para>
+	 	The "ref" attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level
+	 	poller will result in a configuration exception thrown during initialization of the Application Context.
+	 	</para>
  	</note>
+
+ 	<emphasis>Global Default Pollers</emphasis>
+
+ 	<para>
       In fact, to simplify the configuration even further, you can define a global default poller. A single top-level poller within
-      an ApplicationContext may have the <code>default</code> attribute with a value of "true". In that case, any
+      an ApplicationContext may have the <code>default</code> attribute with a value of <emphasis>true</emphasis>. In that case, any
       endpoint with a PollableChannel for its input-channel that is defined within the same ApplicationContext and has
-      no explicitly configured 'poller' sub-element will use that default.
+      no explicitly configured <emphasis>poller</emphasis> sub-element will use that default.
+    </para>
       <programlisting language="xml"><![CDATA[ <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="3000"/>
-    
+
  <!-- No <poller/> sub-element is necessary since there is a default -->
  <int:transformer input-channel="pollable"
                   ref="transformer"
                   output-channel="output"/>]]></programlisting>
-    </para>
+
+    <emphasis>Transaction Support</emphasis>
+
     <para>
       Spring Integration also provides transaction support for the pollers so that each receive-and-forward
       operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply add the
-      &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone who has
+      <emphasis>&lt;transactional/&gt;</emphasis> sub-element. The attributes for this element should be familiar to anyone who has
       experience with Spring's Transaction management:
-      <programlisting language="xml"><![CDATA[<int:poller fixed-delay="1000">
+    </para>
+
+    <programlisting language="xml"><![CDATA[<int:poller fixed-delay="1000">
     <int:transactional transaction-manager="txManager"
                        propagation="REQUIRED"
                        isolation="REPEATABLE_READ"
                        timeout="10000"
                        read-only="false"/>
-</int:poller>]]></programlisting> 
+</int:poller>]]></programlisting>
 
+    <para>
+        For more information please refer to <xref linkend="transaction-poller"/>.
 	</para>
 	<para>
 	<emphasis>AOP Advice chains</emphasis>
 	</para>
 	<para>
-	Since Spring transaction support depends on the Proxy mechanism  with <classname>TransactionInterceptor</classname> (AOP Advice) handling transactional 
-	behavior of the message flow initiated by the poler, some times there is a need to provide extra Advice(s) to handle other 
-	cross cutting behavior associated with the poller. For that poller defines an 'advice-chain' element allowing you to add 
+	Since Spring transaction support depends on the Proxy mechanism  with <classname>TransactionInterceptor</classname> (AOP Advice) handling transactional
+	behavior of the message flow initiated by the poller, some times there is a need to provide extra Advice(s) to handle other
+	cross cutting behavior associated with the poller. For that poller defines an 'advice-chain' element allowing you to add
 	more advices - class that  implements <classname>MethodInterceptor</classname> interface.. 
 	<programlisting language="xml"><![CDATA[<int:service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
@@ -243,11 +450,14 @@ consumer.setTransactionManager(txManager);</programlisting>
 			<beans:bean class="org.bar.SampleAdvice"/>
 		</int:advice-chain>
 	</int:poller>
-</int:service-activator>]]></programlisting> 
-For more information on how to implement MethodInterceptor please refer to AOP sections of Spring 
-reference manual (section 7 and 8). Advice chain can also be applied on the poller that does not have 
+</int:service-activator>]]></programlisting>
+For more information on how to implement MethodInterceptor please refer to AOP sections of Spring
+reference manual (section 7 and 8). Advice chain can also be applied on the poller that does not have
 any transaction configuration essentially allowing you to enhance the behavior of the message flow initiated by the poller.
     </para>
+
+    <emphasis>TaskExecutor Support</emphasis>
+
     <para>
       The polling threads may be executed by any instance of Spring's <interfacename>TaskExecutor</interfacename>
       abstraction. This enables concurrency for an endpoint or group of endpoints. As of Spring 3.0, there is a "task"
@@ -259,7 +469,7 @@ any transaction configuration essentially allowing you to enhance the behavior o
       concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
       reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
       <programlisting language="xml"><![CDATA[ <int:poller task-executor="pool" fixed-rate="1000"/>
-    
+
  <task:executor id="pool"
                 pool-size="5-25"
                 queue-capacity="20"
@@ -281,33 +491,73 @@ any transaction configuration essentially allowing you to enhance the behavior o
         participate. The following example demonstrates how a Polling Consumer will receive Messages nearly
         instantaneously.
       <programlisting language="xml"><![CDATA[ <int:service-activator input-channel="someQueueChannel"
-        output-channel="output">  
+        output-channel="output">
      <int:poller receive-timeout="30000" fixed-rate="10"/>
-        
+
  </int:service-activator>]]></programlisting>
       Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread
       which does not require nearly as much CPU resource usage as a thrashing, infinite while loop for example.
     </para>
   </section>
-  
+
+  <section id="polling-consumer-change-polling-rate">
+      <title>Change Polling Rate at Runtime</title>
+      <para>
+         When configuring Pollers with a <code>fixed-delay</code> or
+         <code>fixed-rate</code> attribute, the default implementation will use
+         a <classname>PeriodicTrigger</classname> instance. The
+         <classname>PeriodicTrigger</classname> is part of the Core Spring Framework
+         and it accepts the <emphasis>interval</emphasis> as a constructor
+         argument, only. Therefore it cannot be changed at runtime.
+      </para>
+      <para>
+         However, you can define your own implementation of the
+         <interfacename>org.springframework.scheduling.Trigger</interfacename>
+         interface. You could even use the PeriodicTrigger as a starting point.
+         Then, you can add a setter for the interval (period), or you could even
+         embed your own throttling logic within the trigger itself if desired.
+         The <emphasis>period</emphasis> property will be used with each call to
+         <emphasis>nextExecutionTime</emphasis> to schedule the next poll.
+
+         To use this custom trigger within pollers, declare the bean defintion of
+         the custom Triggger in your application context and inject the dependency
+         into your Poller configuration using the <code>trigger</code> attribute,
+         which references the custom Trigger bean instance.
+
+         You can now obtain a reference to the Trigger bean and the polling
+         interval can be changed between polls.
+      </para>
+      <para>
+         For an example, please have a look at the Spring Integration Samples
+         project. It contains a sample called <emphasis>dynamic-poller</emphasis>,
+         which uses a custom Trigger and demonstrates the ability to change the polling
+         interval at runtime.
+      </para>
+      <itemizedlist>
+          <listitem><ulink url="https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate">
+          https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate
+          </ulink></listitem>
+      </itemizedlist>
+  </section>
+
   <section id="payload-type-conversion">
     <title>Payload Type Conversion</title>
     <para>
-      Throughout the reference manual, you will also see specific configuration and implementation examples of various endpoints 
-      which can accept a Message or any arbitrary Object as an input parameter. In the case of an Object, such a parameter will 
-      be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language). However there 
-      are times when the type of input parameter of the endpoint method does not match the type of the payload or its part. 
-      In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type 
+      Throughout the reference manual, you will also see specific configuration and implementation examples of various endpoints
+      which can accept a Message or any arbitrary Object as an input parameter. In the case of an Object, such a parameter will
+      be mapped to a Message payload or part of the payload or header (when using the Spring Expression Language). However there
+      are times when the type of input parameter of the endpoint method does not match the type of the payload or its part.
+      In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type
       converters (using the Spring 3.x ConversionService) within its own instance of a conversion service bean named <emphasis>integrationConversionService</emphasis>.
       That bean is automatically created as soon as the first converter is defined using the Spring Integration namespace support.
 
       To register a Converter all you need is to implement
-      <interfacename>org.springframework.core.convert.converter.Converter</interfacename> and define it via 
+      <interfacename>org.springframework.core.convert.converter.Converter</interfacename> and define it via
       convenient namespace support:
       <programlisting language="xml"><![CDATA[ <int:converter ref="sampleConverter"/>
 
 	<bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
-      
+
       or as an inner bean:
       <programlisting language="xml"><![CDATA[ <int:converter>
 		<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
@@ -318,9 +568,9 @@ any transaction configuration essentially allowing you to enhance the behavior o
   <section id="async-polling">
     <title>Asynchronous polling</title>
      <para>
-     If you want the polling to be asynchronous, a Poller can optionally specify a 'task-executor' attribute 
-     pointing to an existing instance of any <classname>TaskExecutor</classname> bean 
-     (Spring 3.0 provides a convenient namespace configuration via the <code>task</code> namespace). However, there are certain things 
+     If you want the polling to be asynchronous, a Poller can optionally specify a 'task-executor' attribute
+     pointing to an existing instance of any <classname>TaskExecutor</classname> bean
+     (Spring 3.0 provides a convenient namespace configuration via the <code>task</code> namespace). However, there are certain things
      you must understand when configuring a Poller with a TaskExecutor. 
      </para>
      <para>
@@ -328,21 +578,21 @@ any transaction configuration essentially allowing you to enhance the behavior o
      and they both have to be in tune with each other otherwise you might end up creating an artificial memory leak.
      </para>
      <para>
-     Let's look at the following configuration provided by one of the users on the Spring Integration 
+     Let's look at the following configuration provided by one of the users on the Spring Integration
      forum (http://forum.springsource.org/showthread.php?t=94519):
 
       <programlisting language="xml"><![CDATA[<int:service-activator input-channel="publishChannel" ref="myService">
 		<int:poller receive-timeout="5000" task-executor="taskExecutor" fixed-rate="50"/>
 </int:service-activator>
-	
+
 <task:executor id="taskExecutor" pool-size="20" queue-capacity="20"/>]]></programlisting>
-      
+
 	The above configuration demonstrates one of those out of tune configurations.
      </para>
      <para>
-     The poller keeps scheduling new tasks even though all the threads are blocked waiting for either a new message to arrive, 
-     or the timeout to expire. Given that there are 20 threads executing tasks with a 5 second timeout, they will be executed 
-     at a rate of 4 per second (5000/20 = 250ms). But, new tasks are being scheduled at a rate of 20 per second, so the internal 
+     The poller keeps scheduling new tasks even though all the threads are blocked waiting for either a new message to arrive,
+     or the timeout to expire. Given that there are 20 threads executing tasks with a 5 second timeout, they will be executed
+     at a rate of 4 per second (5000/20 = 250ms). But, new tasks are being scheduled at a rate of 20 per second, so the internal
      queue in the task executor will grow at a rate of 16 per second (while the process is idle), so we essentially have a memory leak.
      </para>
      <para>

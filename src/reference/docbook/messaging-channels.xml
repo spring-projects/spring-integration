@@ -5,6 +5,7 @@
   <title>Messaging Channels</title>
 
   <xi:include href="./channel.xml"/>
+  <xi:include href="./polling-consumer.xml"/>
   <xi:include href="./channel-adapter.xml"/>
   <xi:include href="./bridge.xml"/>
 
