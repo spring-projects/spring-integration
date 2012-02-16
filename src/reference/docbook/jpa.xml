@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="jpa"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>JPA Support</title>
+  
+  	<para>
+  		Spring integration's JPA (Java Persistence API) module provides adapters for performing various  
+  		operations on the database using JPA. Currently it has support for  	
+  	</para>
+		<itemizedlist>		
+		  	<listitem>
+		  		<para><emphasis><link linkend='jpa-outbound-channel-adapter'>Outbound Channel adapter</link></emphasis></para>
+		  	</listitem>
+		  	<listitem>
+		  		<para><emphasis><link linkend='jpa-outbound-gateway'>Outbound Gateway</link></emphasis></para>
+		  	</listitem>
+		  	<listitem>
+		  		<para><emphasis><link linkend='jpa-inbound-channel-adapter'>Inbound Channel Adapter</link></emphasis></para>
+		  	</listitem>  	
+		 </itemizedlist>
+	 <para>
+	 	These adapters can be used to perform the select, create, update and delete 
+	 	operations on the database by sending/receiving messages to them.
+	 </para>
+	 <para>
+	 	The above operations can be performed using either of the following
+	 </para>
+		 <itemizedlist>
+		 	<listitem>
+		 		<para><emphasis>Entity classes</emphasis></para>
+		 	</listitem>
+		 	<listitem>
+		 		<para>
+		 			<emphasis>JPA Query Language (JPA QL) for update, select and 
+		 				delete only as inserts are not supported by JPA QL
+		 			</emphasis>
+		 		</para>
+		 	</listitem>
+		 	<listitem>
+		 		<para><emphasis>Native query</emphasis></para>
+		 	</listitem>
+		 	<listitem>
+		 		<para><emphasis>Named query</emphasis></para>
+		 	</listitem>
+		 </itemizedlist>
+	 <para>In the following sections we will see each of these components in more details</para>	 
+	 <section id="jpa-outbound-channel-adapter">
+	 	<title>Outbound Channel Adapter</title>
+	  	<para>
+	  		Outbound channel adapters are used to accept messages over the channel and use 
+	  		it to perform the operation	on the database. The message payload
+	  		and headers can be used as the parameters for the operation to be performed.
+	  		In the following sub sections we shall see what are the possible ways of performing
+	  		these operations using the outbound channel adapter.
+	  	</para>
+	  	<section>
+	  		<title>Using Entity class</title>
+	  		<para>
+	  			Below code snippet shows how we can use the outbound channel adapter to perform 
+	  			operations on the database by sending entities over the channel to it.
+	  			<programlisting language="xml">
+<![CDATA[
+<int-jpa:outbound-channel-adapter channel="entityTypeChannel" ]]><co id="entityTypeChannel"/><![CDATA[
+		entity-class="org.springframework.integration.jpa.test.entity.Student" ]]><co id="entityClass"/><![CDATA[
+		persist-mode="PERSIST" ]]><co id="persistMode"/><![CDATA[
+		entity-manager="em"/ >]]><co id="entityMgr"/>
+	  			</programlisting> 
+	  			<calloutlist>
+	  				<callout arearefs="entityTypeChannel">
+	  					<para>
+	  						The channel over which a valid JPA entity will be sent to the outbound channel
+	  						adapter 
+	  					</para>
+	  				</callout>
+	  				<callout arearefs="entityClass">
+	  					<para>
+	  						The fully qualified name of the entity class that would be accepted by
+	  						the adapter to be persisted in the database (in future release we may decide
+	  						to get rid of this attribute to support any valid JPA entity passed over
+	  						the channel)
+	  					</para>
+	  				</callout>
+	  				<callout arearefs="persistMode">
+	  					<para>
+	  						The operation that needs to be done by the adapter, valid values are
+	  						PERSIST, MERGE and DELETE
+	  					</para>
+	  				</callout>
+	  				<callout arearefs="entityMgr">
+	  					<para>
+	  						The JPA entity manager to be used
+	  					</para>	  					
+	  				</callout>
+	  			</calloutlist>
+	  			<para>
+	  				As we can see above these 4 attributes of the <emphasis>outbound-channel-adapter</emphasis>
+	  				are all we need to configure it to accept entities over the input channel and process
+	  				them to <emphasis>PERSIST</emphasis>,<emphasis>MERGE</emphasis> or <emphasis>DELETE</emphasis>
+	  				it from the underlying data source. 	  				
+	  			</para>
+	  		</para>
+	  	</section>
+	  	<section>
+	  		<title>Using JPA Query Language (JPA QL)</title>
+	  		<para>
+	  			We have seen in the above sub section how to perform a <emphasis>PERSIST</emphasis> action using an entity
+	  			We will now see how to use the outbound channel adapter which uses JPA QL (Java Persistence API Query Language)	  			  
+				<programlisting language="xml">
+				<![CDATA[
+<int-jpa:outbound-channel-adapter channel="jpaQlChannel" ]]><co id="jpaQlInputChannel"/><![CDATA[
+	query="update Student s set s.firstName = :firstName where s.rollNumber = :rollNumber" ]]><co id="jpaQlQuery"/><![CDATA[
+	entity-manager="em"> ]]><co id="jpaQlEntityManager"/>												
+<![CDATA[	<int-jpa:parameter name="firstName" expression="payload['firstName']"/> ]]><co id="jpaQlParam"/><![CDATA[
+	<int-jpa:parameter name="rollNumber" expression="payload['rollNumber']"/>
+</int-jpa:outbound-channel-adapter>
+]]>					
+				</programlisting>
+				<calloutlist>
+					<callout arearefs="jpaQlInputChannel">
+						<para>
+							The input channel over which the message is being sent to the outbound 
+							channel adapter
+						</para>						
+					</callout>
+					<callout arearefs="jpaQlQuery">
+						<para>
+							The JPA QL that needs to be executed.This query may contain parameters that will be evaluated 
+							using the <emphasis>jpa:param</emphasis> child tag.
+						</para>
+					</callout>
+					<callout arearefs="jpaQlEntityManager">
+						<para>
+							The entity manager used by the adapter to perform the JPA operations
+						</para>
+					</callout>
+					<callout arearefs="jpaQlParam">
+						<para>
+							This sub element, one for each parameter will be used to evaluate the value of
+							the parameter names specified in the JPA QL specified in the query attribute	
+						</para>
+					</callout>
+				</calloutlist>
+				<para>
+					We will see a bit more about the <emphasis>param</emphasis> sub element here. The <emphasis>param</emphasis> sub element 
+					accepts an attribute <emphasis>name</emphasis> which corresponds to the named parameter specified
+					in the provided JPA QL (point 2 in the above mentioned sample). The value of the parameter can either be static or can be derived
+					using an expression. The static value and the expression to derive the value is specified using
+					the <emphasis>value</emphasis> and the <emphasis>expression</emphasis> attributes respectively. These attributes
+					are mutually exclusive. 
+				</para>
+				<para>
+					If the <emphasis>name</emphasis> attribute is specified we can provide an optional 
+					<emphasis>type</emphasis> attribute. The value of this attribute is the fully qualified name of the class 
+					whose value is represented by the <emphasis>value</emphasis> attribute. By default
+					the type is assumed to be a <emphasis>java.lang.String</emphasis>. 
+				</para>				
+				<programlisting language="xml">
+<![CDATA[
+<int-jpa:outbound-channel-adapter ... >
+	<int-jpa:param name="level" value="2" type="java.lang.Integer"/>
+	<int-jpa:param name="name" expression="payload['name']"/>
+</int-jpa:outbound-channel-adapter>	
+]]>
+				</programlisting>
+				<para>
+					As seen in the above snippet, it is perfectly valid to use multiple <emphasis>param</emphasis> sub elements within an outbound channel adapter
+					tag and derive some parameters using expressions and some with static value. However, care should
+					be taken not to specify the same parameter name multiple times, and, provide one <emphasis>param</emphasis> sub element for
+					each named parameter specified in the JPA query. For example, we are specifying two parameters 
+					<emphasis>level</emphasis> and <emphasis>name</emphasis> where <emphasis>level</emphasis> attribute is a static value of type 
+					<emphasis>java.lang.Integer</emphasis>, where as the <emphasis>name</emphasis> attribute is derived from the payload of the message					
+				</para>
+				<note>
+					Though specifying <emphasis>select</emphasis> is valid for JPA QL, it makes no sense as outbound channel adapters will not be
+					returning any result. If you want to select some values, consider using the outbound gateway instead.
+					 
+				</note>
+			</para>
+	  	</section>
+	  	<section>
+	  		<title>Using Native query</title>
+	  		<para>
+	  			<para>
+	  				In this section we will see how to use native queries to perform the operations using
+	  				JPA outbound channel adapter. Using native queries is similar to using JPA QL, 
+	  				except that the query specified here is a native database query. By choosing 
+	  				native queries we lose the database vendor independence which we get using JPA QL.	  				 
+	  			</para>
+	  			<para>
+	  				One of the things we can achieve using native queries is to perform database inserts, which
+	  				is not possible using JPA QL (To perform inserts we send JPA entities to the channel adapter as we have seen earlier).
+	  				Below is a small xml fragment that demonstrates the use of native query to insert values in a table. Please note that we
+	  				have only mentioned the important attributes below. All other attributes like <emphasis>channel</emphasis>, 
+	  				<emphasis>entity-manager</emphasis> and the <emphasis>param</emphasis> sub element have the same semantics as when we use
+	  				JPA QL.	  				  
+	  			</para>
+	  			<programlisting language="xml">
+<![CDATA[
+	<int-jpa:outbound-channel-adapter channel="nativeQlChannel"
+			query="insert into STUDENT_TABLE(FIRST_NAME,LAST_UPDATED) values (:lastName,:lastUpdated)" ]]><co id="nativeOutboundAdapterNativeQuery"/>			
+<![CDATA[			native-query="true" ]]><co id="outboundChannelAdapterQueryFlag"/>
+<![CDATA[			entity-manager="em">
+		<int-jpa:parameter name="lastName" expression="payload['updatedLastName']"/>
+		<int-jpa:parameter name="lastUpdated" expression="new java.util.Date()"/> 
+	</int-jpa:outbound-channel-adapter>
+]]>
+	  			</programlisting>
+	  			<calloutlist>
+	  				<callout arearefs="nativeOutboundAdapterNativeQuery">
+	  					<para>
+	  						The native query that will be executed by this outbound channel adapter
+	  					</para>
+	  				</callout>
+	  				<callout arearefs="outboundChannelAdapterQueryFlag">
+	  					<para>
+	  						The flag that indicates whether the specified query is a JPA QL or a native query. Not specifying this attribute
+	  						or setting it's value to false will lead to the value specified in the <emphasis>query</emphasis> attribute 
+	  						to be evaluated as a JPA QL.
+	  					</para>
+	  				</callout>
+	  			</calloutlist>
+	  			<para>
+	  				<emphasis>
+		  				TODO: The above xml declaration will change and the native-query may no longer hold the flag but will become
+		  				the native query itself. However, the document is as per the code currently. Change this when the changes are made in the code
+		  			</emphasis>
+	  			</para>
+	  		
+	  		</para>
+	  	</section>
+	  	<section>
+	  		<title>Using Named query</title>
+	  		<para>
+		  		<para>
+		  			We will now see how to use named queries after seeing using entity, JPA QL and native query in previous sub sections.
+		  			Using named query is also very similar to using JPA QL or a native query, except that we specify a named query instead of a query.
+		  			Before we go further and see the xml fragment for the declaration of the <emphasis>outbound-channel-adapter</emphasis>, we will 
+		  			see how named JPA queries are defined.  	  			
+		  		</para>
+		  		<para>
+		  			In our case, if we have an entity called <emphasis>Student</emphasis>, then we have the following in the class to define
+		  			two named queries <emphasis>selectStudent</emphasis> and <emphasis>updateStudent</emphasis>. Below is a way to define
+		  			named queries using annotations
+		  		</para>
+		  		
+		  		<programlisting language="java">
+		  			<![CDATA[
+@Entity
+@Table(name="Student")
+@NamedQueries({
+	@NamedQuery(name="selectStudent", query="select s from Student s where s.lastName = 'Last One'"),
+	@NamedQuery(name="updateStudent", query="update Student s set s.lastName = :lastName, 
+						lastUpdated = :lastUpdated where s.id in (select max(a.id) from Student a)")
+})
+public class Student {
+
+...
+		  			]]>
+		  		</programlisting>
+				<para>
+					You can alternatively use the <emphasis>orm.xml</emphasis> to define named queries as seen below
+				</para>
+				<programlisting language="xml">
+				<![CDATA[				
+<entity-mappings ...>
+	...
+	<named-query name="selectStudent">
+		<query>select s from Student s where s.lastName = 'Last One'</query>		
+	</named-query>	
+</entity-mappings>
+]]>				
+				</programlisting>
+				<para>
+					Now that we have seen how we can define named queries using annotations or using <emphasis>orm.xml</emphasis>, we
+					will now see a small xml fragment for defining an <emphasis>outbound-channel-adapter</emphasis> using named query
+				</para>
+				<programlisting language="xml">
+<![CDATA[
+<int-jpa:outbound-channel-adapter channel="namedQueryChannel"
+			named-query="updateStudent"	]]><co id="namedQuery"/>		
+<![CDATA[			entity-manager="em">
+		<int-jpa:parameter name="lastName" expression="payload['updatedLastName']"/>
+		<int-jpa:parameter name="lastUpdated" expression="new java.util.Date()"/> 
+</int-jpa:outbound-channel-adapter>	
+]]>				
+				</programlisting>
+				<calloutlist>
+					<callout arearefs="namedQuery">
+						<para>
+							The named query that we want the adapter to execute when it receives a message over the channel
+						</para>
+					</callout>
+				</calloutlist>				
+	  		</para>
+	  	</section>
+	 </section>
+	 <section id="jpa-outbound-gateway">
+	 	<title>Outbound Gateway</title>
+	  	<para>
+	  		TODO: Content Goes Here
+	  	</para>
+	 </section>
+	 <section id="jpa-inbound-channel-adapter">
+	 	<title>Inbound Channel Adapter</title>
+	  	<para>
+	  		TODO: Content Goes Here
+	  	</para>
+	 </section>
+	 <note>
+	 	<para>You can find more samples for using spring integration's JPA adapter at 
+	 	[TODO: Give location here]
+	 	</para>
+	 </note>
+</chapter>
