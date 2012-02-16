@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="polling-consumer"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Poller (Polling Consumer)</title>
+    <para>
+        When Message Endpoints (Channel Adapters) are connected to channels and
+        instantiated, they produce one of the following 2 instances:
+    </para>
+    <itemizedlist>
+        <listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html">PollingConsumer</ulink></listitem>
+        <listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/EventDrivenConsumer.html">EventDrivenConsumer</ulink></listitem>
+    </itemizedlist>
+    <para>
+        The actual implementation depends on which type of channel these Endpoints
+        are connected to. A channel adapter connected to a channel that implements
+        the <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/core/SubscribableChannel.html">org.springframework.integration.core.SubscribableChannel</ulink></interfacename>
+        interface will produce an instance of <classname>EventDrivenConsumer</classname>.
+        On the other hand, a channel adapter connected to a channel that implements the
+        <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/core/PollableChannel.html">org.springframework.integration.core.PollableChannel</ulink></interfacename>
+        interface (e.g. a QueueChannel) will produce an instance of <classname>PollingConsumer</classname>.
+    </para>
+    <para>
+        Polling Consumers allow Spring Integration components to actively poll for
+        Messages, rather than to process Messages in an event-driven manner.
+    </para>
+    <para>
+        They represent a critical cross cutting concern in many
+        messaging scenarios. In Spring Integration, Polling Consumers are based
+        on the pattern with the same name, which is described in the book
+        "Enterprise Integration Patterns" by Gregor Hohpe and Bobby Woolf. You
+        can find a description of the pattern on the book's website at:
+    </para>
+    <itemizedlist>
+        <listitem><ulink url="http://www.enterpriseintegrationpatterns.com/PollingConsumer.html">
+        http://www.enterpriseintegrationpatterns.com/PollingConsumer.html
+        </ulink></listitem>
+    </itemizedlist>
+    <para>
+        Furthermore, in Spring Integration a second variation of the Polling Consumer
+        pattern exists. When Inbound Channel Adapters are being used, these adapters
+        are often wrapped by a <classname>SourcePollingChannelAdapter</classname>.
+        For example, when retrieving messages from a remote FTP Server location,
+        the adapter described in <xref linkend="ftp-inbound" />
+        is configured with a <emphasis>poller</emphasis> to retrieve messages periodically.
+        So, when components are configured with Pollers, the resulting instances are
+        of one of the following types:
+    </para>
+    <itemizedlist>
+        <listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/PollingConsumer.html">PollingConsumer</ulink></listitem>
+        <listitem><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/endpoint/SourcePollingChannelAdapter.html">SourcePollingChannelAdapter</ulink></listitem>
+    </itemizedlist>
+    <para>
+        This means, Pollers are used in both inbound and outbound messaging scenarios.
+        Here are some use-cases that illustrate the scenarios in which Pollers are
+        used:
+    </para>
+    <itemizedlist>
+        <listitem>Polling certain external systems such as FTP Servers, Databases, Web Services</listitem>
+        <listitem>Polling internal (pollable) Message Channels</listitem>
+        <listitem>Polling internal services (E.g. repeatedly execute methods on a Java class)</listitem>
+    </itemizedlist>
+    <para>
+        This chapter is meant to only give a high-level overview regarding Polling Consumers
+        and how they fit into the concept of message channels - <xref linkend="channel"/> and
+        channel adapters -
+        <xref linkend="channel-adapter"/>. For more in-depth information regarding
+        Messaging Endpoints in general and Polling Consumers in particular, please see
+        <xref linkend="endpoint"/>.
+    </para>
+
+</section>
