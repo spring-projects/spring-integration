@@ -82,7 +82,7 @@ PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</progra
     </para>
 
     <note>
-        For for more information regarding Polling Consumers, please also read
+        For more information regarding Polling Consumers, please also read
         <xref linkend="polling-consumer"/> as well as <xref linkend="channel-adapter"/>.
     </note>
 
