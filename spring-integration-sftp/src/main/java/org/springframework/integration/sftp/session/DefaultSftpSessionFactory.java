@@ -29,6 +29,7 @@ import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Proxy;
 import com.jcraft.jsch.SocketFactory;
+import com.jcraft.jsch.UIKeyboardInteractive;
 import com.jcraft.jsch.UserInfo;
 
 /**
@@ -225,7 +226,7 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 	 * It returns in the positive where possible and handles interactive authentication
 	 * (i.e. 'Please enter your password: ' prompts are dispatched automatically).
 	 */
-	private static class OptimisticUserInfoImpl implements UserInfo {
+	private static class OptimisticUserInfoImpl implements UserInfo, UIKeyboardInteractive {
 
 		private final String password;
 
@@ -254,6 +255,11 @@ public class DefaultSftpSessionFactory implements SessionFactory<LsEntry> {
 		}
 
 		public void showMessage(String string) {
+		}
+
+		public String[] promptKeyboardInteractive(String destination,
+				String name, String instruction, String[] prompt, boolean[] echo) {
+			return null;
 		}
 	}
 

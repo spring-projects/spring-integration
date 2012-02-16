@@ -9,10 +9,11 @@
 
 	<bean id="sftpSessionFactory" class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">
 		<property name="host" value="localhost"/>
-		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/>
-		<property name="privateKeyPassphrase" value="springintegration"/>
+<!-- 		<property name="privateKey" value="classpath:org/springframework/integration/sftp/config/sftp_rsa"/> -->
+<!-- 		<property name="privateKeyPassphrase" value="springintegration"/> -->
 		<property name="port" value="22"/>
 		<property name="user" value="ozhurakousky"/>
+		<property name="password" value="password"/>
 	</bean>
 	
 	<int:channel id="ftpChannel"/>
