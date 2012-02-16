@@ -74,6 +74,8 @@ subprojects { subproject ->
 	// and http://www.gradle.org/docs/current/dsl/org.gradle.api.artifacts.ConfigurationContainer.html
 	configurations {
 		jacoco //Configuration Group used by Sonar to provide Code Coverage using JaCoCo
+		javaAgentSpringInstrument //Configuration Group used by the JPA Adapter during test execution
+		javaAgentOpenJpa //Configuration Group used by the JPA Adapter during test execution
 	}
 
 	// dependencies that are common across all java projects
@@ -489,6 +491,51 @@ project('spring-integration-jmx') {
 			'org.w3c.dom.*;version="0"'
 		]
 	}
+}
+
+project('spring-integration-jpa') {
+	description = 'Spring Integration JPA Support'
+	dependencies {
+		compile project(":spring-integration-core")
+		compile "org.springframework:spring-aop:$springVersion"
+		compile "org.springframework:spring-orm:$springVersion"
+		compile "org.springframework:spring-tx:$springVersion"
+		compile "org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.0.Final"
+
+		testCompile project(":spring-integration-test")
+		testCompile "com.h2database:h2:1.3.166"
+		testCompile "hsqldb:hsqldb:1.8.0.10"
+		testCompile "org.apache.derby:derby:10.5.3.0_1"
+		testCompile "org.aspectj:aspectjrt:$aspectjVersion"
+		testCompile "org.aspectj:aspectjweaver:$aspectjVersion"
+
+		testCompile "org.hibernate:hibernate-entitymanager:4.0.1.Final"
+		testCompile "org.eclipse.persistence:org.eclipse.persistence.jpa:2.3.2"
+		testCompile "org.apache.openjpa:openjpa:2.2.0"
+
+		javaAgentSpringInstrument "org.springframework:spring-instrument:$springVersion"
+		javaAgentOpenJpa "org.apache.openjpa:openjpa:2.2.0"
+	}
+
+	bundlor {
+		bundleSymbolicName = 'org.springframework.integration.jpa'
+		importTemplate += [
+			'org.springframework.integration.*;version="[2.1.0, 2.1.1)"',
+			'org.springframework.*;version="[3.0.5, 4.0.0)"',
+			'org.apache.commons.logging;version="[1.1.1, 2.0.0)"',
+			'org.aopalliance.*;version="[1.0.0, 2.0.0)"',
+			'javax.persistence.*;version="[1.0.0, 2.0.0)"',
+			'javax.sql.*;version="0"',
+			'org.w3c.dom.*;version="0"'
+		]
+	}
+
+	test.doFirst {
+		String jvmArgsSpringIntrument = "-javaagent:${configurations.javaAgentSpringInstrument.asPath}"
+		String jvmArgsOpenJpa         = "-javaagent:${configurations.javaAgentOpenJpa.files.iterator().next()}"
+		jvmArgs jvmArgsSpringIntrument , jvmArgsOpenJpa
+	}
+
 }
 
 project('spring-integration-mail') {
