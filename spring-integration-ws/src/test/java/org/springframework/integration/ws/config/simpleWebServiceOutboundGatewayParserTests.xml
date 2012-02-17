@@ -26,7 +26,9 @@
 	<ws:outbound-gateway id="gatewayWithReplyChannel"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
-	                     reply-channel="outputChannel"/>
+	                     reply-channel="outputChannel"
+	                     mapped-request-headers="testRequest"
+                         mapped-reply-headers="testReply"/>
 
 	<ws:outbound-gateway id="gatewayWithIgnoreEmptyResponsesFalse"
 	                     request-channel="inputChannel"
