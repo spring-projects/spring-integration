@@ -1,4 +1,4 @@
-/* Copyright 2002-2011 the original author or authors.
+/* Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,12 @@ import org.springframework.util.StringUtils;
  * the latest inbound message it has received and avoiding, where possible,
  * redelivery of duplicate messages. This functionality is enabled using the
  * {@link org.springframework.integration.store.MetadataStore} strategy.
- * 
+ *
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gunnar Hillert
+ *
  * @since 2.0
  */
 @SuppressWarnings("rawtypes")
@@ -108,13 +110,16 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 		else if (logger.isWarnEnabled()) {
 			logger.warn(this.getClass().getSimpleName() + " has no name. MetadataStore key might not be unique.");
 		}
-		
-		UserOperations userOperations = this.twitter.userOperations();
-		if (userOperations != null){
+
+		if (this.twitter.isAuthorized()){
+
+	        UserOperations userOperations = this.twitter.userOperations();
 			String profileId = String.valueOf(userOperations.getProfileId());
+
 			if (profileId != null) {
 				metadataKeyBuilder.append(profileId);
 			}
+
 			this.metadataKey = metadataKeyBuilder.toString();
 			String lastId = this.metadataStore.get(this.metadataKey);
 			// initialize the last status ID from the metadataStore
@@ -123,10 +128,10 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 				this.lastEnqueuedId = this.lastProcessedId;
 			}
 		}
-		
+
 	}
 
-	public Message<?> receive() {   
+	public Message<?> receive() {
 		T tweet = this.tweets.poll();
 		if (tweet == null) {
 			long currentTime = System.currentTimeMillis();
@@ -171,7 +176,7 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 				if (!CollectionUtils.isEmpty(tweets)) {
 					enqueueAll(tweets);
 				}
-			}	
+			}
 		}
 		catch (RuntimeException e) {
 			throw e;
@@ -191,10 +196,10 @@ abstract class AbstractTwitterMessageSource<T> extends IntegrationObjectSupport 
 	private long getIdForTweet(T twitterMessage) {
 		if (twitterMessage instanceof Tweet) {
 			return ((Tweet) twitterMessage).getId();
-		} 
+		}
 		else if (twitterMessage instanceof DirectMessage) {
 			return ((DirectMessage) twitterMessage).getId();
-		} 
+		}
 		else {
 			throw new IllegalArgumentException("Unsupported Twitter object: " + twitterMessage);
 		}
