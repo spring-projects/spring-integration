@@ -25,7 +25,7 @@
     Message Channel, some component has to schedule and manage the polling thread(s). Spring Integration provides
     two different endpoint implementations to accommodate these two types of consumers. Therefore, the consumers
     themselves can simply implement the callback interface. When polling is required, the endpoint acts as a
-    "container" for the consumer instance. The benefit is similar to that of using a container for hosting
+    <emphasis>container</emphasis> for the consumer instance. The benefit is similar to that of using a container for hosting
     Message Driven Beans, but since these consumers are simply Spring-managed Objects running within an
     ApplicationContext, it more closely resembles Spring's own MessageListener containers.
   </para>
@@ -47,7 +47,7 @@
       following chapters (Routers, Transformers, Splitters, Aggregators, Service Activators, etc). Those components
       each perform very different functionality with the Messages they handle, but the requirements for actually
       receiving a Message are the same, and the choice between polling and event-driven behavior is also the same.
-      Spring Integration provides two endpoint implementations that "host" these callback-based handlers and allow
+      Spring Integration provides two endpoint implementations that <emphasis>host</emphasis> these callback-based handlers and allow
       them to be connected to Message Channels.
     </para>
   </section>
@@ -95,7 +95,7 @@ consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
       Spring Integration currently provides two implementations of the <interfacename>Trigger</interfacename>
       interface: <classname>IntervalTrigger</classname> and <classname>CronTrigger</classname>. The
       <classname>IntervalTrigger</classname> is typically defined with a simple interval (in milliseconds), but
-      also supports an 'initialDelay' property and a boolean 'fixedRate' property (the default is false, i.e.
+      also supports an <emphasis>initialDelay</emphasis> property and a boolean <emphasis>fixedRate</emphasis> property (the default is false, i.e.
       fixed delay):
       <programlisting language="java">IntervalTrigger trigger = new IntervalTrigger(1000);
 trigger.setInitialDelay(5000);
@@ -113,15 +113,15 @@ consumer.setMaxMessagesPerPoll(10);
 consumer.setReceiveTimeout(5000);</programlisting>
     </para>
     <para>
-      The 'maxMessagesPerPoll' property specifies the maximum number of messages to receive within a given poll
+      The <emphasis>maxMessagesPerPoll</emphasis> property specifies the maximum number of messages to receive within a given poll
       operation. This means that the poller will continue calling receive() <emphasis>without waiting</emphasis>
       until either <code>null</code> is returned or that max is reached. For example, if a poller has a 10 second
-      interval trigger and a 'maxMessagesPerPoll' setting of 25, and it is polling a channel that has 100 messages
+      interval trigger and a <emphasis>maxMessagesPerPoll</emphasis> setting of 25, and it is polling a channel that has 100 messages
       in its queue, all 100 messages can be retrieved within 40 seconds. It grabs 25, waits 10 seconds, grabs the
       next 25, and so on.
     </para>
     <para>
-      The 'receiveTimeout' property specifies the amount of time the poller should wait if no messages are
+      The <emphasis>receiveTimeout</emphasis> property specifies the amount of time the poller should wait if no messages are
       available when it invokes the receive operation. For example, consider two options that seem similar on
       the surface but are actually quite different: the first has an interval trigger of 5 seconds and a receive
       timeout of 50 milliseconds while the second has an interval trigger of 50 milliseconds and a receive timeout
@@ -129,7 +129,7 @@ consumer.setReceiveTimeout(5000);</programlisting>
       (if that message arrived immediately after one of its poll calls returned). On the other hand, the second
       configuration will never miss a message by more than 50 milliseconds. The difference is that the second
       option requires a thread to wait, but as a result it is able to respond much more quickly to arriving messages.
-      This technique, known as "long polling", can be used to emulate event-driven behavior on a polled source.
+      This technique, known as <emphasis>long polling</emphasis>, can be used to emulate event-driven behavior on a polled source.
     </para>
     <para>
       A Polling Consumer may also delegate to a Spring <interfacename>TaskExecutor</interfacename>, and it can
@@ -165,13 +165,13 @@ consumer.setTransactionManager(txManager);</programlisting>
     <title>Namespace Support</title>
     <para>
       Throughout the reference manual, you will see specific configuration examples for endpoint elements, such as
-      router, transformer, service-activator, and so on. Most of these will support an "input-channel" attribute and
-      many will support an "output-channel" attribute. After being parsed, these endpoint elements produce an instance
+      router, transformer, service-activator, and so on. Most of these will support an <emphasis>input-channel</emphasis> attribute and
+      many will support an <emphasis>output-channel</emphasis> attribute. After being parsed, these endpoint elements produce an instance
       of either the <classname>PollingConsumer</classname> or the
-      <classname>EventDrivenConsumer</classname> depending on the type of the "input-channel" that is
+      <classname>EventDrivenConsumer</classname> depending on the type of the <emphasis>input-channel</emphasis> that is
       referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
       respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
-      element's "poller" sub-element and its attributes.
+      element's <emphasis>poller</emphasis> sub-element and its attributes.
     </para>
 
     <emphasis>Configuration</emphasis>
@@ -353,7 +353,9 @@ consumer.setTransactionManager(txManager);</programlisting>
           </calloutlist>
       </para>
 
-    <emphasis>Examples</emphasis>
+    <para>
+        <emphasis>Examples</emphasis>
+    </para>
 
     <para>
       For example, a simple interval-based poller with a 1-second interval would be
@@ -362,10 +364,10 @@ consumer.setTransactionManager(txManager);</programlisting>
               output-channel="output">
      <int:poller fixed-rate="1000"/>
 </int:transformer>]]></programlisting>
-	  As an alternative to 'fixed-rate' you can also use the 'fixed-delay' attribute.
+	  As an alternative to <emphasis>fixed-rate</emphasis> you can also use the <emphasis>fixed-delay</emphasis> attribute.
 	  </para>
 	  <para>
-      For a poller based on a Cron expression, use the "cron" attribute instead:
+      For a poller based on a Cron expression, use the <emphasis>cron</emphasis> attribute instead:
       <programlisting language="xml"><![CDATA[ <int:transformer input-channel="pollable"
               ref="transformer"
               output-channel="output">
@@ -374,13 +376,13 @@ consumer.setTransactionManager(txManager);</programlisting>
     </para>
     <para>
       If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
-      required. Specifically, as mentioned above, the 'trigger' is a required property of the PollingConsumer class.
-      Therefore, if you omit the "poller" sub-element for a Polling Consumer endpoint's configuration, an Exception
+      required. Specifically, as mentioned above, the <emphasis>trigger</emphasis> is a required property of the PollingConsumer class.
+      Therefore, if you omit the <emphasis>poller</emphasis> sub-element for a Polling Consumer endpoint's configuration, an Exception
       may be thrown. The exception will also be thrown if you attempt to configure a poller on the element that is
       connected to a non-pollable channel.
      </para>
      <para>
-      It is also possible to create top-level pollers in which case only a "ref" is required:
+      It is also possible to create top-level pollers in which case only a <emphasis>ref</emphasis> is required:
      </para>
 
      <programlisting language="xml"><![CDATA[ <int:poller id="weekdayPoller" cron="*/10 * * * * MON-FRI"/>
@@ -393,12 +395,14 @@ consumer.setTransactionManager(txManager);</programlisting>
 
  	<note>
 	 	<para>
-	 	The "ref" attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level
+	 	The <emphasis>ref</emphasis> attribute is only allowed on the inner-poller definitions. Defining this attribute on a top-level
 	 	poller will result in a configuration exception thrown during initialization of the Application Context.
 	 	</para>
  	</note>
 
- 	<emphasis>Global Default Pollers</emphasis>
+    <para>
+ 	    <emphasis>Global Default Pollers</emphasis>
+    </para>
 
  	<para>
       In fact, to simplify the configuration even further, you can define a global default poller. A single top-level poller within
@@ -413,7 +417,9 @@ consumer.setTransactionManager(txManager);</programlisting>
                   ref="transformer"
                   output-channel="output"/>]]></programlisting>
 
-    <emphasis>Transaction Support</emphasis>
+    <para>
+        <emphasis>Transaction Support</emphasis>
+    </para>
 
     <para>
       Spring Integration also provides transaction support for the pollers so that each receive-and-forward
@@ -433,13 +439,15 @@ consumer.setTransactionManager(txManager);</programlisting>
     <para>
         For more information please refer to <xref linkend="transaction-poller"/>.
 	</para>
+
 	<para>
-	<emphasis>AOP Advice chains</emphasis>
+	    <emphasis>AOP Advice chains</emphasis>
 	</para>
+
 	<para>
 	Since Spring transaction support depends on the Proxy mechanism  with <classname>TransactionInterceptor</classname> (AOP Advice) handling transactional
 	behavior of the message flow initiated by the poller, some times there is a need to provide extra Advice(s) to handle other
-	cross cutting behavior associated with the poller. For that poller defines an 'advice-chain' element allowing you to add
+	cross cutting behavior associated with the poller. For that poller defines an <emphasis>advice-chain</emphasis> element allowing you to add
 	more advices - class that  implements <classname>MethodInterceptor</classname> interface.. 
 	<programlisting language="xml"><![CDATA[<int:service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
@@ -456,17 +464,19 @@ reference manual (section 7 and 8). Advice chain can also be applied on the poll
 any transaction configuration essentially allowing you to enhance the behavior of the message flow initiated by the poller.
     </para>
 
-    <emphasis>TaskExecutor Support</emphasis>
+    <para>
+        <emphasis>TaskExecutor Support</emphasis>
+    </para>
 
     <para>
       The polling threads may be executed by any instance of Spring's <interfacename>TaskExecutor</interfacename>
-      abstraction. This enables concurrency for an endpoint or group of endpoints. As of Spring 3.0, there is a "task"
+      abstraction. This enables concurrency for an endpoint or group of endpoints. As of Spring 3.0, there is a <emphasis>task</emphasis>
       namespace in the core Spring Framework, and its &lt;executor/&gt; element supports the creation of a simple thread
       pool executor. That element accepts attributes for common concurrency settings such as pool-size and queue-capacity.
       Configuring a thread-pooling executor can make a substantial difference in how the endpoint performs under load. These
       settings are available per-endpoint since the performance of an endpoint is one of the major factors to consider
       (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
-      concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
+      concurrency for a polling endpoint that is configured with the XML namespace support, provide the <emphasis>task-executor</emphasis>
       reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
       <programlisting language="xml"><![CDATA[ <int:poller task-executor="pool" fixed-rate="1000"/>
 
@@ -474,11 +484,11 @@ any transaction configuration essentially allowing you to enhance the behavior o
                 pool-size="5-25"
                 queue-capacity="20"
                 keep-alive="120"/>]]></programlisting>
-      If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
-      "caller" is usually the default <interfacename>TaskScheduler</interfacename>
-      (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the 'task-executor' attribute can
+      If no <emphasis>task-executor</emphasis> is provided, the consumer's handler will be invoked in the caller's thread. Note that the
+      <emphasis>caller</emphasis> is usually the default <interfacename>TaskScheduler</interfacename>
+      (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the <emphasis>task-executor</emphasis> attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
-      specifying the bean name. The "executor" element above is simply provided for convenience.
+      specifying the bean name. The <emphasis>executor</emphasis> element above is simply provided for convenience.
     </para>
      <para>
     	As mentioned in the background section for Polling Consumers above, you can also configure a Polling Consumer
@@ -538,6 +548,21 @@ any transaction configuration essentially allowing you to enhance the behavior o
           https://github.com/SpringSource/spring-integration-samples/tree/master/intermediate
           </ulink></listitem>
       </itemizedlist>
+      <para>
+         The sample provides a custom Trigger which implements the
+         <emphasis><ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/Trigger.html">org.springframework.scheduling.Trigger</ulink></emphasis>
+         interface. The sample's Trigger is based on Spring's <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/scheduling/support/PeriodicTrigger.html">PeriodicTrigger</ulink>
+         implementation. However, the fields of the custom trigger are not final
+         and the properties have explicit getters and setters, allowing to dynamically
+         change the polling period at runtime.
+      </para>
+      <para>
+         It is important to note, though, that because the Trigger method is
+         <emphasis>nextExecutionTime()</emphasis>, any changes to a dynamic trigger
+         will not take effect until the next poll, based on the existing configuration.
+         It is not possible to force a trigger to fire before it's currently
+         configured next execution time.
+      </para>
   </section>
 
   <section id="payload-type-conversion">
@@ -568,7 +593,7 @@ any transaction configuration essentially allowing you to enhance the behavior o
   <section id="async-polling">
     <title>Asynchronous polling</title>
      <para>
-     If you want the polling to be asynchronous, a Poller can optionally specify a 'task-executor' attribute
+     If you want the polling to be asynchronous, a Poller can optionally specify a <emphasis>task-executor</emphasis> attribute
      pointing to an existing instance of any <classname>TaskExecutor</classname> bean
      (Spring 3.0 provides a convenient namespace configuration via the <code>task</code> namespace). However, there are certain things
      you must understand when configuring a Poller with a TaskExecutor. 
