@@ -16,21 +16,22 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
-/** 
+/**
  * Base class for all server connection factories. Server connection factories
  * listen on a port for incoming connections and create new TcpConnection objects
  * for each new connection.
- *  
+ *
  * @author Gary Russell
  * @since 2.0
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
 
 	private boolean listening;
-	
+
 	private String localAddress;
 
 
@@ -60,18 +61,18 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 
 
 	/**
-	 * 
+	 *
 	 * @return true if the server is listening on the port.
 	 */
 	public boolean isListening() {
 		return listening;
 	}
-	
+
 	/**
 	 * Transfers attributes such as (de)serializer, singleUse etc to a new connection.
 	 * For single use sockets, enforces a socket timeout (default 10 seconds).
 	 * @param connection The new connection.
-	 * @param socket The new socket. 
+	 * @param socket The new socket.
 	 */
 	protected void initializeConnection(TcpConnection connection, Socket socket) {
 		TcpListener listener = this.getListener();
@@ -98,9 +99,13 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		}
 
 	}
-	
+
+	protected void postProcessServerSocket(ServerSocket serverSocket) {
+		this.getTcpSocketSupport().postProcessServerSocket(serverSocket);
+	}
+
 	/**
-	 * 
+	 *
 	 * @return the localAddress
 	 */
 	public String getLocalAddress() {
@@ -108,7 +113,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 
 	/**
-	 * Used on multi-homed systems to enforce the server to listen 
+	 * Used on multi-homed systems to enforce the server to listen
 	 * on a specfic network address instead of all network adapters.
 	 * @param localAddress the ip address of the required adapter.
 	 */

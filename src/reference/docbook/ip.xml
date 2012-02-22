@@ -351,6 +351,13 @@
             </para>
         </note>
     </para>
+    <note>
+     <para>
+      It is possible to modify the creation of and/or attributes of sockets - see
+      <xref linkend="ssl-tls"/>. As is noted there, such modifications are possible whether
+      or not SSL is being used.
+     </para>
+    </note>
   </section>
   <section id="ip-interceptors">
     <title>TCP Connection Interceptors</title>
@@ -816,6 +823,157 @@
     a new message is received.
    </para>
   </section>
+  <section id="ssl-tls">
+    <title>SSL/TLS Support</title>
+    <section>
+      <title>Overview</title>
+      <para>
+       Secure Sockets Layer/Transport Layer Security is supported. When using NIO, the JDK 5+
+       <classname>SSLEngine</classname> feature is used to handle handshaking after the
+       connection is established. When not using NIO, standard
+       <classname>SSLSocketFactory</classname> and <classname>SSLServerSocketFactory</classname> objects are
+       used to create connections. A number of strategy interfaces are provided to allow
+       significant customization; default implementations of these interfaces provide for
+       the simplest way to get started with secure communications.
+      </para>
+     </section>
+    <section>
+      <title>Getting Started</title>
+      <para>
+       Regardless of whether NIO is being used, you need to configure the
+       <classname>ssl-context-support</classname> attribute on the connection factory.
+       This attribute references a &lt;bean/&gt; definition that describes the location
+       and passwords for the required key stores.
+      </para>
+      <para>
+       SSL/TLS peers require two keystores each; a keystore containing private/public key
+       pairs identifying the peer; a truststore, containing the public keys for peers that
+       are trusted. See the documentation for the <classname>keytool</classname> utility
+       provided with the JDK. The essential steps are
+      </para>
+      <para>
+       <orderedlist>
+        <listitem><para>Create a new key pair and store in a keystore.</para></listitem>
+        <listitem><para>Export the public key.</para></listitem>
+        <listitem><para>Import the public key into the peer's truststore.</para></listitem>
+       </orderedlist>
+      </para>
+      <para>
+       Repeat for the other peer.
+      </para>
+      <note>
+       <para>
+        It is common in test cases to use the same key stores on both peers, but this should
+        be avoided for production.
+       </para>
+      </note>
+      <para>
+       After establishing the key stores, the next step is to indicate their locations to the
+       <classname>TcpSSLContextSupport</classname> bean, and provide a reference to that bean
+       to the connection factory.
+      </para>
+      <para><programlisting language="xml"><![CDATA[    <bean id="sslContextSupport"
+        class="o.sf.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
+        <constructor-arg value="client.ks"/>
+        <constructor-arg value="client.truststore.ks"/>
+        <constructor-arg value="secret"/>
+        <constructor-arg value="secret"/>
+    </bean>
+
+    <ip:tcp-connection-factory id="clientFactory"
+        type="client"
+        host="localhost"
+        port="1234"
+        ssl-context-support="sslContextSupport"]]></programlisting>
+      </para>
+      <para>
+       The <classname>DefaulTcpSSLContextSupport</classname> class also has an optional
+       'protocol' property, which can be 'SSL' or 'TLS' (default).
+      </para>
+      <para>
+       The keystore file names (first two constructor arguments) use the Spring <classname>Resource</classname>
+       abstraction; by default the files will be located on the classpath, but this can be overridden by using
+       the <classname>file:</classname> prefix, to find the files on the filesystem instead.
+      </para>
+    </section>
+    <section>
+      <title>Advanced Techniques</title>
+      <para>
+       In many cases, the configuration described above is all that is needed to enable secure
+       communication over TCP/IP. However, a number of strategy interfaces are provided to
+       allow customization and modification of socket factories and sockets.
+      </para>
+      <para>
+       <itemizedlist>
+        <listitem><para><classname>TcpSSLContextSupport</classname></para></listitem>
+        <listitem><para><classname>TcpSocketFactorySupport</classname></para></listitem>
+        <listitem><para><classname>TcpSocketSupport</classname></para></listitem>
+       </itemizedlist>
+      </para>
+      <para><programlisting language="java"><![CDATA[public interface TcpSSLContextSupport {
+
+	SSLContext getSSLContext() throws Exception;
+
+}]]></programlisting>
+      </para>
+      <para>
+       Implementations of this interface are responsible for creating an SSLContext.
+       The sole implementation provided by the framework is the
+       <classname>DefaultTcpSSLContextSupport</classname> described above. If you require
+       different behavior, implement this interface and provide the connection factory with
+       a reference to a bean of your class' implementation.
+      </para>
+      <para><programlisting language="java"><![CDATA[public interface TcpSocketFactorySupport {
+
+    ServerSocketFactory getServerSocketFactory();
+
+    SocketFactory getSocketFactory();
+
+}
+]]></programlisting>
+      </para>
+      <para>
+       Implementations of this interface are responsible for obtaining references to
+       <classname>ServerSocketFactory</classname> and <classname>SocketFactory</classname>.
+       Two implementations are provided; the first is <classname>DefaultTcpNetSocketFactorySupport</classname>
+       for non-SSL sockets (when no 'ssl-context-support' attribute is defined); this simply
+       uses the JDK's default factories. The second implementation is
+       <classname>DefaultTcpNetSSLSocketFactorySupport</classname>; this is used, by default,
+       when an 'ssl-context-support' attribute is defined; it uses the <classname>SSLContext</classname>
+       created by that bean to create the socket factories.
+      </para>
+      <note>
+       <para>
+        This interface only applies if <classname>using-nio</classname> is "false"; socket factories
+        are not used by NIO.
+       </para>
+      </note>
+      <para><programlisting language="java"><![CDATA[public interface TcpSocketSupport {
+
+    void postProcessServerSocket(ServerSocket serverSocket);
+
+    void postProcessSocket(Socket socket);
+
+]]></programlisting>
+      </para>
+      <para>
+       Implementations of this interface can modify sockets after they are created, and after
+       all configured attributes have been applied, but before the sockets are used. This applies
+       whether or not NIO is being used. For example,
+       you could use an implementation of this interface to modify the supported cipher suites on
+       an SSL socket, or you could add a listener that gets notified after SSL handshaking is
+       complete. The sole implementation provided by the framework is the
+       <classname>DefaultTcpSocketSupport</classname> which does not modify the sockets in
+       any way
+      </para>
+      <para>
+       To supply your own implementation of <classname>TcpSocketFactorySupport</classname> or
+       <classname>TcpSocketSupport</classname>, provide the connection factory with references to
+       beans of your custom type using the <classname>socket-factory-support</classname> and
+       <classname>socket-support</classname> attributes, respectively.
+      </para>
+    </section>
+  </section>
   <section id="ip-endpoint-reference">
     <title>IP Configuration Attributes</title>
     <para>
@@ -1019,6 +1177,27 @@
               <entry>Y</entry>
               <entry></entry>
               <entry>See <xref linkend="ip-interceptors"/> </entry>
+            </row>
+            <row>
+              <entry>ssl-context-support</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <xref linkend="ssl-tls"/> </entry>
+            </row>
+            <row>
+              <entry>socket-factory-support</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <xref linkend="ssl-tls"/> </entry>
+            </row>
+            <row>
+              <entry>socket-support</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <xref linkend="ssl-tls"/> </entry>
             </row>
           </tbody>
         </tgroup>

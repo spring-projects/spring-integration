@@ -29,7 +29,6 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,6 +49,9 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
@@ -212,6 +214,15 @@ public class ParserUnitTests {
 	@Autowired @Qualifier("udpAutoChannel.adapter")
 	UnicastReceivingChannelAdapter udpAutoAdapter;
 
+	@Autowired
+	TcpNetServerConnectionFactory secureServer;
+
+	@Autowired
+	TcpSocketFactorySupport socketFactorySupport;
+
+	@Autowired
+	TcpSocketSupport socketSupport;
+
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
@@ -261,6 +272,7 @@ public class ParserUnitTests {
 		assertEquals(124, tcpIn.getPhase());
 		assertTrue((Boolean) TestUtils.getPropertyValue(
 				TestUtils.getPropertyValue(cfS1, "mapper"), "applySequence"));
+		assertTrue(TestUtils.getPropertyValue(cfS1, "tcpSocketFactorySupport") instanceof DefaultTcpNetSSLSocketFactorySupport);
 	}
 
 	@Test
@@ -543,5 +555,12 @@ public class ParserUnitTests {
 	@Test
 	public void testAutoUdp() {
 		assertSame(udpAutoChannel, TestUtils.getPropertyValue(udpAutoAdapter, "outputChannel"));
+	}
+
+	@Test
+	public void testSecureServer() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(secureServer);
+		assertSame(socketFactorySupport, dfa.getPropertyValue("tcpSocketFactorySupport"));
+		assertSame(socketSupport, dfa.getPropertyValue("tcpSocketSupport"));
 	}
 }

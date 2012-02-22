@@ -21,8 +21,13 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import javax.net.ServerSocketFactory;
+
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
+import org.springframework.util.Assert;
 
 /**
  * Implements a server connection factory that produces {@link TcpNetConnection}s using
@@ -33,7 +38,9 @@ import javax.net.ServerSocketFactory;
  */
 public class TcpNetServerConnectionFactory extends AbstractServerConnectionFactory {
 
-	private ServerSocket serverSocket;
+	private volatile ServerSocket serverSocket;
+
+	private volatile TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
 
 	/**
 	 * Listens for incoming connections on the port.
@@ -63,12 +70,27 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				InetAddress whichNic = InetAddress.getByName(this.getLocalAddress());
 				theServerSocket = createServerSocket(this.getPort(), this.getPoolSize(), whichNic);
 			}
+			this.getTcpSocketSupport().postProcessServerSocket(theServerSocket);
 			this.serverSocket = theServerSocket;
 			this.setListening(true);
 			logger.info("Listening on port " + this.getPort());
 			while (true) {
-				final Socket socket = serverSocket.accept();
-				logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
+				final Socket socket;
+				/*
+				 *  User hooks in the TcpSocketSupport may have set the server socket SO_TIMEOUT.
+				 *  Not fatal.
+				 */
+				try {
+					socket = serverSocket.accept();
+				} catch (SocketTimeoutException ste) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Timed out on accept; continuing");
+					}
+					continue;
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
+				}
 				setSocketAttributes(socket);
 				TcpConnection connection = new TcpNetConnection(socket, true, this.isLookupHost());
 				connection = wrapConnection(connection);
@@ -100,11 +122,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 * @throws IOException
 	 */
 	protected ServerSocket createServerSocket(int port, int backlog, InetAddress whichNic) throws IOException {
+		ServerSocketFactory serverSocketFactory = this.tcpSocketFactorySupport.getServerSocketFactory();
 		if (whichNic == null) {
-			return ServerSocketFactory.getDefault().createServerSocket(port,
+			return serverSocketFactory.createServerSocket(port,
 					Math.abs(backlog));
 		} else {
-			return ServerSocketFactory.getDefault().createServerSocket(port,
+			return serverSocketFactory.createServerSocket(port,
 					Math.abs(backlog), whichNic);
 		}
 	}
@@ -124,6 +147,16 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 */
 	protected ServerSocket getServerSocket() {
 		return serverSocket;
+	}
+
+	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {
+		return tcpSocketFactorySupport;
+	}
+
+	public void setTcpSocketFactorySupport(
+			TcpSocketFactorySupport tcpSocketFactorySupport) {
+		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
+		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
 	}
 	
 }

@@ -33,10 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.core.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
+import org.springframework.util.Assert;
 
 /**
  * A TcpConnection that uses and underlying {@link SocketChannel}.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  *
@@ -45,7 +46,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final SocketChannel socketChannel;
 
-	private volatile OutputStream channelOutputStream;
+	private final ChannelOutputStream channelOutputStream;
 
 	private volatile PipedOutputStream pipedOutputStream;
 
@@ -79,6 +80,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.channelOutputStream = new ChannelOutputStream();
 	}
 
+	@Override
 	public void close() {
 		doClose();
 	}
@@ -103,7 +105,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public void send(Message<?> message) throws Exception {
 		synchronized(this.getMapper()) {
 			Object object = this.getMapper().fromMessage(message);
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.channelOutputStream);
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
 			this.afterSend(message);
 		}
 	}
@@ -131,9 +133,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * If there is no listener, and this connection is not for single use, 
+	 * If there is no listener, and this connection is not for single use,
 	 * this method exits. When there is a listener, this method assembles
-	 * data into messages by invoking convertAndSend whenever there is 
+	 * data into messages by invoking convertAndSend whenever there is
 	 * data in the input Stream. Method exits when a message is complete
 	 * and there is no more data; thus freeing the thread to work on other
 	 * sockets.
@@ -170,7 +172,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				} else {
 					logger.error("Read exception " +
 								 this.getConnectionId() + " " +
-								 e.getClass().getSimpleName() + 
+								 e.getClass().getSimpleName() +
 							     ":" + e.getCause() + ":" + e.getMessage());
 				}
 				this.closeConnection();
@@ -244,7 +246,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		/*
 		 * For single use sockets, we close after receipt if we are on the client
-		 * side, and the data was not intercepted, 
+		 * side, and the data was not intercepted,
 		 * or the server side has no outbound adapter registered
 		 */
 		if (this.isSingleUse() && ((!this.isServer() && !intercepted) || (this.isServer() && this.getSender() == null))) {
@@ -267,21 +269,35 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			// If there is no assembler running, start one
 			checkForAssembler();
-			this.rawBuffer.clear();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Before read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
 				this.writingToPipe = false;
 				this.closeConnection();
 			}
+			if (logger.isTraceEnabled()) {
+				logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			this.rawBuffer.flip();
+			if (logger.isTraceEnabled()) {
+				logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
 			}
-			this.pipedOutputStream.write(this.rawBuffer.array(), 0, this.rawBuffer.limit());
-			this.pipedOutputStream.flush();
+			this.sendToPipe(this.rawBuffer);
 		} finally {
 			this.writingToPipe = false;
 		}
+	}
+
+	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
+		Assert.notNull(rawBuffer, "rawBuffer cannot be null");
+		this.pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
+		this.pipedOutputStream.flush();
+		rawBuffer.clear();
 	}
 
 	private void checkForAssembler() {
@@ -311,9 +327,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			this.closeConnection();
 		} catch (Exception e) {
-			logger.error("Exception on Read " + 
-					     this.getConnectionId() + " " + 
-					     e.getMessage());
+			logger.error("Exception on Read " +
+					     this.getConnectionId() + " " +
+					     e.getMessage(), e);
 			this.closeConnection();
 		}
 	}
@@ -326,7 +342,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param taskExecutor the taskExecutor to set
 	 */
 	public void setTaskExecutor(Executor taskExecutor) {
@@ -342,8 +358,16 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		this.usingDirectBuffers = usingDirectBuffers;
 	}
 
+	protected boolean isUsingDirectBuffers() {
+		return usingDirectBuffers;
+	}
+
+	protected ChannelOutputStream getChannelOutputStream() {
+		return channelOutputStream;
+	}
+
 	/**
-	 * 
+	 *
 	 * @return Time of last read.
 	 */
 	public long getLastRead() {
@@ -351,7 +375,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param lastRead The time of the last read.
 	 */
 	public void setLastRead(long lastRead) {
@@ -359,7 +383,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	/**
-	 * OutputStream to wrap a SocketChannel; implements timeout on write. 
+	 * OutputStream to wrap a SocketChannel; implements timeout on write.
 	 *
 	 */
 	class ChannelOutputStream extends OutputStream {
@@ -397,7 +421,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			doWrite(buffer);
 		}
 
-		private synchronized void doWrite(ByteBuffer buffer) throws IOException {
+		protected synchronized void doWrite(ByteBuffer buffer) throws IOException {
+			if (logger.isDebugEnabled()) {
+				logger.debug(getConnectionId() + " writing " + buffer.remaining());
+			}
 			socketChannel.write(buffer);
 			int remaining = buffer.remaining();
 			if (remaining == 0) {

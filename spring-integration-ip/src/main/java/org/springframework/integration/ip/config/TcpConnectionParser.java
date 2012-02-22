@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ import org.w3c.dom.Element;
  */
 public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 	
-	private static final String BASE_PACKAGE = "org.springframework.integration.ip.config";
-
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element,
 			ParserContext parserContext) {
@@ -45,8 +43,7 @@ public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
 					" must be 'client' or 'server' for a TCP Connection Factory", element);
 		}		
-		builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
-				".TcpConnectionFactoryFactoryBean");
+		builder = BeanDefinitionBuilder.genericBeanDefinition(TcpConnectionFactoryFactoryBean.class);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.HOST);
@@ -83,7 +80,13 @@ public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 				IpAdapterParserUtils.LOOKUP_HOST);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.APPLY_SEQUENCE);
-	
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SSL_CONTEXT_SUPPORT);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SOCKET_FACTORY_SUPPORT);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+				IpAdapterParserUtils.SOCKET_SUPPORT);
+
 		return builder.getBeanDefinition();
 	}
 

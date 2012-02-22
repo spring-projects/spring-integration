@@ -30,6 +30,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
+import org.springframework.util.Assert;
+
 
 /**
  * A client connection factory that creates {@link TcpNioConnection}s.
@@ -40,14 +44,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TcpNioClientConnectionFactory extends
 		AbstractClientConnectionFactory {
 
-	private boolean usingDirectBuffers;
+	private volatile boolean usingDirectBuffers;
 	
-	private Selector selector;
+	private volatile Selector selector;
 	
-	private Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
+	private final Map<SocketChannel, TcpNioConnection> channelMap = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
 	
-	private BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
+	private final BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
 
+	private volatile TcpNioConnectionSupport tcpNioConnectionSupport = new DefaultTcpNioConnectionSupport();
 	
 	/**
 	 * Creates a TcpNioClientConnectionFactory for connections to the host and port.
@@ -84,7 +89,8 @@ public class TcpNioClientConnectionFactory extends
 		}
 		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.getHost(), this.getPort()));
 		setSocketAttributes(socketChannel.socket());
-		TcpNioConnection connection = new TcpNioConnection(socketChannel, false, this.isLookupHost());
+		TcpNioConnection connection = this.tcpNioConnectionSupport.createNewConnection(
+				socketChannel, false, this.isLookupHost());
 		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		connection.setTaskExecutor(this.getTaskExecutor());
 		TcpConnection wrappedConnection = wrapConnection(connection);
@@ -107,6 +113,11 @@ public class TcpNioClientConnectionFactory extends
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	public void setTcpNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
+		Assert.notNull(tcpNioSupport, "TcpNioSupport must not be null");
+		this.tcpNioConnectionSupport = tcpNioSupport;
 	}
 
 	public void close() {

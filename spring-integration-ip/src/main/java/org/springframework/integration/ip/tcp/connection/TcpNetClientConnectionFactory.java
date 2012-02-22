@@ -22,14 +22,20 @@ import java.net.SocketException;
 
 import javax.net.SocketFactory;
 
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
+import org.springframework.util.Assert;
+
 /**
- * A client connection factory that creates {@link TcpNetConnection}s. 
+ * A client connection factory that creates {@link TcpNetConnection}s.
  * @author Gary Russell
  * @since 2.0
  *
  */
 public class TcpNetClientConnectionFactory extends
 		AbstractClientConnectionFactory {
+
+	private volatile TcpSocketFactorySupport tcpSocketFactorySupport = new DefaultTcpNetSocketFactorySupport();
 
 	/**
 	 * Creates a TcpNetClientConnectionFactory for connections to the host and port.
@@ -45,6 +51,7 @@ public class TcpNetClientConnectionFactory extends
 	 * @throws SocketException
 	 * @throws Exception
 	 */
+	@Override
 	protected TcpConnection getOrMakeConnection() throws Exception {
 		TcpConnection theConnection = this.getTheConnection();
 		if (theConnection != null && theConnection.isOpen()) {
@@ -73,13 +80,24 @@ public class TcpNetClientConnectionFactory extends
 	 * @throws IOException
 	 */
 	protected Socket createSocket(String host, int port) throws IOException {
-		return SocketFactory.getDefault().createSocket(host, port);
+		return this.tcpSocketFactorySupport.getSocketFactory().createSocket(host, port);
 	}
 
+	@Override
 	public void close() {
 	}
 
 	public void run() {
+	}
+
+	protected TcpSocketFactorySupport getTcpSocketFactorySupport() {
+		return tcpSocketFactorySupport;
+	}
+
+	public void setTcpSocketFactorySupport(
+			TcpSocketFactorySupport tcpSocketFactorySupport) {
+		Assert.notNull(tcpSocketFactorySupport, "TcpSocketFactorySupport may not be null");
+		this.tcpSocketFactorySupport = tcpSocketFactorySupport;
 	}
 
 }
