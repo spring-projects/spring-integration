@@ -83,7 +83,8 @@
 	  				<callout arearefs="persistMode">
 	  					<para>
 	  						The operation that needs to be done by the adapter, valid values are
-	  						PERSIST, MERGE and DELETE
+	  						<emphasis>PERSIST</emphasis>, <emphasis>MERGE</emphasis> 
+	  						and <emphasis>DELETE</emphasis>. The default value is <emphasis>MERGE</emphasis>.
 	  					</para>
 	  				</callout>
 	  				<callout arearefs="entityMgr">
@@ -293,12 +294,173 @@ public class Student {
 				</calloutlist>				
 	  		</para>
 	  	</section>
+	  	<para>
+	  	We have now seen four possible ways of defining the <emphasis>outbound-channel-adapter</emphasis> in the previous sub sections. 
+	  	We will now see how to use outbound gateways in the next section.   
+	  	</para>
 	 </section>
 	 <section id="jpa-outbound-gateway">
 	 	<title>Outbound Gateway</title>
 	  	<para>
-	  		TODO: Content Goes Here
+	  		<para>
+	  		Outbound gateways are similar to outbound channel adapter except that it can also be used to 
+	  		get a result on the <emphasis>reply channel</emphasis> after performing
+	  		the given JPA operation . If you are directly referring to this outbound gateway section,
+	  		we would recommend you to first go through the outbound channel adapter section given above, as most of the common concepts have been
+	  		explained there.
+	  		</para>
+	  		<para>
+	  		Simlar to the <emphasis>outbound-channel-adapter</emphasis>, we can use
+	  		<itemizedlist>
+			 	<listitem>
+			 		<para><emphasis>Entity classes</emphasis></para>
+			 	</listitem>
+			 	<listitem>
+			 		<para>
+			 			<emphasis>JPA Query Language (JPA QL)</emphasis>
+			 		</para>
+			 	</listitem>
+			 	<listitem>
+			 		<para><emphasis>Native query</emphasis></para>
+			 	</listitem>
+			 	<listitem>
+			 		<para><emphasis>Named query</emphasis></para>
+			 	</listitem>
+		 	</itemizedlist>
+		 	for performing various JPA operations. We will be seeing each of these in the following four sub sections. Since we are assuming
+		 	you are already familiar with the <emphasis>outbound-channel-adapter</emphasis>, we will only discuss portions relevant to 
+		 	<emphasis>outbound-gateway</emphasis>. 
+	  		</para>
 	  	</para>
+	  	<para>	  	
+  			<section>
+  				<title>
+  					Difference between <emphasis>UPDATING</emphasis> and <emphasis>RETRIEVING</emphasis> gateway  					
+  				</title>
+  				<para>
+  					Before we continue, let us see what are the types of JPA outbound gateways.
+  					JPA outbound gateways are either <emphasis>UPDATING</emphasis> or <emphasis>RECEIVING</emphasis>
+  					types. The type is specified using the <emphasis>gateway-type</emphasis> attribute.
+  					If this attribute is not specified, the gateway type if defaulted to an <emphasis>UPDATING</emphasis>
+  					type of the gateway  					 
+  				</para>
+  				<para>
+  					Whenever the gateway intends to perform an action that updates or deletes some records in the
+  					database using JPA, you need to use an <emphasis>UPDATING</emphasis> type of gateway. If an entity is 
+  					used, a merged/persisted entity is returned. In any other case
+  					the number of records affected (updated or deleted) are returned.
+  				</para>
+  				<para>
+  					If the calling application requires to  select/retrieve some data from the database
+  					using <emphasis>outbound-gateway</emphasis>, we use a <emphasis>RETRIEVING</emphasis> type
+  					of gateway. With a <emphasis>RETRIEVING</emphasis> type of gateway, we can use either
+  					of JPA QL, Named Query or Native Query for selecting the data and retrieving the result.
+  				</para>
+  			</section>
+  		</para>		  	
+	  	<section id="outboundGatewayEntityClass">
+	  		<title>Using Entity class</title>
+	  		<para>
+	  		We will see below an xml snippet that declares an <emphasis>outbound-gateway</emphasis> using
+	  		entity class.	  		
+	  		</para>
+	  		<para>
+	  		<programlisting language="xml">
+	  			<![CDATA[
+<int-jpa:outbound-gateway	request-channel="entityRequestChannel" ]]><co id="gatewayEntityReqChannel"/>
+<![CDATA[				reply-channel="entityResponseChannel" ]]><co id="gatewayEntityRepChannel"/>
+<![CDATA[				entity-class="org.springframework.integration.jpa.test.entity.Student"
+				entity-manager="em" 
+				gateway-type="UPDATING" ]]><co id="gatewayEntityGatewayType"/><![CDATA[/>]]>
+	  		</programlisting>
+	  		<calloutlist>
+	  			<callout arearefs="gatewayEntityReqChannel">
+	  				<para>This is the request channel for the outbound gateway, this is similar
+	  				to the <emphasis>channel</emphasis> attribute of the <emphasis>outbound-channel-adapter</emphasis>
+	  				</para>
+	  			</callout>
+	  			<callout arearefs="gatewayEntityRepChannel">
+	  				<para>
+	  				This is where a gateway differs from an outbound adapter, this is the channel over
+	  				which the reply of the JPA operation performed is received. If,however, you are not interested in the
+	  				reply received and just want to perform the operation, then <emphasis>outbound-channel-adapter</emphasis> 
+	  				is an appropriate choice. In above case, where we are using entity class, the reply will
+	  				be the entity object that was created/merged as a result of the JPA operation performed.</para>
+	  			</callout>	  			
+	  			<callout arearefs="gatewayEntityGatewayType">
+	  				<para>
+	  					Valid values are <emphasis>RETRIEVING</emphasis> and <emphasis>UPDATING</emphasis>.
+	  					This attribute is optional and in it's absence the value
+	  					defaults to <emphasis>UPDATING</emphasis>.
+	  				</para>
+	  			</callout>
+	  		</calloutlist>
+	  		</para>
+	  	</section>
+	  		  	
+	  	<section id="outboundGatewayJPAQl">
+  			<title>Using JPA Query Language (JPA QL)</title>
+  			<para>
+  				We will now see how we can use JPA QL in an outbound gateway. Below xml snippet is a declaration of the 
+  				<emphasis>outbound-gateway</emphasis>.
+  				<programlisting language="xml">
+<![CDATA[<int-jpa:outbound-gateway	request-channel="jpaqlRequestChannel"
+    				reply-channel="jpaqlResponseChannel"
+    				query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber" ]]><co id="jpaQlGatewayQuery"/>
+<![CDATA[				entity-manager="em"
+    				gateway-type="UPDATING">
+    		<int-jpa:parameter name="lastName" expression="payload"/>
+    		<int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:outbound-gateway>
+]]>  					
+  				</programlisting>
+  				<calloutlist>
+  					<callout arearefs="jpaQlGatewayQuery">
+  						<para>
+  							The JPA QL that will be executed by the gateway. Since the 
+  							<emphasis>gateway-type</emphasis> is <emphasis>UPDATING</emphasis>, only <emphasis>update</emphasis> and
+  							<emphasis>delete</emphasis> JPA QL will be acceptable.
+  						</para>
+  					</callout>  					
+  				</calloutlist>
+  				<para>
+  					On sending a message with string payload and containing a header <emphasis>rollNumber</emphasis>
+  					with a <emphasis>long</emphasis> value, the last name of the student with the provided roll number
+  					is updated to the value provided in the message payload. When using a gateway of type 
+  					<emphasis>UPDATING</emphasis>, the return value is <emphasis>always</emphasis> an integer
+  					value which denotes the number of records affected by execution of the JPA QL.
+  				</para>
+  				TODO: Show one RETRIEVING type of gateway sample
+  			</para>
+  		</section>
+  		<section id="outboundGatewayNativeQuery">
+  			<title>Using Native query</title>
+  			<para>
+  			Using native query is very identical to using the JPA QL except that the query attribute now 
+  			holds the native SQL Query and an additional attribute <emphasis>native-query</emphasis> set to 
+  			<emphasis>true</emphasis>
+  			(TODO: Change this description once the change for the attribute names is done) 
+  			</para>
+  		</section>	
+  		<section id="outboundGatewayNamedQuery">
+  			<title>Using Named query</title>
+  			<para>
+	  			Using named query is also very similar to using a JPA QL except that we have
+	  			the <emphasis>named-query</emphasis> attribute as seen in the xml snippet below
+	  			<programlisting language="xml">
+<![CDATA[
+<int-jpa:outbound-gateway	request-channel="namedQueryRequestChannel"
+				reply-channel="namedQueryResponseChannel"
+				named-query="updateStudentByRollNumber"
+				entity-manager="em"
+				gateway-type="UPDATING">
+	<int-jpa:parameter name="lastName" expression="payload"/>
+	<int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
+</int-jpa:outbound-gateway>
+]]>	  			
+	  			</programlisting>
+  			</para>
+  		</section>	  	
 	 </section>
 	 <section id="jpa-inbound-channel-adapter">
 	 	<title>Inbound Channel Adapter</title>
