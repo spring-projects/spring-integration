@@ -21,6 +21,11 @@
 	                        order="99" should-clone-payload="true" output-channel="output">
 		<property name="name" expression="payload.sourceName"/>
 		<property name="age" value="42"/>
+		<property name="gender" expression="@testBean"/>
 	</enricher>
+
+	<beans:bean id="testBean" class="java.lang.String">
+		<beans:constructor-arg value="male"/>
+	</beans:bean>
 
 </beans:beans>

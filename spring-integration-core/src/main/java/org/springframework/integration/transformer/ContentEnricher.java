@@ -20,7 +20,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -193,6 +195,10 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			this.gateway.afterPropertiesSet();
 		}
 		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+		}
 	}
 
 	@Override
