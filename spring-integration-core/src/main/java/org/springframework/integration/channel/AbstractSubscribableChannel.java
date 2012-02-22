@@ -24,8 +24,8 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageDispatchingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.dispatcher.AbstractDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -44,20 +44,31 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 	public boolean subscribe(MessageHandler handler) {
 		MessageDispatcher dispatcher = this.getRequiredDispatcher();
 		boolean added = dispatcher.addHandler(handler);
-		if (added) {
-			int counter = handlerCounter.incrementAndGet();
-			if (logger.isInfoEnabled()) {
-				logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s).");
-			}
-		}
+		this.adjustCounterIfNecessary(dispatcher, added ? 1 : 0);
 		return added;
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
-		if (this.getRequiredDispatcher() instanceof UnicastingDispatcher){
-			handlerCounter.getAndDecrement();
+		MessageDispatcher dispatcher = this.getRequiredDispatcher();
+		boolean removed = dispatcher.removeHandler(handle);
+		this.adjustCounterIfNecessary(dispatcher, removed ? -1 : 0);
+		return removed;
+	}
+
+	private void adjustCounterIfNecessary(MessageDispatcher dispatcher, int delta) {
+		if (delta != 0) {
+			int counter = 0;
+			if (dispatcher instanceof AbstractDispatcher) {
+				counter = ((AbstractDispatcher) dispatcher).getHandlerCount();
+			}
+			else {
+				// some other dispatcher - hand-roll the counter
+				counter = handlerCounter.addAndGet(delta);
+			}
+			if (logger.isInfoEnabled()) {
+				logger.info("Channel '" + this.getComponentName() + "' has " + counter + " subscriber(s).");
+			}
 		}
-		return this.getRequiredDispatcher().removeHandler(handle);
 	}
 
 	@Override
