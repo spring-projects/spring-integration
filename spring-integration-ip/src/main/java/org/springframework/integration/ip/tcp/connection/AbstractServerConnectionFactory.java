@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -97,6 +98,10 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 			}
 		}
 
+	}
+	
+	protected void postProcessServerSocket(ServerSocket serverSocket) {
+		this.getTcpSocketSupport().postProcessServerSocket(serverSocket);
 	}
 	
 	/**

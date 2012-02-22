@@ -31,6 +31,15 @@ import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpSocketSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSSLSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNetSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpNioConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.DefaultTcpNioSSLConnectionSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSSLContextSupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport;
+import org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport;
 import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 
 /**
@@ -90,6 +99,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 
 	private volatile boolean applySequence;
 
+	private volatile TcpSSLContextSupport sslContextSupport;
+
+	private volatile TcpSocketSupport socketSupport = new DefaultTcpSocketSupport();
+
+	private volatile TcpNioConnectionSupport nioConnectionSupport;
+
+	private volatile TcpSocketFactorySupport socketFactorySupport;
+
 	@Override
 	public Class<?> getObjectType() {
 		return this.connectionFactory != null ? this.connectionFactory.getClass() 
@@ -104,12 +121,14 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
+				connectionFactory.setTcpNioConnectionSupport(this.getNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNioClientConnectionFactory connectionFactory = new TcpNioClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
 				connectionFactory.setUsingDirectBuffers(this.usingDirectBuffers);
+				connectionFactory.setTcpNioConnectionSupport(this.getNioConnectionSupport());
 				this.connectionFactory = connectionFactory;
 			}
 		} else {
@@ -117,11 +136,13 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 				TcpNetServerConnectionFactory connectionFactory = new TcpNetServerConnectionFactory(this.port);
 				this.setCommonAttributes(connectionFactory);
 				this.setServerAttributes(connectionFactory);
+				connectionFactory.setTcpSocketFactorySupport(this.getSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			} else {
 				TcpNetClientConnectionFactory connectionFactory = new TcpNetClientConnectionFactory(
 						this.host, this.port);
 				this.setCommonAttributes(connectionFactory);
+				connectionFactory.setTcpSocketFactorySupport(this.getSocketFactorySupport());
 				this.connectionFactory = connectionFactory;
 			}
 		}
@@ -146,12 +167,38 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 		factory.setSoTrafficClass(this.soTrafficClass);
 		factory.setTaskExecutor(this.taskExecutor);
 		factory.setBeanName(this.beanName);
+		factory.setTcpSocketSupport(this.socketSupport);
 	}
 
 	private void setServerAttributes(AbstractServerConnectionFactory factory) {
 		factory.setLocalAddress(this.localAddress);
 	}
 
+	private TcpSocketFactorySupport getSocketFactorySupport() {
+		if (this.socketFactorySupport != null) {
+			return this.socketFactorySupport;
+		}
+		if (this.sslContextSupport == null) {
+			return new DefaultTcpNetSocketFactorySupport();
+		}
+		else {
+			return new DefaultTcpNetSSLSocketFactorySupport(this.sslContextSupport);
+		}
+	}
+
+	private TcpNioConnectionSupport getNioConnectionSupport() {
+		if (this.nioConnectionSupport != null) {
+			return this.nioConnectionSupport;
+		}
+		if (this.sslContextSupport == null) {
+			return new DefaultTcpNioConnectionSupport();
+		}
+		else {
+			return new DefaultTcpNioSSLConnectionSupport(this.sslContextSupport);
+		}
+			
+	}
+	
 	/**
 	 * @param port the port to set
 	 */
@@ -370,6 +417,27 @@ public class TcpConnectionFactoryFactoryBean extends AbstractFactoryBean<Abstrac
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
+	}
+
+	public void setSslContextSupport(TcpSSLContextSupport sslContextSupport) {
+		this.sslContextSupport = sslContextSupport;
+	}
+
+	public void setSocketSupport(TcpSocketSupport tcpSocketSupport) {
+		this.socketSupport = tcpSocketSupport;
+	}
+
+	/**
+	 * Rare property - not exposed through namespace
+	 * @param tcpNioSupport
+	 */
+	public void setNioConnectionSupport(TcpNioConnectionSupport tcpNioSupport) {
+		this.nioConnectionSupport = tcpNioSupport;
+	}
+
+	public void setSocketFactorySupport(
+			TcpSocketFactorySupport tcpSocketFactorySupport) {
+		this.socketFactorySupport = tcpSocketFactorySupport;
 	}
 
 }

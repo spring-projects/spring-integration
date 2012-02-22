@@ -45,7 +45,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final SocketChannel socketChannel;
 
-	private volatile OutputStream channelOutputStream;
+	private final ChannelOutputStream channelOutputStream;
 
 	private volatile PipedOutputStream pipedOutputStream;
 
@@ -103,7 +103,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public void send(Message<?> message) throws Exception {
 		synchronized(this.getMapper()) {
 			Object object = this.getMapper().fromMessage(message);
-			((Serializer<Object>) this.getSerializer()).serialize(object, this.channelOutputStream);
+			((Serializer<Object>) this.getSerializer()).serialize(object, this.getChannelOutputStream());
 			this.afterSend(message);
 		}
 	}
@@ -267,21 +267,34 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			// If there is no assembler running, start one
 			checkForAssembler();
-			this.rawBuffer.clear();
+			if (logger.isTraceEnabled()) {
+				logger.trace("Before read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			int len = this.socketChannel.read(this.rawBuffer);
 			if (len < 0) {
 				this.writingToPipe = false;
 				this.closeConnection();
 			}
+			if (logger.isTraceEnabled()) {
+				logger.trace("After read:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			this.rawBuffer.flip();
+			if (logger.isTraceEnabled()) {
+				logger.trace("After flip:" + this.rawBuffer.position() + "/" + this.rawBuffer.limit());
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
 			}
-			this.pipedOutputStream.write(this.rawBuffer.array(), 0, this.rawBuffer.limit());
-			this.pipedOutputStream.flush();
+			this.sendToPipe(this.rawBuffer);
 		} finally {
 			this.writingToPipe = false;
 		}
+	}
+
+	protected void sendToPipe(ByteBuffer rawBuffer) throws IOException {
+		this.pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
+		this.pipedOutputStream.flush();
+		rawBuffer.clear();
 	}
 
 	private void checkForAssembler() {
@@ -313,7 +326,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		} catch (Exception e) {
 			logger.error("Exception on Read " + 
 					     this.getConnectionId() + " " + 
-					     e.getMessage());
+					     e.getMessage(), e);
 			this.closeConnection();
 		}
 	}
@@ -340,6 +353,14 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	protected boolean isUsingDirectBuffers() {
+		return usingDirectBuffers;
+	}
+
+	protected ChannelOutputStream getChannelOutputStream() {
+		return channelOutputStream;
 	}
 
 	/**
@@ -397,7 +418,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			doWrite(buffer);
 		}
 
-		private synchronized void doWrite(ByteBuffer buffer) throws IOException {
+		protected synchronized void doWrite(ByteBuffer buffer) throws IOException {
+			if (logger.isDebugEnabled()) {
+				logger.debug(getConnectionId() + " writing " + buffer.remaining());
+			}
 			socketChannel.write(buffer);
 			int remaining = buffer.remaining();
 			if (remaining == 0) {

@@ -29,6 +29,8 @@ import java.io.OutputStream;
  * @since 2.0
  */
 public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
+	
+	private static final byte[] CRLF = "\r\n".getBytes();
 
 	/**
 	 * Reads the data in the inputstream to a byte[]. Data must be terminated
@@ -69,8 +71,7 @@ public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 	 */
 	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
-		outputStream.write('\r');
-		outputStream.write('\n');
+		outputStream.write(CRLF);
 		outputStream.flush();
 	}
 

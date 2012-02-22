@@ -58,7 +58,32 @@
 		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
 		lookup-host="false"
 		apply-sequence="true"
+		ssl-context-support="sslContextSupport"
 		/>
+
+	<bean id="sslContextSupport" class="org.springframework.integration.ip.tcp.connection.support.DefaultTcpSSLContextSupport">
+		<constructor-arg value="test.ks"/>
+		<constructor-arg value="test.truststore.ks"/>
+		<constructor-arg value="secret"/>
+		<constructor-arg value="secret"/>
+	</bean>
+	
+	<ip:tcp-connection-factory id="secureServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(5250)}"
+		lookup-host="false"
+		apply-sequence="true"
+		ssl-context-support="sslContextSupport"
+		socket-support="socketSupport"
+		socket-factory-support="socketFactorySupport" />
+
+	<bean id="socketSupport" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.support.TcpSocketSupport" />
+	</bean>
+
+	<bean id="socketFactorySupport" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.ip.tcp.connection.support.TcpSocketFactorySupport" />
+	</bean>
 
 	<ip:tcp-inbound-channel-adapter id="testInTcp"
 		channel="tcpChannel"
