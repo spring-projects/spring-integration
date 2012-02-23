@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -125,6 +126,7 @@ public class WebServiceInboundGatewayParserTests {
 	AbstractMarshaller marshaller;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void marshallersSet() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(marshallingGateway);
 		assertThat((AbstractMarshaller) accessor.getPropertyValue("marshaller"),
@@ -136,6 +138,12 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
+		List<String> requestHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.requestHeaderNames", List.class);
+		List<String> replyHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.replyHeaderNames", List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals(1, replyHeaders.size());
+		assertTrue(requestHeaders.contains("testRequest"));
+		assertTrue(replyHeaders.contains("testReply"));
 	}
 
 	@Test

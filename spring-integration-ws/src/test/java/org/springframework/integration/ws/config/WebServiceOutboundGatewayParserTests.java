@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ws.config;
 
+import java.util.List;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -38,7 +40,9 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+
 import static org.junit.Assert.assertNull;
 
 /**
@@ -46,6 +50,7 @@ import static org.junit.Assert.assertNull;
  */
 public class WebServiceOutboundGatewayParserTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void simpleGatewayWithReplyChannel() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -57,6 +62,13 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object expected = context.getBean("outputChannel");
 		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
+		
+		List<String> requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderNames", List.class);
+		List<String> replyHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.replyHeaderNames", List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals(1, replyHeaders.size());
+		assertTrue(requestHeaders.contains("testRequest"));
+		assertTrue(replyHeaders.contains("testReply"));
 	}
 
 	@Test

@@ -42,7 +42,10 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !(attributeName.endsWith("marshaller")) && super.isEligibleAttribute(attributeName);
+		return !(attributeName.endsWith("marshaller")) && 
+			   !(attributeName.endsWith("mapped-reply-headers")) && 
+			   !(attributeName.endsWith("mapped-request-headers")) && 
+			   super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
