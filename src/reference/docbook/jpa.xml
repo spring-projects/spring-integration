@@ -465,8 +465,95 @@ public class Student {
 	 <section id="jpa-inbound-channel-adapter">
 	 	<title>Inbound Channel Adapter</title>
 	  	<para>
-	  		TODO: Content Goes Here
+	  		An inbound channel adapter is used to execute a <emphasis>select</emphasis> query over the
+	  		database using JPA QL and ane return the result. The message payload will be either a single 
+	  		entity or a <emphasis>List</emphasis> of entities. Below is a sample xml snippet that shows
+	  		a sample usage of <emphasis>inbound-channel-adapter</emphasis>.
+	  		<programlisting language="xml">
+<![CDATA[
+<int-jpa:inbound-channel-adapter	channel="inboundChannelAdapterOne" ]]><co id="inboundAdapterChannel"/><![CDATA[
+					entity-manager="em" ]]><co id="inboundAdapterEntityManager"/><![CDATA[
+					auto-startup="true" ]]><co id="inboundAdapterAutoStartup"/><![CDATA[
+					query="select s from Student s" ]]><co id="inboundAdapterQuery"/><![CDATA[
+					expect-single-result="true" ]]><co id="inboundAdapterExpectResult"/><![CDATA[
+					max-rows="1" ]]><co id="inboundAdapterMaxRows"/><![CDATA[						
+					delete-after-poll="true"> ]]><co id="inboundAdapterDeleteAfterPoll"/><![CDATA[
+		<int:poller fixed-rate="2000" >
+			<int:transactional propagation="REQUIRED" transaction-manager="transactionManager"/>
+		</int:poller>							
+</int-jpa:inbound-channel-adapter>
+]]>	  		
+	  		</programlisting>
+	  		<calloutlist>
+	  			<callout arearefs="inboundAdapterChannel">
+	  				<para>
+	  					The channel over which the <emphasis>inbound-channel-adapter</emphasis> will put the
+	  					messages with the payload received after executing the provided JPA QL in the
+	  					<emphasis>query</emphasis> attribute.
+	  				</para>
+	  			</callout>
+	  			<callout arearefs="inboundAdapterEntityManager">
+	  				<para>
+	  					The <emphasis>EntityManager</emphasis> instance that will be used to perform the
+	  					required JPA operations.
+	  				</para>
+	  			</callout>
+	  			<callout arearefs="inboundAdapterAutoStartup">
+	  				<para>
+	  					Attribute signalling if the component should be automatically started on startup of
+	  					the Application Context. The value defaults to <emphasis>true</emphasis>
+	  				</para>	  			
+	  			</callout>
+	  			<callout arearefs="inboundAdapterQuery">
+	  				<para>
+	  					The JPA QL that needs to be executed and whose result needs to be sent out as the 
+	  					payload of the message
+	  				</para>	  			
+	  			</callout>
+	  			<callout arearefs="inboundAdapterExpectResult">
+	  				<para>
+	  					The attribute that tells if the executed JPA QL gives a single entity in the result
+	  					or a <emphasis>List</emphasis> of entities. If the value is set to <emphasis>true</emphasis>,
+	  					the single entity retrieved is sent as the payload of the message. If, however, multiple
+	  					results are returned after setting this to <emphasis>true</emphasis>, a 
+	  					<emphasis>MessageHandlingException</emphasis> is thrown. The value defaults to <emphasis>false</emphasis>
+	  				</para>	  			
+	  			</callout>
+	  			<callout arearefs="inboundAdapterMaxRows">
+	  				<para>
+	  					The maximum number of rows that should be retrieved on execution of the given JPA QL.
+	  					Relevant only if the query can potentially receive multiple records
+	  					
+	  				</para>	  			
+	  			</callout>
+	  			<callout arearefs="inboundAdapterDeleteAfterPoll">
+	  				<para>
+	  					Set this value to <emphasis>true</emphasis> if you want to delete the rows received
+	  					after execution of the query.
+	  				</para>	  			
+	  			</callout>
+	  		</calloutlist>	  		
+	  		
 	  	</para>
+	 </section>
+	 <section id="xmlAttributeReferences">
+	 	<title>JPA Adapters XML attributes quick reference</title>
+	 	<section id="commonAttributes">
+	 		<title>Common XML Attributes</title>
+	 		<para>TODO: Give a table of common attributes here</para>
+	 	</section>
+	 	<section id="outboundAdapterAttributes">
+	 		<title>Outbound adapter XML Attributes</title>
+	 		<para>TODO: Give a table of outbound adapter attributes here</para>
+	 	</section>
+	 	<section id="outboundGatewayAttributes">
+	 		<title>Outbound gateway XML Attributes</title>
+	 		<para>TODO: Give a table of outbound gateway attributes here</para>
+	 	</section>
+	 	<section id="inboundAdapterAttributes">
+	 		<title>Inbound adapter XML Attributes</title>
+	 		<para>TODO: Give a table of inbound adapter attributes here</para>
+	 	</section>
 	 </section>
 	 <note>
 	 	<para>You can find more samples for using spring integration's JPA adapter at 
