@@ -19,7 +19,8 @@
 		  	</listitem>  	
 		 </itemizedlist>
 	 <para>
-	 	These adapters can be used to perform the select, create, update and delete 
+	 	These adapters can be used to perform the <emphasis>select</emphasis>, <emphasis>create</emphasis>, 
+	 	<emphasis>update</emphasis> and <emphasis>delete</emphasis> 
 	 	operations on the database by sending/receiving messages to them.
 	 </para>
 	 <para>
@@ -51,12 +52,12 @@
 	  		it to perform the operation	on the database. The message payload
 	  		and headers can be used as the parameters for the operation to be performed.
 	  		In the following sub sections we shall see what are the possible ways of performing
-	  		these operations using the outbound channel adapter.
+	  		these operations.
 	  	</para>
 	  	<section>
 	  		<title>Using Entity class</title>
 	  		<para>
-	  			Below code snippet shows how we can use the outbound channel adapter to perform 
+	  			Below xml snippet shows how we can use the outbound channel adapter to perform 
 	  			operations on the database by sending entities over the channel to it.
 	  			<programlisting language="xml">
 <![CDATA[
@@ -137,7 +138,7 @@
 					<callout arearefs="jpaQlParam">
 						<para>
 							This sub element, one for each parameter will be used to evaluate the value of
-							the parameter names specified in the JPA QL specified in the query attribute	
+							the parameter names specified in the JPA QL specified in the <emphasis>query</emphasis> attribute	
 						</para>
 					</callout>
 				</calloutlist>
@@ -150,7 +151,7 @@
 					are mutually exclusive. 
 				</para>
 				<para>
-					If the <emphasis>name</emphasis> attribute is specified we can provide an optional 
+					If the <emphasis>value</emphasis> attribute is specified we can provide an optional 
 					<emphasis>type</emphasis> attribute. The value of this attribute is the fully qualified name of the class 
 					whose value is represented by the <emphasis>value</emphasis> attribute. By default
 					the type is assumed to be a <emphasis>java.lang.String</emphasis>. 
@@ -236,7 +237,7 @@
 		  			We will now see how to use named queries after seeing using entity, JPA QL and native query in previous sub sections.
 		  			Using named query is also very similar to using JPA QL or a native query, except that we specify a named query instead of a query.
 		  			Before we go further and see the xml fragment for the declaration of the <emphasis>outbound-channel-adapter</emphasis>, we will 
-		  			see how named JPA queries are defined.  	  			
+		  			see how named JPA named queries are defined.  	  			
 		  		</para>
 		  		<para>
 		  			In our case, if we have an entity called <emphasis>Student</emphasis>, then we have the following in the class to define
@@ -339,7 +340,7 @@ public class Student {
   				</title>
   				<para>
   					Before we continue, let us see what are the types of JPA outbound gateways.
-  					JPA outbound gateways are either <emphasis>UPDATING</emphasis> or <emphasis>RECEIVING</emphasis>
+  					JPA outbound gateways are either <emphasis>UPDATING</emphasis> or <emphasis>RETRIEVING</emphasis>
   					types. The type is specified using the <emphasis>gateway-type</emphasis> attribute.
   					If this attribute is not specified, the gateway type if defaulted to an <emphasis>UPDATING</emphasis>
   					type of the gateway  					 
@@ -407,7 +408,7 @@ public class Student {
 <![CDATA[<int-jpa:outbound-gateway	request-channel="jpaqlRequestChannel"
     				reply-channel="jpaqlResponseChannel"
     				query="update Student s set s.lastName = :lastName where s.rollNumber = :rollNumber" ]]><co id="jpaQlGatewayQuery"/>
-<![CDATA[				entity-manager="em"
+<![CDATA[					entity-manager="em"
     				gateway-type="UPDATING">
     		<int-jpa:parameter name="lastName" expression="payload"/>
     		<int-jpa:parameter name="rollNumber" expression="headers['rollNumber']"/>
@@ -430,7 +431,10 @@ public class Student {
   					<emphasis>UPDATING</emphasis>, the return value is <emphasis>always</emphasis> an integer
   					value which denotes the number of records affected by execution of the JPA QL.
   				</para>
-  				TODO: Show one RETRIEVING type of gateway sample
+  				<emphasis>
+  				TODO: Show one RETRIEVING type of gateway sample, also somewhere in the manual
+  				show a sample usage of BeanPropertyParameterSource
+  				</emphasis>
   			</para>
   		</section>
   		<section id="outboundGatewayNativeQuery">
@@ -466,7 +470,7 @@ public class Student {
 	 	<title>Inbound Channel Adapter</title>
 	  	<para>
 	  		An inbound channel adapter is used to execute a <emphasis>select</emphasis> query over the
-	  		database using JPA QL and ane return the result. The message payload will be either a single 
+	  		database using JPA QL and return the result. The message payload will be either a single 
 	  		entity or a <emphasis>List</emphasis> of entities. Below is a sample xml snippet that shows
 	  		a sample usage of <emphasis>inbound-channel-adapter</emphasis>.
 	  		<programlisting language="xml">
@@ -540,19 +544,228 @@ public class Student {
 	 	<title>JPA Adapters XML attributes quick reference</title>
 	 	<section id="commonAttributes">
 	 		<title>Common XML Attributes</title>
-	 		<para>TODO: Give a table of common attributes here</para>
+	 		<table frame="all">
+	 			<title>Common Attributes</title>
+	 			<tgroup cols="3" align="left" colsep="1" rowsep="1">
+	 				<colspec colnum="1" colname="comname" colwidth="2*"/>
+	 				<colspec colnum="2" colname="comdescription" colwidth="4*"/>	 				
+	 				<colspec colnum="3" colname="commandatory" colwidth="1*"/>	 			
+	 				<thead>
+	 					<row>
+	 						<entry>Name</entry>
+	 						<entry>Description</entry>	 						
+	 						<entry>Mandatory</entry>
+	 					</row>
+	 				</thead>
+	 				<tbody>
+	 					<row>
+	 						<entry><emphasis>entity-manager</emphasis></entry>
+	 						<entry>An instance of <emphasis>javax.persistence.EntityManager</emphasis>
+	 									that will be used to perform the JPA operations.
+	 						</entry>	 						
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>entity-manager-factory</emphasis></entry>
+	 						<entry>An instance of <emphasis>javax.persistence.EntityManagerFactory</emphasis>
+	 							that will be used to obtain an instance of <emphasis>javax.persistence.EntityManager</emphasis> 
+	 							that will perform the JPA operations. Either of <emphasis>entity-manager-factory</emphasis> and
+	 							<emphasis>entity-manager</emphasis> attributes is mandatory. 
+	 						</entry>	 						
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>jpa-operations</emphasis></entry>
+	 						<entry>
+	 							An implementation of 
+	 							<emphasis>org.springframework.integration.jpa.core.JpaOperations</emphasis>
+	 							that would be used to perform the JPA operations. It is recommended not to 
+	 							provide an implementation of your own but use the default 
+	 							<emphasis>org.springframework.integration.jpa.core.DefaultJpaOperations</emphasis> 
+	 							implementation.
+	 						</entry>
+	 						
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>query</emphasis></entry>
+	 						<entry>The JPA QL that needs to be executed by this adapter</entry>	 						
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>native-query</emphasis></entry>
+	 						<entry>
+	 							The boolean flag that indicates that the string value given in query attribute
+	 							is a native query. By default the value is <emphasis>false</emphasis> 
+	 							(TODO: change this after the changes are made in adapter)
+	 						</entry>	 						
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>named-query</emphasis></entry>
+	 						<entry>The Named JPA QL that needs to be executed by this adapter</entry>	 						
+	 						<entry>No</entry>
+	 					</row>
+	 				</tbody>
+	 			</tgroup>
+	 		</table>
 	 	</section>
 	 	<section id="outboundAdapterAttributes">
-	 		<title>Outbound adapter XML Attributes</title>
-	 		<para>TODO: Give a table of outbound adapter attributes here</para>
-	 	</section>
-	 	<section id="outboundGatewayAttributes">
-	 		<title>Outbound gateway XML Attributes</title>
-	 		<para>TODO: Give a table of outbound gateway attributes here</para>
+	 		<title>Outbound adapter/gateway XML Attributes</title>
+	 		<table frame="all">
+	 			<title>Outbound adapter/gateway Attributes</title>
+	 			<tgroup cols="3" align="left">
+	 				<colspec colnum="1" colname="oagname" colwidth="2*"/>
+	 				<colspec colnum="2" colname="oagdescription" colwidth="4*"/>	 				
+	 				<colspec colnum="3" colname="oagmandatory" colwidth="1*"/>	 			
+	 				<thead>
+	 					<row>
+	 						<entry>Name</entry>
+	 						<entry>Description</entry>	 						
+	 						<entry>Mandatory</entry>
+	 					</row>
+	 				</thead>
+	 				<tbody>
+	 					<row>
+	 						<entry><emphasis>channel</emphasis></entry>
+	 						<entry>
+	 							The channel over which the outbound adapter will receive messages for performing the desired operation.
+	 							This attribute is relevant for <emphasis>outbound-channel-adapter</emphasis> only.
+	 						</entry>
+	 						<entry>Yes</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>request-channel</emphasis></entry>
+	 						<entry>
+	 							The channel over which the outbound gateway will receive messages for performing the desired operation.
+	 							This attribute is relevant for <emphasis>outbound-gateway</emphasis> only. This attribute is similar to 
+	 							<emphasis>channel</emphasis> attribute of the <emphasis>outbound-channel-adapter</emphasis>
+	 						</entry>
+	 						<entry>Yes</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>entity-class</emphasis></entry>
+	 						<entry>
+	 							The fully qualified name of the entity class of the entities that would be sent to this adapter to perform JPA Operation
+	 							using entity. The attributes <emphasis>entity-class</emphasis>, <emphasis>query</emphasis> and <emphasis>named-query</emphasis> 
+	 							are mutually exclusive.
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>reply-channel</emphasis></entry>
+	 						<entry>
+	 							The channel over which the gateway will send the response after 
+	 							performing the required JPA operation. This attribute is relevant for <emphasis>outbound-gateway</emphasis>
+	 							only. If this attribute is not defined, the request message <emphasis>must</emphasis> have a 
+	 							<emphasis>replyChannel</emphasis> header 							  
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>persist-mode</emphasis></entry>
+	 						<entry>
+	 						Accepts one of the <emphasis>PERSIST</emphasis>,<emphasis>MERGE</emphasis>
+	 						or <emphasis>DELETE</emphasis>. Indicates the operation that the adapter needs to 
+	 						perform. Relevant only if an entity is being used for JPA operations. Ignored if
+	 						JPA QL, named query or native query is provided. Defaults to <emphasis>MERGE</emphasis>
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>gateway-type</emphasis></entry>
+	 						<entry>
+	 							Valid values are <emphasis>UPDATING</emphasis> and <emphasis>RETRIEVING</emphasis>, 
+	 							the value defaults to <emphasis>UPDATING</emphasis>. The difference between these types
+	 							of gateways is explained earlier in the manual. This attribute is relevant to 
+	 							<emphasis>outbound-gateway</emphasis> only
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>parameter-source-factory</emphasis></entry>
+	 						<entry>
+		 						An instance of <emphasis>org.springframework.integration.jpa.support.parametersource.ParameterSourceFactory</emphasis> 
+		 						that will be used to get an instance of 
+		 						<emphasis>org.springframework.integration.jpa.support.parametersource.ParameterSource</emphasis> which will be used to
+		 						resolve the values of the parameters provided in the query. Ignored if operations are done using JPA entity. 
+		 						If a <emphasis>param</emphasis> sub element is used, the factory <emphasis>must</emphasis> be of type
+		 						<emphasis>org.springframework.integration.jpa.support.parametersource.ExpressionEvaluatingParameterSourceFactory</emphasis>
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 				</tbody>
+	 			</tgroup>
+	 		</table>		
 	 	</section>
 	 	<section id="inboundAdapterAttributes">
 	 		<title>Inbound adapter XML Attributes</title>
-	 		<para>TODO: Give a table of inbound adapter attributes here</para>
+	 		<table frame="all">
+	 			<tgroup cols="3" align="left">
+	 				<colspec colnum="1" colname="icaname" colwidth="2*"/>
+	 				<colspec colnum="2" colname="icadescription" colwidth="4*"/>
+	 				<colspec colnum="3" colname="icamandatory" colwidth="1*"/>
+	 				<thead>
+	 					<row>
+	 						<entry>Name</entry>
+	 						<entry>Description</entry>
+	 						<entry>Mandatory</entry>
+	 					</row>
+	 				</thead>
+	 				<tbody>
+	 					<row>
+	 						<entry><emphasis>channel</emphasis></entry>
+	 						<entry>
+	 							The channel over which the adapter will send a message with the payload
+	 							that was received after performing desired the JPA operation
+	 						</entry>
+	 						<entry>Yes</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>delete-after-poll</emphasis></entry>
+	 						<entry>
+	 							A <emphasis>boolean</emphasis> flag that indicates whether the
+	 							records selected are to be deleted after they are being polled by the adapter.
+	 							By default the value is <emphasis>false</emphasis>, that is, the
+	 							records will not be deleted
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>delete-per-row</emphasis></entry>
+	 						<entry>
+	 							A <emphasis>boolean</emphasis> flag that indicates whether the records can be deleted in bulk
+	 							or are deleted one record at a time. By default the value is <emphasis>false</emphasis>, that is,
+	 							the records are bulk deleted 
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>	 					
+	 					<row>
+	 						<entry><emphasis>max-rows</emphasis></entry>
+	 						<entry>
+	 							This non zero, non negative  <emphasis>integer</emphasis> value tells the adapter not to select more than given 
+	 							number of rows on execution of the <emphasis>select</emphasis> operation. By default, if this 
+	 							attribute is not set, all the possible records are selected by given query.  
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 					<row>
+	 						<entry><emphasis>expect-single-result</emphasis></entry>
+	 						<entry>
+	 							A <emphasis>boolean</emphasis> flag indicates whether the select operation gives a single
+	 							result or a <emphasis>List</emphasis> or results. If this flag is set to <emphasis>true</emphasis>, 
+	 							the single entity selected is sent as the payload of the message. 
+	 							If however, multiple entities are selected, an exception is thrown. 
+	 							If <emphasis>false</emphasis>, the <emphasis>List</emphasis> of entities is being 
+	 							sent as the payload of the message. Even a single entity will be sent a 
+	 							<emphasis>List</emphasis> or size one when the value is set to  <emphasis>false</emphasis>.
+	 							By default the value is <emphasis>false</emphasis>
+	 						</entry>
+	 						<entry>No</entry>
+	 					</row>
+	 				</tbody>
+	 			</tgroup>
+	 		</table>
 	 	</section>
 	 </section>
 	 <note>
