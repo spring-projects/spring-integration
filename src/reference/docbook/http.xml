@@ -18,7 +18,7 @@
   support the HTTP inbound adapters need to be deployed within a servlet container.  The easiest way to do this is to provide a servlet
   definition in <emphasis>web.xml</emphasis>, see
   <xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
-    <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
+    <programlisting language="xml"><![CDATA[<bean id="httpInbound"
   class="org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway">
   <property name="requestChannel" ref="httpRequestChannel" />
   <property name="replyChannel" ref="httpReplyChannel" />
@@ -52,7 +52,7 @@
   configured to serve as a Spring MVC Controller with a view name. Because of the constructor arg value of TRUE, it wait for a reply.  This also shows
   how to customize the HTTP methods accepted by the gateway, which
   are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.
-  <programlisting language="xml"><![CDATA[<bean id="httpInbound" 
+  <programlisting language="xml"><![CDATA[<bean id="httpInbound"
   class="org.springframework.integration.http.inbound.HttpRequestHandlingController">
   <constructor-arg value="true" /> <!-- indicates that a reply is expected -->
   <property name="requestChannel" ref="httpRequestChannel" />
@@ -76,7 +76,7 @@
 
   <para>
     To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
@@ -84,7 +84,7 @@
     This bean definition will execute HTTP requests by delegating to a <classname>RestTemplate</classname>. That template in turn delegates
     to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
     as the ClientHttpRequestFactory instance to use:
-    <programlisting language="xml"><![CDATA[<bean id="httpOutbound" 
+    <programlisting language="xml"><![CDATA[<bean id="httpOutbound"
   class="org.springframework.integration.http.outbound.HttpRequestExecutingMessageHandler">
   <constructor-arg value="http://localhost:8080/example" />
   <property name="outputChannel" ref="responseChannel" />
@@ -104,7 +104,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>
       Basic cookie support is provided by the <emphasis>transfer-cookies</emphasis> attribute on the outbound gateway. When
       set to true (default is false), a <emphasis>Set-Cookie</emphasis> header received from the server in a response will be
-      converted to <emphasis>Cookie</emphasis> in the reply message. This header will then be used 
+      converted to <emphasis>Cookie</emphasis> in the reply message. This header will then be used
       on subsequent sends. This enables simple stateful interactions, such as...
     </para>
     <para>
@@ -117,25 +117,133 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   </section>
 
   <section id="http-namespace">
+
     <title>HTTP Namespace Support</title>
-  <para>
-    Spring Integration provides an "http" namespace and schema definition. To include it in your
-    configuration, simply provide the following URI within a namespace declaration:
-    'http://www.springframework.org/schema/integration/http'. The schema location should then map to
-    'http://www.springframework.org/schema/integration/http/spring-integration-http.xsd'.
-  </para>
+
     <para>
-    To configure an inbound http channel adapter which is an instance of <classname>HttpInboundEndpoint</classname> configured
-    not to expect a response.
-    <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" 
+        Spring Integration provides an <emphasis>http</emphasis> namespace and
+        the corresponding schema definition. To include it in your configuration,
+        simply provide the following namespace declaration in your application
+        context configuration file:
+    </para>
+
+    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:int="http://www.springframework.org/schema/integration"
+  xmlns:int-http="http://www.springframework.org/schema/integration/http"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/integration
+    http://www.springframework.org/schema/integration/spring-integration.xsd
+    http://www.springframework.org/schema/integration/http
+    http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+    ...
+</beans>]]></programlisting>
+
+    <para><emphasis>Inbound</emphasis></para>
+
+    <para>
+        To configure an HTTP Inbound Channel Adapter which is an instance of
+        <classname>HttpInboundEndpoint</classname> configured not to expect a
+        response.
+    </para>
+
+    <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpChannelAdapter" channel="requests"
     supported-methods="PUT, DELETE"/>]]></programlisting>
-    </para>
+
     <para>
-    To configure an inbound http gateway which expects a response.
-    <programlisting language="xml"><![CDATA[ <int-http:inbound-gateway id="inboundGateway" 
-    request-channel="requests" 
-    reply-channel="responses"/>]]></programlisting>
+        To configure an HTTP Inbound Gateway which expects a response.
     </para>
+
+    <programlisting language="xml"><![CDATA[ <int-http:inbound-gateway id="inboundGateway"
+    request-channel="requests"
+    reply-channel="responses"/>]]></programlisting>
+
+    <important>
+        <para>
+            Since <emphasis>Spring Integration 2.1</emphasis> the
+            <emphasis>HTTP Inbound Gateway</emphasis> and the <emphasis>HTTP
+            Inbound Channel Adapter</emphasis> should use the <emphasis>path</emphasis>
+            attribute instead of the <emphasis>name</emphasis> attribute for
+            specifying the request path. The <emphasis>name</emphasis> attribute
+            for those 2 components has been deprecated.
+        </para>
+        <para>
+            If you simply want to identify component itself within your application
+            context, please use the <emphasis>id</emphasis> attribute.
+        </para>
+    </important>
+
+    <para><emphasis>Defining the UriPathHandlerMapping</emphasis></para>
+
+    <para>
+      In order to use the <emphasis>HTTP Inbound Gateway</emphasis> or the
+      <emphasis>HTTP Inbound Channel Adapter</emphasis> you must define a
+
+      <interfacename><ulink url="http://static.springsource.org/spring-integration/api/org/springframework/integration/http/inbound/UriPathHandlerMapping.html"
+          >UriPathHandlerMapping</ulink></interfacename>. This particular implementation of the
+      <ulink url="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/web/servlet/HandlerMapping.html"
+          ><interfacename>HandlerMapping</interfacename></ulink> matches against
+      the value of the <emphasis>path</emphasis> attribute.
+    </para>
+
+    <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.http.inbound.UriPathHandlerMapping"/>]]></programlisting>
+    <para>
+        For more information regarding <emphasis>Handler Mappings</emphasis>, please
+        see:
+    </para>
+
+    <itemizedlist>
+       <listitem>
+           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#mvc-handlermapping"></ulink>
+       </listitem>
+    </itemizedlist>
+
+    <para><emphasis>URI Template Variables and Expressions</emphasis></para>
+
+    <para>
+        By Using the <emphasis>path</emphasis> attribute in conjunction with the
+        <emphasis>payload-expression</emphasis> attribute as well as the <emphasis>
+        header</emphasis> sub-element, you have a high degree of flexiblity for
+        mapping inbound request data.
+    </para>
+
+    <para>
+        In the following example configuration, an Inbound Channel Adapter is
+        configured to accept requests using the following URI:
+        <emphasis>/first-name/{firstName}/last-name/{lastName}</emphasis>
+    </para>
+
+    <para>
+        Using the <emphasis>payload-expression</emphasis> attribute, the URI
+        template variable <emphasis>{firstName}</emphasis> is mapped to be the
+        Message payload, while the <emphasis>{lastName}</emphasis> URI template
+        variable will map to the <emphasis>lname</emphasis> Message header.
+    </para>
+
+    <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="inboundAdapterWithExpressions"
+                                  path="/first-name/{firstName}/last-name/{lastName}"
+                                  channel="requests"
+                                  payload-expression="#pathVariables.firstName">
+        <int-http:header name="lname" expression="#pathVariables.lastName"/>
+</int-http:inbound-channel-adapter>]]></programlisting>
+
+    <para>
+        For reference in regards to using <emphasis>URI template variables</emphasis>,
+        please take a look at <emphasis>Chapter 16.3.2</emphasis> of the Spring Reference
+        Manual as well:
+    </para>
+
+    <itemizedlist>
+       <listitem>
+           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#mvc-ann-requestmapping"></ulink>
+       </listitem>
+    </itemizedlist>
+
+    <para><emphasis>Outbound</emphasis></para>
+
     <para>
     To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
     default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would only
@@ -167,43 +275,43 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       auto-startup="false"/>]]></programlisting>
   </para>
   <para>
-  	<emphasis>Mapping URI variables</emphasis>	
+  	<emphasis>Mapping URI variables</emphasis>
   </para>
   <para>
-  If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in 
+  If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in
   <emphasis>Http Outbound Gateway</emphasis> configuration.
-  
+
   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="trafficGateway"
-    url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}" 
-		              request-channel="trafficChannel" 
-		              http-method="GET" 
+    url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
+		              request-channel="trafficChannel"
+		              http-method="GET"
 		              expected-response-type="java.lang.String">
 		<int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
 </int-http:outbound-gateway>]]></programlisting>
-  
-  The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use 
-  the <code>value</code> attribute for literal values, but if the value you are trying to inject is dynamic and requires 
-  access to Message data you can use a SpEL expression via the <code>expression</code> attribute. In the above configuration 
-  the <code>getZip()</code> method will be invoked on the payload object of the Message and the result of that 
+
+  The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use
+  the <code>value</code> attribute for literal values, but if the value you are trying to inject is dynamic and requires
+  access to Message data you can use a SpEL expression via the <code>expression</code> attribute. In the above configuration
+  the <code>getZip()</code> method will be invoked on the payload object of the Message and the result of that
   method will be used as the value for URI variable named 'zipCode'.
   </para>
 
   </section>
-  
+
   <section id="http-proxy">
  	<title>HTTP Proxy configuration</title>
- 
+
  	<para>
  	If you are behind a proxy and need to configure proxy settings for HTTP outbound adapters and/or
 	gateways, you can apply one of two approaches. In most cases, you can rely on the standard Java
 	System Properties that control the proxy settings. Otherwise, you can explicitly configure a
 	Spring bean for the HTTP client request factory instance.
  	</para>
- 	
+
  	<para>
  		<emphasis>Standard Java Proxy configuration</emphasis>
     </para>
-    
+
     <para>
     There are 3 System Properties you can set to configure the proxy settings that will be used by the HTTP protocol handler:
     <itemizedlist>
@@ -214,15 +322,15 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       <listitem>
         <para><emphasis>http.proxyPort</emphasis> - the port number, the default value being 80. </para>
       </listitem>
-      
+
       <listitem>
-        <para><emphasis>http.nonProxyHosts</emphasis> - a list of hosts that should be reached directly, 
+        <para><emphasis>http.nonProxyHosts</emphasis> - a list of hosts that should be reached directly,
         bypassing the proxy. This is a list of patterns separated by '|'. The patterns may start or end with a '*' for wildcards. Any host matching one of these patterns will be reached through a direct connection instead of through a proxy. </para>
       </listitem>
     </itemizedlist>
-    
+
     And for HTTPS:
-    
+
     <itemizedlist>
       <listitem>
         <para><emphasis>https.proxyHost</emphasis> - the host name of the proxy server. </para>
@@ -230,18 +338,18 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
       <listitem>
         <para><emphasis>https.proxyPort</emphasis> - the port number, the default value being 80. </para>
-      </listitem> 
+      </listitem>
     </itemizedlist>
     For more information please refer to this document: http://download.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
     </para>
- 	
+
     <para>
     	<emphasis>Spring's SimpleClientHttpRequestFactory</emphasis>
     </para>
     <para>
     If for any reason, you need more explicit control over the proxy configuration, you can use Spring's
     <classname>SimpleClientHttpRequestFactory</classname> and configure its 'proxy' property as such:
-    <programlisting language="xml"><![CDATA[<bean id="requestFactory" 
+    <programlisting language="xml"><![CDATA[<bean id="requestFactory"
     			class="org.springframework.http.client.SimpleClientHttpRequestFactory">
 	<property name="proxy">
 		<bean id="proxy" class="java.net.Proxy">
@@ -255,47 +363,47 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 				</bean>
 			</constructor-arg>
 		</bean>
-	</property>	
+	</property>
 </bean>]]></programlisting>
     </para>
 
  </section>
-  
+
   <section id="http-header-mapping">
   	<title> HTTP Header Mappings</title>
   	<para>
   	Spring Integration provides support for Http Header mapping for both HTTP Request and HTTP Responses.
   	</para>
-  	
+
   	<para>
-  	By default all standard Http Headers as defined here 
-  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without 
-  	further configuration. 
+  	By default all standard Http Headers as defined here
+  	http://en.wikipedia.org/wiki/List_of_HTTP_header_fields will be mapped from the message to HTTP request/response headers without
+  	further configuration.
   	However if you do need further customization you may provide additional configuration via convenient namespace support.
     You can provide a comma-separated list of header names, and you can also include simple patterns with the '*' character acting as a wildcard.
   	If you do provide such values, it will override the default behavior. Basically, it assumes you are in complete control at that point.
     However, if you do want to include all of the standard HTTP headers, you can use the shortcut patterns: HTTP_REQUEST_HEADERS and
     HTTP_RESPONSE_HEADERS. Here are some examples:
-  	
+
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
 			url="http://localhost/test2"
 			mapped-request-headers="foo, bar"
 			mapped-response-headers="X-*, HTTP_RESPONSE_HEADERS"
 			channel="someChannel"/>
-			
+
 <int-http:outbound-channel-adapter id="httpAdapter"
 			url="http://localhost/test2"
 			mapped-request-headers="foo, bar, HTTP_REQUEST_HEADERS"
 			channel="someChannel"/>]]></programlisting>
-			
-	The adapters and gateways will use the <classname>DefaultHttpHeaderMapper</classname> which now provides 
-	two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be 
-	applied (mapping HTTP requests/responses IN/OUT as appropriate). 
+
+	The adapters and gateways will use the <classname>DefaultHttpHeaderMapper</classname> which now provides
+	two static factory methods for "inbound" and "outbound" adapters so that the proper direction can be
+	applied (mapping HTTP requests/responses IN/OUT as appropriate).
   	</para>
   	<para>
-  	If further customization is required you can also configure a <classname>DefaultHttpHeaderMapper</classname> independently 
+  	If further customization is required you can also configure a <classname>DefaultHttpHeaderMapper</classname> independently
   	and inject it into the adapter via the <code>header-mapper</code> attribute.
-  	
+
   	<programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="httpGateway"
 			url="http://localhost/test2"
 			header-mapper="headerMapper"
@@ -309,7 +417,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para>Of course, you can even implement the HeaderMapper strategy interface directly and provide a reference to that
 	  if you need to do something other than what the <classname>DefaultHttpHeaderMapper</classname> supports.</para>
   </section>
-  
+
   <section id="http-samples">
     <title>HTTP Samples</title>
   <section id="multipart-rest-inbound">
