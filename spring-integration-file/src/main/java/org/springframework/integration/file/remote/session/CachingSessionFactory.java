@@ -19,12 +19,11 @@ package org.springframework.integration.file.remote.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.util.UpperBound;
+import org.springframework.integration.util.SimplePool;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -41,15 +40,9 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 	private static final Log logger = LogFactory.getLog(CachingSessionFactory.class);
 
-
-	private volatile long sessionWaitTimeout = Integer.MAX_VALUE;
-
-	private final LinkedBlockingQueue<Session<F>> queue = new LinkedBlockingQueue<Session<F>>();
-
 	private final SessionFactory<F> sessionFactory;
 
-	private final UpperBound sessionPermits;
-
+	private final SimplePool<Session<F>> pool;
 
 	public CachingSessionFactory(SessionFactory<F> sessionFactory) {
 		this(sessionFactory, 0);
@@ -57,7 +50,19 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	
 	public CachingSessionFactory(SessionFactory<F> sessionFactory, int sessionCacheSize) {
 		this.sessionFactory = sessionFactory;
-		this.sessionPermits = new UpperBound(sessionCacheSize);
+		this.pool = new SimplePool<Session<F>>(sessionCacheSize, new SimplePool.Callback<Session<F>>() {
+			public Session<F> getNewItemForPool() {
+				return CachingSessionFactory.this.sessionFactory.getSession();
+			}
+
+			public boolean isItemStale(Session<F> session) {
+				return !session.isOpen();
+			}
+
+			public void removedFromPool(Session<F> session) {
+				session.close();
+			}
+		});
 	}
 
 
@@ -67,52 +72,19 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	 * @throws {@link IllegalStateException} if the wait expires prior to a Session becoming available.
 	 */
 	public void setSessionWaitTimeout(long sessionWaitTimeout) {
-		this.sessionWaitTimeout = sessionWaitTimeout;
+		this.pool.setWaitTimeout(sessionWaitTimeout);
 	}
 
-	public Session<F> getSession() {	
-		boolean permitted = this.sessionPermits.tryAcquire(this.sessionWaitTimeout);
-		if (!permitted) {
-			throw new IllegalStateException("Timed out while waiting to aquire a Session.");
-		}
-		Session<F> session = this.doGetSession();
-		return new CachedSession(session);
+	public void setPoolSize(int poolSize) {
+		this.pool.setPoolSize(poolSize);
+	}
+
+	public Session<F> getSession() {
+		return new CachedSession(this.pool.getItem());
 	}
 
 	public void destroy() {
-		if (this.queue != null) {
-			for (Session<F> session : this.queue) {
-				this.closeSession(session);
-			}
-		}
-	}
-
-	private Session<F> doGetSession() {
-		Session<F> session = this.queue.poll();
-		if (session != null && !session.isOpen()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Received a stale Session, will attempt to get a new one.");
-			}
-			return this.doGetSession();
-		}
-		else if (session == null){
-			session = this.sessionFactory.getSession();
-		}
-		return session;
-	}
-
-	private void closeSession(Session<F> session) {
-		try {
-			if (session != null) {
-				session.close();
-			}
-		}
-		catch (Throwable e) {
-			if (logger.isWarnEnabled()) {
-				// log and ignore
-				logger.warn("Exception was thrown while destroying Session. ", e);
-			}
-		}
+		this.pool.releaseAll();
 	}
 
 
@@ -120,16 +92,25 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 
 		private final Session<F> targetSession;
 
+		private boolean released;
+
 		private CachedSession(Session<F> targetSession) {
 			this.targetSession = targetSession;
 		}
 
-		public void close() {
-			if (logger.isDebugEnabled()){
-				logger.debug("Releasing Session back to the pool.");
+		public synchronized void close() {
+			if (released) {
+				if (logger.isDebugEnabled()){
+					logger.debug("Session already released.");
+				}
 			}
-			queue.add(targetSession);
-			sessionPermits.release();
+			else {
+				if (logger.isDebugEnabled()){
+					logger.debug("Releasing Session back to the pool.");
+				}
+				pool.returnItem(targetSession);
+				released = true;
+			}
 		}
 
 		public boolean remove(String path) throws IOException{
