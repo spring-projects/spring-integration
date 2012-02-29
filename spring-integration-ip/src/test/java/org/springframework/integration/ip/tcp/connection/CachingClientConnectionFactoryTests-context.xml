@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip-2.1.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<int-ip:tcp-connection-factory
+		id="scf"
+		type="server"
+		so-timeout="60000"
+		port="9876"/>
+
+	<int-ip:tcp-inbound-channel-adapter
+		connection-factory="scf"
+		channel="inbound"/>
+
+	<int:channel id="inbound">
+		<int:queue/>
+	</int:channel>
+
+	<int-ip:tcp-connection-factory
+		id="ccf"
+		type="client"
+		host="localhost"
+		port="9876"
+		so-timeout="60000"
+
+	/>
+
+	<bean id="caching.ccf" class="org.springframework.integration.ip.tcp.connection.CachingClientConnectionFactory">
+		<constructor-arg ref="ccf" />
+		<constructor-arg value="10" />
+		<property name="connectionWaitTimeout" value="10000"/>
+	</bean>
+
+	<int-ip:tcp-outbound-channel-adapter
+		connection-factory="caching.ccf"
+		channel="outbound"/>
+
+	<int:channel id="outbound" />
+
+</beans>
