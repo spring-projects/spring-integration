@@ -145,16 +145,17 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <para><emphasis>Inbound</emphasis></para>
 
     <para>
-        To configure an HTTP Inbound Channel Adapter which is an instance of
-        <classname>HttpInboundEndpoint</classname> configured not to expect a
-        response.
+        The XML Namespace provides two components for handling HTTP Inbound
+        requests. In order to process requests without returning a dedicated
+        response, use the <emphasis>inbound-channel-adapter</emphasis>:
     </para>
 
     <programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpChannelAdapter" channel="requests"
     supported-methods="PUT, DELETE"/>]]></programlisting>
 
     <para>
-        To configure an HTTP Inbound Gateway which expects a response.
+        To process requests that do expect a response, use an
+        <emphasis>inbound-gateway</emphasis>:
     </para>
 
     <programlisting language="xml"><![CDATA[ <int-http:inbound-gateway id="inboundGateway"
