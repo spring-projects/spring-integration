@@ -284,8 +284,10 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
   	<emphasis>Mapping URI variables</emphasis>
   </para>
   <para>
-  If your URL contains URI variables you can map them using <code>uri-variable</code> sub element in
-  <emphasis>Http Outbound Gateway</emphasis> configuration.
+      If your URL contains URI variables, you can map them using the
+      <code>uri-variable</code> sub-element. This sub-element is available for the <emphasis>Http Outbound Gateway</emphasis>
+      and the <emphasis>Http Outbound Channel Adapter</emphasis>.
+  </para>
 
   <programlisting language="xml"><![CDATA[<int-http:outbound-gateway id="trafficGateway"
     url="http://local.yahooapis.com/trafficData?appid=YdnDemo&amp;zip={zipCode}"
@@ -294,12 +296,16 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 		              expected-response-type="java.lang.String">
 		<int-http:uri-variable name="zipCode" expression="payload.getZip()"/>
 </int-http:outbound-gateway>]]></programlisting>
-
-  The <code>uri-variable</code> defines two attributes <code>expression</code> and <code>value</code>. You generally use
-  the <code>value</code> attribute for literal values, but if the value you are trying to inject is dynamic and requires
-  access to Message data you can use a SpEL expression via the <code>expression</code> attribute. In the above configuration
-  the <code>getZip()</code> method will be invoked on the payload object of the Message and the result of that
-  method will be used as the value for URI variable named 'zipCode'.
+  <para>
+      The <code>uri-variable</code> sub-element defines two attributes:
+      <code>name</code> and <code>expression</code>. The <code>name</code> attribute
+      identifies the name of the URI variable, while the <code>expression</code>
+      attribute is used to set the actual value. Using the <code>expression</code>
+      attribute, you can leverage the full power of the Spring Expression Language
+      (SpEL) which gives you full dynamic access to the message payload and the
+      message headers. For example, in the above configuration the <code>getZip()</code>
+      method will be invoked on the payload object of the Message and the result
+      of that method will be used as the value for the URI variable named 'zipCode'.
   </para>
 
   </section>
