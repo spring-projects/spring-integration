@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.http.MockHttpServletRequest;
@@ -56,6 +57,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -90,6 +92,10 @@ public class HttpInboundGatewayParserTests {
 		assertThat((Boolean) getPropertyValue(gateway, "convertExceptions"), is(true));
 		assertThat((PollableChannel) getPropertyValue(gateway, "replyChannel"), is(responses));
 		assertNotNull(TestUtils.getPropertyValue(gateway, "errorChannel"));
+		MessagingTemplate messagingTemplate = TestUtils.getPropertyValue(
+				gateway, "messagingTemplate", MessagingTemplate.class);
+		assertEquals(Long.valueOf(1234), TestUtils.getPropertyValue(messagingTemplate, "sendTimeout"));
+		assertEquals(Long.valueOf(4567), TestUtils.getPropertyValue(messagingTemplate, "receiveTimeout"));
 	}
 	
 	@Test(timeout=1000)

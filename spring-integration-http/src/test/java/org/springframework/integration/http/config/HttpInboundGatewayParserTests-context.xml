@@ -18,7 +18,13 @@
 		<si:queue/>
 	</si:channel>
 
-	<inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses" convert-exceptions="true" error-channel="errorChannel"/>
+	<inbound-gateway id="inboundGateway"
+		request-channel="requests"
+		reply-channel="responses"
+		convert-exceptions="true"
+		request-timeout="1234"
+		reply-timeout="4567"
+		error-channel="errorChannel"/>
 
 	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
 	
