@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -89,6 +90,7 @@ public class FileOutboundChannelAdapterParserTests {
         File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
         assertEquals(expected, actual);
         assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
+        assertEquals(".writing", handlerAccessor.getPropertyValue("temporaryFileSuffix"));
     }
 
     @Test

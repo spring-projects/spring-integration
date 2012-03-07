@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,12 @@ import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 
 /**
+ * Factory bean used to create {@link FileWritingMessageHandler}s.
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageHandlerFactoryBean<FileWritingMessageHandler>{
@@ -99,7 +102,9 @@ public class FileWritingMessageHandlerFactoryBean extends AbstractSimpleMessageH
 		if (this.sendTimeout != null) {
 			handler.setSendTimeout(this.sendTimeout);
 		}
-		handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
+		if (this.temporaryFileSuffix != null) {
+			handler.setTemporaryFileSuffix(this.temporaryFileSuffix);
+		}
 		return handler;
 	}
 }
