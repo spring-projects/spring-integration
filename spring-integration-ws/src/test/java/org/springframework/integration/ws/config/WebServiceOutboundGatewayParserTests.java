@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 package org.springframework.integration.ws.config;
+
+import java.util.List;
 
 import org.junit.Test;
 
@@ -38,11 +40,14 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+
 import static org.junit.Assert.assertNull;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class WebServiceOutboundGatewayParserTests {
 
@@ -57,6 +62,15 @@ public class WebServiceOutboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object expected = context.getBean("outputChannel");
 		assertEquals(expected, accessor.getPropertyValue("outputChannel"));
+
+		@SuppressWarnings("unchecked")
+		List<String> requestHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.requestHeaderNames", List.class);
+		@SuppressWarnings("unchecked")
+		List<String> replyHeaders = TestUtils.getPropertyValue(endpoint, "handler.headerMapper.replyHeaderNames", List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals(1, replyHeaders.size());
+		assertTrue(requestHeaders.contains("testRequest"));
+		assertTrue(replyHeaders.contains("testReply"));
 	}
 
 	@Test

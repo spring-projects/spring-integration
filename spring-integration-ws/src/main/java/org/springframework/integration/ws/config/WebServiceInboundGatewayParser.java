@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,7 +42,10 @@ public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !(attributeName.endsWith("marshaller")) && super.isEligibleAttribute(attributeName);
+		return !(attributeName.endsWith("marshaller")) &&
+			   !(attributeName.equals("mapped-reply-headers")) &&
+			   !(attributeName.equals("mapped-request-headers")) &&
+			   super.isEligibleAttribute(attributeName);
 	}
 
 	@Override

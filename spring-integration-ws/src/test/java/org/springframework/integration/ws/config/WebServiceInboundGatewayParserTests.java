@@ -1,5 +1,5 @@
 /*
- *  Copyright 2002-2011 the original author or authors.
+ *  Copyright 2002-2012 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.config;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -136,6 +137,14 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("errorChannel"),
 				is(customErrorChannel));
+		@SuppressWarnings("unchecked")
+		List<String> requestHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.requestHeaderNames", List.class);
+		@SuppressWarnings("unchecked")
+		List<String> replyHeaders = TestUtils.getPropertyValue(marshallingGateway, "headerMapper.replyHeaderNames", List.class);
+		assertEquals(1, requestHeaders.size());
+		assertEquals(1, replyHeaders.size());
+		assertTrue(requestHeaders.contains("testRequest"));
+		assertTrue(replyHeaders.contains("testReply"));
 	}
 
 	@Test
