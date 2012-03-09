@@ -27,8 +27,13 @@
 			<xsd:attribute name="name" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						[DEPRECATED since v2.1] Use 'path' attribute if you want to specify the path or 
-						'id' attribute if you simply want to identify this component
+						[DEPRECATED since v2.1] Use 'path' attribute if you want
+						to specify the path or 'id' attribute if you simply want
+						to identify this component.
+
+						When using the 'path' attribute, please ensure to also
+						declare a handler mapping bean of type
+						'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -63,7 +68,7 @@
 						In the case that a view-name is specified this attribute can be used to
 						override the default key of the Errors (if the request cannot be handled).
 						Defaults to "errors" (similar to normal MVC
-						usage). 
+						usage).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -77,7 +82,16 @@
 			<xsd:attribute name="path" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Allows you to specify URI path (e.g., /orderId/{order})
+						Allows you to specify the URI path (e.g., /orderId/{order})
+
+                        When using the 'path' attribute, please ensure to also
+                        declare a handler mapping bean of type
+                        'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
+
+                        This bean is used by the Spring MVC DispatcherServlet to
+                        evaluate which URL maps to which inbound endpoint. For
+                        more information please see the chapter on 'Handler mappings'
+                        in the Spring Framework Reference Documentation.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -118,7 +132,7 @@ this list can also be simple patterns to be matched against the header names (e.
 The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 						]]></xsd:documentation>
 				</xsd:annotation>
-			</xsd:attribute>	
+			</xsd:attribute>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -127,7 +141,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
-			</xsd:attribute>	
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -143,7 +157,25 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				    <xsd:sequence>
 						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
-					<xsd:attribute name="name" type="xsd:string" />
+					<xsd:attribute name="name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								[DEPRECATED since v2.1] Use 'path' attribute if you want
+								to specify the path or 'id' attribute if you simply want
+								to identify this component.
+
+								When using the 'path' attribute, please ensure to also
+								declare a handler mapping bean of type
+								'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
+
+								This bean is used by the Spring MVC DispatcherServlet
+								to evaluate which URL maps to which inbound endpoint.
+								For more information please see the chapter on
+								'Handler mappings' in the Spring Framework Reference
+								Documentation.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true" />
 					<xsd:attribute name="supported-methods" type="xsd:string" />
 					<xsd:attribute name="view-name" type="xsd:string">
@@ -158,7 +190,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:documentation>
 								In the case that a view-name is specified this attribute can be used to
 								override the default key of the Errors (if the request cannot be handled).
-								Defaults to "errors" (similar to normal MVC usage). 
+								Defaults to "errors" (similar to normal MVC usage).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -172,7 +204,11 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="path" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Allows you to specify URI path (e.g., /orderId/{order})
+								Allows you to specify the URI path (e.g., /orderId/{order})
+
+                                When using the 'path' attribute, please ensure to also
+                                declare a handler mapping bean of type
+                                'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -191,7 +227,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:documentation>
 								In the case that a view-name is not specified this attribute can be used to
 								override the default behaviour when there is a message handling exception (which
-								is to rethrow).  If this flag is true then the normal conversion process will be 
+								is to rethrow).  If this flag is true then the normal conversion process will be
 								applied to the exception and written out to the response body.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -240,7 +276,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					</xsd:attribute>
 					<xsd:attribute name="mapped-response-headers" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation><![CDATA[							
+							<xsd:documentation><![CDATA[
 	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP response.
 	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
@@ -277,7 +313,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="http-method" default="POST">
 				<xsd:annotation>
 					<xsd:documentation>
-						The HTTP method to use when executing requests with this adapter. 
+						The HTTP method to use when executing requests with this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -307,7 +343,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						The expected type to which the response body should be converted. 
+						The expected type to which the response body should be converted.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
@@ -406,7 +442,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="http-method" default="POST">
 						<xsd:annotation>
 							<xsd:documentation>
-								The HTTP method to use when executing requests with this adapter. 
+								The HTTP method to use when executing requests with this adapter.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -463,7 +499,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								The expected type to which the response body should be converted. 
+								The expected type to which the response body should be converted.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="direct">
@@ -543,7 +579,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="headerType">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
