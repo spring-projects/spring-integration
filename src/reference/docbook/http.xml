@@ -164,7 +164,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <important>
         <para>
-            Since <emphasis>Spring Integration 2.1</emphasis> the
+            Beginning with <emphasis>Spring Integration 2.1</emphasis> the
             <emphasis>HTTP Inbound Gateway</emphasis> and the <emphasis>HTTP
             Inbound Channel Adapter</emphasis> should use the <emphasis>path</emphasis>
             attribute instead of the <emphasis>name</emphasis> attribute for
@@ -198,7 +198,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <itemizedlist>
        <listitem>
-           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/htmlsingle/spring-framework-reference.html#mvc-handlermapping"></ulink>
+           <ulink url="http://static.springsource.org/spring/docs/current/spring-framework-reference/html/mvc.html#mvc-handlermapping"></ulink>
        </listitem>
     </itemizedlist>
 
@@ -232,9 +232,8 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 </int-http:inbound-channel-adapter>]]></programlisting>
 
     <para>
-        For reference in regards to using <emphasis>URI template variables</emphasis>,
-        please take a look at <emphasis>Chapter 16.3.2</emphasis> of the Spring Reference
-        Manual as well:
+        For more information about <emphasis>URI template variables</emphasis>,
+        please take a look at the Spring Reference Manual as well:
     </para>
 
     <itemizedlist>
@@ -262,9 +261,9 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     reply-timeout="1234"
     reply-channel="replies"/>]]></programlisting>
   <important>
-    Since Spring Integration 2.1 the <emphasis>request-timeout</emphasis> attribute
+    Beginning with Spring Integration 2.1 the <emphasis>request-timeout</emphasis> attribute
     of the HTTP Outbound Gateway was renamed to <emphasis>reply-timeout</emphasis>
-    to better reflect the intend.
+    to better reflect the intent.
   </important>
   <para>If your outbound adapter is to be used in a unidirectional way, then you can use an outbound-channel-adapter instead. This means that
     a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
@@ -314,9 +313,9 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
     <title>Timeout Handling</title>
 
     <para>
-        Two areas have to be considered in regards to timeouts in the context of
-        the HTTP Components. First, the components interact with Message
-        Channels, for which timeouts can be specified. For examples an HTTP Inbound
+        In the context of HTTP components, there are two areas that have to be
+        considered. First, the components interact with Message Channels, for
+        which timeouts can be specified. For examples an HTTP Inbound
         Gateway will forward messages received from connected HTTP Clients to a
         Message Channel (Request Timeout) and consequently the HTTP Inbound Gateway
         will receive a reply Message from the Reply Channel (Reply Timeout) that
@@ -336,6 +335,9 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
           </para>
       </caption>
     </mediaobject>
+    <para>
+        For outbound endpoints, the second thing to consider is timing while
+        interacting with the remote server.</para>
     <mediaobject>
       <imageobject role="fo">
           <imagedata fileref="images/http-outbound-gateway-pdf.png" format="PNG" align="center" scalefit="1" width="100%" contentdepth="100%" />
@@ -350,7 +352,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
       </caption>
     </mediaobject>
     <para>
-        Secondly, you may also want to configure the HTTP related timeout behavior, when
+        Thus, you may want to configure the HTTP related timeout behavior, when
         making active HTTP requests using the <emphasis>HTTP Oubound Gateway</emphasis>
         or the <emphasis>HTTP Outbound Channel Adapter</emphasis>. In those
         instances, these two components will use Spring's

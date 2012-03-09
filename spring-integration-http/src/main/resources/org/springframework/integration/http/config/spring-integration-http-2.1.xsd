@@ -87,6 +87,11 @@
                         When using the 'path' attribute, please ensure to also
                         declare a handler mapping bean of type
                         'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
+
+                        This bean is used by the Spring MVC DispatcherServlet to
+                        evaluate which URL maps to which inbound endpoint. For
+                        more information please see the Spring Framework Reference
+                        Documentation, chapter '16.4 Handler mappings'.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -152,19 +157,19 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				    <xsd:sequence>
 						<xsd:element name="header" type="headerType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
-		            <xsd:attribute name="name" type="xsd:string">
-		                <xsd:annotation>
-		                    <xsd:documentation>
-		                        [DEPRECATED since v2.1] Use 'path' attribute if you want
-		                        to specify the path or 'id' attribute if you simply want
-		                        to identify this component.
+					<xsd:attribute name="name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								[DEPRECATED since v2.1] Use 'path' attribute if you want
+								to specify the path or 'id' attribute if you simply want
+								to identify this component.
 
-		                        When using the 'path' attribute, please ensure to also
-		                        declare a handler mapping bean of type
-		                        'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
-		                    </xsd:documentation>
-		                </xsd:annotation>
-		            </xsd:attribute>
+								When using the 'path' attribute, please ensure to also
+								declare a handler mapping bean of type
+								'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true" />
 					<xsd:attribute name="supported-methods" type="xsd:string" />
 					<xsd:attribute name="view-name" type="xsd:string">
