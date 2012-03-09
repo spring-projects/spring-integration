@@ -90,8 +90,8 @@
 
                         This bean is used by the Spring MVC DispatcherServlet to
                         evaluate which URL maps to which inbound endpoint. For
-                        more information please see the Spring Framework Reference
-                        Documentation, chapter '16.4 Handler mappings'.
+                        more information please see the chapter on 'Handler mappings'
+                        in the Spring Framework Reference Documentation.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -167,6 +167,12 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 								When using the 'path' attribute, please ensure to also
 								declare a handler mapping bean of type
 								'org.springframework.integration.http.inbound.UriPathHandlerMapping'.
+
+								This bean is used by the Spring MVC DispatcherServlet
+								to evaluate which URL maps to which inbound endpoint.
+								For more information please see the chapter on
+								'Handler mappings' in the Spring Framework Reference
+								Documentation.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

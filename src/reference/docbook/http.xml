@@ -233,7 +233,7 @@ In the case of the Outbound Gateway, the reply message produced by the gateway w
 
     <para>
         For more information about <emphasis>URI template variables</emphasis>,
-        please take a look at the Spring Reference Manual as well:
+        please see the Spring Reference Manual as well:
     </para>
 
     <itemizedlist>
