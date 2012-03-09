@@ -27,7 +27,7 @@
 			<xsd:attribute name="name" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						[DEPRECATED since v2.1] Use 'path' attribute if you want to specify the path or 
+						[DEPRECATED since v2.1] Use 'path' attribute if you want to specify the path or
 						'id' attribute if you simply want to identify this component
 					</xsd:documentation>
 				</xsd:annotation>
@@ -63,7 +63,7 @@
 						In the case that a view-name is specified this attribute can be used to
 						override the default key of the Errors (if the request cannot be handled).
 						Defaults to "errors" (similar to normal MVC
-						usage). 
+						usage).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -118,7 +118,7 @@ this list can also be simple patterns to be matched against the header names (e.
 The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Request headers.
 						]]></xsd:documentation>
 				</xsd:annotation>
-			</xsd:attribute>	
+			</xsd:attribute>
 			<xsd:attribute name="error-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -127,7 +127,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
-			</xsd:attribute>	
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -158,7 +158,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:documentation>
 								In the case that a view-name is specified this attribute can be used to
 								override the default key of the Errors (if the request cannot be handled).
-								Defaults to "errors" (similar to normal MVC usage). 
+								Defaults to "errors" (similar to normal MVC usage).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -191,7 +191,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							<xsd:documentation>
 								In the case that a view-name is not specified this attribute can be used to
 								override the default behaviour when there is a message handling exception (which
-								is to rethrow).  If this flag is true then the normal conversion process will be 
+								is to rethrow).  If this flag is true then the normal conversion process will be
 								applied to the exception and written out to the response body.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -240,7 +240,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					</xsd:attribute>
 					<xsd:attribute name="mapped-response-headers" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation><![CDATA[							
+							<xsd:documentation><![CDATA[
 	Comma-separated list of names of MessageHeaders to be mapped into the HttpHeaders of the HTTP response.
 	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
@@ -249,7 +249,26 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="reply-key" type="xsd:string" />
-					<xsd:attribute name="request-timeout" type="xsd:string" />
+					<xsd:attribute name="request-timeout" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+    Used to set the sendTimeout on the underlying MessagingTemplate instance
+    (org.springframework.integration.core.MessagingTemplate) for sending messages
+    to the request channel. If not specified this propery will default to "1000"
+    (1 second).
+                            ]]></xsd:documentation>
+                        </xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-timeout"   type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+    Used to set the revceiveTimeout on the underlying MessagingTemplate instance
+    (org.springframework.integration.core.MessagingTemplate) for receiving messages
+    from the reply channel. If not specified this propery will default to "1000"
+    (1 second).
+                            ]]></xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -277,7 +296,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="http-method" default="POST">
 				<xsd:annotation>
 					<xsd:documentation>
-						The HTTP method to use when executing requests with this adapter. 
+						The HTTP method to use when executing requests with this adapter.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -307,7 +326,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						The expected type to which the response body should be converted. 
+						The expected type to which the response body should be converted.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
@@ -406,7 +425,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="http-method" default="POST">
 						<xsd:annotation>
 							<xsd:documentation>
-								The HTTP method to use when executing requests with this adapter. 
+								The HTTP method to use when executing requests with this adapter.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -463,7 +482,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								The expected type to which the response body should be converted. 
+								The expected type to which the response body should be converted.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="direct">
@@ -514,6 +533,20 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="reply-timeout" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation><![CDATA[
+    The "reply-timeout" attribute maps to the "sendTimeout" property of the
+    unerlying "MessagingTemplate" instance (org.springframework.integration.core.MessagingTemplate).
+    The attribute will default, if not specified, to "-1" and it will be used when
+    sending the reply message (HTTP Response) to the reply channel.
+
+    This means, that depending on the implementation, the Message Channel's "send"
+    method may block indefinitely. Furthermore, the "reply-timeout" attribute is
+    only used, when the actual MessageChannel implementation has a blocking send.
+                            ]]></xsd:documentation>
+                        </xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -543,7 +576,7 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="headerType">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
@@ -603,7 +636,6 @@ The String "HTTP_REQUEST_HEADERS" will match against any of the standard HTTP Re
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="reply-timeout" type="xsd:string" />
 	</xsd:complexType>
 
 </xsd:schema>
