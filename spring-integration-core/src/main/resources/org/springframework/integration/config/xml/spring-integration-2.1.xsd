@@ -716,7 +716,7 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="resource-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -770,11 +770,11 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			
+
 			<xsd:attribute name="pattern-resolver" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to a org.springframework.core.io.support.ResourcePatternResolver. 
+						Reference to a org.springframework.core.io.support.ResourcePatternResolver.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -856,7 +856,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="log-full-message">
+					<xsd:attribute name="log-full-message" default="false">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
 	Specify whether to log the full message. This attribute and the 'expression' attribute are
@@ -865,6 +865,9 @@ endpoint itself is a Polling Consumer for a channel with a queue.
 	'expression' is provided, and this value is false (the default), only the payload will be logged.
 							]]></xsd:documentation>
 						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1118,7 +1121,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="request-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for sending request messages in milliseconds. 
+                    Set the timeout value for sending request messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1127,7 +1130,7 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="reply-timeout" type="xsd:string">
             <xsd:annotation>
                 <xsd:documentation><![CDATA[
-                    Set the timeout value for receiving reply messages in milliseconds. 
+                    Set the timeout value for receiving reply messages in milliseconds.
                     If not explicitly configured, the default is one second.
                     ]]>
                 </xsd:documentation>
@@ -1136,25 +1139,25 @@ endpoint itself is a Polling Consumer for a channel with a queue.
         <xsd:attribute name="requires-reply" use="optional" default="true">
         <xsd:annotation>
             <xsd:documentation><![CDATA[
-                If you specify a 'request-channel' you can optionally set the 
-                'requires-reply' attribute as well. If you set this attribute to 
-                'true', a reply must return a non-null value. 
-                
+                If you specify a 'request-channel' you can optionally set the
+                'requires-reply' attribute as well. If you set this attribute to
+                'true', a reply must return a non-null value.
+
                 For example, you dispatch a message to the request-channel
                 (backed by a 'QueueChannel'). If the reply does not return within
-                the specified 'replyTimeout', then the reply message will end up 
+                the specified 'replyTimeout', then the reply message will end up
                 being Null.
-                
+
                 By setting 'requires-reply' to 'true', a 'ReplyRequiredException'
-                will be raised for null reply messages. If 'requires-reply' is set 
-                to false, those messages are silently dropped. 
-                
+                will be raised for null reply messages. If 'requires-reply' is set
+                to false, those messages are silently dropped.
+
                 This attribute defaults to 'true', if not specified.]]>
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:simpleType>
                 <xsd:union memberTypes="xsd:boolean xsd:string" />
-            </xsd:simpleType>            
+            </xsd:simpleType>
         </xsd:attribute>
 		<xsd:attribute name="should-clone-payload">
 			<xsd:annotation>
