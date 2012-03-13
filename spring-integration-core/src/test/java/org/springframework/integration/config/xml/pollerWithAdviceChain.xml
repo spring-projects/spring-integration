@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:tx="http://www.springframework.org/schema/tx"
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<beans:bean id="transactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
 
 	<poller id="poller" fixed-delay="5000">
 		<advice-chain>
@@ -14,6 +18,11 @@
 				<beans:constructor-arg value="2"/>
 			</beans:bean>
 			<ref bean="adviceBean3"/>
+			<tx:advice>
+				<tx:attributes>
+					<tx:method name="*" read-only="true" propagation="REQUIRES_NEW"/>
+				</tx:attributes>
+			</tx:advice>
 		</advice-chain>
 	</poller>
 
