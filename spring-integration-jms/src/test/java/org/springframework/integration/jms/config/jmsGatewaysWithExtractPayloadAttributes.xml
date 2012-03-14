@@ -16,28 +16,33 @@
 
 	<jms:inbound-gateway id="defaultGateway"
 	                     request-destination="testDestination"
-	                     request-channel="requestChannel"/>
+	                     request-channel="requestChannel"
+	                     auto-startup="false"/>
 
 	<jms:inbound-gateway id="extractReplyPayloadTrue"
 	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-reply-payload="true"/>
+	                     extract-reply-payload="true"
+	                     auto-startup="false"/>
 
 	<jms:inbound-gateway id="extractReplyPayloadFalse"
 	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-reply-payload="false"/>
+	                     extract-reply-payload="false"
+	                     auto-startup="false"/>
 
 
 	<jms:inbound-gateway id="extractRequestPayloadTrue"
 	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-request-payload="true"/>
+	                     extract-request-payload="true"
+	                     auto-startup="false"/>
 
 	<jms:inbound-gateway id="extractRequestPayloadFalse"
 	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-request-payload="false"/>
+	                     extract-request-payload="false"
+	                     auto-startup="false"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
