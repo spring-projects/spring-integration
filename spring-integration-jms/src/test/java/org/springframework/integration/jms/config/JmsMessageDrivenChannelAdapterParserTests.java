@@ -51,11 +51,12 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		assertNotNull(history);
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
 		assertNotNull(componentHistoryRecord);
-		JmsMessageDrivenEndpoint o =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
-		System.out.println(o.getComponentType());
+		JmsMessageDrivenEndpoint endpoint =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
+		System.out.println(endpoint.getComponentType());
 		assertEquals("jms:message-driven-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
+		endpoint.stop();
 	}
 
 	@Test
@@ -65,6 +66,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
 		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
 		assertEquals(Boolean.TRUE, container.isPubSubDomain());
+		endpoint.stop();
 	}
 
 	@Test
@@ -77,6 +79,7 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		assertEquals(Boolean.TRUE, container.isSubscriptionDurable());
 		assertEquals("testDurableSubscriptionName", container.getDurableSubscriptionName());
 		assertEquals("testClientId", container.getClientId());
+		endpoint.stop();
 	}
 
 	@Test

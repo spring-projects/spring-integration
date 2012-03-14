@@ -53,6 +53,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("jms:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
+		context.stop();
 	}
 	
 	@Test
@@ -62,6 +63,7 @@ public class JmsInboundChannelAdapterParserTests {
 		JmsTemplate jmsTemplate = 
 			TestUtils.getPropertyValue(context.getBean("inboundAdapterWithoutJmsTemplate"), "source.jmsTemplate", JmsTemplate.class);
 		assertEquals(0, jmsTemplate.getSessionAcknowledgeMode());
+		context.stop();
 	}
 
 	@Test
@@ -127,6 +129,7 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
+		context.stop();
 	}
 
 	@Test
@@ -139,6 +142,7 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("polling-test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("testProperty"));
 		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
+		context.stop();
 	}
 
 	@Test
@@ -149,6 +153,7 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
+		context.stop();
 	}
 
 	@Test
@@ -168,6 +173,7 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test", message.getPayload());
+		context.stop();
 	}
 
 	@Test
@@ -178,6 +184,7 @@ public class JmsInboundChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test", message.getPayload());
+		context.stop();
 	}
 
 }
