@@ -15,7 +15,7 @@
     </para>
 
     <para>
-    The <link href="http://www.eaipatterns.com/StoreInLibrary.html">Claim Check</link> pattern describes a mechanism that allows you
+    The <ulink url="http://www.eaipatterns.com/StoreInLibrary.html">Claim Check</ulink> pattern describes a mechanism that allows you
     to store data in a well known place while only maintaining a pointer (Claim Check) to where that data is located. You can pass that
     pointer around as a payload of a new Message thereby allowing any component within the message flow to get the actual data as soon as
     it needs it. This approach is very similar to the Certified Mail process where you'll get a Claim Check in your mailbox and
