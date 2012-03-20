@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	public void withHeaderMapperString() throws Exception{
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", true);
+		assertTrue(replyMessage.getPayload() instanceof String);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertNull(replyMessage.getHeaders().get("baz"));
 	}
@@ -121,6 +122,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		DOMSource payload = new DOMSource(document);
 		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", true);
+		assertTrue(replyMessage.getPayload() instanceof DOMSource);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertNull(replyMessage.getHeaders().get("baz"));
 	}
@@ -131,6 +133,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
 		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
 		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", true);
+		assertTrue(replyMessage.getPayload() instanceof Document);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertNull(replyMessage.getHeaders().get("baz"));
 	}
