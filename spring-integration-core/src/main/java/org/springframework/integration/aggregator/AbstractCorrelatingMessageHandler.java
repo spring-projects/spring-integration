@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -35,6 +35,7 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -86,6 +87,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
+	private volatile boolean sequenceAware = false;
+
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
@@ -96,6 +99,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy){
+			sequenceAware = true;
+		}
 	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
@@ -124,6 +130,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
 		Assert.notNull(releaseStrategy);
 		this.releaseStrategy = releaseStrategy;
+		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy){
+			sequenceAware = true;
+		}
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -182,16 +191,20 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		synchronized (lock) {
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
+			if (this.sequenceAware){
+				messageGroup = new SequenceAwareMessageGroup(messageGroup);
+			}
+
 			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
-				messageGroup = store(correlationKey, message);
+				messageGroup = this.store(correlationKey, message);
 				
 				if (releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = completeGroup(message, correlationKey, messageGroup);
+						completedMessages = this.completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
 						// Always clean up even if there was an exception
@@ -209,6 +222,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			}
 		}
 	}
+
 
 	/**
 	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
@@ -361,6 +375,45 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			}
 		}
 		return false;
+	}
+
+	private static class SequenceAwareMessageGroup extends SimpleMessageGroup {
+
+		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
+			super(messageGroup);
+		}
+
+		/**
+		 * This method determines whether messages have been added to this group that supersede the given message based on
+		 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
+		 * or sequences that are missing certain sequence numbers.
+		 */
+		public boolean canAdd(Message<?> message) {
+			if (this.size() == 0) {
+				return true;
+			}
+			Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
+			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
+				Integer messageSequenceSize = message.getHeaders().getSequenceSize();
+				if (!messageSequenceSize.equals(this.getSequenceSize())) {
+					return false;
+				}
+				else {
+					return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
+				}
+			}
+			return true;
+		}
+
+		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
+			for (Message<?> member : messages) {
+				Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+				if (messageSequenceNumber.equals(memberSequenceNumber)) {
+					return true;
+				}
+			}
+			return false;
+		}
 	}
 
 }
