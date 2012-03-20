@@ -554,7 +554,7 @@ project('spring-integration-mongodb') {
             'org.springframework.jmx.*;version="[3.0.5, 4.0.0)"',
             'org.springframework.data.mongodb.*;version="[1.0.0, 2.0.0)"',
             'org.springframework.data.mapping.*;version="[1.0.0, 2.0.0)"',
-            'com.mongodb.*;version="[2.4.0, 2.5.0]"',
+            'com.mongodb.*;version="[0.0.0, 2.5.0]"',
             'javax.*;version="0"',
             'org.w3c.dom.*;version="0"'
         ]
