@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -77,7 +77,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public boolean canAdd(Message<?> message) {
-		return !isMember(message);
+		return true;
 	}
 
 	public void add(Message<?> message) {
@@ -134,38 +134,6 @@ public class SimpleMessageGroup implements MessageGroup {
 	
 	public void clear(){
 		this.messages.clear();
-	}
-
-	/**
-	 * This method determines whether messages have been added to this group that supersede the given message based on
-	 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
-	 * or sequences that are missing certain sequence numbers.
-	 */
-	private boolean isMember(Message<?> message) {
-		if (size() == 0) {
-			return false;
-		}
-		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
-		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
-			if (!messageSequenceSize.equals(getSequenceSize())) {
-				return true;
-			}
-			else {
-				return this.containsSequenceNumber(messages, messageSequenceNumber);
-			}
-		}
-		return false;
-	}
-
-	private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
-		for (Message<?> member : messages) {
-			Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
-			if (messageSequenceNumber.equals(memberSequenceNumber)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
