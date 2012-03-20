@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 the original author or authors
+ * Copyright 2007-2012 the original author or authors
  *
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 	
 	@Test
 	@MongoDbAvailable
-	public void testMessageGroupWithAddedMessage() throws Exception{	
+	public void testMessageGroupWithAddedMessagePrimitiveGroupId() throws Exception{	
 		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
 		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
-		
+	
 		MessageGroup messageGroup = store.getMessageGroup(1);
 		Message<?> messageA = new GenericMessage<String>("A");
 		Message<?> messageB = new GenericMessage<String>("B");
@@ -76,6 +76,26 @@ public class MongoDbMessageGroupStoreTests extends MongoDbAvailableTests {
 		assertEquals(retrievedMessage.getHeaders().getId(), messageA.getHeaders().getId());
 		// ensure that 'message_group' header that is only used internally is not propagated 
 		assertNull(retrievedMessage.getHeaders().get("message_group"));
+	}
+	
+	@Test
+	@MongoDbAvailable
+	public void testMessageGroupWithAddedMessageUUIDGroupIdAndUUIDHeader() throws Exception{	
+		MongoDbFactory mongoDbFactory = this.prepareMongoFactory();
+		MongoDbMessageStore store = new MongoDbMessageStore(mongoDbFactory);
+	    Object id = UUID.randomUUID();
+		MessageGroup messageGroup = store.getMessageGroup(id);
+		Message<?> messageA = MessageBuilder.withPayload("A").setHeader("foo", UUID.randomUUID()).build();
+		Message<?> messageB = MessageBuilder.withPayload("B").setHeader("foo", UUID.randomUUID()).build();
+		store.addMessageToGroup(id, messageA);
+		messageGroup = store.addMessageToGroup(id, messageB);
+		assertEquals(2, messageGroup.size());
+		Message<?> retrievedMessage = store.getMessage(messageA.getHeaders().getId());
+		assertNotNull(retrievedMessage);
+		assertEquals(retrievedMessage.getHeaders().getId(), messageA.getHeaders().getId());
+		// ensure that 'message_group' header that is only used internally is not propagated 
+		assertNull(retrievedMessage.getHeaders().get("message_group"));
+		assertTrue(retrievedMessage.getHeaders().get("foo") instanceof UUID);
 	}
 	
 	@Test
