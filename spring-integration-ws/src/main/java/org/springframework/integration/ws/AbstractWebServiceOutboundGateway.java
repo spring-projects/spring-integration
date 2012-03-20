@@ -237,7 +237,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 				return siMessage;
 			}
 			else {
-				return message.getPayloadSource();
+				return resultObject;
 			}
 		}	
 		
