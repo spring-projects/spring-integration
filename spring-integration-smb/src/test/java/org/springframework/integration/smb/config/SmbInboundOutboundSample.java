@@ -1,0 +1,137 @@
+/**
+ * Copyright 2002-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.smb.config;
+
+import static junit.framework.Assert.assertTrue;
+
+import java.io.File;
+
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.file.remote.handler.FileTransferringMessageHandler;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.smb.AbstractBaseTest;
+import org.springframework.integration.smb.inbound.SmbInboundFileSynchronizingMessageSource;
+import org.springframework.integration.smb.session.SmbSession;
+import org.springframework.integration.smb.session.SmbSessionFactory;
+import org.springframework.integration.test.util.TestUtils;
+
+/**
+ * System tests that perform SMB access without any mocking.
+ * These tests are annotated with '@Ignore', as they requires real SMB share configured 
+ * in the application context/smbClientFactory in order to succeed.
+ * The test cases create directories and files autonomously and perform clean-up
+ * on a best effort basis.
+ *
+ * @author Markus Spann
+ */
+public class SmbInboundOutboundSample extends AbstractBaseTest {
+
+	private static final String INBOUND_APPLICATION_CONTEXT_XML  = "SmbInboundChannelAdapterSample-context.xml";
+	private static final String OUTBOUND_APPLICATION_CONTEXT_XML = "SmbOutboundChannelAdapterSample-context.xml";
+
+	@org.junit.Ignore("Actual SMB share must be configured in file [" + INBOUND_APPLICATION_CONTEXT_XML + "].")
+	@Test
+	public void testSmbInboundChannelAdapter() throws Exception {
+		String testLocalDir = "test-temp/local-4/";
+		String testRemoteDir = "test-temp/remote-4/";
+
+		ApplicationContext ac = new ClassPathXmlApplicationContext(INBOUND_APPLICATION_CONTEXT_XML, this.getClass());
+
+		Object consumer = ac.getBean("smbInboundChannelAdapter");
+		assertTrue(consumer instanceof SourcePollingChannelAdapter);
+		Object messageSource = TestUtils.getPropertyValue(consumer, "source");
+		assertTrue(messageSource instanceof SmbInboundFileSynchronizingMessageSource);
+
+		// retrieve the session factory bean to place a couple of test files remotely using a new session
+		SmbSessionFactory smbSessionFactory = ac.getBean("smbSessionFactory", SmbSessionFactory.class);
+		smbSessionFactory.setReplaceFile(true);
+		SmbSession smbSession = smbSessionFactory.getSession();
+
+		// place text files onto the share
+		smbSession.mkdir(testRemoteDir);
+
+		String[] fileNames = createTestFileNames(5);
+		for (int i = 0; i < fileNames.length; i++) {
+			smbSession.write(("File [" + fileNames[i] + "] written by test case [" + getMethodName() + "].").getBytes(), testRemoteDir + fileNames[i]);
+		}
+
+		// allow time for the files to arrive locally
+		Thread.sleep(5000);
+
+		// confirm the local presence of all test files
+		for (int i = 0; i < fileNames.length; i++) {
+			assertFileExists(testLocalDir + fileNames[i]).deleteOnExit();
+		}
+
+	}
+
+	@org.junit.Ignore("Actual SMB share must be configured in file [" + OUTBOUND_APPLICATION_CONTEXT_XML + "].")
+	@Test
+	public void testSmbOutboundChannelAdapter() throws Exception {
+		String testRemoteDir = "test-temp/remote-8/";
+		String testLocalDir = "test-temp/local-8/";
+		new File(testLocalDir).mkdirs();
+
+		String[] fileNames = createTestFileNames(5);
+		for (int i = 0; i < fileNames.length; i++) {
+			writeToFile(("File [" + fileNames[i] + "] written by test case [" + getMethodName() + "].").getBytes(), testLocalDir + fileNames[i]);
+		}
+
+		ApplicationContext ac = new ClassPathXmlApplicationContext(OUTBOUND_APPLICATION_CONTEXT_XML, this.getClass());
+
+		Object consumer = ac.getBean("smbOutboundChannelAdapter");
+		assertTrue(consumer instanceof EventDrivenConsumer);
+		Object messageSource = TestUtils.getPropertyValue(consumer, "handler");
+		assertTrue(messageSource instanceof FileTransferringMessageHandler);
+
+		MessageChannel smbChannel = ac.getBean("smbOutboundChannel", MessageChannel.class);
+
+		for (int i = 0; i < fileNames.length; i++) {
+			smbChannel.send(new GenericMessage<File>(new File(testLocalDir + fileNames[i])));
+		}
+
+		Thread.sleep(3000);
+
+		// retrieve the session factory bean to check the test files are present in the remote location
+		SmbSessionFactory smbSessionFactory = ac.getBean("smbSessionFactory", SmbSessionFactory.class);
+		smbSessionFactory.setReplaceFile(false);
+		SmbSession smbSession = smbSessionFactory.getSession();
+
+		for (int i = 0; i < fileNames.length; i++) {
+			String remoteFile = testRemoteDir + fileNames[i];
+			assertTrue("Remote file [" + remoteFile + "] does not exist.", smbSession.exists(remoteFile));
+		}
+
+	}
+
+	private String[] createTestFileNames(int _nbTestFiles) {
+		String[] fileNames = new String[_nbTestFiles];
+		for (int i = 0; i < fileNames.length; i++) {
+			fileNames[i] = "test-file-" + i + ".txt";
+		}
+		return fileNames;
+	}
+
+	public static void main(String[] _args) {
+		runTests(SmbInboundOutboundSample.class, "testSmbOutboundChannelAdapter", "testSmbInboundChannelAdapter");
+	}
+
+}
