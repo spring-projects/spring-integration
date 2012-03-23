@@ -52,7 +52,6 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		JmsMessageDrivenEndpoint endpoint =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
-		System.out.println(endpoint.getComponentType());
 		assertEquals("jms:message-driven-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
