@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
@@ -118,6 +119,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
+		this.temporaryFileSuffix = this.temporaryFileSuffix == null ? "" : this.temporaryFileSuffix.trim();
 	}
 	
 	@Override
@@ -219,8 +221,10 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
-			// then rename it to its final name
-			session.rename(tempFilePath, remoteFilePath);
+			// then rename it to its final name if necessary
+			if (!this.temporaryFileSuffix.isEmpty()){
+			   session.rename(tempFilePath, remoteFilePath);
+			}
 		} 
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);

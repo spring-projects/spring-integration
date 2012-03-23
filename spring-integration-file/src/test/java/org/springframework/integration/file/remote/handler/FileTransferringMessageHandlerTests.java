@@ -31,6 +31,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -85,6 +86,29 @@ public class FileTransferringMessageHandlerTests {
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public <F> void testEmptyTemporaryFileSuffix() throws Exception {
+		SessionFactory<F> sf = mock(SessionFactory.class);
+		Session<F> session = mock(Session.class);
+		when(sf.getSession()).thenReturn(session);
+		ExpressionParser parser = new SpelExpressionParser();
+		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
+		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.setTemporaryFileSuffix(null);
+		handler.onInit();
+		assertTrue(handler.getTemporaryFileSuffix().isEmpty());
+		
+		handler.setTemporaryFileSuffix("     ");
+		handler.onInit();
+		assertTrue(handler.getTemporaryFileSuffix().isEmpty());
+		
+		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
+		handler.handleMessage(message);
+		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
+		verify(session, times(0)).rename(Mockito.anyString(), Mockito.anyString());
 	}
 
 }
