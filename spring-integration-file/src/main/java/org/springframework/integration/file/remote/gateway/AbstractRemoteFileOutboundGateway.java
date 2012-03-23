@@ -47,6 +47,7 @@ import org.springframework.util.ObjectUtils;
  * Base class for Outbound Gateways that perform remote file operations.
  * 
  * @author Gary Russell
+ * @author David Turanski
  * @since 2.1
  */
 public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReplyProducingMessageHandler {
@@ -86,19 +87,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	private volatile String temporaryFileSuffix = ".writing";
 
 	/**
-	 * An {@link FileListFilter} that runs against the <emphasis>remote</emphasis> file system view.
+	 * An {@link FileListFilter} that runs against the
+	 * <emphasis>remote</emphasis> file system view.
 	 */
 	private volatile FileListFilter<F> filter;
 
-
-	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command,
-			String expression) {
+	public AbstractRemoteFileOutboundGateway(SessionFactory<F> sessionFactory, String command, String expression) {
 		this.sessionFactory = sessionFactory;
 		this.command = command;
 		this.processor = new ExpressionEvaluatingMessageProcessor<String>(
-			new SpelExpressionParser().parseExpression(expression));
+				new SpelExpressionParser().parseExpression(expression));
 	}
-
 
 	/**
 	 * @param options the options to set
@@ -145,16 +144,28 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		this.filter = filter;
 	}
 
+	/**
+	 * 
+	 * @return the temporaryFileSuffix
+	 */
+	protected String getTemporaryFileSuffix() {
+		return this.temporaryFileSuffix;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
+
+		this.temporaryFileSuffix = this.temporaryFileSuffix == null ? "" : this.temporaryFileSuffix.trim();
+
 		Assert.notNull(this.command, "command must not be null");
-		Assert.isTrue(COMMAND_LS.equals(this.command) || COMMAND_GET.equals(this.command) ||
-					  COMMAND_RM.equals(this.command),
+		Assert.isTrue(
+				COMMAND_LS.equals(this.command) || COMMAND_GET.equals(this.command) || COMMAND_RM.equals(this.command),
 				"command must be one of ls, get, rm");
 		if (COMMAND_RM.equals(this.command)) {
 			Assert.isNull(this.filter, "Filters are not supported with the rm command");
-		} else if (COMMAND_GET.equals(this.command)) {
+		}
+		else if (COMMAND_GET.equals(this.command)) {
 			Assert.notNull(this.localDirectory, "localDirectory must not be null");
 			try {
 				if (!this.localDirectory.exists()) {
@@ -175,52 +186,53 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				throw e;
 			}
 			catch (Exception e) {
-				throw new MessagingException(
-						"Failure during initialization of: " + this.getComponentType(), e);
+				throw new MessagingException("Failure during initialization of: " + this.getComponentType(), e);
 			}
 		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		Session<F> session = this.sessionFactory.getSession(); 
+		Session<F> session = this.sessionFactory.getSession();
 		try {
 			if (COMMAND_LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
 				if (!dir.endsWith("/")) {
 					dir += "/";
 				}
-				return MessageBuilder.withPayload(ls(session, dir))
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
-					.build();
-			} else if (COMMAND_GET.equals(this.command)) {
-				String remoteFilePath =  this.processor.processMessage(requestMessage);
+				return MessageBuilder.withPayload(ls(session, dir)).setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
+						.build();
+			}
+			else if (COMMAND_GET.equals(this.command)) {
+				String remoteFilePath = this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
 					remoteDir = "/";
 				}
 				return MessageBuilder.withPayload(get(session, remoteFilePath, remoteFilename))
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-					.build();
-			} else if (COMMAND_RM.equals(this.command)) {
-				String remoteFilePath =  this.processor.processMessage(requestMessage);
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename).build();
+			}
+			else if (COMMAND_RM.equals(this.command)) {
+				String remoteFilePath = this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
 					remoteDir = "/";
 				}
 				return MessageBuilder.withPayload(rm(session, remoteFilePath))
-					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
-					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
-					.build();
-			} else {
+						.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+						.setHeader(FileHeaders.REMOTE_FILE, remoteFilename).build();
+			}
+			else {
 				return null;
 			}
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new MessagingException(requestMessage, e);
-		} finally {
+		}
+		finally {
 			session.close();
 		}
 	}
@@ -297,8 +309,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param remoteFilePath
 	 * @throws IOException
 	 */
-	protected File get(Session<F> session, String remoteFilePath, String remoteFilename)
-			throws IOException {
+	protected File get(Session<F> session, String remoteFilePath, String remoteFilename) throws IOException {
 		F[] files = session.list(remoteFilePath);
 		if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
 			throw new MessagingException(remoteFilePath + " is not a file");
@@ -312,7 +323,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				session.read(remoteFilePath, fileOutputStream);
 			}
 			catch (Exception e) {
-				if (e instanceof RuntimeException){
+				if (e instanceof RuntimeException) {
 					throw (RuntimeException) e;
 				}
 				else {
@@ -326,9 +337,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				catch (Exception ignored2) {
 				}
 			}
-			if (!tempFile.renameTo(localFile)) {
-				throw new MessagingException("Failed to rename local file");
+
+			/*
+			 * Only rename if necessary
+			 */
+			if (!this.temporaryFileSuffix.isEmpty()) {
+				if (!tempFile.renameTo(localFile)) {
+					throw new MessagingException("Failed to rename local file");
+				}
 			}
+
 			if (this.options.contains(OPTION_PRESERVE_TIMESTAMP)) {
 				localFile.setLastModified(getModified(files[0]));
 			}
@@ -347,15 +365,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		int index = remoteFilePath.lastIndexOf(this.remoteFileSeparator);
 		if (index < 0) {
 			remoteFileName = remoteFilePath;
-		} 
+		}
 		else {
 			remoteFileName = remoteFilePath.substring(index + 1);
 		}
 		return remoteFileName;
 	}
 
-	protected boolean rm(Session<?> session, String remoteFilePath)
-			throws IOException {
+	protected boolean rm(Session<?> session, String remoteFilePath) throws IOException {
 		return session.remove(remoteFilePath);
 	}
 
