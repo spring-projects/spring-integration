@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jpa="http://www.springframework.org/schema/integration/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa-2.2.xsd">
+
+    <int:channel id="in"/>
+    <int:channel id="out"/>
+
+    <jdbc:embedded-database id="dataSource" type="H2"/>
+    
+    <bean id="lc"
+        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <int-jpa:outbound-gateway id="jpaOutboundGateway" 
+                              entity-manager-factory="lc"
+                              auto-startup="true"
+                              entity-class="org.springframework.integration.jpa.test.entity.Student"
+                              persist-mode="PERSIST"
+                              gateway-type="RETRIEVING"
+                              order="1"     
+                              request-channel="in"                       
+                              reply-channel="out"/>                 
+
+</beans>

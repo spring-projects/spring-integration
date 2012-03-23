@@ -12,11 +12,10 @@
  */
 package org.springframework.integration.jdbc;
 
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import javax.sql.DataSource;
-
-import static junit.framework.Assert.assertEquals;
 
 import org.junit.Test;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;

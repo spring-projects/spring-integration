@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jpa="http://www.springframework.org/schema/integration/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/jpa http://www.springframework.org/schema/integration/jpa/spring-integration-jpa-2.2.xsd">
+
+<int:channel id="target"/>
+
+    <jdbc:embedded-database id="dataSource" type="H2"/>
+    
+    <bean id="lc"
+        class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <int-jpa:outbound-channel-adapter id="jpaOutboundChannelAdapter" 
+                                      entity-manager-factory="lc"
+                                      auto-startup="true"
+                                      entity-class="org.springframework.integration.jpa.test.entity.Student"
+                                      query="from Student"
+                                      native-query="false"
+                                      persist-mode="PERSIST"
+                                      order="1"                            
+                                      channel="target">                 
+        <int-jpa:parameter  name="firstName"   value="kenny"  type="java.lang.String"/>
+        <int-jpa:parameter  name="firstaName"  value="cartman"/>     
+        <int-jpa:parameter  name="updatedDateTime" expression="new java.util.Date()"/>                   
+    </int-jpa:outbound-channel-adapter>
+
+</beans>
