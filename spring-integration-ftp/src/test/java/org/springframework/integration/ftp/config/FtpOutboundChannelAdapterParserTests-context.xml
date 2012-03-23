@@ -45,14 +45,25 @@
 				remote-filename-generator="fileNameGenerator"
 				order="12"/>
 				
+	<int-ftp:outbound-channel-adapter id="ftpOutbound3"
+				channel="anotherFtpChannel"
+				session-factory="cachingSessionFactory"
+				remote-directory="foo/bar"
+				charset="UTF-8"
+				remote-file-separator="."
+				use-temporary-file-name="false"
+				remote-filename-generator="fileNameGenerator"/>
+
 
 	<int-ftp:outbound-channel-adapter id="simpleAdapter"
 				channel="ftpChannel" 
 				session-factory="cachingSessionFactory"
 				remote-directory="foo/bar"/>
 				
+	<int:channel id="anotherFtpChannel"/>
+
 	<int:publish-subscribe-channel id="ftpChannel"/>
-	
+
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>
 	</bean>

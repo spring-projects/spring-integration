@@ -20,6 +20,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
@@ -46,6 +47,7 @@ import org.springframework.integration.test.util.TestUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Gary Russell
+ * @author David Turanski
  */
 public class OutboundChannelAdapterParserTests {
 
@@ -85,7 +87,7 @@ public class OutboundChannelAdapterParserTests {
 		assertSame(TestUtils.getPropertyValue(context.getBean("sftpOutboundAdapterWithExpression"), "handler"), iterator.next());
 		assertSame(handler, iterator.next());
 	}
-	
+
 	@Test
 	public void testOutboundChannelAdapterWithWithRemoteDirectoryAndFileExpression(){
 		ApplicationContext context = 
@@ -107,6 +109,15 @@ public class OutboundChannelAdapterParserTests {
 		
 	}
 	
+	@Test
+	public void testOutboundChannelAdapterWithNoTemporaryFileName(){
+		ApplicationContext context =
+				new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context.xml", this.getClass());
+		Object consumer = context.getBean("sftpOutboundAdapterWithNoTemporaryFileName");
+		FileTransferringMessageHandler<?> handler = TestUtils.getPropertyValue(consumer, "handler", FileTransferringMessageHandler.class);
+		assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
+	}
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFailWithRemoteDirAndExpression(){
 		new ClassPathXmlApplicationContext("OutboundChannelAdapterParserTests-context-fail.xml", this.getClass());
