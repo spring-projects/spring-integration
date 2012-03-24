@@ -16,6 +16,13 @@
 
 package org.springframework.integration.file.remote.handler;
 
+import static junit.framework.Assert.assertFalse;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.InputStream;
 
 import org.junit.Test;
@@ -29,14 +36,7 @@ import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
-
-import static junit.framework.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.springframework.test.annotation.ExpectedException;
 
 /**
  * @author Oleg Zhurakousky
@@ -90,7 +90,8 @@ public class FileTransferringMessageHandlerTests {
 	
 	@SuppressWarnings("unchecked")
 	@Test
-	public <F> void testEmptyTemporaryFileSuffix() throws Exception {
+	@ExpectedException(IllegalArgumentException.class)
+	public <F> void testEmptyTemporaryFileSuffixCannotBeNull() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
 		when(sf.getSession()).thenReturn(session);
@@ -99,12 +100,21 @@ public class FileTransferringMessageHandlerTests {
 		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
 		handler.setTemporaryFileSuffix(null);
 		handler.onInit();
-		assertTrue(handler.getTemporaryFileSuffix().isEmpty());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public <F> void testUseTemporaryFileNameFalse() throws Exception{
+		SessionFactory<F> sf = mock(SessionFactory.class);
+		Session<F> session = mock(Session.class);
 		
-		handler.setTemporaryFileSuffix("     ");
-		handler.onInit();
-		assertTrue(handler.getTemporaryFileSuffix().isEmpty());
-		
+		when(sf.getSession()).thenReturn(session);
+		 
+		ExpressionParser parser = new SpelExpressionParser();
+		FileTransferringMessageHandler<F> handler = new FileTransferringMessageHandler<F>(sf);
+		handler.setRemoteDirectoryExpression(parser.parseExpression("headers['path']"));
+		handler.setUseTemporaryFileName(false);
+		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("hello").setHeader("path", null).build();
 		handler.handleMessage(message);
 		verify(session, times(1)).write(Mockito.any(InputStream.class), Mockito.anyString());
