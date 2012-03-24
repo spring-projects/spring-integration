@@ -61,6 +61,8 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 
 	protected int fileType = FTP.BINARY_FILE_TYPE;
 
+    protected String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
+
 
 	/**
 	 * File types defined by {@link org.apache.commons.net.ftp.FTP} constants:
@@ -75,6 +77,11 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
 	}
+
+    public void setControlEncoding(String controlEncoding) {
+        Assert.hasText(controlEncoding);
+        this.controlEncoding = controlEncoding;
+    }
 
 	public void setConfig(FTPClientConfig config) {
 		Assert.notNull(config);
@@ -161,6 +168,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.updateClientMode(client);
 		client.setFileType(fileType);
 		client.setBufferSize(bufferSize);
+        client.setControlEncoding(controlEncoding);
 		return client;
 	}
 
