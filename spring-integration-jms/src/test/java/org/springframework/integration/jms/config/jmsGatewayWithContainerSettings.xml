@@ -19,6 +19,7 @@
 		 			 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testQueue"
 		 			 	 request-pub-sub-domain="false"
+						 auto-startup="false"
 		 			 	 concurrent-consumers="3"/>
 
 	<jms:inbound-gateway id="gatewayWithMaxConcurrentConsumers"
@@ -26,6 +27,7 @@
 		 			 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
 		 				 max-concurrent-consumers="22"/>
 
 	<jms:inbound-gateway id="gatewayWithMaxMessagesPerTask"
@@ -33,6 +35,7 @@
 		 			 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testQueue"
 		 			 	 request-pub-sub-domain="false"
+						 auto-startup="false"
 		 			 	 max-messages-per-task="99"/>
 
 	<jms:inbound-gateway id="gatewayWithReceiveTimeout"
@@ -40,6 +43,7 @@
 		 		   	 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
 		 				 receive-timeout="1111"/>
 
 	<jms:inbound-gateway id="gatewayWithRecoveryInterval"
@@ -47,6 +51,7 @@
 		 		   	 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
 		 				 recovery-interval="2222"/>
 
 	<jms:inbound-gateway id="gatewayWithIdleTaskExecutionLimit"
@@ -54,6 +59,7 @@
 		 		   	 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
 		 				 idle-task-execution-limit="7"/>
 
 	<jms:inbound-gateway id="gatewayWithIdleConsumerLimit"
@@ -61,6 +67,7 @@
 		 		   	 	 request-channel="requestChannel"
 		 			 	 request-destination-name="testTopic"
 		 			 	 request-pub-sub-domain="true"
+						 auto-startup="false"
 		 				 idle-consumer-limit="33"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
