@@ -17,7 +17,8 @@
 	<jms:inbound-gateway id="gateway"
 			request-destination-name="testDestination"
 			request-pub-sub-domain="true"
-			request-channel="output"/>
+			request-channel="output"
+			auto-startup="false"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
