@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.0
  */
 public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -49,9 +50,18 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
 		
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
-
 		// configure MessageHandler properties
+		String temporaryFileSuffix = element.getAttribute("temporary-file-suffix");
+		String useTemporaryFileNameAttr = element.getAttribute("use-temporary-file-name"); 
+		boolean useTemporaryFileName = (useTemporaryFileNameAttr == null || useTemporaryFileNameAttr.equals("true")); 
+		
+		if (StringUtils.hasText(temporaryFileSuffix) && !useTemporaryFileName){
+			throw new BeanDefinitionStoreException("cannot provide a 'temporary-file-suffix' if 'use-temporary-file-name is 'false'");
+		}
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "use-temporary-file-name");
+		
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 
 		this.configureRemoteDirectories(element, handlerBuilder);
