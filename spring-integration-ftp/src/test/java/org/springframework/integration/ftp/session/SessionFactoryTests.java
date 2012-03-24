@@ -22,6 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import junit.framework.Assert;
 import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -41,6 +42,37 @@ import static org.junit.Assert.assertEquals;
  */
 @SuppressWarnings({"rawtypes","unchecked"})
 public class SessionFactoryTests {
+
+
+	@Test
+	public void testWithControlEncoding() {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		sessionFactory.setControlEncoding("UTF-8");
+		Assert.assertEquals("Expected controlEncoding value of 'UTF-8'",
+				"UTF-8",
+				TestUtils.getPropertyValue(sessionFactory, "controlEncoding"));
+	}
+
+	@Test
+	public void testWithoutControlEncoding() {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		Assert.assertEquals("Expected controlEncoding value of 'ISO-8859-1'",
+				"ISO-8859-1",
+				TestUtils.getPropertyValue(sessionFactory, "controlEncoding"));
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testEmptyControlEncoding() {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		sessionFactory.setControlEncoding("");
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullControlEncoding() {
+		DefaultFtpSessionFactory sessionFactory = new DefaultFtpSessionFactory();
+		sessionFactory.setControlEncoding(null);
+	}
+
 
 	@Test
 	public void testClientModes() throws Exception{
