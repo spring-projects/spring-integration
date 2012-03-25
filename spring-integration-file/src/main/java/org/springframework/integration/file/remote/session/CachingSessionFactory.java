@@ -34,6 +34,7 @@ import org.springframework.integration.util.UpperBound;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
@@ -115,7 +116,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	}
 
 
-	private class CachedSession implements Session<F> {
+	private class CachedSession implements ExtendedSession<F> {
 
 		private final Session<F> targetSession;
 
@@ -161,6 +162,15 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		
 		public boolean exists(String path) throws IOException{
 			return this.targetSession.exists(path);
+		}
+
+		public String[] listNames(String path) throws IOException {
+			if (!(this.targetSession instanceof ExtendedSession<?>)) {
+				throw new UnsupportedOperationException(
+						"mget not supported by session "
+								+ this.targetSession.getClass().getName());
+			}
+			return ((ExtendedSession<F>) this.targetSession).listNames(path);
 		}
 	}
 

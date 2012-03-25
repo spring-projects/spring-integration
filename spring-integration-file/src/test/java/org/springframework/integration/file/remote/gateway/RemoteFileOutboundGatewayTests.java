@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,11 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
@@ -70,6 +72,151 @@ public class RemoteFileOutboundGatewayTests {
 		assertSame(files[0], out.getPayload().get(1));
 		assertEquals("testremote/x/",
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+	}
+
+	@Test
+	public void testMGetWild() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir ));
+		gw.afterPropertiesSet();
+		new File(this.tmpDir + "/f1").delete();
+		new File(this.tmpDir + "/f2").delete();
+		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+			public boolean remove(String path) throws IOException {
+				return false;
+			}
+			public Object[] list(String path) throws IOException {
+				return null;
+			}
+			public void read(String source, OutputStream outputStream)
+					throws IOException {
+				outputStream.write("testData".getBytes());
+			}
+			public void write(InputStream inputStream, String destination)
+					throws IOException {
+			}
+			public boolean mkdir(String directory) throws IOException {
+				return false;
+			}
+			public void rename(String pathFrom, String pathTo)
+					throws IOException {
+			}
+			public void close() {
+			}
+			public boolean isOpen() {
+				return false;
+			}
+			public boolean exists(String path) throws IOException {
+				return false;
+			}
+			public String[] listNames(String path) throws IOException {
+				return new String[] {"f1", "f2"};
+			}
+		});
+		@SuppressWarnings("unchecked")
+		Message<List<File>> out = (Message<List<File>>) gw
+				.handleRequestMessage(new GenericMessage<String>("testremote/*"));
+		assertEquals(2, out.getPayload().size());
+		assertEquals("f1", out.getPayload().get(0).getName());
+		assertEquals("f2", out.getPayload().get(1).getName());
+		assertEquals("testremote/",
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+	}
+
+	@Test
+	public void testMGetSingle() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir ));
+		gw.afterPropertiesSet();
+		new File(this.tmpDir + "/f1").delete();
+		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+			public boolean remove(String path) throws IOException {
+				return false;
+			}
+			public Object[] list(String path) throws IOException {
+				return null;
+			}
+			public void read(String source, OutputStream outputStream)
+					throws IOException {
+				outputStream.write("testData".getBytes());
+			}
+			public void write(InputStream inputStream, String destination)
+					throws IOException {
+			}
+			public boolean mkdir(String directory) throws IOException {
+				return false;
+			}
+			public void rename(String pathFrom, String pathTo)
+					throws IOException {
+			}
+			public void close() {
+			}
+			public boolean isOpen() {
+				return false;
+			}
+			public boolean exists(String path) throws IOException {
+				return false;
+			}
+			public String[] listNames(String path) throws IOException {
+				return new String[] {"f1"};
+			}
+		});
+		@SuppressWarnings("unchecked")
+		Message<List<File>> out = (Message<List<File>>) gw
+				.handleRequestMessage(new GenericMessage<String>("testremote/f1"));
+		assertEquals(1, out.getPayload().size());
+		assertEquals("f1", out.getPayload().get(0).getName());
+		assertEquals("testremote/",
+				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
+	}
+
+	@Test(expected=MessagingException.class)
+	public void testMGetEmpty() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mget", "payload");
+		gw.setLocalDirectory(new File(this.tmpDir ));
+		gw.setOptions("   -x   ");
+		gw.afterPropertiesSet();
+		new File(this.tmpDir + "/f1").delete();
+		new File(this.tmpDir + "/f2").delete();
+		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+			public boolean remove(String path) throws IOException {
+				return false;
+			}
+			public Object[] list(String path) throws IOException {
+				return null;
+			}
+			public void read(String source, OutputStream outputStream)
+					throws IOException {
+				outputStream.write("testData".getBytes());
+			}
+			public void write(InputStream inputStream, String destination)
+					throws IOException {
+			}
+			public boolean mkdir(String directory) throws IOException {
+				return false;
+			}
+			public void rename(String pathFrom, String pathTo)
+					throws IOException {
+			}
+			public void close() {
+			}
+			public boolean isOpen() {
+				return false;
+			}
+			public boolean exists(String path) throws IOException {
+				return false;
+			}
+			public String[] listNames(String path) throws IOException {
+				return new String[0];
+			}
+		});
+		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
 	}
 
 	/**

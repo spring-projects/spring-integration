@@ -24,7 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
+import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 
@@ -33,9 +33,10 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
-class FtpSession implements Session<FTPFile> {
+public class FtpSession implements ExtendedSession<FTPFile> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -62,6 +63,11 @@ class FtpSession implements Session<FTPFile> {
 		return this.client.listFiles(path);
 	}
 
+	public String[] listNames(String path) throws IOException {
+		Assert.hasText(path, "path must not be null");
+		return this.client.listNames(path);
+	}
+
 	public void read(String path, OutputStream fos) throws IOException {
 		Assert.hasText(path, "path must not be null");
 		Assert.notNull(fos, "outputStream must not be null");
@@ -70,7 +76,7 @@ class FtpSession implements Session<FTPFile> {
 			throw new IOException("Failed to copy '" + path +
 					"'. Server replied with: " + this.client.getReplyString());
 		}
-		logger.info("File have been successfully transfered to: " + path);
+		logger.info("File has been successfully transfered from: " + path);
 	}
 
 	public void write(InputStream inputStream, String path) throws IOException {
