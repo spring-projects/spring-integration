@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
+import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -42,6 +43,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for Outbound Gateways that perform remote file operations.
@@ -61,7 +63,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	public static final String COMMAND_RM = "rm";
 
-	protected Set<String> options = new HashSet<String>();
+	public static final String COMMAND_MGET = "mget";
 
 	public static final String OPTION_NAME_ONLY = "-1";
 
@@ -75,7 +77,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	public static final String OPTION_PRESERVE_TIMESTAMP = "-P";
 
+	public static final String OPTION_EXCEPTION_WHEN_EMPTY = "-x";
+
+	private final Set<String> supportedCommands = new HashSet<String>(Arrays.asList(
+			COMMAND_LS, COMMAND_GET, COMMAND_RM, COMMAND_MGET));
+
 	private final ExpressionEvaluatingMessageProcessor<String> processor;
+
+	protected volatile Set<String> options = new HashSet<String>();
 
 	private volatile String remoteFileSeparator = "/";
 
@@ -149,12 +158,17 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected void onInit() {
 		super.onInit();
 		Assert.notNull(this.command, "command must not be null");
-		Assert.isTrue(COMMAND_LS.equals(this.command) || COMMAND_GET.equals(this.command) ||
-					  COMMAND_RM.equals(this.command),
-				"command must be one of ls, get, rm");
-		if (COMMAND_RM.equals(this.command)) {
-			Assert.isNull(this.filter, "Filters are not supported with the rm command");
-		} else if (COMMAND_GET.equals(this.command)) {
+		Assert.isTrue(
+				this.supportedCommands.contains(this.command),
+				"command must be one of "
+						+ StringUtils
+								.collectionToCommaDelimitedString(this.supportedCommands));
+		// NOTE: Filter also not used on GET, need to correct in 2.2.
+		if (COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command)) {
+			Assert.isNull(this.filter, "Filters are not supported with the rm and mget commands");
+		}
+		if (COMMAND_GET.equals(this.command)
+				|| COMMAND_MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectory, "localDirectory must not be null");
 			try {
 				if (!this.localDirectory.exists()) {
@@ -187,35 +201,54 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		try {
 			if (COMMAND_LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
-				if (!dir.endsWith("/")) {
-					dir += "/";
+				if (!dir.endsWith(this.remoteFileSeparator)) {
+					dir += this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(ls(session, dir))
+				List<?> payload = ls(session, dir);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.build();
-			} else if (COMMAND_GET.equals(this.command)) {
+			}
+			else if (COMMAND_GET.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
-					remoteDir = "/";
+					remoteDir = this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(get(session, remoteFilePath, remoteFilename))
+				File payload = get(session, remoteFilePath, remoteFilename, true);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
-			} else if (COMMAND_RM.equals(this.command)) {
+			}
+			else if (COMMAND_MGET.equals(this.command)) {
 				String remoteFilePath =  this.processor.processMessage(requestMessage);
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
-					remoteDir = "/";
+					remoteDir = this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(rm(session, remoteFilePath))
+				List<File> payload = mGet(session, remoteDir, remoteFilename);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
-			} else {
+			}
+			else if (COMMAND_RM.equals(this.command)) {
+				String remoteFilePath =  this.processor.processMessage(requestMessage);
+				String remoteFilename = getRemoteFilename(remoteFilePath);
+				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
+				if (remoteDir.length() == 0) {
+					remoteDir = this.remoteFileSeparator;
+				}
+				boolean payload = rm(session, remoteFilePath);
+				return MessageBuilder.withPayload(payload)
+					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
+					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
+					.build();
+			}
+			else {
 				return null;
 			}
 		} catch (IOException e) {
@@ -297,11 +330,14 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	 * @param remoteFilePath
 	 * @throws IOException
 	 */
-	protected File get(Session<F> session, String remoteFilePath, String remoteFilename)
+	protected File get(Session<F> session, String remoteFilePath, String remoteFilename, boolean lsFirst)
 			throws IOException {
-		F[] files = session.list(remoteFilePath);
-		if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
-			throw new MessagingException(remoteFilePath + " is not a file");
+		F[] files = null;
+		if (lsFirst) {
+			files = session.list(remoteFilePath);
+			if (files.length != 1 || isDirectory(files[0]) || isLink(files[0])) {
+				throw new MessagingException(remoteFilePath + " is not a file");
+			}
 		}
 		File localFile = new File(this.localDirectory, remoteFilename);
 		if (!localFile.exists()) {
@@ -329,7 +365,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 			if (!tempFile.renameTo(localFile)) {
 				throw new MessagingException("Failed to rename local file");
 			}
-			if (this.options.contains(OPTION_PRESERVE_TIMESTAMP)) {
+			if (lsFirst && this.options.contains(OPTION_PRESERVE_TIMESTAMP)) {
 				localFile.setLastModified(getModified(files[0]));
 			}
 			return localFile;
@@ -337,6 +373,36 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		else {
 			throw new MessagingException("Local file " + localFile + " already exists");
 		}
+	}
+
+	protected List<File> mGet(Session<F> session, String remoteDirectory,
+			String remoteFilename) throws IOException {
+		Assert.isInstanceOf(ExtendedSession.class, session, "mget failed - ");
+		String path = fixPath(remoteDirectory, remoteFilename);
+		String[] fileNames = ((ExtendedSession<F>) session).listNames(path);
+		if (fileNames.length == 0 && this.options.contains(OPTION_EXCEPTION_WHEN_EMPTY)) {
+			throw new MessagingException("No files found at " + remoteDirectory
+					+ " with pattern " + remoteFilename);
+		}
+		List<File> files = new ArrayList<File>();
+		for (String fileName : fileNames) {
+			files.add(this.get(session, fixPath(remoteDirectory, fileName), fileName, false));
+		}
+		return files;
+	}
+
+	private String fixPath(String remoteDirectory, String remoteFilename) {
+		String path;
+		if (this.remoteFileSeparator.equals(remoteDirectory)) {
+			path = remoteFilename;
+		}
+		else if (remoteDirectory.endsWith(this.remoteFileSeparator)) {
+			path = remoteDirectory + remoteFilename;
+		}
+		else {
+			path = remoteDirectory + this.remoteFileSeparator + remoteFilename;
+		}
+		return path;
 	}
 
 	/**

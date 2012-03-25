@@ -189,12 +189,14 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    Commands supported are:
 	    <itemizedlist>
 		  <listitem>ls (list files)</listitem>
-		  <listitem>get (retrieve file(s))</listitem>
+		  <listitem>get (retrieve file)</listitem>
+		  <listitem>mget (retrieve file(s))</listitem>
 		  <listitem>rm (remove file(s))</listitem>
 	    </itemizedlist>
 	  </para>
+	  <para><emphasis>ls</emphasis></para>
 	  <para>
-	    ls supports the following options:
+	    ls lists remote file(s) and supports the following options:
 	    <itemizedlist>
 		  <listitem>-1 - just retrieve a list of filenames, default is to retrieve a
 		    list of <classname>FileInfo</classname> objects.</listitem>
@@ -202,7 +204,7 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 		  <listitem>-f - do not sort the list</listitem>
 		  <listitem>-dirs - include directories (excluded by default)</listitem>
 		  <listitem>-links - include symbolic links (excluded by default)</listitem>
-		</itemizedlist>
+	    </itemizedlist>
 	  </para>
 	  <para>
 	    In addition, filename filtering is provided, in the same manner as the
@@ -217,8 +219,9 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory that the <emphasis>ls</emphasis> command acted on is provided
 	    in the <classname>file_remoteDirectory</classname> header.
 	  </para>
+	  <para><emphasis>get</emphasis></para>
 	  <para>
-	    <emphasis>get</emphasis> supports the following option:
+	    <emphasis>get</emphasis> retrieves a remote file and supports the following option:
 	    <itemizedlist>
 		  <listitem>-P - preserve the timestamp of the remote file</listitem>
 	    </itemizedlist>
@@ -231,14 +234,27 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
-	  <para></para>
+	  <para><emphasis>mget</emphasis></para>
 	  <para>
-	    The <emphasis>rm</emphasis> command has no options.
+	    <emphasis>mget</emphasis> retrieves multiple remote files based on a pattern and supports the following option:
+	    <itemizedlist>
+		  <listitem>-x - Throw an exception if no files match the pattern (otherwise an empty
+		  list is returned)</listitem>
+	    </itemizedlist>
 	  </para>
 	  <para>
-	    <note>
-	      Filters are not supported with the <emphasis>rm</emphasis> command.
-	    </note>
+		The message payload resulting from an <emphasis>mget</emphasis> operation is a
+		<classname>List&lt;File&gt;</classname>	object - a List of File objects, each representing
+		a retrieved file.
+	  </para>
+	  <para>
+	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the pattern
+	    for the filenames is
+	    provided in the <classname>file_remoteFile</classname> header.
+	  </para>
+	  <para><emphasis>rm</emphasis></para>
+	  <para>
+	    The <emphasis>rm</emphasis> command has no options.
 	  </para>
 	  <para>
 		The message payload resulting from an <emphasis>rm</emphasis> operation is Boolean.TRUE if the
@@ -246,10 +262,10 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    The remote directory is provided in the <classname>file_remoteDirectory</classname> header, and the filename is
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
-	  <para></para>
 	  <para>
 	    In each case, the PATH that these commands act on is provided by the 'expression'
-	    property of the gateway.
+	    property of the gateway. For the mget command, the expression might evaluate to '*', meaning
+	    retrieve all files, or 'somedirectory/*' etc.
 	  </para>
 	</para>
 	<para>
