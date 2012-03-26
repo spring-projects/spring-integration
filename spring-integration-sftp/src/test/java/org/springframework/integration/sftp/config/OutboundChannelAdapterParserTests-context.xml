@@ -43,6 +43,13 @@
 				channel="inputChannel"
 				charset="UTF-8"
 				remote-directory="foo/bar"/>
+	
+	<int-sftp:outbound-channel-adapter id="sftpOutboundAdapterWithNoTemporaryFileName" 
+				session-factory="sftpSessionFactory" 
+				channel="inputChannel"
+				charset="UTF-8"
+				use-temporary-file-name="false"
+				remote-directory="foo/bar"/>			
 				
 	<bean id="fileNameGenerator" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.integration.file.FileNameGenerator"/>

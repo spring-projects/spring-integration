@@ -80,6 +80,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="use-temporary-file-name" type="xsd:boolean" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+								Allows you to supress using a temporary file name while writing the file. Invalid if
+								temporary-file-suffix is provided. 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -439,6 +447,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+
 		<xsd:attribute name="remote-file-separator" type="xsd:string"
 			default="/">
 			<xsd:annotation>

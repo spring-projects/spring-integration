@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -45,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
@@ -54,6 +54,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private final SessionFactory<F> sessionFactory;
 	
 	private volatile boolean autoCreateDirectory = false;
+	
+	private volatile boolean useTemporaryFileName = true;
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
 	
@@ -94,6 +96,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	protected String getTemporaryFileSuffix() {
+		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		return this.temporaryFileSuffix;
 	}
 
@@ -101,6 +104,16 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		Assert.notNull(temporaryDirectory, "temporaryDirectory must not be null");
 		this.temporaryDirectory = temporaryDirectory;
 	}
+
+	protected boolean isUseTemporaryFileName() {
+		return useTemporaryFileName;
+	}
+
+
+	public void setUseTemporaryFileName(boolean useTemporaryFileName) {
+		this.useTemporaryFileName = useTemporaryFileName;
+	}
+
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
@@ -204,8 +217,9 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		
 		String remoteFilePath = remoteDirectory + fileName;
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
-		// write remote file first with .writing extension
-		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
+		// write remote file first with temporary file extension if enabled
+		
+		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName? this.temporaryFileSuffix : "");
 		
 		if (this.autoCreateDirectory) {
 			try {
@@ -220,8 +234,10 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
-			// then rename it to its final name
-			session.rename(tempFilePath, remoteFilePath);
+			// then rename it to its final name if necessary
+			if (useTemporaryFileName){
+			   session.rename(tempFilePath, remoteFilePath);
+			}
 		} 
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);
