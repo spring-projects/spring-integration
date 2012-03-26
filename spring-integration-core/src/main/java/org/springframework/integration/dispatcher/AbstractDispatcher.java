@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
@@ -78,5 +79,12 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
+	}
+
+	/**
+	 * @return The current number of handlers
+	 */
+	public int getHandlerCount() {
+		return this.handlers.size();
 	}
 }
