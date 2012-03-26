@@ -99,9 +99,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
-		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy){
-			sequenceAware = true;
-		}
+		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
@@ -130,9 +128,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
 		Assert.notNull(releaseStrategy);
 		this.releaseStrategy = releaseStrategy;
-		if (this.releaseStrategy instanceof SequenceSizeReleaseStrategy){
-			sequenceAware = true;
-		}
+		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
