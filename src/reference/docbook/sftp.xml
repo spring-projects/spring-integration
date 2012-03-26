@@ -263,12 +263,6 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
 	    provided in the <classname>file_remoteFile</classname> header.
 	  </para>
 	  <para>
-	    <note>
-	      Filters are not supported with the <emphasis>rm</emphasis> and <emphasis>mget</emphasis> commands.
-	    </note>
-	  </para>
-	  <para></para>
-	  <para>
 	    In each case, the PATH that these commands act on is provided by the 'expression'
 	    property of the gateway. For the mget command, the expression might evaluate to '*', meaning
 	    retrieve all files, or 'somedirectory/*' etc.

@@ -43,6 +43,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for Outbound Gateways that perform remote file operations.
@@ -77,6 +78,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	public static final String OPTION_PRESERVE_TIMESTAMP = "-P";
 
 	public static final String OPTION_EXCEPTION_WHEN_EMPTY = "-x";
+
+	private final Set<String> supportedCommands = new HashSet<String>(Arrays.asList(
+			COMMAND_LS, COMMAND_GET, COMMAND_RM, COMMAND_MGET));
 
 	private final ExpressionEvaluatingMessageProcessor<String> processor;
 
@@ -154,12 +158,16 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 	protected void onInit() {
 		super.onInit();
 		Assert.notNull(this.command, "command must not be null");
-		Assert.isTrue(COMMAND_LS.equals(this.command) || COMMAND_GET.equals(this.command) ||
-					  COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command),
-				"command must be one of ls, get, rm, mget");
-		if (COMMAND_RM.equals(this.command)) {
-			Assert.isNull(this.filter, "Filters are not supported with the rm command");
-		} else if (COMMAND_GET.equals(this.command)
+		Assert.isTrue(
+				this.supportedCommands.contains(this.command),
+				"command must be one of "
+						+ StringUtils
+								.collectionToCommaDelimitedString(this.supportedCommands));
+		// NOTE: Filter also not used on GET, need to correct in 2.2.
+		if (COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command)) {
+			Assert.isNull(this.filter, "Filters are not supported with the rm and mget commands");
+		}
+		if (COMMAND_GET.equals(this.command)
 				|| COMMAND_MGET.equals(this.command)) {
 			Assert.notNull(this.localDirectory, "localDirectory must not be null");
 			try {
@@ -374,7 +382,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		String[] fileNames = ((ExtendedSession<F>) session).listNames(path);
 		if (fileNames.length == 0 && this.options.contains(OPTION_EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at " + remoteDirectory
-					+ " + " + remoteFilename);
+					+ " with pattern " + remoteFilename);
 		}
 		List<File> files = new ArrayList<File>();
 		for (String fileName : fileNames) {

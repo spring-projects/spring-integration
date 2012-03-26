@@ -55,6 +55,14 @@ public class RemoteFileOutboundGatewayTests {
 	private String tmpDir = System.getProperty("java.io.tmpdir");
 
 	
+	@Test(expected=IllegalArgumentException.class)
+	public void testBad() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "bad", "payload");
+		gw.afterPropertiesSet();
+	}
+
 	@Test
 	public void testLs() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
