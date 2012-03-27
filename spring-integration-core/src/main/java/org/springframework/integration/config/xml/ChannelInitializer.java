@@ -29,7 +29,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 /**
  * A {@link InitializingBean} implementation that is responsible for creating channels that
  * are not explicitly defined but identified via 'input-channel' attribute of the corresponding endpoints.
@@ -52,18 +51,13 @@ class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 		this.channelNames = channelNames;
 	}
 
-	private boolean shouldAutoCreateChannel(String channelName) {
-		return !IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME.equals(channelName)
-				&& !IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME.equals(channelName);
-	}
-
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		for (String channelName : this.channelNames) {
-			if (!beanFactory.containsBean(channelName) && this.shouldAutoCreateChannel(channelName)){
+			if (!beanFactory.containsBean(channelName)){
 				if (this.logger.isDebugEnabled()){
 					this.logger.debug("Auto-creating channel '" + channelName + "' as DirectChannel");
 				}
