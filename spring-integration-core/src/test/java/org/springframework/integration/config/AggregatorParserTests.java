@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
@@ -35,6 +36,9 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.ExpressionEvaluatingCorrelationStrategy;
+import org.springframework.integration.aggregator.ExpressionEvaluatingReleaseStrategy;
+import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.core.MessageHandler;
@@ -47,6 +51,7 @@ import org.springframework.integration.test.util.TestUtils;
 import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -216,11 +221,30 @@ public class AggregatorParserTests {
 	public void testAggregatorWithInvalidReleaseStrategyMethod() {
 		context = new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass());
 	}
+	
+	@Test
+	public void testAggregationWithExpressionsAndPojoAggregator() {
+		EventDrivenConsumer aggregatorConsumer = (EventDrivenConsumer) context.getBean("aggregatorWithExpressionsAndPojoAggregator");
+		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) TestUtils.getPropertyValue(aggregatorConsumer, "handler");
+		MethodInvokingMessageGroupProcessor messageGroupProcessor = (MethodInvokingMessageGroupProcessor) TestUtils.getPropertyValue(aggregatingMessageHandler, "outputProcessor");
+		Object messageGroupProcessorTargetObject = TestUtils.getPropertyValue(messageGroupProcessor, "processor.delegate.targetObject");
+		assertSame(context.getBean("aggregatorBean"), messageGroupProcessorTargetObject);
+		ReleaseStrategy releaseStrategy = (ReleaseStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "releaseStrategy");
+		CorrelationStrategy correlationStrategy = (CorrelationStrategy) TestUtils.getPropertyValue(aggregatingMessageHandler, "correlationStrategy");
 
+		assertTrue(ExpressionEvaluatingReleaseStrategy.class.equals(releaseStrategy.getClass()));
+		assertTrue(ExpressionEvaluatingCorrelationStrategy.class.equals(correlationStrategy.getClass()));
+	}
+	
+	// should be re-enabled for INT-2497
+//	@Test(expected=BeanDefinitionParsingException.class) 
+//	public void testAggregatorFailureIfMutuallyExclusivityPresent() {
+//		this.context = new ClassPathXmlApplicationContext("aggregatorParserFailTests.xml", this.getClass());
+//	}
+	
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
 		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
 	}
-
 }
