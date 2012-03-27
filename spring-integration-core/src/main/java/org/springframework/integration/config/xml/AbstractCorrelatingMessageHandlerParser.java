@@ -18,6 +18,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.util.StringUtils;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 /**
@@ -28,6 +31,8 @@ import org.w3c.dom.Element;
  *
  */
 public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractConsumerEndpointParser {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
 
@@ -58,22 +63,35 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 	protected void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
 			String expressionAttribute, String beanProperty, String adapterClass, Element element,
 			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
+
 		final String beanRef = element.getAttribute(beanRefAttribute);
 		final String beanMethod = element.getAttribute(methodRefAttribute);
 		final String expression = element.getAttribute(expressionAttribute);
+
+		final boolean hasBeanRef = StringUtils.hasText(beanRef);
+		final boolean hasExpression = StringUtils.hasText(expression);
+
+		if (hasBeanRef && hasExpression) {
+			this.logger.warn("Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
+					"' attribute is allowed. The '" + expressionAttribute +
+					"' is ignored when both are provided." +
+					"NOTE: This is a warning message only, to avoid a breaking change in a point release and should " +
+					"be treated as an error. In a future release this condition will result in the actual exception");
+		}
+
 		BeanMetadataElement adapter = null;
-		if (StringUtils.hasText(beanRef)) {
+		if (hasBeanRef) {
 			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
 		}
-		else if (processor != null) {
-			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
-		}
-		else if (StringUtils.hasText(expression)) {
+		else if (hasExpression) {
 			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
 							+ adapterClass);
 			adapterBuilder.addConstructorArgValue(expression);
 			adapter = adapterBuilder.getBeanDefinition();
+		}
+		else if (processor != null) {
+			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
 		}
 		else {
 			adapter = this.createAdapter(null, beanMethod, adapterClass, parserContext);
