@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -86,6 +87,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
+	private volatile boolean sequenceAware = false;
+
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
@@ -96,6 +99,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID) : correlationStrategy;
 		this.releaseStrategy = releaseStrategy == null ? new SequenceSizeReleaseStrategy() : releaseStrategy;
 		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
@@ -124,6 +128,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
 		Assert.notNull(releaseStrategy);
 		this.releaseStrategy = releaseStrategy;
+		sequenceAware = this.releaseStrategy instanceof SequenceSizeReleaseStrategy;
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -182,16 +187,19 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		synchronized (lock) {
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
-			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
+
+			boolean canAdd = this.sequenceAware ? messageGroup.canAdd(message) : true;
+
+			if (!messageGroup.isComplete() && canAdd) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
-				messageGroup = store(correlationKey, message);
+				messageGroup = this.store(correlationKey, message);
 				
 				if (releaseStrategy.canRelease(messageGroup)) {
 					Collection<Message<?>> completedMessages = null;
 					try {
-						completedMessages = completeGroup(message, correlationKey, messageGroup);
+						completedMessages = this.completeGroup(message, correlationKey, messageGroup);
 					}
 					finally {
 						// Always clean up even if there was an exception
@@ -209,6 +217,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			}
 		}
 	}
+
 
 	/**
 	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
@@ -362,5 +371,4 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 		return false;
 	}
-
 }

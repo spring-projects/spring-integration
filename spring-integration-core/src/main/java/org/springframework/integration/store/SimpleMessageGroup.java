@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -76,10 +76,6 @@ public class SimpleMessageGroup implements MessageGroup {
 		return lastModified;
 	}
 
-	public boolean canAdd(Message<?> message) {
-		return !isMember(message);
-	}
-
 	public void add(Message<?> message) {
 		addMessage(message);
 	}
@@ -136,26 +132,35 @@ public class SimpleMessageGroup implements MessageGroup {
 		this.messages.clear();
 	}
 
+	@Override
+	public String toString() {
+		return "SimpleMessageGroup{" +
+				"groupId=" + groupId +
+				", messages=" + messages +
+				", timestamp=" + timestamp +
+				'}';
+	}
+	
 	/**
 	 * This method determines whether messages have been added to this group that supersede the given message based on
 	 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
 	 * or sequences that are missing certain sequence numbers.
 	 */
-	private boolean isMember(Message<?> message) {
-		if (size() == 0) {
-			return false;
+	public boolean canAdd(Message<?> message) {
+		if (this.size() == 0) {
+			return true;
 		}
 		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
 		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
-			if (!messageSequenceSize.equals(getSequenceSize())) {
-				return true;
+			if (!messageSequenceSize.equals(this.getSequenceSize())) {
+				return false;
 			}
 			else {
-				return this.containsSequenceNumber(messages, messageSequenceNumber);
+				return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
 			}
 		}
-		return false;
+		return true;
 	}
 
 	private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
@@ -166,14 +171,5 @@ public class SimpleMessageGroup implements MessageGroup {
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public String toString() {
-		return "SimpleMessageGroup{" +
-				"groupId=" + groupId +
-				", messages=" + messages +
-				", timestamp=" + timestamp +
-				'}';
 	}
 }
