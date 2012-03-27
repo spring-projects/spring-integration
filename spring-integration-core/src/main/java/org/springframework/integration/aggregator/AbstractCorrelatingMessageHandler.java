@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -35,7 +36,6 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
-import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -187,11 +187,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 		synchronized (lock) {
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
-			if (this.sequenceAware){
-				messageGroup = new SequenceAwareMessageGroup(messageGroup);
-			}
 
-			if (!messageGroup.isComplete() && messageGroup.canAdd(message)) {
+			boolean canAdd = this.sequenceAware ? messageGroup.canAdd(message) : true;
+
+			if (!messageGroup.isComplete() && canAdd) {
 				if (logger.isTraceEnabled()) {
 					logger.trace("Adding message to group [ " + messageGroup + "]");
 				}
@@ -372,44 +371,4 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 		return false;
 	}
-
-	private static class SequenceAwareMessageGroup extends SimpleMessageGroup {
-
-		public SequenceAwareMessageGroup(MessageGroup messageGroup) {
-			super(messageGroup);
-		}
-
-		/**
-		 * This method determines whether messages have been added to this group that supersede the given message based on
-		 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
-		 * or sequences that are missing certain sequence numbers.
-		 */
-		public boolean canAdd(Message<?> message) {
-			if (this.size() == 0) {
-				return true;
-			}
-			Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
-			if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-				Integer messageSequenceSize = message.getHeaders().getSequenceSize();
-				if (!messageSequenceSize.equals(this.getSequenceSize())) {
-					return false;
-				}
-				else {
-					return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
-				}
-			}
-			return true;
-		}
-
-		private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
-			for (Message<?> member : messages) {
-				Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
-				if (messageSequenceNumber.equals(memberSequenceNumber)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
 }

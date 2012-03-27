@@ -76,10 +76,6 @@ public class SimpleMessageGroup implements MessageGroup {
 		return lastModified;
 	}
 
-	public boolean canAdd(Message<?> message) {
-		return true;
-	}
-
 	public void add(Message<?> message) {
 		addMessage(message);
 	}
@@ -143,5 +139,37 @@ public class SimpleMessageGroup implements MessageGroup {
 				", messages=" + messages +
 				", timestamp=" + timestamp +
 				'}';
+	}
+	
+	/**
+	 * This method determines whether messages have been added to this group that supersede the given message based on
+	 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
+	 * or sequences that are missing certain sequence numbers.
+	 */
+	public boolean canAdd(Message<?> message) {
+		if (this.size() == 0) {
+			return true;
+		}
+		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
+		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
+			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
+			if (!messageSequenceSize.equals(this.getSequenceSize())) {
+				return false;
+			}
+			else {
+				return !this.containsSequenceNumber(this.getMessages(), messageSequenceNumber);
+			}
+		}
+		return true;
+	}
+
+	private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
+		for (Message<?> member : messages) {
+			Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+			if (messageSequenceNumber.equals(memberSequenceNumber)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
