@@ -44,18 +44,21 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Josh Long
  * @author Oleg Zhurakousky
+ * @author David Turanski
  * @since 2.0
  */
 public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
-	
+
 	private volatile String temporaryFileSuffix =".writing";
 
 	private final SessionFactory<F> sessionFactory;
-	
+
 	private volatile boolean autoCreateDirectory = false;
 
+	private volatile boolean useTemporaryFileName = true;
+
 	private volatile ExpressionEvaluatingMessageProcessor<String> directoryExpressionProcessor;
-	
+
 	private volatile ExpressionEvaluatingMessageProcessor<String> temporaryDirectoryExpressionProcessor;
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
@@ -65,6 +68,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private volatile String charset = "UTF-8";
 
 	private volatile String remoteFileSeparator = "/";
+
+	private volatile boolean hasExplicitlySetSuffix;
 
 
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
@@ -101,6 +106,16 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		this.temporaryDirectory = temporaryDirectory;
 	}
 
+	protected boolean isUseTemporaryFileName() {
+		return useTemporaryFileName;
+	}
+
+
+	public void setUseTemporaryFileName(boolean useTemporaryFileName) {
+		this.useTemporaryFileName = useTemporaryFileName;
+	}
+
+
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = (fileNameGenerator != null) ? fileNameGenerator : new DefaultFileNameGenerator();
 	}
@@ -110,6 +125,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
+		this.hasExplicitlySetSuffix = true;
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 
@@ -118,8 +135,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
+		if (hasExplicitlySetSuffix && !useTemporaryFileName){
+			this.logger.warn("Since 'use-temporary-file-name' is set to 'false' the value of 'temporary-file-suffix' has no effect");
+		}
 	}
-	
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
@@ -197,14 +217,15 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 
 	private void sendFileToRemoteDirectory(File file, String temporaryRemoteDirectory, String remoteDirectory, String fileName, Session<F> session) 
 			throws FileNotFoundException, IOException {
-		
+
 		remoteDirectory = this.normalizeDirectoryPath(remoteDirectory);
 		temporaryRemoteDirectory = this.normalizeDirectoryPath(temporaryRemoteDirectory);
-		
+
 		String remoteFilePath = remoteDirectory + fileName;
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
-		// write remote file first with .writing extension
-		String tempFilePath = tempRemoteFilePath + this.temporaryFileSuffix;
+		// write remote file first with temporary file extension if enabled
+
+		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName ? this.temporaryFileSuffix : "");
 		
 		if (this.autoCreateDirectory) {
 			try {
@@ -219,8 +240,10 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		FileInputStream fileInputStream = new FileInputStream(file);
 		try {
 			session.write(fileInputStream, tempFilePath);
-			// then rename it to its final name
-			session.rename(tempFilePath, remoteFilePath);
+			// then rename it to its final name if necessary
+			if (useTemporaryFileName){
+			   session.rename(tempFilePath, remoteFilePath);
+			}
 		} 
 		catch (Exception e) {
 			throw new MessagingException("Failed to write to '" + tempFilePath + "' while uploading the file", e);

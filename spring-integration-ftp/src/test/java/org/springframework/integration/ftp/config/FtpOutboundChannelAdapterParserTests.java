@@ -19,6 +19,7 @@ package org.springframework.integration.ftp.config;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
 import java.util.Iterator;
@@ -94,6 +95,16 @@ public class FtpOutboundChannelAdapterParserTests {
 		assertEquals(CachingSessionFactory.class, sfProperty.getClass());
 		Object innerSfProperty = TestUtils.getPropertyValue(sfProperty, "sessionFactory");
 		assertEquals(DefaultFtpSessionFactory.class, innerSfProperty.getClass());
+	}
+
+
+	@Test
+	public void testTemporaryFileSuffix() {
+		ApplicationContext ac =
+				new ClassPathXmlApplicationContext("FtpOutboundChannelAdapterParserTests-context.xml", this.getClass());
+			FileTransferringMessageHandler<?> handler =
+					(FileTransferringMessageHandler<?>)TestUtils.getPropertyValue(ac.getBean("ftpOutbound3"), "handler");
+			assertFalse((Boolean)TestUtils.getPropertyValue(handler,"useTemporaryFileName"));
 	}
 
 }
