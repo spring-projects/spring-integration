@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author David Turanski
  * @since 2.0
  */
 public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
@@ -49,13 +50,15 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		sessionFactoryBuilder.addConstructorArgValue(element.getAttribute("cache-sessions"));
 		
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
-
 		// configure MessageHandler properties
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "use-temporary-file-name");
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 
 		this.configureRemoteDirectories(element, handlerBuilder);
-		
+
 		// configure remote FileNameGenerator
 		String remoteFileNameGenerator = element.getAttribute("remote-filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("remote-filename-generator-expression");
