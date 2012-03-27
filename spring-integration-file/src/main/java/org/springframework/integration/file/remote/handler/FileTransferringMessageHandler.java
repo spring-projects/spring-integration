@@ -98,7 +98,6 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	protected String getTemporaryFileSuffix() {
-		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		return this.temporaryFileSuffix;
 	}
 
@@ -126,6 +125,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		Assert.notNull(temporaryFileSuffix, "'temporaryFileSuffix' must not be null");
 		this.hasExplicitlySetSuffix = true;
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}

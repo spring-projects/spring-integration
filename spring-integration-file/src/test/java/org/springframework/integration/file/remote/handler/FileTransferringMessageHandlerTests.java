@@ -89,8 +89,7 @@ public class FileTransferringMessageHandlerTests {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test
-	@ExpectedException(IllegalArgumentException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public <F> void testEmptyTemporaryFileSuffixCannotBeNull() throws Exception {
 		SessionFactory<F> sf = mock(SessionFactory.class);
 		Session<F> session = mock(Session.class);
