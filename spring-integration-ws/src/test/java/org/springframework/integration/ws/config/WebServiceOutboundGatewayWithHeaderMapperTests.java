@@ -23,8 +23,12 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -56,6 +60,7 @@ import org.springframework.ws.soap.SoapMessageFactory;
 import org.springframework.ws.transport.WebServiceConnection;
 import org.springframework.ws.transport.WebServiceMessageSender;
 import org.springframework.xml.namespace.QNameUtils;
+import org.springframework.xml.transform.StringResult;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -108,7 +113,7 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	}
 	
 	@Test
-	public void withHeaderMapperStringAndNonSoap() throws Exception{
+	public void withHeaderMapperStringPOX() throws Exception{
 		String payload = "<root><name>bill</name></root>";
 		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", false);
 		assertTrue(replyMessage.getPayload() instanceof String);
@@ -128,6 +133,17 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 	}
 	
 	@Test
+	public void withHeaderMapperSourcePOX() throws Exception{
+		DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
+		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
+		Document document = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
+		DOMSource payload = new DOMSource(document);
+		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", false);
+		assertTrue(replyMessage.getPayload() instanceof DOMSource);	
+		assertTrue(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>"));
+	}
+	
+	@Test
 	public void withHeaderMapperDocument() throws Exception{
 		DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
@@ -136,6 +152,16 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 		assertTrue(replyMessage.getPayload() instanceof Document);
 		assertEquals("bar", replyMessage.getHeaders().get("bar"));
 		assertNull(replyMessage.getHeaders().get("baz"));
+	}
+	
+	@Test
+	public void withHeaderMapperDocumentPOX() throws Exception{
+		DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
+		DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
+		Document payload = docBuilder.parse(new ByteArrayInputStream("<root><name>bill</name></root>".getBytes()));
+		Message<?> replyMessage = this.process(payload, "withHeaderMapper", "inputChannel", false);
+		assertTrue(replyMessage.getPayload() instanceof Document);
+		assertTrue(this.extractStringResult(replyMessage).contains("<person><name>oleg</name></person>"));
 	}
 	
 	@Test
@@ -247,5 +273,21 @@ public class WebServiceOutboundGatewayWithHeaderMapperTests {
 			person.setName(name);
 			return person;
 		}
+	}
+	
+	private String extractStringResult(Message<?> replyMessage) throws Exception{
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        StringResult result = new StringResult();
+        Object payload = replyMessage.getPayload();
+        if (payload instanceof DOMSource){
+        	transformer.transform(((DOMSource)replyMessage.getPayload()), result);    
+        }
+        else if (payload instanceof Document){
+        	transformer.transform(new DOMSource((Document)replyMessage.getPayload()), result);  
+        }
+        else {
+        	throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
+        }
+        return result.toString();
 	}
 }
