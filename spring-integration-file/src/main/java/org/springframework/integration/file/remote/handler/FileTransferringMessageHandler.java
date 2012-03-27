@@ -68,6 +68,8 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	private volatile String charset = "UTF-8";
 
 	private volatile String remoteFileSeparator = "/";
+	
+	private volatile boolean hasExplicitlySetSuffix;
 
 
 	public FileTransferringMessageHandler(SessionFactory<F> sessionFactory) {
@@ -124,6 +126,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 	}
 	
 	public void setTemporaryFileSuffix(String temporaryFileSuffix) {
+		this.hasExplicitlySetSuffix = true;
 		this.temporaryFileSuffix = temporaryFileSuffix;
 	}
 
@@ -132,9 +135,9 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
-		if (StringUtils.hasText(temporaryFileSuffix) && !useTemporaryFileName){
+		if (hasExplicitlySetSuffix && !useTemporaryFileName){
 			this.logger.warn("Since 'use-temporary-file-name is set to 'false' the value of 'temporary-file-suffix' has no effect");
-	    }
+		}
 	}
 
 	@Override
