@@ -54,12 +54,14 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	protected String password;
 
 	protected int port = FTP.DEFAULT_PORT;
-	
+
 	protected int bufferSize = 2048; //see https://issues.apache.org/jira/browse/NET-207
 
 	protected int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 
 	protected int fileType = FTP.BINARY_FILE_TYPE;
+
+	protected String controlEncoding = FTP.DEFAULT_CONTROL_ENCODING;
 
 
 	/**
@@ -74,6 +76,11 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 	 */
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
+	}
+
+	public void setControlEncoding(String controlEncoding) {
+		Assert.hasText(controlEncoding);
+		this.controlEncoding = controlEncoding;
 	}
 
 	public void setConfig(FTPClientConfig config) {
@@ -161,6 +168,7 @@ public abstract class AbstractFtpSessionFactory<T extends FTPClient> implements 
 		this.updateClientMode(client);
 		client.setFileType(fileType);
 		client.setBufferSize(bufferSize);
+		client.setControlEncoding(controlEncoding);
 		return client;
 	}
 
