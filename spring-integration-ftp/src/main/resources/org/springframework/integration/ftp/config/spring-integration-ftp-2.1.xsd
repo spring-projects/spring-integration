@@ -80,11 +80,10 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="use-temporary-file-name" type="xsd:boolean" default="true">
+					<xsd:attribute name="use-temporary-file-name" type="xsd:string" default="true">
 						<xsd:annotation>
 							<xsd:documentation>
-								Allows you to supress using a temporary file name while writing the file. Invalid if
-								temporary-file-suffix is provided. 
+								Allows you to suppress using a temporary file name while writing the file.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>					

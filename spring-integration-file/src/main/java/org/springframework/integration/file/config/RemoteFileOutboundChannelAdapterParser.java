@@ -51,21 +51,14 @@ public class RemoteFileOutboundChannelAdapterParser extends AbstractOutboundChan
 		
 		handlerBuilder.addConstructorArgValue(sessionFactoryBuilder.getBeanDefinition());
 		// configure MessageHandler properties
-		String temporaryFileSuffix = element.getAttribute("temporary-file-suffix");
-		String useTemporaryFileNameAttr = element.getAttribute("use-temporary-file-name"); 
-		boolean useTemporaryFileName = (useTemporaryFileNameAttr == null || useTemporaryFileNameAttr.equals("true")); 
-		
-		if (StringUtils.hasText(temporaryFileSuffix) && !useTemporaryFileName){
-			throw new BeanDefinitionStoreException("cannot provide a 'temporary-file-suffix' if 'use-temporary-file-name is 'false'");
-		}
-		
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "temporary-file-suffix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "use-temporary-file-name");
-		
+
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "auto-create-directory");
 
 		this.configureRemoteDirectories(element, handlerBuilder);
-		
+
 		// configure remote FileNameGenerator
 		String remoteFileNameGenerator = element.getAttribute("remote-filename-generator");
 		String remoteFileNameGeneratorExpression = element.getAttribute("remote-filename-generator-expression");

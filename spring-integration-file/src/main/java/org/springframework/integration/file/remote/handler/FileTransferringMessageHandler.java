@@ -132,8 +132,11 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		if (this.autoCreateDirectory){
 			Assert.hasText(this.remoteFileSeparator, "'remoteFileSeparator' must not be empty when 'autoCreateDirectory' is set to 'true'");
 		}
+		if (StringUtils.hasText(temporaryFileSuffix) && !useTemporaryFileName){
+			this.logger.warn("Since 'use-temporary-file-name is set to 'false' the value of 'temporary-file-suffix' has no effect");
+	    }
 	}
-	
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
 		File file = this.redeemForStorableFile(message);
@@ -219,7 +222,7 @@ public class FileTransferringMessageHandler<F> extends AbstractMessageHandler {
 		String tempRemoteFilePath = temporaryRemoteDirectory + fileName;
 		// write remote file first with temporary file extension if enabled
 		
-		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName? this.temporaryFileSuffix : "");
+		String tempFilePath = tempRemoteFilePath + (useTemporaryFileName ? this.temporaryFileSuffix : "");
 		
 		if (this.autoCreateDirectory) {
 			try {
