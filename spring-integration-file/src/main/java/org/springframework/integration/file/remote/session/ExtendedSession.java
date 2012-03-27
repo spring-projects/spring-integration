@@ -18,13 +18,27 @@ package org.springframework.integration.file.remote.session;
 import java.io.IOException;
 
 /**
- * Temporary extension to {@link Session} to avoid a breaking change
+ * <b>Temporary extension</b> to {@link Session} to avoid a breaking change
  * in a point release - merge with Session in 2.2.
+ * <p>
+ * <b>**NOTE**</b> This interface will be <b>removed</b> (not deprecated) in 2.2.
+ * It exists purely to avoid existing user implementations of Session from
+ * failing to compile if we had added the new method to that interface.
+ * <p>Any user implementations of ExtendedSession will need to be refactored to
+ * implement Session in 2.2.
  * @author Gary Russell
  * @since 2.1.1
  *
  */
 public interface ExtendedSession<T> extends Session<T> {
 
+	/**
+	 * Returns an array of Strings containing just the names of
+	 * the remote files at path. Will move to {@link Session}
+	 * in 2.2.
+	 * @param path The path
+	 * @return The list of names
+	 * @throws IOException
+	 */
 	String[] listNames(String path) throws IOException;
 }
