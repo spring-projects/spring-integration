@@ -201,10 +201,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 		try {
 			if (COMMAND_LS.equals(this.command)) {
 				String dir = this.processor.processMessage(requestMessage);
-				if (!dir.endsWith("/")) {
-					dir += "/";
+				if (!dir.endsWith(this.remoteFileSeparator)) {
+					dir += this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(ls(session, dir))
+				List<?> payload = ls(session, dir);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, dir)
 					.build();
 			}
@@ -213,9 +214,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
-					remoteDir = "/";
+					remoteDir = this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(get(session, remoteFilePath, remoteFilename, true))
+				File payload = get(session, remoteFilePath, remoteFilename, true);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
@@ -225,9 +227,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
-					remoteDir = "/";
+					remoteDir = this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(mGet(session, remoteDir, remoteFilename))
+				List<File> payload = mGet(session, remoteDir, remoteFilename);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
@@ -237,9 +240,10 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				String remoteFilename = getRemoteFilename(remoteFilePath);
 				String remoteDir = remoteFilePath.substring(0, remoteFilePath.indexOf(remoteFilename));
 				if (remoteDir.length() == 0) {
-					remoteDir = "/";
+					remoteDir = this.remoteFileSeparator;
 				}
-				return MessageBuilder.withPayload(rm(session, remoteFilePath))
+				boolean payload = rm(session, remoteFilePath);
+				return MessageBuilder.withPayload(payload)
 					.setHeader(FileHeaders.REMOTE_DIRECTORY, remoteDir)
 					.setHeader(FileHeaders.REMOTE_FILE, remoteFilename)
 					.build();
@@ -373,11 +377,7 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected List<File> mGet(Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		if (!(session instanceof ExtendedSession<?>)) {
-			throw new UnsupportedOperationException(
-					"mget not supported by session "
-							+ session.getClass().getName());
-		}
+		Assert.isInstanceOf(ExtendedSession.class, session, "mget failed - ");
 		String path = fixPath(remoteDirectory, remoteFilename);
 		String[] fileNames = ((ExtendedSession<F>) session).listNames(path);
 		if (fileNames.length == 0 && this.options.contains(OPTION_EXCEPTION_WHEN_EMPTY)) {

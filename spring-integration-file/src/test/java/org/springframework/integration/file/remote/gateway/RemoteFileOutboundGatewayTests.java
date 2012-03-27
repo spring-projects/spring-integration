@@ -82,6 +82,18 @@ public class RemoteFileOutboundGatewayTests {
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
 
+	@Test(expected=IllegalArgumentException.class)
+	public void testMGetSession() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		Session session = mock(Session.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+			(sessionFactory, "mget", "payload");
+		when(sessionFactory.getSession()).thenReturn(session);
+		gw.setLocalDirectory(new File(this.tmpDir ));
+		gw.afterPropertiesSet();
+		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
+	}
+
 	@Test
 	public void testMGetWild() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
