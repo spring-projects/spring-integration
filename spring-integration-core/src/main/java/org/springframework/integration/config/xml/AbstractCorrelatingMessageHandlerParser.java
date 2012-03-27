@@ -18,6 +18,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AbstractCorrelatingMessageHandler;
 import org.springframework.util.StringUtils;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 /**
@@ -28,6 +31,8 @@ import org.w3c.dom.Element;
  *
  */
 public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractConsumerEndpointParser {
+	
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
 
@@ -67,9 +72,9 @@ public abstract class AbstractCorrelatingMessageHandlerParser extends AbstractCo
 		final boolean hasExpression = StringUtils.hasText(expression);
 		
 		if (hasBeanRef && hasExpression) {
-			parserContext.getReaderContext().error(
-					"Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
-					"' attribute is allowed.", element);
+			this.logger.warn("Exactly one of the '" + beanRefAttribute + "' or '" + expressionAttribute +
+					"' attribute is allowed. NOTE: This is a warining message only to avoid breaking change in the point release and should " +
+					"be treated as error. In the future release this condition will result in the actual exception");
 		}
 		
 		BeanMetadataElement adapter = null;
