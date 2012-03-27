@@ -12,6 +12,9 @@
  */
 package org.springframework.integration.aggregator.scenarios;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
@@ -35,11 +38,14 @@ public class AggregatorWithCustomReleaseStrategyTests {
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("in", MessageChannel.class);
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
+		
+		final CountDownLatch latch = new CountDownLatch(2);
 
 		new Thread(new Runnable() {
 			public void run() {
 				inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).
 						setHeader("correlation", "foo").build());
+				latch.countDown();
 			}
 		}).start();
 
@@ -47,9 +53,11 @@ public class AggregatorWithCustomReleaseStrategyTests {
 			public void run() {
 				inputChannel.send(MessageBuilder.withPayload(new Integer[]{10, 20, 30, 40, 50, 60, 70, 80}).
 						setHeader("correlation", "foo").build());
+				latch.countDown();
 			}
 		}).start();
 
+		latch.await(10, TimeUnit.SECONDS);
 
 		Message<?> message = resultChannel.receive(1000);
 		int counter = 0;
