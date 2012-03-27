@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.util.UpperBound;
+import org.springframework.util.Assert;
 
 /**
  * A {@link SessionFactory} implementation that caches Sessions for reuse without
@@ -34,6 +35,7 @@ import org.springframework.integration.util.UpperBound;
  * @author Josh Long
  * @author Oleg Zhurakousky
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 2.0
  */
 public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBean {
@@ -115,7 +117,7 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 	}
 
 
-	private class CachedSession implements Session<F> {
+	private class CachedSession implements ExtendedSession<F> {
 
 		private final Session<F> targetSession;
 
@@ -161,6 +163,11 @@ public class CachingSessionFactory<F> implements SessionFactory<F>, DisposableBe
 		
 		public boolean exists(String path) throws IOException{
 			return this.targetSession.exists(path);
+		}
+
+		public String[] listNames(String path) throws IOException {
+			Assert.isInstanceOf(ExtendedSession.class, this.targetSession, "mget failed - ");
+			return ((ExtendedSession<F>) this.targetSession).listNames(path);
 		}
 	}
 

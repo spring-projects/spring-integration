@@ -19,12 +19,15 @@ package org.springframework.integration.sftp.session;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.NestedIOException;
+import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -32,6 +35,7 @@ import org.springframework.util.FileCopyUtils;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 
 /**
@@ -41,9 +45,10 @@ import com.jcraft.jsch.SftpException;
  * @author Mario Gray
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Gary Russell
  * @since 2.0
  */
-class SftpSession implements Session<LsEntry> {
+class SftpSession implements ExtendedSession<LsEntry> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -88,6 +93,21 @@ class SftpSession implements Session<LsEntry> {
 		}
 		return new LsEntry[0];
 	}
+
+	public String[] listNames(String path) throws IOException {
+		LsEntry[] entries = this.list(path);
+		List<String> names = new ArrayList<String>();
+		for (int i = 0; i < entries.length; i++) {
+			String fileName = entries[i].getFilename();
+			SftpATTRS attrs = entries[i].getAttrs();
+			if (!attrs.isDir() && !attrs.isLink()) {
+				names.add(fileName);
+			}
+		}
+		String[] fileNames = new String[names.size()];
+		return names.toArray(fileNames);
+	}
+
 
 	public void read(String source, OutputStream os) throws IOException {
 		Assert.state(this.channel != null, "session is not connected");
