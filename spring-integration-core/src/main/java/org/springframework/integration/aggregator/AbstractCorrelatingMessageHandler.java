@@ -17,8 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +36,8 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.util.DefaultLockRegistry;
+import org.springframework.integration.util.LockRegistry;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -83,15 +84,16 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 
 	private boolean sendPartialResultOnExpiry = false;
 	
-	private final Object correlationLocksMonitor = new Object();
-
-	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
-
 	private volatile boolean sequenceAware = false;
+
+	private volatile LockRegistry lockRegistry = new DefaultLockRegistry();
+
+	private boolean lockRegistrySet = false;
 
 	public AbstractCorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 									 CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(processor);
+
 		Assert.notNull(store);
 		setMessageStore(store);
 		this.outputProcessor = processor;
@@ -110,6 +112,12 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		this(processor, new SimpleMessageStore(0), null, null);
 	}
 
+	public void setLockRegistry(LockRegistry lockRegistry) {
+		Assert.isTrue(!lockRegistrySet, "'this.lockRegistry' can not be reset once its been set");
+		Assert.notNull("'lockRegistry' must not be null");
+		this.lockRegistry = lockRegistry;
+		this.lockRegistrySet = true;
+	}
 
 	public void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
@@ -183,9 +191,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 
 		// TODO: INT-1117 - make the lock global?
-		Object lock = getLock(correlationKey);
+		Lock lock = this.lockRegistry.obtain(correlationKey);
 
-		synchronized (lock) {
+		lock.lockInterruptibly();
+		try {
 			MessageGroup messageGroup = messageStore.getMessageGroup(correlationKey);
 			if (this.sequenceAware){
 				messageGroup = new SequenceAwareMessageGroup(messageGroup);
@@ -206,10 +215,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 						// Always clean up even if there was an exception
 						// processing messages						
 						this.afterRelease(messageGroup, completedMessages);
-		
-						synchronized(correlationLocksMonitor){
-							locks.remove(messageGroup.getGroupId());
-						}
 					}
 				} 				
 			} 
@@ -217,8 +222,10 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 				discardChannel.send(message);
 			}
 		}
+		finally {
+			lock.unlock();
+		}
 	}
-
 
 	/**
 	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
@@ -230,32 +237,34 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	private final boolean forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getGroupId();
-		Object lock = getLock(correlationKey);
-		synchronized (lock) {
-
-			if (group.size() > 0) {
-				try {
-					if (releaseStrategy.canRelease(group)) {
-						this.completeGroup(correlationKey, group);
-					} 
-					else {
-						this.expireGroup(correlationKey, group);
+		Lock lock = this.lockRegistry.obtain(correlationKey);
+		try {
+			lock.lockInterruptibly();
+			try {
+				if (group.size() > 0) {
+					try {
+						if (releaseStrategy.canRelease(group)) {
+							this.completeGroup(correlationKey, group);
+						}
+						else {
+							this.expireGroup(correlationKey, group);
+						}
 					}
+					finally {
+						this.remove(group);
+					}
+					return true;
 				}
-				finally {
-					this.remove(group);
-				}
-				return true;
 			}
-			return false;
+			finally  {
+				lock.unlock();
+			}
 		}
-	}
-
-	private Object getLock(Object correlationKey) {
-		synchronized(correlationLocksMonitor){
-			locks.putIfAbsent(correlationKey, new Object());
-			return locks.get(correlationKey);
+		catch (InterruptedException ie) {
+			Thread.currentThread().interrupt();
+			throw new MessagingException("Thread was interrupted while trying to obtain lock");
 		}
+		return false;
 	}
 
 	void remove(MessageGroup group) {
@@ -411,5 +420,4 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			return false;
 		}
 	}
-
 }
