@@ -19,10 +19,10 @@ import org.springframework.util.Assert;
 /**
  * Default implementation of {@link LockRegistry} which uses Masked Hashcode algorithm to obtain locks.
  * When an instance of this class is created and array of {@link Lock} objects is created. The length of
- * the array is based on the 'mask' parameter passed in the constructor. The default is 0xFF which will create
+ * the array is based on the 'mask' parameter passed in the constructor. The default mask is 0xFF which will create
  * and array consisting of 256 {@link ReentrantLock} instances.
- * Once the {@link #obtain(Object)} method is called with the lockKey (e.g., Object) the index of the {@link Lock}
- * is determined by masking object's hashCode (e.g., object.hashCode & mask) and the {@link Lock} is returned.
+ * When the {@link #obtain(Object)} method is called with the lockKey (e.g., Object) the index of the {@link Lock}
+ * is determined by masking the object's hashCode (e.g., object.hashCode & mask) and the {@link Lock} is returned.
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
@@ -31,28 +31,47 @@ import org.springframework.util.Assert;
  */
 public final class DefaultLockRegistry implements LockRegistry {
 
-	private final Lock[] availableLocks;
+	private final Lock[] lockTable;
 
 	private final int mask;
 
+	/**
+     * Constructs a DefaultLockRegistry with the default
+     * mask 0xFF with 256 locks.
+     */
 	public DefaultLockRegistry(){
 		this(0xFF);
 	}
 
+	/**
+     * Constructs a DefaultLockRegistry with the supplied
+     * mask - the mask must have a value (2**n) - 1 where n
+     * is 1 to 31, creating a hash of 2**n locks.
+     * <p> Examples:
+     * <li>0x3ff (1023) - 1024 locks</li>
+     * <li>0xfff (4095) - 4096 locks</li>
+     * <p>
+     * @param mask
+     */
 	public DefaultLockRegistry(int mask){
 		String bits = Integer.toBinaryString(mask);
-		Assert.isTrue(bits.lastIndexOf('0') < bits.indexOf('1'));
+		Assert.isTrue(bits.lastIndexOf('0') < bits.indexOf('1'), "Mask must be a power of 2 - 1");
 		this.mask = mask;
 		int arraySize = this.mask+1;
-		availableLocks = new ReentrantLock[arraySize];
+		lockTable = new ReentrantLock[arraySize];
 		for (int i = 0; i < arraySize; i++) {
-			availableLocks[i] = new ReentrantLock();
+			lockTable[i] = new ReentrantLock();
 		}
 	}
 
+	/**
+     * Obtains a lock by masking the lockKey's hashCode() with
+     * the mask and using the result as an index to the lock table.
+     * @param lockKey the object used to derive the lock index.
+     */
 	public Lock obtain(Object lockKey) {
 		Assert.notNull(lockKey, "'lockKey' must not be null");
 		Integer lockIndex = lockKey.hashCode() & this.mask;
-		return this.availableLocks[lockIndex];
+		return this.lockTable[lockIndex];
 	}
 }

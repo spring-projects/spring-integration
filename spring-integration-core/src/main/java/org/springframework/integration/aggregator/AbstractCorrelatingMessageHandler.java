@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -117,6 +118,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		Assert.isTrue(!lockRegistrySet, "'this.lockRegistry' can not be reset once its been set");
 		Assert.notNull("'lockRegistry' must not be null");
 		this.lockRegistry = lockRegistry;
+		this.lockRegistrySet = true;
 	}
 
 	public void setMessageStore(MessageGroupStore store) {
@@ -147,12 +149,9 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
-		ConfigurableListableBeanFactory beanFactory = (ConfigurableListableBeanFactory) this.getBeanFactory();
+		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
 			this.messagingTemplate.setBeanFactory(beanFactory);
-		}
-		if (this.lockRegistry == null){
-			this.setLockRegistry(new DefaultLockRegistry());
 		}
 	}
 
@@ -229,7 +228,6 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 	}
 
-
 	/**
 	 * Allows you to provide additional logic that needs to be performed after the MessageGroup was released. 
 	 * @param group
@@ -265,6 +263,7 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 		}
 		catch (InterruptedException ie) {
 			Thread.currentThread().interrupt();
+			throw new MessagingException("Thread was interrupted while trying to obtain lock");
 		}
 		return false;
 	}
