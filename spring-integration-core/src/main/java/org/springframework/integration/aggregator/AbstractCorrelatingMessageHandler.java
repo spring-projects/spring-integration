@@ -21,7 +21,9 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
@@ -221,6 +223,8 @@ public abstract class AbstractCorrelatingMessageHandler extends AbstractMessageH
 			else {
 				discardChannel.send(message);
 			}
+		} finally {
+			lock.unlock();
 		}
 		finally {
 			lock.unlock();
