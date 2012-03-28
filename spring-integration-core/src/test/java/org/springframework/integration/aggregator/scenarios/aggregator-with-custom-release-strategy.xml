@@ -6,9 +6,13 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
-	<int:splitter input-channel="in" output-channel="aggregationChannel"/>
+	<int:splitter input-channel="in" output-channel="aggregationChannelFromSplitter"/>
 
-	<int:aggregator input-channel="aggregationChannel" output-channel="resultChannel"
+	<int:aggregator input-channel="aggregationChannelFromSplitter" output-channel="resultChannel"
+			release-strategy-expression="size() == 2"
+			expire-groups-upon-completion="true"/>
+
+	<int:aggregator input-channel="aggregationChannelCustomCorrelation" output-channel="resultChannel"
 			release-strategy-expression="size() == 2"
 			correlation-strategy-expression="headers.correlation"
 			expire-groups-upon-completion="true"/>

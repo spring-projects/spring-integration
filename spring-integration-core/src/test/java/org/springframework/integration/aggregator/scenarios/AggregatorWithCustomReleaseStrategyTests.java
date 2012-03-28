@@ -34,38 +34,96 @@ import static org.junit.Assert.assertTrue;
 public class AggregatorWithCustomReleaseStrategyTests {
 
 	@Test
-	public void validateSequenceSizeHasNoAffect() throws Exception{
+	public void testAggregatorsUnderStressWithConcurrency() throws Exception{
+		// this is to be sure  after INT-2502
+		for (int i = 0; i < 10; i++) {
+			this.validateSequenceSizeHasNoAffectCustomCorrelator();
+		}
+		for (int i = 0; i < 10; i++) {
+			this.validateSequenceSizeHasNoAffectWithSplitter();
+		}
+	}
+
+	public void validateSequenceSizeHasNoAffectCustomCorrelator() throws Exception{
+		ApplicationContext context =
+				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
+		final MessageChannel inputChannel = context.getBean("aggregationChannelCustomCorrelation", MessageChannel.class);
+		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
+
+		final CountDownLatch latch = new CountDownLatch(1800);
+
+		for (int i = 0; i < 600; i++) {
+			final int counter = i;
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload("foo").
+							setHeader("correlation", "foo"+counter).build());
+					latch.countDown();
+				}
+			}).start();
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload("bar").
+							setHeader("correlation", "foo"+counter).build());
+					latch.countDown();
+				}
+			}).start();
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload("baz").
+							setHeader("correlation", "foo"+counter).build());
+					latch.countDown();
+				}
+			}).start();
+		}
+
+		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
+
+		Message<?> message = resultChannel.receive(10);
+		int counter = 0;
+		while(message != null){
+			counter++;
+			message = resultChannel.receive(10);
+		}
+		assertEquals(600, counter);
+	}
+
+	public void validateSequenceSizeHasNoAffectWithSplitter() throws Exception{
 		ApplicationContext context =
 				new ClassPathXmlApplicationContext("aggregator-with-custom-release-strategy.xml", this.getClass());
 		final MessageChannel inputChannel = context.getBean("in", MessageChannel.class);
 		QueueChannel resultChannel = context.getBean("resultChannel", QueueChannel.class);
 
-		final CountDownLatch latch = new CountDownLatch(2);
+		final CountDownLatch latch = new CountDownLatch(1800);
 
-		new Thread(new Runnable() {
-			public void run() {
-				inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).
-						setHeader("correlation", "foo").build());
-				latch.countDown();
-			}
-		}).start();
-
-		new Thread(new Runnable() {
-			public void run() {
-				inputChannel.send(MessageBuilder.withPayload(new Integer[]{10, 20, 30, 40, 50, 60, 70, 80}).
-						setHeader("correlation", "foo").build());
-				latch.countDown();
-			}
-		}).start();
+		for (int i = 0; i < 600; i++) {
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload(new Integer[]{1, 2, 3, 4, 5, 6, 7, 8}).build());
+					latch.countDown();
+				}
+			}).start();
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload(new Integer[]{9, 10, 11, 12, 13, 14, 15, 16}).build());
+					latch.countDown();
+				}
+			}).start();
+			new Thread(new Runnable() {
+				public void run() {
+					inputChannel.send(MessageBuilder.withPayload(new Integer[]{17, 18, 19, 20, 21, 22, 23, 24}).build());
+					latch.countDown();
+				}
+			}).start();
+		}
 
 		assertTrue("Sends failed to complete", latch.await(10, TimeUnit.SECONDS));
 
-		Message<?> message = resultChannel.receive(1000);
+		Message<?> message = resultChannel.receive(10);
 		int counter = 0;
-		while(message != null){
-			counter++;
-			message = resultChannel.receive(1000);
+		while(message != null && ++counter < 7200){
+			message = resultChannel.receive(10);
 		}
-		assertEquals(8, counter);
+		assertEquals(7200, counter);
 	}
 }
