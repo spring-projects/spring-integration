@@ -84,18 +84,12 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.handleMessage(message1);
-		verifyLocks(handler, 1);
-
+		
 		handler.handleMessage(message2);
-		verifyLocks(handler, 0); // lock is removed when group is complete
-
+		
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
 		verify(processor).processMessageGroup(isA(SimpleMessageGroup.class));
-	}
-
-	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
-		assertEquals(lockCount, ((Map<?, ?>) ReflectionTestUtils.getField(handler, "locks")).size());
 	}
 
 	@Test
