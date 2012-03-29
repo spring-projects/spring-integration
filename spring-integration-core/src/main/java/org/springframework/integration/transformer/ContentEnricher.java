@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Mark Fisher
  * @author Gunnar Hillert
+ * @author Gary Russell
  * @since 2.1
  */
 public class ContentEnricher extends AbstractReplyProducingMessageHandler implements Lifecycle {
@@ -53,7 +54,9 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 
 	private final SpelExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+	private final StandardEvaluationContext sourceEvaluationContext = new StandardEvaluationContext();
+
+	private final StandardEvaluationContext targetEvaluationContext = new StandardEvaluationContext();
 
 	private volatile boolean shouldClonePayload = false;
 
@@ -194,10 +197,11 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			
 			this.gateway.afterPropertiesSet();
 		}
-		this.evaluationContext.addPropertyAccessor(new MapAccessor());
+		this.sourceEvaluationContext.addPropertyAccessor(new MapAccessor());
+		this.targetEvaluationContext.addPropertyAccessor(new MapAccessor());
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (beanFactory != null) {
-			this.evaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
+			this.sourceEvaluationContext.setBeanResolver(new BeanFactoryResolver(beanFactory));
 		}
 	}
 
@@ -222,7 +226,7 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 			actualRequestMessage = requestMessage;
 		}
 		else {
-			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.evaluationContext, requestMessage);
+			final Object requestMessagePayload = this.requestPayloadExpression.getValue(this.sourceEvaluationContext, requestMessage);
 			actualRequestMessage = MessageBuilder.withPayload(requestMessagePayload)
 					.copyHeaders(requestMessage.getHeaders()).build();
 		}
@@ -239,8 +243,8 @@ public class ContentEnricher extends AbstractReplyProducingMessageHandler implem
 		for (Map.Entry<Expression, Expression> entry : this.propertyExpressions.entrySet()) {
 			Expression propertyExpression = entry.getKey();
 			Expression valueExpression = entry.getValue();
-			Object value = valueExpression.getValue(this.evaluationContext, replyMessage);
-			propertyExpression.setValue(this.evaluationContext, targetPayload, value);
+			Object value = valueExpression.getValue(this.sourceEvaluationContext, replyMessage);
+			propertyExpression.setValue(this.targetEvaluationContext, targetPayload, value);
 		}
 		return targetPayload;
 	}

@@ -349,7 +349,10 @@
                             as well. The former for a literal value to set, and the
                             latter for a SpEL expression to be evaluated. The root
                             object of the evaluation context is the Message that was
-                            returned from the flow initiated by this enricher.
+                            returned from the flow initiated by this enricher, the
+                            input Message if there is no request channel, or the
+                            application context (using the '@&lt;beanName&gt;.&lt;beanProperty&gt;'
+                            SpEL syntax).
 	                    </para>
 	                </callout>
 	            </calloutlist>
