@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
@@ -35,7 +34,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
@@ -43,7 +41,6 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Iwein Fuld
@@ -84,18 +81,12 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.handleMessage(message1);
-		verifyLocks(handler, 1);
 
 		handler.handleMessage(message2);
-		verifyLocks(handler, 0); // lock is removed when group is complete
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
 		verify(processor).processMessageGroup(isA(SimpleMessageGroup.class));
-	}
-
-	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
-		assertEquals(lockCount, ((Map<?, ?>) ReflectionTestUtils.getField(handler, "locks")).size());
 	}
 
 	@Test
