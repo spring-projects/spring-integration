@@ -45,8 +45,8 @@ public final class DefaultLockRegistry implements LockRegistry {
 
 	/**
      * Constructs a DefaultLockRegistry with the supplied
-     * mask - the mask must have a value (2**n) - 1 where n
-     * is 1 to 31, creating a hash of 2**n locks.
+     * mask - the mask must have a value Math.pow(2, n) - 1 where n
+     * is 1 to 31, creating a hash of Math.pow(2, n) locks.
      * <p> Examples:
      * <li>0x3ff (1023) - 1024 locks</li>
      * <li>0xfff (4095) - 4096 locks</li>
@@ -55,7 +55,7 @@ public final class DefaultLockRegistry implements LockRegistry {
      */
 	public DefaultLockRegistry(int mask){
 		String bits = Integer.toBinaryString(mask);
-		Assert.isTrue(bits.lastIndexOf('0') < bits.indexOf('1'), "Mask must be a power of 2 - 1");
+		Assert.isTrue(bits.length() < 32 && (mask == 0 || bits.lastIndexOf('0') < bits.indexOf('1') ), "Mask must be a power of 2 - 1");
 		this.mask = mask;
 		int arraySize = this.mask+1;
 		lockTable = new ReentrantLock[arraySize];
