@@ -19,13 +19,13 @@ import java.util.concurrent.locks.Lock;
  *
  * @author Oleg Zhurakousky
  * @author Gary Russell
- * @since 2.1.1
+ * @since 2.0.6
  */
 public interface LockRegistry {
 
 	/**
      * Obtains the lock associated with the parameter object.
-     * @param lockRoot The object with which the lock is associated.
+     * @param lockKey The object with which the lock is associated.
      * @return The associated lock.
      */
 	Lock obtain(Object lockKey);
