@@ -77,8 +77,11 @@ public class EnricherParserTests {
 			else if ("age".equals(e.getKey().getExpressionString())) {
 				assertEquals("42", e.getValue().getExpressionString());
 			}
+			else if ("gender".equals(e.getKey().getExpressionString())) {
+				assertEquals("@testBean", e.getValue().getExpressionString());
+			}
 			else {
-				throw new IllegalStateException("expected 'name' and 'age' only, not: " + e.getKey().getExpressionString());
+				throw new IllegalStateException("expected 'name', 'age', and 'gender' only, not: " + e.getKey().getExpressionString());
 			}
 		}
 	}
@@ -123,6 +126,7 @@ public class EnricherParserTests {
 		Target enriched = (Target) reply.getPayload();
 		assertEquals("foo", enriched.getName());
 		assertEquals(42, enriched.getAge());
+		assertEquals("male", enriched.getGender());
 		assertNotSame(original, enriched);
 	}
 
@@ -146,6 +150,8 @@ public class EnricherParserTests {
 
 		private volatile int age;
 
+		private volatile String gender;
+
 		public String getName() {
 			return name;
 		}
@@ -160,6 +166,14 @@ public class EnricherParserTests {
 
 		public void setAge(int age) {
 			this.age = age;
+		}
+
+		public String getGender() {
+			return gender;
+		}
+
+		public void setGender(String gender) {
+			this.gender = gender;
 		}
 
 		public Object clone() {
