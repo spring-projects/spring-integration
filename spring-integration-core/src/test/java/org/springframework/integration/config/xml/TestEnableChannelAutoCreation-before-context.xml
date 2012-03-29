@@ -5,9 +5,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.1.xsd">
 
-
-	<int:service-activator input-channel="inputChannel" expression="'hello'"/>
+	<bean id="ChannelInitializer" class="org.springframework.integration.config.xml.ChannelInitializer">
+		<property name="autoCreate" value="true"/>
+	</bean>
 	
-	<bean id="ChannelInitializer" class="java.lang.Object"/>
+	<int:service-activator input-channel="inputChannel" expression="'hello'"/>
 
 </beans>

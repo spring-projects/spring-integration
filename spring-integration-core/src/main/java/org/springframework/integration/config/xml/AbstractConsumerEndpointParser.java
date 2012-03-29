@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -91,10 +92,14 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){
-			BeanDefinition channelCreatorDefinition = parserContext.getRegistry().getBeanDefinition(AbstractIntegrationNamespaceHandler.CHANNEL_INITIALIZER_BEAN_NAME);
+			BeanDefinition channelRegistry = parserContext.getRegistry().getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+
 			@SuppressWarnings("unchecked")
-			Set<String> channelNames = (Set<String>) channelCreatorDefinition.getConstructorArgumentValues().
-										getArgumentValue(0, Set.class).getValue();
+			Set<String> channelNames = (Set<String>) channelRegistry.getAttribute(ChannelInitializer.CHANNEL_NAMES_ATTR);
+			if (channelNames == null){
+				channelNames = (Set<String>) new HashSet<String>();
+				channelRegistry.setAttribute(ChannelInitializer.CHANNEL_NAMES_ATTR, channelNames);
+			}
 			channelNames.add(inputChannelName);
 		}
 

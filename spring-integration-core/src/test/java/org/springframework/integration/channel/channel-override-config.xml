@@ -15,11 +15,9 @@
 			<prop key="channelC" >channelC</prop>
 			<prop key="channelB" >channelB</prop>
 	</util:properties>
-	
-	
 
 	<int:service-activator id="serviceA" input-channel="channelA" output-channel="#{'channelB'}" expression="''"/>
-	
+
 	<int:service-activator id="serviceB" input-channel="#{'channelB'}" output-channel="${channelC}" expression="''"/>
 
 	<int:service-activator id="serviceC" input-channel="${channelC}" output-channel="#{@channelD.getComponentName()}" expression="''"/>

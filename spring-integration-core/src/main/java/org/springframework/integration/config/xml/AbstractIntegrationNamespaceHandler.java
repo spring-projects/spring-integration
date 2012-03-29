@@ -16,22 +16,21 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.Set;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.ChannelInitializer.AutoCreateCandidatesCollector;
 import org.springframework.util.StringUtils;
 
 /**
@@ -68,22 +67,45 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		return this.delegate.decorate(source, definition, parserContext);
 	}
 
+	/*
+	 * This method will auto-register ChannelInitializer which could also be overridden by the user 
+	 * by simply registering a ChannelInitializer <bean> with 'autoCreate' property set to false.
+	 * It will also register  ChannelInitializer$AutoCreateCandidatesCollector which simply collects channelNames to be created.
+	 * It does a little more so please read its comments. ChannelInitializer$AutoCreateCandidatesCollector 
+	 * can NOT be overridden by the user
+	 */
 	private void registerImplicitChannelCreator(ParserContext parserContext) {
+		// ChannelInitializer
 		boolean alreadyRegistered = false;
-		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+		if (parserContext.getRegistry() instanceof ConfigurableListableBeanFactory) {
 			// unlike DefaultConfiguringBeanFactoryPostProcessor we need one of these per registry
 			// therefore we need to call containsBeanDefinition(..) which does not consider parent registry
-			alreadyRegistered = ((ListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(CHANNEL_INITIALIZER_BEAN_NAME);
+			alreadyRegistered = ((ConfigurableListableBeanFactory) parserContext.getRegistry()).containsBeanDefinition(CHANNEL_INITIALIZER_BEAN_NAME);
 		}
 		else {
 			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(CHANNEL_INITIALIZER_BEAN_NAME);
 		}
 		if (!alreadyRegistered) {
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(ChannelInitializer.class);
-			Set<String> channelNames = new ManagedSet<String>();
-			channelDef.addConstructorArgValue(channelNames);
 			BeanDefinitionHolder channelCreatorHolder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), CHANNEL_INITIALIZER_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(channelCreatorHolder, parserContext.getRegistry());
+		}
+		// ChannelInitializer$AutoCreateCandidatesCollector
+		alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ConfigurableListableBeanFactory) {
+			// unlike DefaultConfiguringBeanFactoryPostProcessor we need one of these per registry
+			// therefore we need to call containsBeanDefinition(..) which does not consider parent registry
+			alreadyRegistered = ((ConfigurableListableBeanFactory) parserContext.getRegistry()).
+					containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
+			BeanDefinitionBuilder channelRegistryBuilder = BeanDefinitionBuilder.genericBeanDefinition(AutoCreateCandidatesCollector.class);
+			BeanDefinitionHolder channelRegistryHolder = 
+					new BeanDefinitionHolder(channelRegistryBuilder.getBeanDefinition(), ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(channelRegistryHolder, parserContext.getRegistry());
 		}
 	}
 
@@ -151,5 +173,4 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		}
 
 	}
-
 }
