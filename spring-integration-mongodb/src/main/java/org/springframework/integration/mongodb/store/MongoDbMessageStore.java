@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2011 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.UUID;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -154,10 +155,10 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		boolean completeGroup = false;
 		if (messageWrappers.size() > 0){
 			MessageWrapper messageWrapper = messageWrappers.get(0);
-			timestamp = messageWrapper.getGroupTimestamp();
-			lastmodified = messageWrapper.getLastModified();
-			completeGroup = messageWrapper.isCompletedGroup();
-			lastReleasedSequenceNumber = messageWrapper.getLastReleasedSequenceNumber();
+			timestamp = messageWrapper.get_Group_timestamp();
+			lastmodified = messageWrapper.get_Group_update_timestamp();
+			completeGroup = messageWrapper.get_Group_complete();
+			lastReleasedSequenceNumber = messageWrapper.get_LastReleasedSequenceNumber();
 		}
 		
 		for (MessageWrapper messageWrapper : messageWrappers) {
@@ -190,11 +191,11 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 		
 		MessageWrapper wrapper = new MessageWrapper(message);
-		wrapper.setGroupId(groupId);
-		wrapper.setGroupTimestamp(messageGroupTimestamp);
-		wrapper.setLastModified(lastModified);
-		wrapper.setCompletedGroup(messageGroup.isComplete());
-		wrapper.setLastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
+		wrapper.set_GroupId(groupId);
+		wrapper.set_Group_timestamp(messageGroupTimestamp);
+		wrapper.set_Group_update_timestamp(lastModified);
+		wrapper.set_Group_complete(messageGroup.isComplete());
+		wrapper.set_LastReleasedSequenceNumber(messageGroup.getLastReleasedMessageSequenceNumber());
 		
 		this.template.insert(wrapper, this.collectionName);
 		return this.getMessageGroup(groupId);
@@ -219,7 +220,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		List<MessageWrapper> groupedMessages = this.template.find(whereGroupIdExists(), MessageWrapper.class, this.collectionName);
 		Map<Object, MessageGroup> messageGroups = new HashMap<Object, MessageGroup>();
 		for (MessageWrapper groupedMessage : groupedMessages) {
-			Object groupId = groupedMessage.getGroupId();
+			Object groupId = groupedMessage.get_GroupId();
 			if (!messageGroups.containsKey(groupId)) {
 				messageGroups.put(groupId, this.getMessageGroup(groupId));
 			}
@@ -265,7 +266,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	 */
 
 	private static Query whereMessageIdIs(UUID id) {
-		return new Query(where("headers.id").is(id.toString()));
+		return new Query(where("headers.id._value").is(id.toString()));
 	}
 
 	private static Query whereGroupIdIs(Object groupId) {
@@ -304,45 +305,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		@Override
 		public void afterPropertiesSet() {
 			List<Converter<?, ?>> customConverters = new ArrayList<Converter<?,?>>();
-			customConverters.add(new UuidToStringConverter());
-			customConverters.add(new StringToUuidConverter());
+			customConverters.add(new UuidToDBObjectConverter());
+			customConverters.add(new DBObjectToUUIDConverter());
 			customConverters.add(new MessageHistoryToDBObjectConverter());
 			this.setCustomConversions(new CustomConversions(customConverters));
 			super.afterPropertiesSet();
 		}
 
 		@Override
-		public void write(Object source, DBObject target) {
-			Message<?> message = null;
-			Object groupId = null;
+		public void write(Object source, DBObject target) {		
+			Assert.isInstanceOf(MessageWrapper.class, source);
 
-			boolean groupComplete = false;
-			long groupTimestamp = 0;
-			long lastModified = 0;
-			int lastReleasedSequenceNumber = 0;
-			if (source instanceof MessageWrapper) {
-				MessageWrapper wrapper = (MessageWrapper) source;
-				message = wrapper.getMessage();
-				groupId = wrapper.getGroupId();
-				groupComplete = wrapper.isCompletedGroup();
-				lastReleasedSequenceNumber = wrapper.getLastReleasedSequenceNumber();
-				groupTimestamp = wrapper.getGroupTimestamp();
-				lastModified = wrapper.getLastModified();
-			}
-			else {
-				Class<?> sourceType = (source != null) ? source.getClass() : null;
-				throw new IllegalArgumentException("Unexpected source type [" + sourceType + "]. Should be a MessageWrapper.");
-			}
 			target.put(CREATED_DATE, System.currentTimeMillis());
-			target.put(PAYLOAD_TYPE_KEY, message.getPayload().getClass().getName());
-			if (groupId != null) {
-				target.put(GROUP_ID_KEY, groupId);
-				target.put(GROUP_COMPLETE_KEY, groupComplete);
-				target.put(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
-				target.put(GROUP_TIMESTAMP_KEY, groupTimestamp);
-				target.put(GROUP_UPDATE_TIMESTAMP_KEY, lastModified);
-			}
-			super.write(message, target);
+			
+			super.write(source, target);
 		}
 
 		@Override
@@ -368,7 +344,7 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				GenericMessage message = new GenericMessage(payload, headers);
 				Map innerMap = (Map) new DirectFieldAccessor(message.getHeaders()).getPropertyValue("headers");
 				// using reflection to set ID and TIMESTAMP since they are immutable through MessageHeaders
-				innerMap.put(MessageHeaders.ID, UUID.fromString((String) headers.get(MessageHeaders.ID)));
+				innerMap.put(MessageHeaders.ID, headers.get(MessageHeaders.ID));
 				innerMap.put(MessageHeaders.TIMESTAMP, headers.get(MessageHeaders.TIMESTAMP));
 				Long groupTimestamp = (Long)source.get(GROUP_TIMESTAMP_KEY);
 				Long lastModified = (Long)source.get(GROUP_UPDATE_TIMESTAMP_KEY);
@@ -378,20 +354,20 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 				MessageWrapper wrapper = new MessageWrapper(message);
 				
 				if (source.containsField(GROUP_ID_KEY)){
-					wrapper.setGroupId(source.get(GROUP_ID_KEY));
+					wrapper.set_GroupId(source.get(GROUP_ID_KEY));
 				}
 				if (groupTimestamp != null){
-					wrapper.setGroupTimestamp(groupTimestamp);
+					wrapper.set_Group_timestamp(groupTimestamp);
 				}
 				if (lastModified != null){
-					wrapper.setLastModified(lastModified);
+					wrapper.set_Group_update_timestamp(lastModified);
 				}
 				if (lastReleasedSequenceNumber != null){
-					wrapper.setLastReleasedSequenceNumber(lastReleasedSequenceNumber);
+					wrapper.set_LastReleasedSequenceNumber(lastReleasedSequenceNumber);
 				}
 					
 				if (completeGroup != null){
-					wrapper.setCompletedGroup(completeGroup.booleanValue());
+					wrapper.set_Group_complete(completeGroup.booleanValue());
 				}
 										
 				return (S) wrapper;
@@ -422,17 +398,19 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 		}
 	}
 
-
-	private static class UuidToStringConverter implements Converter<UUID, String> {
-		public String convert(UUID source) {
-			return source.toString();
+	private static class UuidToDBObjectConverter implements Converter<UUID, DBObject> {
+		public DBObject convert(UUID source) {
+			BasicDBObject dbObject = new BasicDBObject();
+			dbObject.put("_value", source.toString());
+			dbObject.put("_class", source.getClass().getName());
+			return dbObject;
 		}
 	}
-
-
-	private static class StringToUuidConverter implements Converter<String, UUID> {
-		public UUID convert(String source) {
-			return UUID.fromString(source);
+	
+	private static class DBObjectToUUIDConverter implements Converter<DBObject, UUID> {
+		public UUID convert(DBObject source) {
+			UUID id = UUID.fromString((String) source.get("_value"));
+			return id;
 		}
 	}
 
@@ -460,64 +438,77 @@ public class MongoDbMessageStore extends AbstractMessageGroupStore implements Me
 	 */
 	private static final class MessageWrapper {
 
-		private volatile Object groupId;
+		private volatile Object _groupId;
 
+		@Transient
 		private final Message<?> message;
 		
-		private volatile long groupTimestamp; 
+		private final Object payload;
 		
-		private volatile long lastModified; 
+		@SuppressWarnings("unused")
+		private final Map<String, ?> headers;
+		
+		@SuppressWarnings("unused")
+		private final String _payloadType;
+		
+		private volatile long _group_timestamp; 
+		
+		private volatile long _group_update_timestamp; 
 
-		private volatile int lastReleasedSequenceNumber; 
+		private volatile int _last_released_sequence; 
 
-		private volatile boolean completedGroup;
+		private volatile boolean _group_complete;
 
 		public MessageWrapper(Message<?> message) {
+			Assert.notNull(message, "'message' must not be null");
 			this.message = message;
+			this.payload = message.getPayload();
+			this.headers = message.getHeaders();
+			this._payloadType = this.payload.getClass().getName();
 		}
 		
-		public int getLastReleasedSequenceNumber() {
-			return lastReleasedSequenceNumber;
+		public int get_LastReleasedSequenceNumber() {
+			return _last_released_sequence;
 		}
 		
-		public long getGroupTimestamp() {
-			return groupTimestamp;
+		public long get_Group_timestamp() {
+			return _group_timestamp;
 		}
 
-		public boolean isCompletedGroup() {
-			return completedGroup;
+		public boolean get_Group_complete() {
+			return _group_complete;
 		}
 
-		public Object getGroupId() {
-			return groupId;
+		public Object get_GroupId() {
+			return _groupId;
 		}
 
 		public Message<?> getMessage() {
 			return message;
 		}
 		
-		public void setGroupId(Object groupId) {
-			this.groupId = groupId;
+		public void set_GroupId(Object groupId) {
+			this._groupId = groupId;
 		}
 
-		public void setGroupTimestamp(long groupTimestamp) {
-			this.groupTimestamp = groupTimestamp;
+		public void set_Group_timestamp(long groupTimestamp) {
+			this._group_timestamp = groupTimestamp;
 		}
 		
-		public long getLastModified() {
-			return lastModified;
+		public long get_Group_update_timestamp() {
+			return _group_update_timestamp;
 		}
 
-		public void setLastModified(long lastModified) {
-			this.lastModified = lastModified;
+		public void set_Group_update_timestamp(long lastModified) {
+			this._group_update_timestamp = lastModified;
 		}
 
-		public void setLastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
-			this.lastReleasedSequenceNumber = lastReleasedSequenceNumber;
+		public void set_LastReleasedSequenceNumber(int lastReleasedSequenceNumber) {
+			this._last_released_sequence = lastReleasedSequenceNumber;
 		}
 
-		public void setCompletedGroup(boolean completedGroup) {
-			this.completedGroup = completedGroup;
+		public void set_Group_complete(boolean completedGroup) {
+			this._group_complete = completedGroup;
 		}
 	}
 }
