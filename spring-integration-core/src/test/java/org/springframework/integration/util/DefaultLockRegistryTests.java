@@ -24,6 +24,7 @@ import org.junit.Test;
 
 /**
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 2.1.1
  *
  */
@@ -32,6 +33,22 @@ public class DefaultLockRegistryTests {
     @Test(expected=IllegalArgumentException.class)
     public void testBadMask() {
         new DefaultLockRegistry(4);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testBadMaskOutOfRange() {// 32bits
+        new DefaultLockRegistry(0xffffffff);
+    }
+
+    @Test
+    public void testSingleLockCreation() {
+    	LockRegistry registry = new DefaultLockRegistry(0);
+    	Lock a = registry.obtain(23);
+    	Lock b = registry.obtain(new Object());
+    	Lock c = registry.obtain("hello");
+    	assertSame(a, b);
+    	assertSame(a, c);
+    	assertSame(b, c);
     }
 
     @Test
