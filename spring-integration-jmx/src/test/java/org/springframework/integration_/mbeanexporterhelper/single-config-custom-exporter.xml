@@ -24,18 +24,20 @@
 	<bean id="myExporter" class="org.springframework.jmx.export.MBeanExporter">
 		<property name="excludedBeans" value="foo"/>
 	</bean>
-	
+
 	<bean id="foo" class="org.springframework.integration_.mbeanexporterhelper.Int2307Tests.Foo"/>
-	
+
 	<int:recipient-list-router id="rlr" input-channel="x">
 		<int:recipient channel="y"/>
 	</int:recipient-list-router>
-	
+
 	<int:header-value-router id="hvr" input-channel="x" header-name="ghgf">
 		<int:mapping value="foo" channel="y"/>
 	</int:header-value-router>
 
 	<int:channel id="x" />
 	<int:channel id="y" />
-	
+
+	<int:service-activator input-channel="z" expression="''"/>
+
 </beans>
