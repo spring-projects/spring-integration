@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.util.Assert;
 
 /**
  * A {@link InitializingBean} implementation that is responsible for creating
@@ -62,14 +63,15 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 	}
 
 	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.beanFactory, "'beanFactory' must not be null");
 		if (!autoCreate){
 			return;
 		}
 		else {
-			AutoCreateCandidatesCollector channelCandidatesColector  = 
+			AutoCreateCandidatesCollector channelCandidatesCollector  = 
 					(AutoCreateCandidatesCollector) beanFactory.getBean(AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME, AutoCreateCandidatesCollector.class);
 			// at this point channelNames are all resolved with placeholders and SpEL
-			Collection<String> channelNames = channelCandidatesColector.getChannelNames();
+			Collection<String> channelNames = channelCandidatesCollector.getChannelNames();
 			if (channelNames != null){
 				for (String channelName : channelNames) {
 					if (!beanFactory.containsBean(channelName)){

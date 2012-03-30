@@ -23,10 +23,12 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -66,6 +68,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		return "input-channel";
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
@@ -90,14 +93,23 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
-
+		
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){
-			BeanDefinition channelRegistry = parserContext.getRegistry().getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-			ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
-			if (caValues != null){
-				@SuppressWarnings("unchecked")
-				Collection<String> channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
+			if (parserContext.getRegistry().containsBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME)){
+				BeanDefinition channelRegistry = parserContext.getRegistry().
+						getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
+				ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
+				ValueHolder vh = caValues.getArgumentValue(0, Collection.class);
+				if (vh == null){ //although it should never happen if it does we can fix it
+					caValues.addIndexedArgumentValue(0, new ManagedSet<String>());
+				}
+				
+				Collection<String>  channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
 				channelCandidateNames.add(inputChannelName);
+			}
+			else {
+				parserContext.getReaderContext().error("Failed to locate '" + 
+						ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME + "'", parserContext.getRegistry());
 			}
 		}
 

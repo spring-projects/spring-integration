@@ -89,7 +89,6 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 			BeanDefinitionReaderUtils.registerBeanDefinition(channelCreatorHolder, parserContext.getRegistry());
 		}
 		// ChannelInitializer$AutoCreateCandidatesCollector
-		alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			// unlike DefaultConfiguringBeanFactoryPostProcessor we need one of these per registry
 			// therefore we need to call containsBeanDefinition(..) which does not consider parent registry
