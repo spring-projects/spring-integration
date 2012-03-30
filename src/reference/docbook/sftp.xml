@@ -178,6 +178,28 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
         the <code>remote-filename-generator-expression</code> attribute with an expression 
   		value that computes the <emphasis>file name</emphasis> based on its original name while also appending a suffix: '-foo'.
   	</para>
+  	
+  	<para>
+  		<emphasis>Partially written files issue</emphasis>
+  	</para>
+  	<para>
+  	One of the common problems, when dealing with file transfers, is the possibility of processing a <emphasis>partial file problem</emphasis> - 
+  	a file might appear in the file system before its transfer is actually complete.
+    </para>
+    <para>
+    To deal with this issue, Spring Integration SFTP adapters use a very common algorithm where files are being transferred 
+    under a temporary name and than renamed once they are fully transferred.
+    </para>
+    <para>
+    By default, every file that is in the process of being transferred will appear in the file system with additional suffix 
+    which, by default, is <code>.writing</code>; this can be changed using the <code>temporary-file-suffix</code> attribute.
+    </para>
+    <para>
+    However, there may be situations where you don't want to use this technique (for example, if the server does not 
+    permit renaming files). For situations like this, you can disable this feature by setting <code>use-temporary-file-name</code> 
+    to <code>false</code> (default is <code>true</code>). When this attribute is <code>false</code>, the file is written with its 
+    final name and the consuming application will need some other mechanism to detect the file is completely uploaded before accessing it.	
+  	</para>
   </section>
 
   <section id="sftp-outbound-gateway">
