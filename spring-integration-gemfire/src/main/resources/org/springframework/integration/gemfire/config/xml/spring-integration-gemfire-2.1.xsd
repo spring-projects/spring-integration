@@ -129,8 +129,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Configures an outbound Channel Adapter that
-					writes Message payloads to a
-					File.
+					writes Message to a Gemfire cache
                 </xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -198,6 +197,12 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
+					    <xsd:documentation><![CDATA[
+						  Identifies channel that error messages will be sent to if a failure occurs in this
+						  component's invocation. If no "error-channel" reference is provided, this component will
+						  propagate Exceptions to the caller. To completely suppress Exceptions, provide a
+						  reference to the "nullChannel" here.
+					    ]]></xsd:documentation>
 						<tool:expected-type
 							type="org.springframework.integration.MessageChannel" />
 					</tool:annotation>
