@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,37 @@
 
 package org.springframework.integration.twitter.inbound;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Properties;
+
+import static junit.framework.Assert.*;
 
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.Message;
+import org.springframework.integration.store.SimpleMetadataStore;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.social.twitter.api.SearchOperations;
+import org.springframework.social.twitter.api.SearchResults;
 import org.springframework.social.twitter.api.Tweet;
+import org.springframework.social.twitter.api.Twitter;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
 
 /**
  * @author Oleg Zhurakousky
+ * @author Gunnar Hillert
  */
 public class SearchReceivingMessageSourceTests {
+
+	private static final String SEARCH_QUERY = "#springsource";
 
 	@SuppressWarnings("unchecked")
 	@Test @Ignore
@@ -40,12 +56,12 @@ public class SearchReceivingMessageSourceTests {
 		pf.afterPropertiesSet();
 		Properties prop =  pf.getObject();
 		System.out.println(prop);
-		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"), 
-										               prop.getProperty("z_oleg.oauth.consumerSecret"), 
-										               prop.getProperty("z_oleg.oauth.accessToken"), 
+		TwitterTemplate template = new TwitterTemplate(prop.getProperty("z_oleg.oauth.consumerKey"),
+										               prop.getProperty("z_oleg.oauth.consumerSecret"),
+										               prop.getProperty("z_oleg.oauth.accessToken"),
 										               prop.getProperty("z_oleg.oauth.accessTokenSecret"));
 		SearchReceivingMessageSource tSource = new SearchReceivingMessageSource(template);
-		tSource.setQuery("#springsocial");
+		tSource.setQuery(SEARCH_QUERY);
 		tSource.afterPropertiesSet();
 		for (int i = 0; i < 50; i++) {
 			Message<Tweet> message = (Message<Tweet>) tSource.receive();
@@ -54,6 +70,98 @@ public class SearchReceivingMessageSourceTests {
 				System.out.println(tweet.getFromUser() + " - " + tweet.getText() + " - " + tweet.getCreatedAt());
 			}
 		}
+	}
+
+	/**
+	 * Unit Test ensuring some basic initialization properties being set.
+	 */
+	@Test
+	public void testSearchReceivingMessageSourceInit() {
+
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(new TwitterTemplate());
+
+		final Object metadataStore = TestUtils.getPropertyValue(messageSource, "metadataStore");
+
+		assertNull(metadataStore);
+
+		messageSource.afterPropertiesSet();
+
+		final Object metadataStoreInitialized = TestUtils.getPropertyValue(messageSource, "metadataStore");
+
+		assertNotNull(metadataStoreInitialized);
+		assertTrue(metadataStoreInitialized instanceof SimpleMetadataStore);
+
+		final Twitter twitter = TestUtils.getPropertyValue(messageSource, "twitter", Twitter.class);
+
+		assertFalse(twitter.isAuthorized());
+		assertNotNull(twitter.userOperations());
+
+	}
+
+	/**
+	 * This test ensures that when polling for a list of Tweets null is never returned.
+	 * In case of no polling results, an empty list is returned instead.
+	 */
+	@Test
+	public void testPollForTweetsNullResults() {
+
+		final TwitterTemplate twitterTemplate = mock(TwitterTemplate.class);
+        final SearchOperations so = mock(SearchOperations.class);
+
+		when(twitterTemplate.searchOperations()).thenReturn(so);
+	    when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(null);
+
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
+		messageSource.setQuery(SEARCH_QUERY);
+
+		final String setQuery = TestUtils.getPropertyValue(messageSource, "query", String.class);
+
+		assertEquals(SEARCH_QUERY, setQuery);
+		assertEquals("twitter:search-inbound-channel-adapter", messageSource.getComponentType());
+
+		final List<Tweet> tweets = messageSource.pollForTweets(0);
+
+        assertNotNull(tweets);
+        assertTrue(tweets.isEmpty());
+
+	}
+
+	/**
+	 * Verify that a polling operation returns in fact 3 results.
+	 */
+	@Test
+	public void testPollForTweetsThreeResults() {
+
+		final TwitterTemplate twitterTemplate;
+
+		final SearchOperations so = mock(SearchOperations.class);
+
+		final Tweet tweet1 = new Tweet(1L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
+		final Tweet tweet2 = new Tweet(2L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
+		final Tweet tweet3 = new Tweet(3L, "first", new Date(), "fromUser", "profileImageUrl", 888L, 999L, "languageCode", "source");
+
+		final List<Tweet> tweets = new ArrayList<Tweet>();
+
+		tweets.add(tweet1);
+		tweets.add(tweet2);
+		tweets.add(tweet3);
+
+		final SearchResults results = new SearchResults(tweets, 111, 111);
+
+		twitterTemplate = mock(TwitterTemplate.class);
+
+		when(twitterTemplate.searchOperations()).thenReturn(so);
+        when(twitterTemplate.searchOperations().search(SEARCH_QUERY, 1, 20, 0, 0)).thenReturn(results);
+
+		final SearchReceivingMessageSource messageSource = new SearchReceivingMessageSource(twitterTemplate);
+
+		messageSource.setQuery(SEARCH_QUERY);
+
+		final List<Tweet> tweetSearchResults = messageSource.pollForTweets(0);
+
+        assertNotNull(tweetSearchResults);
+        assertTrue(tweetSearchResults.size() == 3);
+
 	}
 
 }
