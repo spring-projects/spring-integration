@@ -24,20 +24,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.channel.DirectChannel;
 
 /**
  * A {@link InitializingBean} implementation that is responsible for creating
- * channels that are not explicitly defined but identified via 'input-channel'
+ * channels that are not explicitly defined but identified via the 'input-channel'
  * attribute of the corresponding endpoints.
  * 
  * This bean plays a role of pre-instantiator since it is instantiated and
@@ -90,44 +85,20 @@ final class ChannelInitializer implements BeanFactoryAware, InitializingBean {
 			}
 		}
 	}
-	
+
 	/*
-	 * This class serves two purposes
-	 * 1. A BeanDefinition that collects candidate channel names as its BeanDefinition attributes
-	 * 2. A holder of the resolved (property placeholders and SpEL expressions) channel names to be auto-created by the 
-	 * ChannelInitializer.
-	 * Once this bean reaches Factory post processing phase it creates a new definition of itself injecting it with
-	 * the ManagedSet of channelNames property. The ManagedSet will be naturally resolved before it is used by the 
-	 * ChannelInitializer. It also unregisters its old definition (since its only value was to provide a place
-	 * to collect candidate channel names) and registers new definition of itself with "to-be resolved" channelNames
-	 * property
+	 * Collects candidate channel names to be auto-created by ChannelInitializer
 	 */
-	public static class AutoCreateCandidatesCollector implements BeanFactoryPostProcessor{
-		
-		private volatile Collection<String> channelNames;
-		
-		public void setChannelNames(Collection<String> channelNames) {
+	static class AutoCreateCandidatesCollector {
+
+		private final Collection<String> channelNames;
+
+		public AutoCreateCandidatesCollector(Collection<String> channelNames){
 			this.channelNames = channelNames;
 		}
 
 		public Collection<String> getChannelNames() {
 			return channelNames;
-		}
-
-		@SuppressWarnings("unchecked")
-		public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-			BeanDefinition definition = beanFactory.getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-			Collection<String> _channelNames = (Collection<String>) definition.getAttribute(ChannelInitializer.CHANNEL_NAMES_ATTR);
-			if (_channelNames != null){
-				((BeanDefinitionRegistry)beanFactory).removeBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-				BeanDefinitionBuilder candidatesBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getClass().getName());
-				ManagedSet<String> candidateChannelNamesToBeResolved = new ManagedSet<String>();
-				candidateChannelNamesToBeResolved.addAll(_channelNames);
-				candidatesBuilder.addPropertyValue("channelNames", candidateChannelNamesToBeResolved);
-				BeanDefinitionHolder holder = new BeanDefinitionHolder(candidatesBuilder.getBeanDefinition(), 
-						ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-				BeanDefinitionReaderUtils.registerBeanDefinition(holder, (BeanDefinitionRegistry) beanFactory);		
-			}
 		}
 	}
 }

@@ -16,13 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -93,14 +93,12 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)){
 			BeanDefinition channelRegistry = parserContext.getRegistry().getBeanDefinition(ChannelInitializer.AUTO_CREATE_CHANNEL_CANDIDATES_BEAN_NAME);
-
-			@SuppressWarnings("unchecked")
-			Set<String> channelNames = (Set<String>) channelRegistry.getAttribute(ChannelInitializer.CHANNEL_NAMES_ATTR);
-			if (channelNames == null){
-				channelNames = (Set<String>) new HashSet<String>();
-				channelRegistry.setAttribute(ChannelInitializer.CHANNEL_NAMES_ATTR, channelNames);
+			ConstructorArgumentValues caValues = channelRegistry.getConstructorArgumentValues();
+			if (caValues != null){
+				@SuppressWarnings("unchecked")
+				Collection<String> channelCandidateNames = (Collection<String>) caValues.getArgumentValue(0, Collection.class).getValue();
+				channelCandidateNames.add(inputChannelName);
 			}
-			channelNames.add(inputChannelName);
 		}
 
 		builder.addPropertyValue("inputChannelName", inputChannelName);
