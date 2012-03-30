@@ -169,11 +169,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
 	</para>
 	
   	<para>
-	Some times file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be 
+	Sometimes file filtering based on the simple pattern specified via <code>filename-pattern</code> attribute might not be
 	sufficient. If this is the case, you can use the <code>filename-regex</code> attribute to specify a Regular Expression 
-	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code> 
+	(e.g. <code>filename-regex=".*\.test$"</code>). And of course if you need complete control you can use <code>filter</code>
 	attribute and provide a reference to any custom implementation of the 
-	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a 
+	<classname>org.springframework.integration.file.filters.FileListFilter</classname>, a strategy interface for filtering a
 	list of files.
   	</para>
   	<note>
@@ -193,11 +193,11 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   		<emphasis>More on File Filtering and Large Files</emphasis>
   	</para>
   	<para>
-  	Some times the file that just appeared in the monitored (remote) directory is not complete. Typically such a file 
-  	will be written with  temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished.
-  	As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete. 
-  	To handle these scenarios you can use the filtering support provided by the <code>filename-pattern</code>, <code>filename-regex</code>
-  	and <code>filter</code> attributes. Here is an example that uses a custom Filter implementation.
+    Sometimes the file that just appeared in the monitored (remote) directory is not complete. Typically such a file
+    will be written with  temporary extension (e.g., foo.txt.writing) and then renamed after the writing process finished.
+    As a user in most cases you are only interested in files that are complete and would like to filter only files that are complete.
+    To handle these scenarios you can use the filtering support provided by the <code>filename-pattern</code>, <code>filename-regex</code>
+    and <code>filter</code> attributes. Here is an example that uses a custom Filter implementation.
 	
 	<programlisting language="xml"><![CDATA[<int-ftp:inbound-channel-adapter 
 			channel="ftpChannel" 
@@ -293,7 +293,28 @@ xsi:schemaLocation="http://www.springframework.org/schema/integration/ftp
   	instead of remote-directory="/foo/bar")
   	</important>
   	</para>
- 
+
+    <para>
+      <emphasis>Avoiding Partially Written Files</emphasis>
+    </para>
+    <para>
+    One of the common problems, when dealing with file transfers, is the possibility of processing a <emphasis>partial file</emphasis> -
+    a file might appear in the file system before its transfer is actually complete.
+    </para>
+    <para>
+    To deal with this issue, Spring Integration FTP adapters use a very common algorithm where files are transferred
+    under a temporary name and then renamed once they are fully transferred.
+    </para>
+    <para>
+    By default, every file that is in the process of being transferred will appear in the file system with an additional suffix
+    which, by default, is <code>.writing</code>; this can be changed using the <code>temporary-file-suffix</code> attribute.
+    </para>
+    <para>
+    However, there may be situations where you don't want to use this technique (for example, if the server does not
+    permit renaming files). For situations like this, you can disable this feature by setting <code>use-temporary-file-name</code>
+    to <code>false</code> (default is <code>true</code>). When this attribute is <code>false</code>, the file is written with its
+    final name and the consuming application will need some other mechanism to detect that the file is completely uploaded before accessing it.
+    </para>
   </section>
   <section id="ftp-outbound-gateway">
 	<title>FTP Outbound Gateway</title>
