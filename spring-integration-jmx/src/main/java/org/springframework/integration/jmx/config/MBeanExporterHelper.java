@@ -21,7 +21,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.PriorityOrdered;
+import org.springframework.core.Ordered;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.util.StringUtils;
@@ -36,7 +36,7 @@ import org.springframework.util.StringUtils;
  * @since 2.1
  *
  */
-class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor, PriorityOrdered {
+class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor, Ordered {
 
 	private final static String EXCLUDED_BEANS_PROPERTY_NAME = "excludedBeans";
 	
@@ -79,6 +79,6 @@ class MBeanExporterHelper implements BeanFactoryPostProcessor, BeanPostProcessor
 	}
 
 	public int getOrder() {
-		return Integer.MIN_VALUE;
+		return Ordered.HIGHEST_PRECEDENCE;
 	}
 }

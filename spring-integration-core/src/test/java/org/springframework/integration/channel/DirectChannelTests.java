@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,27 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.util.ReflectionUtils;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -66,6 +73,55 @@ public class DirectChannelTests {
 		}, "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("test-thread", target.threadName);
+	}
+	
+	@Test //  See INT-2434
+	public void testChannelCreationWithBeanDefinitionOverrideTrue() throws Exception {
+		ClassPathXmlApplicationContext parentContext = new ClassPathXmlApplicationContext("parent-config.xml", this.getClass());
+		MessageChannel parentChannelA = parentContext.getBean("parentChannelA", MessageChannel.class);
+		MessageChannel parentChannelB = parentContext.getBean("parentChannelB", MessageChannel.class);
+
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
+		context.setAllowBeanDefinitionOverriding(false);
+		context.setConfigLocations(new String[]{"classpath:org/springframework/integration/channel/channel-override-config.xml"});
+		context.setParent(parentContext);
+		Method method = ReflectionUtils.findMethod(ClassPathXmlApplicationContext.class, "obtainFreshBeanFactory"); 
+		method.setAccessible(true);
+		method.invoke(context);
+		assertFalse(context.containsBean("channelA"));
+		assertFalse(context.containsBean("channelB"));
+		assertTrue(context.containsBean("channelC"));
+		assertTrue(context.containsBean("channelD"));
+
+		context.refresh();
+
+		PublishSubscribeChannel channelEarly = context.getBean("channelEarly", PublishSubscribeChannel.class);
+
+		assertTrue(context.containsBean("channelA"));
+		assertTrue(context.containsBean("channelB"));
+		assertTrue(context.containsBean("channelC"));
+		assertTrue(context.containsBean("channelD"));
+		EventDrivenConsumer consumerA = context.getBean("serviceA", EventDrivenConsumer.class);
+		assertEquals(context.getBean("channelA"), TestUtils.getPropertyValue(consumerA, "inputChannel"));
+		assertEquals(context.getBean("channelB"), TestUtils.getPropertyValue(consumerA, "handler.outputChannel"));
+
+		EventDrivenConsumer consumerB = context.getBean("serviceB", EventDrivenConsumer.class);
+		assertEquals(context.getBean("channelB"), TestUtils.getPropertyValue(consumerB, "inputChannel"));
+		assertEquals(context.getBean("channelC"), TestUtils.getPropertyValue(consumerB, "handler.outputChannel"));
+
+		EventDrivenConsumer consumerC = context.getBean("serviceC", EventDrivenConsumer.class);
+		assertEquals(context.getBean("channelC"), TestUtils.getPropertyValue(consumerC, "inputChannel"));
+		assertEquals(context.getBean("channelD"), TestUtils.getPropertyValue(consumerC, "handler.outputChannel"));
+
+		EventDrivenConsumer consumerD = context.getBean("serviceD", EventDrivenConsumer.class);
+		assertEquals(parentChannelA, TestUtils.getPropertyValue(consumerD, "inputChannel"));
+		assertEquals(parentChannelB, TestUtils.getPropertyValue(consumerD, "handler.outputChannel"));
+
+		EventDrivenConsumer consumerE = context.getBean("serviceE", EventDrivenConsumer.class);
+		assertEquals(parentChannelB, TestUtils.getPropertyValue(consumerE, "inputChannel"));
+
+		EventDrivenConsumer consumerF = context.getBean("serviceF", EventDrivenConsumer.class);
+		assertEquals(channelEarly, TestUtils.getPropertyValue(consumerF, "inputChannel"));
 	}
 
 
