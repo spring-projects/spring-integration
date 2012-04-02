@@ -1,25 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx"
 	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<import resource="common-context.xml" />
+	<int:inbound-channel-adapter channel="toControlBus" auto-startup="false"
+		expression="@integrationMbeanExporter.stopActiveComponents(false, 1000)" />
 
-	<int:channel id="input">
-		<int:queue />
-	</int:channel>
+	<int:channel id="toControlBus" />
 
-	<int:inbound-channel-adapter id="explicit" ref="service" method="execute" channel="input">
-		<int:poller fixed-rate="200" />
-	</int:inbound-channel-adapter>
+	<int:control-bus input-channel="toControlBus" />
 
-	<bean id="service" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$SimpleService" />
+	<int-jmx:mbean-export id="integrationMbeanExporter" shutdown-executor="shutdownExec"
+		default-domain="self-destruct" />
+
+	<context:mbean-server />
+
+	<int:poller default="true" fixed-delay="500" />
+
+	<task:executor id="shutdownExec" />
 
 	<bean id="activeChannel" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$ActiveChannelImpl" />
 
@@ -30,9 +36,5 @@
 	<bean id="nonSpringExecutor" class="java.util.concurrent.Executors" factory-method="newSingleThreadExecutor" />
 
 	<bean id="otherActiveComponent" class="org.springframework.integration.monitor.MBeanExporterIntegrationTests$OtherActiveComponent" />
-
-	<bean id="ignoreWrappedExecutor" class="org.springframework.core.task.support.ExecutorServiceAdapter">
-		<constructor-arg ref="someExecutor" />
-	</bean>
 
 </beans>
