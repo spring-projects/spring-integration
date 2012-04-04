@@ -44,7 +44,7 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 
 	private static final String VERSION = "2.1";
 
-	public static final String CHANNEL_INITIALIZER_BEAN_NAME = ChannelInitializer.class.getSimpleName();
+	public static final String CHANNEL_INITIALIZER_BEAN_NAME = "channelInitializer";
 
 	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME =
 			"DefaultConfiguringBeanFactoryPostProcessor";
