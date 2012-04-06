@@ -38,7 +38,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
-import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.message.GenericMessage;
@@ -82,18 +81,6 @@ public class RemoteFileOutboundGatewayTests {
 				out.getHeaders().get(FileHeaders.REMOTE_DIRECTORY));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
-	public void testMGetSession() throws Exception {
-		SessionFactory sessionFactory = mock(SessionFactory.class);
-		Session session = mock(Session.class);
-		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
-			(sessionFactory, "mget", "payload");
-		when(sessionFactory.getSession()).thenReturn(session);
-		gw.setLocalDirectory(new File(this.tmpDir ));
-		gw.afterPropertiesSet();
-		gw.handleRequestMessage(new GenericMessage<String>("testremote/*"));
-	}
-
 	@Test
 	public void testMGetWild() throws Exception {
 		SessionFactory sessionFactory = mock(SessionFactory.class);
@@ -103,7 +90,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
-		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
@@ -153,7 +140,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.setLocalDirectory(new File(this.tmpDir ));
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
-		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
@@ -204,7 +191,7 @@ public class RemoteFileOutboundGatewayTests {
 		gw.afterPropertiesSet();
 		new File(this.tmpDir + "/f1").delete();
 		new File(this.tmpDir + "/f2").delete();
-		when(sessionFactory.getSession()).thenReturn(new ExtendedSession() {
+		when(sessionFactory.getSession()).thenReturn(new Session() {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
@@ -416,7 +403,6 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-	
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
@@ -441,9 +427,11 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean isOpen() {
 				return open;
 			}
-
 			public boolean exists(String path) throws IOException {
 				return true;
+			}
+			public String[] listNames(String path) throws IOException {
+				return null;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -475,7 +463,6 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-			
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, modified.getTime(), "-rw-r--r--")
@@ -502,6 +489,9 @@ public class RemoteFileOutboundGatewayTests {
 			} 
 			public boolean exists(String path) throws IOException {
 				return true;
+			}
+			public String[] listNames(String path) throws IOException {
+				return null;
 			}
 		});
 		@SuppressWarnings("unchecked")
@@ -531,7 +521,6 @@ public class RemoteFileOutboundGatewayTests {
 			public boolean remove(String path) throws IOException {
 				return false;
 			}
-			
 			public TestLsEntry[] list(String path) throws IOException {
 				return new TestLsEntry[] {
 						new TestLsEntry("f1", 1234, false, false, 12345, "-rw-r--r--")
@@ -558,6 +547,9 @@ public class RemoteFileOutboundGatewayTests {
 			} 
 			public boolean exists(String path) throws IOException {
 				return true;
+			}
+			public String[] listNames(String path) throws IOException {
+				return null;
 			}
 		});
 		gw.handleRequestMessage(new GenericMessage<String>("f1"));
