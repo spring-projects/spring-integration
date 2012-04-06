@@ -35,7 +35,6 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
-import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -377,9 +376,11 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 
 	protected List<File> mGet(Session<F> session, String remoteDirectory,
 			String remoteFilename) throws IOException {
-		Assert.isInstanceOf(ExtendedSession.class, session, "mget failed - ");
 		String path = fixPath(remoteDirectory, remoteFilename);
-		String[] fileNames = ((ExtendedSession<F>) session).listNames(path);
+		String[] fileNames = session.listNames(path);
+		if (fileNames == null) {
+			fileNames = new String[0];
+		}
 		if (fileNames.length == 0 && this.options.contains(OPTION_EXCEPTION_WHEN_EMPTY)) {
 			throw new MessagingException("No files found at " + remoteDirectory
 					+ " with pattern " + remoteFilename);

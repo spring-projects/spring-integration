@@ -25,9 +25,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.NestedIOException;
-import org.springframework.integration.file.remote.session.ExtendedSession;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -48,7 +46,7 @@ import com.jcraft.jsch.SftpException;
  * @author Gary Russell
  * @since 2.0
  */
-class SftpSession implements ExtendedSession<LsEntry> {
+class SftpSession implements Session<LsEntry> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
