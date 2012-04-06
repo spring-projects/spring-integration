@@ -163,9 +163,9 @@ public abstract class AbstractRemoteFileOutboundGateway<F> extends AbstractReply
 				"command must be one of "
 						+ StringUtils
 								.collectionToCommaDelimitedString(this.supportedCommands));
-		// NOTE: Filter also not used on GET, need to correct in 2.2.
-		if (COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command)) {
-			Assert.isNull(this.filter, "Filters are not supported with the rm and mget commands");
+		if (COMMAND_RM.equals(this.command) || COMMAND_MGET.equals(this.command) ||
+				COMMAND_GET.equals(this.command)) {
+			Assert.isNull(this.filter, "Filters are not supported with the rm, get, and mget commands");
 		}
 		if (COMMAND_GET.equals(this.command)
 				|| COMMAND_MGET.equals(this.command)) {
