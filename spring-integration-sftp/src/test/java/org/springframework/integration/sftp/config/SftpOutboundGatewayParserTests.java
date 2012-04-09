@@ -75,7 +75,6 @@ public class SftpOutboundGatewayParserTests {
 		assertNotNull(TestUtils.getPropertyValue(gateway, "outputChannel"));
 		assertEquals(new File("/tmp"), TestUtils.getPropertyValue(gateway, "localDirectory"));
 		assertFalse((Boolean) TestUtils.getPropertyValue(gateway, "autoCreateLocalDirectory"));
-		assertNotNull(TestUtils.getPropertyValue(gateway, "filter"));
 		assertEquals("get", TestUtils.getPropertyValue(gateway, "command"));
 		@SuppressWarnings("unchecked")
 		Set<String> options = TestUtils.getPropertyValue(gateway, "options", Set.class);
