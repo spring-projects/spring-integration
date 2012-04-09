@@ -18,6 +18,7 @@ package org.springframework.integration.file.remote.gateway;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.file.filters.AbstractSimplePatternFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
@@ -60,6 +62,51 @@ public class RemoteFileOutboundGatewayTests {
 		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
 			(sessionFactory, "bad", "payload");
 		gw.afterPropertiesSet();
+	}
+
+	@Test
+	public void testBadFilterGet() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+				(sessionFactory, "get", "payload");
+		gw.setFilter(new TestPatternFilter(""));
+		try {
+			gw.onInit();
+			fail("Exception expected");
+		}
+		catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().startsWith("Filters are not supported"));
+		}
+	}
+
+	@Test
+	public void testBadFilterMGet() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+				(sessionFactory, "mget", "payload");
+		gw.setFilter(new TestPatternFilter(""));
+		try {
+			gw.onInit();
+			fail("Exception expected");
+		}
+		catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().startsWith("Filters are not supported"));
+		}
+	}
+
+	@Test
+	public void testBadFilterRm() throws Exception {
+		SessionFactory sessionFactory = mock(SessionFactory.class);
+		TestRemoteFileOutboundGateway gw = new TestRemoteFileOutboundGateway
+				(sessionFactory, "rm", "payload");
+		gw.setFilter(new TestPatternFilter(""));
+		try {
+			gw.onInit();
+			fail("Exception expected");
+		}
+		catch (IllegalArgumentException e) {
+			assertTrue(e.getMessage().startsWith("Filters are not supported"));
+		}
 	}
 
 	@Test
