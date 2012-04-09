@@ -35,7 +35,6 @@
 		auto-create-local-directory="false"
 		auto-startup="false"
 		cache-sessions="true"
-		filename-pattern="*"
 		remote-file-separator="X"
 		command="get"
 		command-options="-P"
