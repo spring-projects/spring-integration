@@ -16,16 +16,38 @@
 	<bean id="connectionFactory" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.springframework.amqp.rabbit.connection.ConnectionFactory"/>
 	</bean>
-	
-	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel" 
+
+	<amqp:outbound-channel-adapter id="withHeaderMapperCustomHeaders" channel="requestChannel"
 								   exchange-name="outboundchanneladapter.test.1"
 								   mapped-request-headers="foo*"/>
 								   
-    <int:channel id="requestChannel"/>
+	<int:channel id="requestChannel"/>
 
 	<int:chain id="chainWithRabbitOutbound" input-channel="amqpOutboundChannelAdapterWithinChain">
 		<amqp:outbound-channel-adapter exchange-name="outboundchanneladapter.test.1"/>
 	</int:chain>
 
+	<amqp:outbound-channel-adapter id="withPublisherConfirms" channel="pcRequestChannel"
+								   exchange-name="outboundchanneladapter.test.1"
+								   mapped-request-headers="foo*"
+								   confirm-correlation-expression="headers['amqp_confirmCorrelationData']"
+								   confirm-ack-channel="ackChannel"/>
+
+	<int:channel id="pcRequestChannel"/>
+
+	<int:channel id="ackChannel">
+		<int:queue/>
+	</int:channel>
+
+	<amqp:outbound-channel-adapter id="withReturns" channel="returnRequestChannel"
+								   exchange-name="outboundchanneladapter.test.1"
+								   mapped-request-headers="foo*"
+								   return-channel="returnChannel"/>
+
+	<int:channel id="returnRequestChannel"/>
+
+	<int:channel id="returnChannel">
+		<int:queue/>
+	</int:channel>
 
 </beans>

@@ -18,6 +18,7 @@ package org.springframework.integration.amqp;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.Connection;
@@ -134,6 +135,7 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void abort(int closeCode, String closeMessage) throws IOException {
 		}
 
+		@SuppressWarnings("unused")
 		public ReturnListener getReturnListener() {
 			return null;
 		}
@@ -141,17 +143,21 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 		public void addReturnListener(ReturnListener listener) {
 		}
 
+		@SuppressWarnings("unused")
 		public FlowListener getFlowListener() {
 			return null;
 		}
 
+		@SuppressWarnings("unused")
 		public void setFlowListener(FlowListener listener) {
 		}
 
+		@SuppressWarnings("unused")
 		public ConfirmListener getConfirmListener() {
 			return null;
 		}
 
+		@SuppressWarnings("unused")
 		public void setConfirmListener(ConfirmListener listener) {
 		}
 
@@ -393,6 +399,15 @@ public class StubRabbitConnectionFactory implements ConnectionFactory {
 
 		public void waitForConfirmsOrDie() throws IOException,
 				InterruptedException {
+		}
+
+		public boolean waitForConfirms(long timeout)
+				throws InterruptedException, TimeoutException {
+			return false;
+		}
+
+		public void waitForConfirmsOrDie(long timeout) throws IOException,
+				InterruptedException, TimeoutException {
 		}
 	}
 

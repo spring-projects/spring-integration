@@ -20,12 +20,16 @@ import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnCallback;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.amqp.AmqpHeaders;
 import org.springframework.integration.amqp.support.AmqpHeaderMapper;
 import org.springframework.integration.amqp.support.DefaultAmqpHeaderMapper;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -41,7 +45,8 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.1
  */
-public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
+public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler
+	implements RabbitTemplate.ConfirmCallback, ReturnCallback {
 
 	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -64,11 +69,23 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
 
+	private volatile String confirmCorrelationExpression;
+
+	private volatile ExpressionEvaluatingMessageProcessor<Object> correlationDataGenerator;
+
+	private volatile MessageChannel confirmAckChannel;
+
+	private volatile MessageChannel confirmNackChannel;
+
+	private volatile MessageChannel returnChannel;
+
 	@Override
 	protected void onInit() {
 		super.onInit();
 		Assert.state(exchangeNameExpression == null || "".equals(exchangeName),
 				"Either an exchangeName or an exchangeNameExpression can be provided, but not both");
+		Assert.state(this.confirmCorrelationExpression != null ? !this.expectReply : true,
+				"Confirm correlation expression does not apply to a gateway");
 		if (exchangeNameExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.exchangeNameExpression);
 			this.exchangeNameGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
@@ -78,6 +95,16 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		if (routingKeyExpression != null) {
 			Expression expression = expressionParser.parseExpression(this.routingKeyExpression);
 			this.routingKeyGenerator = new ExpressionEvaluatingMessageProcessor<String>(expression, String.class);
+		}
+		if (this.confirmCorrelationExpression != null) {
+			Expression expression = expressionParser.parseExpression(this.confirmCorrelationExpression);
+			this.correlationDataGenerator = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
+			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher confirms");
+			((RabbitTemplate) this.amqpTemplate).setConfirmCallback(this);
+		}
+		if (this.returnChannel != null) {
+			Assert.isTrue(amqpTemplate instanceof RabbitTemplate, "RabbitTemplate implementation is required for publisher returns");
+			((RabbitTemplate) this.amqpTemplate).setReturnCallback(this);
 		}
 	}
 
@@ -110,6 +137,22 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		this.expectReply = expectReply;
 	}
 
+	public void setConfirmCorrelationExpression(String confirmCorrelationExpression) {
+		this.confirmCorrelationExpression = confirmCorrelationExpression;
+	}
+
+	public void setConfirmAckChannel(MessageChannel ackChannel) {
+		this.confirmAckChannel = ackChannel;
+	}
+
+	public void setConfirmNackChannel(MessageChannel nackChannel) {
+		this.confirmNackChannel = nackChannel;
+	}
+
+	public void setReturnChannel(MessageChannel returnChannel) {
+		this.returnChannel = returnChannel;
+	}
+
 	@Override
 	public String getComponentType() {
 		return expectReply ? "amqp:outbound-gateway" : "amqp:outbound-channel-adapter";
@@ -119,6 +162,19 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		String exchangeName = this.exchangeName;
 		String routingKey = this.routingKey;
+		CorrelationData correlationData = null;
+		if (this.correlationDataGenerator != null) {
+			Object userCorrelationData = this.correlationDataGenerator
+					.processMessage(requestMessage);
+			if (userCorrelationData != null) {
+				if (userCorrelationData instanceof CorrelationData) {
+					correlationData = (CorrelationData) userCorrelationData;
+				} else {
+					correlationData = new CorrelationDataWrapper(requestMessage
+							.getHeaders().getId().toString(), userCorrelationData);
+				}
+			}
+		}
 		if (this.exchangeNameGenerator != null) {
 			exchangeName = this.exchangeNameGenerator.processMessage(requestMessage);
 		}
@@ -129,20 +185,34 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 			return this.sendAndReceive(exchangeName, routingKey, requestMessage);
 		}
 		else {
-			this.send(exchangeName, routingKey, requestMessage);
+			this.send(exchangeName, routingKey, requestMessage, correlationData);
 			return null;
 		}
 	}
 
-	private void send(String exchangeName, String routingKey, final Message<?> requestMessage) {
-		this.amqpTemplate.convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
-				new MessagePostProcessor() {
-					public org.springframework.amqp.core.Message postProcessMessage(
-							org.springframework.amqp.core.Message message) throws AmqpException {
-						headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
-						return message;
-					}
-				});
+	private void send(String exchangeName, String routingKey,
+			final Message<?> requestMessage, CorrelationData correlationData) {
+		if (this.amqpTemplate instanceof RabbitTemplate) {
+			((RabbitTemplate) this.amqpTemplate).convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
+					new MessagePostProcessor() {
+						public org.springframework.amqp.core.Message postProcessMessage(
+								org.springframework.amqp.core.Message message) throws AmqpException {
+							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
+							return message;
+						}
+					},
+					correlationData);
+		}
+		else {
+			this.amqpTemplate.convertAndSend(exchangeName, routingKey, requestMessage.getPayload(),
+					new MessagePostProcessor() {
+						public org.springframework.amqp.core.Message postProcessMessage(
+								org.springframework.amqp.core.Message message) throws AmqpException {
+							headerMapper.fromHeadersToRequest(requestMessage.getHeaders(), message.getMessageProperties());
+							return message;
+						}
+					});
+		}
 	}
 
 	private Message<?> sendAndReceive(String exchangeName, String routingKey, Message<?> requestMessage) {
@@ -165,4 +235,58 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		return builder.build();
 	}
 
+	public void confirm(CorrelationData correlationData, boolean ack) {
+		Object userCorrelationData = correlationData;
+		if (correlationData instanceof CorrelationDataWrapper) {
+			userCorrelationData = ((CorrelationDataWrapper) correlationData).getUserData();
+		}
+		Message<Object> confirmMessage = MessageBuilder.withPayload(userCorrelationData)
+				.setHeader(AmqpHeaders.PUBLISH_CONFIRM, ack)
+				.build();
+		if (ack && this.confirmAckChannel != null) {
+			this.confirmAckChannel.send(confirmMessage);
+		}
+		else if (!ack && this.confirmNackChannel != null) {
+			this.confirmNackChannel.send(confirmMessage);
+		}
+		else {
+			if (logger.isInfoEnabled()) {
+				logger.info("Nowhere to send publisher confirm "
+						+ (ack ? "ack" : "nack") + " for "
+						+ userCorrelationData);
+			}
+		}
+	}
+
+	public static class CorrelationDataWrapper extends CorrelationData {
+
+		private final Object userData;
+
+		public CorrelationDataWrapper(String id, Object userData) {
+			super(id);
+			this.userData = userData;
+		}
+
+		public Object getUserData() {
+			return userData;
+		}
+
+	}
+
+	public void returnedMessage(org.springframework.amqp.core.Message message, int replyCode, String replyText,
+			String exchange, String routingKey) {
+		// safe to cast; we asserted we have a RabbitTemplate in onInit()
+		MessageConverter converter = ((RabbitTemplate) this.amqpTemplate).getMessageConverter();
+		Object returnedObject = converter.fromMessage(message);
+		MessageBuilder<?> builder = (returnedObject instanceof Message)
+				? MessageBuilder.fromMessage((Message<?>) returnedObject)
+				: MessageBuilder.withPayload(returnedObject);
+		Map<String, ?> headers = this.headerMapper.toHeadersFromReply(message.getMessageProperties());
+		builder.copyHeadersIfAbsent(headers)
+			.setHeader(AmqpHeaders.RETURN_REPLY_CODE, replyCode)
+			.setHeader(AmqpHeaders.RETURN_REPLY_TEXT, replyText)
+			.setHeader(AmqpHeaders.RETURN_EXCHANGE, exchange)
+			.setHeader(AmqpHeaders.RETURN_ROUTING_KEY, routingKey);
+		this.returnChannel.send(builder.build());
+	}
 }

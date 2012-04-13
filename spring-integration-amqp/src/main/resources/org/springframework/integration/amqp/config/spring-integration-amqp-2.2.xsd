@@ -18,91 +18,75 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Unique ID for this adapter.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
-	If this attribute is not provided, the ID will be used to create a new DirectChannel, and then instead of using that
-	ID as the bean name of the EventDrivenConsumer instance that hosts the MessageHandler responsible for publishing the
-	AMQP Messages, that EventDrivenConsumer's bean name will be the ID plus the added suffix: ".adapter"
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="exchange-name" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The fixed name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="exchange-name-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The exchange name to use when sending Messages evaluated as an expression on the message (e.g. 'headers.exchange'). By default, this will be an emtpy String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="routing-key" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The fixed routing-key to use when sending Messages. By default, this will be an empty String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="routing-key-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The routing-key to use when sending Messages evaluated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="amqp-template" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="order" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover. 
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="header-mapper" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="mapped-request-headers" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
-Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
-This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-						]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
+			<xsd:complexContent>
+				<xsd:extension base="outboundType">
+					<xsd:attribute name="id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Unique ID for this adapter.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+			If this attribute is not provided, the ID will be used to create a new DirectChannel, and then instead of using that
+			ID as the bean name of the EventDrivenConsumer instance that hosts the MessageHandler responsible for publishing the
+			AMQP Messages, that EventDrivenConsumer's bean name will be the ID plus the added suffix: ".adapter"
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="confirm-correlation-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+			Expression for correlating publisher confirms to sent messages. The Rabbit API only correlates confirms
+			to a channel; this is used to further correlate a confirm to a message. An example is
+			"headers['amqp_confirmCorrelationData']", assuming that header contains the data.
+			Messages that do not have correlation data do not generate publisher confirm messages.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="confirm-ack-channel" type="xsd:string" default="nullChannel">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+			Channel to which positive publisher confirms will be sent; the payload will be the correlation data from
+			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value true.
+			Requires a connection factory that is configured to request publisher confirms. Default
+			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
+			connection factory that is configured to request them.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="confirm-nack-channel" type="xsd:string" default="nullChannel">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+			Channel to which negative publisher confirms will be sent; the payload will be the correlation data from
+			the sent message. The message will also contain a header 'amqp_publishConfirm' with a value false.
+			Requires a connection factory that is configured to request publisher confirms. Default
+			is nullChannel in case an adapter doesn't want to use publisher confirms, but is using a
+			connection factory that is configured to request them.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -142,112 +126,54 @@ this list can also be simple patterns to be matched against the header names (e.
             </xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Unique ID for this gateway.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="request-channel" use="required" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="reply-channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Message Channel to which replies should be sent after being received from an AQMP Queue and converted.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.integration.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="exchange-name" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="exchange-name-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The exchange name to use when sending Messages evaluated as an expression on the message (e.g. 'headers.exchange'). By default, this will be an emtpy String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="routing-key" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The routing-key to use when sending Messages. By default, this will be an empty String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="routing-key-expression" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The routing-key to use when sending Messages evealuated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="amqp-template" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="order" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover. 
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="header-mapper" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="mapped-request-headers" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
-This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-						]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="mapped-reply-headers" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[							
-    Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
-	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property 
-	which itself is a Map.
-	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
-	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
-						]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:complexContent>
+				<xsd:extension base="outboundType">
+					<xsd:attribute name="id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Unique ID for this gateway.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-channel" use="required" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Message Channel to which Messages should be sent in order to have them converted and published to an AMQP Exchange.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+			Message Channel to which replies should be sent after being received from an AQMP Queue and converted.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="mapped-reply-headers" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+			Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
+			All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property
+			which itself is a Map.
+			This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+			this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+								]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -287,9 +213,9 @@ this list can also be simple patterns to be matched against the header names (e.
 					</xsd:attribute>
 					<xsd:attribute name="mapped-reply-headers" type="xsd:string">
 						<xsd:annotation>
-							<xsd:documentation><![CDATA[							
+							<xsd:documentation><![CDATA[
 	Comma-separated list of names of MessageHeaders to be mapped into the AMQP Message Properties of the AMQP reply message.
-	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property 
+	All standard Headers (e.g., contentType) will be mapped to AMQP Message Properties while user-defined headers will be mapped to 'headers' property
 	which itself is a Map.
 	This can only be provided if the 'header-mapper' reference is not being set directly. The values in
 	this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
@@ -365,7 +291,7 @@ this list can also be simple patterns to be matched against the header names (e.
 	Reference to a FanoutExchange instance to which this channel should send Messages. If not provided,
 	a FanoutExchange will be declared with this channel's name prefixed by "si.fanout.".
 	A Queue will be declared automatically and bound to that exchange to handle the consumer role
-	of this channel. 
+	of this channel.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -410,6 +336,88 @@ this list can also be simple patterns to be matched against the header names (e.
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attributeGroup ref="containerAndTemplateAttributes"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="outboundType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for the 'outbound-channel-adapter' and 'outbound-gateway' elements.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="exchange-name" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+The fixed name of the AMQP Exchange to which Messages should be sent. If not provided, Messages will be sent to the default, no-name Exchange.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="exchange-name-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+The exchange name to use when sending Messages evaluated as an expression on the message (e.g. 'headers.exchange'). By default, this will be an emtpy String.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="routing-key" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+The fixed routing-key to use when sending Messages. By default, this will be an empty String.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="routing-key-expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+The routing-key to use when sending Messages evaluated as an expression on the message (e.g. 'payload.key'). By default, this will be an empty String.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="amqp-template" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.amqp.core.AmqpTemplate" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="order" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+The order for this consumer when multiple consumers are registered thereby enabling load-balancing and/or failover.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="header-mapper" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="mapped-request-headers" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Comma-separated list of names of AMQP Headers to be mapped from the AMQP request into the MessageHeaders.
+This can only be provided if the 'header-mapper' reference is not being set directly. The values in
+this list can also be simple patterns to be matched against the header names (e.g. "foo*" or "*foo").
+						]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="return-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+Channel to which returned messages will be sent.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="inboundType">
@@ -527,7 +535,7 @@ this list can also be simple patterns to be matched against the header names (e.
 		<xsd:attribute name="connection-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Reference to the Rabbit ConnectionFactory to be used by this component.	
+	Reference to the Rabbit ConnectionFactory to be used by this component.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -583,7 +591,7 @@ this list can also be simple patterns to be matched against the header names (e.
 	<xsd:attributeGroup name="containerOnlyAttributes">
 		<xsd:annotation>
 			<xsd:documentation>
-	Attributes for a SimpleMesssageListenerContainer's properties other than queues, queueNames, messageListener, and 
+	Attributes for a SimpleMesssageListenerContainer's properties other than queues, queueNames, messageListener, and
 	autoStartup which may or may not be exposed for configuration depending on what type of component uses this attribute group.
 	This group also does not include any of the properties that are shared with RabbitTemplate, such as channelTransacted,
 	connectionFactory, and messsagePropertiesConverter.
@@ -692,7 +700,7 @@ this list can also be simple patterns to be matched against the header names (e.
 					</xsd:documentation>
 				</xsd:appinfo>
 			</xsd:annotation>
-		</xsd:attribute>	
+		</xsd:attribute>
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
